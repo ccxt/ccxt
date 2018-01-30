@@ -15,10 +15,10 @@ describe ('ccxt base code', () => {
 
 /*  ------------------------------------------------------------------------ */
 
-    require ('./base/test.generic')
-    require ('./base/test.number')
-    require ('./base/test.time')
-    require ('./base/test.type')
+    require ('./functions/test.generic')
+    require ('./functions/test.number')
+    require ('./functions/test.time')
+    require ('./functions/test.type')
 
 /*  ------------------------------------------------------------------------ */
 
