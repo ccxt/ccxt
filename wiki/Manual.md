@@ -1795,7 +1795,10 @@ Below is an outline of exception inheritance hierarchy:
 - `InvalidOrder`: This exception is the base class for all exceptions related to the unified order API.
     - `OrderNotFound`: Raised when you are trying to fetch or cancel a non-existent order.
 - `AuthenticationError`: Raised when an exchange requires one of the API credentials that you've missed to specify, or when there's a mistake in the keypair or an outdated nonce. Most of the time you need `apiKey` and `secret`, some times you also need `uid` and/or `password`.
-- `InvalidNonce`: Raised when the nonce is required but your version of nonce is outdated (exchange version moved ahead). Usually it happens when you access API through different instances.
+- `InvalidNonce`: Raised when your nonce is less than the previous nonce used with your keypair, as described in the [Authentication](https://github.com/ccxt/ccxt/wiki/Manual#authentication) section. This type of exception is thrown in these cases (in order of precedence for checking):
+    - Your API keys are not fresh and new (have been used with some different software or script already).
+    - The same keypair is shared across multiple instances of the exchange class (for example, in a multithreaded environment or in separate processes).
+    - Your system clock is out of synch. System time should be synched with UTC in a non-DST timezone at a rate of once every ten minutes or even more frequently because of the clock drifting. **Enabling time synch in Windows is usually not enough!** You have to set it up with the OS Registry (Google *"time synch frequency"* for your OS).
 - `NetworkError`: All errors related to networking are usually recoverable, meaning that networking problems, traffic congestion, unavailability is usually time-dependent. Making a retry later is usually enough to recover from a NetworkError, but if it doesn't go away, then it may indicate some persistent problem with the exchange or with your connection.
     - `DDoSProtection`: This exception is thrown whenever Cloudflare or Incapsula rate limiter restrictions are enforced per user or region/location. The ccxt library does a case-insensitive search in the response received from the exchange for one of the following keywords:
         - `cloudflare`
