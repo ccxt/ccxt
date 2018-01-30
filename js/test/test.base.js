@@ -7,7 +7,7 @@ global.log = require ('ololog') // for easier debugging
 /*  ------------------------------------------------------------------------ */
 
 const { Exchange, keys, values, unique, index, aggregate } = require ('../../ccxt')
-const { equal, strictEqual, deepEqual } = require ('assert')
+const { strictEqual: equal, deepEqual } = require ('assert')
 
 /*  ------------------------------------------------------------------------ */
 
@@ -223,9 +223,9 @@ describe ('ccxt base code', () => {
                                 }
                             })
 
-        strictEqual (exchange.hasCORS, true)
-        strictEqual (exchange.hasPublicAPI, false)
-        strictEqual (exchange.hasFetchDepositAddress, true)
+        equal (exchange.hasCORS, true)
+        equal (exchange.hasPublicAPI, false)
+        equal (exchange.hasFetchDepositAddress, true)
     })
 })
 

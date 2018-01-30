@@ -15,40 +15,40 @@ it ('safeFloat/safeInteger is robust', async () => {
 
     for (const fn of ['safeFloat', 'safeInteger']) {
 
-        equals (fns[fn] ({ 'x': false }, 'x', $default), $default)
-        equals (fns[fn] ({ 'x': true }, 'x', $default), $default)
-        equals (fns[fn] ({ 'x': [] }, 'x', $default), $default)
-        equals (fns[fn] ({ 'x': [0] }, 'x', $default), $default)
-        equals (fns[fn] ({ 'x': [1] }, 'x', $default), $default)
-        equals (fns[fn] ({ 'x': {} }, 'x', $default), $default)
-        equals (fns[fn] ({ 'x': Number.NaN }, 'x'), undefined)
-        equals (fns[fn] ({ 'x': Number.POSITIVE_INFINITY }, 'x'), undefined)
-        equals (fns[fn] ({ 'x': null }, 'x', undefined), undefined)
-        equals (fns[fn] ({ 'x': null }, 'x', $default), $default)
-        equals (fns[fn] ({ 'x': '1.0' }, 'x'), 1.0)
-        equals (fns[fn] ({ 'x': '-1.0' }, 'x'), -1.0)
-        equals (fns[fn] ({ 'x': 1.0 }, 'x'), 1.0)
-        equals (fns[fn] ({ 'x': 0 }, 'x'), 0)
-        equals (fns[fn] ({ 'x': undefined }, 'x', $default), $default)
-        equals (fns[fn] ({ 'x': "" }, 'x'), undefined)
-        equals (fns[fn] ({ 'x': "" }, 'x', 0), 0)
-        equals (fns[fn] ({}, 'x'), undefined)
-        equals (fns[fn] ({}, 'x', 0), 0)
+        equal (fns[fn] ({ 'x': false }, 'x', $default), $default)
+        equal (fns[fn] ({ 'x': true }, 'x', $default), $default)
+        equal (fns[fn] ({ 'x': [] }, 'x', $default), $default)
+        equal (fns[fn] ({ 'x': [0] }, 'x', $default), $default)
+        equal (fns[fn] ({ 'x': [1] }, 'x', $default), $default)
+        equal (fns[fn] ({ 'x': {} }, 'x', $default), $default)
+        equal (fns[fn] ({ 'x': Number.NaN }, 'x'), undefined)
+        equal (fns[fn] ({ 'x': Number.POSITIVE_INFINITY }, 'x'), undefined)
+        equal (fns[fn] ({ 'x': null }, 'x', undefined), undefined)
+        equal (fns[fn] ({ 'x': null }, 'x', $default), $default)
+        equal (fns[fn] ({ 'x': '1.0' }, 'x'), 1.0)
+        equal (fns[fn] ({ 'x': '-1.0' }, 'x'), -1.0)
+        equal (fns[fn] ({ 'x': 1.0 }, 'x'), 1.0)
+        equal (fns[fn] ({ 'x': 0 }, 'x'), 0)
+        equal (fns[fn] ({ 'x': undefined }, 'x', $default), $default)
+        equal (fns[fn] ({ 'x': "" }, 'x'), undefined)
+        equal (fns[fn] ({ 'x': "" }, 'x', 0), 0)
+        equal (fns[fn] ({}, 'x'), undefined)
+        equal (fns[fn] ({}, 'x', 0), 0)
     }
 
-    equals (safeFloat   ({ 'x': 1.59999999 }, 'x'), 1.59999999)
-    equals (safeInteger ({ 'x': 1.59999999 }, 'x'), 1)
+    equal (safeFloat   ({ 'x': 1.59999999 }, 'x'), 1.59999999)
+    equal (safeInteger ({ 'x': 1.59999999 }, 'x'), 1)
 })
 
 /*  ------------------------------------------------------------------------ */
 
 it ('safeValue works', () => {
 
-    equals (safeValue ({}, 'foo'), undefined)
-    equals (safeValue ({}, 'foo', 'bar'), 'bar')
-    equals (safeValue ({ 'foo': 'bar' }, 'foo'), 'bar')
-    equals (safeValue ({ 'foo': '' }, 'foo'), '')
-    equals (safeValue ({ 'foo': 0 }, 'foo'), 0)
+    equal (safeValue ({}, 'foo'), undefined)
+    equal (safeValue ({}, 'foo', 'bar'), 'bar')
+    equal (safeValue ({ 'foo': 'bar' }, 'foo'), 'bar')
+    equal (safeValue ({ 'foo': '' }, 'foo'), '')
+    equal (safeValue ({ 'foo': 0 }, 'foo'), 0)
 })
 
 /*  ------------------------------------------------------------------------ */
