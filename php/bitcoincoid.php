@@ -285,6 +285,8 @@ class bitcoincoid extends Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        if ($type === 'limit')
+            throw new ExchangeError ($this->id . ' allows limit orders only');
         $this->load_markets();
         $market = $this->market ($symbol);
         $order = array (
@@ -292,8 +294,13 @@ class bitcoincoid extends Exchange {
             'type' => $side,
             'price' => $price,
         );
-        $base = $market['baseId'];
-        $order[$base] = $amount;
+        $currency = $market['baseId'];
+        if ($side === 'buy') {
+            $order[$market['quoteId']] = $amount * $price;
+        } else {
+            $order[$market['baseId']] = $amount;
+        }
+        $order[$currency] = $amount;
         $result = $this->privatePostTrade (array_merge ($order, $params));
         return array (
             'info' => $result,

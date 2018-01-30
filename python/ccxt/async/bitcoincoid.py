@@ -272,6 +272,8 @@ class bitcoincoid (Exchange):
         return orders
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        if type == 'limit':
+            raise ExchangeError(self.id + ' allows limit orders only')
         await self.load_markets()
         market = self.market(symbol)
         order = {
@@ -279,8 +281,12 @@ class bitcoincoid (Exchange):
             'type': side,
             'price': price,
         }
-        base = market['baseId']
-        order[base] = amount
+        currency = market['baseId']
+        if side == 'buy':
+            order[market['quoteId']] = amount * price
+        else:
+            order[market['baseId']] = amount
+        order[currency] = amount
         result = await self.privatePostTrade(self.extend(order, params))
         return {
             'info': result,
