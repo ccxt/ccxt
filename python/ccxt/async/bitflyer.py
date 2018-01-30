@@ -240,8 +240,10 @@ class bitflyer (Exchange):
         if api == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())
-            body = self.json(params)
-            auth = ''.join([nonce, method, request, body])
+            auth = ''.join([nonce, method, request])
+            if params:
+                body = self.json(params)
+                auth += body
             headers = {
                 'ACCESS-KEY': self.apiKey,
                 'ACCESS-TIMESTAMP': nonce,
