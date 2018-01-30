@@ -119,7 +119,10 @@ module.exports = class Exchange {
                     'deposit': undefined,
                 },
             },
+            'parseJsonResponse': true, // whether a reply is required to be in JSON or not
+            'skipJsonOnStatusCodes': [], // array of http status codes which override requirement for JSON response
             'exceptions': undefined,
+            'parseBalanceFromOpenOrders': false, // some exchanges return balance updates from order API endpoints
         } // return
     } // describe ()
 
@@ -157,9 +160,7 @@ module.exports = class Exchange {
         this.microseconds     = () => now () * 1000 // TODO: utilize performance.now for that purpose
         this.seconds          = () => Math.floor (now () / 1000)
 
-        this.parseJsonResponse             = true  // whether a reply is required to be in JSON or not
         this.substituteCommonCurrencyCodes = true  // reserved
-        this.parseBalanceFromOpenOrders    = false // some exchanges return balance updates from order API endpoints
 
         // do not delete this line, it is needed for users to be able to define their own fetchImplementation
         this.fetchImplementation = defaultFetch
@@ -442,7 +443,8 @@ module.exports = class Exchange {
 
         return response.text ().then (responseBody => {
 
-            let json = this.parseJsonResponse ? this.parseJson (responseBody, url, method) : undefined
+            let jsonRequired = this.parseJsonResponse && !this.skipJsonOnStatusCodes.includes (response.status)
+            let json = jsonRequired ? this.parseJson (responseBody, url, method) : undefined
 
             if (this.verbose)
                 console.log ("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, "\nResponse:\n", requestHeaders, "\n", responseBody, "\n")
@@ -454,7 +456,7 @@ module.exports = class Exchange {
             this.handleErrors (...args)
             this.defaultErrorHandler (response.status, response.statusText, url, method, responseBody)
 
-            return this.parseJsonResponse ? json : responseBody
+            return jsonRequired ? json : responseBody
         })
     }
 
