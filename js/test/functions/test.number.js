@@ -2,28 +2,27 @@
 
 /*  ------------------------------------------------------------------------ */
 
-const { truncate, padWithZeroes, roundDecimalString, toPrecision, amountToLots } = require ('../../../ccxt')
-const { equal, strictEqual }  = require ('assert')
+const { truncNumber, padWithZeroes, roundDecimalString, toPrecision, amountToLots } = require ('../../../ccxt')
+const { equal, strictEqual, throws }  = require ('assert')
 
 /*  ------------------------------------------------------------------------ */
 
-it ('truncate() works', () => {
+it ('truncNumber() works', () => {
 
-    equal (truncate (0, 0), 0)
-    equal (truncate (-17.56,   2), -17.56)
-    equal (truncate ( 17.56,   2),  17.56)
-    equal (truncate (-17.569,  2), -17.56)
-    equal (truncate ( 17.569,  2),  17.56)
-    equal (truncate (49.9999,  4), 49.9999)
-    equal (truncate (49.99999, 4), 49.9999)
-    equal (truncate (1.670006528897705e-10, 4), 0)
+    throws (() => truncNumber (0, { digits: 0 }), Error)
+
+    equal (truncNumber (-17.56,                { digits: 2 }), '-17.56')
+    equal (truncNumber ( 17.56,                { digits: 2 }),  '17.56')
+    equal (truncNumber (-17.569,               { digits: 2 }), '-17.56')
+    equal (truncNumber ( 17.569,               { digits: 2 }),  '17.56')
+    equal (truncNumber (49.9999,               { digits: 4 }),  '49.9999')
+    equal (truncNumber (49.99999,              { digits: 4 }),  '49.9999')
+    equal (truncNumber (1.670006528897705e-10, { digits: 4 }),  '0')
 })
 
 /*  ------------------------------------------------------------------------ */
 
 it ('padWithZeros (from number.js) works', () => {
-
-    const { padWithZeroes } = require ('../base/functions/number')
 
     strictEqual (padWithZeroes ('123.45',  -5),  '123.45')
     strictEqual (padWithZeroes ('123.45',   0),  '123.45')
@@ -36,8 +35,6 @@ it ('padWithZeros (from number.js) works', () => {
 /*  ------------------------------------------------------------------------ */
 
 it ('roundDecimalString works', () => {
-
-    const { toPrecision, truncate, roundDecimalString } = require ('../base/functions/number')
 
     strictEqual (roundDecimalString ('1234567890', 100), '1234567890')
     strictEqual (roundDecimalString ('1234567890', 10),  '1234567890')

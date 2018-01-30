@@ -127,6 +127,7 @@ const toPrecision = (x, { round = true, digits = 8, fixed = true }) => round ? r
 module.exports = {
  
     decimal,
+    truncNumber,
     numberToString,
     toPrecision,
     padWithZeroes,

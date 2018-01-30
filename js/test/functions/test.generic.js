@@ -120,11 +120,10 @@ it ('omit works', () => {
 
 it ('sum works', () => {
 
-    strictEqual (sum (), undefined)
-
-    sum (2).should.equal (2)
-    sum (2,30,400).should.equal (432)
-    sum (2,undefined,[88],30,'7',400,null).should.equal (432)
+    strictEqual (undefined, sum ())
+    strictEqual (2,         sum (2))
+    strictEqual (432,       sum (2,30,400))
+    strictEqual (432,       sum (2, undefined, [88], 30, '7', 400, null))
 })
 
 /*  ------------------------------------------------------------------------ */
