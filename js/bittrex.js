@@ -242,7 +242,11 @@ module.exports = class bittrex extends Exchange {
             symbol = market['symbol'];
         let previous = this.safeFloat (ticker, 'PrevDay');
         let last = this.safeFloat (ticker, 'Last');
-        let change = (last - previous) / previous;
+        let change = undefined;
+        if (typeof last !== 'undefined')
+            if (typeof previous !== 'undefined')
+                if (previous > 0)
+                    change = (last - previous) / previous;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
