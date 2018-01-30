@@ -500,6 +500,10 @@ class Exchange(object):
                     result = {}
                 for key in arg:
                     result[key] = Exchange.deep_extend(result[key] if key in result else None, arg[key])
+            elif isinstance(arg, list) and all(isinstance(arg, list) for arg in args):
+                result = []
+                for l in args:
+                    result.extend(l)
             else:
                 result = arg
         return result
