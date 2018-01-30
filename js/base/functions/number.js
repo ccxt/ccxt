@@ -2,9 +2,28 @@
 
 const { isString, isNumber } = require ('./type')
 
-/*  ------------------------------------------------------------------------ */
+/*  ------------------------------------------------------------------------
 
-const decimal = float => parseFloat (float).toString ()
+    NB: initially, I used objects for options passing:
+
+            decimalStringToPrecision ('123.456', 2, { round: true, afterPoint: true })
+
+    ...but it turns out that it's hard to port that across different languages and it
+       probably has a performance penalty -- while it's a performance critical code! So
+       I switched to using named constants instead, as it is actually more readable and
+       succint, and surely doesn't come with any inherent performance penalty:
+
+            decimalStringToPrecision ('123.456', 2, ROUND, AFTER_POINT)                     */
+
+
+const ROUND    = 0              // rounding mode
+    , TRUNCATE = 1
+
+const ALL_SIGNIFICANT = 0       // digits counting mode
+    , AFTER_POINT     = 1
+
+const NO_PADDING     = 0        // zero-padding mode
+    , PAD_WITH_ZEROS = 1
 
 /*  ------------------------------------------------------------------------ */
 
@@ -33,35 +52,49 @@ function numberToString (x) { // avoid scientific notation for too large and too
 
 /*  ------------------------------------------------------------------------ */
 
-const padWithZeroes = (x, digits = 0) => {
+const decimalToPrecision = (x, numDigits
+                             , roundingMode
+                             , digitsCountingMode
+                             , paddingMode) => { 
 
-    const [int, frac = ''] = x.split ('.')
+    const str = numberToString (x)
 
-    return int + ((frac || (digits > 0))
-                        ? ('.' + frac.padEnd (digits, '0'))
-                        : '')
-}
-
-/*  ------------------------------------------------------------------------ */
-
-const roundDecimalString = (s, to, afterDot = false) => { 
-
-    const digits = Array.from (s)
+    const digits = Array.from (str)
     const result = []
-    const dot = s.indexOf ('.')
+
+    const dotAt = digits.indexOf ('.')
+
+    // let dotAt = -1
+
+    // for (let i = 0, n = digits.length; i < n; i++) {
+
+    //     const d = digits[i]
+
+    //     if (d === '.') {
+    //         if (dotAt >= 0) throw new Error ('invalid number (contains multiple dots)')
+    //         else dotAt = i
+    //     } else if (d !== '0') {
+    //         const code = d.charCodeAt (0)
+    //         if ((code < 48) || (code > 57)) throw new Error ('invalid number (contains illegal characters)')
+    //     }
+    // }
 
     let memo = 0
-
-    if (afterDot) to = ((dot >= 0) ? dot : digits.length) + to
+    
+    const to = (digitsCountingMode === AFTER_POINT)
+                    ? (((dotAt >= 0) ? dotAt : digits.length) + numDigits)
+                    : numDigits
 
     for (let i = digits.length - 1; i >= 0; i--) {
         const d = digits[i]
         if (d !== '.') {
             let n = (d.charCodeAt (0) - 48) + memo
             let numDigitsAhead = i
-            let dotAhead = (dot >= 0) && (i >= dot)
+            let dotAhead = (dotAt >= 0) && (i >= dotAt)
             if ((numDigitsAhead + (dotAhead ? -1 : 0)) >= to) { // ignore dot when counting digits ahead
-                n = (n > 5) ? 10 : 0 // rounding on per-digit basis
+                n = (roundingMode === TRUNCATE)
+                        ? 0
+                        : ((n > 5) ? 10 : 0) // rounding on per-digit basis
             }
             if (n > 9) { n = 0; memo = 1; }
             else memo = 0
@@ -73,66 +106,36 @@ const roundDecimalString = (s, to, afterDot = false) => {
 
 /*  ------------------------------------------------------------------------ */
 
-const roundNumber = (x, { digits = 8, fixed = true }) => { // accepts either strings or Numbers
+// const roundNumber = (x, { digits = 8, fixed = true }) => { // accepts either strings or Numbers
     
-    const s = numberToString (x)
+//     const s = numberToString (x)
 
-    if (fixed) {
-        return roundDecimalString (s, digits, true)
+//     if (fixed) {
+//         return roundDecimalString (s, digits, true)
 
-    } else {
-        const [,zeros,significantPart] = s.match (/^([^1-9]*)(.+)$/)
-        return zeros + roundDecimalString (significantPart, digits)
-    }
-}
-
-/*  ------------------------------------------------------------------------ */
-
-// See https://stackoverflow.com/questions/4912788/truncate-not-round-off-decimal-numbers-in-javascript for discussion
-
-// > So, after all it turned out, rounding bugs will always haunt you, no matter how hard you try to compensate them.
-// > Hence the problem should be attacked by representing numbers exactly in decimal notation.
-
-const regexCache = []
-const truncNumber = (x, { digits = 0, fixed = true }) => { // accepts either strings or Numbers
-
-    const s = numberToString (x)
-
-    if (digits > 0) {
-        const re = regexCache[digits] || (regexCache[digits] = new RegExp("([-]*\\d+\\.\\d{" + digits + "})(\\d)"))
-        const [,result] = s.match (re) || [null, s]
-        return fixed
-                ? padWithZeroes (result, digits)
-                : result
-
-    } else {
-        throw new Error ('not implemented yet')
-    }
-}
+//     } else {
+//         const [,zeros,significantPart] = s.match (/^([^1-9]*)(.+)$/)
+//         return zeros + roundDecimalString (significantPart, digits)
+//     }
+// }
 
 /*  ------------------------------------------------------------------------ */
 
-const precisionFromString = (string) => {
-    const split = string.replace (/0+$/g, '').split ('.')
-    return (split.length > 1) ? (split[1].length) : 0
-}
-
-/*  ------------------------------------------------------------------------ */
-
-const toPrecision = (x, { round = true, digits = 8, fixed = true }) => round ? roundNumber (x, { digits, fixed })
-                                                                             : truncNumber (x, { digits, fixed })
+// const precisionFromString = (string) => {
+//     const split = string.replace (/0+$/g, '').split ('.')
+//     return (split.length > 1) ? (split[1].length) : 0
+// }
 
 /*  ------------------------------------------------------------------------ */
 
 module.exports = {
  
-    decimal,
-    truncNumber,
     numberToString,
-    toPrecision,
-    padWithZeroes,
-    roundDecimalString,
-    precisionFromString
+    decimalToPrecision,
+    // toPrecision,
+    // padWithZeroes,
+    // roundDecimalString,
+    // precisionFromString
 }
 
 /*  ------------------------------------------------------------------------ */
