@@ -404,10 +404,10 @@ module.exports = class qryptos extends Exchange {
                             const message = errorMessages[j];
                             if (message in messages[errorType])
                                 throw new messages[errorType][message] (feedback);
-                        } // for errorMessages
+                        }
                     }
-                } // for errorTypes
+                }
             }
-        } // if code
-    } // handleErrors ()
+        }
+    }
 };
