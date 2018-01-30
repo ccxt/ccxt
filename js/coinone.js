@@ -72,55 +72,55 @@ module.exports = class coinone extends Exchange {
             },
             'markets': {
                 'BTC/KRW': {
-                    'id': 'btc_krw',
+                    'id': 'btc',
                     'symbol': 'BTC/KRW',
                     'base': 'BTC',
                     'quote': 'KRW',
                 },
                 'BTG/KRW': {
-                    'id': 'btg_krw',
+                    'id': 'btg',
                     'symbol': 'BTG/KRW',
                     'base': 'BTG',
                     'quote': 'KRW',
                 },
                 'IOT/KRW': {
-                    'id': 'iota_krw',
+                    'id': 'iota',
                     'symbol': 'IOT/KRW',
                     'base': 'IOT',
                     'quote': 'KRW',
                 },
                 'LTC/KRW': {
-                    'id': 'ltc_krw',
+                    'id': 'ltc',
                     'symbol': 'LTC/KRW',
                     'base': 'LTC',
                     'quote': 'KRW',
                 },
                 'QTUM/KRW': {
-                    'id': 'qtum_krw',
+                    'id': 'qtum',
                     'symbol': 'QTUM/KRW',
                     'base': 'QTUM',
                     'quote': 'KRW',
                 },
                 'XRP/KRW': {
-                    'id': 'xrp_krw',
+                    'id': 'xrp',
                     'symbol': 'XRP/KRW',
                     'base': 'XRP',
                     'quote': 'KRW',
                 },
                 'ETH/KRW': {
-                    'id': 'eth_krw',
+                    'id': 'eth',
                     'symbol': 'ETH/KRW',
                     'base': 'ETH',
                     'quote': 'KRW',
                 },
                 'ETC/KRW': {
-                    'id': 'etc_krw',
+                    'id': 'etc',
                     'symbol': 'ETC/KRW',
                     'base': 'ETC',
                     'quote': 'KRW',
                 },
                 'BCH/KRW': {
-                    'id': 'bch_krw',
+                    'id': 'bch',
                     'symbol': 'BCH/KRW',
                     'base': 'BCH',
                     'quote': 'KRW',
@@ -134,26 +134,26 @@ module.exports = class coinone extends Exchange {
                     'maker': 0.1 / 100,
                     'tiers': {
                         'taker': [
-                            [ 100000000, 0.1 / 100 ],
-                            [ 10000000000, 0.09 / 100 ],
-                            [ 50000000000, 0.08 / 100 ],
-                            [ 100000000000, 0.07 / 100 ],
-                            [ 200000000000, 0.06 / 100 ],
-                            [ 300000000000, 0.05 / 100 ],
-                            [ 400000000000, 0.04 / 100 ],
-                            [ 500000000000, 0.03 / 100 ],
-                            [ 999900000000000, 0.02 / 100 ],
+                            [100000000, 0.1 / 100],
+                            [10000000000, 0.09 / 100],
+                            [50000000000, 0.08 / 100],
+                            [100000000000, 0.07 / 100],
+                            [200000000000, 0.06 / 100],
+                            [300000000000, 0.05 / 100],
+                            [400000000000, 0.04 / 100],
+                            [500000000000, 0.03 / 100],
+                            [999900000000000, 0.02 / 100],
                         ],
                         'maker': [
-                            [ 100000000, 0.1 / 100 ],
-                            [ 10000000000, 0.08 / 100 ],
-                            [ 50000000000, 0.06 / 100 ],
-                            [ 100000000000, 0.04 / 100 ],
-                            [ 200000000000, 0.02 / 100 ],
-                            [ 300000000000, 0.01 / 100 ],
-                            [ 400000000000, 0 ],
-                            [ 500000000000, 0 ],
-                            [ 999900000000000, 0 ],
+                            [100000000, 0.1 / 100],
+                            [10000000000, 0.08 / 100],
+                            [50000000000, 0.06 / 100],
+                            [100000000000, 0.04 / 100],
+                            [200000000000, 0.02 / 100],
+                            [300000000000, 0.01 / 100],
+                            [400000000000, 0],
+                            [500000000000, 0],
+                            [999900000000000, 0],
                         ],
                     },
                 },
@@ -162,17 +162,17 @@ module.exports = class coinone extends Exchange {
     }
 
     async fetchBalance (params = {}) {
-        let response = await this.privateGetUserExchangeBankSummary ();
-        let balance = response[ 'message' ];
+        let response = await this.privatePostAccountBalance ();
+        let balance = response['message'];
         let coin = {
-            'free': balance[ 'availableCoinBalance' ],
-            'used': balance[ 'pendingCoinBalance' ],
-            'total': balance[ 'totalCoinBalance' ],
+            'free': balance['availableCoinBalance'],
+            'used': balance['pendingCoinBalance'],
+            'total': balance['totalCoinBalance'],
         };
         let fiat = {
-            'free': balance[ 'availableFiatBalance' ],
-            'used': balance[ 'pendingFiatBalance' ],
-            'total': balance[ 'totalFiatBalance' ],
+            'free': balance['availableFiatBalance'],
+            'used': balance['pendingFiatBalance'],
+            'total': balance['totalFiatBalance'],
         };
         let result = {
             'info': balance,
@@ -183,51 +183,42 @@ module.exports = class coinone extends Exchange {
     }
 
     async fetchOrderBook (symbol, params = {}) {
-        let bids = await this.publicGetExchangeBidOrders (params);
-        let asks = await this.publicGetExchangeAskOrders (params);
+        let bids = await this.publicGetOrderbook (params);
         let orderbook = {
-            'bids': bids[ 'message' ],
-            'asks': asks[ 'message' ],
+            'bids': bids['message'],
+            'asks': asks['message'],
         };
         return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'rate', 'vol');
     }
 
-    async fetchTicker (symbol, params = {}) {
-        let response = await this.publicGetExchangeTicker (params);
-        let ticker = response[ 'message' ];
-        let timestamp = ticker[ 'timestamp' ];
-        let baseVolume = parseFloat (ticker[ 'coinvolume' ]);
-        if (symbol === 'BTC/INR') {
-            let satoshi = 0.00000001;
-            baseVolume = baseVolume * satoshi;
-        }
-        let quoteVolume = parseFloat (ticker[ 'fiatvolume' ]) / 100;
-        let vwap = quoteVolume / baseVolume;
+    async fetchTicker (symbol = 'btc', params = {}) {
+        let response = await this.pubilcGetTicker ({currency: symbol});
+        let timestamp = this.milliseconds ();
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker[ 'high' ]) / 100,
-            'low': parseFloat (ticker[ 'low' ]) / 100,
-            'bid': parseFloat (ticker[ 'bid' ]) / 100,
-            'ask': parseFloat (ticker[ 'ask' ]) / 100,
-            'vwap': vwap,
-            'open': parseFloat (ticker[ 'open' ]) / 100,
+            'high': this.safeFloat (response, 'high'),
+            'low': this.safeFloat (response, 'low'),
+            'bid': this.safeFloat (response, 'bid'),
+            'ask': this.safeFloat (response, 'ask'),
+            'vwap': undefined,
+            'open': this.safeFloat (response, 'open'),
             'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker[ 'lastPrice' ]) / 100,
+            'first': this.safeFloat (response, 'first'),
+            'last': this.safeFloat (response, 'last'),
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
-            'info': ticker,
+            'baseVolume': this.safeFloat (response, 'volume'),
+            'quoteVolume': undefined,
+            'info': response,
         };
     }
 
     parseTrade (trade, symbol = undefined) {
-        let timestamp = trade[ 'time' ];
-        let side = (trade[ 'ordType' ] == 'bid') ? 'buy' : 'sell';
+        let timestamp = trade['time'];
+        let side = (trade['ordType'] === 'bid') ? 'buy' : 'sell';
         return {
             'id': undefined,
             'timestamp': timestamp,
@@ -244,7 +235,7 @@ module.exports = class coinone extends Exchange {
     }
 
     async fetchMarkets () {
-        let markets = await this.publicGetTickerAll ();
+        let markets = await this.publicGetTicker ({currency: 'all'});
         let currencies = Object.keys (markets['data']);
         let result = [];
         for (let i = 0; i < currencies.length; i++) {
@@ -287,9 +278,9 @@ module.exports = class coinone extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        let result = await this.publicGetExchangeTrades (params);
+        let result = await this.publicGetTrades (params);
         if ('message' in result) {
-            let trades = result[ 'message' ];
+            let trades = result['message'];
             return this.parseTrades (trades, symbol);
         }
     }
@@ -300,26 +291,26 @@ module.exports = class coinone extends Exchange {
         if (type === 'market') {
             method += 'Instant' + this.capitalize (side);
             if (side === 'buy')
-                order[ 'maxFiat' ] = amount;
+                order['maxFiat'] = amount;
             else
-                order[ 'maxVol' ] = amount;
+                order['maxVol'] = amount;
         } else {
             let direction = (side === 'buy') ? 'Bid' : 'Ask';
             method += direction + 'New';
-            order[ 'rate' ] = price;
-            order[ 'vol' ] = amount;
+            order['rate'] = price;
+            order['vol'] = amount;
         }
-        let response = await this[ method ] (this.extend (order, params));
+        let response = await this[method] (this.extend (order, params));
         return {
             'info': response,
-            'id': response[ 'message' ][ 'orderID' ],
+            'id': response['message']['orderID'],
         };
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         throw new ExchangeError (this.id + ' cancelOrder () is not fully implemented yet');
         let method = 'privateDeleteUserExchangeAskCancelOrderId'; // TODO fixme, have to specify order side here
-        return await this[ method ] ({'orderID': id});
+        return await this[method] ({'orderID': id});
     }
 
     /**
@@ -335,7 +326,7 @@ module.exports = class coinone extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        let url = this.urls[ 'api' ] + '/' + request;
+        let url = this.urls['api'] + '/' + request;
         let headers = {};
         if (api === 'public') {
             if (Object.keys (query).length) {
@@ -363,14 +354,14 @@ module.exports = class coinone extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body) {
         if (code === 200) {
-            if ((body[ 0 ] === '{') || (body[ 0 ] === '[')) {
+            if ((body[0] === '{') || (body[0] === '[')) {
                 let response = JSON.parse (body);
                 if ('success' in response) {
-                    let success = response[ 'success' ];
-                    if (! success) {
+                    let success = response['success'];
+                    if (!success) {
                         throw new ExchangeError (this.id + ' error returned: ' + body);
                     }
-                    if (! ('message' in response)) {
+                    if (!('message' in response)) {
                         throw new ExchangeError (this.id + ' malformed response: no "message" in response: ' + body);
                     }
                 } else {
