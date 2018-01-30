@@ -294,7 +294,7 @@ module.exports = class bitcoincoid extends Exchange {
             'type': side,
             'price': price,
         };
-        let base = market['baseId'];
+        let base = (side === 'buy') ? market['quoteId'] : market['baseId'];
         order[base] = amount;
         let result = await this.privatePostTrade (this.extend (order, params));
         return {
