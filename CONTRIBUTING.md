@@ -21,7 +21,7 @@ If you want to submit an issue and you want your issue to be resolved quickly, h
   - **set `.verbose = true` property on the exchange instance before calling its methods**
   - **surround code and output with triple backticks: &#096;&#096;&#096;YOUR\_CODE&#096;&#096;&#096;**
   - paste a complete code snippet you're having difficulties with, avoid one-liners
-  - paste the **full verbose output** of that snippet as is, unchanged (but without your keys)
+  - paste the **full verbose output** of the failing method without your keys
   - don't confuse the backtick symbol (&#096;) with the quote symbol (\'), &#096;&#096;&#096;GOOD&#096;&#096;&#096;, '''BAD'''
   - write your language **and version**
   - write ccxt library version
