@@ -41,7 +41,10 @@ module.exports = class bibox extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/1294454/34902611-2be8bf1a-f830-11e7-91a2-11b2f292e750.jpg',
                 'api': 'https://api.bibox.com',
                 'www': 'https://www.bibox.com',
-                'doc': 'https://github.com/Biboxcom/api_reference/wiki/home_en',
+                'doc': [
+                    'https://github.com/Biboxcom/api_reference/wiki/home_en',
+                    'https://github.com/Biboxcom/api_reference/wiki/api_reference'
+                ],
                 'fees': 'https://bibox.zendesk.com/hc/en-us/articles/115004417013-Fee-Structure-on-Bibox',
             },
             'api': {
