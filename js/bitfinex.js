@@ -236,7 +236,11 @@ module.exports = class bitfinex extends Exchange {
         let maker = this.asFloat (summary.maker_fee);
         let taker = this.asFloat (summary.taker_fee);
         let withdrawalFees = accountFees.withdraw;
-        Object.keys (withdrawalFees).map(key => withdrawalFees[key] = this.asFloat (withdrawalFees[key]))
+        let keys = Object.keys (withdrawalFees);
+        for (let i = 0; i < keys.length; i++) {
+            let k = keys[i];
+            withdrawalFees[k] = this.asFloat (withdrawalFees[k]);
+        }
 
       return {
           'info': info,
