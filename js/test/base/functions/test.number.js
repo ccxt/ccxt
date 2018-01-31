@@ -7,7 +7,7 @@ const { decimalToPrecision
       , TRUNCATE
       , AFTER_POINT
       , PAD_WITH_ZERO
-      , SIGNIFICANT_DIGITS } = require ('../../../ccxt')
+      , SIGNIFICANT_DIGITS } = require ('../../../../ccxt')
 
 const { strictEqual: equal, throws }  = require ('assert')
 

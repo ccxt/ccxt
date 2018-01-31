@@ -6,7 +6,7 @@ global.log = require ('ololog') // for easier debugging
 
 /*  ------------------------------------------------------------------------ */
 
-const { Exchange, keys, values, unique, index, aggregate } = require ('../../ccxt')
+const { Exchange, keys, values, unique, index, aggregate } = require ('../../../ccxt')
 const { strictEqual: equal, deepEqual } = require ('assert')
 
 /*  ------------------------------------------------------------------------ */

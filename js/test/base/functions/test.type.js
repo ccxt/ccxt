@@ -2,7 +2,7 @@
 
 /*  ------------------------------------------------------------------------ */
 
-const { safeFloat, safeInteger, safeValue } = require ('../../../ccxt')
+const { safeFloat, safeInteger, safeValue } = require ('../../../../ccxt')
 const { strictEqual: equal, deepEqual } = require ('assert')
 
 /*  ------------------------------------------------------------------------ */

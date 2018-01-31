@@ -4,7 +4,7 @@
 
 const { setTimeout_safe
       , timeout
-      , now } = require ('../../../ccxt')
+      , now } = require ('../../../../ccxt')
 
 const { strictEqual: equal } = require ('assert')
       , approxEqual          = (a, b) => equal (true, Math.abs (a - b) <= 20)

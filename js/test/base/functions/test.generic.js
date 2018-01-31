@@ -2,7 +2,7 @@
 
 /*  ------------------------------------------------------------------------ */
 
-const { deepExtend, groupBy, filterBy, omit, sum, sortBy } = require ('../../../ccxt')
+const { deepExtend, groupBy, filterBy, omit, sum, sortBy } = require ('../../../../ccxt')
 const { strictEqual: equal, deepEqual } = require ('assert')
 
 /*  ------------------------------------------------------------------------ */
