@@ -590,12 +590,13 @@ class cryptopia extends Exchange {
         } else {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
-            $body = $this->json ($query);
+            $body = $this->json ($query, array ( 'convertArraysToObjects' => true ));
             $hash = $this->hash ($this->encode ($body), 'md5', 'base64');
             $secret = base64_decode ($this->secret);
             $uri = $this->encode_uri_component($url);
             $lowercase = strtolower ($uri);
-            $payload = $this->apiKey . $method . $lowercase . $nonce . $this->binary_to_string($hash);
+            $hash = $this->binary_to_string($hash);
+            $payload = $this->apiKey . $method . $lowercase . $nonce . $hash;
             $signature = $this->hmac ($this->encode ($payload), $secret, 'sha256', 'base64');
             $auth = 'amx ' . $this->apiKey . ':' . $this->binary_to_string($signature) . ':' . $nonce;
             $headers = array (

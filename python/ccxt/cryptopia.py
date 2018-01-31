@@ -548,12 +548,13 @@ class cryptopia (Exchange):
         else:
             self.check_required_credentials()
             nonce = str(self.nonce())
-            body = self.json(query)
+            body = self.json(query, {'convertArraysToObjects': True})
             hash = self.hash(self.encode(body), 'md5', 'base64')
             secret = base64.b64decode(self.secret)
             uri = self.encode_uri_component(url)
             lowercase = uri.lower()
-            payload = self.apiKey + method + lowercase + nonce + self.binary_to_string(hash)
+            hash = self.binary_to_string(hash)
+            payload = self.apiKey + method + lowercase + nonce + hash
             signature = self.hmac(self.encode(payload), secret, hashlib.sha256, 'base64')
             auth = 'amx ' + self.apiKey + ':' + self.binary_to_string(signature) + ':' + nonce
             headers = {
