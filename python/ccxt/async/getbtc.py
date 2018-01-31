@@ -20,11 +20,6 @@ class getbtc (_1btcxe):
                 'www': 'https://getbtc.org',
                 'doc': 'https://getbtc.org/api-docs.php',
             },
-            'markets': {
-                'BTC/EUR': {'id': 'EUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'precision': {'amount': 8, 'price': 8}, 'lot': 0.00000001, 'limits': {'amount': {'min': 0.00000001, 'max': None}, 'price': {'min': 0.00000001, 'max': None}}},
-                'BTC/RUB': {'id': 'RUB', 'symbol': 'BTC/RUB', 'base': 'BTC', 'quote': 'RUB', 'precision': {'amount': 8, 'price': 8}, 'lot': 0.00000001, 'limits': {'amount': {'min': 0.00000001, 'max': None}, 'price': {'min': 0.00000001, 'max': None}}},
-                'BTC/USD': {'id': 'USD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'precision': {'amount': 8, 'price': 8}, 'lot': 0.00000001, 'limits': {'amount': {'min': 0.00000001, 'max': None}, 'price': {'min': 0.00000001, 'max': None}}},
-            },
             'fees': {
                 'trading': {
                     'taker': 0.20 / 100,
@@ -32,3 +27,10 @@ class getbtc (_1btcxe):
                 },
             },
         })
+
+    async def fetch_markets(self):
+        return [
+            {'id': 'EUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'precision': {'amount': 8, 'price': 8}, 'lot': 0.00000001, 'limits': {'amount': {'min': 0.00000001, 'max': None}, 'price': {'min': 0.00000001, 'max': None}}},
+            {'id': 'RUB', 'symbol': 'BTC/RUB', 'base': 'BTC', 'quote': 'RUB', 'precision': {'amount': 8, 'price': 8}, 'lot': 0.00000001, 'limits': {'amount': {'min': 0.00000001, 'max': None}, 'price': {'min': 0.00000001, 'max': None}}},
+            {'id': 'USD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'precision': {'amount': 8, 'price': 8}, 'lot': 0.00000001, 'limits': {'amount': {'min': 0.00000001, 'max': None}, 'price': {'min': 0.00000001, 'max': None}}},
+        ]

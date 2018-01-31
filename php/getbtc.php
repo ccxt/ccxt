@@ -19,11 +19,6 @@ class getbtc extends _1btcxe {
                 'www' => 'https://getbtc.org',
                 'doc' => 'https://getbtc.org/api-docs.php',
             ),
-            'markets' => array (
-                'BTC/EUR' => array ( 'id' => 'EUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', 'precision' => array ( 'amount' => 8, 'price' => 8 ), 'lot' => 0.00000001, 'limits' => array ( 'amount' => array ( 'min' => 0.00000001, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ))),
-                'BTC/RUB' => array ( 'id' => 'RUB', 'symbol' => 'BTC/RUB', 'base' => 'BTC', 'quote' => 'RUB', 'precision' => array ( 'amount' => 8, 'price' => 8 ), 'lot' => 0.00000001, 'limits' => array ( 'amount' => array ( 'min' => 0.00000001, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ))),
-                'BTC/USD' => array ( 'id' => 'USD', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD', 'precision' => array ( 'amount' => 8, 'price' => 8 ), 'lot' => 0.00000001, 'limits' => array ( 'amount' => array ( 'min' => 0.00000001, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ))),
-            ),
             'fees' => array (
                 'trading' => array (
                     'taker' => 0.20 / 100,
@@ -31,5 +26,13 @@ class getbtc extends _1btcxe {
                 ),
             ),
         ));
+    }
+
+    public function fetch_markets () {
+        return array (
+            array ( 'id' => 'EUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', 'precision' => array ( 'amount' => 8, 'price' => 8 ), 'lot' => 0.00000001, 'limits' => array ( 'amount' => array ( 'min' => 0.00000001, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ))),
+            array ( 'id' => 'RUB', 'symbol' => 'BTC/RUB', 'base' => 'BTC', 'quote' => 'RUB', 'precision' => array ( 'amount' => 8, 'price' => 8 ), 'lot' => 0.00000001, 'limits' => array ( 'amount' => array ( 'min' => 0.00000001, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ))),
+            array ( 'id' => 'USD', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD', 'precision' => array ( 'amount' => 8, 'price' => 8 ), 'lot' => 0.00000001, 'limits' => array ( 'amount' => array ( 'min' => 0.00000001, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ))),
+        );
     }
 }
