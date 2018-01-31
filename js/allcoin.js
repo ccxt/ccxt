@@ -7,7 +7,6 @@ const okcoinusd = require ('./okcoinusd.js');
 //  ---------------------------------------------------------------------------
 
 module.exports = class allcoin extends okcoinusd {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'allcoin',
@@ -109,4 +108,4 @@ module.exports = class allcoin extends okcoinusd {
         // allcoin typo order instead of orders (expected based on their API docs)
         return 'order';
     }
-}
+};
