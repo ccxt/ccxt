@@ -160,7 +160,7 @@ const decimalToPrecision = (x, roundingMode
     const readStart = (digitsStart >= afterDot) ? (afterDot - 1) : digitsStart // 0.000(1)234  ---->  (0).0001234                  
         , readEnd   = (digitsEnd < afterDot)    ? (afterDot - 1) : digitsEnd   // 12(3)000     ----> 12300(0)
 
-    log.bright.magenta ({ chars: String.fromCharCode (...chars), digitsStart, readStart, readEnd, afterDot, precisionStart })
+    // log.bright.magenta ({ chars: String.fromCharCode (...chars), digitsStart, readStart, readEnd, afterDot, precisionStart })
 
     const nSign         = (isNegative ? 1 : 0)                    // (-)123.456
         , nBeforeDot    = (nSign + (afterDot - readStart))        // (-123).456

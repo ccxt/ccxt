@@ -49,9 +49,9 @@ it.only ('decimalToPrecision: truncation (to N significant digits)', () => {
     equal (decimalToPrecision ('0.00012',        TRUNCATE, 2,  SIGNIFICANT_DIGITS),   '0.00012')
     equal (decimalToPrecision ('0.0001',         TRUNCATE, 1,  SIGNIFICANT_DIGITS),   '0.0001')
 
-    equal (decimalToPrecision ('123.0000987654',  TRUNCATE, 7,  SIGNIFICANT_DIGITS),   '123.0000987')
-    equal (decimalToPrecision ('123.0000987654',  TRUNCATE, 4,  SIGNIFICANT_DIGITS),   '123')
-    equal (decimalToPrecision ('123.0000987654',  TRUNCATE, 3,  SIGNIFICANT_DIGITS),   '123')
+    equal (decimalToPrecision ('123.0000987654',  TRUNCATE, 10,  SIGNIFICANT_DIGITS),   '123.0000987')
+    equal (decimalToPrecision ('123.0000987654',  TRUNCATE,  4,  SIGNIFICANT_DIGITS),   '123')
+    equal (decimalToPrecision ('123.0000987654',  TRUNCATE,  3,  SIGNIFICANT_DIGITS),   '123')
 })
 
 it ('decimalToPrecision: rounding (to N digits after dot)', () => {
@@ -68,7 +68,7 @@ it ('decimalToPrecision: rounding (to N digits after dot)', () => {
 //  equal (decimalToPrecision ('123.456',     ROUND,  -2, AFTER_POINT), '100')  // not yet supported
 })
 
-it.only ('decimalToPrecision: rounding (to N significant digits)', () => {
+it ('decimalToPrecision: rounding (to N significant digits)', () => {
 
     equal (decimalToPrecision ('0.000123456700', ROUND, 100, SIGNIFICANT_DIGITS),  '0.0001234567')
     equal (decimalToPrecision ('0.0001234567',   ROUND, 100, SIGNIFICANT_DIGITS),  '0.0001234567')
@@ -89,7 +89,6 @@ it.only ('decimalToPrecision: rounding (to N significant digits)', () => {
     equal (decimalToPrecision ('0.00098765', ROUND, 1,   SIGNIFICANT_DIGITS),                  '0.001')
     equal (decimalToPrecision ('0.00098765', ROUND, 1,   SIGNIFICANT_DIGITS, PAD_WITH_ZEROES), '0.001')
     equal (decimalToPrecision ('0.00098765', ROUND, 10,  SIGNIFICANT_DIGITS, PAD_WITH_ZEROES), '0.000987650000')
-
 })
 
 it ('decimalToPrecision: negative numbers', () => {
