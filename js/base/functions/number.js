@@ -11,18 +11,18 @@ const { isString, isNumber } = require ('./type')
     ...but it turns out it's hard to port that across different languages and it is also
        probably has a performance penalty -- while it's a performance critical code! So
        I switched to using named constants instead, as it is actually more readable and
-       succint, and surely doesn't come with any inherent performance downside:
+       succinct, and surely doesn't come with any inherent performance downside:
 
             decimalStringToPrecision ('123.456', ROUND, 2, AFTER_POINT)                     */
 
 
-const ROUND    = 0              // rounding mode
+const ROUND    = 0                  // rounding mode
     , TRUNCATE = 1
 
-const SIGNIFICANT_DIGITS_ONLY = 0       // digits counting mode
+const SIGNIFICANT_DIGITS_ONLY = 0   // digits counting mode
     , AFTER_POINT             = 1
 
-const NO_PADDING      = 0       // zero-padding mode
+const NO_PADDING      = 0           // zero-padding mode
     , PAD_WITH_ZEROES = 1
 
 /*  ------------------------------------------------------------------------ */
@@ -107,7 +107,7 @@ const decimalToPrecision = (x, roundingMode
         }
     }
 
-/*  Determine character index up to which the precision will be reduced  */
+/*  Determine the character index up to which the precision will be reduced  */
 
     const reducePrecisionUntil =                                                            // truncating to 4:
                 (((start > dotBefore) && (digitsCountingMode === SIGNIFICANT_DIGITS_ONLY))  // 0.0001234567 
