@@ -190,7 +190,6 @@ module.exports = class bitfinex extends Exchange {
                         'XMR': 0.04,
                         'SAN': 3.2779,
                         'DASH': 0.01,
-                        'ETC': 0.01,
                         'XRP': 0.02,
                         'YYW': 40.543,
                         'NEO': 0,
@@ -210,7 +209,6 @@ module.exports = class bitfinex extends Exchange {
                         'AVT': 3.2495,
                         'USDT': 20.0,
                         'ZRX': 5.6442,
-                        'ETP': 0.01,
                         'TNB': 87.511,
                         'SNT': 32.736,
                     },
@@ -229,6 +227,27 @@ module.exports = class bitfinex extends Exchange {
             'DAT': 'DATA',
         };
         return (currency in currencies) ? currencies[currency] : currency;
+    }
+
+    async fetchFees () {
+        let summary = await this.privatePostSummary ();
+        let accountFees = await this.privatePostAccountFees ();
+        let info = this.extend (summary, accountFees);
+        let maker = this.asFloat (summary.maker_fee);
+        let taker = this.asFloat (summary.taker_fee);
+        let withdrawalFees = accountFees.withdraw;
+        let asList = Object.entries(withdrawalFees);  // Don't think this is the best way to do this...
+        for (let i = 0; i < asList.length; i++) {
+            withdrawalFees[asList[i][0]] = this.asFloat (asList[i][1])
+        }
+
+        return {
+          'info': info,
+          'maker': maker,
+          'taker': taker,
+          'withdraw': withdrawalFees,
+          'deposit': withdrawalFees,  // only for deposits of less than $1000
+        };
     }
 
     async fetchMarkets () {
@@ -260,7 +279,7 @@ module.exports = class bitfinex extends Exchange {
                 'min': limits['amount']['min'] * limits['price']['min'],
                 'max': undefined,
             };
-            result.push (this.extend (this.fees['trading'], {
+            result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -272,7 +291,7 @@ module.exports = class bitfinex extends Exchange {
                 'limits': limits,
                 'lot': Math.pow (10, -precision['amount']),
                 'info': market,
-            }));
+            });
         }
         return result;
     }
