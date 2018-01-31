@@ -162,7 +162,7 @@ class lakebtc extends Exchange {
 
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        if ($type == 'market')
+        if ($type === 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
         $method = 'privatePost' . $this->capitalize ($side) . 'Order';
         $marketId = $this->market_id($market);
@@ -187,7 +187,7 @@ class lakebtc extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version;
-        if ($api == 'public') {
+        if ($api === 'public') {
             $url .= '/' . $path;
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
@@ -214,8 +214,8 @@ class lakebtc extends Exchange {
             $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret), 'sha1');
             $auth = $this->encode ($this->apiKey . ':' . $signature);
             $headers = array (
-                'Json-Rpc-Tonce' => $nonce,
-                'Authorization' => "Basic " . $this->decode (base64_encode ($auth)),
+                'Json-Rpc-Tonce' => (string) $nonce,
+                'Authorization' => 'Basic ' . $this->decode (base64_encode ($auth)),
                 'Content-Type' => 'application/json',
             );
         }
