@@ -109,14 +109,12 @@ const decimalToPrecision = (x, roundingMode
         }
     }
 
-/*  Determine the character index up to which the precision will be reduced   */
+/*  Determine the range to cut  */
 
-    const precisionStart = (countingMode === AFTER_POINT)
-                            ? afterDot                          // 0.(0)001234567
-                            : digitsStart                       // 0.00(1)234567 or (1)23.004567
-
-        , precisionEnd = precisionStart +
-                         numPrecisionDigits
+    let precisionStart = (countingMode === AFTER_POINT) ? afterDot      // 0.(0)001234567
+                                                        : digitsStart   // 0.00(1)234567
+      , precisionEnd = precisionStart +
+                       numPrecisionDigits
 
 /*  Reset the last significant digit index, as it will change during the rounding/truncation.   */
 
@@ -137,7 +135,7 @@ const decimalToPrecision = (x, roundingMode
         if (i !== 0) {
             c += memo
 
-            if (i >= precisionEnd) {
+            if (i >= (precisionStart + numPrecisionDigits)) {
                 c = (roundingMode === ROUND)
                         ? ((c > FIVE) ? (NINE + 1) : ZERO) // single-digit rounding
                         : ZERO                             // "floor" to zero
@@ -150,29 +148,36 @@ const decimalToPrecision = (x, roundingMode
         chars[i] = c
 
         if (c !== ZERO) {
-            if (digitsEnd < 0) digitsEnd = i // update the last significant digit index
-            digitsStart = i                  // update the first significant digit index
+            digitsStart = i
+            digitsEnd   = (digitsEnd < 0) ? (i + 1) : digitsEnd
         }
     }
 
-/*  Correct the significant digits range        */
+/*  Update the precision range, as `digitsStart` may have changed...     */
 
-    const readStart = (digitsStart >= afterDot) ? (afterDot - 1) : digitsStart // 0.000(1)234  ---->  (0).0001234                  
-        , readEnd   = (digitsEnd < afterDot)    ? (afterDot - 1) : digitsEnd   // 12(3)000     ----> 12300(0)
+    if (countingMode === SIGNIFICANT_DIGITS) {
+        precisionStart = digitsStart
+        precisionEnd   = precisionStart + numPrecisionDigits
+    }
 
-    // log.bright.magenta ({ chars: String.fromCharCode (...chars), digitsStart, readStart, readEnd, afterDot, precisionStart })
+/*  Determine the input character range     */
+
+    const readStart     = (digitsStart >= afterDot) ? (afterDot - 1) : digitsStart // 0.000(1)234  ----> (0).0001234                  
+        , readEnd       = (digitsEnd    < afterDot) ? (afterDot    ) : digitsEnd   // 12(3)000     ----> 123000( )
+
+/*  Compute various sub-ranges       */
 
     const nSign         =     (isNegative ? 1 : 0)                // (-)123.456
         , nBeforeDot    =     (nSign + (afterDot - readStart))    // (-123).456
-        , nAfterDot     = max (readEnd - afterDot + 1, 0)         // -123.(456)
-        , actualLength  =     (readEnd - readStart) + 1           // -(123.456)
+        , nAfterDot     = max (readEnd - afterDot, 0)             // -123.(456)
+        , actualLength  =     (readEnd - readStart)               // -(123.456)
         , desiredLength =     (paddingMode === NO_PADDING)
                                     ? (actualLength)              // -(123.456)
                                     : (precisionEnd - readStart)  // -(123.456    )
 
         , pad           = max (desiredLength - actualLength, 0)   //  -123.456(    )
-        , padStart      =     (nBeforeDot + 1 + nAfterDot)        //  -123.456(←
-        , padEnd        =     (padStart + pad)                    //  -123.456    →)
+        , padStart      =     (nBeforeDot + 1 + nAfterDot)        //  -123.456( )
+        , padEnd        =     (padStart + pad)                    //  -123.456     ( )
         , isInteger     =     (nAfterDot + pad) === 0             //  -123
 
 /*  Fill the output buffer with characters    */

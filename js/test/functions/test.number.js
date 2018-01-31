@@ -73,6 +73,12 @@ it ('decimalToPrecision: rounding (to N digits after dot)', () => {
 //  equal (decimalToPrecision ('12.3456',     ROUND,  -1, AFTER_POINT),  '10')  // not yet supported
 //  equal (decimalToPrecision ('123.456',     ROUND,  -1, AFTER_POINT), '120')  // not yet supported
 //  equal (decimalToPrecision ('123.456',     ROUND,  -2, AFTER_POINT), '100')  // not yet supported
+
+    equal (decimalToPrecision ( '9.999',  ROUND, 3, AFTER_POINT),                   '9.999')
+    equal (decimalToPrecision ( '9.999',  ROUND, 2, AFTER_POINT),                   '10')
+    equal (decimalToPrecision ( '9.999',  ROUND, 2, AFTER_POINT, PAD_WITH_ZEROES),  '10.00')
+    equal (decimalToPrecision ( '99.999', ROUND, 2, AFTER_POINT, PAD_WITH_ZEROES),  '100.00')
+    equal (decimalToPrecision ('-99.999', ROUND, 2, AFTER_POINT, PAD_WITH_ZEROES), '-100.00')
 })
 
 it ('decimalToPrecision: rounding (to N significant digits)', () => {
@@ -94,23 +100,15 @@ it ('decimalToPrecision: rounding (to N significant digits)', () => {
     equal (decimalToPrecision ('0.00098765', ROUND, 2,  SIGNIFICANT_DIGITS, PAD_WITH_ZEROES), '0.00099')
 
     equal (decimalToPrecision ('0.00098765', ROUND, 1,   SIGNIFICANT_DIGITS),                  '0.001')
-    equal (decimalToPrecision ('0.00098765', ROUND, 1,   SIGNIFICANT_DIGITS, PAD_WITH_ZEROES), '0.001')
-    equal (decimalToPrecision ('0.00098765', ROUND, 10,  SIGNIFICANT_DIGITS, PAD_WITH_ZEROES), '0.000987650000')
+    equal (decimalToPrecision ('0.00098765', ROUND, 10,  SIGNIFICANT_DIGITS, PAD_WITH_ZEROES), '0.0009876500000')
+
+    equal (decimalToPrecision ('0.098765', ROUND, 1,  SIGNIFICANT_DIGITS, PAD_WITH_ZEROES), '0.1')
 })
 
 it ('decimalToPrecision: negative numbers', () => {
 
     equal (decimalToPrecision ('-0.123456', TRUNCATE, 5, AFTER_POINT), '-0.12345')
     equal (decimalToPrecision ('-0.123456', ROUND,    5, AFTER_POINT), '-0.12346')
-})
-
-it ('decimalToPrecision: rounding 9.99 → 10', () => {
-
-    equal (decimalToPrecision ( '9.999',  ROUND, 3, AFTER_POINT),                   '9.999')
-    equal (decimalToPrecision ( '9.999',  ROUND, 2, AFTER_POINT),                   '10')
-    equal (decimalToPrecision ( '9.999',  ROUND, 2, AFTER_POINT, PAD_WITH_ZEROES),  '10.00')
-    equal (decimalToPrecision ( '99.999', ROUND, 2, AFTER_POINT, PAD_WITH_ZEROES),  '100.00')
-    equal (decimalToPrecision ('-99.999', ROUND, 2, AFTER_POINT, PAD_WITH_ZEROES), '-100.00')
 })
 
 /*  ------------------------------------------------------------------------ */
