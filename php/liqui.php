@@ -308,14 +308,12 @@ class liqui extends Exchange {
             $symbol = $market['symbol'];
         $amount = $trade['amount'];
         $type = 'limit'; // all trades are still limit trades
-        $fee = null;
-        // this is filled by fetchMyTrades() only
-        // is_your_order is always false :\
-        // $isYourOrder = $this->safe_value($trade, 'is_your_order');
-        // $takerOrMaker = 'taker';
-        // if ($isYourOrder)
-        //     $takerOrMaker = 'maker';
-        // $fee = $this->calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker);
+        $isYourOrder = $this->safe_value($trade, 'is_your_order');
+        $takerOrMaker = 'taker';
+        if ($isYourOrder !== null)
+            if ($isYourOrder)
+                $takerOrMaker = 'maker';
+        $fee = $this->calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker);
         return array (
             'id' => $id,
             'order' => $order,
