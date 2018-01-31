@@ -179,7 +179,7 @@ const decimalToPrecision = (x, roundingMode
 
     const out = new Int8Array (nBeforeDot + (isInteger ? 0 : 1) + nAfterDot + pad)
                                                                                                   // ---------------------
-    if  (isNegative)                                                  out[0]          = MINUS               // -     minus sign
+    if  (isNegative)                                                  out[0]          = MINUS     // -     minus sign
     for (i = nSign, j = readStart;          i < nBeforeDot; i++, j++) out[i]          = chars[j]  // 123   before dot
     if  (!isInteger)                                                  out[nBeforeDot] = DOT       // .     dot
     for (i = nBeforeDot + 1, j = afterDot;  i < padStart;   i++, j++) out[i]          = chars[j]  // 456   after dot
