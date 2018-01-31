@@ -1029,6 +1029,12 @@ class Exchange(object):
         self.cancel_order(id, symbol)
         return self.create_order(symbol, *args)
 
+    def create_limit_order(self, symbol, *args):
+        return self.create_order(symbol, 'limit', *args)
+
+    def create_market_order(self, symbol, *args):
+        return self.create_order(symbol, 'market', *args)
+
     def create_limit_buy_order(self, symbol, *args):
         return self.create_order(symbol, 'limit', 'buy', *args)
 

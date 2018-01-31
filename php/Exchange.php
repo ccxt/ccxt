@@ -585,6 +585,8 @@ abstract class Exchange {
             'cancelOrder' => $this->hasPrivateAPI,
             'createDepositAddress' => false,
             'createOrder' => $this->hasPrivateAPI,
+            'createMarketOrder' => $this->hasPrivateAPI,
+            'createLimitOrder' => $this->hasPrivateAPI,
             'deposit' => false,
             'fetchBalance' => true,
             'fetchClosedOrders' => false,
@@ -1348,6 +1350,14 @@ abstract class Exchange {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         throw new NotSupported ($this->id . ' create_order() not implemented yet');
+    }
+
+    public function create_limit_order ($symbol, $side, $amount, $price, $params = array ()) {
+        return $this->create_order ($symbol, 'limit', $side, $amount, $price, $params);
+    }
+
+    public function create_market_order ($symbol, $side, $amount, $price, $params = array ()) {
+        return $this->create_order ($symbol, 'market', $side, $amount, $price, $params);
     }
 
     public function create_limit_buy_order ($symbol, $amount, $price, $params = array ()) {

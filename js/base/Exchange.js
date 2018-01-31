@@ -788,6 +788,14 @@ module.exports = class Exchange {
         return this.createOrder (symbol, ...args)
     }
 
+    createLimitOrder (symbol, ...args) {
+        return this.createOrder (symbol, 'limit', ...args)
+    }
+
+    createMarketOrder (symbol, ...args) {
+        return this.createOrder (symbol, 'market', ...args)
+    }
+
     createLimitBuyOrder (symbol, ...args) {
         return this.createOrder  (symbol, 'limit', 'buy', ...args)
     }
