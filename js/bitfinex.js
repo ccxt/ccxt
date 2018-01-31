@@ -8,7 +8,6 @@ const { DDoSProtection, AuthenticationError, ExchangeError, InsufficientFunds, N
 //  ---------------------------------------------------------------------------
 
 module.exports = class bitfinex extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitfinex',
@@ -190,7 +189,6 @@ module.exports = class bitfinex extends Exchange {
                         'XMR': 0.04,
                         'SAN': 3.2779,
                         'DASH': 0.01,
-                        'ETC': 0.01,
                         'XRP': 0.02,
                         'YYW': 40.543,
                         'NEO': 0,
@@ -210,7 +208,6 @@ module.exports = class bitfinex extends Exchange {
                         'AVT': 3.2495,
                         'USDT': 20.0,
                         'ZRX': 5.6442,
-                        'ETP': 0.01,
                         'TNB': 87.511,
                         'SNT': 32.736,
                     },
