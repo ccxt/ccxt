@@ -23,7 +23,7 @@ const ROUND    = 0                  // rounding mode
 const AFTER_POINT        = 0        // digits counting mode
     , SIGNIFICANT_DIGITS = 1
 
-const NO_PADDING      = 0           // zero-padding mode
+const NO_PADDING    = 0             // zero-padding mode
     , PAD_WITH_ZERO = 1
 
 /*  ------------------------------------------------------------------------ */
