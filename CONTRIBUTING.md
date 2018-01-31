@@ -49,7 +49,8 @@ Below is a list of functionality we would like to have implemented in the librar
 - Unified fetchOrder
 - Unified fetchOrders, fetchOpenOrders, fetchClosedOrders
 - Unified fetchMyTrades, fetchOrderTrades
-- Unified deposit methods
+- Unified fetchDepositAddress, createDepositAddress
+- Unified withdraw
 - Unified fees
 - Unified deposit and withdrawal transaction history
 - Improved proxy support
