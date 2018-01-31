@@ -86,7 +86,7 @@ module.exports = class hitbtc extends Exchange {
                     'tierBased': false,
                     'percentage': false,
                     'withdraw': {
-                        'BTC': 0.00085,
+                        'BTC': 0.001,
                         'BCC': 0.0018,
                         'ETH': 0.00215,
                         'BCH': 0.0018,
