@@ -17,16 +17,17 @@ class bittrex extends Exchange {
             'hasAlreadyAuthenticatedSuccessfully' => false, // a workaround for APIKEY_INVALID
             // new metainfo interface
             'has' => array (
-                'fetchDepositAddress' => true,
                 'CORS' => true,
-                'fetchTickers' => true,
+                'createMarketOrder' => false,
+                'fetchDepositAddress' => true,
+                'fetchClosedOrders' => 'emulated',
+                'fetchCurrencies' => true,
+                'fetchMyTrades' => false,
                 'fetchOHLCV' => true,
                 'fetchOrder' => true,
                 'fetchOrders' => true,
-                'fetchClosedOrders' => 'emulated',
                 'fetchOpenOrders' => true,
-                'fetchMyTrades' => false,
-                'fetchCurrencies' => true,
+                'fetchTickers' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array (

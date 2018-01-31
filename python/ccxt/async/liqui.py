@@ -33,6 +33,7 @@ class liqui (Exchange):
             'userAgent': self.userAgents['chrome'],
             'has': {
                 'CORS': False,
+                'createMarketOrder': False,
                 'fetchOrder': True,
                 'fetchOrders': 'emulated',
                 'fetchOpenOrders': True,

@@ -16,6 +16,7 @@ class zaif extends Exchange {
             'version' => '1',
             'has' => array (
                 'CORS' => false,
+                'createMarketOrder' => false,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
                 'withdraw' => true,

@@ -16,6 +16,7 @@ class foxbit (Exchange):
             'countries': 'BR',
             'has': {
                 'CORS': False,
+                'createMarketOrder': False,
             },
             'rateLimit': 1000,
             'version': 'v1',

@@ -16,6 +16,7 @@ class itbit extends Exchange {
             'version' => 'v1',
             'has' => array (
                 'CORS' => true,
+                'createMarketOrder' => false,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27822159-66153620-60ad-11e7-89e7-005f6d7f3de0.jpg',
@@ -162,7 +163,7 @@ class itbit extends Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        if ($type == 'market')
+        if ($type === 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
         $walletIdInParams = (is_array ($params) && array_key_exists ('walletId', $params));
         if (!$walletIdInParams)
@@ -198,7 +199,7 @@ class itbit extends Exchange {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
-        if ($api == 'public') {
+        if ($api === 'public') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {

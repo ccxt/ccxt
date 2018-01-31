@@ -19,6 +19,7 @@ class zaif (Exchange):
             'version': '1',
             'has': {
                 'CORS': False,
+                'createMarketOrder': False,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'withdraw': True,

@@ -26,6 +26,7 @@ class kucoin (Exchange):
             'userAgent': self.userAgents['chrome'],
             'has': {
                 'CORS': False,
+                'createMarketOrder': False,
                 'fetchTickers': True,
                 'fetchOHLCV': True,  # see the method implementation below
                 'fetchOrder': True,

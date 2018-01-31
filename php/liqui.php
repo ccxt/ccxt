@@ -17,6 +17,7 @@ class liqui extends Exchange {
             'userAgent' => $this->userAgents['chrome'],
             'has' => array (
                 'CORS' => false,
+                'createMarketOrder' => false,
                 'fetchOrder' => true,
                 'fetchOrders' => 'emulated',
                 'fetchOpenOrders' => true,

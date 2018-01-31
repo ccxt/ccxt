@@ -19,6 +19,7 @@ class lakebtc (Exchange):
             'version': 'api_v2',
             'has': {
                 'CORS': True,
+                'createMarketOrder': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28074120-72b7c38a-6660-11e7-92d9-d9027502281d.jpg',

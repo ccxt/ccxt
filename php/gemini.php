@@ -16,6 +16,7 @@ class gemini extends Exchange {
             'version' => 'v1',
             'has' => array (
                 'CORS' => false,
+                'createMarketOrder' => false,
                 'withdraw' => true,
             ),
             'urls' => array (
