@@ -596,33 +596,23 @@ module.exports = class bitfinex extends Exchange {
     }
 
     getCurrencyName (currency) {
-        if (currency === 'BTC') {
-            return 'bitcoin';
-        } else if (currency === 'LTC') {
-            return 'litecoin';
-        } else if (currency === 'ETH') {
-            return 'ethereum';
-        } else if (currency === 'ETC') {
-            return 'ethereumc';
-        } else if (currency === 'OMNI') {
-            return 'mastercoin'; // ???
-        } else if (currency === 'ZEC') {
-            return 'zcash';
-        } else if (currency === 'XMR') {
-            return 'monero';
-        } else if (currency === 'USD') {
-            return 'wire';
-        } else if (currency === 'DASH') {
-            return 'dash';
-        } else if (currency === 'XRP') {
-            return 'ripple';
-        } else if (currency === 'EOS') {
-            return 'eos';
-        } else if (currency === 'BCH') {
-            return 'bcash';
-        } else if (currency === 'USDT') {
-            return 'tetheruso';
-        }
+        const names = {
+            'BTC': 'bitcoin',
+            'LTC': 'litecoin',
+            'ETH': 'ethereum',
+            'ETC': 'ethereumc',
+            'OMNI': 'mastercoin', // left by previous author, now throws {"message":"Unknown method"}
+            'ZEC': 'zcash',
+            'XMR': 'monero',
+            'USD': 'wire', // left by previous author, now throws {"message":"Unknown method"}
+            'DASH': 'dash',
+            'XRP': 'ripple',
+            'EOS': 'eos',
+            'BCH': 'bcash',
+            'USDT': 'tetheruso',
+        };
+        if (currency in names)
+            return names[currency];
         throw new NotSupported (this.id + ' ' + currency + ' not supported for withdrawal');
     }
 
