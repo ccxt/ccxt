@@ -309,9 +309,17 @@ class bitcoincoid extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
+        if ($symbol === null)
+            throw new ExchangeError ($this->id . ' cancelOrder requires a $symbol argument');
+        $side = $this->safe_value($params, 'side');
+        if ($side === null)
+            throw new ExchangeError ($this->id . ' cancelOrder requires an extra "$side" param');
         $this->load_markets();
+        $market = $this->market ($symbol);
         return $this->privatePostCancelOrder (array_merge (array (
             'order_id' => $id,
+            'pair' => $market['id'],
+            'type' => $params['side'],
         ), $params));
     }
 
