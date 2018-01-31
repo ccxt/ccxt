@@ -294,9 +294,17 @@ class bitcoincoid (Exchange):
         }
 
     def cancel_order(self, id, symbol=None, params={}):
+        if symbol is None:
+            raise ExchangeError(self.id + ' cancelOrder requires a symbol argument')
+        side = self.safe_value(params, 'side')
+        if side is None:
+            raise ExchangeError(self.id + ' cancelOrder requires an extra "side" param')
         self.load_markets()
+        market = self.market(symbol)
         return self.privatePostCancelOrder(self.extend({
             'order_id': id,
+            'pair': market['id'],
+            'type': params['side'],
         }, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

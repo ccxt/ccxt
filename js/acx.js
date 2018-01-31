@@ -3,12 +3,11 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, OrderNotFound } = require ('./base/errors');
+const { InsufficientFunds, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class acx extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'acx',
@@ -81,14 +80,18 @@ module.exports = class acx extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'maker': 0.0,
-                    'taker': 0.0,
+                    'maker': 0.2 / 100,
+                    'taker': 0.2 / 100,
                 },
                 'funding': {
                     'tierBased': false,
                     'percentage': true,
                     'withdraw': 0.0, // There is only 1% fee on withdrawals to your bank account.
                 },
+            },
+            'exceptions': {
+                2002: InsufficientFunds,
+                2003: OrderNotFound,
             },
         });
     }
@@ -283,7 +286,7 @@ module.exports = class acx extends Exchange {
             status = 'canceled';
         }
         return {
-            'id': order['id'],
+            'id': order['id'].toString (),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'status': status,
@@ -320,8 +323,9 @@ module.exports = class acx extends Exchange {
         await this.loadMarkets ();
         let result = await this.privatePostOrderDelete ({ 'id': id });
         let order = this.parseOrder (result);
-        if (order['status'] === 'closed') {
-            throw new OrderNotFound (this.id + ' ' + result);
+        let status = order['status'];
+        if (status === 'closed' || status === 'canceled') {
+            throw new OrderNotFound (this.id + ' ' + this.json (order));
         }
         return order;
     }
@@ -391,10 +395,17 @@ module.exports = class acx extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('error' in response)
-            throw new ExchangeError (this.id + ' ' + this.json (response));
-        return response;
+    handleErrors (code, reason, url, method, headers, body) {
+        if (code === 400) {
+            const response = JSON.parse (body);
+            const error = this.safeValue (response, 'error');
+            const errorCode = this.safeString (error, 'code');
+            const feedback = this.id + ' ' + this.json (response);
+            const exceptions = this.exceptions;
+            if (errorCode in exceptions) {
+                throw new exceptions[errorCode] (feedback);
+            }
+            // fallback to default error handler
+        }
     }
-}
+};
