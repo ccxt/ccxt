@@ -295,12 +295,6 @@ module.exports = class Exchange {
                     let camelcaseSuffix  = splitPath.map (this.capitalize).join ('')
                     let underscoreSuffix = splitPath.map (x => x.trim ().toLowerCase ()).filter (x => x.length > 0).join ('_')
 
-                    if (camelcaseSuffix.indexOf (camelcaseMethod) === 0)
-                        camelcaseSuffix = camelcaseSuffix.slice (camelcaseMethod.length)
-
-                    if (underscoreSuffix.indexOf (lowercaseMethod) === 0)
-                        underscoreSuffix = underscoreSuffix.slice (lowercaseMethod.length)
-
                     let camelcase  = type + camelcaseMethod + this.capitalize (camelcaseSuffix)
                     let underscore = type + '_' + lowercaseMethod + '_' + underscoreSuffix
 
