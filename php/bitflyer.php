@@ -77,9 +77,9 @@ class bitflyer extends Exchange {
     }
 
     public function fetch_markets () {
-        $jp_markets = $this->publicGetMarkets ();
-        $us_markets = $this->publicGetMarketsUsa ();
-        $eu_markets = $this->publicGetMarketsEu ();
+        $jp_markets = $this->publicGetGetmarkets ();
+        $us_markets = $this->publicGetGetmarketsUsa ();
+        $eu_markets = $this->publicGetGetmarketsEu ();
         $markets = $this->array_concat($jp_markets, $us_markets);
         $markets = $this->array_concat($markets, $eu_markets);
         $result = array ();
@@ -115,7 +115,7 @@ class bitflyer extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $response = $this->privateGetBalance ();
+        $response = $this->privateGetGetbalance ();
         $balances = array ();
         for ($b = 0; $b < count ($response); $b++) {
             $account = $response[$b];
@@ -139,7 +139,7 @@ class bitflyer extends Exchange {
 
     public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets();
-        $orderbook = $this->publicGetBoard (array_merge (array (
+        $orderbook = $this->publicGetGetboard (array_merge (array (
             'product_code' => $this->market_id($symbol),
         ), $params));
         return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'price', 'size');
@@ -147,7 +147,7 @@ class bitflyer extends Exchange {
 
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
-        $ticker = $this->publicGetTicker (array_merge (array (
+        $ticker = $this->publicGetGetticker (array_merge (array (
             'product_code' => $this->market_id($symbol),
         ), $params));
         $timestamp = $this->parse8601 ($ticker['timestamp']);
@@ -201,7 +201,7 @@ class bitflyer extends Exchange {
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetExecutions (array_merge (array (
+        $response = $this->publicGetGetexecutions (array_merge (array (
             'product_code' => $market['id'],
         ), $params));
         return $this->parse_trades($response, $market, $since, $limit);

@@ -112,7 +112,7 @@ class cryptopia (Exchange):
         return currency
 
     def fetch_markets(self):
-        response = self.publicGetTradePairs()
+        response = self.publicGetGetTradePairs()
         result = []
         markets = response['Data']
         for i in range(0, len(markets)):
@@ -163,7 +163,7 @@ class cryptopia (Exchange):
 
     def fetch_order_book(self, symbol, params={}):
         self.load_markets()
-        response = self.publicGetMarketOrdersId(self.extend({
+        response = self.publicGetGetMarketOrdersId(self.extend({
             'id': self.market_id(symbol),
         }, params))
         orderbook = response['Data']
@@ -198,7 +198,7 @@ class cryptopia (Exchange):
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetMarketId(self.extend({
+        response = self.publicGetGetMarketId(self.extend({
             'id': market['id'],
         }, params))
         ticker = response['Data']
@@ -206,7 +206,7 @@ class cryptopia (Exchange):
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        response = self.publicGetMarkets(params)
+        response = self.publicGetGetMarkets(params)
         result = {}
         tickers = response['Data']
         for i in range(0, len(tickers)):
@@ -271,7 +271,7 @@ class cryptopia (Exchange):
             'id': market['id'],
             'hours': hours,
         }
-        response = self.publicGetMarketHistoryIdHours(self.extend(request, params))
+        response = self.publicGetGetMarketHistoryIdHours(self.extend(request, params))
         trades = response['Data']
         return self.parse_trades(trades, market, since, limit)
 
@@ -286,7 +286,7 @@ class cryptopia (Exchange):
         return self.parse_trades(response['Data'], market, since, limit)
 
     def fetch_currencies(self, params={}):
-        response = self.publicGetCurrencies(params)
+        response = self.publicGetGetCurrencies(params)
         currencies = response['Data']
         result = {}
         for i in range(0, len(currencies)):

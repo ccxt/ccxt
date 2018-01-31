@@ -83,7 +83,7 @@ class virwox (Exchange):
         })
 
     async def fetch_markets(self):
-        markets = await self.publicGetInstruments()
+        markets = await self.publicGetGetInstruments()
         keys = list(markets['result'].keys())
         result = []
         for p in range(0, len(keys)):
@@ -143,7 +143,7 @@ class virwox (Exchange):
         await self.load_markets()
         end = self.milliseconds()
         start = end - 86400000
-        response = await self.publicGetTradedPriceVolume(self.extend({
+        response = await self.publicGetGetTradedPriceVolume(self.extend({
             'instrument': symbol,
             'endDate': self.YmdHMS(end),
             'startDate': self.YmdHMS(start),
@@ -196,7 +196,7 @@ class virwox (Exchange):
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
-        response = await self.publicGetRawTradeData(self.extend({
+        response = await self.publicGetGetRawTradeData(self.extend({
             'instrument': symbol,
             'timespan': 3600,
         }, params))
