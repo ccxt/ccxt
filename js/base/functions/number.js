@@ -162,18 +162,18 @@ const decimalToPrecision = (x, roundingMode
 
     // log.bright.magenta ({ chars: String.fromCharCode (...chars), digitsStart, readStart, readEnd, afterDot, precisionStart })
 
-    const nSign         = (isNegative ? 1 : 0)                    // (-)123.456
-        , nBeforeDot    = (nSign + (afterDot - readStart))        // (-123).456
-        , nAfterDot     = max (0, readEnd - afterDot + 1)         // -123.(456)
-        , actualLength  = (readEnd - readStart) + 1               // -(123.456)
-        , desiredLength = (paddingMode === NO_PADDING)
+    const nSign         =     (isNegative ? 1 : 0)                // (-)123.456
+        , nBeforeDot    =     (nSign + (afterDot - readStart))    // (-123).456
+        , nAfterDot     = max (readEnd - afterDot + 1, 0)         // -123.(456)
+        , actualLength  =     (readEnd - readStart) + 1           // -(123.456)
+        , desiredLength =     (paddingMode === NO_PADDING)
                                     ? (actualLength)              // -(123.456)
                                     : (precisionEnd - readStart)  // -(123.456    )
 
-        , pad           = (desiredLength - actualLength)          //  -123.456(    )
-        , padStart      = (nBeforeDot + 1 + nAfterDot)            //  -123.456(←
-        , padEnd        = (padStart + pad)                        //  -123.456    →)
-        , isInteger     = (nAfterDot + pad) === 0                 //  -123
+        , pad           = max (desiredLength - actualLength, 0)   //  -123.456(    )
+        , padStart      =     (nBeforeDot + 1 + nAfterDot)        //  -123.456(←
+        , padEnd        =     (padStart + pad)                    //  -123.456    →)
+        , isInteger     =     (nAfterDot + pad) === 0             //  -123
 
 /*  Fill the output buffer with characters    */
 
