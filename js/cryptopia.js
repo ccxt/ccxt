@@ -8,7 +8,6 @@ const { ExchangeError, InsufficientFunds, OrderNotFound, OrderNotCached } = requ
 //  ---------------------------------------------------------------------------
 
 module.exports = class cryptopia extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'cryptopia',
@@ -16,15 +15,16 @@ module.exports = class cryptopia extends Exchange {
             'rateLimit': 1500,
             'countries': 'NZ', // New Zealand
             'has': {
-                'fetchDepositAddress': true,
                 'CORS': false,
-                'fetchTickers': true,
+                'createMarketOrder': false,
+                'fetchClosedOrders': 'emulated',
+                'fetchCurrencies': true,
+                'fetchDepositAddress': true,
+                'fetchMyTrades': true,
                 'fetchOrder': 'emulated',
                 'fetchOrders': 'emulated',
                 'fetchOpenOrders': true,
-                'fetchClosedOrders': 'emulated',
-                'fetchMyTrades': true,
-                'fetchCurrencies': true,
+                'fetchTickers': true,
                 'deposit': true,
                 'withdraw': true,
             },
@@ -622,4 +622,4 @@ module.exports = class cryptopia extends Exchange {
         }
         throw new ExchangeError (this.id + ' ' + this.json (response));
     }
-}
+};
