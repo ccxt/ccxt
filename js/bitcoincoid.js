@@ -310,17 +310,17 @@ module.exports = class bitcoincoid extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        if (!symbol)
+        if (typeof symbol === 'undefined')
             throw new ExchangeError (this.id + ' cancelOrder requires a symbol argument');
-        if ('side' in params)
-            if (!params['side'])
-                throw new ExchangeError (this.id + ' cancelOrder requires a side as params argument');
+        let side = this.safeValue (params, 'side');
+        if (typeof side === 'undefined')
+            throw new ExchangeError (this.id + ' cancelOrder requires an extra "side" param');
         await this.loadMarkets ();
         let market = this.market (symbol);
         return await this.privatePostCancelOrder (this.extend ({
             'order_id': id,
             'pair': market['id'],
-            'type': params['side']
+            'type': params['side'],
         }, params));
     }
 
