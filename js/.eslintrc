@@ -21,7 +21,7 @@
     "func-call-spacing": ["error", "always"],
     "block-spacing": ["error", "always"],
     "keyword-spacing": ["error", { "before": true, "after": true }],
-    "object-curly-spacing": ["error", "always"],
+    "object-curly-spacing": ["error", "always", { "objectsInObjects": false }],
     "eqeqeq": "error",
     "quotes": ["error", "single", { "avoidEscape": true }],
     "no-unused-vars": ["error", { "argsIgnorePattern": "^(symbol|price|tag|since|limit|params|market|timeframe)" }],
