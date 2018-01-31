@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -8,7 +8,6 @@ const { ExchangeError } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class btctradeua extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'btctradeua',
@@ -17,6 +16,7 @@ module.exports = class btctradeua extends Exchange {
             'rateLimit': 3000,
             'has': {
                 'CORS': true,
+                'createMarketOrder': false,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27941483-79fc7350-62d9-11e7-9f61-ac47f28fcd96.jpg',
@@ -169,13 +169,13 @@ module.exports = class btctradeua extends Exchange {
             let start = Math.max (tickerLength - 48, 0);
             for (let t = start; t < ticker.length; t++) {
                 let candle = ticker[t];
-                if (typeof result['open'] == 'undefined')
+                if (typeof result['open'] === 'undefined')
                     result['open'] = candle[1];
-                if ((typeof result['high'] == 'undefined') || (result['high'] < candle[2]))
+                if ((typeof result['high'] === 'undefined') || (result['high'] < candle[2]))
                     result['high'] = candle[2];
-                if ((typeof result['low'] == 'undefined') || (result['low'] > candle[3]))
+                if ((typeof result['low'] === 'undefined') || (result['low'] > candle[3]))
                     result['low'] = candle[3];
-                if (typeof result['baseVolume'] == 'undefined')
+                if (typeof result['baseVolume'] === 'undefined')
                     result['baseVolume'] = -candle[5];
                 else
                     result['baseVolume'] -= candle[5];
@@ -217,10 +217,10 @@ module.exports = class btctradeua extends Exchange {
         let year = parts[2];
         let hms = parts[4];
         let hmsLength = hms.length;
-        if (hmsLength == 7) {
+        if (hmsLength === 7) {
             hms = '0' + hms;
         }
-        if (day.length == 1) {
+        if (day.length === 1) {
             day = '0' + day;
         }
         let ymd = [ year, month, day ].join ('-');
@@ -269,7 +269,7 @@ module.exports = class btctradeua extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (type == 'market')
+        if (type === 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
         let market = this.market (symbol);
         let method = 'privatePost' + this.capitalize (side) + 'Id';
@@ -323,7 +323,7 @@ module.exports = class btctradeua extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (query).length)
                 url += this.implodeParams (path, query);
         } else {
@@ -342,4 +342,4 @@ module.exports = class btctradeua extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-}
+};
