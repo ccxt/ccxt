@@ -63,16 +63,18 @@ module.exports = class lakebtc extends Exchange {
         for (let k = 0; k < keys.length; k++) {
             let id = keys[k];
             let market = markets[id];
-            let base = id.slice (0, 3);
-            let quote = id.slice (3, 6);
-            base = base.toUpperCase ();
-            quote = quote.toUpperCase ();
+            let baseId = id.slice (0, 3);
+            let quoteId = id.slice (3, 6);
+            let base = baseId.toUpperCase ();
+            let quote = quoteId.toUpperCase ();
             let symbol = base + '/' + quote;
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'info': market,
             });
         }
@@ -84,16 +86,18 @@ module.exports = class lakebtc extends Exchange {
         let response = await this.privatePostGetAccountInfo ();
         let balances = response['balance'];
         let result = { 'info': response };
-        let currencies = Object.keys (balances);
-        for (let c = 0; c < currencies.length; c++) {
-            let currency = currencies[c];
-            let balance = parseFloat (balances[currency]);
+        let ids = Object.keys (balances);
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
+            let currency = this.currencies[id];
+            let code = currency['code'];
+            let balance = parseFloat (balances[id]);
             let account = {
                 'free': balance,
                 'used': 0.0,
                 'total': balance,
             };
-            result[currency] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
