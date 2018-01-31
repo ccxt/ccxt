@@ -301,13 +301,34 @@ module.exports = class kucoin extends Exchange {
             price = this.safeValue (order, 'dealPrice');
         if (typeof price === 'undefined')
             price = this.safeValue (order, 'dealPriceAverage');
-        let filled = this.safeFloat (order, 'dealAmount');
         let remaining = this.safeFloat (order, 'pendingAmount');
+        let status = this.safeValue (order, 'status');
+        let filled = this.safeFloat (order, 'dealAmount');
+        if (typeof status === 'undefined') {
+            if (typeof remaining !== 'undefined')
+                if (remaining > 0)
+                    status = 'open';
+                else
+                    status = 'closed';
+        }
+        if (typeof status !== 'undefined') {
+            if (status === 'closed')
+                filled = this.safeFloat (order, 'amount');
+        }
         let amount = this.safeFloat (order, 'amount');
-        if (typeof amount === 'undefined')
-            if (typeof filled !== 'undefined')
+        let cost = this.safeFloat (order, 'dealValue');
+        if (typeof filled !== 'undefined') {
+            if (typeof price !== 'undefined') {
+                if (typeof cost === 'undefined')
+                    cost = price * filled;
+            }
+            if (typeof amount === 'undefined') {
                 if (typeof remaining !== 'undefined')
                     amount = this.sum (filled, remaining);
+            } else if (typeof remaining === 'undefined') {
+                remaining = amount - filled;
+            }
+        }
         let side = this.safeValue (order, 'direction');
         if (typeof side === 'undefined')
             side = order['type'].toLowerCase ();
@@ -326,13 +347,6 @@ module.exports = class kucoin extends Exchange {
         let orderId = this.safeString (order, 'orderOid');
         if (typeof orderId === 'undefined')
             orderId = this.safeString (order, 'oid');
-        let status = this.safeValue (order, 'status');
-        if (typeof status === 'undefined') {
-            if (remaining > 0)
-                status = 'open';
-            else
-                status = 'closed';
-        }
         let result = {
             'info': order,
             'id': orderId,
@@ -343,7 +357,7 @@ module.exports = class kucoin extends Exchange {
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': price * filled,
+            'cost': cost,
             'filled': filled,
             'remaining': remaining,
             'status': status,
