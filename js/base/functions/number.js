@@ -62,7 +62,7 @@ const decimalToPrecision = (x, roundingMode
 
     if (numPrecisionDigits < 0) throw new Error ('negative precision is not yet supported')
 
-/*  Convert to a string (if needed), skip trailing dot (if any)   */
+/*  Convert to a string (if needed), skip trailing dot (if any) and leading minus sign (if any)   */
 
     const str          = numberToString (x)
         , isNegative   = str[0] === '-'
