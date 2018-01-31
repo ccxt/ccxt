@@ -3,6 +3,7 @@
 module.exports = {
   "env": {
     "node": true,
+    "mocha": true
   },
   "parserOptions": {
     "ecmaVersion": 2017,
@@ -25,7 +26,6 @@ module.exports = {
       "curly": "off",
       "rest-spread-spacing": "off",
       "no-multiple-empty-lines": "off",
-      "no-undef": "off",
       "no-undef-init": "off",
       "no-useless-return": "off",
       "no-console": "off",
