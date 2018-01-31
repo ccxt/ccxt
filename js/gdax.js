@@ -271,7 +271,7 @@ module.exports = class gdax extends Exchange {
         if (market) {
             feeCurrency = market['quote'];
             if ('liquidity' in trade) {
-                let rateType = (trade['liquidity'] === 'T') ? 'taker' : 'maker';
+                let rateType = (trade['liquidity'] === 'T') ? 'market' : 'limit';
                 feeRate = market[rateType];
             }
         }
