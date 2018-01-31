@@ -8,7 +8,6 @@ const { ExchangeError } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class zaif extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'zaif',
@@ -357,4 +356,4 @@ module.exports = class zaif extends Exchange {
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
     }
-}
+};
