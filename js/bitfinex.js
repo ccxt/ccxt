@@ -239,7 +239,8 @@ module.exports = class bitfinex extends Exchange {
         let keys = Object.keys (withdrawalFees);
         for (let i = 0; i < keys.length; i++) {
             let k = keys[i];
-            withdrawalFees[k] = this.asFloat (withdrawalFees[k]);
+            let toFloat = withdrawalFees[k];
+            withdrawalFees[k] = this.asFloat (toFloat);
         }
 
       return {
