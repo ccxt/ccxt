@@ -604,9 +604,16 @@ module.exports = class bitfinex extends Exchange {
             'renew': 0, // a value of 1 will generate a new address
         };
         let response = await this.privatePostDepositNew (this.extend (request, params));
+        let address = response['address'];
+        let tag = undefined;
+        if ('address_pool' in response) {
+            tag = address;
+            address = response['address_pool'];
+        }
         return {
             'currency': currency,
-            'address': response['address'],
+            'address': address,
+            'tag': tag,
             'status': 'ok',
             'info': response,
         };
