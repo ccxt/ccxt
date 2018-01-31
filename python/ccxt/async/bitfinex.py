@@ -579,9 +579,15 @@ class bitfinex (Exchange):
             'renew': 0,  # a value of 1 will generate a new address
         }
         response = await self.privatePostDepositNew(self.extend(request, params))
+        address = response['address']
+        tag = None
+        if 'address_pool' in response:
+            tag = address
+            address = response['address_pool']
         return {
             'currency': currency,
-            'address': response['address'],
+            'address': address,
+            'tag': tag,
             'status': 'ok',
             'info': response,
         }
