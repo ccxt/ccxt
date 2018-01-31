@@ -244,7 +244,7 @@ module.exports = class bitfinex extends Exchange {
             let toFloat = withdrawalFees[k];
             withdrawalFees[k] = this.asFloat (toFloat);
         }
-      return {
+        return {
           'info': info,
           'maker': maker,
           'taker': taker,
