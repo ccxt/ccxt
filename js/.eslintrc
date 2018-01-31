@@ -29,7 +29,7 @@
     "new-cap": "error",
     "no-var": "error",
     "prefer-const": "off",
-    "no-warning-comments": "error",
+    "no-warning-comments": "warn",
     "padded-blocks": ["error", "never"],
     "lines-between-class-members": "error",
     "no-multiple-empty-lines": ["error", { "max": 1 }],
