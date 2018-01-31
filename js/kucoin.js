@@ -20,7 +20,7 @@ module.exports = class kucoin extends Exchange {
                 'CORS': false,
                 'fetchTickers': true,
                 'fetchOHLCV': true, // see the method implementation below
-                'fetchOrder': false,
+                'fetchOrder': true,
                 'fetchOrders': false,
                 'fetchClosedOrders': true,
                 'fetchOpenOrders': true,
