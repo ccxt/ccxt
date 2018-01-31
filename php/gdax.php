@@ -264,23 +264,23 @@ class gdax extends Exchange {
         }
         if ($market)
             $symbol = $market['symbol'];
-        $fee = null;
-        if (is_array ($trade) && array_key_exists ('fill_fees', $trade)) {
-            $rate = null;
-            $feeCurrency = null;
-            if ($market) {
-                $feeCurrency = $market['quote'];
-                if (is_array ($trade) && array_key_exists ('liquidity', $trade)) {
-                    $rateType = ($trade['liquidity'] === 'T') ? 'taker' : 'maker';
-                    $rate = $market[$rateType];
-                }
+        $feeRate = null;
+        $feeCurrency = null;
+        if ($market) {
+            $feeCurrency = $market['quote'];
+            if (is_array ($trade) && array_key_exists ('liquidity', $trade)) {
+                $rateType = ($trade['liquidity'] === 'T') ? 'taker' : 'maker';
+                $feeRate = $market[$rateType];
             }
-            $fee = array (
-                'cost' => $this->safe_float($trade, 'fill_fees'),
-                'currency' => $feeCurrency,
-                'rate' => $rate,
-            );
         }
+        $feeCost = $this->safe_float($trade, 'fill_fees');
+        if ($feeCost === null)
+            $feeCost = $this->safe_float($trade, 'fee');
+        $fee = array (
+            'cost' => $feeCost,
+            'currency' => $feeCurrency,
+            'rate' => $feeRate,
+        );
         $type = null;
         $id = $this->safe_string($trade, 'trade_id');
         $orderId = $this->safe_string($trade, 'order_id');
