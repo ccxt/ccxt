@@ -19,8 +19,8 @@ const { isString, isNumber } = require ('./type')
 const ROUND    = 0                  // rounding mode
     , TRUNCATE = 1
 
-const SIGNIFICANT_DIGITS_ONLY = 0   // digits counting mode
-    , AFTER_POINT             = 1
+const AFTER_POINT        = 0        // digits counting mode
+    , SIGNIFICANT_DIGITS = 1
 
 const NO_PADDING      = 0           // zero-padding mode
     , PAD_WITH_ZEROES = 1
@@ -109,11 +109,11 @@ const decimalToPrecision = (x, roundingMode
 
 /*  Determine the character index up to which the precision will be reduced  */
 
-    const reducePrecisionUntil =                                                            // truncating to 4:
-                (((start > dotBefore) && (digitsCountingMode === SIGNIFICANT_DIGITS_ONLY))  // 0.0001234567 
-                    ? start                                                                 //          ↑   (SIGNIFICANT_DIGITS_ONLY)
-                    : dotBefore) + numDigits                                                // 0.0001234567
-                                                                                            //       ↑      (AFTER_POINT)
+    const reducePrecisionUntil =                                                       // truncating to 4:
+                (((start > dotBefore) && (digitsCountingMode === SIGNIFICANT_DIGITS))  // 0.0001234567 
+                    ? start                                                            //          ↑   (SIGNIFICANT_DIGITS)
+                    : dotBefore) + numDigits                                           // 0.0001234567
+                                                                                       //       ↑      (AFTER_POINT)
     
 /*  Reset the last significant digit index, as it will change during the rounding/truncation.   */
 
@@ -204,7 +204,7 @@ module.exports = {
     TRUNCATE,
     ROUND,
     AFTER_POINT,
-    SIGNIFICANT_DIGITS_ONLY,
+    SIGNIFICANT_DIGITS,
     NO_PADDING,
     PAD_WITH_ZEROES,
 }

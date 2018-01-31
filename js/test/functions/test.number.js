@@ -7,7 +7,7 @@ const { decimalToPrecision
       , TRUNCATE
       , AFTER_POINT
       , PAD_WITH_ZEROES
-      , SIGNIFICANT_DIGITS_ONLY } = require ('../../../ccxt')
+      , SIGNIFICANT_DIGITS } = require ('../../../ccxt')
 
 const { strictEqual: equal, throws }  = require ('assert')
 
@@ -36,6 +36,17 @@ it ('decimalToPrecision: truncation (to N digits after dot)', () => {
 //  equal (decimalToPrecision ('12.3456',    TRUNCATE,  -1, AFTER_POINT),  '10')   // not yet supported
 //  equal (decimalToPrecision ('123.456',    TRUNCATE,  -2, AFTER_POINT),  '120')  // not yet supported
 //  equal (decimalToPrecision ('123.456',    TRUNCATE,  -3, AFTER_POINT),  '100')  // not yet supported
+})
+
+it ('decimalToPrecision: truncation (to N significant digits)', () => {
+
+    equal (decimalToPrecision ('12.3456000', TRUNCATE, 100, AFTER_POINT),  '12.3456')
+    equal (decimalToPrecision ('12.3456',    TRUNCATE, 100, AFTER_POINT),  '12.3456')
+    equal (decimalToPrecision ('12.3456',    TRUNCATE,   4, AFTER_POINT),  '12.3456')
+    equal (decimalToPrecision ('12.3456',    TRUNCATE,   3, AFTER_POINT),  '12.345')
+    equal (decimalToPrecision ('12.3456',    TRUNCATE,   2, AFTER_POINT),  '12.34')
+    equal (decimalToPrecision ('12.3456',    TRUNCATE,   1, AFTER_POINT),  '12.3')
+    equal (decimalToPrecision ('12.3456',    TRUNCATE,   0, AFTER_POINT),  '12')
 })
 
 it ('decimalToPrecision: rounding (to N digits after dot)', () => {
