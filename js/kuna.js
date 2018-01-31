@@ -3,12 +3,11 @@
 // ---------------------------------------------------------------------------
 
 const acx = require ('./acx.js');
-const { ExchangeError, InsufficientFunds, OrderNotFound } = require ('./base/errors');
+const { ExchangeError } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
 module.exports = class kuna extends acx {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'kuna',
@@ -91,19 +90,6 @@ module.exports = class kuna extends acx {
                 },
             },
         });
-    }
-
-    handleErrors (code, reason, url, method, headers, body) {
-        if (code === 400) {
-            let response = JSON.parse (body);
-            let error = this.safeValue (response, 'error');
-            let errorCode = this.safeInteger (error, 'code');
-            if (errorCode === 2002) {
-                throw new InsufficientFunds ([ this.id, method, url, code, reason, body ].join (' '));
-            } else if (errorCode === 2003) {
-                throw new OrderNotFound ([ this.id, method, url, code, reason, body ].join (' '));
-            }
-        }
     }
 
     async fetchOrderBook (symbol, params = {}) {
