@@ -25,7 +25,7 @@
     "lint": "eslint",
     "check-python-syntax": "cd python && tox -e qa && cd ..",
     "check-php-syntax": "php -f php/test/syntax.php",
-    "check-js-syntax": "eslint \"js/[wz].js\"",
+    "check-js-syntax": "eslint \"js/[wyz].js\"",
     "browserify": "browserify --debug ./ccxt.browser.js > ./build/ccxt.browser.js",
     "pandoc-python-readme": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=python/README.rst README.md",
     "pandoc-doc-readme": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/README.rst README.md",
