@@ -266,18 +266,22 @@ class gdax extends Exchange {
             $symbol = $market['symbol'];
         $fee = null;
         if (is_array ($trade) && array_key_exists ('fill_fees', $trade)) {
+            $rate = null;
             $feeCurrency = null;
-            if ($market)
+            if ($market) {
                 $feeCurrency = $market['quote'];
+                if (is_array ($trade) && array_key_exists ('liquidity', $trade)) {
+                    $rateType = ($trade['liquidity'] === 'T') ? 'taker' : 'maker';
+                    $rate = $market[$rateType];
+                }
+            }
             $fee = array (
                 'cost' => $this->safe_float($trade, 'fill_fees'),
                 'currency' => $feeCurrency,
-                'rate' => null,
+                'rate' => $rate,
             );
         }
         $type = null;
-        if (is_array ($trade) && array_key_exists ('liquidity', $trade))
-            $type = ($trade['liquidity'] === 'T') ? 'Taker' : 'Maker';
         $id = $this->safe_string($trade, 'trade_id');
         $orderId = $this->safe_string($trade, 'order_id');
         return array (

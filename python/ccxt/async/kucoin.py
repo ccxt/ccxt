@@ -300,13 +300,29 @@ class kucoin (Exchange):
             price = self.safe_value(order, 'dealPrice')
         if price is None:
             price = self.safe_value(order, 'dealPriceAverage')
-        filled = self.safe_float(order, 'dealAmount')
         remaining = self.safe_float(order, 'pendingAmount')
+        status = self.safe_value(order, 'status')
+        filled = self.safe_float(order, 'dealAmount')
+        if status is None:
+            if remaining is not None:
+                if remaining > 0:
+                    status = 'open'
+                else:
+                    status = 'closed'
+        if status is not None:
+            if status == 'closed':
+                filled = self.safe_float(order, 'amount')
         amount = self.safe_float(order, 'amount')
-        if amount is None:
-            if filled is not None:
+        cost = self.safe_float(order, 'dealValue')
+        if filled is not None:
+            if price is not None:
+                if cost is None:
+                    cost = price * filled
+            if amount is None:
                 if remaining is not None:
                     amount = self.sum(filled, remaining)
+            elif remaining is None:
+                remaining = amount - filled
         side = self.safe_value(order, 'direction')
         if side is None:
             side = order['type'].lower()
@@ -324,12 +340,6 @@ class kucoin (Exchange):
         orderId = self.safe_string(order, 'orderOid')
         if orderId is None:
             orderId = self.safe_string(order, 'oid')
-        status = self.safe_value(order, 'status')
-        if status is None:
-            if remaining > 0:
-                status = 'open'
-            else:
-                status = 'closed'
         result = {
             'info': order,
             'id': orderId,
@@ -340,7 +350,7 @@ class kucoin (Exchange):
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': price * filled,
+            'cost': cost,
             'filled': filled,
             'remaining': remaining,
             'status': status,

@@ -300,13 +300,34 @@ class kucoin extends Exchange {
             $price = $this->safe_value($order, 'dealPrice');
         if ($price === null)
             $price = $this->safe_value($order, 'dealPriceAverage');
-        $filled = $this->safe_float($order, 'dealAmount');
         $remaining = $this->safe_float($order, 'pendingAmount');
+        $status = $this->safe_value($order, 'status');
+        $filled = $this->safe_float($order, 'dealAmount');
+        if ($status === null) {
+            if ($remaining !== null)
+                if ($remaining > 0)
+                    $status = 'open';
+                else
+                    $status = 'closed';
+        }
+        if ($status !== null) {
+            if ($status === 'closed')
+                $filled = $this->safe_float($order, 'amount');
+        }
         $amount = $this->safe_float($order, 'amount');
-        if ($amount === null)
-            if ($filled !== null)
+        $cost = $this->safe_float($order, 'dealValue');
+        if ($filled !== null) {
+            if ($price !== null) {
+                if ($cost === null)
+                    $cost = $price * $filled;
+            }
+            if ($amount === null) {
                 if ($remaining !== null)
                     $amount = $this->sum ($filled, $remaining);
+            } else if ($remaining === null) {
+                $remaining = $amount - $filled;
+            }
+        }
         $side = $this->safe_value($order, 'direction');
         if ($side === null)
             $side = strtolower ($order['type']);
@@ -325,13 +346,6 @@ class kucoin extends Exchange {
         $orderId = $this->safe_string($order, 'orderOid');
         if ($orderId === null)
             $orderId = $this->safe_string($order, 'oid');
-        $status = $this->safe_value($order, 'status');
-        if ($status === null) {
-            if ($remaining > 0)
-                $status = 'open';
-            else
-                $status = 'closed';
-        }
         $result = array (
             'info' => $order,
             'id' => $orderId,
@@ -342,7 +356,7 @@ class kucoin extends Exchange {
             'side' => $side,
             'price' => $price,
             'amount' => $amount,
-            'cost' => $price * $filled,
+            'cost' => $cost,
             'filled' => $filled,
             'remaining' => $remaining,
             'status' => $status,

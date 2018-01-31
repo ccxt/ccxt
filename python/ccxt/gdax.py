@@ -264,17 +264,19 @@ class gdax (Exchange):
             symbol = market['symbol']
         fee = None
         if 'fill_fees' in trade:
+            rate = None
             feeCurrency = None
             if market:
                 feeCurrency = market['quote']
+                if 'liquidity' in trade:
+                    rateType = 'taker' if (trade['liquidity'] == 'T') else 'maker'
+                    rate = market[rateType]
             fee = {
                 'cost': self.safe_float(trade, 'fill_fees'),
                 'currency': feeCurrency,
-                'rate': None,
+                'rate': rate,
             }
         type = None
-        if 'liquidity' in trade:
-            type = 'Taker' if (trade['liquidity'] == 'T') else 'Maker'
         id = self.safe_string(trade, 'trade_id')
         orderId = self.safe_string(trade, 'order_id')
         return {
