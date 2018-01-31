@@ -233,8 +233,10 @@ module.exports = class bitfinex extends Exchange {
         let summary = await this.privatePostSummary ();
         let accountFees = await this.privatePostAccountFees ();
         let info = this.extend (summary, accountFees);
-        let maker = this.asFloat (summary.maker_fee);
-        let taker = this.asFloat (summary.taker_fee);
+        let maker = summary.maker_fee;
+        maker = this.asFloat (maker);
+        let taker = summary.taker_fee;
+        taker = this.asFloat (taker);
         let withdrawalFees = accountFees.withdraw;
         let keys = Object.keys (withdrawalFees);
         for (let i = 0; i < keys.length; i++) {
@@ -242,7 +244,6 @@ module.exports = class bitfinex extends Exchange {
             let toFloat = withdrawalFees[k];
             withdrawalFees[k] = this.asFloat (toFloat);
         }
-
       return {
           'info': info,
           'maker': maker,
