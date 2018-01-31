@@ -599,12 +599,19 @@ class bitfinex extends Exchange {
         $request = array (
             'method' => $name,
             'wallet_name' => 'exchange',
-            'renew' => 0, // a value of 1 will generate a new address
+            'renew' => 0, // a value of 1 will generate a new $address
         );
         $response = $this->privatePostDepositNew (array_merge ($request, $params));
+        $address = $response['address'];
+        $tag = null;
+        if (is_array ($response) && array_key_exists ('address_pool', $response)) {
+            $tag = $address;
+            $address = $response['address_pool'];
+        }
         return array (
             'currency' => $currency,
-            'address' => $response['address'],
+            'address' => $address,
+            'tag' => $tag,
             'status' => 'ok',
             'info' => $response,
         );

@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 // ---------------------------------------------------------------------------
 
@@ -7,7 +7,6 @@ const acx = require ('./acx.js');
 // ---------------------------------------------------------------------------
 
 module.exports = class yunbi extends acx {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'yunbi',
@@ -79,4 +78,4 @@ module.exports = class yunbi extends acx {
             },
         });
     }
-}
+};
