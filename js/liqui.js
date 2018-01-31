@@ -305,12 +305,11 @@ module.exports = class liqui extends Exchange {
             symbol = market['symbol'];
         let amount = trade['amount'];
         let type = 'limit'; // all trades are still limit trades
-        // is_your_order is always false :/
-        // UPDATE 31.1.2018. isYourTrade has been True in our tests
         let isYourOrder = this.safeValue (trade, 'is_your_order');
         let takerOrMaker = 'taker';
-        if (isYourOrder)
-            takerOrMaker = 'maker';
+        if (typeof isYourOrder !== 'undefined')
+            if (isYourOrder)
+                takerOrMaker = 'maker';
         let fee = this.calculateFee (symbol, type, side, amount, price, takerOrMaker);
         return {
             'id': id,
