@@ -266,23 +266,23 @@ module.exports = class gdax extends Exchange {
         }
         if (market)
             symbol = market['symbol'];
-        let fee = undefined;
-        if ('fill_fees' in trade) {
-            let rate = undefined;
-            let feeCurrency = undefined;
-            if (market) {
-                feeCurrency = market['quote'];
-                if ('liquidity' in trade) {
-                    let rateType = (trade['liquidity'] === 'T') ? 'taker' : 'maker';
-                    rate = market[rateType];
-                }
+        let feeRate = undefined;
+        let feeCurrency = undefined;
+        if (market) {
+            feeCurrency = market['quote'];
+            if ('liquidity' in trade) {
+                let rateType = (trade['liquidity'] === 'T') ? 'taker' : 'maker';
+                feeRate = market[rateType];
             }
-            fee = {
-                'cost': this.safeFloat (trade, 'fill_fees'),
-                'currency': feeCurrency,
-                'rate': rate,
-            };
         }
+        let feeCost = this.safeFloat (trade, 'fill_fees');
+        if (typeof feeCost === 'undefined')
+            feeCost = this.safeFloat (trade, 'fee');
+        let fee = {
+            'cost': feeCost,
+            'currency': feeCurrency,
+            'rate': feeRate,
+        };
         let type = undefined;
         let id = this.safeString (trade, 'trade_id');
         let orderId = this.safeString (trade, 'order_id');
