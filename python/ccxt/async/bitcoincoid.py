@@ -272,7 +272,7 @@ class bitcoincoid (Exchange):
         return orders
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
-        if type == 'limit':
+        if type != 'limit':
             raise ExchangeError(self.id + ' allows limit orders only')
         await self.load_markets()
         market = self.market(symbol)
