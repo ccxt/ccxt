@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 // ---------------------------------------------------------------------------
 
@@ -8,7 +8,6 @@ const { ExchangeError, NotSupported, AuthenticationError } = require ('./base/er
 // ---------------------------------------------------------------------------
 
 module.exports = class xbtce extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'xbtce',
@@ -21,6 +20,7 @@ module.exports = class xbtce extends Exchange {
                 'CORS': false,
                 'fetchTickers': true,
                 'fetchOHLCV': false,
+                'createMarketOrder': false,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28059414-e235970c-662c-11e7-8c3a-08e31f78684b.jpg',
@@ -114,7 +114,7 @@ module.exports = class xbtce extends Exchange {
             let id = market['Symbol'];
             let base = market['MarginCurrency'];
             let quote = market['ProfitCurrency'];
-            if (base == 'DSH')
+            if (base === 'DSH')
                 base = 'DASH';
             let symbol = base + '/' + quote;
             symbol = market['IsTradeAllowed'] ? symbol : id;
@@ -138,7 +138,7 @@ module.exports = class xbtce extends Exchange {
             let currency = balance['Currency'];
             let uppercase = currency.toUpperCase ();
             // xbtce names DASH incorrectly as DSH
-            if (uppercase == 'DSH')
+            if (uppercase === 'DSH')
                 uppercase = 'DASH';
             let account = {
                 'free': balance['FreeAmount'],
@@ -217,9 +217,9 @@ module.exports = class xbtce extends Exchange {
             } else {
                 let base = id.slice (0, 3);
                 let quote = id.slice (3, 6);
-                if (base == 'DSH')
+                if (base === 'DSH')
                     base = 'DASH';
-                if (quote == 'DSH')
+                if (quote === 'DSH')
                     quote = 'DASH';
                 symbol = base + '/' + quote;
             }
@@ -261,27 +261,27 @@ module.exports = class xbtce extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        //     let minutes = parseInt (timeframe / 60); // 1 minute by default
+        //     let periodicity = minutes.toString ();
+        //     await this.loadMarkets ();
+        //     let market = this.market (symbol);
+        //     if (!since)
+        //         since = this.seconds () - 86400 * 7; // last day by defulat
+        //     if (!limit)
+        //         limit = 1000; // default
+        //     let response = await this.privateGetQuotehistorySymbolPeriodicityBarsBid (this.extend ({
+        //         'symbol': market['id'],
+        //         'periodicity': periodicity,
+        //         'timestamp': since,
+        //         'count': limit,
+        //     }, params));
+        //     return this.parseOHLCVs (response['Bars'], market, timeframe, since, limit);
         throw new NotSupported (this.id + ' fetchOHLCV is disabled by the exchange');
-        let minutes = parseInt (timeframe / 60); // 1 minute by default
-        let periodicity = minutes.toString ();
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        if (!since)
-            since = this.seconds () - 86400 * 7; // last day by defulat
-        if (!limit)
-            limit = 1000; // default
-        let response = await this.privateGetQuotehistorySymbolPeriodicityBarsBid (this.extend ({
-            'symbol': market['id'],
-            'periodicity': periodicity,
-            'timestamp': since,
-            'count': limit,
-        }, params));
-        return this.parseOHLCVs (response['Bars'], market, timeframe, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        if (type == 'market')
+        if (type === 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
         let response = await this.tapiPostTrade (this.extend ({
             'pair': this.marketId (symbol),
@@ -312,18 +312,18 @@ module.exports = class xbtce extends Exchange {
         if (!this.uid)
             throw new AuthenticationError (this.id + ' requires uid property for authentication and trading, their public API is always busy');
         let url = this.urls['api'] + '/' + this.version;
-        if (api == 'public')
+        if (api === 'public')
             url += '/' + api;
         url += '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
             this.checkRequiredCredentials ();
             headers = { 'Accept-Encoding': 'gzip, deflate' };
             let nonce = this.nonce ().toString ();
-            if (method == 'POST') {
+            if (method === 'POST') {
                 if (Object.keys (query).length) {
                     headers['Content-Type'] = 'application/json';
                     body = this.json (query);
@@ -340,4 +340,4 @@ module.exports = class xbtce extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-}
+};

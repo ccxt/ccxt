@@ -8,7 +8,6 @@ const { ExchangeError } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class gemini extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'gemini',
@@ -18,6 +17,7 @@ module.exports = class gemini extends Exchange {
             'version': 'v1',
             'has': {
                 'CORS': false,
+                'createMarketOrder': false,
                 'withdraw': true,
             },
             'urls': {
@@ -255,4 +255,4 @@ module.exports = class gemini extends Exchange {
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
     }
-}
+};
