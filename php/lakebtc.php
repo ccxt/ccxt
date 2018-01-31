@@ -62,16 +62,18 @@ class lakebtc extends Exchange {
         for ($k = 0; $k < count ($keys); $k++) {
             $id = $keys[$k];
             $market = $markets[$id];
-            $base = mb_substr ($id, 0, 3);
-            $quote = mb_substr ($id, 3, 6);
-            $base = strtoupper ($base);
-            $quote = strtoupper ($quote);
+            $baseId = mb_substr ($id, 0, 3);
+            $quoteId = mb_substr ($id, 3, 6);
+            $base = strtoupper ($baseId);
+            $quote = strtoupper ($quoteId);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
                 'info' => $market,
             );
         }
@@ -83,16 +85,18 @@ class lakebtc extends Exchange {
         $response = $this->privatePostGetAccountInfo ();
         $balances = $response['balance'];
         $result = array ( 'info' => $response );
-        $currencies = is_array ($balances) ? array_keys ($balances) : array ();
-        for ($c = 0; $c < count ($currencies); $c++) {
-            $currency = $currencies[$c];
-            $balance = floatval ($balances[$currency]);
+        $ids = is_array ($balances) ? array_keys ($balances) : array ();
+        for ($i = 0; $i < count ($ids); $i++) {
+            $id = $ids[$i];
+            $currency = $this->currencies[$id];
+            $code = $currency['code'];
+            $balance = floatval ($balances[$id]);
             $account = array (
                 'free' => $balance,
                 'used' => 0.0,
                 'total' => $balance,
             );
-            $result[$currency] = $account;
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
