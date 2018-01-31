@@ -24,7 +24,7 @@ const AFTER_POINT        = 0        // digits counting mode
     , SIGNIFICANT_DIGITS = 1
 
 const NO_PADDING      = 0           // zero-padding mode
-    , PAD_WITH_ZEROES = 1
+    , PAD_WITH_ZERO = 1
 
 /*  ------------------------------------------------------------------------ */
 
@@ -207,7 +207,7 @@ module.exports = {
     AFTER_POINT,
     SIGNIFICANT_DIGITS,
     NO_PADDING,
-    PAD_WITH_ZEROES,
+    PAD_WITH_ZERO,
 }
 
 /*  ------------------------------------------------------------------------ */
