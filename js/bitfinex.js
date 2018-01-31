@@ -245,11 +245,11 @@ module.exports = class bitfinex extends Exchange {
             withdrawalFees[k] = this.asFloat (toFloat);
         }
         return {
-          'info': info,
-          'maker': maker,
-          'taker': taker,
-          'withdraw': withdrawalFees,
-          'deposit': withdrawalFees,  // only for deposits of less than $1000
+            'info': info,
+            'maker': maker,
+            'taker': taker,
+            'withdraw': withdrawalFees,
+            'deposit': withdrawalFees,  // only for deposits of less than $1000
         };
     }
 
