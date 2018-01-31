@@ -8,7 +8,6 @@ const { ExchangeError } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class bitcoincoid extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitcoincoid',
@@ -287,7 +286,7 @@ module.exports = class bitcoincoid extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (type === 'limit')
+        if (type !== 'limit')
             throw new ExchangeError (this.id + ' allows limit orders only');
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -342,4 +341,4 @@ module.exports = class bitcoincoid extends Exchange {
             throw new ExchangeError (this.id + ' ' + response['error']);
         return response;
     }
-}
+};

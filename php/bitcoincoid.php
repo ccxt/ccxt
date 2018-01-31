@@ -285,7 +285,7 @@ class bitcoincoid extends Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        if ($type === 'limit')
+        if ($type !== 'limit')
             throw new ExchangeError ($this->id . ' allows limit orders only');
         $this->load_markets();
         $market = $this->market ($symbol);

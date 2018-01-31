@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.915'
+__version__ = '1.10.919'
 
 # -----------------------------------------------------------------------------
 
@@ -1003,13 +1003,13 @@ class Exchange(object):
         market = self.market(symbol)
         return market['id'] if type(market) is dict else symbol
 
-    def calculate_fee(self, symbol, type, side, amount, price, taker_or_maker='taker', params={}):
+    def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]
-        rate = market[taker_or_maker]
+        rate = market[takerOrMaker]
         cost = float(self.cost_to_precision(symbol, amount * price))
         return {
             'rate': rate,
-            'type': taker_or_maker,
+            'type': takerOrMaker,
             'currency': market['quote'],
             'cost': float(self.fee_to_precision(symbol, rate * cost)),
         }
