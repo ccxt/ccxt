@@ -484,7 +484,8 @@ module.exports = class bibox extends Exchange {
         let cmds = this.json ([ params ]);
         if (api === 'public') {
             if (method === 'GET') {
-                url += '?' + this.urlencode (params);
+                if (Object.keys (params).length)
+                    url += '?' + this.urlencode (params);
             } else {
                 body = {
                     'cmds': cmds,
