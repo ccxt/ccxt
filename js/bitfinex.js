@@ -236,12 +236,9 @@ module.exports = class bitfinex extends Exchange {
         let maker = this.asFloat (summary.maker_fee);
         let taker = this.asFloat (summary.taker_fee);
         let withdrawalFees = accountFees.withdraw;
-        let asList = Object.entries(withdrawalFees);  // Don't think this is the best way to do this...
-        for (let i = 0; i < asList.length; i++) {
-            withdrawalFees[asList[i][0]] = this.asFloat (asList[i][1])
-        }
+        Object.keys (withdrawalFees).map(key => withdrawalFees[key] = this.asFloat (withdrawalFees[key]))
 
-        return {
+      return {
           'info': info,
           'maker': maker,
           'taker': taker,
