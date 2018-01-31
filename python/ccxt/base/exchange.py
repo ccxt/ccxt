@@ -241,12 +241,6 @@ class Exchange(object):
                     lowercase_path = [x.strip().lower() for x in split_path]
                     underscore_suffix = '_'.join([k for k in lowercase_path if len(k)])
 
-                    if camelcase_suffix.find(camelcase_method) == 0:
-                        camelcase_suffix = camelcase_suffix[len(camelcase_method):]
-
-                    if underscore_suffix.find(lowercase_method) == 0:
-                        underscore_suffix = underscore_suffix[len(lowercase_method):]
-
                     camelcase = api_type + camelcase_method + Exchange.capitalize(camelcase_suffix)
                     underscore = api_type + '_' + lowercase_method + '_' + underscore_suffix.lower()
 

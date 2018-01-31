@@ -640,12 +640,6 @@ abstract class Exchange {
                     $lowercasePath    = array_map ('trim', array_map ('strtolower', $splitPath));
                     $underscoreSuffix = implode ('_', array_filter ($lowercasePath));
 
-                    if (mb_stripos ($camelcaseSuffix, $camelcaseMethod) === 0)
-                        $camelcaseSuffix = mb_substr ($camelcaseSuffix, mb_strlen ($camelcaseMethod));
-
-                    if (mb_stripos ($underscoreSuffix, $lowercaseMethod) === 0)
-                        $underscoreSuffix = trim (mb_substr ($underscoreSuffix, mb_strlen ($lowercaseMethod)), '_');
-
                     $camelcase  = $type . $camelcaseMethod . static::capitalize ($camelcaseSuffix);
                     $underscore = $type . '_' . $lowercaseMethod . '_' . mb_strtolower ($underscoreSuffix);
 
