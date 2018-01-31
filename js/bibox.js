@@ -41,13 +41,19 @@ module.exports = class bibox extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/1294454/34902611-2be8bf1a-f830-11e7-91a2-11b2f292e750.jpg',
                 'api': 'https://api.bibox.com',
                 'www': 'https://www.bibox.com',
-                'doc': 'https://github.com/Biboxcom/api_reference/wiki/home_en',
+                'doc': [
+                    'https://github.com/Biboxcom/api_reference/wiki/home_en',
+                    'https://github.com/Biboxcom/api_reference/wiki/api_reference'
+                ],
                 'fees': 'https://bibox.zendesk.com/hc/en-us/articles/115004417013-Fee-Structure-on-Bibox',
             },
             'api': {
                 'public': {
                     'post': [
                         // TODO: rework for full endpoint/cmd paths here
+                        'mdata',
+                    ],
+                    'get': [
                         'mdata',
                     ],
                 },
@@ -77,11 +83,10 @@ module.exports = class bibox extends Exchange {
         });
     }
 
-    async fetchMarkets () {
-        let response = await this.publicPostMdata ({
-            'cmd': 'api/marketAll',
-            'body': {},
-        });
+    async fetchMarkets (params = {}) {
+        let response = await this.publicGetMdata (this.extend ({
+            'cmd': 'marketAll',
+        }, params));
         let markets = response['result'];
         let result = [];
         for (let i = 0; i < markets.length; i++) {
@@ -153,20 +158,17 @@ module.exports = class bibox extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicPostMdata ({
-            'cmd': 'api/ticker',
-            'body': this.extend ({
-                'pair': market['id'],
-            }, params),
-        });
+        let response = await this.publicGetMdata (this.extend ({
+            'cmd': 'ticker',
+            'pair': market['id'],
+        }, params));
         return this.parseTicker (response['result'], market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
-        let response = await this.publicPostMdata ({
-            'cmd': 'api/marketAll',
-            'body': {},
-        });
+        let response = await this.publicGetMdata (this.extend ({
+            'cmd': 'marketAll',
+        }, params));
         let tickers = response['result'];
         let result = {};
         for (let t = 0; t < tickers.length; t++) {
@@ -200,26 +202,24 @@ module.exports = class bibox extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let size = (limit) ? limit : 200;
-        let response = await this.publicPostMdata ({
-            'cmd': 'api/deals',
-            'body': this.extend ({
-                'pair': market['id'],
-                'size': size,
-            }, params),
-        });
+        let response = await this.publicGetMdata (this.extend ({
+            'cmd': 'deals',
+            'pair': market['id'],
+            'size': size,
+        }, params));
         return this.parseTrades (response['result'], market, since, limit);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicPostMdata ({
-            'cmd': 'api/depth',
-            'body': this.extend ({
-                'pair': market['id'],
-            }, params),
-        });
-        return this.parseOrderBook (response['result'], this.safeFloat (response['result'], 'update_time'), 'bids', 'asks', 'price', 'amount');
+        let size = (limit) ? limit : 200;
+        let response = await this.publicGetMdata (this.extend ({
+            'cmd': 'depth',
+            'pair': market['id'],
+            'size': size,
+        }, params));
+        return this.parseOrderBook (response['result'], this.safeFloat (response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume');
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
@@ -237,14 +237,12 @@ module.exports = class bibox extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let size = (limit) ? limit : 1000;
-        let response = await this.publicPostMdata ({
-            'cmd': 'api/kline',
-            'body': this.extend ({
-                'pair': market['id'],
-                'period': this.timeframes[timeframe],
-                'size': size,
-            }, params),
-        });
+        let response = await this.publicGetMdata (this.extend ({
+            'cmd': 'kline',
+            'pair': market['id'],
+            'period': this.timeframes[timeframe],
+            'size': size,
+        }, params));
         return this.parseOHLCVs (response['result'], market, timeframe, since, limit);
     }
 
@@ -485,9 +483,14 @@ module.exports = class bibox extends Exchange {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
         let cmds = this.json ([ params ]);
         if (api === 'public') {
-            body = {
-                'cmds': cmds,
-            };
+            if (method === 'GET') {
+                if (Object.keys (params).length)
+                    url += '?' + this.urlencode (params);
+            } else {
+                body = {
+                    'cmds': cmds,
+                };
+            }
         } else {
             this.checkRequiredCredentials ();
             body = {
@@ -517,6 +520,10 @@ module.exports = class bibox extends Exchange {
         }
         if (!('result' in response))
             throw new ExchangeError (message);
-        return response['result'][0];
+        if (method === 'GET') {
+            return response;
+        } else {
+            return response['result'][0];
+        }
     }
 }
