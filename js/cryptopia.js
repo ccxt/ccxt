@@ -592,12 +592,13 @@ module.exports = class cryptopia extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
-            body = this.json (query);
+            body = this.json (query, { 'convertArraysToObjects': true });
             let hash = this.hash (this.encode (body), 'md5', 'base64');
             let secret = this.base64ToBinary (this.secret);
             let uri = this.encodeURIComponent (url);
             let lowercase = uri.toLowerCase ();
-            let payload = this.apiKey + method + lowercase + nonce + this.binaryToString (hash);
+            hash = this.binaryToString (hash);
+            let payload = this.apiKey + method + lowercase + nonce + hash;
             let signature = this.hmac (this.encode (payload), secret, 'sha256', 'base64');
             let auth = 'amx ' + this.apiKey + ':' + this.binaryToString (signature) + ':' + nonce;
             headers = {
