@@ -210,6 +210,14 @@ module.exports = class bitfinex extends Exchange {
                         'ZRX': 5.6442,
                         'TNB': 87.511,
                         'SNT': 32.736,
+                        'QSH': undefined,
+                        'TRX': undefined,
+                        'RCN': undefined,
+                        'RLC': undefined,
+                        'AID': undefined,
+                        'SNG': undefined,
+                        'REP': undefined,
+                        'ELF': undefined,
                     },
                 },
             },
@@ -226,6 +234,26 @@ module.exports = class bitfinex extends Exchange {
             'DAT': 'DATA',
         };
         return (currency in currencies) ? currencies[currency] : currency;
+    }
+
+    async fetchFundingFees () {
+        const fundingFees = await this.privatePostAccountFees ();
+        const withdraw = fundingFees['withdraw'];
+        const bfxCurrencies = Object.keys (withdraw);
+        const fees = {};
+        for (let i = 0; i < bfxCurrencies.length; i++) {
+            const bfxCurrency = bfxCurrencies[i];
+            const currency = this.commonCurrencyCode (bfxCurrency);
+            fees[currency] = this.safeFloat (withdraw, bfxCurrency);
+        }
+        return { withdraw: fees };
+    }
+
+    async updateFees () {
+        let funding = this.fees['funding'];
+        const fees = await this.fetchFundingFees ();
+        funding = this.deepExtend (funding, fees);
+        return funding;
     }
 
     async fetchMarkets () {
