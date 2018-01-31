@@ -8,7 +8,6 @@ const { ExchangeError, InsufficientFunds, DDoSProtection } = require ('./base/er
 // ---------------------------------------------------------------------------
 
 module.exports = class yobit extends liqui {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'yobit',
@@ -201,5 +200,4 @@ module.exports = class yobit extends liqui {
         }
         return response;
     }
-
-}
+};
