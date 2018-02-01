@@ -84,7 +84,7 @@ const decimalToPrecision = (x, roundingMode
 
 /*  For -123.4567 the `chars` array will hold 01234567 (leading zero is reserved for rounding cases when 099 → 100)    */
 
-    const chars    = new Int8Array (strEnd - strStart)
+    const chars    = new Uint8Array (strEnd - strStart)
           chars[0] = ZERO
 
 /*  Validate & copy digits, find the actual dot position              */
