@@ -263,7 +263,7 @@ class gateio extends Exchange {
         ), $params));
         $address = null;
         if (is_array ($response) && array_key_exists ('addr', $response))
-            $address = $this->safe_string($response['addr'], 0);
+            $address = $this->safe_string($response, 'addr');
         return array (
             'currency' => $currency,
             'address' => $address,

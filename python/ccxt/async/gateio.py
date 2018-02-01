@@ -248,7 +248,7 @@ class gateio (Exchange):
         }, params))
         address = None
         if 'addr' in response:
-            address = self.safe_string(response['addr'], 0)
+            address = self.safe_string(response, 'addr')
         return {
             'currency': currency,
             'address': address,
