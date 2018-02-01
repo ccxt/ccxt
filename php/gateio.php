@@ -13,6 +13,14 @@ class gateio extends bter {
             'name' => 'Gate.io',
             'countries' => 'CN',
             'rateLimit' => 1000,
+            'has' => array (
+                'CORS' => false,
+                'createMarketOrder' => false,
+                'fetchTickers' => true,
+                'withdraw' => true,
+                'createDepositAddress' => true,
+                'fetchDepositAddress' => true,
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
                 'api' => array (
@@ -24,6 +32,30 @@ class gateio extends bter {
                 'fees' => 'https://gate.io/fee',
             ),
         ));
+    }
+
+    public function query_deposit_address ($method, $currency, $params = array ()) {
+        $method = 'privatePost' . $method . 'Address';
+        $response = $this->$method (array_merge (array (
+            'currency' => $currency,
+        ), $params));
+        $address = null;
+        if (is_array ($response) && array_key_exists ('addr', $response))
+            $address = $this->safe_string($response['addr'], 0);
+        return array (
+            'currency' => $currency,
+            'address' => $address,
+            'status' => ($address !== null) ? 'ok' : 'none',
+            'info' => $response,
+        );
+    }
+
+    public function create_deposit_address ($currency, $params = array ()) {
+        return $this->query_deposit_address ('New', $currency, $params);
+    }
+
+    public function fetch_deposit_address ($currency, $params = array ()) {
+        return $this->query_deposit_address ('Deposit', $currency, $params);
     }
 
     public function parse_trade ($trade, $market) {
