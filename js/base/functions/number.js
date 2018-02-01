@@ -58,8 +58,6 @@ const decimalToPrecision = (x, roundingMode
                              , countingMode       = AFTER_POINT
                              , paddingMode        = NO_PADDING) => { 
 
-/*  TODO: decimalToPrecision (123456.789, -2) === 123500        */ 
-
     if (numPrecisionDigits < 0) throw new Error ('negative precision is not yet supported')
 
 /*  Convert to a string (if needed), skip trailing dot (if any) and leading minus sign (if any)   */
