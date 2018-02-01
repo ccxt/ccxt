@@ -2,8 +2,8 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -16,7 +16,9 @@ module.exports = class coinsecure extends Exchange {
             'countries': 'IN', // India
             'rateLimit': 1000,
             'version': 'v1',
-            'hasCORS': true,
+            'has': {
+                'CORS': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766472-9cbd200a-5ed9-11e7-9551-2267ad7bac08.jpg',
                 'api': 'https://api.coinsecure.in',
@@ -275,7 +277,7 @@ module.exports = class coinsecure extends Exchange {
             order['rate'] = price;
             order['vol'] = amount;
         }
-        let response = await this[method] (self.extend (order, params));
+        let response = await this[method] (this.extend (order, params));
         return {
             'info': response,
             'id': response['message']['orderID'],

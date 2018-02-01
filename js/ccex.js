@@ -1,22 +1,23 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class ccex extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'ccex',
             'name': 'C-CEX',
             'countries': [ 'DE', 'EU' ],
             'rateLimit': 1500,
-            'hasCORS': false,
-            'hasFetchTickers': true,
+            'has': {
+                'CORS': false,
+                'fetchTickers': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766433-16881f90-5ed8-11e7-92f8-3d92cc747a6c.jpg',
                 'api': {
@@ -70,11 +71,11 @@ module.exports = class ccex extends Exchange {
     }
 
     commonCurrencyCode (currency) {
-        if (currency == 'IOT')
+        if (currency === 'IOT')
             return 'IoTcoin';
-        if (currency == 'BLC')
+        if (currency === 'BLC')
             return 'Cryptobullcoin';
-        if (currency == 'XID')
+        if (currency === 'XID')
             return 'InternationalDiamond';
         return currency;
     }
@@ -241,7 +242,7 @@ module.exports = class ccex extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
-        if (api == 'private') {
+        if (api === 'private') {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             let query = this.keysort (this.extend ({
@@ -251,7 +252,7 @@ module.exports = class ccex extends Exchange {
             }, params));
             url += '?' + this.urlencode (query);
             headers = { 'apisign': this.hmac (this.encode (url), this.encode (this.secret), 'sha512') };
-        } else if (api == 'public') {
+        } else if (api === 'public') {
             url += '?' + this.urlencode (this.extend ({
                 'a': 'get' + path,
             }, params));
@@ -263,11 +264,11 @@ module.exports = class ccex extends Exchange {
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
-        if (api == 'tickers')
+        if (api === 'tickers')
             return response;
         if ('success' in response)
             if (response['success'])
                 return response;
         throw new ExchangeError (this.id + ' ' + this.json (response));
     }
-}
+};

@@ -31,13 +31,13 @@ SOFTWARE.
 //-----------------------------------------------------------------------------
 
 const Exchange  = require ('./js/base/Exchange')
-const functions = require ('./js/base/functions')
-const errors    = require ('./js/base/errors')
+    , functions = require ('./js/base/functions')
+    , errors    = require ('./js/base/errors')
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.10.610'
+const version = '1.10.960'
 
 Exchange.ccxtVersion = version
 
@@ -49,6 +49,7 @@ const exchanges = {
     'acx':                     require ('./js/acx.js'),
     'allcoin':                 require ('./js/allcoin.js'),
     'anxpro':                  require ('./js/anxpro.js'),
+    'bibox':                   require ('./js/bibox.js'),
     'binance':                 require ('./js/binance.js'),
     'bit2c':                   require ('./js/bit2c.js'),
     'bitbay':                  require ('./js/bitbay.js'),
@@ -81,6 +82,7 @@ const exchanges = {
     'chbtc':                   require ('./js/chbtc.js'),
     'chilebit':                require ('./js/chilebit.js'),
     'coincheck':               require ('./js/coincheck.js'),
+    'coinexchange':            require ('./js/coinexchange.js'),
     'coinfloor':               require ('./js/coinfloor.js'),
     'coingi':                  require ('./js/coingi.js'),
     'coinmarketcap':           require ('./js/coinmarketcap.js'),
@@ -125,7 +127,7 @@ const exchanges = {
     'poloniex':                require ('./js/poloniex.js'),
     'qryptos':                 require ('./js/qryptos.js'),
     'quadrigacx':              require ('./js/quadrigacx.js'),
-    'quoine':                  require ('./js/quoine.js'),
+    'quoinex':                 require ('./js/quoinex.js'),
     'southxchange':            require ('./js/southxchange.js'),
     'surbitcoin':              require ('./js/surbitcoin.js'),
     'therock':                 require ('./js/therock.js'),

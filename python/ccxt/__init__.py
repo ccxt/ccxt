@@ -28,7 +28,7 @@ SOFTWARE.
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.10.610'
+__version__ = '1.10.960'
 
 # ----------------------------------------------------------------------------
 
@@ -55,6 +55,7 @@ from ccxt._1btcxe import _1btcxe                            # noqa: F401
 from ccxt.acx import acx                                    # noqa: F401
 from ccxt.allcoin import allcoin                            # noqa: F401
 from ccxt.anxpro import anxpro                              # noqa: F401
+from ccxt.bibox import bibox                                # noqa: F401
 from ccxt.binance import binance                            # noqa: F401
 from ccxt.bit2c import bit2c                                # noqa: F401
 from ccxt.bitbay import bitbay                              # noqa: F401
@@ -87,6 +88,7 @@ from ccxt.cex import cex                                    # noqa: F401
 from ccxt.chbtc import chbtc                                # noqa: F401
 from ccxt.chilebit import chilebit                          # noqa: F401
 from ccxt.coincheck import coincheck                        # noqa: F401
+from ccxt.coinexchange import coinexchange                  # noqa: F401
 from ccxt.coinfloor import coinfloor                        # noqa: F401
 from ccxt.coingi import coingi                              # noqa: F401
 from ccxt.coinmarketcap import coinmarketcap                # noqa: F401
@@ -131,7 +133,7 @@ from ccxt.paymium import paymium                            # noqa: F401
 from ccxt.poloniex import poloniex                          # noqa: F401
 from ccxt.qryptos import qryptos                            # noqa: F401
 from ccxt.quadrigacx import quadrigacx                      # noqa: F401
-from ccxt.quoine import quoine                              # noqa: F401
+from ccxt.quoinex import quoinex                            # noqa: F401
 from ccxt.southxchange import southxchange                  # noqa: F401
 from ccxt.surbitcoin import surbitcoin                      # noqa: F401
 from ccxt.therock import therock                            # noqa: F401
@@ -153,6 +155,7 @@ exchanges = [
     'acx',
     'allcoin',
     'anxpro',
+    'bibox',
     'binance',
     'bit2c',
     'bitbay',
@@ -185,6 +188,7 @@ exchanges = [
     'chbtc',
     'chilebit',
     'coincheck',
+    'coinexchange',
     'coinfloor',
     'coingi',
     'coinmarketcap',
@@ -229,7 +233,7 @@ exchanges = [
     'poloniex',
     'qryptos',
     'quadrigacx',
-    'quoine',
+    'quoinex',
     'southxchange',
     'surbitcoin',
     'therock',

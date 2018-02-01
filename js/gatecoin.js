@@ -2,8 +2,8 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError, AuthenticationError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -16,9 +16,11 @@ module.exports = class gatecoin extends Exchange {
             'rateLimit': 2000,
             'countries': 'HK', // Hong Kong
             'comment': 'a regulated/licensed exchange',
-            'hasCORS': false,
-            'hasFetchTickers': true,
-            'hasFetchOHLCV': true,
+            'has': {
+                'CORS': false,
+                'fetchTickers': true,
+                'fetchOHLCV': true,
+            },
             'timeframes': {
                 '1m': '1m',
                 '15m': '15m',
@@ -343,7 +345,7 @@ module.exports = class gatecoin extends Exchange {
             'CurrencyPair': market['id'],
             'Timeframe': this.timeframes[timeframe],
         };
-        if (limit)
+        if (typeof limit !== 'undefined')
             request['Count'] = limit;
         request = this.extend (request, params);
         let response = await this.publicGetPublicTickerHistoryCurrencyPairTimeframe (request);

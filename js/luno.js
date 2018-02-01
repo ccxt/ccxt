@@ -2,8 +2,8 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -16,10 +16,8 @@ module.exports = class luno extends Exchange {
             'countries': [ 'GB', 'SG', 'ZA' ],
             'rateLimit': 10000,
             'version': '1',
-            'hasCORS': false,
-            'hasFetchTickers': true,
-            'hasFetchOrder': true,
             'has': {
+                'CORS': false,
                 'fetchTickers': true,
                 'fetchOrder': true,
             },

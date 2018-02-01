@@ -1,7 +1,7 @@
 Supported Exchanges
 ===================
 
-The ccxt library currently supports the following 96 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 98 cryptocurrency exchange markets and trading APIs:
 
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 |                        | id                   | name                                                           | ver   | doc                                                                                               | countries                                  |
@@ -15,6 +15,8 @@ The ccxt library currently supports the following 96 cryptocurrency exchange mar
 | |allcoin|              | allcoin              | `Allcoin <https://www.allcoin.com>`__                          | 1     | `API <https://www.allcoin.com/About/APIReference>`__                                              | Canada                                     |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |anxpro|               | anxpro               | `ANXPro <https://anxpro.com>`__                                | 2     | `API <http://docs.anxv2.apiary.io>`__                                                             | Japan, Singapore, Hong Kong, New Zealand   |
++------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
+| |bibox|                | bibox                | `Bibox <https://www.bibox.com>`__                              | 1     | `API <https://github.com/Biboxcom/api_reference/wiki/home_en>`__                                  | China, US, South Korea                     |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |binance|              | binance              | `Binance <https://www.binance.com>`__                          | \*    | `API <https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md>`__   | Japan                                      |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -80,13 +82,15 @@ The ccxt library currently supports the following 96 cryptocurrency exchange mar
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |coincheck|            | coincheck            | `coincheck <https://coincheck.com>`__                          | \*    | `API <https://coincheck.com/documents/exchange/api>`__                                            | Japan, Indonesia                           |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
+| |coinexchange|         | coinexchange         | `CoinExchange <https://www.coinexchange.io>`__                 | \*    | `API <https://coinexchangeio.github.io/slate/>`__                                                 | India, Japan, South Korea, Vietnam, US     |
++------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |coinfloor|            | coinfloor            | `coinfloor <https://www.coinfloor.co.uk>`__                    | \*    | `API <https://github.com/coinfloor/api>`__                                                        | UK                                         |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |coingi|               | coingi               | `Coingi <https://coingi.com>`__                                | \*    | `API <http://docs.coingi.apiary.io/>`__                                                           | Panama, Bulgaria, China, US                |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |coinmarketcap|        | coinmarketcap        | `CoinMarketCap <https://coinmarketcap.com>`__                  | 1     | `API <https://coinmarketcap.com/api>`__                                                           | US                                         |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
-| |coinmate|             | coinmate             | `CoinMate <https://coinmate.io>`__                             | \*    | `API <http://docs.coinmate.apiary.io>`__                                                          | UK, Czech Republic                         |
+| |coinmate|             | coinmate             | `CoinMate <https://coinmate.io>`__                             | \*    | `API <http://docs.coinmate.apiary.io>`__                                                          | UK, Czech Republic, EU                     |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |coinsecure|           | coinsecure           | `Coinsecure <https://coinsecure.in>`__                         | 1     | `API <https://api.coinsecure.in>`__                                                               | India                                      |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -116,9 +120,9 @@ The ccxt library currently supports the following 96 cryptocurrency exchange mar
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |getbtc|               | getbtc               | `GetBTC <https://getbtc.org>`__                                | \*    | `API <https://getbtc.org/api-docs.php>`__                                                         | St. Vincent & Grenadines, Russia           |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
-| |hitbtc|               | hitbtc               | `HitBTC <https://hitbtc.com>`__                                | 1     | `API <https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv1.md>`__                           | Hong Kong                                  |
+| |hitbtc|               | hitbtc               | `HitBTC <https://hitbtc.com>`__                                | 1     | `API <https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv1.md>`__                           | UK                                         |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
-| |hitbtc2|              | hitbtc2              | `HitBTC v2 <https://hitbtc.com>`__                             | 2     | `API <https://api.hitbtc.com>`__                                                                  | Hong Kong                                  |
+| |hitbtc2|              | hitbtc2              | `HitBTC v2 <https://hitbtc.com>`__                             | 2     | `API <https://api.hitbtc.com>`__                                                                  | UK                                         |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |huobi|                | huobi                | `Huobi <https://www.huobi.com>`__                              | 3     | `API <https://github.com/huobiapi/API_Docs_en/wiki>`__                                            | China                                      |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -168,7 +172,7 @@ The ccxt library currently supports the following 96 cryptocurrency exchange mar
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |quadrigacx|           | quadrigacx           | `QuadrigaCX <https://www.quadrigacx.com>`__                    | 2     | `API <https://www.quadrigacx.com/api_info>`__                                                     | Canada                                     |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
-| |quoine|               | quoine               | `QUOINE <https://www.quoine.com>`__                            | 2     | `API <https://developers.quoine.com>`__                                                           | Japan, Singapore, Vietnam                  |
+| |quoinex|              | quoinex              | `QUOINEX <https://quoinex.com/>`__                             | 2     | `API <https://developers.quoine.com>`__                                                           | Japan, Singapore, Vietnam                  |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |southxchange|         | southxchange         | `SouthXchange <https://www.southxchange.com>`__                | \*    | `API <https://www.southxchange.com/Home/Api>`__                                                   | Argentina                                  |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -204,6 +208,7 @@ The ccxt library currently supports the following 96 cryptocurrency exchange mar
 .. |acx| image:: https://user-images.githubusercontent.com/1294454/30247614-1fe61c74-9621-11e7-9e8c-f1a627afa279.jpg
 .. |allcoin| image:: https://user-images.githubusercontent.com/1294454/31561809-c316b37c-b061-11e7-8d5a-b547b4d730eb.jpg
 .. |anxpro| image:: https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg
+.. |bibox| image:: https://user-images.githubusercontent.com/1294454/34902611-2be8bf1a-f830-11e7-91a2-11b2f292e750.jpg
 .. |binance| image:: https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg
 .. |bit2c| image:: https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg
 .. |bitbay| image:: https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg
@@ -236,6 +241,7 @@ The ccxt library currently supports the following 96 cryptocurrency exchange mar
 .. |chbtc| image:: https://user-images.githubusercontent.com/1294454/28555659-f0040dc2-7109-11e7-9d99-688a438bf9f4.jpg
 .. |chilebit| image:: https://user-images.githubusercontent.com/1294454/27991414-1298f0d8-647f-11e7-9c40-d56409266336.jpg
 .. |coincheck| image:: https://user-images.githubusercontent.com/1294454/27766464-3b5c3c74-5ed9-11e7-840e-31b32968e1da.jpg
+.. |coinexchange| image:: https://user-images.githubusercontent.com/1294454/34842303-29c99fca-f71c-11e7-83c1-09d900cb2334.jpg
 .. |coinfloor| image:: https://user-images.githubusercontent.com/1294454/28246081-623fc164-6a1c-11e7-913f-bac0d5576c90.jpg
 .. |coingi| image:: https://user-images.githubusercontent.com/1294454/28619707-5c9232a8-7212-11e7-86d6-98fe5d15cc6e.jpg
 .. |coinmarketcap| image:: https://user-images.githubusercontent.com/1294454/28244244-9be6312a-69ed-11e7-99c1-7c1797275265.jpg
@@ -280,7 +286,7 @@ The ccxt library currently supports the following 96 cryptocurrency exchange mar
 .. |poloniex| image:: https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg
 .. |qryptos| image:: https://user-images.githubusercontent.com/1294454/30953915-b1611dc0-a436-11e7-8947-c95bd5a42086.jpg
 .. |quadrigacx| image:: https://user-images.githubusercontent.com/1294454/27766825-98a6d0de-5ee7-11e7-9fa4-38e11a2c6f52.jpg
-.. |quoine| image:: https://user-images.githubusercontent.com/1294454/27766844-9615a4e8-5ee8-11e7-8814-fcd004db8cdd.jpg
+.. |quoinex| image:: https://user-images.githubusercontent.com/1294454/35047114-0e24ad4a-fbaa-11e7-96a9-69c1a756083b.jpg
 .. |southxchange| image:: https://user-images.githubusercontent.com/1294454/27838912-4f94ec8a-60f6-11e7-9e5d-bbf9bd50a559.jpg
 .. |surbitcoin| image:: https://user-images.githubusercontent.com/1294454/27991511-f0a50194-6481-11e7-99b5-8f02932424cc.jpg
 .. |therock| image:: https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg

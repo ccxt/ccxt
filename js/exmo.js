@@ -1,14 +1,13 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class exmo extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'exmo',
@@ -16,9 +15,11 @@ module.exports = class exmo extends Exchange {
             'countries': [ 'ES', 'RU' ], // Spain, Russia
             'rateLimit': 1000, // once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
             'version': 'v1',
-            'hasCORS': false,
-            'hasFetchTickers': true,
-            'hasWithdraw': true,
+            'has': {
+                'CORS': false,
+                'fetchTickers': true,
+                'withdraw': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg',
                 'api': 'https://api.exmo.com',
@@ -27,6 +28,7 @@ module.exports = class exmo extends Exchange {
                     'https://exmo.me/en/api_doc',
                     'https://github.com/exmo-dev/exmo_api_lib/tree/master/nodejs',
                 ],
+                'fees': 'https://exmo.com/en/docs/fees',
             },
             'api': {
                 'public': {
@@ -61,6 +63,27 @@ module.exports = class exmo extends Exchange {
                 'trading': {
                     'maker': 0.2 / 100,
                     'taker': 0.2 / 100,
+                },
+                'funding': {
+                    'withdraw': {
+                        'BTC': 0.001,
+                        'LTC': 0.01,
+                        'DOGE': 1,
+                        'DASH': 0.01,
+                        'ETH': 0.01,
+                        'WAVES': 0.001,
+                        'ZEC': 0.001,
+                        'USDT': 25,
+                        'XMR': 0.05,
+                        'XRP': 0.02,
+                        'KICK': 350,
+                        'ETC': 0.01,
+                        'BCH': 0.001,
+                    },
+                    'deposit': {
+                        'USDT': 15,
+                        'KICK': 50,
+                    },
                 },
             },
         });
@@ -213,7 +236,7 @@ module.exports = class exmo extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let prefix = '';
-        if (type == 'market')
+        if (type === 'market')
             prefix = 'market_';
         if (typeof price === 'undefined')
             price = 0;
@@ -235,7 +258,7 @@ module.exports = class exmo extends Exchange {
         return await this.privatePostOrderCancel ({ 'order_id': id });
     }
 
-    async withdraw (currency, amount, address, params = {}) {
+    async withdraw (currency, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
         let result = await this.privatePostWithdrawCrypt (this.extend ({
             'amount': amount,
@@ -250,7 +273,7 @@ module.exports = class exmo extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
@@ -275,4 +298,4 @@ module.exports = class exmo extends Exchange {
         }
         return response;
     }
-}
+};

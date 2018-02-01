@@ -1,37 +1,26 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class bitcoincoid extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitcoincoid',
             'name': 'Bitcoin.co.id',
             'countries': 'ID', // Indonesia
-            'hasCORS': false,
-            // obsolete metainfo interface
-            'hasFetchTickers': false,
-            'hasFetchOHLCV': false,
-            'hasFetchOrder': false,
-            'hasFetchOrders': false,
-            'hasFetchClosedOrders': false,
-            'hasFetchOpenOrders': true,
-            'hasFetchMyTrades': false,
-            'hasFetchCurrencies': false,
-            'hasWithdraw': false,
-            // new metainfo interface
             'has': {
+                'CORS': false,
+                'createMarketOrder': false,
                 'fetchTickers': false,
                 'fetchOHLCV': false,
-                'fetchOrder': false,
+                'fetchOrder': true,
                 'fetchOrders': false,
-                'fetchClosedOrders': false,
+                'fetchClosedOrders': true,
                 'fetchOpenOrders': true,
                 'fetchMyTrades': false,
                 'fetchCurrencies': false,
@@ -64,33 +53,43 @@ module.exports = class bitcoincoid extends Exchange {
                         'transHistory',
                         'trade',
                         'tradeHistory',
+                        'getOrder',
                         'openOrders',
                         'cancelOrder',
+                        'orderHistory',
                     ],
                 },
             },
             'markets': {
-                'BTC/IDR': { 'id': 'btc_idr', 'symbol': 'BTC/IDR', 'base': 'BTC', 'quote': 'IDR', 'baseId': 'btc', 'quoteId': 'idr' },
-                'BCH/IDR': { 'id': 'bch_idr', 'symbol': 'BCH/IDR', 'base': 'BCH', 'quote': 'IDR', 'baseId': 'bch', 'quoteId': 'idr' },
-                'BTG/IDR': { 'id': 'btg_idr', 'symbol': 'BTG/IDR', 'base': 'BTG', 'quote': 'IDR', 'baseId': 'btg', 'quoteId': 'idr' },
-                'ETH/IDR': { 'id': 'eth_idr', 'symbol': 'ETH/IDR', 'base': 'ETH', 'quote': 'IDR', 'baseId': 'eth', 'quoteId': 'idr' },
-                'ETC/IDR': { 'id': 'etc_idr', 'symbol': 'ETC/IDR', 'base': 'ETC', 'quote': 'IDR', 'baseId': 'etc', 'quoteId': 'idr' },
-                'IGNIS/IDR': { 'id': 'ignis_idr', 'symbol': 'IGNIS/IDR', 'base': 'IGNIS', 'quote': 'IDR', 'baseId': 'ignis', 'quoteId': 'idr' },
-                'LTC/IDR': { 'id': 'ltc_idr', 'symbol': 'LTC/IDR', 'base': 'LTC', 'quote': 'IDR', 'baseId': 'ltc', 'quoteId': 'idr' },
-                'NXT/IDR': { 'id': 'nxt_idr', 'symbol': 'NXT/IDR', 'base': 'NXT', 'quote': 'IDR', 'baseId': 'nxt', 'quoteId': 'idr' },
-                'WAVES/IDR': { 'id': 'waves_idr', 'symbol': 'WAVES/IDR', 'base': 'WAVES', 'quote': 'IDR', 'baseId': 'waves', 'quoteId': 'idr' },
-                'XRP/IDR': { 'id': 'xrp_idr', 'symbol': 'XRP/IDR', 'base': 'XRP', 'quote': 'IDR', 'baseId': 'xrp', 'quoteId': 'idr' },
-                'XZC/IDR': { 'id': 'xzc_idr', 'symbol': 'XZC/IDR', 'base': 'XZC', 'quote': 'IDR', 'baseId': 'xzc', 'quoteId': 'idr' },
-                'XLM/IDR': {'id': 'str_idr', 'symbol': 'XLM/IDR', 'base': 'XLM', 'quote': 'IDR', 'baseId': 'str', 'quoteId': 'idr'},
-                'BTS/BTC': { 'id': 'bts_btc', 'symbol': 'BTS/BTC', 'base': 'BTS', 'quote': 'BTC', 'baseId': 'bts', 'quoteId': 'btc' },
-                'DASH/BTC': { 'id': 'drk_btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC', 'baseId': 'drk', 'quoteId': 'btc' },
-                'DOGE/BTC': { 'id': 'doge_btc', 'symbol': 'DOGE/BTC', 'base': 'DOGE', 'quote': 'BTC', 'baseId': 'doge', 'quoteId': 'btc' },
-                'ETH/BTC': { 'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'baseId': 'eth', 'quoteId': 'btc' },
-                'LTC/BTC': { 'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'baseId': 'ltc', 'quoteId': 'btc' },
-                'NXT/BTC': { 'id': 'nxt_btc', 'symbol': 'NXT/BTC', 'base': 'NXT', 'quote': 'BTC', 'baseId': 'nxt', 'quoteId': 'btc' },
-                'XLM/BTC': { 'id': 'str_btc', 'symbol': 'XLM/BTC', 'base': 'XLM', 'quote': 'BTC', 'baseId': 'str', 'quoteId': 'btc' },
-                'XEM/BTC': { 'id': 'nem_btc', 'symbol': 'XEM/BTC', 'base': 'XEM', 'quote': 'BTC', 'baseId': 'nem', 'quoteId': 'btc' },
-                'XRP/BTC': { 'id': 'xrp_btc', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC', 'baseId': 'xrp', 'quoteId': 'btc' },
+                'BTC/IDR': { 'id': 'btc_idr', 'symbol': 'BTC/IDR', 'base': 'BTC', 'quote': 'IDR', 'baseId': 'btc', 'quoteId': 'idr', 'limits': { 'amount': { 'min': 0.0001, 'max': undefined }}},
+                'BCH/IDR': { 'id': 'bch_idr', 'symbol': 'BCH/IDR', 'base': 'BCH', 'quote': 'IDR', 'baseId': 'bch', 'quoteId': 'idr', 'limits': { 'amount': { 'min': 0.001, 'max': undefined }}},
+                'BTG/IDR': { 'id': 'btg_idr', 'symbol': 'BTG/IDR', 'base': 'BTG', 'quote': 'IDR', 'baseId': 'btg', 'quoteId': 'idr', 'limits': { 'amount': { 'min': 0.01, 'max': undefined }}},
+                'ETH/IDR': { 'id': 'eth_idr', 'symbol': 'ETH/IDR', 'base': 'ETH', 'quote': 'IDR', 'baseId': 'eth', 'quoteId': 'idr', 'limits': { 'amount': { 'min': 0.01, 'max': undefined }}},
+                'ETC/IDR': { 'id': 'etc_idr', 'symbol': 'ETC/IDR', 'base': 'ETC', 'quote': 'IDR', 'baseId': 'etc', 'quoteId': 'idr', 'limits': { 'amount': { 'min': 0.1, 'max': undefined }}},
+                'IGNIS/IDR': { 'id': 'ignis_idr', 'symbol': 'IGNIS/IDR', 'base': 'IGNIS', 'quote': 'IDR', 'baseId': 'ignis', 'quoteId': 'idr', 'limits': { 'amount': { 'min': 1, 'max': undefined }}},
+                'LTC/IDR': { 'id': 'ltc_idr', 'symbol': 'LTC/IDR', 'base': 'LTC', 'quote': 'IDR', 'baseId': 'ltc', 'quoteId': 'idr', 'limits': { 'amount': { 'min': 0.01, 'max': undefined }}},
+                'NXT/IDR': { 'id': 'nxt_idr', 'symbol': 'NXT/IDR', 'base': 'NXT', 'quote': 'IDR', 'baseId': 'nxt', 'quoteId': 'idr', 'limits': { 'amount': { 'min': 5, 'max': undefined }}},
+                'WAVES/IDR': { 'id': 'waves_idr', 'symbol': 'WAVES/IDR', 'base': 'WAVES', 'quote': 'IDR', 'baseId': 'waves', 'quoteId': 'idr', 'limits': { 'amount': { 'min': 0.1, 'max': undefined }}},
+                'XRP/IDR': { 'id': 'xrp_idr', 'symbol': 'XRP/IDR', 'base': 'XRP', 'quote': 'IDR', 'baseId': 'xrp', 'quoteId': 'idr', 'limits': { 'amount': { 'min': 10, 'max': undefined }}},
+                'XZC/IDR': { 'id': 'xzc_idr', 'symbol': 'XZC/IDR', 'base': 'XZC', 'quote': 'IDR', 'baseId': 'xzc', 'quoteId': 'idr', 'limits': { 'amount': { 'min': 0.1, 'max': undefined }}},
+                'XLM/IDR': { 'id': 'str_idr', 'symbol': 'XLM/IDR', 'base': 'XLM', 'quote': 'IDR', 'baseId': 'str', 'quoteId': 'idr', 'limits': { 'amount': { 'min': 20, 'max': undefined }}},
+                'BTS/BTC': { 'id': 'bts_btc', 'symbol': 'BTS/BTC', 'base': 'BTS', 'quote': 'BTC', 'baseId': 'bts', 'quoteId': 'btc', 'limits': { 'amount': { 'min': 0.01, 'max': undefined }}},
+                'DASH/BTC': { 'id': 'drk_btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC', 'baseId': 'drk', 'quoteId': 'btc', 'limits': { 'amount': { 'min': 0.01, 'max': undefined }}},
+                'DOGE/BTC': { 'id': 'doge_btc', 'symbol': 'DOGE/BTC', 'base': 'DOGE', 'quote': 'BTC', 'baseId': 'doge', 'quoteId': 'btc', 'limits': { 'amount': { 'min': 1, 'max': undefined }}},
+                'ETH/BTC': { 'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'baseId': 'eth', 'quoteId': 'btc', 'limits': { 'amount': { 'min': 0.001, 'max': undefined }}},
+                'LTC/BTC': { 'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'baseId': 'ltc', 'quoteId': 'btc', 'limits': { 'amount': { 'min': 0.01, 'max': undefined }}},
+                'NXT/BTC': { 'id': 'nxt_btc', 'symbol': 'NXT/BTC', 'base': 'NXT', 'quote': 'BTC', 'baseId': 'nxt', 'quoteId': 'btc', 'limits': { 'amount': { 'min': 0.01, 'max': undefined }}},
+                'XLM/BTC': { 'id': 'str_btc', 'symbol': 'XLM/BTC', 'base': 'XLM', 'quote': 'BTC', 'baseId': 'str', 'quoteId': 'btc', 'limits': { 'amount': { 'min': 0.01, 'max': undefined }}},
+                'XEM/BTC': { 'id': 'nem_btc', 'symbol': 'XEM/BTC', 'base': 'XEM', 'quote': 'BTC', 'baseId': 'nem', 'quoteId': 'btc', 'limits': { 'amount': { 'min': 1, 'max': undefined }}},
+                'XRP/BTC': { 'id': 'xrp_btc', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC', 'baseId': 'xrp', 'quoteId': 'btc', 'limits': { 'amount': { 'min': 0.01, 'max': undefined }}},
+            },
+            'fees': {
+                'trading': {
+                    'tierBased': false,
+                    'percentage': true,
+                    'maker': 0,
+                    'taker': 0.3,
+                },
             },
         });
     }
@@ -183,6 +182,11 @@ module.exports = class bitcoincoid extends Exchange {
         if ('type' in order)
             side = order['type'];
         let status = this.safeString (order, 'status', 'open');
+        if (status === 'filled') {
+            status = 'closed';
+        } else if (status === 'calcelled') {
+            status = 'canceled';
+        }
         let symbol = undefined;
         let cost = undefined;
         let price = this.safeFloat (order, 'price');
@@ -191,18 +195,24 @@ module.exports = class bitcoincoid extends Exchange {
         let filled = undefined;
         if (market) {
             symbol = market['symbol'];
-            cost = this.safeFloat (order, 'order_' + market['quoteId']);
+            let quoteId = market['quoteId'];
+            let baseId = market['baseId'];
+            if ((market['quoteId'] === 'idr') && ('order_rp' in order))
+                quoteId = 'rp';
+            if ((market['baseId'] === 'idr') && ('remain_rp' in order))
+                baseId = 'rp';
+            cost = this.safeFloat (order, 'order_' + quoteId);
             if (cost) {
                 amount = cost / price;
-                let remainingCost = this.safeFloat (order, 'remain_' + market['quoteId']);
+                let remainingCost = this.safeFloat (order, 'remain_' + quoteId);
                 if (typeof remainingCost !== 'undefined') {
                     remaining = remainingCost / price;
                     filled = amount - remaining;
                 }
             } else {
-                amount = this.safeFloat (order, 'order_' + market['baseId']);
+                amount = this.safeFloat (order, 'order_' + baseId);
                 cost = price * amount;
-                remaining = this.safeFloat (order, 'remain_' + market['baseId']);
+                remaining = this.safeFloat (order, 'remain_' + baseId);
                 filled = amount - remaining;
             }
         }
@@ -231,6 +241,20 @@ module.exports = class bitcoincoid extends Exchange {
         return result;
     }
 
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        if (!symbol)
+            throw new ExchangeError (this.id + ' fetchOrder requires a symbol');
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let response = await this.privatePostGetOrder (this.extend ({
+            'pair': market['id'],
+            'order_id': id,
+        }, params));
+        let orders = response['return'];
+        let order = this.parseOrder (this.extend ({ 'id': id }, orders['order']), market);
+        return this.extend ({ 'info': response }, order);
+    }
+
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!symbol)
             throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol');
@@ -244,7 +268,27 @@ module.exports = class bitcoincoid extends Exchange {
         return this.filterOrdersBySymbol (orders, symbol);
     }
 
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (!symbol)
+            throw new ExchangeError (this.id + ' fetchOrders requires a symbol');
+        await this.loadMarkets ();
+        let request = {};
+        let market = undefined;
+        if (symbol) {
+            market = this.market (symbol);
+            request['pair'] = market['id'];
+        }
+        let response = await this.privatePostOrderHistory (this.extend (request, params));
+        let orders = this.parseOrders (response['return']['orders'], market, since, limit);
+        orders = this.filterBy (orders, 'status', 'closed');
+        if (symbol)
+            return this.filterOrdersBySymbol (orders, symbol);
+        return orders;
+    }
+
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        if (type !== 'limit')
+            throw new ExchangeError (this.id + ' allows limit orders only');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let order = {
@@ -252,8 +296,13 @@ module.exports = class bitcoincoid extends Exchange {
             'type': side,
             'price': price,
         };
-        let base = market['baseId'];
-        order[base] = amount;
+        let currency = market['baseId'];
+        if (side === 'buy') {
+            order[market['quoteId']] = amount * price;
+        } else {
+            order[market['baseId']] = amount;
+        }
+        order[currency] = amount;
         let result = await this.privatePostTrade (this.extend (order, params));
         return {
             'info': result,
@@ -262,15 +311,23 @@ module.exports = class bitcoincoid extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        if (typeof symbol === 'undefined')
+            throw new ExchangeError (this.id + ' cancelOrder requires a symbol argument');
+        let side = this.safeValue (params, 'side');
+        if (typeof side === 'undefined')
+            throw new ExchangeError (this.id + ' cancelOrder requires an extra "side" param');
         await this.loadMarkets ();
+        let market = this.market (symbol);
         return await this.privatePostCancelOrder (this.extend ({
             'order_id': id,
+            'pair': market['id'],
+            'type': params['side'],
         }, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
-        if (api == 'public') {
+        if (api === 'public') {
             url += '/' + this.implodeParams (path, params);
         } else {
             this.checkRequiredCredentials ();
@@ -287,10 +344,35 @@ module.exports = class bitcoincoid extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('error' in response)
-            throw new ExchangeError (this.id + ' ' + response['error']);
-        return response;
+    handleErrors (code, reason, url, method, headers, body, response = undefined) {
+        // { success: 0, error: "invalid order." }
+        if (typeof response === 'undefined')
+            if (body[0] === '{')
+                response = JSON.parse (body);
+        if (!('success' in response))
+            throw new ExchangeError (this.id + ': malformed response: ' + this.json (response));
+        if (response['success'] === 1) {
+            // { success: 1, return: { orders: [] }}
+            if (!('return' in response))
+                throw new ExchangeError (this.id + ': malformed response: ' + this.json (response));
+            else
+                return;
+        }
+        let message = response['error'];
+        let feedback = this.id + ' ' + this.json (response);
+        if (message === 'Insufficient balance.') {
+            throw new InsufficientFunds (feedback);
+        } else if (message === 'invalid order.') {
+            throw new OrderNotFound (feedback); // cancelOrder(1)
+        } else if (message.indexOf ('Minimum price ') >= 0) {
+            throw new InvalidOrder (feedback); // price < limits.price.min, on createLimitBuyOrder ('ETH/BTC', 1, 0)
+        } else if (message.indexOf ('Minimum order ') >= 0) {
+            throw new InvalidOrder (feedback); // cost < limits.cost.min on createLimitBuyOrder ('ETH/BTC', 0, 1)
+        } else if (message === 'Invalid credentials. API not found or session has expired.') {
+            throw new AuthenticationError (feedback); // on bad apiKey
+        } else if (message === 'Invalid credentials. Bad sign.') {
+            throw new AuthenticationError (feedback); // on bad secret
+        }
+        throw new ExchangeError (this.id + ': unknown error: ' + this.json (response));
     }
-}
+};

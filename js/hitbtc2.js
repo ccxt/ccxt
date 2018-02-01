@@ -1,34 +1,24 @@
-"use strict";
+'use strict';
 
 // ---------------------------------------------------------------------------
 
-const hitbtc = require ('./hitbtc')
-const { ExchangeError, OrderNotFound, InsufficientFunds } = require ('./base/errors')
+const hitbtc = require ('./hitbtc');
+const { ExchangeError, OrderNotFound, InsufficientFunds, InvalidOrder } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
 module.exports = class hitbtc2 extends hitbtc {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'hitbtc2',
             'name': 'HitBTC v2',
-            'countries': 'HK', // Hong Kong
+            'countries': 'UK',
             'rateLimit': 1500,
             'version': '2',
-            'hasCORS': true,
-            // older metainfo interface
-            'hasFetchOHLCV': true,
-            'hasFetchTickers': true,
-            'hasFetchOrder': true,
-            'hasFetchOrders': false,
-            'hasFetchOpenOrders': true,
-            'hasFetchClosedOrders': true,
-            'hasFetchMyTrades': true,
-            'hasWithdraw': true,
-            'hasFetchCurrencies': true,
-            // new metainfo interface
             'has': {
+                'createDepositAddress': true,
+                'fetchDepositAddress': true,
+                'CORS': true,
                 'fetchCurrencies': true,
                 'fetchOHLCV': true,
                 'fetchTickers': true,
@@ -120,13 +110,14 @@ module.exports = class hitbtc2 extends hitbtc {
                     'tierBased': false,
                     'percentage': false,
                     'withdraw': {
-                        'BTC': 0.00085,
+                        'BTC': 0.001,
                         'BCC': 0.0018,
-                        'ETH': 0.00215,
+                        'ETH': 0.00958,
                         'BCH': 0.0018,
                         'USDT': 100,
                         'DASH': 0.03,
                         'BTG': 0.0005,
+                        'XRP': 0.509,
                         'LTC': 0.003,
                         'ZEC': 0.0001,
                         'XMR': 0.09,
@@ -135,7 +126,8 @@ module.exports = class hitbtc2 extends hitbtc {
                         'AE': 6.7,
                         'AEON': 0.01006,
                         'AIR': 565,
-                        'AMP': 9,
+                        'AMM': 14,
+                        'AMP': 342,
                         'ANT': 6.7,
                         'ARDR': 1,
                         'ARN': 18.5,
@@ -153,26 +145,31 @@ module.exports = class hitbtc2 extends hitbtc {
                         'BMT': 100,
                         'BNT': 2.57,
                         'BQX': 4.7,
+                        'BTCA': 351.21,
                         'BTM': 40,
                         'BTX': 0.04,
                         'BUS': 0.004,
-                        'CCT': 115,
+                        'CAPP': 97,
+                        'CCT': 6,
                         'CDT': 100,
                         'CDX': 30,
                         'CFI': 61,
+                        'CL': 13.85,
                         'CLD': 0.88,
                         'CND': 574,
                         'CNX': 0.04,
                         'COSS': 65,
+                        'CPAY': 5.487,
                         'CSNO': 16,
                         'CTR': 15,
                         'CTX': 146,
                         'CVC': 8.46,
+                        'DATA': 12.949,
                         'DBIX': 0.0168,
-                        'DCN': 120000,
+                        'DCN': 1280,
                         'DCT': 0.02,
                         'DDF': 342,
-                        'DENT': 6240,
+                        'DENT': 1000,
                         'DGB': 0.4,
                         'DGD': 0.01,
                         'DICE': 0.32,
@@ -189,10 +186,11 @@ module.exports = class hitbtc2 extends hitbtc {
                         'ECAT': 14,
                         'EDG': 2,
                         'EDO': 2.9,
+                        'EKO': 1136.36,
                         'ELE': 0.00172,
                         'ELM': 0.004,
                         'EMC': 0.03,
-                        'EMGO': 14,
+                        'MGO': 14,
                         'ENJ': 163,
                         'EOS': 1.5,
                         'ERO': 34,
@@ -201,14 +199,17 @@ module.exports = class hitbtc2 extends hitbtc {
                         'ETP': 0.004,
                         'EVX': 5.4,
                         'EXN': 456,
+                        'FCN': 0.000005,
                         'FRD': 65,
                         'FUEL': 123.00105,
                         'FUN': 202.9598309,
                         'FYN': 1.849,
                         'FYP': 66.13,
+                        'GAME': 0.004,
                         'GNO': 0.0034,
                         'GUP': 4,
                         'GVT': 1.2,
+                        'HSR': 0.04,
                         'HAC': 144,
                         'HDG': 7,
                         'HGT': 1082,
@@ -218,16 +219,19 @@ module.exports = class hitbtc2 extends hitbtc {
                         'ICO': 34,
                         'ICOS': 0.35,
                         'IND': 76,
-                        'INDI': 5913,
+                        'INDI': 790,
                         'ITS': 15.0012,
                         'IXT': 11,
                         'KBR': 143,
                         'KICK': 112,
+                        'KMD': 4,
                         'LA': 41,
+                        'LEND': 388,
                         'LAT': 1.44,
                         'LIFE': 13000,
                         'LRC': 27,
                         'LSK': 0.3,
+                        'LOC': 11.076,
                         'LUN': 0.34,
                         'MAID': 5,
                         'MANA': 143,
@@ -235,12 +239,14 @@ module.exports = class hitbtc2 extends hitbtc {
                         'MIPS': 43,
                         'MNE': 1.33,
                         'MSP': 121,
+                        'MCO': 0.357,
                         'MTH': 92,
                         'MYB': 3.9,
                         'NDC': 165,
                         'NEBL': 0.04,
                         'NET': 3.96,
                         'NTO': 998,
+                        'NGC': 2.368,
                         'NXC': 13.39,
                         'NXT': 3,
                         'OAX': 15,
@@ -268,20 +274,26 @@ module.exports = class hitbtc2 extends hitbtc {
                         'QVT': 64,
                         'REP': 0.02,
                         'RKC': 15,
+                        'RLC': 1.21,
                         'RVT': 14,
+                        'SC': 30,
                         'SAN': 2.24,
                         'SBD': 0.03,
                         'SCL': 2.6,
                         'SISA': 1640,
                         'SKIN': 407,
+                        'SWFTC': 352.94,
                         'SMART': 0.4,
                         'SMS': 0.0375,
                         'SNC': 36,
                         'SNGLS': 4,
                         'SNM': 48,
                         'SNT': 233,
+                        'STAR': 0.144,
+                        'STORM': 153.19,
                         'STEEM': 0.01,
                         'STRAT': 0.01,
+                        'SPF': 14.4,
                         'STU': 14,
                         'STX': 11,
                         'SUB': 17,
@@ -293,12 +305,14 @@ module.exports = class hitbtc2 extends hitbtc {
                         'TIME': 0.03,
                         'TIX': 7.1,
                         'TKN': 1,
+                        'TGT': 173,
                         'TKR': 84,
                         'TNT': 90,
                         'TRST': 1.6,
-                        'TRX': 1395,
+                        'TRX': 270,
                         'UET': 480,
                         'UGT': 15,
+                        'UTT': 3,
                         'VEN': 14,
                         'VERI': 0.037,
                         'VIB': 50,
@@ -307,6 +321,7 @@ module.exports = class hitbtc2 extends hitbtc {
                         'WEALTH': 0.0168,
                         'WINGS': 2.4,
                         'WTC': 0.75,
+                        'WRC': 48,
                         'XAUR': 3.23,
                         'XDN': 0.01,
                         'XEM': 15,
@@ -317,8 +332,8 @@ module.exports = class hitbtc2 extends hitbtc {
                         'ZSC': 191,
                     },
                     'deposit': {
-                        'BTC': 0.0003,
-                        'ETH': 0,
+                        'BTC': 0.0006,
+                        'ETH': 0.003,
                         'BCH': 0,
                         'USDT': 0,
                         'BTG': 0,
@@ -517,14 +532,15 @@ module.exports = class hitbtc2 extends hitbtc {
     }
 
     commonCurrencyCode (currency) {
-        if (currency == 'XBT')
-            return 'BTC';
-        if (currency == 'DRK')
-            return 'DASH';
-        if (currency == 'CAT')
-            return 'BitClave';
-        if (currency == 'USD')
-            return 'USDT';
+        let currencies = {
+            'XBT': 'BTC',
+            'DRK': 'DASH',
+            'CAT': 'BitClave',
+            'USD': 'USDT',
+            'EMGO': 'MGO',
+        };
+        if (currency in currencies)
+            return currencies[currency];
         return currency;
     }
 
@@ -680,7 +696,7 @@ module.exports = class hitbtc2 extends hitbtc {
             'symbol': market['id'],
             'period': this.timeframes[timeframe],
         };
-        if (limit)
+        if (typeof limit !== 'undefined')
             request['limit'] = limit;
         let response = await this.publicGetCandlesSymbol (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
@@ -816,7 +832,7 @@ module.exports = class hitbtc2 extends hitbtc {
             'quantity': this.amountToPrecision (symbol, amount),
             'type': type,
         };
-        if (type == 'limit') {
+        if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
         } else {
             request['timeInForce'] = 'FOK';
@@ -848,13 +864,13 @@ module.exports = class hitbtc2 extends hitbtc {
         let amount = this.safeFloat (order, 'quantity');
         let filled = this.safeFloat (order, 'cumQuantity');
         let status = order['status'];
-        if (status == 'new') {
+        if (status === 'new') {
             status = 'open';
-        } else if (status == 'suspended') {
+        } else if (status === 'suspended') {
             status = 'open';
-        } else if (status == 'partiallyFilled') {
+        } else if (status === 'partiallyFilled') {
             status = 'open';
-        } else if (status == 'filled') {
+        } else if (status === 'filled') {
             status = 'closed';
         }
         let id = order['clientOrderId'].toString ();
@@ -932,11 +948,10 @@ module.exports = class hitbtc2 extends hitbtc {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        if (limit)
+        if (typeof limit !== 'undefined')
             request['limit'] = limit;
-        if (since) {
+        if (typeof since !== 'undefined')
             request['from'] = this.iso8601 (since);
-        }
         let response = await this.privateGetHistoryOrder (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
@@ -957,23 +972,29 @@ module.exports = class hitbtc2 extends hitbtc {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        if (since)
+        if (typeof since !== 'undefined')
             request['from'] = this.iso8601 (since);
-        if (limit)
+        if (typeof limit !== 'undefined')
             request['limit'] = limit;
         let response = await this.privateGetHistoryTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchOrderTrades (id, symbol = undefined, params = {}) {
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         // The id needed here is the exchange's id, and not the clientOrderID, which is
         // the id that is stored in the unified api order id. In order the get the exchange's id,
         // you need to grab it from order['info']['id']
         await this.loadMarkets ();
-        let trades = await this.privateGetHistoryOrderIdTrades (this.extend ({
+        let market = undefined;
+        if (typeof symbol !== 'undefined')
+            market = this.market (symbol);
+        let response = await this.privateGetHistoryOrderIdTrades (this.extend ({
             'id': id,
         }, params));
-        return this.parseTrades (trades);
+        let numOrders = response.length;
+        if (numOrders > 0)
+            return this.parseTrades (response, market, since, limit);
+        throw new OrderNotFound (this.id + ' order ' + id + ' not found, ' + this.id + '.fetchOrderTrades() requires an exchange-specific order id, you need to grab it from order["info"]["id"]');
     }
 
     async createDepositAddress (code, params = {}) {
@@ -983,9 +1004,11 @@ module.exports = class hitbtc2 extends hitbtc {
             'currency': currency['id'],
         });
         let address = response['address'];
+        let tag = this.safeString (response, 'paymentId');
         return {
             'currency': currency,
             'address': address,
+            'tag': tag,
             'status': 'ok',
             'info': response,
         };
@@ -998,21 +1021,26 @@ module.exports = class hitbtc2 extends hitbtc {
             'currency': currency['id'],
         });
         let address = response['address'];
+        let tag = this.safeString (response, 'paymentId');
         return {
             'currency': currency,
             'address': address,
+            'tag': tag,
             'status': 'ok',
             'info': response,
         };
     }
 
-    async withdraw (code, amount, address, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         let currency = this.currency (code);
-        let response = await this.privatePostAccountCryptoWithdraw (this.extend ({
+        let request = {
             'currency': currency['id'],
             'amount': parseFloat (amount),
             'address': address,
-        }, params));
+        };
+        if (tag)
+            request['paymentId'] = tag;
+        let response = await this.privatePostAccountCryptoWithdraw (this.extend (request, params));
         return {
             'info': response,
             'id': response['id'],
@@ -1022,14 +1050,14 @@ module.exports = class hitbtc2 extends hitbtc {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/api' + '/' + this.version + '/';
         let query = this.omit (params, this.extractParams (path));
-        if (api == 'public') {
+        if (api === 'public') {
             url += api + '/' + this.implodeParams (path, params);
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
             this.checkRequiredCredentials ();
             url += this.implodeParams (path, params);
-            if (method == 'GET') {
+            if (method === 'GET') {
                 if (Object.keys (query).length)
                     url += '?' + this.urlencode (query);
             } else {
@@ -1039,7 +1067,7 @@ module.exports = class hitbtc2 extends hitbtc {
             let payload = this.encode (this.apiKey + ':' + this.secret);
             let auth = this.stringToBase64 (payload);
             headers = {
-                'Authorization': "Basic " + this.decode (auth),
+                'Authorization': 'Basic ' + this.decode (auth),
                 'Content-Type': 'application/json',
             };
         }
@@ -1048,16 +1076,18 @@ module.exports = class hitbtc2 extends hitbtc {
     }
 
     handleErrors (code, reason, url, method, headers, body) {
-        if (code == 400) {
-            if (body[0] == "{") {
+        if (code === 400) {
+            if (body[0] === '{') {
                 let response = JSON.parse (body);
                 if ('error' in response) {
                     if ('message' in response['error']) {
                         let message = response['error']['message'];
-                        if (message == 'Order not found') {
+                        if (message === 'Order not found') {
                             throw new OrderNotFound (this.id + ' order not found in active orders');
-                        } else if (message == 'Insufficient funds') {
-                            throw new InsufficientFunds (this.id + ' ' + message);
+                        } else if (message === 'Insufficient funds') {
+                            throw new InsufficientFunds (this.id + ' ' + body);
+                        } else if (message === 'Duplicate clientOrderId') {
+                            throw new InvalidOrder (this.id + ' ' + body);
                         }
                     }
                 }
@@ -1072,4 +1102,4 @@ module.exports = class hitbtc2 extends hitbtc {
             throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
     }
-}
+};

@@ -1,10 +1,9 @@
-"use strict";
-
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -21,13 +20,8 @@ module.exports = class huobipro extends Exchange {
             'accounts': undefined,
             'accountsById': undefined,
             'hostname': 'api.huobi.pro',
-            'hasCORS': false,
-            // obsolete metainfo structure
-            'hasFetchOHLCV': true,
-            'hasFetchOrders': true,
-            'hasFetchOpenOrders': true,
-            // new metainfo structure
             'has': {
+                'CORS': false,
                 'fetchOHCLV': true,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
@@ -48,6 +42,7 @@ module.exports = class huobipro extends Exchange {
                 'api': 'https://api.huobi.pro',
                 'www': 'https://www.huobi.pro',
                 'doc': 'https://github.com/huobiapi/API_Docs/wiki/REST_api_reference',
+                'fees': 'https://www.huobi.pro/about/fee/',
             },
             'api': {
                 'market': {
@@ -84,10 +79,19 @@ module.exports = class huobipro extends Exchange {
                         'order/orders/{id}/submitcancel', // 申请撤销一个订单请求
                         'order/orders/batchcancel', // 批量撤销订单
                         'dw/balance/transfer', // 资产划转
+                        'dw/withdraw/api/create', // 申请提现虚拟币
                         'dw/withdraw-virtual/create', // 申请提现虚拟币
                         'dw/withdraw-virtual/{id}/place', // 确认申请虚拟币提现
                         'dw/withdraw-virtual/{id}/cancel', // 申请取消提现虚拟币
                     ],
+                },
+            },
+            'fees': {
+                'trading': {
+                    'tierBased': false,
+                    'percentage': true,
+                    'maker': 0.002,
+                    'taker': 0.002,
                 },
             },
         });
@@ -115,8 +119,8 @@ module.exports = class huobipro extends Exchange {
                 'price': market['price-precision'],
             };
             let lot = Math.pow (10, -precision['amount']);
-            let maker = (base == 'OMG') ? 0 : 0.2 / 100;
-            let taker = (base == 'OMG') ? 0 : 0.2 / 100;
+            let maker = (base === 'OMG') ? 0 : 0.2 / 100;
+            let taker = (base === 'OMG') ? 0 : 0.2 / 100;
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -257,7 +261,7 @@ module.exports = class huobipro extends Exchange {
             ohlcv['high'],
             ohlcv['low'],
             ohlcv['close'],
-            ohlcv['vol'],
+            ohlcv['amount'],
         ];
     }
 
@@ -309,9 +313,9 @@ module.exports = class huobipro extends Exchange {
                 account = result[currency];
             else
                 account = this.account ();
-            if (balance['type'] == 'trade')
+            if (balance['type'] === 'trade')
                 account['free'] = parseFloat (balance['balance']);
-            if (balance['type'] == 'frozen')
+            if (balance['type'] === 'frozen')
                 account['used'] = parseFloat (balance['balance']);
             account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
@@ -322,7 +326,7 @@ module.exports = class huobipro extends Exchange {
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!symbol)
             throw new ExchangeError (this.id + ' fetchOrders() requires a symbol parameter');
-        this.load_markets ();
+        this.loadMarkets ();
         let market = this.market (symbol);
         let status = undefined;
         if ('type' in params) {
@@ -330,14 +334,14 @@ module.exports = class huobipro extends Exchange {
         } else if ('status' in params) {
             status = params['status'];
         } else {
-            throw new ExchangeError (this.id + ' fetchOrders() requires type param or status param for spot market ' + symbol + '(0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)');
+            throw new ExchangeError (this.id + ' fetchOrders() requires a type param or status param for spot market ' + symbol + ' (0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)');
         }
-        if ((status == 0) || (status == 'open')) {
+        if ((status === 0) || (status === 'open')) {
             status = 'submitted,partial-filled';
-        } else if ((status == 1) || (status == 'closed')) {
+        } else if ((status === 1) || (status === 'closed')) {
             status = 'filled,partial-canceled';
         } else {
-            throw new ExchangeError (this.id + ' fetchOrders() wrong type param or status param for spot market ' + symbol + '(0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)');
+            throw new ExchangeError (this.id + ' fetchOrders() wrong type param or status param for spot market ' + symbol + ' (0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)');
         }
         let response = await this.privateGetOrderOrders (this.extend ({
             'symbol': market['id'],
@@ -354,13 +358,13 @@ module.exports = class huobipro extends Exchange {
     }
 
     parseOrderStatus (status) {
-        if (status == 'partial-filled') {
+        if (status === 'partial-filled') {
             return 'open';
-        } else if (status == 'filled') {
+        } else if (status === 'filled') {
             return 'closed';
-        } else if (status == 'canceled') {
+        } else if (status === 'canceled') {
             return 'canceled';
-        } else if (status == 'submitted') {
+        } else if (status === 'submitted') {
             return 'open';
         }
         return status;
@@ -426,7 +430,7 @@ module.exports = class huobipro extends Exchange {
             'symbol': market['id'],
             'type': side + '-' + type,
         };
-        if (type == 'limit')
+        if (type === 'limit')
             order['price'] = this.priceToPrecision (symbol, price);
         let response = await this.privatePostOrderOrdersPlace (this.extend (order, params));
         return {
@@ -441,13 +445,13 @@ module.exports = class huobipro extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/';
-        if (api == 'market')
+        if (api === 'market')
             url += api;
         else
             url += this.version;
         url += '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (api == 'private') {
+        if (api === 'private') {
             this.checkRequiredCredentials ();
             let timestamp = this.YmdHMS (this.milliseconds (), 'T');
             let request = this.keysort (this.extend ({
@@ -457,14 +461,19 @@ module.exports = class huobipro extends Exchange {
                 'Timestamp': timestamp,
             }, query));
             let auth = this.urlencode (request);
+            // unfortunately, PHP demands double quotes for the escaped newline symbol
             let payload = [ method, this.hostname, url, auth ].join ("\n");
             let signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
             auth += '&' + this.urlencode ({ 'Signature': signature });
             url += '?' + auth;
-            if (method == 'POST') {
+            if (method === 'POST') {
                 body = this.json (query);
                 headers = {
                     'Content-Type': 'application/json',
+                };
+            } else {
+                headers = {
+                    'Content-Type': 'application/x-www-form-urlencoded',
                 };
             }
         } else {
@@ -478,7 +487,7 @@ module.exports = class huobipro extends Exchange {
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('status' in response)
-            if (response['status'] == 'error')
+            if (response['status'] === 'error')
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
     }

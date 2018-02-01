@@ -1,40 +1,31 @@
-"use strict"
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class okcoinusd extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'okcoinusd',
             'name': 'OKCoin USD',
             'countries': [ 'CN', 'US' ],
-            'hasCORS': false,
             'version': 'v1',
             'rateLimit': 1000, // up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
-            // obsolete metainfo interface
-            'hasFetchOHLCV': true,
-            'hasFetchOrder': true,
-            'hasFetchOrders': true,
-            'hasFetchOpenOrders': true,
-            'hasFetchClosedOrders': true,
-            'hasWithdraw': true,
-            // new metainfo interface
             'has': {
+                'CORS': false,
                 'fetchOHLCV': true,
                 'fetchOrder': true,
-                'fetchOrders': true,
+                'fetchOrders': false,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'withdraw': true,
+                'futureMarkets': false,
             },
             'extension': '.do', // appended to endpoint URL
-            'hasFutureMarkets': false,
             'timeframes': {
                 '1m': '1min',
                 '3m': '3min',
@@ -72,6 +63,7 @@ module.exports = class okcoinusd extends Exchange {
                         'kline',
                         'otcs',
                         'ticker',
+                        'tickers',
                         'trades',
                     ],
                 },
@@ -136,6 +128,16 @@ module.exports = class okcoinusd extends Exchange {
                     'maker': 0.002,
                 },
             },
+            'exceptions': {
+                '1009': OrderNotFound, // for spot markets
+                '20015': OrderNotFound, // for future markets
+                '1013': InvalidOrder, // no contract type (PR-1101)
+                '1027': InvalidOrder, // createLimitBuyOrder(symbol, 0, 0): Incorrect parameter may exceeded limits
+                '1002': InsufficientFunds, // The transaction amount exceed the balance
+                '10000': ExchangeError, // createLimitBuyOrder(symbol, undefined, undefined)
+                '10005': AuthenticationError, // bad apiKey
+                '10008': ExchangeError, // Illegal URL parameter
+            },
         });
     }
 
@@ -146,18 +148,24 @@ module.exports = class okcoinusd extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             let id = markets[i]['symbol'];
             let uppercase = id.toUpperCase ();
-            let [ base, quote ] = uppercase.split ('_');
+            let [ baseId, quoteId ] = uppercase.split ('_');
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
             let precision = {
                 'amount': markets[i]['maxSizeDigit'],
                 'price': markets[i]['maxPriceDigit'],
             };
             let lot = Math.pow (10, -precision['amount']);
+            let minAmount = markets[i]['minTradeSize'];
+            let minPrice = Math.pow (10, -precision['price']);
             let market = this.extend (this.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'info': markets[i],
                 'type': 'spot',
                 'spot': true,
@@ -167,21 +175,21 @@ module.exports = class okcoinusd extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': markets[i]['minTradeSize'],
+                        'min': minAmount,
                         'max': undefined,
                     },
                     'price': {
-                        'min': undefined,
+                        'min': minPrice,
                         'max': undefined,
                     },
                     'cost': {
-                        'min': undefined,
+                        'min': minAmount * minPrice,
                         'max': undefined,
                     },
                 },
             });
             result.push (market);
-            if ((this.hasFutureMarkets) && (market['quote'] == 'USDT')) {
+            if ((this.has['futureMarkets']) && (market['quote'] === 'USDT')) {
                 result.push (this.extend (market, {
                     'quote': 'USD',
                     'symbol': market['base'] + '/USD',
@@ -220,6 +228,13 @@ module.exports = class okcoinusd extends Exchange {
     parseTicker (ticker, market = undefined) {
         let timestamp = ticker['timestamp'];
         let symbol = undefined;
+        if (!market) {
+            if ('symbol' in ticker) {
+                let marketId = ticker['symbol'];
+                if (marketId in this.markets_by_id)
+                    market = this.markets_by_id[marketId];
+            }
+        }
         if (market)
             symbol = market['symbol'];
         return {
@@ -309,13 +324,12 @@ module.exports = class okcoinusd extends Exchange {
             request['contract_type'] = 'this_week'; // next_week, quarter
         }
         method += 'Kline';
-        if (limit)
+        if (typeof limit !== 'undefined')
             request['size'] = parseInt (limit);
-        if (since) {
+        if (typeof since !== 'undefined')
             request['since'] = since;
-        } else {
+        else
             request['since'] = this.milliseconds () - 86400000; // last 24 hours
-        }
         let response = await this[method] (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
@@ -356,12 +370,12 @@ module.exports = class okcoinusd extends Exchange {
                 'amount': amount,
             });
         } else {
-            if (type == 'limit') {
+            if (type === 'limit') {
                 order['price'] = price;
                 order['amount'] = amount;
             } else {
                 order['type'] += '_market';
-                if (side == 'buy') {
+                if (side === 'buy') {
                     order['price'] = this.safeFloat (params, 'cost');
                     if (!order['price'])
                         throw new ExchangeError (this.id + ' market buy orders require an additional cost parameter, cost = price * amount');
@@ -400,15 +414,15 @@ module.exports = class okcoinusd extends Exchange {
     }
 
     parseOrderStatus (status) {
-        if (status == -1)
+        if (status === -1)
             return 'canceled';
-        if (status == 0)
+        if (status === 0)
             return 'open';
-        if (status == 1)
+        if (status === 1)
             return 'partial';
-        if (status == 2)
+        if (status === 2)
             return 'closed';
-        if (status == 4)
+        if (status === 4)
             return 'canceled';
         return status;
     }
@@ -417,11 +431,11 @@ module.exports = class okcoinusd extends Exchange {
         let side = undefined;
         let type = undefined;
         if ('type' in order) {
-            if ((order['type'] == 'buy') || (order['type'] == 'sell')) {
+            if ((order['type'] === 'buy') || (order['type'] === 'sell')) {
                 side = order['type'];
                 type = 'limit';
             } else {
-                side = (order['type'] == 'buy_market') ? 'buy' : 'sell';
+                side = (order['type'] === 'buy_market') ? 'buy' : 'sell';
                 type = 'market';
             }
         }
@@ -445,7 +459,7 @@ module.exports = class okcoinusd extends Exchange {
         let cost = average * filled;
         let result = {
             'info': order,
-            'id': order['order_id'],
+            'id': order['order_id'].toString (),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
@@ -477,7 +491,7 @@ module.exports = class okcoinusd extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         if (!symbol)
-            throw new ExchangeError (this.id + 'fetchOrders requires a symbol parameter');
+            throw new ExchangeError (this.id + ' fetchOrder requires a symbol parameter');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let method = 'privatePost';
@@ -502,7 +516,7 @@ module.exports = class okcoinusd extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!symbol)
-            throw new ExchangeError (this.id + 'fetchOrders requires a symbol parameter');
+            throw new ExchangeError (this.id + ' fetchOrders requires a symbol parameter');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let method = 'privatePost';
@@ -522,12 +536,9 @@ module.exports = class okcoinusd extends Exchange {
             } else if ('status' in params) {
                 status = params['status'];
             } else {
-                throw new ExchangeError (this.id + ' fetchOrders() requires type param or status param for spot market ' + symbol + ' (0 or "open" for unfilled orders, 1 or "closed" for filled orders)');
+                let name = order_id_in_params ? 'type' : 'status';
+                throw new ExchangeError (this.id + ' fetchOrders() requires ' + name + ' param for spot market ' + symbol + ' (0 - for unfilled orders, 1 - for filled/canceled orders)');
             }
-            if (status == 'open')
-                status = 0;
-            if (status == 'closed')
-                status = 1;
             if (order_id_in_params) {
                 method += 'OrdersInfo';
                 request = this.extend (request, {
@@ -557,12 +568,13 @@ module.exports = class okcoinusd extends Exchange {
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let closed = 1; // 0 for unfilled orders, 1 for filled orders
-        return await this.fetchOrders (symbol, undefined, undefined, this.extend ({
+        let orders = await this.fetchOrders (symbol, undefined, undefined, this.extend ({
             'status': closed,
         }, params));
+        return this.filterBy (orders, 'status', 'closed');
     }
 
-    async withdraw (currency, amount, address, params = {}) {
+    async withdraw (currency, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
         let lowercase = currency.toLowerCase () + '_usd';
         // if (amount < 0.01)
@@ -580,10 +592,8 @@ module.exports = class okcoinusd extends Exchange {
         } else {
             throw new ExchangeError (this.id + ' withdraw() requires a `chargefee` parameter');
         }
-        let password = undefined;
         if (this.password) {
             request['trade_pwd'] = this.password;
-            password = this.password;
         } else if ('password' in query) {
             request['trade_pwd'] = query['password'];
             query = this.omit (query, 'password');
@@ -591,7 +601,8 @@ module.exports = class okcoinusd extends Exchange {
             request['trade_pwd'] = query['trade_pwd'];
             query = this.omit (query, 'trade_pwd');
         }
-        if (!password)
+        let passwordInRequest = ('trade_pwd' in request);
+        if (!passwordInRequest)
             throw new ExchangeError (this.id + ' withdraw() requires this.password set on the exchange instance or a password / trade_pwd parameter');
         let response = await this.privatePostWithdraw (this.extend (request, query));
         return {
@@ -602,10 +613,10 @@ module.exports = class okcoinusd extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/';
-        if (api != 'web')
+        if (api !== 'web')
             url += this.version + '/';
         url += path + this.extension;
-        if (api == 'private') {
+        if (api === 'private') {
             this.checkRequiredCredentials ();
             let query = this.keysort (this.extend ({
                 'api_key': this.apiKey,
@@ -623,17 +634,24 @@ module.exports = class okcoinusd extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('result' in response)
-            if (!response['result'])
-                throw new ExchangeError (this.id + ' ' + this.json (response));
-        if ('error_code' in response) {
-            // 1003 == No order type
-            if (response['error_code'] == 1003)
-                throw new InvalidOrder (this.id + ' ' + this.json (response));
-            throw new ExchangeError (this.id + ' ' + this.json (response));
+    handleErrors (code, reason, url, method, headers, body) {
+        if (body.length < 2)
+            return; // fallback to default error handler
+        if (body[0] === '{') {
+            let response = JSON.parse (body);
+            if ('error_code' in response) {
+                let error = this.safeString (response, 'error_code');
+                let message = this.id + ' ' + this.json (response);
+                if (error in this.exceptions) {
+                    let ExceptionClass = this.exceptions[error];
+                    throw new ExceptionClass (message);
+                } else {
+                    throw new ExchangeError (message);
+                }
+            }
+            if ('result' in response)
+                if (!response['result'])
+                    throw new ExchangeError (this.id + ' ' + this.json (response));
         }
-        return response;
     }
-}
+};

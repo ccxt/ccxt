@@ -125,8 +125,6 @@ const sequentialMap = async (input, fn) => {
 
 const testExchange = async (exchange) => {
 
-    const nonce = Date.now ()
-
 /*  Run tests for all/selected languages (in parallel)     */
 
     const args = [exchange, ...symbol === 'all' ? [] : symbol]
@@ -165,6 +163,9 @@ const testExchange = async (exchange) => {
         explain () {
             for (const { language, failed, output, hasWarnings } of completeTests) {
                 if (failed || hasWarnings) {
+
+                    if (!failed && output.indexOf('[Skipped]') >= 0)
+                        continue;
 
                     if (failed) { log.bright ('\nFAILED'.bgBrightRed.white, exchange.red,    '(' + language + '):\n') }
                     else        { log.bright ('\nWARN'.yellow.inverse,      exchange.yellow, '(' + language + '):\n') }
