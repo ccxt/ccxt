@@ -643,12 +643,10 @@ class kucoin (Exchange):
                 raise InsufficientFunds(feedback)
         raise ExchangeError(self.id + ': unknown response: ' + self.json(response))
 
-    def handle_errors(self, code, reason, url, method, headers, body):
-        if body and(body[0] == '{'):
-            response = json.loads(body)
+    def handle_errors(self, code, reason, url, method, headers, body, response=None):
+        if response is not None:
+            # JS callchain parses body beforehand
             self.throw_exception_on_error(response)
-
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
-        self.throw_exception_on_error(response)
-        return response
+        elif body and(body[0] == '{'):
+            # Python/PHP callchains don't have json available at self step
+            self.throw_exception_on_error(json.loads(body))
