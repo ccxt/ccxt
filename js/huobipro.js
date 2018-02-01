@@ -25,6 +25,7 @@ module.exports = class huobipro extends Exchange {
                 'fetchOHCLV': true,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1min',
@@ -441,6 +442,25 @@ module.exports = class huobipro extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostOrderOrdersIdSubmitcancel ({ 'id': id });
+    }
+
+    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+        let request = {
+            'address': address, // only supports existing addresses in your withdraw address list
+            'amount': amount,
+            'currency': currency.toLowerCase (),
+        };
+        if (tag)
+            request['addr-tag'] = tag; // only for XRP?
+        let response = await this.privatePostDwWithdrawApiCreate (this.extend (request, params));
+        let id = undefined;
+        if ('data' in response) {
+            id = response['data'];
+        }
+        return {
+            'info': response,
+            'id': id,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
