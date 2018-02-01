@@ -678,14 +678,13 @@ module.exports = class kucoin extends Exchange {
         throw new ExchangeError (this.id + ': unknown response: ' + this.json (response));
     }
 
-    handleErrors (code, reason, url, method, headers, body, json = undefined) {
-        if (typeof json !== 'undefined') {
+    handleErrors (code, reason, url, method, headers, body, response = undefined) {
+        if (typeof response !== 'undefined') {
             // JS callchain parses body beforehand
-            this.throwExceptionOnError (json);
+            this.throwExceptionOnError (response);
         } else if (body && (body[0] === '{')) {
             // Python/PHP callchains don't have json available at this step
-            const response = JSON.parse (body);
-            this.throwExceptionOnError (response);
+            this.throwExceptionOnError (JSON.parse (body));
         }
     }
 };
