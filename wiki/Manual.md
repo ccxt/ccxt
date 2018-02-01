@@ -430,6 +430,7 @@ In terms of the ccxt library, every exchange offers multiple markets within itse
         'amount': 8,      // integer
         'cost': 8,        // integer
     },
+    'lot': 0.00000001,    // order amount should be a multiple of lot
     'limits': {           // value limits when placing orders on this market
         'amount': {
             'min': 0.01,  // order amount should be > min
@@ -451,6 +452,7 @@ Each market is an associative array (aka dictionary) with the following keys:
 - `active`. A boolean indicating whether or not trading this market is currently possible.
 - `info`. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
 - `precision`. The amounts of decimal digits accepted in order values by exchanges upon order placement for price, amount and cost.
+- `lot`. Order amount should be a multiple of lot. In case of fixed digit precision it equals to `10 ** -precision['amount']`.
 - `limits`. The minimums and maximums for prices, amounts (volumes) and costs (where cost = price * amount).
 
 *The `precision` and `limits` params are currently under heavy development, some of these fields may be missing here and there until the unification process is complete. This does not influence most of the orders but can be significant in extreme cases of very large or very small orders. The `active` flag is not yet supported and/or implemented by all markets.*
