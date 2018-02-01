@@ -329,7 +329,6 @@ declare module 'ccxt' {
     export class btctradeua extends Exchange {}
     export class btcturk extends Exchange {}
     export class btcx extends Exchange {}
-    export class bter extends Exchange {}
     export class bxinth extends Exchange {}
     export class ccex extends Exchange {}
     export class cex extends Exchange {}
@@ -351,7 +350,7 @@ declare module 'ccxt' {
     export class fybse extends Exchange {}
     export class fybsg extends fybse {}
     export class gatecoin extends Exchange {}
-    export class gateio extends bter {}
+    export class gateio extends Exchange {}
     export class gdax extends Exchange {}
     export class gemini extends Exchange {}
     export class getbtc extends _1btcxe {}

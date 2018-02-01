@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.10.962';
+$version = '1.10.963';
 
 abstract class Exchange {
 
@@ -66,7 +66,6 @@ abstract class Exchange {
         'btctradeua',
         'btcturk',
         'btcx',
-        'bter',
         'bxinth',
         'ccex',
         'cex',
