@@ -226,22 +226,21 @@
         }
     },
     "require": {
-        "php": ">=5.3.0"
-    },
-    "autoload": {
-        "psr-4": {
-            "ccxt\\": "php"
-        }
+        "php": ">=5.3.0",
+        "ext-curl": "*",
+        "ext-iconv": "*",
+        "ext-pcre": "*",
+        "symfony/polyfill-mbstring": "^1.7"
     },
     "archive": {
         "exclude": [
             "/build",
-            "/ccxt.wiki",
             "/doc",
             "/examples",
             "/js",
             "/python",
-            "/wiki"
+            "/wiki",
+            "/ccxt.wiki"
         ]
     }
 }
