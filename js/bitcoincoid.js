@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -344,10 +344,35 @@ module.exports = class bitcoincoid extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('error' in response)
-            throw new ExchangeError (this.id + ' ' + response['error']);
-        return response;
+    handleErrors (code, reason, url, method, headers, body, response = undefined) {
+        // { success: 0, error: "invalid order." }
+        if (typeof response === 'undefined')
+            if (body[0] === '{')
+                response = JSON.parse (body);
+        if (!('success' in response))
+            throw new ExchangeError (this.id + ': malformed response: ' + this.json (response));
+        if (response['success'] === 1) {
+            // { success: 1, return: { orders: [] }}
+            if (!('return' in response))
+                throw new ExchangeError (this.id + ': malformed response: ' + this.json (response));
+            else
+                return;
+        }
+        let message = response['error'];
+        let feedback = this.id + ' ' + this.json (response);
+        if (message === 'Insufficient balance.') {
+            throw new InsufficientFunds (feedback);
+        } else if (message === 'invalid order.') {
+            throw new OrderNotFound (feedback); // cancelOrder(1)
+        } else if (message.indexOf ('Minimum price ') >= 0) {
+            throw new InvalidOrder (feedback); // price < limits.price.min, on createLimitBuyOrder ('ETH/BTC', 1, 0)
+        } else if (message.indexOf ('Minimum order ') >= 0) {
+            throw new InvalidOrder (feedback); // cost < limits.cost.min on createLimitBuyOrder ('ETH/BTC', 0, 1)
+        } else if (message === 'Invalid credentials. API not found or session has expired.') {
+            throw new AuthenticationError (feedback); // on bad apiKey
+        } else if (message === 'Invalid credentials. Bad sign.') {
+            throw new AuthenticationError (feedback); // on bad secret
+        }
+        throw new ExchangeError (this.id + ': unknown error: ' + this.json (response));
     }
 };
