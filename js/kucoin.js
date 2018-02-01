@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InvalidNonce, InvalidOrder, AuthenticationError, InsufficientFunds } = require ('./base/errors');
+const { ExchangeError, InvalidNonce, InvalidOrder, AuthenticationError, InsufficientFunds, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -369,10 +369,10 @@ module.exports = class kucoin extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         if (typeof symbol === 'undefined')
-            throw new ExchangeError (this.id + ' fetchOrder requires a symbol argument');
+            throw new ExchangeError (this.id + ' fetchOrder requires a symbol');
         let orderType = this.safeValue (params, 'type');
         if (typeof orderType === 'undefined')
-            throw new ExchangeError (this.id + ' fetchOrder requires a type param');
+            throw new ExchangeError (this.id + ' fetchOrder requires parameter type=["BUY"|"SELL"]');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
@@ -381,12 +381,15 @@ module.exports = class kucoin extends Exchange {
             'orderOid': id,
         };
         let response = await this.privateGetOrderDetail (this.extend (request, params));
+        let order = response['data'];
+        if (order === null)
+            throw new OrderNotFound (this.id + ' ' + this.json (response));
         return this.parseOrder (response['data'], market);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!symbol)
-            throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol param');
+            throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
@@ -443,7 +446,7 @@ module.exports = class kucoin extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         if (!symbol)
-            throw new ExchangeError (this.id + ' cancelOrder requires symbol argument');
+            throw new ExchangeError (this.id + ' cancelOrder requires a symbol');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
@@ -453,7 +456,7 @@ module.exports = class kucoin extends Exchange {
         if ('type' in params) {
             request['type'] = params['type'].toUpperCase ();
         } else {
-            throw new ExchangeError (this.id + ' cancelOrder requires type (BUY or SELL) param');
+            throw new ExchangeError (this.id + ' cancelOrder requires parameter type=["BUY"|"SELL"]');
         }
         let response = await this.privatePostCancelOrder (this.extend (request, params));
         return response;
