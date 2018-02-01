@@ -313,7 +313,7 @@ class binance extends Exchange {
         $before = $this->milliseconds ();
         $response = $this->publicGetTime ();
         $after = $this->milliseconds ();
-        $this->options['timeDifference'] = ($before . $after) / 2 - $response['serverTime'];
+        $this->options['timeDifference'] = intval (($before . $after) / 2 - $response['serverTime']);
         return $this->options['timeDifference'];
     }
 
