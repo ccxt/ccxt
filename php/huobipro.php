@@ -23,6 +23,7 @@ class huobipro extends Exchange {
                 'fetchOHCLV' => true,
                 'fetchOrders' => true,
                 'fetchOpenOrders' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array (
                 '1m' => '1min',
@@ -439,6 +440,25 @@ class huobipro extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         return $this->privatePostOrderOrdersIdSubmitcancel (array ( 'id' => $id ));
+    }
+
+    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+        $request = array (
+            'address' => $address, // only supports existing addresses in your withdraw $address list
+            'amount' => $amount,
+            'currency' => strtolower ($currency),
+        );
+        if ($tag)
+            $request['addr-tag'] = $tag; // only for XRP?
+        $response = $this->privatePostDwWithdrawApiCreate (array_merge ($request, $params));
+        $id = null;
+        if (is_array ($response) && array_key_exists ('data', $response)) {
+            $id = $response['data'];
+        }
+        return array (
+            'info' => $response,
+            'id' => $id,
+        );
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

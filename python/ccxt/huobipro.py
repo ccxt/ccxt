@@ -27,6 +27,7 @@ class huobipro (Exchange):
                 'fetchOHCLV': True,
                 'fetchOrders': True,
                 'fetchOpenOrders': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1min',
@@ -408,6 +409,23 @@ class huobipro (Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         return self.privatePostOrderOrdersIdSubmitcancel({'id': id})
+
+    def withdraw(self, currency, amount, address, tag=None, params={}):
+        request = {
+            'address': address,  # only supports existing addresses in your withdraw address list
+            'amount': amount,
+            'currency': currency.lower(),
+        }
+        if tag:
+            request['addr-tag'] = tag  # only for XRP?
+        response = self.privatePostDwWithdrawApiCreate(self.extend(request, params))
+        id = None
+        if 'data' in response:
+            id = response['data']
+        return {
+            'info': response,
+            'id': id,
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/'
