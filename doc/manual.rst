@@ -560,7 +560,7 @@ Each market is an associative array (aka dictionary) with the following keys:
 -  ``active``. A boolean indicating whether or not trading this market is currently possible.
 -  ``info``. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
 -  ``precision``. The amounts of decimal digits accepted in order values by exchanges upon order placement for price, amount and cost.
--  ``lot``. Order amount should be a multiple of lot. In case of fixed digit precision it equals to ``10 ** -precision['amount']``.
+-  ``lot``. The lot size is the smallest distinguishable step of amount increment accepted by the exchange when placing a new order. The order amount should be a multiple of lot size or, in other words, should be evenly divisible by the lot size.
 -  ``limits``. The minimums and maximums for prices, amounts (volumes) and costs (where cost = price \* amount).
 
 *The ``precision`` and ``limits`` params are currently under heavy development, some of these fields may be missing here and there until the unification process is complete. This does not influence most of the orders but can be significant in extreme cases of very large or very small orders. The ``active`` flag is not yet supported and/or implemented by all markets.*
@@ -786,7 +786,7 @@ The endpoints definition is a **full list of ALL API URLs** exposed by an exchan
 
 Each implicit method gets a unique name which is constructed from the ``.api`` definition. For example, a private HTTPS PUT ``https://api.exchange.com/order/{id}/cancel`` endpoint will have a corresponding exchange method named ``.privatePutOrderIdCancel()``/``.private_put_order_id_cancel()``. A public HTTPS GET ``https://api.exchange.com/market/ticker/{pair}`` endpoint would result in the corresponding method named ``.publicGetTickerPair()``/``.public_get_ticker_pair()``, and so on.
 
-An implicit method takes a dictionary of parameters, sends the request to the exchange and returns an exchange-specific JSON result from the API **as is, unparsed**. To pass a parameter, add it to the dictionary explicitly under a key equal to the parameter's name. For the examples above, this would look like ``.privatePutOrderIdCancel({ id: '41987a2b-...' })`` and ``.publicGetTickerPair({ pair: 'BTC/USD' })``.
+An implicit method takes a dictionary of parameters, sends the request to the exchange and returns an exchange-specific JSON result from the API **as is, unparsed**. To pass a parameter, add it to the dictionary explicitly under a key equal to the parameter's name. For the examples above, this would look like ``.privatePutOrderIdCancel ({ id: '41987a2b-...' })`` and ``.publicGetTickerPair ({ pair: 'BTC/USD' })``.
 
 The recommended way of working with exchanges is not using exchange-specific implicit methods but using the unified ccxt methods instead. The exchange-specific methods should be used as a fallback in cases when a corresponding unified method isn't available (yet).
 
