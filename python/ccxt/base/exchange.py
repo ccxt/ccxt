@@ -91,7 +91,18 @@ class Exchange(object):
     symbols = None
     precision = {}
     limits = {}
-    fees = {'trading': {}, 'funding': {}}
+    fees = {
+        'ran': False,
+        'trading': {
+            'fee_loaded': False,
+        },
+        'funding': {
+            'fee_loaded': False,
+            'percentage': False,
+            'withdraw': {},
+            'deposit': {},
+        }
+    }
     ids = None
     currencies = None
     tickers = None
@@ -156,6 +167,7 @@ class Exchange(object):
         'fetchCurrencies': False,
         'fetchDepositAddress': False,
         'fetchMarkets': True,
+        'fetchFees': False,
         'fetchMyTrades': False,
         'fetchOHLCV': False,
         'fetchOpenOrders': False,
@@ -206,7 +218,7 @@ class Exchange(object):
         for attr in dir(self):
             if attr[0] != '_'and attr[-1] != '_' and '_' in attr:
                 conv = attr.split('_')
-                camel_case = conv[0] + ''.join(i[0].upper() + i[1:] for i in conv[1:])
+                camel_case = conv[0] + ''.join(i.capitalize() for i in conv[1:])
                 setattr(self, camel_case, getattr(self, attr))
 
         self.tokenBucket = self.extend({
@@ -803,6 +815,24 @@ class Exchange(object):
     def fee_to_precision(self, symbol, fee):
         return ('{:.' + str(self.markets[symbol]['precision']['price']) + 'f}').format(float(fee))
 
+    def fetch_fees(self):
+        self.load_markets()
+
+        maker = None
+        taker = None
+        withdraw = {}
+        deposit = {}
+        for currency, data in self.currencies.items():  # loads withdrawal fees from currencies
+            if 'fee' in data and data['fee'] is not None:
+                withdraw[currency] = data['fee']
+
+        # loadMarkets and fetchMarkets should not extend from hardcoded fees until after loadFees is called WIP
+
+        return {'maker': maker,
+                'taker': taker,
+                'withdraw': withdraw,
+                'deposit': deposit}
+
     def set_markets(self, markets, currencies=None):
         values = list(markets.values()) if type(markets) is dict else markets
         for i in range(0, len(values)):
@@ -842,7 +872,29 @@ class Exchange(object):
         currencies = None
         if self.has['fetchCurrencies']:
             currencies = self.fetch_currencies()
+        #  self.load_fees() -> to be added here in the future?
         return self.set_markets(markets, currencies)
+
+    def load_fees(self, reload=False):
+        if not reload:
+            if self.fees['ran']:
+                return self.fees
+        try:
+            fetched_fees = self.fetch_fees()
+        except AuthenticationError:
+            return self.fees
+
+        if fetched_fees['withdraw'] or fetched_fees['deposit']:
+            self.fees['funding']['withdraw'] = self.extend(self.fees['funding']['withdraw'], fetched_fees['withdraw'])
+            self.fees['funding']['deposit'] = self.extend(self.fees['funding']['deposit'], fetched_fees['deposit'])
+            self.fees['funding']['fee_loaded'] = True
+        if fetched_fees['taker'] and fetched_fees['maker']:
+            self.fees['trading']['taker'] = fetched_fees['taker']
+            self.fees['trading']['maker'] = fetched_fees['maker']
+            self.fees['trading']['fee_loaded'] = True
+
+        self.fees['ran'] = True
+        return self.fees
 
     def fetch_markets(self):
         return self.markets
@@ -1008,6 +1060,18 @@ class Exchange(object):
             'cost': float(self.fee_to_precision(symbol, rate * cost)),
         }
 
+    def calculate_withdrawal_fee(self, currency, amount, params={}):
+        fee = None
+        withdrawal_fees = self.fees['funding']['withdraw']
+        if currency in withdrawal_fees:
+            fee = withdrawal_fees[currency]
+        if fee and self.fees['funding']['percentage']:
+            fee = fee * amount
+        return {
+            'currency': currency,
+            'cost': fee,  # set precision
+        }
+
     def edit_limit_buy_order(self, id, symbol, *args):
         return self.edit_limit_order(symbol, 'buy', *args)
 
@@ -1043,3 +1107,6 @@ class Exchange(object):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         raise NotImplemented(self.id + ' sign() pure method must be redefined in derived classes')
+
+    def __repr__(self):
+        return self.id if isinstance(self.id, str) else super().__repr__()
