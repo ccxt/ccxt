@@ -35,36 +35,28 @@ module.exports = class gateio extends bter {
         });
     }
 
-    async createDepositAddress (currency, params = {}) {
-        let response = await this.privatePostNewAddress (this.extend ({
+    async queryDepositAddress (method, currency, params = {}) {
+        method = 'privatePost' + method + 'Address';
+        let response = await this[method] (this.extend ({
             'currency': currency,
         }, params));
         let address = undefined;
-        if ('addr' in response) {
+        if ('addr' in response)
             address = this.safeString (response['addr'], 0);
-        }
         return {
             'currency': currency,
             'address': address,
-            'status': address !== undefined ? 'ok' : 'none',
+            'status': (typeof address !== 'undefined') ? 'ok' : 'none',
             'info': response,
         };
     }
 
+    async createDepositAddress (currency, params = {}) {
+        return await this.queryDepositAddress ('New', currency, params);
+    }
+
     async fetchDepositAddress (currency, params = {}) {
-        let response = await this.privatePostDepositAddress (this.extend ({
-            'currency': currency,
-        }, params));
-        let address = undefined;
-        if ('addr' in response) {
-            address = this.safeString (response['addr'], 0);
-        }
-        return {
-            'currency': currency,
-            'address': address,
-            'status': address !== undefined ? 'ok' : 'none',
-            'info': response,
-        };
+        return await this.queryDepositAddress ('Deposit', currency, params);
     }
 
     parseTrade (trade, market) {
