@@ -911,8 +911,8 @@ class Exchange(object):
                 raise ExchangeError(self.id + ' unrecognized bidask format: ' + str(bidasks[0]))
         return result
 
-    def fetch_l2_order_book(self, symbol, params={}):
-        orderbook = self.fetch_order_book(symbol, params)
+    def fetch_l2_order_book(self, symbol, limit=None, params={}):
+        orderbook = self.fetch_order_book(symbol, limit, params)
         return self.extend(orderbook, {
             'bids': self.sort_by(self.aggregate(orderbook['bids']), 0, True),
             'asks': self.sort_by(self.aggregate(orderbook['asks']), 0),
