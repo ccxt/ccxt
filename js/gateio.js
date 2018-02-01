@@ -265,7 +265,7 @@ module.exports = class gateio extends Exchange {
         }, params));
         let address = undefined;
         if ('addr' in response)
-            address = this.safeString (response['addr'], 0);
+            address = this.safeString (response, 'addr');
         return {
             'currency': currency,
             'address': address,
