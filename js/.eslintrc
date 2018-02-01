@@ -29,7 +29,7 @@
     "quotes": ["error", "single", { "avoidEscape": true }],
     "no-unused-vars": ["error", { "argsIgnorePattern": "^(symbol|price|tag|since|limit|params|market|timeframe)" }],
     "new-parens": "error",
-    "new-cap": ["error", { "capIsNewExceptions": ["YmdHMS"] }],
+    "new-cap": ["error"],
     "no-var": "error",
     "prefer-const": "off",
     "no-warning-comments": "warn",
