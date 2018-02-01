@@ -371,6 +371,9 @@ module.exports = class Exchange {
 
         } catch (e) {
 
+            if (this.verbose)
+                console.log ('parseJson:\n', this.id, method, url, 'error', e, "response body:\n'" + responseBody + "'\n")
+
             let maintenance = responseBody.match (/offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing/i)
             let ddosProtection = responseBody.match (/cloudflare|incapsula|overload/i)
 
@@ -384,9 +387,6 @@ module.exports = class Exchange {
                     error = DDoSProtection
                 throw new error ([ this.id, method, url, details ].join (' '))
             }
-
-            if (this.verbose)
-                console.log ('parseJson:\n', this.id, method, url, 'error', e, "response body:\n'" + responseBody + "'\n")
 
             throw e
         }
