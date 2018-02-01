@@ -751,9 +751,8 @@ abstract class Exchange {
         curl_setopt ($this->curl, CURLOPT_URL, $url);
 
         if ($this->timeout) {
-            $seconds = intval ($this->timeout / 1000);
-            curl_setopt ($this->curl, CURLOPT_CONNECTTIMEOUT, $seconds);
-            curl_setopt ($this->curl, CURLOPT_TIMEOUT, $seconds);
+            curl_setopt ($this->curl, CURLOPT_CONNECTTIMEOUT_MS, (int)$this->timeout);
+            curl_setopt ($this->curl, CURLOPT_TIMEOUT_MS, (int)$this->timeout);
         }
 
         curl_setopt ($this->curl, CURLOPT_RETURNTRANSFER, true);
