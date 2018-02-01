@@ -382,7 +382,7 @@ module.exports = class kucoin extends Exchange {
         };
         let response = await this.privateGetOrderDetail (this.extend (request, params));
         let order = response['data'];
-        if (order === null)
+        if (!order)
             throw new OrderNotFound (this.id + ' ' + this.json (response));
         return this.parseOrder (response['data'], market);
     }
