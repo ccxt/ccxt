@@ -7,14 +7,14 @@ const { max } = Math
 
     NB: initially, I used objects for options passing:
 
-            decimalStringToPrecision ('123.456', { digits: 2, round: true, afterPoint: true })
+            decimalToPrecision ('123.456', { digits: 2, round: true, afterPoint: true })
 
     ...but it turns out it's hard to port that across different languages and it is also
        probably has a performance penalty -- while it's a performance critical code! So
        I switched to using named constants instead, as it is actually more readable and
        succinct, and surely doesn't come with any inherent performance downside:
 
-            decimalStringToPrecision ('123.456', ROUND, 2, AFTER_POINT)                     */
+            decimalToPrecision ('123.456', ROUND, 2, AFTER_POINT)                     */
 
 
 const ROUND    = 0                  // rounding mode
