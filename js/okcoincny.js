@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 // ---------------------------------------------------------------------------
 
@@ -7,7 +7,6 @@ const okcoinusd = require ('./okcoinusd.js');
 // ---------------------------------------------------------------------------
 
 module.exports = class okcoincny extends okcoinusd {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'okcoincny',
@@ -35,4 +34,4 @@ module.exports = class okcoincny extends okcoinusd {
             },
         });
     }
-}
+};
