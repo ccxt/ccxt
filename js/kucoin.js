@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InvalidNonce, InvalidOrder, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, InvalidNonce, InvalidOrder, AuthenticationError, InsufficientFunds } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -644,23 +644,35 @@ module.exports = class kucoin extends Exchange {
     }
 
     throwExceptionOnError (response) {
-        if ('success' in response) {
-            if (!response['success']) {
-                if ('code' in response) {
-                    let message = this.safeString (response, 'msg');
-                    if (response['code'] === 'UNAUTH') {
-                        if (message === 'Invalid nonce')
-                            throw new InvalidNonce (this.id + ' ' + message);
-                        throw new AuthenticationError (this.id + ' ' + this.json (response));
-                    } else if (response['code'] === 'ERROR') {
-                        if (message.indexOf ('precision of amount') >= 0)
-                            throw new InvalidOrder (this.id + ' ' + message);
-                        if (message.indexOf ('Min amount each order') >= 0)
-                            throw new InvalidOrder (this.id + ' ' + message);
-                    }
-                }
-            }
+        // { success: false, code: "ERROR", msg: "Min price:100.0" }
+        // { success: true,  code: "OK",    msg: "Operation succeeded." }
+        if (!('success' in response))
+            throw new ExchangeError (this.id + ': malformed response: ' + this.json (response));
+        if (response['success'] === true)
+            return; // not an error
+        if (!('code' in response) || !('msg' in response))
+            throw new ExchangeError (this.id + ': malformed response: ' + this.json (response));
+        const code = this.safeString (response, 'code');
+        const message = this.safeString (response, 'msg');
+        const feedback = this.id + ' ' + this.json (response);
+        if (code === 'UNAUTH') {
+            if (message === 'Invalid nonce')
+                throw new InvalidNonce (feedback);
+            throw new AuthenticationError (feedback);
+        } else if (code === 'ERROR') {
+            if (message.indexOf ('The precision of amount') >= 0) // amount violates precision.amount
+                throw new InvalidOrder (feedback);
+            if (message.indexOf ('Min amount each order') >= 0) // amount < limits.amount.min
+                throw new InvalidOrder (feedback);
+            if (message.indexOf ('Min price:') >= 0) // price < limits.price.min
+                throw new InvalidOrder (feedback);
+            if (message.indexOf ('The precision of price') >= 0) // price violates precision.price
+                throw new InvalidOrder (feedback);
+        } else if (code === 'NO_BALANCE') {
+            if (message.indexOf ('Insufficient balance') >= 0)
+                throw new InsufficientFunds (feedback);
         }
+        throw new ExchangeError (this.id + ': unknown response: ' + this.json (response));
     }
 
     handleErrors (code, reason, url, method, headers, body) {
