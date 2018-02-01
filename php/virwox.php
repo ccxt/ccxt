@@ -149,8 +149,8 @@ class virwox extends Exchange {
         $start = $end - 86400000;
         $response = $this->publicGetGetTradedPriceVolume (array_merge (array (
             'instrument' => $symbol,
-            'endDate' => $this->YmdHMS ($end),
-            'startDate' => $this->YmdHMS ($start),
+            'endDate' => $this->ymdhms ($end),
+            'startDate' => $this->ymdhms ($start),
             'HLOC' => 1,
         ), $params));
         $marketPrice = $this->fetch_market_price ($symbol, $params);

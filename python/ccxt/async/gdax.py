@@ -333,11 +333,11 @@ class gdax (Exchange):
             'granularity': granularity,
         }
         if since is not None:
-            request['start'] = self.YmdHMS(since)
+            request['start'] = self.ymdhms(since)
             if limit is None:
                 # https://docs.gdax.com/#get-historic-rates
                 limit = 350  # max = 350
-            request['end'] = self.YmdHMS(self.sum(limit * granularity * 1000, since))
+            request['end'] = self.ymdhms(self.sum(limit * granularity * 1000, since))
         response = await self.publicGetProductsIdCandles(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 

@@ -342,12 +342,12 @@ class gdax extends Exchange {
             'granularity' => $granularity,
         );
         if ($since !== null) {
-            $request['start'] = $this->YmdHMS ($since);
+            $request['start'] = $this->ymdhms ($since);
             if ($limit === null) {
                 // https://docs.gdax.com/#get-historic-rates
                 $limit = 350; // max = 350
             }
-            $request['end'] = $this->YmdHMS ($this->sum ($limit * $granularity * 1000, $since));
+            $request['end'] = $this->ymdhms ($this->sum ($limit * $granularity * 1000, $since));
         }
         $response = $this->publicGetProductsIdCandles (array_merge ($request, $params));
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
