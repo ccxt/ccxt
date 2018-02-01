@@ -663,14 +663,14 @@ module.exports = class kucoin extends Exchange {
                 throw new InvalidNonce (feedback);
             throw new AuthenticationError (feedback);
         } else if (code === 'ERROR') {
-            if (message.indexOf ('The precision of amount') >= 0) // amount violates precision.amount
-                throw new InvalidOrder (feedback);
-            if (message.indexOf ('Min amount each order') >= 0) // amount < limits.amount.min
-                throw new InvalidOrder (feedback);
-            if (message.indexOf ('Min price:') >= 0) // price < limits.price.min
-                throw new InvalidOrder (feedback);
-            if (message.indexOf ('The precision of price') >= 0) // price violates precision.price
-                throw new InvalidOrder (feedback);
+            if (message.indexOf ('The precision of amount') >= 0)
+                throw new InvalidOrder (feedback); // amount violates precision.amount
+            if (message.indexOf ('Min amount each order') >= 0)
+                throw new InvalidOrder (feedback); // amount < limits.amount.min
+            if (message.indexOf ('Min price:') >= 0)
+                throw new InvalidOrder (feedback); // price < limits.price.min
+            if (message.indexOf ('The precision of price') >= 0)
+                throw new InvalidOrder (feedback); // price violates precision.price
         } else if (code === 'NO_BALANCE') {
             if (message.indexOf ('Insufficient balance') >= 0)
                 throw new InsufficientFunds (feedback);
