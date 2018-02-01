@@ -344,12 +344,12 @@ module.exports = class gdax extends Exchange {
             'granularity': granularity,
         };
         if (typeof since !== 'undefined') {
-            request['start'] = this.YmdHMS (since);
+            request['start'] = this.ymdhms (since);
             if (typeof limit === 'undefined') {
                 // https://docs.gdax.com/#get-historic-rates
                 limit = 350; // max = 350
             }
-            request['end'] = this.YmdHMS (this.sum (limit * granularity * 1000, since));
+            request['end'] = this.ymdhms (this.sum (limit * granularity * 1000, since));
         }
         let response = await this.publicGetProductsIdCandles (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);

@@ -294,7 +294,7 @@ module.exports = class bitmex extends Exchange {
             // 'endTime': '',    // ending date filter for results
         };
         if (typeof since !== 'undefined') {
-            let ymdhms = this.YmdHMS (since);
+            let ymdhms = this.ymdhms (since);
             let ymdhm = ymdhms.slice (0, 16);
             request['startTime'] = ymdhm; // starting date filter for results
         }

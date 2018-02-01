@@ -150,8 +150,8 @@ module.exports = class virwox extends Exchange {
         let start = end - 86400000;
         let response = await this.publicGetGetTradedPriceVolume (this.extend ({
             'instrument': symbol,
-            'endDate': this.YmdHMS (end),
-            'startDate': this.YmdHMS (start),
+            'endDate': this.ymdhms (end),
+            'startDate': this.ymdhms (start),
             'HLOC': 1,
         }, params));
         let marketPrice = await this.fetchMarketPrice (symbol, params);
