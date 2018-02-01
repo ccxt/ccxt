@@ -73,10 +73,10 @@ The following is a set of rules for contributing to the ccxt library codebase.
 
 ### What You Need To Have
 
-- Node.js (version 8 or higher)
-- Python 2/3
+- Node.js 8+
+- Python 2.7, Python 3.5+
 - PHP 5.3+
-- [Pandoc](https://pandoc.org/installing.html)
+- [Pandoc](https://pandoc.org/installing.html) 1.19+
 
 ### What You Need To Know
 
