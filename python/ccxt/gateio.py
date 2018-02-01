@@ -14,6 +14,14 @@ class gateio (bter):
             'name': 'Gate.io',
             'countries': 'CN',
             'rateLimit': 1000,
+            'has': {
+                'CORS': False,
+                'createMarketOrder': False,
+                'fetchTickers': True,
+                'withdraw': True,
+                'createDepositAddress': True,
+                'fetchDepositAddress': True,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
                 'api': {
@@ -25,6 +33,27 @@ class gateio (bter):
                 'fees': 'https://gate.io/fee',
             },
         })
+
+    def query_deposit_address(self, method, currency, params={}):
+        method = 'privatePost' + method + 'Address'
+        response = getattr(self, method)(self.extend({
+            'currency': currency,
+        }, params))
+        address = None
+        if 'addr' in response:
+            address = self.safe_string(response['addr'], 0)
+        return {
+            'currency': currency,
+            'address': address,
+            'status': 'ok' if (address is not None) else 'none',
+            'info': response,
+        }
+
+    def create_deposit_address(self, currency, params={}):
+        return self.query_deposit_address('New', currency, params)
+
+    def fetch_deposit_address(self, currency, params={}):
+        return self.query_deposit_address('Deposit', currency, params)
 
     def parse_trade(self, trade, market):
         # exchange reports local time(UTC+8)
