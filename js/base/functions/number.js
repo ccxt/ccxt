@@ -180,7 +180,7 @@ const decimalToPrecision = (x, roundingMode
 
 /*  Fill the output buffer with characters    */
 
-    const out = new Int8Array (nBeforeDot + (isInteger ? 0 : 1) + nAfterDot + pad)
+    const out = new Uint8Array (nBeforeDot + (isInteger ? 0 : 1) + nAfterDot + pad)
                                                                                                   // ---------------------
     if  (isNegative)                                                  out[0]          = MINUS     // -     minus sign
     for (i = nSign, j = readStart;          i < nBeforeDot; i++, j++) out[i]          = chars[j]  // 123   before dot
