@@ -103,6 +103,7 @@ class Exchange(object):
     orderbooks = {}
     orders = {}
     trades = {}
+    allows = {}
     currencies = {}
     proxy = ''
     origin = '*'  # CORS origin
@@ -130,6 +131,7 @@ class Exchange(object):
     hasFetchBalance = True
     hasFetchOrder = False
     hasFetchOrders = False
+    hasFetchPermissions = False
     hasFetchOpenOrders = False
     hasFetchClosedOrders = False
     hasFetchMyTrades = False
