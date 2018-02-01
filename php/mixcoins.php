@@ -136,7 +136,7 @@ class mixcoins extends Exchange {
             'op' => $side,
             'amount' => $amount,
         );
-        if ($type == 'market') {
+        if ($type === 'market') {
             $order['order_type'] = 1;
             $order['price'] = $price;
         } else {
@@ -155,7 +155,7 @@ class mixcoins extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
-        if ($api == 'public') {
+        if ($api === 'public') {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {
@@ -176,7 +176,7 @@ class mixcoins extends Exchange {
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if (is_array ($response) && array_key_exists ('status', $response))
-            if ($response['status'] == 200)
+            if ($response['status'] === 200)
                 return $response;
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
     }

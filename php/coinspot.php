@@ -15,6 +15,7 @@ class coinspot extends Exchange {
             'rateLimit' => 1000,
             'has' => array (
                 'CORS' => false,
+                'createMarketOrder' => false,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28208429-3cacdf9a-6896-11e7-854e-4c79a772a30f.jpg',
@@ -70,7 +71,7 @@ class coinspot extends Exchange {
                     'used' => 0.0,
                     'total' => $balances[$currency],
                 );
-                if ($uppercase == 'DRK')
+                if ($uppercase === 'DRK')
                     $uppercase = 'DASH';
                 $result[$uppercase] = $account;
             }
@@ -137,15 +138,15 @@ class coinspot extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         throw new ExchangeError ($this->id . ' cancelOrder () is not fully implemented yet');
-        $method = 'privatePostMyBuy';
-        return $this->$method (array ( 'id' => $id ));
+        // $method = 'privatePostMyBuy';
+        // return $this->$method (array ( 'id' => $id ));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         if (!$this->apiKey)
             throw new AuthenticationError ($this->id . ' requires apiKey for all requests');
         $url = $this->urls['api'][$api] . '/' . $path;
-        if ($api == 'private') {
+        if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = $this->nonce ();
             $body = $this->json (array_merge (array ( 'nonce' => $nonce ), $params));

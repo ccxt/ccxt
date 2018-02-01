@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.10.938';
+$version = '1.10.950';
 
 abstract class Exchange {
 
@@ -585,6 +585,8 @@ abstract class Exchange {
             'cancelOrder' => $this->hasPrivateAPI,
             'createDepositAddress' => false,
             'createOrder' => $this->hasPrivateAPI,
+            'createMarketOrder' => $this->hasPrivateAPI,
+            'createLimitOrder' => $this->hasPrivateAPI,
             'deposit' => false,
             'fetchBalance' => true,
             'fetchClosedOrders' => false,
@@ -637,12 +639,6 @@ abstract class Exchange {
                     $camelcaseSuffix  = implode (array_map (get_called_class() . '::capitalize', $splitPath));
                     $lowercasePath    = array_map ('trim', array_map ('strtolower', $splitPath));
                     $underscoreSuffix = implode ('_', array_filter ($lowercasePath));
-
-                    if (mb_stripos ($camelcaseSuffix, $camelcaseMethod) === 0)
-                        $camelcaseSuffix = mb_substr ($camelcaseSuffix, mb_strlen ($camelcaseMethod));
-
-                    if (mb_stripos ($underscoreSuffix, $lowercaseMethod) === 0)
-                        $underscoreSuffix = trim (mb_substr ($underscoreSuffix, mb_strlen ($lowercaseMethod)), '_');
 
                     $camelcase  = $type . $camelcaseMethod . static::capitalize ($camelcaseSuffix);
                     $underscore = $type . '_' . $lowercaseMethod . '_' . mb_strtolower ($underscoreSuffix);
@@ -1348,6 +1344,14 @@ abstract class Exchange {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         throw new NotSupported ($this->id . ' create_order() not implemented yet');
+    }
+
+    public function create_limit_order ($symbol, $side, $amount, $price, $params = array ()) {
+        return $this->create_order ($symbol, 'limit', $side, $amount, $price, $params);
+    }
+
+    public function create_market_order ($symbol, $side, $amount, $price, $params = array ()) {
+        return $this->create_order ($symbol, 'market', $side, $amount, $price, $params);
     }
 
     public function create_limit_buy_order ($symbol, $amount, $price, $params = array ()) {

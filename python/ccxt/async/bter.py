@@ -18,6 +18,7 @@ class bter (Exchange):
             'version': '2',
             'has': {
                 'CORS': False,
+                'createMarketOrder': False,
                 'fetchTickers': True,
                 'withdraw': True,
             },

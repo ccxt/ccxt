@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 // ---------------------------------------------------------------------------
 
@@ -7,7 +7,6 @@ const liqui = require ('./liqui.js');
 // ---------------------------------------------------------------------------
 
 module.exports = class dsx extends liqui {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'dsx',
@@ -150,4 +149,4 @@ module.exports = class dsx extends liqui {
     getVersionString () {
         return ''; // they don't prepend version number to public URLs as other BTC-e clones do
     }
-}
+};

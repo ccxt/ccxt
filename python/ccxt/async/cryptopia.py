@@ -22,15 +22,16 @@ class cryptopia (Exchange):
             'rateLimit': 1500,
             'countries': 'NZ',  # New Zealand
             'has': {
-                'fetchDepositAddress': True,
                 'CORS': False,
-                'fetchTickers': True,
+                'createMarketOrder': False,
+                'fetchClosedOrders': 'emulated',
+                'fetchCurrencies': True,
+                'fetchDepositAddress': True,
+                'fetchMyTrades': True,
                 'fetchOrder': 'emulated',
                 'fetchOrders': 'emulated',
                 'fetchOpenOrders': True,
-                'fetchClosedOrders': 'emulated',
-                'fetchMyTrades': True,
-                'fetchCurrencies': True,
+                'fetchTickers': True,
                 'deposit': True,
                 'withdraw': True,
             },
@@ -111,7 +112,7 @@ class cryptopia (Exchange):
         return currency
 
     async def fetch_markets(self):
-        response = await self.publicGetTradePairs()
+        response = await self.publicGetGetTradePairs()
         result = []
         markets = response['Data']
         for i in range(0, len(markets)):
@@ -162,7 +163,7 @@ class cryptopia (Exchange):
 
     async def fetch_order_book(self, symbol, params={}):
         await self.load_markets()
-        response = await self.publicGetMarketOrdersId(self.extend({
+        response = await self.publicGetGetMarketOrdersId(self.extend({
             'id': self.market_id(symbol),
         }, params))
         orderbook = response['Data']
@@ -197,7 +198,7 @@ class cryptopia (Exchange):
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetMarketId(self.extend({
+        response = await self.publicGetGetMarketId(self.extend({
             'id': market['id'],
         }, params))
         ticker = response['Data']
@@ -205,7 +206,7 @@ class cryptopia (Exchange):
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
-        response = await self.publicGetMarkets(params)
+        response = await self.publicGetGetMarkets(params)
         result = {}
         tickers = response['Data']
         for i in range(0, len(tickers)):
@@ -270,7 +271,7 @@ class cryptopia (Exchange):
             'id': market['id'],
             'hours': hours,
         }
-        response = await self.publicGetMarketHistoryIdHours(self.extend(request, params))
+        response = await self.publicGetGetMarketHistoryIdHours(self.extend(request, params))
         trades = response['Data']
         return self.parse_trades(trades, market, since, limit)
 
@@ -285,7 +286,7 @@ class cryptopia (Exchange):
         return self.parse_trades(response['Data'], market, since, limit)
 
     async def fetch_currencies(self, params={}):
-        response = await self.publicGetCurrencies(params)
+        response = await self.publicGetGetCurrencies(params)
         currencies = response['Data']
         result = {}
         for i in range(0, len(currencies)):

@@ -15,6 +15,7 @@ class bter extends Exchange {
             'version' => '2',
             'has' => array (
                 'CORS' => false,
+                'createMarketOrder' => false,
                 'fetchTickers' => true,
                 'withdraw' => true,
             ),

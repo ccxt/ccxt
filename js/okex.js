@@ -7,7 +7,6 @@ const okcoinusd = require ('./okcoinusd.js');
 // ---------------------------------------------------------------------------
 
 module.exports = class okex extends okcoinusd {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'okex',
@@ -64,4 +63,4 @@ module.exports = class okex extends okcoinusd {
         }
         return result;
     }
-}
+};

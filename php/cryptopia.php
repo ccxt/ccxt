@@ -14,15 +14,16 @@ class cryptopia extends Exchange {
             'rateLimit' => 1500,
             'countries' => 'NZ', // New Zealand
             'has' => array (
-                'fetchDepositAddress' => true,
                 'CORS' => false,
-                'fetchTickers' => true,
+                'createMarketOrder' => false,
+                'fetchClosedOrders' => 'emulated',
+                'fetchCurrencies' => true,
+                'fetchDepositAddress' => true,
+                'fetchMyTrades' => true,
                 'fetchOrder' => 'emulated',
                 'fetchOrders' => 'emulated',
                 'fetchOpenOrders' => true,
-                'fetchClosedOrders' => 'emulated',
-                'fetchMyTrades' => true,
-                'fetchCurrencies' => true,
+                'fetchTickers' => true,
                 'deposit' => true,
                 'withdraw' => true,
             ),
@@ -106,7 +107,7 @@ class cryptopia extends Exchange {
     }
 
     public function fetch_markets () {
-        $response = $this->publicGetTradePairs ();
+        $response = $this->publicGetGetTradePairs ();
         $result = array ();
         $markets = $response['Data'];
         for ($i = 0; $i < count ($markets); $i++) {
@@ -159,7 +160,7 @@ class cryptopia extends Exchange {
 
     public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets();
-        $response = $this->publicGetMarketOrdersId (array_merge (array (
+        $response = $this->publicGetGetMarketOrdersId (array_merge (array (
             'id' => $this->market_id($symbol),
         ), $params));
         $orderbook = $response['Data'];
@@ -196,7 +197,7 @@ class cryptopia extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetMarketId (array_merge (array (
+        $response = $this->publicGetGetMarketId (array_merge (array (
             'id' => $market['id'],
         ), $params));
         $ticker = $response['Data'];
@@ -205,7 +206,7 @@ class cryptopia extends Exchange {
 
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->publicGetMarkets ($params);
+        $response = $this->publicGetGetMarkets ($params);
         $result = array ();
         $tickers = $response['Data'];
         for ($i = 0; $i < count ($tickers); $i++) {
@@ -278,7 +279,7 @@ class cryptopia extends Exchange {
             'id' => $market['id'],
             'hours' => $hours,
         );
-        $response = $this->publicGetMarketHistoryIdHours (array_merge ($request, $params));
+        $response = $this->publicGetGetMarketHistoryIdHours (array_merge ($request, $params));
         $trades = $response['Data'];
         return $this->parse_trades($trades, $market, $since, $limit);
     }
@@ -296,7 +297,7 @@ class cryptopia extends Exchange {
     }
 
     public function fetch_currencies ($params = array ()) {
-        $response = $this->publicGetCurrencies ($params);
+        $response = $this->publicGetGetCurrencies ($params);
         $currencies = $response['Data'];
         $result = array ();
         for ($i = 0; $i < count ($currencies); $i++) {

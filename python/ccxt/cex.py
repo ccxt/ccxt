@@ -132,6 +132,7 @@ class cex (Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'lot': market['minLotSize'],
                 'precision': {
                     'price': self.precision_from_string(market['minPrice']),
                     'amount': -1 * math.log10(market['minLotSize']),

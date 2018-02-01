@@ -16,6 +16,7 @@ module.exports = class lakebtc extends Exchange {
             'version': 'api_v2',
             'has': {
                 'CORS': true,
+                'createMarketOrder': false,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28074120-72b7c38a-6660-11e7-92d9-d9027502281d.jpg',

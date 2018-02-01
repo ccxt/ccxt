@@ -8,7 +8,6 @@ const { ExchangeNotAvailable, ExchangeError, InsufficientFunds, OrderNotFound, O
 //  ---------------------------------------------------------------------------
 
 module.exports = class poloniex extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'poloniex',
@@ -19,6 +18,7 @@ module.exports = class poloniex extends Exchange {
                 'createDepositAddress': true,
                 'fetchDepositAddress': true,
                 'CORS': false,
+                'createMarketOrder': false,
                 'fetchOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOrder': 'emulated',
@@ -804,4 +804,4 @@ module.exports = class poloniex extends Exchange {
         }
         return response;
     }
-}
+};

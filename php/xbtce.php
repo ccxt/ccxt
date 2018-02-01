@@ -19,6 +19,7 @@ class xbtce extends Exchange {
                 'CORS' => false,
                 'fetchTickers' => true,
                 'fetchOHLCV' => false,
+                'createMarketOrder' => false,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28059414-e235970c-662c-11e7-8c3a-08e31f78684b.jpg',
@@ -112,7 +113,7 @@ class xbtce extends Exchange {
             $id = $market['Symbol'];
             $base = $market['MarginCurrency'];
             $quote = $market['ProfitCurrency'];
-            if ($base == 'DSH')
+            if ($base === 'DSH')
                 $base = 'DASH';
             $symbol = $base . '/' . $quote;
             $symbol = $market['IsTradeAllowed'] ? $symbol : $id;
@@ -136,7 +137,7 @@ class xbtce extends Exchange {
             $currency = $balance['Currency'];
             $uppercase = strtoupper ($currency);
             // xbtce names DASH incorrectly as DSH
-            if ($uppercase == 'DSH')
+            if ($uppercase === 'DSH')
                 $uppercase = 'DASH';
             $account = array (
                 'free' => $balance['FreeAmount'],
@@ -215,9 +216,9 @@ class xbtce extends Exchange {
             } else {
                 $base = mb_substr ($id, 0, 3);
                 $quote = mb_substr ($id, 3, 6);
-                if ($base == 'DSH')
+                if ($base === 'DSH')
                     $base = 'DASH';
-                if ($quote == 'DSH')
+                if ($quote === 'DSH')
                     $quote = 'DASH';
                 $symbol = $base . '/' . $quote;
             }
@@ -259,27 +260,27 @@ class xbtce extends Exchange {
     }
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        //     $minutes = intval ($timeframe / 60); // 1 minute by default
+        //     $periodicity = (string) $minutes;
+        //     $this->load_markets();
+        //     $market = $this->market ($symbol);
+        //     if (!$since)
+        //         $since = $this->seconds () - 86400 * 7; // last day by defulat
+        //     if (!$limit)
+        //         $limit = 1000; // default
+        //     $response = $this->privateGetQuotehistorySymbolPeriodicityBarsBid (array_merge (array (
+        //         'symbol' => $market['id'],
+        //         'periodicity' => $periodicity,
+        //         'timestamp' => $since,
+        //         'count' => $limit,
+        //     ), $params));
+        //     return $this->parse_ohlcvs($response['Bars'], $market, $timeframe, $since, $limit);
         throw new NotSupported ($this->id . ' fetchOHLCV is disabled by the exchange');
-        $minutes = intval ($timeframe / 60); // 1 minute by default
-        $periodicity = (string) $minutes;
-        $this->load_markets();
-        $market = $this->market ($symbol);
-        if (!$since)
-            $since = $this->seconds () - 86400 * 7; // last day by defulat
-        if (!$limit)
-            $limit = 1000; // default
-        $response = $this->privateGetQuotehistorySymbolPeriodicityBarsBid (array_merge (array (
-            'symbol' => $market['id'],
-            'periodicity' => $periodicity,
-            'timestamp' => $since,
-            'count' => $limit,
-        ), $params));
-        return $this->parse_ohlcvs($response['Bars'], $market, $timeframe, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        if ($type == 'market')
+        if ($type === 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
         $response = $this->tapiPostTrade (array_merge (array (
             'pair' => $this->market_id($symbol),
@@ -310,18 +311,18 @@ class xbtce extends Exchange {
         if (!$this->uid)
             throw new AuthenticationError ($this->id . ' requires uid property for authentication and trading, their public API is always busy');
         $url = $this->urls['api'] . '/' . $this->version;
-        if ($api == 'public')
+        if ($api === 'public')
             $url .= '/' . $api;
         $url .= '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
-        if ($api == 'public') {
+        if ($api === 'public') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
             $this->check_required_credentials();
             $headers = array ( 'Accept-Encoding' => 'gzip, deflate' );
             $nonce = (string) $this->nonce ();
-            if ($method == 'POST') {
+            if ($method === 'POST') {
                 if ($query) {
                     $headers['Content-Type'] = 'application/json';
                     $body = $this->json ($query);

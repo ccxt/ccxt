@@ -117,7 +117,7 @@ class hitbtc2 (hitbtc):
                     'tierBased': False,
                     'percentage': False,
                     'withdraw': {
-                        'BTC': 0.00085,
+                        'BTC': 0.001,
                         'BCC': 0.0018,
                         'ETH': 0.00958,
                         'BCH': 0.0018,

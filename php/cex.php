@@ -128,6 +128,7 @@ class cex extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'lot' => $market['minLotSize'],
                 'precision' => array (
                     'price' => $this->precision_from_string($market['minPrice']),
                     'amount' => -1 * log10 ($market['minLotSize']),

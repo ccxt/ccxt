@@ -17,6 +17,7 @@ module.exports = class zaif extends Exchange {
             'version': '1',
             'has': {
                 'CORS': false,
+                'createMarketOrder': false,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'withdraw': true,

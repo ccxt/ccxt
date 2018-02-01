@@ -33,6 +33,7 @@ class liqui (Exchange):
             'userAgent': self.userAgents['chrome'],
             'has': {
                 'CORS': False,
+                'createMarketOrder': False,
                 'fetchOrder': True,
                 'fetchOrders': 'emulated',
                 'fetchOpenOrders': True,
@@ -304,14 +305,12 @@ class liqui (Exchange):
             symbol = market['symbol']
         amount = trade['amount']
         type = 'limit'  # all trades are still limit trades
-        fee = None
-        # self is filled by fetchMyTrades() only
-        # is_your_order is always False :\
-        # isYourOrder = self.safe_value(trade, 'is_your_order')
-        # takerOrMaker = 'taker'
-        # if isYourOrder:
-        #     takerOrMaker = 'maker'
-        # fee = self.calculate_fee(symbol, type, side, amount, price, takerOrMaker)
+        isYourOrder = self.safe_value(trade, 'is_your_order')
+        takerOrMaker = 'taker'
+        if isYourOrder is not None:
+            if isYourOrder:
+                takerOrMaker = 'maker'
+        fee = self.calculate_fee(symbol, type, side, amount, price, takerOrMaker)
         return {
             'id': id,
             'order': order,

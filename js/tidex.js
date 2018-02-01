@@ -7,7 +7,6 @@ const liqui = require ('./liqui.js');
 // ---------------------------------------------------------------------------
 
 module.exports = class tidex extends liqui {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'tidex',

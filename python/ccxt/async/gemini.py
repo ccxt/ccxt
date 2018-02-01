@@ -20,6 +20,7 @@ class gemini (Exchange):
             'version': 'v1',
             'has': {
                 'CORS': False,
+                'createMarketOrder': False,
                 'withdraw': True,
             },
             'urls': {

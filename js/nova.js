@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -8,7 +8,6 @@ const { ExchangeError } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class nova extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'nova',
@@ -18,6 +17,7 @@ module.exports = class nova extends Exchange {
             'version': 'v2',
             'has': {
                 'CORS': false,
+                'createMarketOrder': false,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30518571-78ca0bca-9b8a-11e7-8840-64b83a4a94b2.jpg',
@@ -167,7 +167,7 @@ module.exports = class nova extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (type == 'market')
+        if (type === 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
         await this.loadMarkets ();
         amount = amount.toString ();
@@ -195,11 +195,11 @@ module.exports = class nova extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/';
-        if (api == 'private')
+        if (api === 'private')
             url += api + '/';
         url += this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
@@ -221,8 +221,8 @@ module.exports = class nova extends Exchange {
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('status' in response)
-            if (response['status'] != 'success')
+            if (response['status'] !== 'success')
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
     }
-}
+};

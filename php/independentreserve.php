@@ -65,8 +65,8 @@ class independentreserve extends Exchange {
     }
 
     public function fetch_markets () {
-        $baseCurrencies = $this->publicGetValidPrimaryCurrencyCodes ();
-        $quoteCurrencies = $this->publicGetValidSecondaryCurrencyCodes ();
+        $baseCurrencies = $this->publicGetGetValidPrimaryCurrencyCodes ();
+        $quoteCurrencies = $this->publicGetGetValidSecondaryCurrencyCodes ();
         $result = array ();
         for ($i = 0; $i < count ($baseCurrencies); $i++) {
             $baseId = $baseCurrencies[$i];
@@ -117,7 +117,7 @@ class independentreserve extends Exchange {
     public function fetch_order_book ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetOrderBook (array_merge (array (
+        $response = $this->publicGetGetOrderBook (array_merge (array (
             'primaryCurrencyCode' => $market['baseId'],
             'secondaryCurrencyCode' => $market['quoteId'],
         ), $params));
@@ -155,7 +155,7 @@ class independentreserve extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetMarketSummary (array_merge (array (
+        $response = $this->publicGetGetMarketSummary (array_merge (array (
             'primaryCurrencyCode' => $market['baseId'],
             'secondaryCurrencyCode' => $market['quoteId'],
         ), $params));
@@ -181,7 +181,7 @@ class independentreserve extends Exchange {
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetRecentTrades (array_merge (array (
+        $response = $this->publicGetGetRecentTrades (array_merge (array (
             'primaryCurrencyCode' => $market['baseId'],
             'secondaryCurrencyCode' => $market['quoteId'],
             'numberOfRecentTradesToRetrieve' => 50, // max = 50
@@ -195,13 +195,13 @@ class independentreserve extends Exchange {
         $capitalizedOrderType = $this->capitalize ($type);
         $method = 'privatePostPlace' . $capitalizedOrderType . 'Order';
         $orderType = $capitalizedOrderType;
-        $orderType .= ($side == 'sell') ?  'Offer' : 'Bid';
+        $orderType .= ($side === 'sell') ?  'Offer' : 'Bid';
         $order = $this->ordered (array (
             'primaryCurrencyCode' => $market['baseId'],
             'secondaryCurrencyCode' => $market['quoteId'],
             'orderType' => $orderType,
         ));
-        if ($type == 'limit')
+        if ($type === 'limit')
             $order['price'] = $price;
         $order['volume'] = $amount;
         $response = $this->$method (array_merge ($order, $params));
@@ -218,7 +218,7 @@ class independentreserve extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api] . '/' . $path;
-        if ($api == 'public') {
+        if ($api === 'public') {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {

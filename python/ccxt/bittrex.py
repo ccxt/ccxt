@@ -34,16 +34,17 @@ class bittrex (Exchange):
             'hasAlreadyAuthenticatedSuccessfully': False,  # a workaround for APIKEY_INVALID
             # new metainfo interface
             'has': {
-                'fetchDepositAddress': True,
                 'CORS': True,
-                'fetchTickers': True,
+                'createMarketOrder': False,
+                'fetchDepositAddress': True,
+                'fetchClosedOrders': 'emulated',
+                'fetchCurrencies': True,
+                'fetchMyTrades': False,
                 'fetchOHLCV': True,
                 'fetchOrder': True,
                 'fetchOrders': True,
-                'fetchClosedOrders': 'emulated',
                 'fetchOpenOrders': True,
-                'fetchMyTrades': False,
-                'fetchCurrencies': True,
+                'fetchTickers': True,
                 'withdraw': True,
             },
             'timeframes': {

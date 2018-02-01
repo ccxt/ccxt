@@ -17,6 +17,7 @@ class bitcoincoid (Exchange):
             'countries': 'ID',  # Indonesia
             'has': {
                 'CORS': False,
+                'createMarketOrder': False,
                 'fetchTickers': False,
                 'fetchOHLCV': False,
                 'fetchOrder': True,

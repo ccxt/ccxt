@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.938'
+__version__ = '1.10.950'
 
 # -----------------------------------------------------------------------------
 
@@ -240,12 +240,6 @@ class Exchange(object):
                     camelcase_suffix = ''.join([Exchange.capitalize(x) for x in split_path])
                     lowercase_path = [x.strip().lower() for x in split_path]
                     underscore_suffix = '_'.join([k for k in lowercase_path if len(k)])
-
-                    if camelcase_suffix.find(camelcase_method) == 0:
-                        camelcase_suffix = camelcase_suffix[len(camelcase_method):]
-
-                    if underscore_suffix.find(lowercase_method) == 0:
-                        underscore_suffix = underscore_suffix[len(lowercase_method):]
 
                     camelcase = api_type + camelcase_method + Exchange.capitalize(camelcase_suffix)
                     underscore = api_type + '_' + lowercase_method + '_' + underscore_suffix.lower()
@@ -1028,6 +1022,12 @@ class Exchange(object):
             raise ExchangeError(self.id + ' edit_order() requires enableRateLimit = true')
         self.cancel_order(id, symbol)
         return self.create_order(symbol, *args)
+
+    def create_limit_order(self, symbol, *args):
+        return self.create_order(symbol, 'limit', *args)
+
+    def create_market_order(self, symbol, *args):
+        return self.create_order(symbol, 'market', *args)
 
     def create_limit_buy_order(self, symbol, *args):
         return self.create_order(symbol, 'limit', 'buy', *args)

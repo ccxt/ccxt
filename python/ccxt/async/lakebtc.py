@@ -19,6 +19,7 @@ class lakebtc (Exchange):
             'version': 'api_v2',
             'has': {
                 'CORS': True,
+                'createMarketOrder': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28074120-72b7c38a-6660-11e7-92d9-d9027502281d.jpg',
@@ -65,16 +66,18 @@ class lakebtc (Exchange):
         for k in range(0, len(keys)):
             id = keys[k]
             market = markets[id]
-            base = id[0:3]
-            quote = id[3:6]
-            base = base.upper()
-            quote = quote.upper()
+            baseId = id[0:3]
+            quoteId = id[3:6]
+            base = baseId.upper()
+            quote = quoteId.upper()
             symbol = base + '/' + quote
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'info': market,
             })
         return result
@@ -84,16 +87,18 @@ class lakebtc (Exchange):
         response = await self.privatePostGetAccountInfo()
         balances = response['balance']
         result = {'info': response}
-        currencies = list(balances.keys())
-        for c in range(0, len(currencies)):
-            currency = currencies[c]
-            balance = float(balances[currency])
+        ids = list(balances.keys())
+        for i in range(0, len(ids)):
+            id = ids[i]
+            currency = self.currencies[id]
+            code = currency['code']
+            balance = float(balances[id])
             account = {
                 'free': balance,
                 'used': 0.0,
                 'total': balance,
             }
-            result[currency] = account
+            result[code] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, params={}):

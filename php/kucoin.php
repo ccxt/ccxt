@@ -17,6 +17,7 @@ class kucoin extends Exchange {
             'userAgent' => $this->userAgents['chrome'],
             'has' => array (
                 'CORS' => false,
+                'createMarketOrder' => false,
                 'fetchTickers' => true,
                 'fetchOHLCV' => true, // see the method implementation below
                 'fetchOrder' => true,

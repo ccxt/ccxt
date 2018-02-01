@@ -28,6 +28,7 @@ class poloniex (Exchange):
                 'createDepositAddress': True,
                 'fetchDepositAddress': True,
                 'CORS': False,
+                'createMarketOrder': False,
                 'fetchOHLCV': True,
                 'fetchMyTrades': True,
                 'fetchOrder': 'emulated',

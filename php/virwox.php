@@ -81,7 +81,7 @@ class virwox extends Exchange {
     }
 
     public function fetch_markets () {
-        $markets = $this->publicGetInstruments ();
+        $markets = $this->publicGetGetInstruments ();
         $keys = is_array ($markets['result']) ? array_keys ($markets['result']) : array ();
         $result = array ();
         for ($p = 0; $p < count ($keys); $p++) {
@@ -147,7 +147,7 @@ class virwox extends Exchange {
         $this->load_markets();
         $end = $this->milliseconds ();
         $start = $end - 86400000;
-        $response = $this->publicGetTradedPriceVolume (array_merge (array (
+        $response = $this->publicGetGetTradedPriceVolume (array_merge (array (
             'instrument' => $symbol,
             'endDate' => $this->YmdHMS ($end),
             'startDate' => $this->YmdHMS ($start),
@@ -202,7 +202,7 @@ class virwox extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->publicGetRawTradeData (array_merge (array (
+        $response = $this->publicGetGetRawTradeData (array_merge (array (
             'instrument' => $symbol,
             'timespan' => 3600,
         ), $params));
@@ -218,7 +218,7 @@ class virwox extends Exchange {
             'orderType' => strtoupper ($side),
             'amount' => $amount,
         );
-        if ($type == 'limit')
+        if ($type === 'limit')
             $order['price'] = $price;
         $response = $this->privatePostPlaceOrder (array_merge ($order, $params));
         return array (
@@ -236,14 +236,14 @@ class virwox extends Exchange {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api];
         $auth = array ();
-        if ($api == 'private') {
+        if ($api === 'private') {
             $this->check_required_credentials();
             $auth['key'] = $this->apiKey;
             $auth['user'] = $this->login;
             $auth['pass'] = $this->password;
         }
         $nonce = $this->nonce ();
-        if ($method == 'GET') {
+        if ($method === 'GET') {
             $url .= '?' . $this->urlencode (array_merge (array (
                 'method' => $path,
                 'id' => $nonce,
@@ -260,14 +260,14 @@ class virwox extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
-        if ($code == 200) {
-            if (($body[0] == '{') || ($body[0] == '[')) {
+        if ($code === 200) {
+            if (($body[0] === '{') || ($body[0] === '[')) {
                 $response = json_decode ($body, $as_associative_array = true);
                 if (is_array ($response) && array_key_exists ('result', $response)) {
                     $result = $response['result'];
                     if (is_array ($result) && array_key_exists ('errorCode', $result)) {
                         $errorCode = $result['errorCode'];
-                        if ($errorCode != 'OK') {
+                        if ($errorCode !== 'OK') {
                             throw new ExchangeError ($this->id . ' error returned => ' . $body);
                         }
                     }

@@ -15,6 +15,7 @@ class btctradeua extends Exchange {
             'rateLimit' => 3000,
             'has' => array (
                 'CORS' => true,
+                'createMarketOrder' => false,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27941483-79fc7350-62d9-11e7-9f61-ac47f28fcd96.jpg',
@@ -215,10 +216,10 @@ class btctradeua extends Exchange {
         $year = $parts[2];
         $hms = $parts[4];
         $hmsLength = is_array ($hms) ? count ($hms) : 0;
-        if ($hmsLength == 7) {
+        if ($hmsLength === 7) {
             $hms = '0' . $hms;
         }
-        if (strlen ($day) == 1) {
+        if (strlen ($day) === 1) {
             $day = '0' . $day;
         }
         $ymd = implode ('-', array ($year, $month, $day));
@@ -267,7 +268,7 @@ class btctradeua extends Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        if ($type == 'market')
+        if ($type === 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
         $market = $this->market ($symbol);
         $method = 'privatePost' . $this->capitalize ($side) . 'Id';
@@ -321,7 +322,7 @@ class btctradeua extends Exchange {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
-        if ($api == 'public') {
+        if ($api === 'public') {
             if ($query)
                 $url .= $this->implode_params($path, $query);
         } else {
