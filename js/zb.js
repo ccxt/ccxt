@@ -36,23 +36,24 @@ module.exports = class zb extends Exchange {
                 '1w': '1week',
             },
             'errors': {
+                '1000': 'Successful operation',
                 '1001': 'General error message',
-                '1002': 'internal error',
+                '1002': 'Internal error',
                 '1003': 'Verification does not pass',
                 '1004': 'Funding security password lock',
                 '1005': 'Funds security password is incorrect, please confirm and re-enter.',
                 '1006': 'Real-name certification pending approval or audit does not pass',
                 '1009': 'This interface is under maintenance',
-                '2001': 'RMB account balance is not enough',
-                '2002': 'There is not enough bitcoin account balance',
-                '2003': 'Litecoin account balance is not enough',
-                '2005': 'Ethereum account balance is not enough',
-                '2006': 'ETC currency account balance is not enough',
-                '2007': 'BTS currency account balance is not enough',
+                '2001': 'Insufficient CNY Balance',
+                '2002': 'Insufficient BTC Balance',
+                '2003': 'Insufficient LTC Balance',
+                '2005': 'Insufficient ETH Balance',
+                '2006': 'Insufficient ETC Balance',
+                '2007': 'Insufficient BTS Balance',
                 '2009': 'Account balance is not enough',
                 '3001': 'Pending orders not found',
-                '3002': 'Invalid amount',
-                '3003': 'Invalid number',
+                '3002': 'Invalid price',
+                '3003': 'Invalid amount',
                 '3004': 'User does not exist',
                 '3005': 'Invalid parameter',
                 '3006': 'Invalid IP or inconsistent with the bound IP',
@@ -534,10 +535,10 @@ module.exports = class zb extends Exchange {
         if (api === 'private') {
             if ('code' in response) {
                 let code = response['code'];
+                if (this.errors[code]) {
+                    response['message'] = this.errors[code];
+                }
                 if (code !== 1000) {
-                    if (this.errors[code]) {
-                        response['message'] = this.errors[code];
-                    }
                     throw new ExchangeError (this.id + ' ' + this.json (response));
                 }
             }
