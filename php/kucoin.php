@@ -368,10 +368,10 @@ class kucoin extends Exchange {
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         if ($symbol === null)
-            throw new ExchangeError ($this->id . ' fetchOrder requires a $symbol argument');
+            throw new ExchangeError ($this->id . ' fetchOrder requires a symbol');
         $orderType = $this->safe_value($params, 'type');
         if ($orderType === null)
-            throw new ExchangeError ($this->id . ' fetchOrder requires a type param');
+            throw new ExchangeError ($this->id . ' fetchOrder requires parameter type=["BUY"|"SELL"]');
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
@@ -380,12 +380,15 @@ class kucoin extends Exchange {
             'orderOid' => $id,
         );
         $response = $this->privateGetOrderDetail (array_merge ($request, $params));
+        $order = $response['data'];
+        if (!$order)
+            throw new OrderNotFound ($this->id . ' ' . $this->json ($response));
         return $this->parse_order($response['data'], $market);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if (!$symbol)
-            throw new ExchangeError ($this->id . ' fetchOpenOrders requires a $symbol param');
+            throw new ExchangeError ($this->id . ' fetchOpenOrders requires a symbol');
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
@@ -442,7 +445,7 @@ class kucoin extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         if (!$symbol)
-            throw new ExchangeError ($this->id . ' cancelOrder requires $symbol argument');
+            throw new ExchangeError ($this->id . ' cancelOrder requires a symbol');
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
@@ -452,7 +455,7 @@ class kucoin extends Exchange {
         if (is_array ($params) && array_key_exists ('type', $params)) {
             $request['type'] = strtoupper ($params['type']);
         } else {
-            throw new ExchangeError ($this->id . ' cancelOrder requires type (BUY or SELL) param');
+            throw new ExchangeError ($this->id . ' cancelOrder requires parameter type=["BUY"|"SELL"]');
         }
         $response = $this->privatePostCancelOrder (array_merge ($request, $params));
         return $response;
@@ -643,23 +646,35 @@ class kucoin extends Exchange {
     }
 
     public function throw_exception_on_error ($response) {
-        if (is_array ($response) && array_key_exists ('success', $response)) {
-            if (!$response['success']) {
-                if (is_array ($response) && array_key_exists ('code', $response)) {
-                    $message = $this->safe_string($response, 'msg');
-                    if ($response['code'] === 'UNAUTH') {
-                        if ($message === 'Invalid nonce')
-                            throw new InvalidNonce ($this->id . ' ' . $message);
-                        throw new AuthenticationError ($this->id . ' ' . $this->json ($response));
-                    } else if ($response['code'] === 'ERROR') {
-                        if (mb_strpos ($message, 'precision of amount') !== false)
-                            throw new InvalidOrder ($this->id . ' ' . $message);
-                        if (mb_strpos ($message, 'Min amount each order') !== false)
-                            throw new InvalidOrder ($this->id . ' ' . $message);
-                    }
-                }
-            }
+        // array ( success => false, $code => "ERROR", msg => "Min price:100.0" )
+        // array ( success => true,  $code => "OK",    msg => "Operation succeeded." )
+        if (!(is_array ($response) && array_key_exists ('success', $response)))
+            throw new ExchangeError ($this->id . ' => malformed $response => ' . $this->json ($response));
+        if ($response['success'] === true)
+            return; // not an error
+        if (!(is_array ($response) && array_key_exists ('code', $response)) || !(is_array ($response) && array_key_exists ('msg', $response)))
+            throw new ExchangeError ($this->id . ' => malformed $response => ' . $this->json ($response));
+        $code = $this->safe_string($response, 'code');
+        $message = $this->safe_string($response, 'msg');
+        $feedback = $this->id . ' ' . $this->json ($response);
+        if ($code === 'UNAUTH') {
+            if ($message === 'Invalid nonce')
+                throw new InvalidNonce ($feedback);
+            throw new AuthenticationError ($feedback);
+        } else if ($code === 'ERROR') {
+            if (mb_strpos ($message, 'The precision of amount') !== false)
+                throw new InvalidOrder ($feedback); // amount violates precision.amount
+            if (mb_strpos ($message, 'Min amount each order') !== false)
+                throw new InvalidOrder ($feedback); // amount < limits.amount.min
+            if (mb_strpos ($message, 'Min price:') !== false)
+                throw new InvalidOrder ($feedback); // price < limits.price.min
+            if (mb_strpos ($message, 'The precision of price') !== false)
+                throw new InvalidOrder ($feedback); // price violates precision.price
+        } else if ($code === 'NO_BALANCE') {
+            if (mb_strpos ($message, 'Insufficient balance') !== false)
+                throw new InsufficientFunds ($feedback);
         }
+        throw new ExchangeError ($this->id . ' => unknown $response => ' . $this->json ($response));
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {

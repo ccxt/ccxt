@@ -11,7 +11,9 @@ import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import OrderNotFound
 
 
 class kucoin (Exchange):
@@ -361,10 +363,10 @@ class kucoin (Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchOrder requires a symbol argument')
+            raise ExchangeError(self.id + ' fetchOrder requires a symbol')
         orderType = self.safe_value(params, 'type')
         if orderType is None:
-            raise ExchangeError(self.id + ' fetchOrder requires a type param')
+            raise ExchangeError(self.id + ' fetchOrder requires parameter type=["BUY"|"SELL"]')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -373,11 +375,14 @@ class kucoin (Exchange):
             'orderOid': id,
         }
         response = self.privateGetOrderDetail(self.extend(request, params))
+        order = response['data']
+        if not order:
+            raise OrderNotFound(self.id + ' ' + self.json(response))
         return self.parse_order(response['data'], market)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
-            raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol param')
+            raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -428,7 +433,7 @@ class kucoin (Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         if not symbol:
-            raise ExchangeError(self.id + ' cancelOrder requires symbol argument')
+            raise ExchangeError(self.id + ' cancelOrder requires a symbol')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -438,7 +443,7 @@ class kucoin (Exchange):
         if 'type' in params:
             request['type'] = params['type'].upper()
         else:
-            raise ExchangeError(self.id + ' cancelOrder requires type(BUY or SELL) param')
+            raise ExchangeError(self.id + ' cancelOrder requires parameter type=["BUY"|"SELL"]')
         response = self.privatePostCancelOrder(self.extend(request, params))
         return response
 
@@ -609,19 +614,34 @@ class kucoin (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def throw_exception_on_error(self, response):
-        if 'success' in response:
-            if not response['success']:
-                if 'code' in response:
-                    message = self.safe_string(response, 'msg')
-                    if response['code'] == 'UNAUTH':
-                        if message == 'Invalid nonce':
-                            raise InvalidNonce(self.id + ' ' + message)
-                        raise AuthenticationError(self.id + ' ' + self.json(response))
-                    elif response['code'] == 'ERROR':
-                        if message.find('precision of amount') >= 0:
-                            raise InvalidOrder(self.id + ' ' + message)
-                        if message.find('Min amount each order') >= 0:
-                            raise InvalidOrder(self.id + ' ' + message)
+        # {success: False, code: "ERROR", msg: "Min price:100.0"}
+        # {success: True,  code: "OK",    msg: "Operation succeeded."}
+        if not('success' in list(response.keys())):
+            raise ExchangeError(self.id + ': malformed response: ' + self.json(response))
+        if response['success'] is True:
+            return  # not an error
+        if not('code' in list(response.keys())) or not('msg' in list(response.keys())):
+            raise ExchangeError(self.id + ': malformed response: ' + self.json(response))
+        code = self.safe_string(response, 'code')
+        message = self.safe_string(response, 'msg')
+        feedback = self.id + ' ' + self.json(response)
+        if code == 'UNAUTH':
+            if message == 'Invalid nonce':
+                raise InvalidNonce(feedback)
+            raise AuthenticationError(feedback)
+        elif code == 'ERROR':
+            if message.find('The precision of amount') >= 0:
+                raise InvalidOrder(feedback)  # amount violates precision.amount
+            if message.find('Min amount each order') >= 0:
+                raise InvalidOrder(feedback)  # amount < limits.amount.min
+            if message.find('Min price:') >= 0:
+                raise InvalidOrder(feedback)  # price < limits.price.min
+            if message.find('The precision of price') >= 0:
+                raise InvalidOrder(feedback)  # price violates precision.price
+        elif code == 'NO_BALANCE':
+            if message.find('Insufficient balance') >= 0:
+                raise InsufficientFunds(feedback)
+        raise ExchangeError(self.id + ': unknown response: ' + self.json(response))
 
     def handle_errors(self, code, reason, url, method, headers, body):
         if body and(body[0] == '{'):
