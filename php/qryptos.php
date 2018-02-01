@@ -307,7 +307,7 @@ class qryptos extends Exchange {
         return $this->parse_order($order);
     }
 
-    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params=array ()) {
+    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
         $request = array ();
