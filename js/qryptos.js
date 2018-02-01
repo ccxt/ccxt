@@ -3,12 +3,11 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds, AuthenticationError } = require ('./base/errors');
+const { InvalidNonce, OrderNotFound, InvalidOrder, InsufficientFunds, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class qryptos extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'qryptos',
@@ -77,6 +76,20 @@ module.exports = class qryptos extends Exchange {
                         'trades/close_all',
                         'trading_accounts/{id}',
                     ],
+                },
+            },
+            'skipJsonOnStatusCodes': [401],
+            'exceptions': {
+                'messages': {
+                    'API Authentication failed': AuthenticationError,
+                    'Nonce is too small': InvalidNonce,
+                    'Order not found': OrderNotFound,
+                    'user': {
+                        'not_enough_free_balance': InsufficientFunds,
+                    },
+                    'quantity': {
+                        'less_than_order_size': InvalidOrder,
+                    },
                 },
             },
         });
@@ -232,7 +245,7 @@ module.exports = class qryptos extends Exchange {
         if (type === 'limit')
             order['price'] = price;
         let response = await this.privatePostOrders (this.extend (order, params));
-        return this.parseOrder(response);
+        return this.parseOrder (response);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -295,7 +308,7 @@ module.exports = class qryptos extends Exchange {
         return this.parseOrder (order);
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params={}) {
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         let request = {};
@@ -325,45 +338,6 @@ module.exports = class qryptos extends Exchange {
 
     fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         return this.fetchOrders (symbol, since, limit, this.extend ({ 'status': 'closed' }, params));
-    }
-
-    handleErrors (code, reason, url, method, headers, body) {
-        let response = undefined;
-        if (code === 200 || code === 404 || code === 422) {
-            if ((body[0] === '{') || (body[0] === '[')) {
-                response = JSON.parse (body);
-            } else {
-                // if not a JSON response
-                throw new ExchangeError (this.id + ' returned a non-JSON reply: ' + body);
-            }
-        }
-        if (code === 401) {
-            if (body === 'API Authentication failed') {
-                throw new AuthenticationError (body);
-            }
-        }
-        if (code === 404) {
-            if ('message' in response) {
-                if (response['message'] === 'Order not found') {
-                    throw new OrderNotFound (this.id + ' ' + body);
-                }
-            }
-        } else if (code === 422) {
-            if ('errors' in response) {
-                let errors = response['errors'];
-                if ('user' in errors) {
-                    let messages = errors['user'];
-                    if (messages.indexOf ('not_enough_free_balance') >= 0) {
-                        throw new InsufficientFunds (this.id + ' ' + body);
-                    }
-                } else if ('quantity' in errors) {
-                    let messages = errors['quantity'];
-                    if (messages.indexOf ('less_than_order_size') >= 0) {
-                        throw new InvalidOrder (this.id + ' ' + body);
-                    }
-                }
-            }
-        }
     }
 
     nonce () {
@@ -399,5 +373,49 @@ module.exports = class qryptos extends Exchange {
         }
         url = this.urls['api'] + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (code, reason, url, method, headers, body, response = undefined) {
+        if (code >= 200 && code <= 299)
+            return;
+        const messages = this.exceptions.messages;
+        if (code === 401) {
+            // expected non-json response
+            if (body in messages)
+                throw new messages[body] (this.id + ' ' + body);
+            else
+                return;
+        }
+        if (typeof response === 'undefined')
+            if ((body[0] === '{') || (body[0] === '['))
+                response = JSON.parse (body);
+            else
+                return;
+        const feedback = this.id + ' ' + this.json (response);
+        if (code === 404) {
+            // { "message": "Order not found" }
+            const message = this.safeString (response, 'message');
+            if (message in messages)
+                throw new messages[message] (feedback);
+        } else if (code === 422) {
+            // array of error messages is returned in 'user' or 'quantity' property of 'errors' object, e.g.:
+            // { "errors": { "user": ["not_enough_free_balance"] }}
+            // { "errors": { "quantity": ["less_than_order_size"] }}
+            if ('errors' in response) {
+                const errors = response['errors'];
+                const errorTypes = ['user', 'quantity'];
+                for (let i = 0; i < errorTypes.length; i++) {
+                    const errorType = errorTypes[i];
+                    if (errorType in errors) {
+                        const errorMessages = errors[errorType];
+                        for (let j = 0; j < errorMessages.length; j++) {
+                            const message = errorMessages[j];
+                            if (message in messages[errorType])
+                                throw new messages[errorType][message] (feedback);
+                        }
+                    }
+                }
+            }
+        }
     }
 };

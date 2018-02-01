@@ -8,7 +8,6 @@ const { ExchangeError, InsufficientFunds, OrderNotFound } = require ('./base/err
 // ---------------------------------------------------------------------------
 
 module.exports = class hitbtc extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'hitbtc',
@@ -18,6 +17,7 @@ module.exports = class hitbtc extends Exchange {
             'version': '1',
             'has': {
                 'CORS': false,
+                'fetchTrades': true,
                 'fetchOrder': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
@@ -86,7 +86,7 @@ module.exports = class hitbtc extends Exchange {
                     'tierBased': false,
                     'percentage': false,
                     'withdraw': {
-                        'BTC': 0.00085,
+                        'BTC': 0.001,
                         'BCC': 0.0018,
                         'ETH': 0.00215,
                         'BCH': 0.0018,
@@ -483,14 +483,15 @@ module.exports = class hitbtc extends Exchange {
     }
 
     commonCurrencyCode (currency) {
-        if (currency === 'XBT')
-            return 'BTC';
-        if (currency === 'DRK')
-            return 'DASH';
-        if (currency === 'CAT')
-            return 'BitClave';
-        if (currency === 'USD')
-            return 'USDT';
+        let currencies = {
+            'XBT': 'BTC',
+            'DRK': 'DASH',
+            'CAT': 'BitClave',
+            'USD': 'USDT',
+            'EMGO': 'MGO',
+        };
+        if (currency in currencies)
+            return currencies[currency];
         return currency;
     }
 
@@ -627,6 +628,12 @@ module.exports = class hitbtc extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        if (Array.isArray (trade))
+            return this.parsePublicTrade (trade, market);
+        return this.parseOrderTrade (trade, market);
+    }
+
+    parsePublicTrade (trade, market = undefined) {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
@@ -640,6 +647,37 @@ module.exports = class hitbtc extends Exchange {
             'side': trade[4],
             'price': parseFloat (trade[1]),
             'amount': parseFloat (trade[2]),
+        };
+    }
+
+    parseOrderTrade (trade, market = undefined) {
+        let symbol = undefined;
+        if (market)
+            symbol = market['symbol'];
+        let amount = parseFloat (trade['execQuantity']);
+        if (market)
+            amount *= market['lot'];
+        let price = parseFloat (trade['execPrice']);
+        let cost = price * amount;
+        let fee = {
+            'cost': parseFloat (trade['fee']),
+            'currency': undefined,
+            'rate': undefined,
+        };
+        let timestamp = trade['timestamp'];
+        return {
+            'info': trade,
+            'id': trade['tradeId'],
+            'order': trade['clientOrderId'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': undefined,
+            'side': trade['side'],
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
         };
     }
 
@@ -729,7 +767,7 @@ module.exports = class hitbtc extends Exchange {
         if (typeof amount === 'undefined')
             amount = this.safeFloat (order, 'quantity');
         let remaining = this.safeFloat (order, 'quantityLeaves');
-        if (!remaining)
+        if (typeof remaining === 'undefined')
             remaining = this.safeFloat (order, 'leavesQuantity');
         let filled = undefined;
         let cost = undefined;
@@ -808,6 +846,17 @@ module.exports = class hitbtc extends Exchange {
         }
         let response = await this.tradingGetOrdersRecent (this.extend (request, params));
         return this.parseOrders (response['orders'], market, since, limit);
+    }
+
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (typeof symbol !== 'undefined')
+            market = this.market (symbol);
+        let response = await this.tradingGetTradesByOrder (this.extend ({
+            'clientOrderId': id,
+        }, params));
+        return this.parseTrades (response['trades'], market, since, limit);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {

@@ -21,7 +21,7 @@ If you want to submit an issue and you want your issue to be resolved quickly, h
   - **set `.verbose = true` property on the exchange instance before calling its methods**
   - **surround code and output with triple backticks: &#096;&#096;&#096;YOUR\_CODE&#096;&#096;&#096;**
   - paste a complete code snippet you're having difficulties with, avoid one-liners
-  - paste the full stacktrace of that snippet in verbose mode as is, unchanged
+  - paste the **full verbose output** of the failing method without your keys
   - don't confuse the backtick symbol (&#096;) with the quote symbol (\'), &#096;&#096;&#096;GOOD&#096;&#096;&#096;, '''BAD'''
   - write your language **and version**
   - write ccxt library version
@@ -30,8 +30,6 @@ If you want to submit an issue and you want your issue to be resolved quickly, h
 
 ## How To Contribute Code
 
-- **PLEASE, SUBMIT ATOMIC EDITS, ONE PULL REQUEST PER ONE EXCHANGE, DO NOT MIX THEM**
-- **MAKE SURE YOUR CODE PASSES ALL SYNTAX CHECKS BY RUNNING `npm run build`**
 - **PLEASE, DO NOT COMMIT THE FOLLOWING FILES IN PULL REQUESTS:**
 
   - `/doc/*`
@@ -39,7 +37,10 @@ If you want to submit an issue and you want your issue to be resolved quickly, h
   - `/php/*` (except for base classes)
   - `/python/*` (except for base classes)
 
-  These files are generated ([explained below](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#transpiled-generated-files)) and will be overwritten upon build. Please don't commit them to avoid bloating the repository which is already quite large. Most often, you have to commit just one single source file to submit an edit to the implementation of an exchange.
+  These files are generated ([explained below](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#multilanguage-support)) and will be overwritten upon build. Please don't commit them to avoid bloating the repository which is already quite large. Most often, you have to commit just one single source file to submit an edit to the implementation of an exchange.
+
+- **PLEASE, SUBMIT ATOMIC EDITS, ONE PULL REQUEST PER ONE EXCHANGE, DO NOT MIX THEM**
+- **MAKE SURE YOUR CODE PASSES ALL SYNTAX CHECKS BY RUNNING `npm run build`**
 
 ### Pending Tasks
 
@@ -48,7 +49,8 @@ Below is a list of functionality we would like to have implemented in the librar
 - Unified fetchOrder
 - Unified fetchOrders, fetchOpenOrders, fetchClosedOrders
 - Unified fetchMyTrades, fetchOrderTrades
-- Unified deposit methods
+- Unified fetchDepositAddress, createDepositAddress
+- Unified withdraw
 - Unified fees
 - Unified deposit and withdrawal transaction history
 - Improved proxy support
@@ -71,10 +73,14 @@ The following is a set of rules for contributing to the ccxt library codebase.
 
 ### What You Need To Have
 
-- Node.js (version 8 or higher)
-- Python 2/3
-- PHP 5.3+
-- [Pandoc](https://pandoc.org/installing.html)
+- Node.js 8+
+- Python 3.5+ and Python 2.7+
+- PHP 5.3+ with the following extensions installed and enabled:
+  - cURL
+  - iconv
+  - mbstring
+  - PCRE
+- [Pandoc](https://pandoc.org/installing.html) 1.19+
 
 ### What You Need To Know
 
@@ -88,9 +94,9 @@ The contents of the repository are structured as follows:
 /.eslintrc                 # linter
 /.gitattributes            # contains linguist settings for language detection in repo
 /.gitignore                # ignore it
-/.npmignore                # ignore it npm-style
+/.npmignore                # files to exclude from the NPM package
 /.travis.yml               # a YAML config for travis-ci (continuous integration)
-/CHANGELOG.md              # says itself
+/CHANGELOG.md              # self-explanatory
 /CONTRIBUTING.md           # this file
 /LICENSE.txt               # MIT
 /README.md                 # master markdown for GitHub, npmjs.com, npms.io, yarn and others

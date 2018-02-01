@@ -8,7 +8,6 @@ const { ExchangeError } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class gemini extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'gemini',
@@ -18,6 +17,7 @@ module.exports = class gemini extends Exchange {
             'version': 'v1',
             'has': {
                 'CORS': false,
+                'createMarketOrder': false,
                 'withdraw': true,
             },
             'urls': {
@@ -193,6 +193,20 @@ module.exports = class gemini extends Exchange {
         return await this.privatePostCancelOrder ({ 'order_id': id });
     }
 
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (typeof symbol === 'undefined')
+            throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol argument');
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'symbol': market['id'],
+        };
+        if (typeof limit !== 'undefined')
+            request['limit'] = limit;
+        let response = await this.privatePostMytrades (this.extend (request, params));
+        return this.parseTrades (response, market, since, limit);
+    }
+
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
         let currency = this.currency (code);
@@ -241,4 +255,4 @@ module.exports = class gemini extends Exchange {
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
     }
-}
+};

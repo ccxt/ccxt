@@ -25,6 +25,7 @@ module.exports = class huobipro extends Exchange {
                 'fetchOHCLV': true,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1min',
@@ -334,14 +335,14 @@ module.exports = class huobipro extends Exchange {
         } else if ('status' in params) {
             status = params['status'];
         } else {
-            throw new ExchangeError (this.id + ' fetchOrders() requires type param or status param for spot market ' + symbol + '(0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)');
+            throw new ExchangeError (this.id + ' fetchOrders() requires a type param or status param for spot market ' + symbol + ' (0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)');
         }
         if ((status === 0) || (status === 'open')) {
             status = 'submitted,partial-filled';
         } else if ((status === 1) || (status === 'closed')) {
             status = 'filled,partial-canceled';
         } else {
-            throw new ExchangeError (this.id + ' fetchOrders() wrong type param or status param for spot market ' + symbol + '(0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)');
+            throw new ExchangeError (this.id + ' fetchOrders() wrong type param or status param for spot market ' + symbol + ' (0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)');
         }
         let response = await this.privateGetOrderOrders (this.extend ({
             'symbol': market['id'],
@@ -443,6 +444,25 @@ module.exports = class huobipro extends Exchange {
         return await this.privatePostOrderOrdersIdSubmitcancel ({ 'id': id });
     }
 
+    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+        let request = {
+            'address': address, // only supports existing addresses in your withdraw address list
+            'amount': amount,
+            'currency': currency.toLowerCase (),
+        };
+        if (tag)
+            request['addr-tag'] = tag; // only for XRP?
+        let response = await this.privatePostDwWithdrawApiCreate (this.extend (request, params));
+        let id = undefined;
+        if ('data' in response) {
+            id = response['data'];
+        }
+        return {
+            'info': response,
+            'id': id,
+        };
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/';
         if (api === 'market')
@@ -461,7 +481,8 @@ module.exports = class huobipro extends Exchange {
                 'Timestamp': timestamp,
             }, query));
             let auth = this.urlencode (request);
-            let payload = [ method, this.hostname, url, auth ].join ('\n');
+            // unfortunately, PHP demands double quotes for the escaped newline symbol
+            let payload = [ method, this.hostname, url, auth ].join ("\n");
             let signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
             auth += '&' + this.urlencode ({ 'Signature': signature });
             url += '?' + auth;
@@ -469,6 +490,10 @@ module.exports = class huobipro extends Exchange {
                 body = this.json (query);
                 headers = {
                     'Content-Type': 'application/json',
+                };
+            } else {
+                headers = {
+                    'Content-Type': 'application/x-www-form-urlencoded',
                 };
             }
         } else {

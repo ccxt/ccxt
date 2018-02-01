@@ -130,6 +130,7 @@ module.exports = class cex extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'lot': market['minLotSize'],
                 'precision': {
                     'price': this.precisionFromString (market['minPrice']),
                     'amount': -1 * Math.log10 (market['minLotSize']),
@@ -361,24 +362,34 @@ module.exports = class cex extends Exchange {
         if (market) {
             symbol = market['symbol'];
             cost = this.safeFloat (order, 'ta:' + market['quote']);
+            if (typeof cost === 'undefined')
+                cost = this.safeFloat (order, 'tta:' + market['quote']);
             let baseFee = 'fa:' + market['base'];
+            let baseTakerFee = 'tfa:' + market['base'];
             let quoteFee = 'fa:' + market['quote'];
+            let quoteTakerFee = 'tfa:' + market['quote'];
             let feeRate = this.safeFloat (order, 'tradingFeeMaker');
             if (!feeRate)
                 feeRate = this.safeFloat (order, 'tradingFeeTaker', feeRate);
             if (feeRate)
                 feeRate /= 100.0; // convert to mathematically-correct percentage coefficients: 1.0 = 100%
-            if (baseFee in order) {
+            if ((baseFee in order) || (baseTakerFee in order)) {
+                let baseFeeCost = this.safeFloat (order, baseFee);
+                if (typeof baseFeeCost === 'undefined')
+                    baseFeeCost = this.safeFloat (order, baseTakerFee);
                 fee = {
                     'currency': market['base'],
                     'rate': feeRate,
-                    'cost': this.safeFloat (order, baseFee),
+                    'cost': baseFeeCost,
                 };
-            } else if (quoteFee in order) {
+            } else if ((quoteFee in order) || (quoteTakerFee in order)) {
+                let quoteFeeCost = this.safeFloat (order, quoteFee);
+                if (typeof quoteFeeCost === 'undefined')
+                    quoteFeeCost = this.safeFloat (order, quoteTakerFee);
                 fee = {
                     'currency': market['quote'],
                     'rate': feeRate,
-                    'cost': this.safeFloat (order, quoteFee),
+                    'cost': quoteFeeCost,
                 };
             }
         }

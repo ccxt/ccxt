@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { AuthenticationError, ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -343,11 +343,14 @@ module.exports = class bitstamp extends Exchange {
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
-        if (symbol)
+        let request = {};
+        let method = 'privatePostUserTransactions';
+        if (symbol) {
             market = this.market (symbol);
-        let pair = market ? market['id'] : 'all';
-        let request = this.extend ({ 'pair': pair }, params);
-        let response = await this.privatePostUserTransactionsPair (request);
+            request['pair'] = market['id'];
+            method += 'Pair';
+        }
+        let response = await this[method] (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -426,11 +429,22 @@ module.exports = class bitstamp extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('status' in response)
-            if (response['status'] === 'error')
+    handleErrors (httpCode, reason, url, method, headers, body) {
+        if (typeof body !== 'string')
+            return; // fallback to default error handler
+        if (body.length < 2)
+            return; // fallback to default error handler
+        if ((body[0] === '{') || (body[0] === '[')) {
+            let response = JSON.parse (body);
+            let status = this.safeString (response, 'status');
+            if (status === 'error') {
+                let code = this.safeString (response, 'code');
+                if (typeof code !== 'undefined') {
+                    if (code === 'API0005')
+                        throw new AuthenticationError (this.id + ' invalid signature, use the uid for the main account if you have subaccounts');
+                }
                 throw new ExchangeError (this.id + ' ' + this.json (response));
-        return response;
+            }
+        }
     }
 }

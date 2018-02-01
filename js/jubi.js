@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 // ---------------------------------------------------------------------------
 
@@ -7,7 +7,6 @@ const btcbox = require ('./btcbox.js');
 // ---------------------------------------------------------------------------
 
 module.exports = class jubi extends btcbox {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'jubi',
@@ -49,4 +48,4 @@ module.exports = class jubi extends btcbox {
         }
         return result;
     }
-}
+};

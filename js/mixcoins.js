@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -8,7 +8,6 @@ const { ExchangeError } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class mixcoins extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'mixcoins',
@@ -138,7 +137,7 @@ module.exports = class mixcoins extends Exchange {
             'op': side,
             'amount': amount,
         };
-        if (type == 'market') {
+        if (type === 'market') {
             order['order_type'] = 1;
             order['price'] = price;
         } else {
@@ -157,7 +156,7 @@ module.exports = class mixcoins extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
@@ -178,8 +177,8 @@ module.exports = class mixcoins extends Exchange {
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('status' in response)
-            if (response['status'] == 200)
+            if (response['status'] === 200)
                 return response;
         throw new ExchangeError (this.id + ' ' + this.json (response));
     }
-}
+};

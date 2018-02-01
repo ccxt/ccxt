@@ -1,7 +1,7 @@
 Supported Exchanges
 ===================
 
-The ccxt library currently supports the following 98 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 97 cryptocurrency exchange markets and trading APIs:
 
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 |                        | id                   | name                                                           | ver   | doc                                                                                               | countries                                  |
@@ -67,8 +67,6 @@ The ccxt library currently supports the following 98 cryptocurrency exchange mar
 | |btcturk|              | btcturk              | `BTCTurk <https://www.btcturk.com>`__                          | \*    | `API <https://github.com/BTCTrader/broker-api-docs>`__                                            | Turkey                                     |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |btcx|                 | btcx                 | `BTCX <https://btc-x.is>`__                                    | 1     | `API <https://btc-x.is/custom/api-document.html>`__                                               | Iceland, US, EU                            |
-+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
-| |bter|                 | bter                 | `Bter <https://bter.com>`__                                    | 2     | `API <https://bter.com/api2>`__                                                                   | British Virgin Islands, China              |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |bxinth|               | bxinth               | `BX.in.th <https://bx.in.th>`__                                | \*    | `API <https://bx.in.th/info/api>`__                                                               | Thailand                                   |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -234,7 +232,6 @@ The ccxt library currently supports the following 98 cryptocurrency exchange mar
 .. |btctradeua| image:: https://user-images.githubusercontent.com/1294454/27941483-79fc7350-62d9-11e7-9f61-ac47f28fcd96.jpg
 .. |btcturk| image:: https://user-images.githubusercontent.com/1294454/27992709-18e15646-64a3-11e7-9fa2-b0950ec7712f.jpg
 .. |btcx| image:: https://user-images.githubusercontent.com/1294454/27766385-9fdcc98c-5ed6-11e7-8f14-66d5e5cd47e6.jpg
-.. |bter| image:: https://user-images.githubusercontent.com/1294454/27980479-cfa3188c-6387-11e7-8191-93fc4184ba5c.jpg
 .. |bxinth| image:: https://user-images.githubusercontent.com/1294454/27766412-567b1eb4-5ed7-11e7-94a8-ff6a3884f6c5.jpg
 .. |ccex| image:: https://user-images.githubusercontent.com/1294454/27766433-16881f90-5ed8-11e7-92f8-3d92cc747a6c.jpg
 .. |cex| image:: https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg

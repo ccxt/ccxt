@@ -494,7 +494,7 @@ let testFetchCurrencies = async (exchange, symbol) => {
 let testInvalidOrder = async (exchange, symbol) => {
 
     if (!exchange.has.createOrder) {
-        log ('order creation not supported')
+        log ('createOrder not supported')
         return
     }
 
@@ -503,7 +503,7 @@ let testInvalidOrder = async (exchange, symbol) => {
         assert.fail ()
     } catch (e) {
         if (e instanceof ccxt.InvalidOrder) {
-            log ('InvalidOrder throwed as expected')
+            log ('InvalidOrder thrown as expected')
             return
         } else {
             log ('InvalidOrder failed, exception follows:')
@@ -514,51 +514,66 @@ let testInvalidOrder = async (exchange, symbol) => {
 
 //-----------------------------------------------------------------------------
 
-let testInsufficientFunds = async (exchange, symbol) => {
+// will try to place a buy order at the minimum price level on minimum amount possible
+// will skip if balance is positive or market limits are not set
+let testInsufficientFunds = async (exchange, symbol, balance) => {
 
     if (!exchange.has.createOrder) {
-        log ('order creation not supported')
+        log ('createOrder not supported')
         return
     }
 
-    let markets = await exchange.loadMarkets ()
-    let market = markets[symbol]
+    const markets = await exchange.loadMarkets ()
+    const market = markets[symbol]
     if (market.limits === undefined) {
-        log ('limits are not set, will not test order creation')
+        log ('market.limits property is not set, will not test order creation')
         return
     }
 
-    let { price, amount, cost } = market.limits
-    if (price === undefined || amount === undefined) {
-        log ('price & amount limits are not set, will not test order creation')
+    const { price, amount, cost } = market.limits
+
+    if (price === undefined || amount === undefined || cost === undefined) {
+        log ('market.limits.[price|amount|cost] property is not set, will not test order creation')
         return
     }
 
     let minPrice = price.min
-    let minAmount = amount.min
-    if (minPrice === undefined || minAmount === undefined) {
+    let minAmount = amount.min // will be adjusted co cover minCost if needed
+    const minCost = cost.min
+
+    if (minPrice === undefined || minAmount === undefined || minCost === undefined) {
         log ('min limits are not set, will not test order creation')
         return
     }
-    let minCost = cost ? cost.min : (minPrice * minAmount)
 
-    if (minCost > (minPrice * minAmount)) {
-        [ minPrice, minAmount ] = [ minCost / minAmount, minCost / minPrice ]
+    if (minCost > minPrice * minAmount) {
+        minAmount = minCost / minPrice
     }
 
     minPrice = exchange.priceToPrecision (symbol, minPrice)
     minAmount = exchange.amountToPrecision (symbol, minAmount)
 
+    if (balance === undefined) {
+        log ('balance is not set, cannot ensure safety, will not test order creation')
+        return
+    }
+
+    const { base, quote } = market
+    if (balance[quote].total > 0) {
+        log ('balance is not empty, will not test order creation')
+        return
+    }
+
     try {
-        // log ('creating limit buy order...', symbol, minAmount, minPrice)
-        let id = await exchange.createLimitBuyOrder (symbol, minAmount, minPrice)
+        log ('creating limit buy order...', symbol, minAmount, minPrice)
+        let order = await exchange.createLimitBuyOrder (symbol, minAmount, minPrice)
         log ('order created although it should not had to - cleaning up')
-        await exchange.cancelOrder (id, symbol)
+        log (order)
+        await exchange.cancelOrder (order.id, symbol)
         assert.fail ()
-        // log (asTable (currencies))
     } catch (e) {
         if (e instanceof ccxt.InsufficientFunds) {
-            log ('InsufficientFunds throwed as expected')
+            log ('InsufficientFunds thrown as expected')
         } else {
             log ('InsufficientFunds failed, exception follows:')
             throw e
@@ -568,9 +583,35 @@ let testInsufficientFunds = async (exchange, symbol) => {
 
 //-----------------------------------------------------------------------------
 
+let testNonExistentOrderNotFound = async (exchange, symbol) => {
+
+    if (!exchange.has.createOrder) {
+        log ('createOrder not supported -> test skipped')
+        return
+    }
+
+    let id = 1
+
+    try {
+
+        await exchange.cancelOrder (id, symbol)
+        log ('test failed')
+        assert.fail ()
+    } catch (e) {
+        if (e instanceof ccxt.OrderNotFound) {
+            log ('OrderNotFound thrown as expected')
+        } else {
+            log ('OrderNotFound test failed')
+            throw e
+        }
+    }
+}
+
+//-----------------------------------------------------------------------------
+
 let testBalance = async (exchange, symbol) => {
 
-    if (!(exchange.hasFetchBalance || exchange.has.fetchBalance)) {
+    if (!(exchange.has.fetchBalance)) {
         log (exchange.id.green, ' does not have fetchBalance')
         return
     }
@@ -619,6 +660,7 @@ let testBalance = async (exchange, symbol) => {
 
         log (exchange.omit (balance, 'info'))
     }
+    return balance
 }
 
 //-----------------------------------------------------------------------------
@@ -627,9 +669,9 @@ let testBadNonce = async (exchange, symbol) => {
 
     log.green ('AuthenticationError (bad nonce) test...')
 
-    const hasFetchBalance  = exchange.hasFetchBalance  || exchange.has.fetchBalance
-    const hasFetchMyTrades = exchange.hasFetchMyTrades || exchange.has.fetchMyTrades
-    const hasFetchOrders   = exchange.hasFetchOrders   || exchange.has.fetchOrders
+    const hasFetchBalance  = exchange.has.fetchBalance
+    const hasFetchMyTrades = exchange.has.fetchMyTrades
+    const hasFetchOrders   = exchange.has.fetchOrders
 
     if (hasFetchBalance || hasFetchMyTrades || hasFetchOrders) {
 
@@ -639,8 +681,9 @@ let testBadNonce = async (exchange, symbol) => {
 
         try {
 
-            // check if a method throws an AuthenticationError
-            // (it should, due to bad nonce)
+            // check if handleErrors() throws AuthenticationError if an exchange
+            // responds with an error on a bad nonce
+            // (still, some exchanges that require nonce silently eat bad nonce w/o an error)
 
             if (hasFetchBalance)
                 await exchange.fetchBalance ()
@@ -649,12 +692,15 @@ let testBadNonce = async (exchange, symbol) => {
             else
                 await exchange.fetchOrders (symbol)
 
+            // restore the nonce so the caller may proceed in case bad nonce was accepted by an exchange
+            exchange.nonce = nonce
+            log.warn (exchange.id + ': AuthenticationError: bad nonce swallowed')
+
         } catch (e) {
 
-            // restore the nonce
+            // restore the nonce so the caller may proceed in case the test failed
             exchange.nonce = nonce
-
-            if (e instanceof ccxt.AuthenticationError) {
+            if (e instanceof ccxt.AuthenticationError || e instanceof ccxt.InvalidNonce) {
 
                 // it has thrown the exception as expected
                 log.green ('AuthenticationError test passed')
@@ -734,6 +780,13 @@ let testExchange = async exchange => {
         }
     }
 
+    if (exchange.id === 'okex') {
+        // okex has different order creation params for spot and futures markets
+        // this will stick okex to spot market until there is a way to test
+        // several markets per exchange
+        symbol = 'BTC/USDT'
+    }
+
     log.green ('SYMBOL:', symbol)
     if ((symbol.indexOf ('.d') < 0)) {
         await testSymbol (exchange, symbol)
@@ -746,14 +799,21 @@ let testExchange = async exchange => {
     if (exchange.urls['test'])
         exchange.urls['api'] = exchange.urls['test']
 
-    await testBalance      (exchange)
+    let balance = await testBalance (exchange)
+
     await testOrders       (exchange, symbol)
     await testOpenOrders   (exchange, symbol)
     await testClosedOrders (exchange, symbol)
     await testMyTrades     (exchange, symbol)
-    // await testBadNonce        (exchange, symbol)
-    // await testInsufficientFunds (exchange, symbol)
-    // await testInvalidOrder (exchange, symbol)
+
+    if (exchange.extendedTest) {
+        await testBadNonce        (exchange, symbol)
+        await testNonExistentOrderNotFound (exchange, symbol)
+        await testInvalidOrder (exchange, symbol)
+
+        // danger zone - won't execute with non-empty balance
+        await testInsufficientFunds (exchange, symbol, balance)
+    }
 
     // try {
     //     let marketSellOrder =
@@ -839,15 +899,17 @@ let tryAllProxies = async function (exchange, proxies) {
                 warn ('[DDoS Protection]' + e.message.slice (0, 200))
             } else if (e instanceof ccxt.RequestTimeout) {
                 warn ('[Request Timeout] ' + e.message.slice (0, 200))
-            } else if (e instanceof ccxt.AuthenticationError) {
-                warn ('[Authentication Error] ' + e.message.slice (0, 200))
             } else if (e instanceof ccxt.ExchangeNotAvailable) {
                 warn ('[Exchange Not Available] ' + e.message.slice (0, 200))
+            } else if (e instanceof ccxt.AuthenticationError) {
+                warn ('[Authentication Error] ' + e.message.slice (0, 200))
+                return
             } else if (e instanceof ccxt.NotSupported) {
                 warn ('[Not Supported] ' + e.message.slice (0, 200))
                 return
             } else if (e instanceof ccxt.ExchangeError) {
                 warn ('[Exchange Error] ' + e.message.slice (0, 200))
+                return
             } else {
                 throw e
             }

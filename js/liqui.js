@@ -14,6 +14,7 @@ module.exports = class liqui extends Exchange {
             'userAgent': this.userAgents['chrome'],
             'has': {
                 'CORS': false,
+                'createMarketOrder': false,
                 'fetchOrder': true,
                 'fetchOrders': 'emulated',
                 'fetchOpenOrders': true,
@@ -265,8 +266,12 @@ module.exports = class liqui extends Exchange {
         for (let k = 0; k < keys.length; k++) {
             let id = keys[k];
             let ticker = tickers[id];
-            let market = this.markets_by_id[id];
-            let symbol = market['symbol'];
+            let symbol = id;
+            let market = undefined;
+            if (id in this.markets_by_id) {
+                market = this.markets_by_id[id];
+                symbol = market['symbol'];
+            }
             result[symbol] = this.parseTicker (ticker, market);
         }
         return result;
@@ -300,14 +305,12 @@ module.exports = class liqui extends Exchange {
             symbol = market['symbol'];
         let amount = trade['amount'];
         let type = 'limit'; // all trades are still limit trades
-        let fee = undefined;
-        // this is filled by fetchMyTrades() only
-        // is_your_order is always false :\
-        // let isYourOrder = this.safeValue (trade, 'is_your_order');
-        // let takerOrMaker = 'taker';
-        // if (isYourOrder)
-        //     takerOrMaker = 'maker';
-        // let fee = this.calculateFee (symbol, type, side, amount, price, takerOrMaker);
+        let isYourOrder = this.safeValue (trade, 'is_your_order');
+        let takerOrMaker = 'taker';
+        if (typeof isYourOrder !== 'undefined')
+            if (isYourOrder)
+                takerOrMaker = 'maker';
+        let fee = this.calculateFee (symbol, type, side, amount, price, takerOrMaker);
         return {
             'id': id,
             'order': order,

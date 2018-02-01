@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 // ---------------------------------------------------------------------------
 
@@ -7,7 +7,6 @@ const liqui = require ('./liqui.js');
 // ---------------------------------------------------------------------------
 
 module.exports = class dsx extends liqui {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'dsx',
@@ -113,6 +112,10 @@ module.exports = class dsx extends liqui {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        let average = this.safeFloat (ticker, 'avg');
+        if (typeof average !== 'undefined')
+            if (average > 0)
+                average = 1 / average;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -128,7 +131,7 @@ module.exports = class dsx extends liqui {
             'last': this.safeFloat (ticker, 'last'),
             'change': undefined,
             'percentage': undefined,
-            'average': 1 / this.safeFloat (ticker, 'avg'),
+            'average': average,
             'baseVolume': this.safeFloat (ticker, 'vol'),
             'quoteVolume': this.safeFloat (ticker, 'vol_cur'),
             'info': ticker,
@@ -146,4 +149,4 @@ module.exports = class dsx extends liqui {
     getVersionString () {
         return ''; // they don't prepend version number to public URLs as other BTC-e clones do
     }
-}
+};

@@ -53,7 +53,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 
 # Exchanges
 
-The ccxt library currently supports the following 98 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 97 cryptocurrency exchange markets and trading APIs:
 
 |                                                                                                                           | id                 | name                                                      | ver | doc                                                                                          | countries                               |
 |---------------------------------------------------------------------------------------------------------------------------|--------------------|-----------------------------------------------------------|:---:|:--------------------------------------------------------------------------------------------:|-----------------------------------------|
@@ -88,7 +88,6 @@ The ccxt library currently supports the following 98 cryptocurrency exchange mar
 |![btctradeua](https://user-images.githubusercontent.com/1294454/27941483-79fc7350-62d9-11e7-9f61-ac47f28fcd96.jpg)         | btctradeua         | [BTC Trade UA](https://btc-trade.com.ua)                  | *   | [API](https://docs.google.com/document/d/1ocYA0yMy_RXd561sfG3qEPZ80kyll36HUxvCRe5GbhE/edit)  | Ukraine                                 |
 |![btcturk](https://user-images.githubusercontent.com/1294454/27992709-18e15646-64a3-11e7-9fa2-b0950ec7712f.jpg)            | btcturk            | [BTCTurk](https://www.btcturk.com)                        | *   | [API](https://github.com/BTCTrader/broker-api-docs)                                          | Turkey                                  |
 |![btcx](https://user-images.githubusercontent.com/1294454/27766385-9fdcc98c-5ed6-11e7-8f14-66d5e5cd47e6.jpg)               | btcx               | [BTCX](https://btc-x.is)                                  | 1   | [API](https://btc-x.is/custom/api-document.html)                                             | Iceland, US, EU                         |
-|![bter](https://user-images.githubusercontent.com/1294454/27980479-cfa3188c-6387-11e7-8191-93fc4184ba5c.jpg)               | bter               | [Bter](https://bter.com)                                  | 2   | [API](https://bter.com/api2)                                                                 | British Virgin Islands, China           |
 |![bxinth](https://user-images.githubusercontent.com/1294454/27766412-567b1eb4-5ed7-11e7-94a8-ff6a3884f6c5.jpg)             | bxinth             | [BX.in.th](https://bx.in.th)                              | *   | [API](https://bx.in.th/info/api)                                                             | Thailand                                |
 |![ccex](https://user-images.githubusercontent.com/1294454/27766433-16881f90-5ed8-11e7-92f8-3d92cc747a6c.jpg)               | ccex               | [C-CEX](https://c-cex.com)                                | *   | [API](https://c-cex.com/?id=api)                                                             | Germany, EU                             |
 |![cex](https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg)                | cex                | [CEX.IO](https://cex.io)                                  | *   | [API](https://cex.io/cex-api)                                                                | UK, EU, Cyprus, Russia                  |
@@ -430,6 +429,7 @@ In terms of the ccxt library, every exchange offers multiple markets within itse
         'amount': 8,      // integer
         'cost': 8,        // integer
     },
+    'lot': 0.00000001,    // order amount should be a multiple of lot
     'limits': {           // value limits when placing orders on this market
         'amount': {
             'min': 0.01,  // order amount should be > min
@@ -451,6 +451,7 @@ Each market is an associative array (aka dictionary) with the following keys:
 - `active`. A boolean indicating whether or not trading this market is currently possible.
 - `info`. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
 - `precision`. The amounts of decimal digits accepted in order values by exchanges upon order placement for price, amount and cost.
+- `lot`. The lot size is the smallest distinguishable step of amount increment accepted by the exchange when placing a new order. The order amount should be a multiple of lot size or, in other words, should be evenly divisible by the lot size.
 - `limits`. The minimums and maximums for prices, amounts (volumes) and costs (where cost = price * amount).
 
 *The `precision` and `limits` params are currently under heavy development, some of these fields may be missing here and there until the unification process is complete. This does not influence most of the orders but can be significant in extreme cases of very large or very small orders. The `active` flag is not yet supported and/or implemented by all markets.*
@@ -661,13 +662,25 @@ The endpoint URLs are predefined in the `api` property for each exchange. You do
 
 ## Implicit API Methods
 
-In the code for each exchange, you'll notice that functions that make API requests aren't explicitly defined. This is because the `api` definition in the exchange description JSON is used to create *magic functions* (aka *partial functions* or *closures*) inside the exchange subclass. That implicit injection is done by the `defineRestApi/define_rest_api` base exchange method.
+Most of exchange-specific API methods are implicit, meaning that they aren't defined explicitly anywhere in code. The library implements a declarative approach for defining implicit (non-unified) exchanges' API methods.
 
-Each partial function takes a dictionary of `params` and returns the API response. For example, if an exchange offers a HTTP GET URL for querying prices like `https://example.com/public/quotes`, it is converted to a method named `example.publicGetQuotes (params = {}) / $example->publicGetQuotes ($params = array ())`.
+Each method of the API usually has its own endpoint. The library defines all endpoints for each particular exchange in the `.api` property. Upon exchange construction an implicit *magic* method (aka *partial function* or *closure*) will be created inside `defineRestApi()/define_rest_api()` on the exchange instance for each endpoint from the list of `.api` endpoints. This is performed for all exchanges universally. Each generated method will be accessible in both `camelCase` and `under_score` notations.
 
-Upon instantiation the base exchange class takes each URL from its list of endpoints, splits it into words, and then makes up a callable function name from those words by using a partial construct.
+The endpoints definition is a **full list of ALL API URLs** exposed by an exchange. This list gets converted to callable methods upon exchange instantiation. Each URL in the API endpoint list gets a corresponding callable method. This is done automatically for all exchanges, therefore the ccxt library supports **all possible URLs** offered by crypto exchanges.
 
-The endpoint definition is a **full list of ALL API URLs** exposed by an exchange. This list gets converted to callable methods upon exchange instantiation. Each URL in the API endpoint list gets a corresponding callable method. This is done automatically for all exchanges, therefore the ccxt library supports **all possible URLs** offered by crypto exchanges.
+Each implicit method gets a unique name which is constructed from the `.api` definition. For example, a private HTTPS PUT `https://api.exchange.com/order/{id}/cancel` endpoint will have a corresponding exchange method named `.privatePutOrderIdCancel()`/`.private_put_order_id_cancel()`. A public HTTPS GET `https://api.exchange.com/market/ticker/{pair}` endpoint would result in the corresponding method named `.publicGetTickerPair()`/`.public_get_ticker_pair()`, and so on.
+
+An implicit method takes a dictionary of parameters, sends the request to the exchange and returns an exchange-specific JSON result from the API **as is, unparsed**. To pass a parameter, add it to the dictionary explicitly under a key equal to the parameter's name. For the examples above, this would look like `.privatePutOrderIdCancel ({ id: '41987a2b-...' })` and `.publicGetTickerPair ({ pair: 'BTC/USD' })`.
+
+The recommended way of working with exchanges is not using exchange-specific implicit methods but using the unified ccxt methods instead. The exchange-specific methods should be used as a fallback in cases when a corresponding unified method isn't available (yet).
+
+To get a list of all available methods with an exchange instance, including implicit methods and unified methods you can simply do the following:
+
+```
+console.log (new ccxt.kraken ())   // JavaScript
+print (dir (ccxt.hitbtc ()))        # Python
+var_dump (new \ccxt\okcoinusd ()); // PHP
+```
 
 ## Public/Private API
 
@@ -827,7 +840,7 @@ Note, that most of methods of the unified API accept an optional `params` parame
 - [OHLCV Candlestick Charts](https://github.com/ccxt/ccxt/wiki/Manual#ohlcv-candlestick-charts)
 - [Public Trades And Closed Orders](https://github.com/ccxt/ccxt/wiki/Manual#trades-orders-executions-transactions)
 
-## Order Book / Market Depth
+## Order Book
 
 Exchanges expose information on open orders with bid (buy) and ask (sell) prices, volumes and other data. Usually there is a separate endpoint for querying current state (stack frame) of the *order book* for a particular market. An order book is also often called *market depth*. The order book information is used in the trading decision making process.
 
@@ -885,7 +898,9 @@ Prices and amounts are floats. The bids array is sorted by price in descending o
 
 Exchanges may return the stack of orders in various levels of details for analysis. It is either in full detail containing each and every order, or it is aggregated having slightly less detail where orders are grouped and merged by price and volume. Having greater detail requires more traffic and bandwidth and is slower in general but gives a benefit of higher precision. Having less detail is usually faster, but may not be  enough in some very specific cases.
 
-Some exchanges accept a second dictionary of extra parameters to the `fetchOrderBook () / fetch_order_book ()` function allowing you to get the level of aggregation you need, like so:
+### Market Depth
+
+Some exchanges accept a second dictionary of extra parameters to the `fetchOrderBook () / fetch_order_book ()` function. **All extra `params` are exchange-specific (non-unified)**. You will need to consult exchanges docs if you want to override a particular param, like the depth of the order book (or the count of returned orders on both sides). You can get a limited count of returned orders or a desired level of aggregation (aka *market depth*) by specifying an exchange-specific extra `param` like so:
 
 ```JavaScript
 // JavaScript
@@ -894,7 +909,7 @@ Some exchanges accept a second dictionary of extra parameters to the `fetchOrder
     const ccxt = require ('ccxt')
     const exchange = new ccxt.bitfinex ()
     const orders = await exchange.fetchOrderBook ('BTC/USD', {
-        'limit_bids': 5, // max = 50
+        'limit_bids': 5, // max = 50, bitfinex-specific!
         'limit_asks': 5, // may be 0 in which case the array is empty
         'group': 1, // 1 = orders are grouped by price, 0 = orders are separate
     })
@@ -906,7 +921,7 @@ Some exchanges accept a second dictionary of extra parameters to the `fetchOrder
 
 import ccxt
 # return up to ten bidasks on each side of the order book stack
-ccxt.cex().fetch_order_book('BTC/USD', {'depth': 10})
+ccxt.cex().fetch_order_book('BTC/USD', {'depth': 10})  # cex-specific!
 ```
 
 ```PHP
@@ -916,7 +931,7 @@ ccxt.cex().fetch_order_book('BTC/USD', {'depth': 10})
 $exchange = '\\ccxt\\kraken';
 $exchange = new $exchange ();
 var_dump ($exchange->fetch_order_book ('BTC/USD', array (
-    'count' => 10, // up to ten orders on each side for example
+    'count' => 10, // up to ten orders on each side for example, kraken-specific
 )));
 ```
 
@@ -1124,13 +1139,13 @@ The fetchOHLCV method shown above returns a list (a flat array) of OHLCV candles
         4240.6,        // (H)ighest price
         4230.0,        // (L)owest price
         4230.7,        // (C)losing price
-        37.72941911    // (V)olume
+        37.72941911    // (V)olume (in terms of the base currency)
     ],
     ...
 ]
 ```
 
-## Trades, Orders, Executions, Transactions
+## Trades, Executions, Transactions
 
 ```diff
 - this is under heavy development right now, contributions appreciated
@@ -1413,27 +1428,12 @@ exchange.fetchOpenOrders (symbol = undefined, since = undefined, limit = undefin
 
 #### Closed Orders
 
+Do not confuse *closed orders* with *trades* (aka *fills*)! An order can be closed (filled with) multiple opposing trades! So, a closed order is not the same as a trade. In general, the order does not have a `fee` at all, but each particular user trade does have `fee`, `cost` and other properties. However,
+many exchanges propagate those properties to the orders as well.
+
 ```JavaScript
 exchange.fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {})
 ```
-
-#### Trades / Transactions / Fills / Executions
-
-```
-- this part of the unified API is currenty a work in progress
-- there may be some issues and missing implementations here and there
-- contributions, pull requests and feedback appreciated
-```
-
-##### Recent Trades
-
-```JavaScript
-exchange.fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {})
-```
-
-##### Trades By Order Id
-
-```UNDER CONSTRUCTION```
 
 ### Order Structure
 
@@ -1565,6 +1565,31 @@ A cancel-request might also throw a `NetworkError` indicating that the order mig
 As such, `cancelOrder()` can throw an `OrderNotFound` exception in these cases:
 - canceling an already-closed order
 - canceling an already-canceled order
+
+
+## Trades / Transactions / Fills / Executions
+
+```
+- this part of the unified API is currenty a work in progress
+- there may be some issues and missing implementations here and there
+- contributions, pull requests and feedback appreciated
+```
+
+A trade is a result of order execution. Note, that orders and trades have 1-n relationship: execution of 1 order may result in several trades.
+
+
+### Recent Trades
+
+```JavaScript
+exchange.fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {})
+```
+
+Returns ordered array of trades (most recent trade first).
+
+### Trades By Order Id
+
+```UNDER CONSTRUCTION```
+
 
 ## Funding Your Account
 
@@ -1744,6 +1769,8 @@ Below is an outline of exception inheritance hierarchy:
 |   |
 |   +---+ AuthenticationError
 |   |
+|   +---+ InvalidNonce
+|   |
 |   +---+ InsufficientFunds
 |   |
 |   +---+ InvalidOrder
@@ -1771,6 +1798,10 @@ Below is an outline of exception inheritance hierarchy:
 - `InvalidOrder`: This exception is the base class for all exceptions related to the unified order API.
     - `OrderNotFound`: Raised when you are trying to fetch or cancel a non-existent order.
 - `AuthenticationError`: Raised when an exchange requires one of the API credentials that you've missed to specify, or when there's a mistake in the keypair or an outdated nonce. Most of the time you need `apiKey` and `secret`, some times you also need `uid` and/or `password`.
+- `InvalidNonce`: Raised when your nonce is less than the previous nonce used with your keypair, as described in the [Authentication](https://github.com/ccxt/ccxt/wiki/Manual#authentication) section. This type of exception is thrown in these cases (in order of precedence for checking):
+    - Your API keys are not fresh and new (have been used with some different software or script already).
+    - The same keypair is shared across multiple instances of the exchange class (for example, in a multithreaded environment or in separate processes).
+    - Your system clock is out of synch. System time should be synched with UTC in a non-DST timezone at a rate of once every ten minutes or even more frequently because of the clock drifting. **Enabling time synch in Windows is usually not enough!** You have to set it up with the OS Registry (Google *"time synch frequency"* for your OS).
 - `NetworkError`: All errors related to networking are usually recoverable, meaning that networking problems, traffic congestion, unavailability is usually time-dependent. Making a retry later is usually enough to recover from a NetworkError, but if it doesn't go away, then it may indicate some persistent problem with the exchange or with your connection.
     - `DDoSProtection`: This exception is thrown whenever Cloudflare or Incapsula rate limiter restrictions are enforced per user or region/location. The ccxt library does a case-insensitive search in the response received from the exchange for one of the following keywords:
         - `cloudflare`
