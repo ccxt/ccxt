@@ -253,6 +253,7 @@ module.exports = class bitfinex extends Exchange {
         return (currency in currencies) ? currencies[currency] : currency;
     }
 
+<<<<<<< HEAD
     async fetchFundingFees () {
         const fundingFees = await this.privatePostAccountFees ();
         const withdraw = fundingFees['withdraw'];
@@ -271,6 +272,30 @@ module.exports = class bitfinex extends Exchange {
         const fees = await this.fetchFundingFees ();
         funding = this.deepExtend (funding, fees);
         return funding;
+=======
+    async fetchFees () {
+        let summary = await this.privatePostSummary ();
+        let accountFees = await this.privatePostAccountFees ();
+        let info = this.extend (summary, accountFees);
+        let maker = summary['maker_fee'];
+        maker = this.asFloat (maker);
+        let taker = summary['taker_fee'];
+        taker = this.asFloat (taker);
+        let withdrawalFees = accountFees['withdraw'];
+        let keys = Object.keys (withdrawalFees);
+        for (let i = 0; i < keys.length; i++) {
+            let k = keys[i];
+            let toFloat = withdrawalFees[k];
+            withdrawalFees[k] = this.asFloat (toFloat);
+        }
+        return {
+            'info': info,
+            'maker': maker,
+            'taker': taker,
+            'withdraw': withdrawalFees,
+            'deposit': withdrawalFees,  // only for deposits of less than $1000
+        };
+>>>>>>> frosty00-master
     }
 
     async fetchMarkets () {
@@ -302,7 +327,7 @@ module.exports = class bitfinex extends Exchange {
                 'min': limits['amount']['min'] * limits['price']['min'],
                 'max': undefined,
             };
-            result.push (this.extend (this.fees['trading'], {
+            result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -314,7 +339,7 @@ module.exports = class bitfinex extends Exchange {
                 'limits': limits,
                 'lot': Math.pow (10, -precision['amount']),
                 'info': market,
-            }));
+            });
         }
         return result;
     }
