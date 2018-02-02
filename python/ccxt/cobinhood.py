@@ -22,8 +22,9 @@ class cobinhood (Exchange):
                 'fetchClosedOrders': True,
             },
             'timeframes': {
-                '1m': '1m',
-                '5m': '5m',
+                # the first two don't seem to work at all
+                # '1m': '1m',
+                # '5m': '5m',
                 '15m': '15m',
                 '30m': '30m',
                 '1h': '1h',
@@ -288,7 +289,8 @@ class cobinhood (Exchange):
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):
         return [
-            ohlcv['timestamp'] * 1000,
+            # they say that timestamps are Unix Timestamps in seconds, but in fact those are milliseconds
+            ohlcv['timestamp'],
             float(ohlcv['open']),
             float(ohlcv['high']),
             float(ohlcv['low']),
@@ -296,16 +298,19 @@ class cobinhood (Exchange):
             float(ohlcv['volume']),
         ]
 
-    def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=None, params={}):
+    def fetch_ohlcv(self, symbol, timeframe='15m', since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         query = {
             'trading_pair_id': market['id'],
             'timeframe': self.timeframes[timeframe],
+            # they say in their docs that end_time defaults to current server time
+            # but if you don't specify it, their range limits does not allow you to query anything
+            'end_time': self.milliseconds(),
         }
         if since:
-            query['start_time'] = int(since / 1000)  # defaults to 0
-            # end_time: timestamp in seconds defaults to server time
+            # in their docs they say that start_time defaults to 0, but, obviously it does not
+            query['start_time'] = since
         response = self.publicGetChartCandlesTradingPairId(self.extend(query, params))
         ohlcv = response['result']['candles']
         return self.parse_ohlcvs(ohlcv, market, timeframe, since, limit)

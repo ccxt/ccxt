@@ -20,8 +20,9 @@ class cobinhood extends Exchange {
                 'fetchClosedOrders' => true,
             ),
             'timeframes' => array (
-                '1m' => '1m',
-                '5m' => '5m',
+                // the first two don't seem to work at all
+                // '1m' => '1m',
+                // '5m' => '5m',
                 '15m' => '15m',
                 '30m' => '30m',
                 '1h' => '1h',
@@ -299,7 +300,8 @@ class cobinhood extends Exchange {
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '5m', $since = null, $limit = null) {
         return [
-            $ohlcv['timestamp'] * 1000,
+            // they say that timestamps are Unix Timestamps in seconds, but in fact those are milliseconds
+            $ohlcv['timestamp'],
             floatval ($ohlcv['open']),
             floatval ($ohlcv['high']),
             floatval ($ohlcv['low']),
@@ -308,16 +310,19 @@ class cobinhood extends Exchange {
         ];
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv ($symbol, $timeframe = '15m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $query = array (
             'trading_pair_id' => $market['id'],
             'timeframe' => $this->timeframes[$timeframe],
+            // they say in their docs that end_time defaults to current server time
+            // but if you don't specify it, their range limits does not allow you to $query anything
+            'end_time' => $this->milliseconds (),
         );
         if ($since) {
-            $query['start_time'] = intval ($since / 1000); // defaults to 0
-            // end_time => timestamp in seconds defaults to server time
+            // in their docs they say that start_time defaults to 0, but, obviously it does not
+            $query['start_time'] = $since;
         }
         $response = $this->publicGetChartCandlesTradingPairId (array_merge ($query, $params));
         $ohlcv = $response['result']['candles'];
