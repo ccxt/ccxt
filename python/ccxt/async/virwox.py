@@ -145,8 +145,8 @@ class virwox (Exchange):
         start = end - 86400000
         response = await self.publicGetGetTradedPriceVolume(self.extend({
             'instrument': symbol,
-            'endDate': self.YmdHMS(end),
-            'startDate': self.YmdHMS(start),
+            'endDate': self.ymdhms(end),
+            'startDate': self.ymdhms(start),
             'HLOC': 1,
         }, params))
         marketPrice = await self.fetch_market_price(symbol, params)

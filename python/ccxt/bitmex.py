@@ -285,7 +285,7 @@ class bitmex (Exchange):
             # 'endTime': '',    # ending date filter for results
         }
         if since is not None:
-            ymdhms = self.YmdHMS(since)
+            ymdhms = self.ymdhms(since)
             ymdhm = ymdhms[0:16]
             request['startTime'] = ymdhm  # starting date filter for results
         if limit is not None:

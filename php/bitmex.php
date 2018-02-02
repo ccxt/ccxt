@@ -292,7 +292,7 @@ class bitmex extends Exchange {
             // 'endTime' => '',    // ending date $filter for results
         );
         if ($since !== null) {
-            $ymdhms = $this->YmdHMS ($since);
+            $ymdhms = $this->ymdhms ($since);
             $ymdhm = mb_substr ($ymdhms, 0, 16);
             $request['startTime'] = $ymdhm; // starting date $filter for results
         }
