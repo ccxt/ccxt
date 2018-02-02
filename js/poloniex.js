@@ -774,22 +774,20 @@ module.exports = class poloniex extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body) {
-        if (code >= 400) {
-            if (body[0] === '{') {
-                let response = JSON.parse (body);
-                if ('error' in response) {
-                    let error = this.id + ' ' + body;
-                    if (response['error'] === 'Invalid order number, or you are not the person who placed the order.') {
-                        throw new OrderNotFound (error);
-                    } else if (response['error'].indexOf ('Total must be at least') >= 0) {
-                        throw new InvalidOrder (error);
-                    } else if (response['error'].indexOf ('Not enough') >= 0) {
-                        throw new InsufficientFunds (error);
-                    } else if (response['error'].indexOf ('Nonce must be greater') >= 0) {
-                        throw new ExchangeNotAvailable (error);
-                    } else if (response['error'].indexOf ('You have already called cancelOrder or moveOrder on this order.') >= 0) {
-                        throw new CancelPending (error);
-                    }
+        if (body[0] === '{') {
+            let response = JSON.parse (body);
+            if ('error' in response) {
+                let error = this.id + ' ' + body;
+                if (response['error'] === 'Invalid order number, or you are not the person who placed the order.') {
+                    throw new OrderNotFound (error);
+                } else if (response['error'].indexOf ('Total must be at least') >= 0) {
+                    throw new InvalidOrder (error);
+                } else if (response['error'].indexOf ('Not enough') >= 0) {
+                    throw new InsufficientFunds (error);
+                } else if (response['error'].indexOf ('Nonce must be greater') >= 0) {
+                    throw new ExchangeNotAvailable (error);
+                } else if (response['error'].indexOf ('You have already called cancelOrder or moveOrder on this order.') >= 0) {
+                    throw new CancelPending (error);
                 }
             }
         }
