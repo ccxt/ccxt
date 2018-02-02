@@ -282,7 +282,7 @@ Builds are automated with [Travis CI](https://travis-ci.org/ccxt/ccxt). The buil
 
 Windows builds are automated with [Appveyor](https://ci.appveyor.com/project/ccxt/ccxt). The build steps for Appveyor are in the [`appveyor.yml`](https://github.com/ccxt/ccxt/blob/master/appveyor.yml) file.
 
-Incoming pull requests are automatically validated by the CI service. You can watch the build process online here: [travis-ci.org/ccxt-dev/ccxt/builds](https://travis-ci.org/ccxt-dev/ccxt/builds).
+Incoming pull requests are automatically validated by the CI service. You can watch the build process online here: [travis-ci.org/ccxt/ccxt/builds](https://travis-ci.org/ccxt/ccxt/builds).
 
 #### How To Build & Run Tests On Your Local Machine
 
