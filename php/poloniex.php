@@ -778,7 +778,9 @@ class poloniex extends Exchange {
                 $response = json_decode ($body, $as_associative_array = true);
                 if (is_array ($response) && array_key_exists ('error', $response)) {
                     $error = $this->id . ' ' . $body;
-                    if (mb_strpos ($response['error'], 'Total must be at least') !== false) {
+                    if ($response['error'] === 'Invalid order number, or you are not the person who placed the order.') {
+                        throw new OrderNotFound ($error);
+                    } else if (mb_strpos ($response['error'], 'Total must be at least') !== false) {
                         throw new InvalidOrder ($error);
                     } else if (mb_strpos ($response['error'], 'Not enough') !== false) {
                         throw new InsufficientFunds ($error);

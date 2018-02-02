@@ -720,7 +720,9 @@ class poloniex (Exchange):
                 response = json.loads(body)
                 if 'error' in response:
                     error = self.id + ' ' + body
-                    if response['error'].find('Total must be at least') >= 0:
+                    if response['error'] == 'Invalid order number, or you are not the person who placed the order.':
+                        raise OrderNotFound(error)
+                    elif response['error'].find('Total must be at least') >= 0:
                         raise InvalidOrder(error)
                     elif response['error'].find('Not enough') >= 0:
                         raise InsufficientFunds(error)
