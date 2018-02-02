@@ -22,7 +22,7 @@ class okcoinusd extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
                 'withdraw' => true,
-                'futureMarkets' => false,
+                'futures' => false,
             ),
             'extension' => '.do', // appended to endpoint URL
             'timeframes' => array (
@@ -188,7 +188,7 @@ class okcoinusd extends Exchange {
                 ),
             ));
             $result[] = $market;
-            if (($this->has['futureMarkets']) && ($market['quote'] === 'USDT')) {
+            if (($this->has['futures']) && ($market['quote'] === 'USDT')) {
                 $result[] = array_merge ($market, array (
                     'quote' => 'USD',
                     'symbol' => $market['base'] . '/USD',

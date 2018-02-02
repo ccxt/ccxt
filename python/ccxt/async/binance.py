@@ -326,7 +326,7 @@ class binance (Exchange):
         before = self.milliseconds()
         response = await self.publicGetTime()
         after = self.milliseconds()
-        self.options['timeDifference'] = (before + after) / 2 - response['serverTime']
+        self.options['timeDifference'] = int((before + after) / 2 - response['serverTime'])
         return self.options['timeDifference']
 
     async def fetch_markets(self):

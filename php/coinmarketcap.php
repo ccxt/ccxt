@@ -84,10 +84,12 @@ class coinmarketcap extends Exchange {
 
     public function currency_code ($base, $name) {
         $currencies = array (
-            'Bitgem' => 'Bitgem',
-            'NetCoin' => 'NetCoin',
             'BatCoin' => 'BatCoin',
+            'Bitgem' => 'Bitgem',
+            'BlockCAT' => 'BlockCAT',
+            'Catcoin' => 'Catcoin',
             'iCoin' => 'iCoin',
+            'NetCoin' => 'NetCoin',
         );
         if (is_array ($currencies) && array_key_exists ($name, $currencies))
             return $currencies[$name];

@@ -473,7 +473,7 @@ module.exports = class huobipro extends Exchange {
         let query = this.omit (params, this.extractParams (path));
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            let timestamp = this.YmdHMS (this.milliseconds (), 'T');
+            let timestamp = this.ymdhms (this.milliseconds (), 'T');
             let request = this.keysort (this.extend ({
                 'SignatureMethod': 'HmacSHA256',
                 'SignatureVersion': '2',

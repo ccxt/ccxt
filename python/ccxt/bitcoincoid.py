@@ -43,7 +43,6 @@ class bitcoincoid (Exchange):
                 'www': 'https://www.bitcoin.co.id',
                 'doc': [
                     'https://vip.bitcoin.co.id/downloads/BITCOINCOID-API-DOCUMENTATION.pdf',
-                    'https://vip.bitcoin.co.id/trade_api',
                 ],
             },
             'api': {
@@ -250,15 +249,18 @@ class bitcoincoid (Exchange):
         return self.extend({'info': response}, order)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        if not symbol:
-            raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol')
         self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'pair': market['id'],
-        }
+        market = None
+        request = {}
+        if symbol:
+            market = self.market(symbol)
+            request['pair'] = market['id']
         response = self.privatePostOpenOrders(self.extend(request, params))
-        orders = self.parse_orders(response['return']['orders'], market, since, limit)
+        # {success: 1, return: {orders: null}}
+        raw = response['return']['orders']
+        if not raw:
+            return []
+        orders = self.parse_orders(raw, market, since, limit)
         return self.filter_orders_by_symbol(orders, symbol)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -336,7 +338,7 @@ class bitcoincoid (Exchange):
             if body[0] == '{':
                 response = json.loads(body)
         if not('success' in list(response.keys())):
-            raise ExchangeError(self.id + ': malformed response: ' + self.json(response))
+            return  # no 'success' property on public responses
         if response['success'] == 1:
             # {success: 1, return: {orders: []}}
             if not('return' in list(response.keys())):

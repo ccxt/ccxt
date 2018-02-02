@@ -201,7 +201,7 @@ module.exports = class cex extends Exchange {
         let market = this.market (symbol);
         if (!since)
             since = this.milliseconds () - 86400000; // yesterday
-        let ymd = this.Ymd (since);
+        let ymd = this.ymd (since);
         ymd = ymd.split ('-');
         ymd = ymd.join ('');
         let request = {

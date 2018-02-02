@@ -16,17 +16,18 @@ class bitfinex extends Exchange {
             'rateLimit' => 1500,
             // new metainfo interface
             'has' => array (
-                'createDepositAddress' => true,
-                'fetchDepositAddress' => true,
                 'CORS' => false,
-                'fetchOHLCV' => true,
-                'fetchTickers' => true,
-                'fetchOrder' => true,
-                'fetchOpenOrders' => true,
-                'fetchClosedOrders' => true,
-                'fetchMyTrades' => true,
-                'withdraw' => true,
+                'createDepositAddress' => true,
                 'deposit' => true,
+                'fetchClosedOrders' => true,
+                'fetchDepositAddress' => true,
+                'fetchFundingFees' => true,
+                'fetchMyTrades' => true,
+                'fetchOHLCV' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchTickers' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array (
                 '1m' => '1m',
@@ -188,7 +189,6 @@ class bitfinex extends Exchange {
                         'XMR' => 0.04,
                         'SAN' => 3.2779,
                         'DASH' => 0.01,
-                        'ETC' => 0.01,
                         'XRP' => 0.02,
                         'YYW' => 40.543,
                         'NEO' => 0,
@@ -208,10 +208,34 @@ class bitfinex extends Exchange {
                         'AVT' => 3.2495,
                         'USDT' => 20.0,
                         'ZRX' => 5.6442,
-                        'ETP' => 0.01,
                         'TNB' => 87.511,
                         'SNT' => 32.736,
+                        'QSH' => null,
+                        'TRX' => null,
+                        'RCN' => null,
+                        'RLC' => null,
+                        'AID' => null,
+                        'SNG' => null,
+                        'REP' => null,
+                        'ELF' => null,
                     ),
+                ),
+            ),
+            'exceptions' => array (
+                'exact' => array (
+                    'Order could not be cancelled.' => '\\ccxt\\OrderNotFound', // non-existent order
+                    'No such order found.' => '\\ccxt\\OrderNotFound', // ?
+                    'Order price must be positive.' => '\\ccxt\\InvalidOrder', // on price <= 0
+                    'Could not find a key matching the given X-BFX-APIKEY.' => '\\ccxt\\AuthenticationError',
+                    'This API key does not have permission for this action' => '\\ccxt\\AuthenticationError', // authenticated but not authorized
+                    'Key price should be a decimal number, e.g. "123.456"' => '\\ccxt\\InvalidOrder', // on isNaN (price)
+                    'Key amount should be a decimal number, e.g. "123.456"' => '\\ccxt\\InvalidOrder', // on isNaN (amount)
+                    'ERR_RATE_LIMIT' => '\\ccxt\\DDoSProtection',
+                ),
+                'broad' => array (
+                    'Invalid order => not enough exchange balance for ' => '\\ccxt\\InsufficientFunds', // when buy, cost > quote currency
+                    'Invalid order => minimum size for ' => '\\ccxt\\InvalidOrder', // when amount below limits.amount.min
+                    'Invalid order' => '\\ccxt\\InvalidOrder', // ?
                 ),
             ),
         ));
@@ -227,6 +251,53 @@ class bitfinex extends Exchange {
             'DAT' => 'DATA',
         );
         return (is_array ($currencies) && array_key_exists ($currency, $currencies)) ? $currencies[$currency] : $currency;
+    }
+
+    public function fetch_funding_fees () {
+        $response = $this->privatePostAccountFees ();
+        $fees = $response['withdraw'];
+        $withdraw = array ();
+        $ids = is_array ($fees) ? array_keys ($fees) : array ();
+        for ($i = 0; $i < count ($ids); $i++) {
+            $id = $ids[$i];
+            $code = $id;
+            if (is_array ($this->currencies_by_id) && array_key_exists ($id, $this->currencies_by_id)) {
+                $currency = $this->currencies_by_id[$id];
+                $code = $currency['code'];
+            }
+            $withdraw[$code] = $this->safe_float($fees, $id);
+        }
+        return array (
+            'info' => $response,
+            'withdraw' => $withdraw,
+            'deposit' => $withdraw,  // only for deposits of less than $1000
+        );
+    }
+
+    public function fetch_trading_fees () {
+        $response = $this->privatePostSummary ();
+        return array (
+            'info' => $response,
+            'maker' => $this->safe_float($response, 'maker_fee'),
+            'taker' => $this->safe_float($response, 'taker_fee'),
+        );
+    }
+
+    public function load_fees () {
+        // // PHP does flat copying for arrays
+        // // setting $fees on the exchange instance isn't portable, unfortunately...
+        // // this should probably go into the base class as well
+        // $funding = $this->fees['funding'];
+        // $fees = $this->fetch_funding_fees ();
+        // $funding = array_replace_recursive ($funding, $fees);
+        // return $funding;
+        throw new NotImplemented ($this->id . ' loadFees() not implemented yet');
+    }
+
+    public function fetch_fees () {
+        $fundingFees = $this->fetch_funding_fees ();
+        $tradingFees = $this->fetch_trading_fees ();
+        return array_replace_recursive ($fundingFees, $tradingFees);
     }
 
     public function fetch_markets () {
@@ -258,7 +329,7 @@ class bitfinex extends Exchange {
                 'min' => $limits['amount']['min'] * $limits['price']['min'],
                 'max' => null,
             );
-            $result[] = array_merge ($this->fees['trading'], array (
+            $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
@@ -270,7 +341,7 @@ class bitfinex extends Exchange {
                 'limits' => $limits,
                 'lot' => pow (10, -$precision['amount']),
                 'info' => $market,
-            ));
+            );
         }
         return $result;
     }
@@ -552,33 +623,23 @@ class bitfinex extends Exchange {
     }
 
     public function get_currency_name ($currency) {
-        if ($currency === 'BTC') {
-            return 'bitcoin';
-        } else if ($currency === 'LTC') {
-            return 'litecoin';
-        } else if ($currency === 'ETH') {
-            return 'ethereum';
-        } else if ($currency === 'ETC') {
-            return 'ethereumc';
-        } else if ($currency === 'OMNI') {
-            return 'mastercoin'; // ???
-        } else if ($currency === 'ZEC') {
-            return 'zcash';
-        } else if ($currency === 'XMR') {
-            return 'monero';
-        } else if ($currency === 'USD') {
-            return 'wire';
-        } else if ($currency === 'DASH') {
-            return 'dash';
-        } else if ($currency === 'XRP') {
-            return 'ripple';
-        } else if ($currency === 'EOS') {
-            return 'eos';
-        } else if ($currency === 'BCH') {
-            return 'bcash';
-        } else if ($currency === 'USDT') {
-            return 'tetheruso';
-        }
+        $names = array (
+            'BTC' => 'bitcoin',
+            'LTC' => 'litecoin',
+            'ETH' => 'ethereum',
+            'ETC' => 'ethereumc',
+            'OMNI' => 'mastercoin', // left by previous author, now throws array ("message":"Unknown method")
+            'ZEC' => 'zcash',
+            'XMR' => 'monero',
+            'USD' => 'wire', // left by previous author, now throws array ("message":"Unknown method")
+            'DASH' => 'dash',
+            'XRP' => 'ripple',
+            'EOS' => 'eos',
+            'BCH' => 'bcash',
+            'USDT' => 'tetheruso',
+        );
+        if (is_array ($names) && array_key_exists ($currency, $names))
+            return $names[$currency];
         throw new NotSupported ($this->id . ' ' . $currency . ' not supported for withdrawal');
     }
 
@@ -676,47 +737,39 @@ class bitfinex extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
+    public function find_broadly_matched_key ($map, $broadString) {
+        $partialKeys = is_array ($map) ? array_keys ($map) : array ();
+        for ($i = 0; $i < count ($partialKeys); $i++) {
+            $partialKey = $partialKeys[$i];
+            if (mb_strpos ($broadString, $partialKey) !== false)
+                return $partialKey;
+        }
+        return null;
+    }
+
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
         if (strlen ($body) < 2)
             return;
         if ($code >= 400) {
             if ($body[0] === '{') {
                 $response = json_decode ($body, $as_associative_array = true);
-                if (is_array ($response) && array_key_exists ('message', $response)) {
+                $feedback = $this->id . ' ' . $this->json ($response);
+                $message = null;
+                if (is_array ($response) && array_key_exists ('message', $response))
                     $message = $response['message'];
-                    $error = $this->id . ' ' . $message;
-                    if (mb_strpos ($message, 'Key price should be a decimal number') !== false) {
-                        throw new InvalidOrder ($error);
-                    } else if (mb_strpos ($message, 'Invalid order => not enough exchange balance') !== false) {
-                        throw new InsufficientFunds ($error);
-                    } else if ($message === 'Order could not be cancelled.') {
-                        throw new OrderNotFound ($error);
-                    } else if (mb_strpos ($message, 'Invalid order') !== false) {
-                        throw new InvalidOrder ($error);
-                    } else if ($message === 'Order price must be positive.') {
-                        throw new InvalidOrder ($error);
-                    } else if (mb_strpos ($message, 'Key amount should be a decimal number') !== false) {
-                        throw new InvalidOrder ($error);
-                    } else if ($message === 'No such order found.') {
-                        throw new OrderNotFound ($error);
-                    } else if ($message === 'Could not find a key matching the given X-BFX-APIKEY.') {
-                        throw new AuthenticationError ($error);
-                    }
-                } else if (is_array ($response) && array_key_exists ('error', $response)) {
-                    $code = $response['error'];
-                    $error = $this->id . ' ' . $code;
-                    if ($code === 'ERR_RATE_LIMIT')
-                        throw new DDoSProtection ($error);
-                }
+                else if (is_array ($response) && array_key_exists ('error', $response))
+                    $message = $response['error'];
+                else
+                    throw new ExchangeError ($feedback); // malformed (to our knowledge) $response
+                $exact = $this->exceptions.exact;
+                if (is_array ($exact) && array_key_exists ($message, $exact))
+                    throw new $exact[$message] ($feedback);
+                $broad = $this->exceptions.broad;
+                $broadKey = $this->find_broadly_matched_key ($broad, $message);
+                if ($broadKey !== null)
+                    throw new $broad[$broadKey] ($feedback);
+                throw new ExchangeError ($feedback); // unknown $message
             }
         }
-    }
-
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (is_array ($response) && array_key_exists ('message', $response)) {
-            throw new ExchangeError ($this->id . ' ' . $this->json ($response));
-        }
-        return $response;
     }
 }

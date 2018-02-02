@@ -613,15 +613,17 @@ class hitbtc2 (hitbtc):
             # differentiated fees for each particular method
             precision = 8  # default precision, todo: fix "magic constants"
             code = self.common_currency_code(id)
-            payin = currency['payinEnabled']
-            payout = currency['payoutEnabled']
-            transfer = currency['transferEnabled']
+            payin = self.safe_value(currency, 'payinEnabled')
+            payout = self.safe_value(currency, 'payoutEnabled')
+            transfer = self.safe_value(currency, 'transferEnabled')
             active = payin and payout and transfer
             status = 'ok'
             if 'disabled' in currency:
                 if currency['disabled']:
                     status = 'disabled'
-            type = 'crypto' if (currency['crypto']) else 'fiat'
+            type = 'fiat'
+            if ('crypto' in list(currency.keys())) and currency['crypto']:
+                type = 'crypto'
             result[code] = {
                 'id': id,
                 'code': code,

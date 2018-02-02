@@ -71,9 +71,11 @@ module.exports = class Exchange {
                 'createOrder': true,
                 'deposit': false,
                 'fetchBalance': true,
+                'fetchBidsAsks': false,
                 'fetchClosedOrders': false,
                 'fetchCurrencies': false,
                 'fetchDepositAddress': false,
+                'fetchFundingFees': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': false,
                 'fetchOHLCV': false,
@@ -83,7 +85,6 @@ module.exports = class Exchange {
                 'fetchOrders': false,
                 'fetchTicker': true,
                 'fetchTickers': false,
-                'fetchBidsAsks': false,
                 'fetchTrades': true,
                 'withdraw': false,
             },
@@ -843,7 +844,7 @@ module.exports = class Exchange {
         }
     }
 
-    Ymd (timestamp, infix = ' ') {
+    ymd (timestamp, infix = ' ') {
         let date = new Date (timestamp)
         let Y = date.getUTCFullYear ()
         let m = date.getUTCMonth () + 1
@@ -853,7 +854,7 @@ module.exports = class Exchange {
         return Y + '-' + m + '-' + d
     }
 
-    YmdHMS (timestamp, infix = ' ') {
+    ymdhms (timestamp, infix = ' ') {
         let date = new Date (timestamp)
         let Y = date.getUTCFullYear ()
         let m = date.getUTCMonth () + 1

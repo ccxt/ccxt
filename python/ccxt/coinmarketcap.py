@@ -85,10 +85,12 @@ class coinmarketcap (Exchange):
 
     def currency_code(self, base, name):
         currencies = {
-            'Bitgem': 'Bitgem',
-            'NetCoin': 'NetCoin',
             'BatCoin': 'BatCoin',
+            'Bitgem': 'Bitgem',
+            'BlockCAT': 'BlockCAT',
+            'Catcoin': 'Catcoin',
             'iCoin': 'iCoin',
+            'NetCoin': 'NetCoin',
         }
         if name in currencies:
             return currencies[name]

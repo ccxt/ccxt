@@ -314,7 +314,7 @@ module.exports = class binance extends Exchange {
         const before = this.milliseconds ();
         const response = await this.publicGetTime ();
         const after = this.milliseconds ();
-        this.options['timeDifference'] = (before + after) / 2 - response['serverTime'];
+        this.options['timeDifference'] = parseInt ((before + after) / 2 - response['serverTime']);
         return this.options['timeDifference'];
     }
 

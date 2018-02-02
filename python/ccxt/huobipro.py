@@ -437,7 +437,7 @@ class huobipro (Exchange):
         query = self.omit(params, self.extract_params(path))
         if api == 'private':
             self.check_required_credentials()
-            timestamp = self.YmdHMS(self.milliseconds(), 'T')
+            timestamp = self.ymdhms(self.milliseconds(), 'T')
             request = self.keysort(self.extend({
                 'SignatureMethod': 'HmacSHA256',
                 'SignatureVersion': '2',

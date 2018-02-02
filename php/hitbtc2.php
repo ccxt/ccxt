@@ -610,15 +610,17 @@ class hitbtc2 extends hitbtc {
             // differentiated fees for each particular method
             $precision = 8; // default $precision, todo => fix "magic constants"
             $code = $this->common_currency_code($id);
-            $payin = $currency['payinEnabled'];
-            $payout = $currency['payoutEnabled'];
-            $transfer = $currency['transferEnabled'];
+            $payin = $this->safe_value($currency, 'payinEnabled');
+            $payout = $this->safe_value($currency, 'payoutEnabled');
+            $transfer = $this->safe_value($currency, 'transferEnabled');
             $active = $payin && $payout && $transfer;
             $status = 'ok';
             if (is_array ($currency) && array_key_exists ('disabled', $currency))
                 if ($currency['disabled'])
                     $status = 'disabled';
-            $type = ($currency['crypto']) ? 'crypto' : 'fiat';
+            $type = 'fiat';
+            if ((is_array ($currency) && array_key_exists ('crypto', $currency)) && $currency['crypto'])
+                $type = 'crypto';
             $result[$code] = array (
                 'id' => $id,
                 'code' => $code,

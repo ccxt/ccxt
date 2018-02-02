@@ -196,7 +196,7 @@ class cex (Exchange):
         market = self.market(symbol)
         if not since:
             since = self.milliseconds() - 86400000  # yesterday
-        ymd = self.Ymd(since)
+        ymd = self.ymd(since)
         ymd = ymd.split('-')
         ymd = ''.join(ymd)
         request = {
