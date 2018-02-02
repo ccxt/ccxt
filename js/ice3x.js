@@ -8,7 +8,6 @@ const { ExchangeError, AuthenticationError } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class ice3x extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'ice3x',
@@ -419,7 +418,7 @@ module.exports = class ice3x extends Exchange {
         let data = this.safeValue (response, 'response');
         if (errors || !data) {
             let authErrorKeys = [ 'Key', 'user_id', 'Sign' ];
-            for (let i = 0; i < authErrorKeys.length; i++ ) {
+            for (let i = 0; i < authErrorKeys.length; i++) {
                 let errorKey = authErrorKeys[i];
                 let errorMessage = this.safeString (errors, errorKey);
                 if (!errorMessage)
