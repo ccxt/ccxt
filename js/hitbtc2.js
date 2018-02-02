@@ -619,7 +619,9 @@ module.exports = class hitbtc2 extends hitbtc {
             if ('disabled' in currency)
                 if (currency['disabled'])
                     status = 'disabled';
-            let type = (currency['crypto']) ? 'crypto' : 'fiat';
+            let type = 'fiat';
+            if (('crypto' in currency) && currency['crypto'])
+                type = 'crypto';
             result[code] = {
                 'id': id,
                 'code': code,
