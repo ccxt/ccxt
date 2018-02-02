@@ -36,7 +36,6 @@ module.exports = class bitcoincoid extends Exchange {
                 'www': 'https://www.bitcoin.co.id',
                 'doc': [
                     'https://vip.bitcoin.co.id/downloads/BITCOINCOID-API-DOCUMENTATION.pdf',
-                    'https://vip.bitcoin.co.id/trade_api',
                 ],
             },
             'api': {
@@ -256,15 +255,19 @@ module.exports = class bitcoincoid extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (!symbol)
-            throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol');
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
-            'pair': market['id'],
-        };
+        let market = undefined;
+        let request = {};
+        if (symbol) {
+            market = this.market (symbol);
+            request['pair'] = market['id'];
+        }
         let response = await this.privatePostOpenOrders (this.extend (request, params));
-        let orders = this.parseOrders (response['return']['orders'], market, since, limit);
+        // { success: 1, return: { orders: null }}
+        let raw = response['return']['orders'];
+        if (!raw)
+            return [];
+        let orders = this.parseOrders (raw, market, since, limit);
         return this.filterOrdersBySymbol (orders, symbol);
     }
 
@@ -350,7 +353,7 @@ module.exports = class bitcoincoid extends Exchange {
             if (body[0] === '{')
                 response = JSON.parse (body);
         if (!('success' in response))
-            throw new ExchangeError (this.id + ': malformed response: ' + this.json (response));
+            return; // no 'success' property on public responses
         if (response['success'] === 1) {
             // { success: 1, return: { orders: [] }}
             if (!('return' in response))
