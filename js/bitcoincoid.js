@@ -36,7 +36,6 @@ module.exports = class bitcoincoid extends Exchange {
                 'www': 'https://www.bitcoin.co.id',
                 'doc': [
                     'https://vip.bitcoin.co.id/downloads/BITCOINCOID-API-DOCUMENTATION.pdf',
-                    'https://vip.bitcoin.co.id/trade_api',
                 ],
             },
             'api': {
