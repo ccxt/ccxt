@@ -15,10 +15,9 @@ class okex (okcoinusd):
             'countries': ['CN', 'US'],
             'has': {
                 'CORS': False,
-                'hutureMarkets': True,
+                'futureMarkets': True,
                 'hasFetchTickers': True,
                 'fetchTickers': True,
-                'futureMarkets': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg',
