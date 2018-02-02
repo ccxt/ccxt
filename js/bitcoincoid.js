@@ -259,7 +259,9 @@ module.exports = class bitcoincoid extends Exchange {
         let market = symbol ? this.market (symbol) : undefined;
         let request = market ? { 'pair': market['id'] } : {};
         let response = await this.privatePostOpenOrders (this.extend (request, params));
-        let orders = this.parseOrders (response['return']['orders'], market, since, limit);
+        // { success: 1, return: { orders: null }}
+        let raw = response['return']['orders'];
+        let orders = this.parseOrders (raw, market, since, limit);
         return market ? this.filterOrdersBySymbol (orders, symbol) : orders;
     }
 
