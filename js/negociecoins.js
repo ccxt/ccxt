@@ -7,7 +7,6 @@ const Exchange = require ('./base/Exchange');
 //  ---------------------------------------------------------------------------
 
 module.exports = class negociecoins extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'negociecoins',
@@ -209,7 +208,7 @@ module.exports = class negociecoins extends Exchange {
         }
         let trades = undefined;
         // if (order['operations'])
-            // trades = this.parseTrades (order['operations']);
+        //     trades = this.parseTrades (order['operations']);
         return {
             'id': order['id'].toString (),
             'datetime': this.iso8601 (timestamp),
@@ -337,7 +336,7 @@ module.exports = class negociecoins extends Exchange {
             if (method === 'POST') {
                 headers['Content-Type'] = 'application/json; charset=UTF-8';
                 headers['Content-Length'] = body.length;
-            } else if ( queryString.length ) {
+            } else if (queryString.length) {
                 url += '?' + queryString;
                 body = null;
             }
