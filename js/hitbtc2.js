@@ -611,9 +611,9 @@ module.exports = class hitbtc2 extends hitbtc {
             // differentiated fees for each particular method
             let precision = 8; // default precision, todo: fix "magic constants"
             let code = this.commonCurrencyCode (id);
-            let payin = currency['payinEnabled'];
-            let payout = currency['payoutEnabled'];
-            let transfer = currency['transferEnabled'];
+            let payin = this.safeValue (currency, 'payinEnabled');
+            let payout = this.safeValue (currency, 'payoutEnabled');
+            let transfer = this.safeValue (currency, 'transferEnabled');
             let active = payin && payout && transfer;
             let status = 'ok';
             if ('disabled' in currency)
