@@ -262,6 +262,8 @@ module.exports = class bitcoincoid extends Exchange {
         // { success: 1, return: { orders: null }}
         let raw = response['return']['orders'];
         let orders = this.parseOrders (raw, market, since, limit);
+        if (!orders)
+            return [];
         return market ? this.filterOrdersBySymbol (orders, symbol) : orders;
     }
 
