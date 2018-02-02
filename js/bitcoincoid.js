@@ -255,16 +255,12 @@ module.exports = class bitcoincoid extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (!symbol)
-            throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol');
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
-            'pair': market['id'],
-        };
+        let market = symbol ? this.market (symbol) : undefined;
+        let request = market ? { 'pair': market['id'] } : {};
         let response = await this.privatePostOpenOrders (this.extend (request, params));
         let orders = this.parseOrders (response['return']['orders'], market, since, limit);
-        return this.filterOrdersBySymbol (orders, symbol);
+        return market ? this.filterOrdersBySymbol (orders, symbol) : orders;
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
