@@ -202,6 +202,8 @@ The ccxt library currently supports the following cryptocurrency exchange market
 +----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | Switzerland                | |vaultoro|             | vaultoro             | `Vaultoro <https://www.vaultoro.com>`__                        | 1     | `API <https://api.vaultoro.com>`__                                                                |
 +----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
+| Taiwan                     | |cobinhood|            | cobinhood            | `COBINHOOD <https://cobinhood.com>`__                          | \*    | `API <https://cobinhood.github.io/api-public>`__                                                  |
++----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | Taiwan                     | |qryptos|              | qryptos              | `QRYPTOS <https://www.qryptos.com>`__                          | 2     | `API <https://developers.quoine.com>`__                                                           |
 +----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | Tanzania                   | |nova|                 | nova                 | `Novaexchange <https://novaexchange.com>`__                    | 2     | `API <https://novaexchange.com/remote/faq>`__                                                     |
@@ -356,6 +358,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
 .. |fybse| image:: https://user-images.githubusercontent.com/1294454/27766512-31019772-5edb-11e7-8241-2e675e6797f1.jpg
 .. |lykke| image:: https://user-images.githubusercontent.com/1294454/34487620-3139a7b0-efe6-11e7-90f5-e520cef74451.jpg
 .. |vaultoro| image:: https://user-images.githubusercontent.com/1294454/27766880-f205e870-5ee9-11e7-8fe2-0d5b15880752.jpg
+.. |cobinhood| image:: https://user-images.githubusercontent.com/1294454/35755576-dee02e5c-0878-11e8-989f-1595d80ba47f.jpg
 .. |nova| image:: https://user-images.githubusercontent.com/1294454/30518571-78ca0bca-9b8a-11e7-8840-64b83a4a94b2.jpg
 .. |bxinth| image:: https://user-images.githubusercontent.com/1294454/27766412-567b1eb4-5ed7-11e7-94a8-ff6a3884f6c5.jpg
 .. |btcturk| image:: https://user-images.githubusercontent.com/1294454/27992709-18e15646-64a3-11e7-9fa2-b0950ec7712f.jpg
