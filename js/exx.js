@@ -8,7 +8,6 @@ const { ExchangeError, AuthenticationError } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class exx extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'exx',
