@@ -245,9 +245,9 @@ module.exports = class bitstamp extends Exchange {
 
         let ids = Object.keys (currencies);
         for (let i = 0; i < ids.length; i++) {
-            let id = ids[i];
-            if (id.split('_') == 2) {
-                let candidate_sym = id.replace('_', '');
+            let k = ids[i];
+            if (k.split('_') == 2) {
+                let candidate_sym = k.replace('_', '');
                 if (candidate_sym in this.markets_by_id) {
                     market = this.markets_by_id[marketId];
                 }
