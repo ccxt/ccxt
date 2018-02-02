@@ -15,7 +15,7 @@ class okex (okcoinusd):
             'countries': ['CN', 'US'],
             'has': {
                 'CORS': False,
-                'futureMarkets': True,
+                'futures': True,
                 'hasFetchTickers': True,
                 'fetchTickers': True,
             },
@@ -39,6 +39,14 @@ class okex (okcoinusd):
         if currency in currencies:
             return currencies[currency]
         return currency
+
+    async def fetch_markets(self):
+        markets = await super(okex, self).fetch_markets()
+        for i in range(0, len(markets)):
+            if markets[i]['spot']:
+                markets[i]['maker'] = -0.001
+                markets[i]['taker'] = 0.001
+        return markets
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()

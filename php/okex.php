@@ -14,7 +14,7 @@ class okex extends okcoinusd {
             'countries' => array ( 'CN', 'US' ),
             'has' => array (
                 'CORS' => false,
-                'futureMarkets' => true,
+                'futures' => true,
                 'hasFetchTickers' => true,
                 'fetchTickers' => true,
             ),
@@ -39,6 +39,17 @@ class okex extends okcoinusd {
         if (is_array ($currencies) && array_key_exists ($currency, $currencies))
             return $currencies[$currency];
         return $currency;
+    }
+
+    public function fetch_markets () {
+        $markets = parent::fetch_markets();
+        for ($i = 0; $i < count ($markets); $i++) {
+            if ($markets[$i]['spot']) {
+                $markets[$i]['maker'] = -0.001;
+                $markets[$i]['taker'] = 0.001;
+            }
+        }
+        return $markets;
     }
 
     public function fetch_tickers ($symbols = null, $params = array ()) {

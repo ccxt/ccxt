@@ -30,7 +30,7 @@ class okcoinusd (Exchange):
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'withdraw': True,
-                'futureMarkets': False,
+                'futures': False,
             },
             'extension': '.do',  # appended to endpoint URL
             'timeframes': {
@@ -195,7 +195,7 @@ class okcoinusd (Exchange):
                 },
             })
             result.append(market)
-            if (self.has['futureMarkets']) and(market['quote'] == 'USDT'):
+            if (self.has['futures']) and(market['quote'] == 'USDT'):
                 result.append(self.extend(market, {
                     'quote': 'USD',
                     'symbol': market['base'] + '/USD',
