@@ -248,11 +248,14 @@ class exmo (Exchange):
 
     def withdraw(self, currency, amount, address, tag=None, params={}):
         self.load_markets()
-        result = self.privatePostWithdrawCrypt(self.extend({
+        request = {
             'amount': amount,
             'currency': currency,
             'address': address,
-        }, params))
+        }
+        if tag is not None:
+            request['invoice'] = tag
+        result = self.privatePostWithdrawCrypt(self.extend(request, params))
         return {
             'info': result,
             'id': result['task_id'],
