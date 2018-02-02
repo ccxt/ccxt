@@ -8,7 +8,6 @@ const { ExchangeError, AuthenticationError, InvalidNonce, InsufficientFunds, Ord
 //  ---------------------------------------------------------------------------
 
 module.exports = class bitz extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitz',
