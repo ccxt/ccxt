@@ -1088,6 +1088,8 @@ module.exports = class hitbtc2 extends hitbtc {
                         let message = response['error']['message'];
                         if (message === 'Order not found') {
                             throw new OrderNotFound (this.id + ' order not found in active orders');
+                        } else if (message === 'Quantity not a valid number') {
+                            throw new InvalidOrder (this.id + ' ' + body);
                         } else if (message === 'Insufficient funds') {
                             throw new InsufficientFunds (this.id + ' ' + body);
                         } else if (message === 'Duplicate clientOrderId') {
