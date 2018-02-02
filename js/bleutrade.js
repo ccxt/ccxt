@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 // ---------------------------------------------------------------------------
 
@@ -8,7 +8,6 @@ const { AuthenticationError, InvalidOrder, InsufficientFunds, DDoSProtection } =
 // ---------------------------------------------------------------------------
 
 module.exports = class bleutrade extends bittrex {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bleutrade',
@@ -135,7 +134,7 @@ module.exports = class bleutrade extends bittrex {
         return 'orderid';
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.publicGetOrderbook (this.extend ({
             'market': this.marketId (symbol),
@@ -163,4 +162,4 @@ module.exports = class bleutrade extends bittrex {
                 throw new InvalidOrder (this.id + ' order cost should be over 50k satoshi ' + this.json (response));
         }
     }
-}
+};

@@ -372,7 +372,7 @@ module.exports = class kraken extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let darkpool = symbol.indexOf ('.d') >= 0;
         if (darkpool)

@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -8,7 +8,6 @@ const { ExchangeError, OrderNotFound, NotSupported } = require ('./base/errors')
 //  ---------------------------------------------------------------------------
 
 module.exports = class btcmarkets extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'btcmarkets',
@@ -92,7 +91,7 @@ module.exports = class btcmarkets extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let orderbook = await this.publicGetMarketIdOrderbook (this.extend ({
@@ -169,7 +168,7 @@ module.exports = class btcmarkets extends Exchange {
         let market = this.market (symbol);
         let multiplier = 100000000; // for price and volume
         // does BTC Markets support market orders at all?
-        let orderSide = (side == 'buy') ? 'Bid' : 'Ask';
+        let orderSide = (side === 'buy') ? 'Bid' : 'Ask';
         let order = this.ordered ({
             'currency': market['quote'],
         });
@@ -190,7 +189,7 @@ module.exports = class btcmarkets extends Exchange {
     async cancelOrders (ids) {
         await this.loadMarkets ();
         for (let i = 0; i < ids.length; i++) {
-            ids[i] = parseInt(ids[i]);
+            ids[i] = parseInt (ids[i]);
         }
         return await this.privatePostOrderCancel ({ 'orderIds': ids });
     }
@@ -203,9 +202,9 @@ module.exports = class btcmarkets extends Exchange {
     parseMyTrade (trade, market) {
         let multiplier = 100000000;
         let timestamp = trade['creationTime'];
-        let side = (trade['side'] == 'Bid') ? 'buy' : 'sell';
+        let side = (trade['side'] === 'Bid') ? 'buy' : 'sell';
         // BTCMarkets always charge in AUD for AUD-related transactions.
-        let currency = (market['quote'] == 'AUD') ? market['quote'] : market['base'];
+        let currency = (market['quote'] === 'AUD') ? market['quote'] : market['base'];
         return {
             'info': trade,
             'id': trade['id'].toString (),
@@ -235,16 +234,16 @@ module.exports = class btcmarkets extends Exchange {
 
     parseOrder (order, market = undefined) {
         let multiplier = 100000000;
-        let side = (order['orderSide'] == 'Bid') ? 'buy' : 'sell';
-        let type = (order['ordertype'] == 'Limit') ? 'limit' : 'market';
+        let side = (order['orderSide'] === 'Bid') ? 'buy' : 'sell';
+        let type = (order['ordertype'] === 'Limit') ? 'limit' : 'market';
         let timestamp = order['creationTime'];
         if (!market) {
-            market = this.market(order['instrument'] + "/" + order['currency']);
+            market = this.market (order['instrument'] + '/' + order['currency']);
         }
         let status = 'open';
-        if (order['status'] == 'Failed' || order['status'] == 'Cancelled' || order['status'] == 'Partially Cancelled' || order['status'] == 'Error') {
+        if (order['status'] === 'Failed' || order['status'] === 'Cancelled' || order['status'] === 'Partially Cancelled' || order['status'] === 'Error') {
             status = 'canceled';
-        } else if (order['status'] == "Fully Matched" || order['status'] == "Partially Matched") {
+        } else if (order['status'] === 'Fully Matched' || order['status'] === 'Partially Matched') {
             status = 'closed';
         }
         let price = this.safeFloat (order, 'price') / multiplier;
@@ -344,7 +343,7 @@ module.exports = class btcmarkets extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let uri = '/' + this.implodeParams (path, params);
         let url = this.urls['api'] + uri;
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
@@ -356,7 +355,7 @@ module.exports = class btcmarkets extends Exchange {
                 'apikey': this.apiKey,
                 'timestamp': nonce,
             };
-            if (method == 'POST') {
+            if (method === 'POST') {
                 body = this.json (params);
                 auth += body;
             }
@@ -369,7 +368,7 @@ module.exports = class btcmarkets extends Exchange {
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
-        if (api == 'private') {
+        if (api === 'private') {
             if ('success' in response)
                 if (!response['success'])
                     throw new ExchangeError (this.id + ' ' + this.json (response));
@@ -377,4 +376,4 @@ module.exports = class btcmarkets extends Exchange {
         }
         return response;
     }
-}
+};

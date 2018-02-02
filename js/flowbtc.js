@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -8,7 +8,6 @@ const { ExchangeError } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class flowbtc extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'flowbtc',
@@ -102,7 +101,7 @@ module.exports = class flowbtc extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let orderbook = await this.publicPostGetOrderBook (this.extend ({
@@ -142,7 +141,7 @@ module.exports = class flowbtc extends Exchange {
 
     parseTrade (trade, market) {
         let timestamp = trade['unixtime'] * 1000;
-        let side = (trade['incomingOrderSide'] == 0) ? 'buy' : 'sell';
+        let side = (trade['incomingOrderSide'] === 0) ? 'buy' : 'sell';
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -169,7 +168,7 @@ module.exports = class flowbtc extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let orderType = (type == 'market') ? 1 : 0;
+        let orderType = (type === 'market') ? 1 : 0;
         let order = {
             'ins': this.marketId (symbol),
             'side': side,
@@ -196,7 +195,7 @@ module.exports = class flowbtc extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (params).length) {
                 body = this.json (params);
             }
@@ -224,4 +223,4 @@ module.exports = class flowbtc extends Exchange {
                 return response;
         throw new ExchangeError (this.id + ' ' + this.json (response));
     }
-}
+};

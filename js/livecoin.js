@@ -8,7 +8,6 @@ const { ExchangeError, AuthenticationError, NotSupported, InvalidOrder, OrderNot
 //  ---------------------------------------------------------------------------
 
 module.exports = class livecoin extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'livecoin',
@@ -248,7 +247,7 @@ module.exports = class livecoin extends Exchange {
         };
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetExchangeOrderBook (this.extend ({
             'currencyPair': this.marketId (symbol),
@@ -571,4 +570,4 @@ module.exports = class livecoin extends Exchange {
         }
         return response;
     }
-}
+};

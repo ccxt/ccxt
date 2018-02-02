@@ -2,12 +2,11 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
+const Exchange = require ('./base/Exchange');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class bit2c extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bit2c',
@@ -85,7 +84,7 @@ module.exports = class bit2c extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let orderbook = await this.publicGetExchangesPairOrderbook (this.extend ({
             'pair': this.marketId (symbol),
         }, params));
@@ -191,4 +190,4 @@ module.exports = class bit2c extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-}
+};

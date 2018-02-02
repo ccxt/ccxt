@@ -254,7 +254,7 @@ module.exports = class cobinhood extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.publicGetMarketOrderbooksTradingPairId (this.extend ({
             'trading_pair_id': this.marketId (symbol),

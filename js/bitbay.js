@@ -8,7 +8,6 @@ const { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, Exch
 //  ---------------------------------------------------------------------------
 
 module.exports = class bitbay extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitbay',
@@ -17,7 +16,7 @@ module.exports = class bitbay extends Exchange {
             'rateLimit': 1000,
             'has': {
                 'CORS': true,
-                'withdraw': true
+                'withdraw': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg',
@@ -156,7 +155,7 @@ module.exports = class bitbay extends Exchange {
         throw new ExchangeError (this.id + ' empty balance response ' + this.json (response));
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let orderbook = await this.publicGetIdOrderbook (this.extend ({
             'id': this.marketId (symbol),
         }, params));
@@ -312,4 +311,4 @@ module.exports = class bitbay extends Exchange {
             }
         }
     }
-}
+};

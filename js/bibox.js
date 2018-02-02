@@ -8,7 +8,6 @@ const { ExchangeError, AuthenticationError, DDoSProtection } = require ('./base/
 //  ---------------------------------------------------------------------------
 
 module.exports = class bibox extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bibox',
@@ -43,7 +42,7 @@ module.exports = class bibox extends Exchange {
                 'www': 'https://www.bibox.com',
                 'doc': [
                     'https://github.com/Biboxcom/api_reference/wiki/home_en',
-                    'https://github.com/Biboxcom/api_reference/wiki/api_reference'
+                    'https://github.com/Biboxcom/api_reference/wiki/api_reference',
                 ],
                 'fees': 'https://bibox.zendesk.com/hc/en-us/articles/115004417013-Fee-Structure-on-Bibox',
             },
@@ -526,4 +525,4 @@ module.exports = class bibox extends Exchange {
             return response['result'][0];
         }
     }
-}
+};

@@ -8,7 +8,6 @@ const { NotSupported } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class bitlish extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitlish',
@@ -216,7 +215,7 @@ module.exports = class bitlish extends Exchange {
         }, params));
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetTradesDepth (this.extend ({
             'pair_id': this.marketId (symbol),
@@ -351,4 +350,4 @@ module.exports = class bitlish extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-}
+};
