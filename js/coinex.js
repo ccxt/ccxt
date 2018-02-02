@@ -8,7 +8,6 @@ const { ExchangeError, InsufficientFunds, OrderNotFound, InvalidOrder, Authentic
 //  ---------------------------------------------------------------------------
 
 module.exports = class coinex extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'coinex',
