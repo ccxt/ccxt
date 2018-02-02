@@ -86,10 +86,12 @@ module.exports = class coinmarketcap extends Exchange {
 
     currencyCode (base, name) {
         const currencies = {
-            'Bitgem': 'Bitgem',
-            'NetCoin': 'NetCoin',
             'BatCoin': 'BatCoin',
+            'Bitgem': 'Bitgem',
+            'BlockCAT': 'BlockCAT',
+            'Catcoin': 'Catcoin',
             'iCoin': 'iCoin',
+            'NetCoin': 'NetCoin',
         };
         if (name in currencies)
             return currencies[name];
