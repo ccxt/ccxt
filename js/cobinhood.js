@@ -21,8 +21,9 @@ module.exports = class cobinhood extends Exchange {
                 'fetchClosedOrders': true,
             },
             'timeframes': {
-                '1m': '1m',
-                '5m': '5m',
+                // the first two don't seem to work at all
+                // '1m': '1m',
+                // '5m': '5m',
                 '15m': '15m',
                 '30m': '30m',
                 '1h': '1h',
@@ -300,7 +301,8 @@ module.exports = class cobinhood extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
         return [
-            ohlcv['timestamp'] * 1000,
+            // they say that timestamps are Unix Timestamps in seconds, but in fact those are milliseconds
+            ohlcv['timestamp'],
             parseFloat (ohlcv['open']),
             parseFloat (ohlcv['high']),
             parseFloat (ohlcv['low']),
@@ -309,16 +311,19 @@ module.exports = class cobinhood extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '15m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let query = {
             'trading_pair_id': market['id'],
             'timeframe': this.timeframes[timeframe],
+            // they say in their docs that end_time defaults to current server time
+            // but if you don't specify it, their range limits does not allow you to query anything
+            'end_time': this.milliseconds (),
         };
         if (since) {
-            query['start_time'] = parseInt (since / 1000); // defaults to 0
-            // end_time: timestamp in seconds defaults to server time
+            // in their docs they say that start_time defaults to 0, but, obviously it does not
+            query['start_time'] = since;
         }
         let response = await this.publicGetChartCandlesTradingPairId (this.extend (query, params));
         let ohlcv = response['result']['candles'];
