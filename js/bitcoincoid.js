@@ -350,7 +350,7 @@ module.exports = class bitcoincoid extends Exchange {
             if (body[0] === '{')
                 response = JSON.parse (body);
         if (!('success' in response))
-            throw new ExchangeError (this.id + ': malformed response: ' + this.json (response));
+            return; // no 'success' property on public responses
         if (response['success'] === 1) {
             // { success: 1, return: { orders: [] }}
             if (!('return' in response))
