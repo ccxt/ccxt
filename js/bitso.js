@@ -8,7 +8,6 @@ const { ExchangeError } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class bitso extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitso',
@@ -263,4 +262,4 @@ module.exports = class bitso extends Exchange {
                 return response;
         throw new ExchangeError (this.id + ' ' + this.json (response));
     }
-}
+};

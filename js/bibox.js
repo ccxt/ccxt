@@ -212,12 +212,13 @@ module.exports = class bibox extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let size = (limit) ? limit : 200;
-        let response = await this.publicGetMdata (this.extend ({
+        let request = {
             'cmd': 'depth',
             'pair': market['id'],
-            'size': size,
-        }, params));
+        };
+        if (typeof limit !== 'undefined')
+            request['size'] = limit; // default = 200 ?
+        let response = await this.publicGetMdata (this.extend (request, params));
         return this.parseOrderBook (response['result'], this.safeFloat (response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume');
     }
 

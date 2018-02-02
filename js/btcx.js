@@ -69,10 +69,12 @@ module.exports = class btcx extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        let orderbook = await this.publicGetDepthIdLimit (this.extend ({
+        let request = {
             'id': this.marketId (symbol),
-            'limit': 1000,
-        }, params));
+        };
+        if (typeof limit !== 'undefined')
+            request['limit'] = limit; // 1000
+        let orderbook = await this.publicGetDepthIdLimit (this.extend (request, params));
         return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'amount');
     }
 

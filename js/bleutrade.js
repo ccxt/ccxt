@@ -136,11 +136,13 @@ module.exports = class bleutrade extends bittrex {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetOrderbook (this.extend ({
+        let request = {
             'market': this.marketId (symbol),
             'type': 'ALL',
-            'depth': 50,
-        }, params));
+        };
+        if (typeof limit !== 'undefined')
+            request['depth'] = limit; // 50
+        let response = await this.publicGetOrderbook (this.extend (request, params));
         let orderbook = response['result'];
         return this.parseOrderBook (orderbook, undefined, 'buy', 'sell', 'Rate', 'Quantity');
     }

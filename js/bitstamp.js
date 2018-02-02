@@ -8,7 +8,6 @@ const { AuthenticationError, ExchangeError } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class bitstamp extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitstamp',
@@ -447,4 +446,4 @@ module.exports = class bitstamp extends Exchange {
             }
         }
     }
-}
+};

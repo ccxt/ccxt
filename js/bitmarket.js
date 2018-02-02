@@ -8,7 +8,6 @@ const { ExchangeError } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class bitmarket extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitmarket',
@@ -370,4 +369,4 @@ module.exports = class bitmarket extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-}
+};

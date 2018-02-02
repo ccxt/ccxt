@@ -706,10 +706,12 @@ module.exports = class hitbtc2 extends hitbtc {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let orderbook = await this.publicGetOrderbookSymbol (this.extend ({
+        let request = {
             'symbol': this.marketId (symbol),
-            // 'limit': 100, // default = 100, 0 = unlimited
-        }, params));
+        };
+        if (typeof limit !== 'undefined')
+            request['limit'] = limit; // default = 100, 0 = unlimited
+        let orderbook = await this.publicGetOrderbookSymbol (this.extend (request, params));
         return this.parseOrderBook (orderbook, undefined, 'bid', 'ask', 'price', 'size');
     }
 
