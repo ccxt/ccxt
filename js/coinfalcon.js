@@ -8,7 +8,6 @@ const { ExchangeError, AuthenticationError, DDoSProtection } = require ('./base/
 //  ---------------------------------------------------------------------------
 
 module.exports = class coinfalcon extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'coinfalcon',
