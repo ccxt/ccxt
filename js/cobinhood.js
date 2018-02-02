@@ -8,7 +8,6 @@ const { ExchangeError } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class cobinhood extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'cobinhood',
@@ -36,7 +35,7 @@ module.exports = class cobinhood extends Exchange {
                 '1M': '1M',
             },
             'urls': {
-                'logo': 'https://theme.zdassets.com/theme_assets/1996652/cd7d6beb1eaea60e669c3bbb12b59cb5f3238d5d.png',
+                'logo': 'https://user-images.githubusercontent.com/1294454/35755576-dee02e5c-0878-11e8-989f-1595d80ba47f.jpg',
                 'api': {
                     'web': 'https://api.cobinhood.com/v1',
                     'ws': 'wss://feed.cobinhood.com',
@@ -45,8 +44,8 @@ module.exports = class cobinhood extends Exchange {
                     'web': 'https://sandbox-api.cobinhood.com',
                     'ws': 'wss://sandbox-feed.cobinhood.com',
                 },
-                'www': 'https://cobinhood.com/',
-                'doc': 'https://cobinhood.github.io/api-public/',
+                'www': 'https://cobinhood.com',
+                'doc': 'https://cobinhood.github.io/api-public',
             },
             'api': {
                 'system': {
