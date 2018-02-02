@@ -25,6 +25,7 @@
     "space-infix-ops": "error",
     "space-unary-ops": "error",
     "space-in-parens": "error",
+    "no-nested-ternary": "error",
     "eqeqeq": "error",
     "quotes": ["error", "single", { "avoidEscape": true }],
     "no-unused-vars": ["error", { "argsIgnorePattern": "^(symbol|price|tag|since|limit|params|market|timeframe)" }],
