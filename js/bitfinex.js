@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { DDoSProtection, AuthenticationError, ExchangeError, InsufficientFunds, NotSupported, InvalidOrder, OrderNotFound } = require ('./base/errors');
+const { NotImplemented, DDoSProtection, AuthenticationError, ExchangeError, InsufficientFunds, NotSupported, InvalidOrder, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -253,49 +253,51 @@ module.exports = class bitfinex extends Exchange {
         return (currency in currencies) ? currencies[currency] : currency;
     }
 
-<<<<<<< HEAD
     async fetchFundingFees () {
-        const fundingFees = await this.privatePostAccountFees ();
-        const withdraw = fundingFees['withdraw'];
-        const bfxCurrencies = Object.keys (withdraw);
-        const fees = {};
-        for (let i = 0; i < bfxCurrencies.length; i++) {
-            const bfxCurrency = bfxCurrencies[i];
-            const currency = this.commonCurrencyCode (bfxCurrency);
-            fees[currency] = this.safeFloat (withdraw, bfxCurrency);
-        }
-        return { withdraw: fees };
-    }
-
-    async updateFees () {
-        let funding = this.fees['funding'];
-        const fees = await this.fetchFundingFees ();
-        funding = this.deepExtend (funding, fees);
-        return funding;
-=======
-    async fetchFees () {
-        let summary = await this.privatePostSummary ();
-        let accountFees = await this.privatePostAccountFees ();
-        let info = this.extend (summary, accountFees);
-        let maker = summary['maker_fee'];
-        maker = this.asFloat (maker);
-        let taker = summary['taker_fee'];
-        taker = this.asFloat (taker);
-        let withdrawalFees = accountFees['withdraw'];
-        let keys = Object.keys (withdrawalFees);
-        for (let i = 0; i < keys.length; i++) {
-            let k = keys[i];
-            let toFloat = withdrawalFees[k];
-            withdrawalFees[k] = this.asFloat (toFloat);
+        const response = await this.privatePostAccountFees ();
+        const fees = response['withdraw'];
+        const withdraw = {};
+        const ids = Object.keys (fees);
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            let code = id;
+            if (id in this.currencies_by_id) {
+                let currency = this.currencies_by_id[id];
+                code = currency['code'];
+            }
+            withdraw[code] = this.safeFloat (fees, id);
         }
         return {
-            'info': info,
-            'maker': maker,
-            'taker': taker,
-            'withdraw': withdrawalFees,
-            'deposit': withdrawalFees,  // only for deposits of less than $1000
+            'info': response,
+            'withdraw': withdraw,
+            'deposit': withdraw,  // only for deposits of less than $1000
         };
->>>>>>> frosty00-master
+    }
+
+    async fetchTradingFees () {
+        let response = await this.privatePostSummary ();
+        return {
+            'info': response,
+            'maker': this.safeFloat (response, 'maker_fee'),
+            'taker': this.safeFloat (response, 'taker_fee'),
+        };
+    }
+
+    async loadFees () {
+        // // PHP does flat copying for arrays
+        // // setting fees on the exchange instance isn't portable, unfortunately...
+        // // this should probably go into the base class as well
+        // let funding = this.fees['funding'];
+        // const fees = await this.fetchFundingFees ();
+        // funding = this.deepExtend (funding, fees);
+        // return funding;
+        throw new NotImplemented (this.id + ' loadFees() not implemented yet');
+    }
+
+    async fetchFees () {
+        let fundingFees = await this.fetchFundingFees ();
+        let tradingFees = await this.fetchTradingFees ();
+        return this.deepExtend (fundingFees, tradingFees);
     }
 
     async fetchMarkets () {
