@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.979'
+__version__ = '1.10.980'
 
 # -----------------------------------------------------------------------------
 
@@ -62,6 +62,7 @@ from ccxt.async.ccex import ccex                                # noqa: F401
 from ccxt.async.cex import cex                                  # noqa: F401
 from ccxt.async.chbtc import chbtc                              # noqa: F401
 from ccxt.async.chilebit import chilebit                        # noqa: F401
+from ccxt.async.cobinhood import cobinhood                      # noqa: F401
 from ccxt.async.coincheck import coincheck                      # noqa: F401
 from ccxt.async.coinexchange import coinexchange                # noqa: F401
 from ccxt.async.coinfloor import coinfloor                      # noqa: F401
@@ -161,6 +162,7 @@ exchanges = [
     'cex',
     'chbtc',
     'chilebit',
+    'cobinhood',
     'coincheck',
     'coinexchange',
     'coinfloor',
