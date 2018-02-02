@@ -8,7 +8,6 @@ const { ExchangeError, AuthenticationError, InvalidNonce, InsufficientFunds, Inv
 //  ---------------------------------------------------------------------------
 
 module.exports = class bitbank extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitbank',
@@ -204,7 +203,7 @@ module.exports = class bitbank extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let date = this.milliseconds ();
-        date = this.Ymd (date);
+        date = this.ymd (date);
         date = date.split ('-');
         let response = await this.publicGetPairCandlestickCandleTypeYYYYMMDD (this.extend ({
             'pair': market['id'],
