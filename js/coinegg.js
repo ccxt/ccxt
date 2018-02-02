@@ -367,7 +367,7 @@ module.exports = class coinegg extends Exchange {
         let id = response['id'];
         let order = this.parseOrder ({
             'id': id,
-            'datetime': this.YmdHMS (this.milliseconds ()),
+            'datetime': this.ymdhms (this.milliseconds ()),
             'amount_original': amount,
             'amount_outstanding': amount,
             'price': price,
