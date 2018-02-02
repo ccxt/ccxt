@@ -8,7 +8,6 @@ const { ExchangeError, AuthenticationError, InvalidNonce, InsufficientFunds, Inv
 //  ---------------------------------------------------------------------------
 
 module.exports = class coinegg extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'coinegg',
@@ -115,7 +114,7 @@ module.exports = class coinegg extends Exchange {
     async fetchMarkets () {
         let quoteIds = ['btc', 'usc'];
         let result = [];
-        for (let b = 0; b < quoteIds.length; b++ ) {
+        for (let b = 0; b < quoteIds.length; b++) {
             let quoteId = quoteIds[b];
             let bases = await this.webGetQuoteAllcoin ({
                 'quote': quoteId,
@@ -211,7 +210,7 @@ module.exports = class coinegg extends Exchange {
         await this.loadMarkets ();
         let quoteIds = ['btc', 'usc'];
         let result = {};
-        for (let b = 0; b < quoteIds.length; b++ ) {
+        for (let b = 0; b < quoteIds.length; b++) {
             let quoteId = quoteIds[b];
             let tickers = await this.webGetQuoteAllcoin ({
                 'quote': quoteId,

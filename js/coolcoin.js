@@ -7,7 +7,6 @@ const coinegg = require ('./coinegg.js');
 //  ---------------------------------------------------------------------------
 
 module.exports = class coolcoin extends coinegg {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'coolcoin',
