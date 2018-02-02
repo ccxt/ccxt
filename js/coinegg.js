@@ -164,9 +164,6 @@ module.exports = class coinegg extends Exchange {
                     'info': market,
                 });
             }
-            if (b === 0) {
-                this.sleep (500);
-            }
         }
         return result;
     }
