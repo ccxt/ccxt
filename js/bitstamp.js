@@ -246,11 +246,12 @@ module.exports = class bitstamp extends Exchange {
         let ids = Object.keys (currencies);
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
-            if (id.split('_') == 2):
+            if (id.split('_') == 2) {
                 let candidate_sym = id.replace('_', '');
                 if (candidate_sym in this.markets_by_id) {
                     market = this.markets_by_id[marketId];
                 }
+            }
         }
 
         let price = this.safeFloat (trade, 'price');
