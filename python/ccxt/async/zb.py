@@ -120,29 +120,11 @@ class zb (Exchange):
                     },
                 },
                 'trading': {
+                    'maker': 0.2 / 100,
+                    'taker': 0.2 / 100,
                 },
             },
         })
-
-    def get_trading_fee_from_base_quote(self, base, quote):
-        # base: quote
-        fees = {
-            'BTC': {'USDT': 0.0},
-            'BCH': {'BTC': 0.001, 'USDT': 0.001},
-            'LTC': {'BTC': 0.001, 'USDT': 0.0},
-            'ETH': {'BTC': 0.001, 'USDT': 0.0},
-            'ETC': {'BTC': 0.001, 'USDT': 0.0},
-            'BTS': {'BTC': 0.001, 'USDT': 0.001},
-            'EOS': {'BTC': 0.001, 'USDT': 0.001},
-            'HSR': {'BTC': 0.001, 'USDT': 0.001},
-            'QTUM': {'BTC': 0.001, 'USDT': 0.001},
-            'USDT': {'BTC': 0.0},
-        }
-        if base in fees:
-            quoteFees = fees[base]
-            if quote in quoteFees:
-                return quoteFees[quote]
-        return None
 
     async def fetch_markets(self):
         markets = await self.publicGetMarkets()
@@ -155,7 +137,6 @@ class zb (Exchange):
             base = self.common_currency_code(baseId.upper())
             quote = self.common_currency_code(quoteId.upper())
             symbol = base + '/' + quote
-            fee = self.get_trading_fee_from_base_quote(base, quote)
             precision = {
                 'amount': market['amountScale'],
                 'price': market['priceScale'],
@@ -168,9 +149,6 @@ class zb (Exchange):
                 'quoteId': quoteId,
                 'base': base,
                 'quote': quote,
-                'info': market,
-                'maker': fee,
-                'taker': fee,
                 'lot': lot,
                 'active': True,
                 'precision': precision,
@@ -188,6 +166,7 @@ class zb (Exchange):
                         'max': None,
                     },
                 },
+                'info': market,
             })
         return result
 
