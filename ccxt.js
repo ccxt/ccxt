@@ -75,7 +75,6 @@ const exchanges = {
     'btctradeua':              require ('./js/btctradeua.js'),
     'btcturk':                 require ('./js/btcturk.js'),
     'btcx':                    require ('./js/btcx.js'),
-    'bter':                    require ('./js/bter.js'),
     'bxinth':                  require ('./js/bxinth.js'),
     'ccex':                    require ('./js/ccex.js'),
     'cex':                     require ('./js/cex.js'),
@@ -141,7 +140,7 @@ const exchanges = {
     'yobit':                   require ('./js/yobit.js'),
     'yunbi':                   require ('./js/yunbi.js'),
     'zaif':                    require ('./js/zaif.js'),
-    'zb':                      require ('./js/zb.js'),    
+    'zb':                      require ('./js/zb.js'),
 }
 
 //-----------------------------------------------------------------------------
