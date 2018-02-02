@@ -35,7 +35,6 @@ class bitcoincoid extends Exchange {
                 'www' => 'https://www.bitcoin.co.id',
                 'doc' => array (
                     'https://vip.bitcoin.co.id/downloads/BITCOINCOID-API-DOCUMENTATION.pdf',
-                    'https://vip.bitcoin.co.id/trade_api',
                 ),
             ),
             'api' => array (
@@ -255,15 +254,19 @@ class bitcoincoid extends Exchange {
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if (!$symbol)
-            throw new ExchangeError ($this->id . ' fetchOpenOrders requires a symbol');
         $this->load_markets();
-        $market = $this->market ($symbol);
-        $request = array (
-            'pair' => $market['id'],
-        );
+        $market = null;
+        $request = array ();
+        if ($symbol) {
+            $market = $this->market ($symbol);
+            $request['pair'] = $market['id'];
+        }
         $response = $this->privatePostOpenOrders (array_merge ($request, $params));
-        $orders = $this->parse_orders($response['return']['orders'], $market, $since, $limit);
+        // array ( success => 1, return => { $orders => null )}
+        $raw = $response['return']['orders'];
+        if (!$raw)
+            return array ();
+        $orders = $this->parse_orders($raw, $market, $since, $limit);
         return $this->filter_orders_by_symbol($orders, $symbol);
     }
 
@@ -349,7 +352,7 @@ class bitcoincoid extends Exchange {
             if ($body[0] === '{')
                 $response = json_decode ($body, $as_associative_array = true);
         if (!(is_array ($response) && array_key_exists ('success', $response)))
-            throw new ExchangeError ($this->id . ' => malformed $response => ' . $this->json ($response));
+            return; // no 'success' property on public responses
         if ($response['success'] === 1) {
             // array ( success => 1, return => { orders => array () )}
             if (!(is_array ($response) && array_key_exists ('return', $response)))
