@@ -14,7 +14,7 @@ module.exports = class okex extends okcoinusd {
             'countries': [ 'CN', 'US' ],
             'has': {
                 'CORS': false,
-                'futureMarkets': true,
+                'futures': true,
                 'hasFetchTickers': true,
                 'fetchTickers': true,
             },
@@ -39,6 +39,17 @@ module.exports = class okex extends okcoinusd {
         if (currency in currencies)
             return currencies[currency];
         return currency;
+    }
+
+    async fetchMarkets () {
+        let markets = await super.fetchMarkets ();
+        for (let i = 0; i < markets.length; i++) {
+            if (markets[i]['spot']) {
+                markets[i]['maker'] = -0.001;
+                markets[i]['taker'] = 0.001;
+            }
+        }
+        return markets;
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
