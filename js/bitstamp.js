@@ -246,7 +246,7 @@ module.exports = class bitstamp extends Exchange {
         let ids = Object.keys (currencies);
         for (let i = 0; i < ids.length; i++) {
             let k = ids[i];
-            if (k.split('_') == 2) {
+            if (k.split('_').length == 2) {
                 let candidate_sym = k.replace('_', '');
                 if (candidate_sym in this.markets_by_id) {
                     market = this.markets_by_id[marketId];
@@ -274,8 +274,8 @@ module.exports = class bitstamp extends Exchange {
             'price': parseFloat (price),
             'amount': parseFloat (amount),
             'fee': {
-                'cost': parseFloat(trade['fee']),
-                'currency': marker['quote'],
+                'cost': parseFloat (trade['fee']),
+                'currency': marker['quote']
             }
         };
     }
