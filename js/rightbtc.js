@@ -198,21 +198,21 @@ module.exports = class rightbtc extends Exchange {
         let response = await this.publicGetDepthTradingPair (this.extend ({
             'trading_pair': this.marketId (symbol),
         }, params));
-        let bidasks = {};
+        let bidsasks = {};
         let types = ['bid', 'ask'];
-        for (let ti = 0; ti < 2; ti++) {
+        for (let ti = 0; ti < types.length; ti++) {
             let type = types[ti];
-            bidasks[type] = [];
+            bidsasks[type] = [];
             for (let i = 0; i < response['result'][type].length; i++) {
                 let [ price, amount, total ] = response['result'][type][i];
-                bidasks[type].push ([
+                bidsasks[type].push ([
                     price / 1e8,
                     amount / 1e8,
                     total / 1e8,
                 ]);
             }
         }
-        return this.parseOrderBook (bidasks, undefined, 'bid', 'ask');
+        return this.parseOrderBook (bidsasks, undefined, 'bid', 'ask');
     }
 
     parseTrade (trade, market = undefined) {
