@@ -83,7 +83,7 @@ module.exports = class zb extends Exchange {
                     ],
                 },
                 'private': {
-                    'post': [
+                    'get': [
                         'order',
                         'cancelOrder',
                         'getOrder',
@@ -212,7 +212,7 @@ module.exports = class zb extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostGetAccountInfo ();
+        let response = await this.privateGetGetAccountInfo ();
         let balances = response['result'];
         let coins = balances['coins'];
         let result = { 'info': balances };
@@ -356,7 +356,7 @@ module.exports = class zb extends Exchange {
             'currency': this.marketId (symbol),
         };
         order = this.extend (order, params);
-        let response = await this.privatePostOrder (order);
+        let response = await this.privateGetOrder (order);
         return {
             'info': response,
             'id': response['id'],
@@ -370,7 +370,7 @@ module.exports = class zb extends Exchange {
             'currency': this.marketId (symbol),
         };
         order = this.extend (order, params);
-        return await this.privatePostCancelOrder (order);
+        return await this.privateGetCancelOrder (order);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -380,7 +380,7 @@ module.exports = class zb extends Exchange {
             'currency': this.marketId (symbol),
         };
         order = this.extend (order, params);
-        let response = await this.privatePostGetOrder (order);
+        let response = await this.privateGetGetOrder (order);
         return this.parseOrder (response, undefined, true);
     }
 
@@ -398,14 +398,14 @@ module.exports = class zb extends Exchange {
             'pageSize': 50,
         };
         // 默认请求方法，不分买卖类型 (default method GetOrdersIgnoreTradeType)
-        let method = 'privatePostGetOrdersIgnoreTradeType';
+        let method = 'privateGetGetOrdersIgnoreTradeType';
         // 如果传入了status，则查未完成的订单；如果传入了tradeType，则查买单或者卖单(if status in parmas,change method to GetUnfinishedOrdersIgnoreTradeType); status === 1表示完成的订单,zb api不提供这样的查询.(status ===1 means get finished orders, the zb exchange did not support query finished orders )
         let hasStatus = ('status' in params);
         if (hasStatus && params['status'] === 0) {
-            method = 'privatePostGetUnfinishedOrdersIgnoreTradeType';
+            method = 'privateGetGetUnfinishedOrdersIgnoreTradeType';
             defaultParams['pageSize'] = 10; // fixed to 10
         } else if ('tradeType' in params) {
-            method = 'privatePostGetOrdersNew';
+            method = 'privateGetGetOrdersNew';
             // tradeType 交易类型1/0[buy/sell]
             request['tradeType'] = params['tradeType'];
         }
