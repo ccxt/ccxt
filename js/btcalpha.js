@@ -288,7 +288,7 @@ module.exports = class btcalpha extends Exchange {
             'amount': amount,
             'price': this.priceToPrecision (symbol, price),
         }, params));
-        if (response['success'] !== true)
+        if (!response['success'])
             throw new InvalidOrder (this.id + ' ' + this.json (response));
         return this.parseOrder (response, market);
     }
