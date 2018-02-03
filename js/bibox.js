@@ -330,7 +330,7 @@ module.exports = class bibox extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let orderType = (type === 'limit') ? 2 : 1;
-        let response = await this.privatePostOrder ({
+        let response = await this.privatePostOrderpending ({
             'cmd': 'orderpending/trade',
             'body': this.extend ({
                 'pair': market['id'],
