@@ -14,6 +14,7 @@ class bxinth (Exchange):
             'rateLimit': 1500,
             'hasCORS': False,
             'hasFetchTickers': True,
+            'hasFetchOpenOrders': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766412-567b1eb4-5ed7-11e7-94a8-ff6a3884f6c5.jpg',
                 'api': 'https://bx.in.th/api',
@@ -211,6 +212,45 @@ class bxinth (Exchange):
             'order_id': id,
             'pairing': pairing,
         })
+
+    def parse_order(self, order, market=None):
+        side = None
+        if 'order_type' in order:
+            side = 'buy' if (order['order_type'] == 'buy') else 'sell'
+        symbol = None
+        if not market:
+            if 'pairing_id' in order:
+                if str(order['pairing_id']) in self.markets_by_id:
+                    market = self.markets_by_id[str(order['pairing_id'])]
+        if market:
+            symbol = market['symbol']
+        if 'date' in order:
+            timestamp = self.parse8601(order['date'])
+        price = self.safe_float(order, 'rate')
+        amount = self.safe_float(order, 'amount')
+        result = {
+            'info': order,
+            'id': order['order_id'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': symbol,
+            'type': 'limit',
+            'side': side,
+            'price': price,
+            'amount': amount
+        }
+        return result
+
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        request = {}
+        market = None
+        if symbol:
+            market = self.market(symbol)
+            request['pairing'] = market['id']
+        response = self.privatePostGetorders(self.extend(request, params))
+        orders = self.parse_orders(response['orders'], market, since, limit)
+        return self.filter_orders_by_symbol(orders, symbol)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/'
