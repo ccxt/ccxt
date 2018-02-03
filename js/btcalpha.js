@@ -70,11 +70,6 @@ module.exports = class btcalpha extends Exchange {
                 },
                 'funding': {
                     'withdraw': {
-                        //  'USD': (amount, type) => {
-                        //     if (type === 'AlphaCode') return 0.0;
-                        //     if (type === 'AdvCash') return amount * 0.025;
-                        //     if (type === 'Perfect') return amount * 0.027;
-                        // },
                         'BTC': 0.00135,
                         'LTC': 0.0035,
                         'XMR': 0.018,
@@ -362,7 +357,7 @@ module.exports = class btcalpha extends Exchange {
         let query = this.urlencode (this.keysort (this.omit (params, this.extractParams (path))));
         let url = this.urls['api'] + '/';
         if (path !== 'charts/{pair}/{type}/chart/') {
-            url += this['version'] + '/';
+            url += 'v1/';
         }
         url += this.implodeParams (path, params);
         headers = { 'Accept': 'application/json' };
