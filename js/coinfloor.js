@@ -2,8 +2,8 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -15,7 +15,9 @@ module.exports = class coinfloor extends Exchange {
             'name': 'coinfloor',
             'rateLimit': 1000,
             'countries': 'UK',
-            'hasCORS': false,
+            'has': {
+                'CORS': false,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28246081-623fc164-6a1c-11e7-913f-bac0d5576c90.jpg',
                 'api': 'https://webapi.coinfloor.co.uk:8090/bist',
@@ -93,7 +95,7 @@ module.exports = class coinfloor extends Exchange {
         let vwap = this.safeFloat (ticker, 'vwap');
         let baseVolume = parseFloat (ticker['volume']);
         let quoteVolume = undefined;
-        if (typeof vwap != 'undefined') {
+        if (typeof vwap !== 'undefined') {
             quoteVolume = baseVolume * vwap;
         }
         return {

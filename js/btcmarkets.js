@@ -2,8 +2,8 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError, OrderNotFound, NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -15,13 +15,8 @@ module.exports = class btcmarkets extends Exchange {
             'name': 'BTC Markets',
             'countries': 'AU', // Australia
             'rateLimit': 1000, // market data cached for 1 second (trades cached for 2 seconds)
-            'hasCORS': false,
-            'hasFetchOrder': true,
-            'hasFetchOrders': true,
-            'hasFetchClosedOrders': true,
-            'hasFetchOpenOrders': true,
-            'hasFetchMyTrades': true,
             'has': {
+                'CORS': false,
                 'fetchOrder': true,
                 'fetchOrders': true,
                 'fetchClosedOrders': 'emulated',
@@ -296,16 +291,14 @@ module.exports = class btcmarkets extends Exchange {
             'currency': market['quote'],
             'instrument': market['base'],
         });
-        if (limit) {
+        if (typeof limit !== 'undefined')
             request['limit'] = limit;
-        } else {
+        else
             request['limit'] = 100;
-        }
-        if (since) {
+        if (typeof since !== 'undefined')
             request['since'] = since;
-        } else {
+        else
             request['since'] = 0;
-        }
         return request;
     }
 

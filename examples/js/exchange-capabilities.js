@@ -5,9 +5,9 @@
 const ccxt        = require ('../../ccxt.js')
     , asTable     = require ('as-table') // .configure ({ print: require ('string.ify').noPretty })
     , log         = require ('ololog').noLocate
-    , ansi        = require ('ansicolor').nice;
+    , ansi        = require ('ansicolor').nice
 
-(async function test () {
+;(async function test () {
 
     let total = 0
     let missing = 0
@@ -18,33 +18,33 @@ const ccxt        = require ('../../ccxt.js')
         let result = {};
 
         [
-            'hasPublicAPI',
-            'hasPrivateAPI',
-            'hasCORS',
-            'hasFetchTicker',
-            'hasFetchTickers',
-            'hasFetchOrderBook',
-            'hasFetchTrades',
-            'hasFetchOHLCV',
-            'hasFetchBalance',
-            'hasCreateOrder',
-            'hasCancelOrder',
-            'hasFetchOrder',
-            'hasFetchOrders',
-            'hasFetchOpenOrders',
-            'hasFetchClosedOrders',
-            'hasFetchMyTrades',
-            'hasFetchCurrencies',
-            'hasDeposit',
-            'hasWithdraw',
+            'publicAPI',
+            'privateAPI',
+            'CORS',
+            'fetchTicker',
+            'fetchTickers',
+            'fetchOrderBook',
+            'fetchTrades',
+            'fetchOHLCV',
+            'fetchBalance',
+            'createOrder',
+            'cancelOrder',
+            'fetchOrder',
+            'fetchOrders',
+            'fetchOpenOrders',
+            'fetchClosedOrders',
+            'fetchMyTrades',
+            'fetchCurrencies',
+            'fetchDepositAddress',
+            'withdraw',
 
         ].forEach (key => {
 
             total += 1
 
-            let capability = exchange[key].toString ()
+            let capability = exchange.has[key].toString ()
 
-            if (!exchange[key]) {
+            if (!exchange.has[key]) {
                 capability = exchange.id.red.dim
                 missing += 1
             } else {
@@ -52,7 +52,7 @@ const ccxt        = require ('../../ccxt.js')
                 implemented += 1
             }
 
-            result[key.slice (3)] = capability
+            result[key] = capability
         })
 
         return result

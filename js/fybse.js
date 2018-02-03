@@ -2,8 +2,8 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -14,7 +14,9 @@ module.exports = class fybse extends Exchange {
             'id': 'fybse',
             'name': 'FYB-SE',
             'countries': 'SE', // Sweden
-            'hasCORS': false,
+            'has': {
+                'CORS': false,
+            },
             'rateLimit': 1500,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766512-31019772-5edb-11e7-8241-2e675e6797f1.jpg',
@@ -133,7 +135,7 @@ module.exports = class fybse extends Exchange {
         let response = await this.privatePostPlaceorder (this.extend ({
             'qty': amount,
             'price': price,
-            'type': side[0].toUpperCase ()
+            'type': side[0].toUpperCase (),
         }, params));
         return {
             'info': response,
@@ -156,7 +158,7 @@ module.exports = class fybse extends Exchange {
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'key': this.apiKey,
-                'sig': this.hmac (this.encode (body), this.encode (this.secret), 'sha1')
+                'sig': this.hmac (this.encode (body), this.encode (this.secret), 'sha1'),
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

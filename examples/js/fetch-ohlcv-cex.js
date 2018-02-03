@@ -5,11 +5,11 @@ const asciichart = require ('asciichart')
 const asTable    = require ('as-table')
 const log        = require ('ololog').configure ({ locate: false })
 
-require ('ansicolor').nice;
+require ('ansicolor').nice
 
 //-----------------------------------------------------------------------------
 
-(async function main () {
+;(async function main () {
 
     // experimental, not yet implemented for all exchanges
     // your contributions are welcome ;)

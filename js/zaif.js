@@ -1,14 +1,13 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class zaif extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'zaif',
@@ -16,10 +15,13 @@ module.exports = class zaif extends Exchange {
             'countries': 'JP',
             'rateLimit': 2000,
             'version': '1',
-            'hasCORS': false,
-            'hasFetchOpenOrders': true,
-            'hasFetchClosedOrders': true,
-            'hasWithdraw': true,
+            'has': {
+                'CORS': false,
+                'createMarketOrder': false,
+                'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
+                'withdraw': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg',
                 'api': 'https://api.zaif.jp',
@@ -176,7 +178,7 @@ module.exports = class zaif extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let side = (trade['trade_type'] == 'bid') ? 'buy' : 'sell';
+        let side = (trade['trade_type'] === 'bid') ? 'buy' : 'sell';
         let timestamp = trade['date'] * 1000;
         let id = this.safeString (trade, 'id');
         id = this.safeString (trade, 'tid', id);
@@ -206,11 +208,11 @@ module.exports = class zaif extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        if (type == 'market')
+        if (type === 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
         let response = await this.privatePostTrade (this.extend ({
             'currency_pair': this.marketId (symbol),
-            'action': (side == 'buy') ? 'bid' : 'ask',
+            'action': (side === 'buy') ? 'bid' : 'ask',
             'amount': amount,
             'price': price,
         }, params));
@@ -227,7 +229,7 @@ module.exports = class zaif extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        let side = (order['action'] == 'bid') ? 'buy' : 'sell';
+        let side = (order['action'] === 'bid') ? 'buy' : 'sell';
         let timestamp = parseInt (order['timestamp']) * 1000;
         if (!market)
             market = this.markets_by_id[order['currency_pair']];
@@ -299,9 +301,9 @@ module.exports = class zaif extends Exchange {
         return this.parseOrders (response['return'], market, since, limit);
     }
 
-    async withdraw (currency, amount, address, params = {}) {
+    async withdraw (currency, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
-        if (currency == 'JPY')
+        if (currency === 'JPY')
             throw new ExchangeError (this.id + ' does not allow ' + currency + ' withdrawals');
         let result = await this.privatePostWithdraw (this.extend ({
             'currency': currency,
@@ -319,15 +321,15 @@ module.exports = class zaif extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/';
-        if (api == 'public') {
+        if (api === 'public') {
             url += 'api/' + this.version + '/' + this.implodeParams (path, params);
-        } else if (api == 'fapi') {
+        } else if (api === 'fapi') {
             url += 'fapi/' + this.version + '/' + this.implodeParams (path, params);
         } else {
             this.checkRequiredCredentials ();
-            if (api == 'ecapi') {
+            if (api === 'ecapi') {
                 url += 'ecapi';
-            } else if (api == 'tlapi') {
+            } else if (api === 'tlapi') {
                 url += 'tlapi';
             } else {
                 url += 'tapi';
@@ -355,4 +357,4 @@ module.exports = class zaif extends Exchange {
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
     }
-}
+};

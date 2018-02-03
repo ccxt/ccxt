@@ -1,9 +1,9 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError, NotSupported } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -15,8 +15,11 @@ module.exports = class bithumb extends Exchange {
             'name': 'Bithumb',
             'countries': 'KR', // South Korea
             'rateLimit': 500,
-            'hasCORS': true,
-            'hasFetchTickers': true,
+            'has': {
+                'CORS': true,
+                'fetchTickers': true,
+                'withdraw': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30597177-ea800172-9d5e-11e7-804c-b9d4fa9b56b0.jpg',
                 'api': {
@@ -71,7 +74,7 @@ module.exports = class bithumb extends Exchange {
         let result = [];
         for (let i = 0; i < currencies.length; i++) {
             let id = currencies[i];
-            if (id != 'date') {
+            if (id !== 'date') {
                 let market = markets['data'][id];
                 let base = id;
                 let quote = 'KRW';
@@ -201,11 +204,11 @@ module.exports = class bithumb extends Exchange {
     parseTrade (trade, market) {
         // a workaround for their bug in date format, hours are not 0-padded
         let [ transaction_date, transaction_time ] = trade['transaction_date'].split (' ');
-        let transaction_time_short = transaction_time.length < 8;
-        if (transaction_time_short)
+        if (transaction_time.length < 8)
             transaction_time = '0' + transaction_time;
         let timestamp = this.parse8601 (transaction_date + ' ' + transaction_time);
-        let side = (trade['type'] == 'ask') ? 'sell' : 'buy';
+        timestamp -= 9 * 3600000; // they report UTC + 9 hours (server in Korean timezone)
+        let side = (trade['type'] === 'ask') ? 'sell' : 'buy';
         return {
             'id': undefined,
             'info': trade,
@@ -235,16 +238,16 @@ module.exports = class bithumb extends Exchange {
         let market = this.market (symbol);
         let request = undefined;
         let method = 'privatePostTrade';
-        if (type == 'limit') {
+        if (type === 'limit') {
             request = {
                 'order_currency': market['id'],
                 'Payment_currency': market['quote'],
                 'units': amount,
                 'price': price,
-                'type': (side == 'buy') ? 'bid' : 'ask',
+                'type': (side === 'buy') ? 'bid' : 'ask',
             };
             method += 'Place';
-        } else if (type == 'market') {
+        } else if (type === 'market') {
             request = {
                 'currency': market['id'],
                 'units': amount,
@@ -267,7 +270,7 @@ module.exports = class bithumb extends Exchange {
         let side = ('side' in params);
         if (!side)
             throw new ExchangeError (this.id + ' cancelOrder requires a side parameter (sell or buy) and a currency parameter');
-        side = (side == 'buy') ? 'purchase' : 'sales';
+        side = (side === 'buy') ? 'purchase' : 'sales';
         let currency = ('currency' in params);
         if (!currency)
             throw new ExchangeError (this.id + ' cancelOrder requires a currency parameter');
@@ -278,6 +281,24 @@ module.exports = class bithumb extends Exchange {
         });
     }
 
+    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+        let request = {
+            'units': amount,
+            'address': address,
+            'currency': currency,
+        };
+        if (currency === 'XRP' || currency === 'XMR') {
+            let destination = ('destination' in params);
+            if (!destination)
+                throw new ExchangeError (this.id + ' ' + currency + ' withdraw requires an extra destination param');
+        }
+        let response = await this.privatePostTradeBtcWithdrawal (this.extend (request, params));
+        return {
+            'info': response,
+            'id': undefined,
+        };
+    }
+
     nonce () {
         return this.milliseconds ();
     }
@@ -286,7 +307,7 @@ module.exports = class bithumb extends Exchange {
         let endpoint = '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + endpoint;
         let query = this.omit (params, this.extractParams (path));
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
@@ -295,7 +316,7 @@ module.exports = class bithumb extends Exchange {
                 'endpoint': endpoint,
             }, query));
             let nonce = this.nonce ().toString ();
-            let auth = endpoint + "\0" + body + "\0" + nonce;
+            let auth = endpoint + '\0' + body + '\0' + nonce;
             let signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha512');
             let signature64 = this.decode (this.stringToBase64 (this.encode (signature)));
             headers = {
@@ -312,7 +333,7 @@ module.exports = class bithumb extends Exchange {
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('status' in response) {
-            if (response['status'] == '0000')
+            if (response['status'] === '0000')
                 return response;
             throw new ExchangeError (this.id + ' ' + this.json (response));
         }

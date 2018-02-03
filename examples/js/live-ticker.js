@@ -52,7 +52,7 @@ let printTicker = async (id, symbol) => {
     }
 }
 
-(async function main () {
+;(async function main () {
 
     if (process.argv.length > 3) {
 

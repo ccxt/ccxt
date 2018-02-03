@@ -2,8 +2,8 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -16,8 +16,10 @@ module.exports = class huobi extends Exchange {
             'countries': 'CN',
             'rateLimit': 2000,
             'version': 'v3',
-            'hasCORS': false,
-            'hasFetchOHLCV': true,
+            'has': {
+                'CORS': false,
+                'fetchOHLCV': true,
+            },
             'timeframes': {
                 '1m': '001',
                 '5m': '005',

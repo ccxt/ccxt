@@ -6,17 +6,17 @@ const log       = require ('ololog').configure ({ locate: false })
 const config    = require ('../../keys')
 
 
-require ('ansicolor').nice;
+require ('ansicolor').nice
 
-let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms));
+let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms))
 
 let proxies = [
     '', // no proxy by default
     'https://crossorigin.me/',
     'https://cors-anywhere.herokuapp.com/',
-];
+]
 
-(async function main () {
+;(async function main () {
 
     let ids = ccxt.exchanges
     let exchanges = {}

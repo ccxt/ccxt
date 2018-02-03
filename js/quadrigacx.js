@@ -1,14 +1,13 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError, AuthenticationError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class quadrigacx extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'quadrigacx',
@@ -16,11 +15,9 @@ module.exports = class quadrigacx extends Exchange {
             'countries': 'CA',
             'rateLimit': 1000,
             'version': 'v2',
-            'hasCORS': true,
-            // obsolete metainfo interface
-            'hasWithdraw': true,
-            // new metainfo interface
             'has': {
+                'fetchDepositAddress': true,
+                'CORS': true,
                 'withdraw': true,
             },
             'urls': {
@@ -47,10 +44,16 @@ module.exports = class quadrigacx extends Exchange {
                         'balance',
                         'bitcoin_deposit_address',
                         'bitcoin_withdrawal',
+                        'bitcoincash_deposit_address',
+                        'bitcoincash_withdrawal',
+                        'bitcoingold_deposit_address',
+                        'bitcoingold_withdrawal',
                         'buy',
                         'cancel_order',
                         'ether_deposit_address',
                         'ether_withdrawal',
+                        'litecoin_deposit_address',
+                        'litecoin_withdrawal',
                         'lookup_order',
                         'open_orders',
                         'sell',
@@ -64,8 +67,11 @@ module.exports = class quadrigacx extends Exchange {
                 'ETH/BTC': { 'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'maker': 0.002, 'taker': 0.002 },
                 'ETH/CAD': { 'id': 'eth_cad', 'symbol': 'ETH/CAD', 'base': 'ETH', 'quote': 'CAD', 'maker': 0.005, 'taker': 0.005 },
                 'LTC/CAD': { 'id': 'ltc_cad', 'symbol': 'LTC/CAD', 'base': 'LTC', 'quote': 'CAD', 'maker': 0.005, 'taker': 0.005 },
-                'BCH/CAD': { 'id': 'btc_cad', 'symbol': 'BCH/CAD', 'base': 'BCH', 'quote': 'CAD', 'maker': 0.005, 'taker': 0.005 },
+                'LTC/BTC': { 'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'maker': 0.005, 'taker': 0.005 },
+                'BCH/CAD': { 'id': 'bch_cad', 'symbol': 'BCH/CAD', 'base': 'BCH', 'quote': 'CAD', 'maker': 0.005, 'taker': 0.005 },
+                'BCH/BTC': { 'id': 'bch_btc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'maker': 0.005, 'taker': 0.005 },
                 'BTG/CAD': { 'id': 'btg_cad', 'symbol': 'BTG/CAD', 'base': 'BTG', 'quote': 'CAD', 'maker': 0.005, 'taker': 0.005 },
+                'BTG/BTC': { 'id': 'btg_btc', 'symbol': 'BTG/BTC', 'base': 'BTG', 'quote': 'BTC', 'maker': 0.005, 'taker': 0.005 },
             },
         });
     }
@@ -155,7 +161,7 @@ module.exports = class quadrigacx extends Exchange {
             'amount': amount,
             'book': this.marketId (symbol),
         };
-        if (type == 'limit')
+        if (type === 'limit')
             order['price'] = price;
         let response = await this[method] (this.extend (order, params));
         return {
@@ -191,17 +197,21 @@ module.exports = class quadrigacx extends Exchange {
     }
 
     getCurrencyName (currency) {
-        if (currency == 'ETH')
-            return 'Ether';
-        if (currency == 'BTC')
-            return 'Bitcoin';
+        const currencies = {
+            'ETH': 'Ether',
+            'BTC': 'Bitcoin',
+            'LTC': 'Litecoin',
+            'BCH': 'Bitcoincash',
+            'BTG': 'Bitcoingold',
+        };
+        return currencies[currency];
     }
 
-    async withdraw (currency, amount, address, params = {}) {
+    async withdraw (currency, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {
             'amount': amount,
-            'address': address
+            'address': address,
         };
         let method = 'privatePost' + this.getCurrencyName (currency) + 'Withdrawal';
         let response = await this[method] (this.extend (request, params));
@@ -213,7 +223,7 @@ module.exports = class quadrigacx extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
-        if (api == 'public') {
+        if (api === 'public') {
             url += '?' + this.urlencode (params);
         } else {
             this.checkRequiredCredentials ();
@@ -233,12 +243,24 @@ module.exports = class quadrigacx extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
+    handleErrors (statusCode, statusText, url, method, headers, body) {
+        if (typeof body !== 'string')
+            return; // fallback to default error handler
+        if (body.length < 2)
+            return;
+        // Here is a sample QuadrigaCX response in case of authentication failure:
+        // {"error":{"code":101,"message":"Invalid API Code or Invalid Signature"}}
+        if (statusCode === 200 && body.indexOf ('Invalid API Code or Invalid Signature') >= 0) {
+            throw new AuthenticationError (this.id + ' ' + body);
+        }
+    }
+
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
-        if (typeof response == 'string')
+        if (typeof response === 'string')
             return response;
         if ('error' in response)
             throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
     }
-}
+};

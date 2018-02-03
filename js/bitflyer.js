@@ -1,13 +1,12 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
+const Exchange = require ('./base/Exchange');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class bitflyer extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitflyer',
@@ -15,8 +14,10 @@ module.exports = class bitflyer extends Exchange {
             'countries': 'JP',
             'version': 'v1',
             'rateLimit': 500,
-            'hasCORS': false,
-            'hasWithdraw': true,
+            'has': {
+                'CORS': false,
+                'withdraw': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg',
                 'api': 'https://api.bitflyer.jp',
@@ -26,10 +27,12 @@ module.exports = class bitflyer extends Exchange {
             'api': {
                 'public': {
                     'get': [
-                        'getmarkets',    // or 'markets'
-                        'getboard',      // or 'board'
-                        'getticker',     // or 'ticker'
-                        'getexecutions', // or 'executions'
+                        'getmarkets/usa', // new (wip)
+                        'getmarkets/eu',  // new (wip)
+                        'getmarkets',     // or 'markets'
+                        'getboard',       // ...
+                        'getticker',
+                        'getexecutions',
                         'gethealth',
                         'getchats',
                     ],
@@ -74,7 +77,11 @@ module.exports = class bitflyer extends Exchange {
     }
 
     async fetchMarkets () {
-        let markets = await this.publicGetMarkets ();
+        let jp_markets = await this.publicGetGetmarkets ();
+        let us_markets = await this.publicGetGetmarketsUsa ();
+        let eu_markets = await this.publicGetGetmarketsEu ();
+        let markets = this.arrayConcat (jp_markets, us_markets);
+        markets = this.arrayConcat (markets, eu_markets);
         let result = [];
         for (let p = 0; p < markets.length; p++) {
             let market = markets[p];
@@ -84,10 +91,10 @@ module.exports = class bitflyer extends Exchange {
             let quote = undefined;
             let symbol = id;
             let numCurrencies = currencies.length;
-            if (numCurrencies == 1) {
+            if (numCurrencies === 1) {
                 base = symbol.slice (0, 3);
                 quote = symbol.slice (3, 6);
-            } else if (numCurrencies == 2) {
+            } else if (numCurrencies === 2) {
                 base = currencies[0];
                 quote = currencies[1];
                 symbol = base + '/' + quote;
@@ -108,7 +115,7 @@ module.exports = class bitflyer extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateGetBalance ();
+        let response = await this.privateGetGetbalance ();
         let balances = {};
         for (let b = 0; b < response.length; b++) {
             let account = response[b];
@@ -132,7 +139,7 @@ module.exports = class bitflyer extends Exchange {
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
-        let orderbook = await this.publicGetBoard (this.extend ({
+        let orderbook = await this.publicGetGetboard (this.extend ({
             'product_code': this.marketId (symbol),
         }, params));
         return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'size');
@@ -140,7 +147,7 @@ module.exports = class bitflyer extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let ticker = await this.publicGetTicker (this.extend ({
+        let ticker = await this.publicGetGetticker (this.extend ({
             'product_code': this.marketId (symbol),
         }, params));
         let timestamp = this.parse8601 (ticker['timestamp']);
@@ -194,7 +201,7 @@ module.exports = class bitflyer extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetExecutions (this.extend ({
+        let response = await this.publicGetGetexecutions (this.extend ({
             'product_code': market['id'],
         }, params));
         return this.parseTrades (response, market, since, limit);
@@ -223,7 +230,7 @@ module.exports = class bitflyer extends Exchange {
         }, params));
     }
 
-    async withdraw (currency, amount, address, params = {}) {
+    async withdraw (currency, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostWithdraw (this.extend ({
             'currency_code': currency,
@@ -238,19 +245,22 @@ module.exports = class bitflyer extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + this.version + '/';
-        if (api == 'private')
+        if (api === 'private')
             request += 'me/';
         request += path;
-        if (method == 'GET') {
+        if (method === 'GET') {
             if (Object.keys (params).length)
                 request += '?' + this.urlencode (params);
         }
         let url = this.urls['api'] + request;
-        if (api == 'private') {
+        if (api === 'private') {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
-            body = this.json (params);
-            let auth = [ nonce, method, request, body ].join ('');
+            let auth = [ nonce, method, request ].join ('');
+            if (Object.keys (params).length) {
+                body = this.json (params);
+                auth += body;
+            }
             headers = {
                 'ACCESS-KEY': this.apiKey,
                 'ACCESS-TIMESTAMP': nonce,
@@ -260,4 +270,4 @@ module.exports = class bitflyer extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-}
+};

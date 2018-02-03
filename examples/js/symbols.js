@@ -75,7 +75,7 @@ let printSymbols = async (id) => {
     }
 }
 
-(async function main () {
+;(async function main () {
 
     if (process.argv.length > 2) {
 

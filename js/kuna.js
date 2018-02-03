@@ -1,14 +1,13 @@
-"use strict";
+'use strict';
 
 // ---------------------------------------------------------------------------
 
-const acx = require ('./acx.js')
-const { ExchangeError, InsufficientFunds, OrderNotFound } = require ('./base/errors')
+const acx = require ('./acx.js');
+const { ExchangeError } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
 module.exports = class kuna extends acx {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'kuna',
@@ -16,14 +15,17 @@ module.exports = class kuna extends acx {
             'countries': 'UA',
             'rateLimit': 1000,
             'version': 'v2',
-            'hasCORS': false,
-            'hasFetchTickers': false,
-            'hasFetchOHLCV': false,
+            'has': {
+                'CORS': false,
+                'fetchTickers': false,
+                'fetchOHLCV': false,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/31697638-912824fa-b3c1-11e7-8c36-cf9606eb94ac.jpg',
                 'api': 'https://kuna.io',
                 'www': 'https://kuna.io',
                 'doc': 'https://kuna.io/documents/api',
+                'fees': 'https://kuna.io/documents/api',
             },
             'api': {
                 'public': {
@@ -49,33 +51,45 @@ module.exports = class kuna extends acx {
                 },
             },
             'markets': {
-                'BTC/UAH': { 'id': 'btcuah', 'symbol': 'BTC/UAH', 'base': 'BTC', 'quote': 'UAH', 'precision': { 'amount': 6, 'price': 0 }, 'lot': 0.000001, 'limits': { 'amount': { 'min': 0.000001, 'max': undefined }, 'price': { 'min': 1, 'max': undefined }}},
-                'ETH/UAH': { 'id': 'ethuah', 'symbol': 'ETH/UAH', 'base': 'ETH', 'quote': 'UAH', 'precision': { 'amount': 6, 'price': 0 }, 'lot': 0.000001, 'limits': { 'amount': { 'min': 0.000001, 'max': undefined }, 'price': { 'min': 1, 'max': undefined }}},
-                'GBG/UAH': { 'id': 'gbguah', 'symbol': 'GBG/UAH', 'base': 'GBG', 'quote': 'UAH', 'precision': { 'amount': 3, 'price': 2 }, 'lot': 0.001, 'limits': { 'amount': { 'min': 0.000001, 'max': undefined }, 'price': { 'min': 0.01, 'max': undefined }}}, // Golos Gold (GBG != GOLOS)
-                'KUN/BTC': { 'id': 'kunbtc', 'symbol': 'KUN/BTC', 'base': 'KUN', 'quote': 'BTC', 'precision': { 'amount': 6, 'price': 6 }, 'lot': 0.000001, 'limits': { 'amount': { 'min': 0.000001, 'max': undefined }, 'price': { 'min': 0.000001, 'max': undefined }}},
-                'BCH/BTC': { 'id': 'bchbtc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'precision': { 'amount': 6, 'price': 6 }, 'lot': 0.000001, 'limits': { 'amount': { 'min': 0.000001, 'max': undefined }, 'price': { 'min': 0.000001, 'max': undefined }}},
-                'WAVES/UAH': { 'id': 'wavesuah', 'symbol': 'WAVES/UAH', 'base': 'WAVES', 'quote': 'UAH', 'precision': { 'amount': 6, 'price': 0 }, 'lot': 0.000001, 'limits': { 'amount': { 'min': 0.000001, 'max': undefined }, 'price': { 'min': 1, 'max': undefined }}},
+                'BTC/UAH': { 'id': 'btcuah', 'symbol': 'BTC/UAH', 'base': 'BTC', 'quote': 'UAH', 'precision': { 'amount': 6, 'price': 0 }, 'lot': 0.000001, 'limits': { 'amount': { 'min': 0.000001, 'max': undefined }, 'price': { 'min': 1, 'max': undefined }, 'cost': { 'min': 0.000001, 'max': undefined }}},
+                'ETH/UAH': { 'id': 'ethuah', 'symbol': 'ETH/UAH', 'base': 'ETH', 'quote': 'UAH', 'precision': { 'amount': 6, 'price': 0 }, 'lot': 0.000001, 'limits': { 'amount': { 'min': 0.000001, 'max': undefined }, 'price': { 'min': 1, 'max': undefined }, 'cost': { 'min': 0.000001, 'max': undefined }}},
+                'GBG/UAH': { 'id': 'gbguah', 'symbol': 'GBG/UAH', 'base': 'GBG', 'quote': 'UAH', 'precision': { 'amount': 3, 'price': 2 }, 'lot': 0.001, 'limits': { 'amount': { 'min': 0.000001, 'max': undefined }, 'price': { 'min': 0.01, 'max': undefined }, 'cost': { 'min': 0.000001, 'max': undefined }}}, // Golos Gold (GBG != GOLOS)
+                'KUN/BTC': { 'id': 'kunbtc', 'symbol': 'KUN/BTC', 'base': 'KUN', 'quote': 'BTC', 'precision': { 'amount': 6, 'price': 6 }, 'lot': 0.000001, 'limits': { 'amount': { 'min': 0.000001, 'max': undefined }, 'price': { 'min': 0.000001, 'max': undefined }, 'cost': { 'min': 0.000001, 'max': undefined }}},
+                'BCH/BTC': { 'id': 'bchbtc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'precision': { 'amount': 6, 'price': 6 }, 'lot': 0.000001, 'limits': { 'amount': { 'min': 0.000001, 'max': undefined }, 'price': { 'min': 0.000001, 'max': undefined }, 'cost': { 'min': 0.000001, 'max': undefined }}},
+                'BCH/UAH': { 'id': 'bchuah', 'symbol': 'BCH/UAH', 'base': 'BCH', 'quote': 'UAH', 'precision': { 'amount': 6, 'price': 0 }, 'lot': 0.000001, 'limits': { 'amount': { 'min': 0.000001, 'max': undefined }, 'price': { 'min': 1, 'max': undefined }, 'cost': { 'min': 0.000001, 'max': undefined }}},
+                'WAVES/UAH': { 'id': 'wavesuah', 'symbol': 'WAVES/UAH', 'base': 'WAVES', 'quote': 'UAH', 'precision': { 'amount': 6, 'price': 0 }, 'lot': 0.000001, 'limits': { 'amount': { 'min': 0.000001, 'max': undefined }, 'price': { 'min': 1, 'max': undefined }, 'cost': { 'min': 0.000001, 'max': undefined }}},
+                'ARN/BTC': { 'id': 'arnbtc', 'symbol': 'ARN/BTC', 'base': 'ARN', 'quote': 'BTC' },
+                'B2B/BTC': { 'id': 'b2bbtc', 'symbol': 'B2B/BTC', 'base': 'B2B', 'quote': 'BTC' },
+                'EVR/BTC': { 'id': 'evrbtc', 'symbol': 'EVR/BTC', 'base': 'EVR', 'quote': 'BTC' },
+                'GOL/GBG': { 'id': 'golgbg', 'symbol': 'GOL/GBG', 'base': 'GOL', 'quote': 'GBG' },
+                'R/BTC': { 'id': 'rbtc', 'symbol': 'R/BTC', 'base': 'R', 'quote': 'BTC' },
+                'RMC/BTC': { 'id': 'rmcbtc', 'symbol': 'RMC/BTC', 'base': 'RMC', 'quote': 'BTC' },
             },
             'fees': {
                 'trading': {
                     'taker': 0.25 / 100,
                     'maker': 0.25 / 100,
                 },
+                'funding': {
+                    'withdraw': {
+                        'UAH': '1%',
+                        'BTC': 0.001,
+                        'BCH': 0.001,
+                        'ETH': 0.01,
+                        'WAVES': 0.01,
+                        'GOL': 0.0,
+                        'GBG': 0.0,
+                        // 'RMC': 0.001 BTC
+                        // 'ARN': 0.01 ETH
+                        // 'R': 0.01 ETH
+                        // 'EVR': 0.01 ETH
+                    },
+                    'deposit': {
+                        // 'UAH': (amount) => amount * 0.001 + 5
+                    },
+                },
             },
         });
-    }
-
-    handleErrors (code, reason, url, method, headers, body) {
-        if (code == 400) {
-            let data = JSON.parse (body);
-            let error = data['error'];
-            let errorCode = error['code'];
-            if (errorCode == 2002) {
-                throw new InsufficientFunds ([ this.id, method, url, code, reason, body ].join (' '));
-            } else if (errorCode == 2003) {
-                throw new OrderNotFound ([ this.id, method, url, code, reason, body ].join (' '));
-            }
-        }
     }
 
     async fetchOrderBook (symbol, params = {}) {
@@ -109,7 +123,7 @@ module.exports = class kuna extends acx {
         if (market)
             symbol = market['symbol'];
         return {
-            'id': trade['id'],
+            'id': trade['id'].toString (),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
@@ -164,4 +178,4 @@ module.exports = class kuna extends acx {
         let response = await this.privateGetTradesMy ({ 'market': market['id'] });
         return this.parseMyTrades (response, market);
     }
-}
+};

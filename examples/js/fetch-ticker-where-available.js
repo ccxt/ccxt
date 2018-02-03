@@ -4,13 +4,13 @@ const ccxt      = require ('../../ccxt.js')
 const asTable   = require ('as-table')
 const log       = require ('ololog')
 
-require ('ansicolor').nice;
+require ('ansicolor').nice
 
 let printUsage = function () {
     log ('Usage: node', process.argv[1], 'symbol'.green)
-};
+}
 
-(async function main () {
+;(async function main () {
 
     if (process.argv.length > 2) {
 
@@ -21,7 +21,7 @@ let printUsage = function () {
             let id = ccxt.exchanges[i]
 
             const exchange = new ccxt[id] ()
-            if (exchange.hasPublicAPI) {
+            if (exchange.has.publicAPI) {
 
                 try {
 
