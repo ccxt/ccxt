@@ -210,6 +210,8 @@ module.exports = class okcoinusd extends Exchange {
         let request = {
             'symbol': market['id'],
         };
+        if (typeof limit !== 'undefined')
+            request['size'] = limit;
         if (market['future']) {
             method += 'Future';
             request['contract_type'] = 'this_week'; // next_week, quarter
