@@ -536,10 +536,10 @@ module.exports = class coinexchange extends Exchange {
 
     commonCurrencyCode (currency) {
         let substitutions = {
-            'HNC': 'Huncoin',
             'BON': 'BonPeKaO',
+            'ETN': 'Ethernex',
+            'HNC': 'Huncoin',
             'MARS': 'MarsBux',
-            'ETN': 'Ethernex'
         };
         if (currency in substitutions)
             return substitutions[currency];
