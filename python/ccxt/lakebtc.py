@@ -90,8 +90,10 @@ class lakebtc (Exchange):
         ids = list(balances.keys())
         for i in range(0, len(ids)):
             id = ids[i]
-            currency = self.currencies[id]
-            code = currency['code']
+            code = id
+            if id in self.currencies:
+                currency = self.currencies[id]
+                code = currency['code']
             balance = float(balances[id])
             account = {
                 'free': balance,
