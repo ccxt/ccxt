@@ -933,7 +933,7 @@ ccxt.cex().fetch_order_book('BTC/USD', limit)
 $exchange = '\\ccxt\\kraken';
 $exchange = new $exchange ();
 // up to ten orders on each side, for example
-$limit = 20
+$limit = 20;
 var_dump ($exchange->fetch_order_book ('BTC/USD', $limit));
 ```
 
