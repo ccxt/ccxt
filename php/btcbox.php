@@ -58,7 +58,7 @@ class btcbox extends Exchange {
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             $lowercase = strtolower ($currency);
-            if ($lowercase == 'dash')
+            if ($lowercase === 'dash')
                 $lowercase = 'drk';
             $account = $this->account ();
             $free = $lowercase . '_balance';
@@ -73,7 +73,7 @@ class btcbox extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array ();
@@ -193,7 +193,7 @@ class btcbox extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
-        if ($api == 'public') {
+        if ($api === 'public') {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {

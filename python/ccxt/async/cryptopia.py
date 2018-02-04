@@ -161,7 +161,7 @@ class cryptopia (Exchange):
             })
         return result
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         response = await self.publicGetGetMarketOrdersId(self.extend({
             'id': self.market_id(symbol),

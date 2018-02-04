@@ -103,7 +103,7 @@ class _1btcxe (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         response = self.publicGetOrderBook(self.extend({
             'currency': self.market_id(symbol),
         }, params))

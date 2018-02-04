@@ -92,15 +92,15 @@ class kuna (acx):
             },
         })
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         market = self.market(symbol)
         orderBook = self.publicGetOrderBook(self.extend({
             'market': market['id'],
         }, params))
         return self.parse_order_book(orderBook, None, 'bids', 'asks', 'price', 'remaining_volume')
 
-    def fetch_l3_order_book(self, symbol, params):
-        return self.fetch_order_book(symbol, params)
+    def fetch_l3_order_book(self, symbol, limit=None, params={}):
+        return self.fetch_order_book(symbol, limit, params)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:

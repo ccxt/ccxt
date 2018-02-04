@@ -193,7 +193,7 @@ class bitmex (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         orderbook = self.publicGetOrderBookL2(self.extend({
             'symbol': self.market_id(symbol),

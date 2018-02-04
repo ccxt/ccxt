@@ -227,7 +227,7 @@ class gatecoin extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $orderbook = $this->publicGetPublicMarketDepthCurrencyPair (array_merge (array (
@@ -295,7 +295,7 @@ class gatecoin extends Exchange {
         $side = null;
         $order = null;
         if (is_array ($trade) && array_key_exists ('way', $trade)) {
-            $side = ($trade['way'] == 'bid') ? 'buy' : 'sell';
+            $side = ($trade['way'] === 'bid') ? 'buy' : 'sell';
             $orderId = $trade['way'] . 'OrderId';
             $order = $trade[$orderId];
         }
@@ -354,10 +354,10 @@ class gatecoin extends Exchange {
         $this->load_markets();
         $order = array (
             'Code' => $this->market_id($symbol),
-            'Way' => ($side == 'buy') ? 'Bid' : 'Ask',
+            'Way' => ($side === 'buy') ? 'Bid' : 'Ask',
             'Amount' => $amount,
         );
-        if ($type == 'limit')
+        if ($type === 'limit')
             $order['Price'] = $price;
         if ($this->twofa) {
             if (is_array ($params) && array_key_exists ('ValidationCode', $params))
@@ -380,14 +380,14 @@ class gatecoin extends Exchange {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
-        if ($api == 'public') {
+        if ($api === 'public') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
             $this->check_required_credentials();
             $nonce = $this->nonce ();
             $nonceString = (string) $nonce;
-            $contentType = ($method == 'GET') ? '' : 'application/json';
+            $contentType = ($method === 'GET') ? '' : 'application/json';
             $auth = $method . $url . $contentType . $nonceString;
             $auth = strtolower ($auth);
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha256', 'base64');
@@ -396,7 +396,7 @@ class gatecoin extends Exchange {
                 'API_REQUEST_SIGNATURE' => $this->decode ($signature),
                 'API_REQUEST_DATE' => $nonceString,
             );
-            if ($method != 'GET') {
+            if ($method !== 'GET') {
                 $headers['Content-Type'] = $contentType;
                 $body = $this->json (array_merge (array ( 'nonce' => $nonce ), $params));
             }
@@ -408,7 +408,7 @@ class gatecoin extends Exchange {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if (is_array ($response) && array_key_exists ('responseStatus', $response))
             if (is_array ($response['responseStatus']) && array_key_exists ('message', $response['responseStatus']))
-                if ($response['responseStatus']['message'] == 'OK')
+                if ($response['responseStatus']['message'] === 'OK')
                     return $response;
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
     }

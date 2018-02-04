@@ -91,7 +91,7 @@ class kuna extends acx {
         ));
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $market = $this->market ($symbol);
         $orderBook = $this->publicGetOrderBook (array_merge (array (
             'market' => $market['id'],
@@ -99,8 +99,8 @@ class kuna extends acx {
         return $this->parse_order_book($orderBook, null, 'bids', 'asks', 'price', 'remaining_volume');
     }
 
-    public function fetch_l3_order_book ($symbol, $params) {
-        return $this->fetch_order_book($symbol, $params);
+    public function fetch_l3_order_book ($symbol, $limit = null, $params = array ()) {
+        return $this->fetch_order_book($symbol, $limit, $params);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {

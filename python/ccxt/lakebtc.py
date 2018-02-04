@@ -101,7 +101,7 @@ class lakebtc (Exchange):
             result[code] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         orderbook = self.publicGetBcorderbook(self.extend({
             'symbol': self.market_id(symbol),

@@ -94,7 +94,7 @@ class anxpro (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         response = await self.publicGetCurrencyPairMoneyDepthFull(self.extend({
             'currency_pair': self.market_id(symbol),
         }, params))

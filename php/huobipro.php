@@ -191,7 +191,7 @@ class huobipro extends Exchange {
         );
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->marketGetDepth (array_merge (array (

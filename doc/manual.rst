@@ -941,8 +941,8 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 
 -  ``fetchMarkets ()``: Fetches a list of all available markets from an exchange and returns an array of markets (objects with properties such as ``symbol``, ``base``, ``quote`` etc.). Some exchanges do not have means for obtaining a list of markets via their online API. For those, the list of markets is hardcoded.
 -  ``loadMarkets ([reload])``: Returns the list of markets as an object indexed by symbol and caches it with the exchange instance. Returns cached markets if loaded already, unless the ``reload = true`` flag is forced.
--  ``fetchOrderBook (symbol[, params])``: Fetch L2/L3 order book for a particular market trading symbol.
--  ``fetchL2OrderBook (symbol[, params])``: Level 2 (price-aggregated) order book for a particular symbol.
+-  ``fetchOrderBook (symbol[, limit = undefined[, params = {}]])``: Fetch L2/L3 order book for a particular market trading symbol.
+-  ``fetchL2OrderBook (symbol[, limit = undefined[, params]])``: Level 2 (price-aggregated) order book for a particular symbol.
 -  ``fetchTrades (symbol[, since[, [limit, [params]]]])``: Fetch recent trades for a particular trading symbol.
 -  ``fetchTicker (symbol)``: Fetch latest ticker data by trading symbol.
 -  ``fetchBalance ()``: Fetch Balance.
@@ -1033,7 +1033,7 @@ Exchanges may return the stack of orders in various levels of details for analys
 Market Depth
 ~~~~~~~~~~~~
 
-Some exchanges accept a second dictionary of extra parameters to the ``fetchOrderBook () / fetch_order_book ()`` function. **All extra ``params`` are exchange-specific (non-unified)**. You will need to consult exchanges docs if you want to override a particular param, like the depth of the order book (or the count of returned orders on both sides). You can get a limited count of returned orders or a desired level of aggregation (aka *market depth*) by specifying an exchange-specific extra ``param`` like so:
+Some exchanges accept a dictionary of extra parameters to the ``fetchOrderBook () / fetch_order_book ()`` function. **All extra ``params`` are exchange-specific (non-unified)**. You will need to consult exchanges docs if you want to override a particular param, like the depth of the order book. You can get a limited count of returned orders or a desired level of aggregation (aka *market depth*) by specifying an limit argument and exchange-specific extra ``params`` like so:
 
 .. code:: javascript
 
@@ -1042,9 +1042,9 @@ Some exchanges accept a second dictionary of extra parameters to the ``fetchOrde
     (async function test () {
         const ccxt = require ('ccxt')
         const exchange = new ccxt.bitfinex ()
-        const orders = await exchange.fetchOrderBook ('BTC/USD', {
-            'limit_bids': 5, // max = 50, bitfinex-specific!
-            'limit_asks': 5, // may be 0 in which case the array is empty
+        const limit = 5
+        const orders = await exchange.fetchOrderBook ('BTC/USD', limit, {
+            // this parameter is exchange-specific, all extra params have unique names per exchange
             'group': 1, // 1 = orders are grouped by price, 0 = orders are separate
         })
     }) ()
@@ -1055,7 +1055,8 @@ Some exchanges accept a second dictionary of extra parameters to the ``fetchOrde
 
     import ccxt
     # return up to ten bidasks on each side of the order book stack
-    ccxt.cex().fetch_order_book('BTC/USD', {'depth': 10})  # cex-specific!
+    limit = 10
+    ccxt.cex().fetch_order_book('BTC/USD', limit)
 
 .. code:: php
 
@@ -1064,9 +1065,9 @@ Some exchanges accept a second dictionary of extra parameters to the ``fetchOrde
     // instantiate the exchange by id
     $exchange = '\\ccxt\\kraken';
     $exchange = new $exchange ();
-    var_dump ($exchange->fetch_order_book ('BTC/USD', array (
-        'count' => 10, // up to ten orders on each side for example, kraken-specific
-    )));
+    // up to ten orders on each side, for example
+    $limit = 20
+    var_dump ($exchange->fetch_order_book ('BTC/USD', $limit));
 
 The levels of detail or levels of order book aggregation are often number-labelled like L1, L2, L3...
 
@@ -1074,7 +1075,7 @@ The levels of detail or levels of order book aggregation are often number-labell
 -  **L2**: most common level of aggregation where order volumes are grouped by price. If two orders have the same price, they appear as one single order for a volume equal to their total sum. This is most likely the level of aggregation you need for the majority of purposes.
 -  **L3**: most detailed level with no aggregation where each order is separate from other orders. This LOD naturally contains duplicates in the output. So, if two orders have equal prices they are **not** merged together and it's up to the exchange's matching engine to decide on their priority in the stack. You don't really need L3 detail for successful trading. In fact, you most probably don't need it at all. Therefore some exchanges don't support it and always return aggregated order books.
 
-If you want to get an L2 order book, whatever the exchange returns, use the ``fetchL2OrderBook(symbol, params)`` or ``fetch_l2_order_book(symbol, params)`` unified method for that.
+If you want to get an L2 order book, whatever the exchange returns, use the ``fetchL2OrderBook(symbol, limit, params)`` or ``fetch_l2_order_book(symbol, limit, params)`` unified method for that.
 
 Market Price
 ~~~~~~~~~~~~

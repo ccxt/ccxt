@@ -700,12 +700,14 @@ class hitbtc2 (hitbtc):
         response = await self.publicGetCandlesSymbol(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
-        orderbook = await self.publicGetOrderbookSymbol(self.extend({
+        request = {
             'symbol': self.market_id(symbol),
-            # 'limit': 100,  # default = 100, 0 = unlimited
-        }, params))
+        }
+        if limit is not None:
+            request['limit'] = limit  # default = 100, 0 = unlimited
+        orderbook = await self.publicGetOrderbookSymbol(self.extend(request, params))
         return self.parse_order_book(orderbook, None, 'bid', 'ask', 'price', 'size')
 
     def parse_ticker(self, ticker, market=None):
@@ -1048,6 +1050,8 @@ class hitbtc2 (hitbtc):
                         message = response['error']['message']
                         if message == 'Order not found':
                             raise OrderNotFound(self.id + ' order not found in active orders')
+                        elif message == 'Quantity not a valid number':
+                            raise InvalidOrder(self.id + ' ' + body)
                         elif message == 'Insufficient funds':
                             raise InsufficientFunds(self.id + ' ' + body)
                         elif message == 'Duplicate clientOrderId':

@@ -244,13 +244,15 @@ class livecoin (Exchange):
             'withdraw': 0.0,
         }
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
-        orderbook = self.publicGetExchangeOrderBook(self.extend({
+        request = {
             'currencyPair': self.market_id(symbol),
             'groupByPrice': 'false',
-            'depth': 100,
-        }, params))
+        }
+        if limit is not None:
+            request['depth'] = limit  # 100
+        orderbook = self.publicGetExchangeOrderBook(self.extend(request, params))
         timestamp = orderbook['timestamp']
         return self.parse_order_book(orderbook, timestamp)
 

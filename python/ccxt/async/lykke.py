@@ -286,7 +286,7 @@ class lykke (Exchange):
         }, params))
         return self.parse_orders(response, None, since, limit)
 
-    async def fetch_order_book(self, symbol=None, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         response = await self.publicGetOrderBooksAssetPairId(self.extend({
             'AssetPairId': self.market_id(symbol),

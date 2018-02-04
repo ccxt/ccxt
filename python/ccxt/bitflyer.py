@@ -130,7 +130,7 @@ class bitflyer (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         orderbook = self.publicGetGetboard(self.extend({
             'product_code': self.market_id(symbol),

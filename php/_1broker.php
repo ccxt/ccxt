@@ -94,7 +94,7 @@ class _1broker extends Exchange {
                 $symbol = null;
                 $base = null;
                 $quote = null;
-                if (($category == 'FOREX') || ($category == 'CRYPTO')) {
+                if (($category === 'FOREX') || ($category === 'CRYPTO')) {
                     $symbol = $market['name'];
                     $parts = explode ('/', $symbol);
                     $base = $parts[0];
@@ -136,7 +136,7 @@ class _1broker extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privateGetMarketQuotes (array_merge (array (
             'symbols' => $this->market_id($symbol),
@@ -222,11 +222,11 @@ class _1broker extends Exchange {
         $order = array (
             'symbol' => $this->market_id($symbol),
             'margin' => $amount,
-            'direction' => ($side == 'sell') ? 'short' : 'long',
+            'direction' => ($side === 'sell') ? 'short' : 'long',
             'leverage' => 1,
             'type' => $side,
         );
-        if ($type == 'limit')
+        if ($type === 'limit')
             $order['price'] = $price;
         else
             $order['type'] .= '_market';

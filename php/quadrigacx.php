@@ -92,7 +92,7 @@ class quadrigacx extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $orderbook = $this->publicGetOrderBook (array_merge (array (
             'book' => $this->market_id($symbol),
         ), $params));

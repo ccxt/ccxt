@@ -94,9 +94,9 @@ class bxinth extends Exchange {
 
     public function common_currency_code ($currency) {
         // why would they use three letters instead of four for $currency codes
-        if ($currency == 'DAS')
+        if ($currency === 'DAS')
             return 'DASH';
-        if ($currency == 'DOG')
+        if ($currency === 'DOG')
             return 'DOGE';
         return $currency;
     }
@@ -121,7 +121,7 @@ class bxinth extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $orderbook = $this->publicGetOrderbook (array_merge (array (
             'pairing' => $this->market_id($symbol),
@@ -236,7 +236,7 @@ class bxinth extends Exchange {
             $url .= $path . '/';
         if ($params)
             $url .= '?' . $this->urlencode ($params);
-        if ($api == 'private') {
+        if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = $this->nonce ();
             $auth = $this->apiKey . (string) $nonce . $this->secret;
@@ -256,7 +256,7 @@ class bxinth extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if ($api == 'public')
+        if ($api === 'public')
             return $response;
         if (is_array ($response) && array_key_exists ('success', $response))
             if ($response['success'])

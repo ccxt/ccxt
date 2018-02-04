@@ -84,7 +84,7 @@ class bit2c extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $orderbook = $this->publicGetExchangesPairOrderbook (array_merge (array (
             'pair' => $this->market_id($symbol),
         ), $params));

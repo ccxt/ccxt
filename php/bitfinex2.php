@@ -195,7 +195,7 @@ class bitfinex2 extends bitfinex {
                 'RCN/ETH' => array ( 'id' => 'tRCNETH', 'symbol' => 'RCN/ETH', 'base' => 'RCN', 'quote' => 'ETH', 'baseId' => 'tRCN', 'quoteId' => 'zETH' ),
                 'FUN/USD' => array ( 'id' => 'tFUNUSD', 'symbol' => 'FUN/USD', 'base' => 'FUN', 'quote' => 'USD', 'baseId' => 'tFUN', 'quoteId' => 'zUSD' ),
                 'FUN/BTC' => array ( 'id' => 'tFUNBTC', 'symbol' => 'FUN/BTC', 'base' => 'FUN', 'quote' => 'BTC', 'baseId' => 'tFUN', 'quoteId' => 'zBTC' ),
-                'FUN/ETH' => array ( 'id' => 'tFUNETH', 'symbol' => 'FUN/ETH', 'base' => 'FUN', 'quote' => 'ETH', 'baseId' => 'tFUN', 'quoteId' => 'zETH '),
+                'FUN/ETH' => array ( 'id' => 'tFUNETH', 'symbol' => 'FUN/ETH', 'base' => 'FUN', 'quote' => 'ETH', 'baseId' => 'tFUN', 'quoteId' => 'zETH' ),
                 'MNA/USD' => array ( 'id' => 'tMNAUSD', 'symbol' => 'MNA/USD', 'base' => 'MNA', 'quote' => 'USD', 'baseId' => 'tMNA', 'quoteId' => 'zUSD' ),
                 'MNA/BTC' => array ( 'id' => 'tMNABTC', 'symbol' => 'MNA/BTC', 'base' => 'MNA', 'quote' => 'BTC', 'baseId' => 'tMNA', 'quoteId' => 'zBTC' ),
                 'MNA/ETH' => array ( 'id' => 'tMNAETH', 'symbol' => 'MNA/ETH', 'base' => 'MNA', 'quote' => 'ETH', 'baseId' => 'tMNA', 'quoteId' => 'zETH' ),
@@ -293,7 +293,7 @@ class bitfinex2 extends bitfinex {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $orderbook = $this->publicGetBookSymbolPrecision (array_merge (array (
             'symbol' => $this->market_id($symbol),
             'precision' => 'R0',

@@ -703,12 +703,14 @@ class hitbtc2 extends hitbtc {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $orderbook = $this->publicGetOrderbookSymbol (array_merge (array (
+        $request = array (
             'symbol' => $this->market_id($symbol),
-            // 'limit' => 100, // default = 100, 0 = unlimited
-        ), $params));
+        );
+        if ($limit !== null)
+            $request['limit'] = $limit; // default = 100, 0 = unlimited
+        $orderbook = $this->publicGetOrderbookSymbol (array_merge ($request, $params));
         return $this->parse_order_book($orderbook, null, 'bid', 'ask', 'price', 'size');
     }
 
@@ -1085,6 +1087,8 @@ class hitbtc2 extends hitbtc {
                         $message = $response['error']['message'];
                         if ($message === 'Order not found') {
                             throw new OrderNotFound ($this->id . ' order not found in active orders');
+                        } else if ($message === 'Quantity not a valid number') {
+                            throw new InvalidOrder ($this->id . ' ' . $body);
                         } else if ($message === 'Insufficient funds') {
                             throw new InsufficientFunds ($this->id . ' ' . $body);
                         } else if ($message === 'Duplicate clientOrderId') {

@@ -92,7 +92,7 @@ class bl3p (Exchange):
             bidask['amount_int'] / 100000000.0,
         ]
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         market = self.market(symbol)
         response = self.publicGetMarketOrderbook(self.extend({
             'market': market['id'],

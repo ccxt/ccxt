@@ -82,7 +82,7 @@ class bit2c (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         orderbook = await self.publicGetExchangesPairOrderbook(self.extend({
             'pair': self.market_id(symbol),
         }, params))

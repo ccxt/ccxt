@@ -91,7 +91,7 @@ class paymium (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         orderbook = self.publicGetDataIdDepth(self.extend({
             'id': self.market_id(symbol),
         }, params))
