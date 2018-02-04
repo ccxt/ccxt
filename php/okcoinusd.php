@@ -209,6 +209,8 @@ class okcoinusd extends Exchange {
         $request = array (
             'symbol' => $market['id'],
         );
+        if ($limit !== null)
+            $request['size'] = $limit;
         if ($market['future']) {
             $method .= 'Future';
             $request['contract_type'] = 'this_week'; // next_week, quarter
