@@ -83,6 +83,7 @@ class cryptopia (Exchange):
     def common_currency_code(self, currency):
         currencies = {
             'ACC': 'AdCoin',
+            'BAT': 'BatCoin',
             'CC': 'CCX',
             'CMT': 'Comet',
             'FCN': 'Facilecoin',
@@ -99,6 +100,7 @@ class cryptopia (Exchange):
     def currency_id(self, currency):
         currencies = {
             'AdCoin': 'ACC',
+            'BatCoin': 'BAT',
             'CCX': 'CC',
             'Comet': 'CMT',
             'Cubits': 'QBT',
