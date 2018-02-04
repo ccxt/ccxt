@@ -266,7 +266,6 @@ declare module 'ccxt' {
         fetchTicker (symbol: string, params?: { [x: string]: any }): Promise<Ticker>;
         fetchTickers (symbols?: string[], params?: { [x: string]: any }): Promise<{ [x: string]: Ticker }>;
         fetchMarkets (): Promise<Market[]>;
-        fetchOrderBook (symbol: string): Promise<OrderBook>;
         fetchOrderStatus (id: string, market: string): Promise<string>;
         encode (str: string): string;
         decode (str: string): string;
