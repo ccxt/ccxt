@@ -283,7 +283,7 @@ declare module 'ccxt' {
         fetchTicker (market: string): Promise<Ticker>;
         fetchTickers (): Promise<Tickers>;
         fetchTrades (symbol: string, params?: {}): Promise<Trade[]>;
-        fetchOHLCV? (symbol: string, params?: {}): Promise<OHLCV[]>;
+        fetchOHLCV? (symbol: string, timeframe: string, since: number = undefined, limit: number = undefined, params: any = {}): Promise<OHLCV[]>;
         fetchOrders (symbol?: string, params?: {}): Promise<Order[]>;
         fetchOpenOrders (symbol?: string, params?: {}): Promise<Order[]>;
         cancelOrder (id: string): Promise<any>;

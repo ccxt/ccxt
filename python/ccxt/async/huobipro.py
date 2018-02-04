@@ -329,7 +329,7 @@ class huobipro (Exchange):
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         open = 0  # 0 for unfilled orders, 1 for filled orders
-        return self.fetch_orders(symbol, None, None, self.extend({
+        return await self.fetch_orders(symbol, None, None, self.extend({
             'status': open,
         }, params))
 

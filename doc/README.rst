@@ -1,7 +1,7 @@
 CCXT – CryptoCurrency eXchange Trading Library
 ==============================================
 
-|Build Status| |npm| |PyPI| |NPM Downloads| |Gitter| |Supported Exchanges|
+|Build Status| |npm| |PyPI| |NPM Downloads| |NSP Status| |Gitter| |Supported Exchanges|
 
 A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
 
@@ -528,6 +528,8 @@ Thank you!
    :target: https://pypi.python.org/pypi/ccxt
 .. |NPM Downloads| image:: https://img.shields.io/npm/dm/ccxt.svg
    :target: https://www.npmjs.com/package/ccxt
+.. |NSP Status| image:: https://nodesecurity.io/orgs/ccxt/projects/856d3088-8b46-4515-9324-6b7cd2470522/badge
+   :target: https://nodesecurity.io/orgs/ccxt/projects/856d3088-8b46-4515-9324-6b7cd2470522
 .. |Gitter| image:: https://badges.gitter.im/ccxt-dev/ccxt.svg
    :target: https://gitter.im/ccxt-dev/ccxt?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge
 .. |Supported Exchanges| image:: https://img.shields.io/badge/exchanges-98-blue.svg

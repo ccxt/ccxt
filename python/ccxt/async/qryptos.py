@@ -354,7 +354,7 @@ class qryptos (Exchange):
     def handle_errors(self, code, reason, url, method, headers, body, response=None):
         if code >= 200 and code <= 299:
             return
-        messages = self.exceptions.messages
+        messages = self.exceptions['messages']
         if code == 401:
             # expected non-json response
             if body in messages:
