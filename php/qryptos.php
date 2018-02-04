@@ -377,7 +377,7 @@ class qryptos extends Exchange {
     public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
         if ($code >= 200 && $code <= 299)
             return;
-        $messages = $this->exceptions.messages;
+        $messages = $this->exceptions['messages'];
         if ($code === 401) {
             // expected non-json $response
             if (is_array ($messages) && array_key_exists ($body, $messages))
