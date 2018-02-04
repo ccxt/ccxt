@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -8,7 +8,6 @@ const { ExchangeError, AuthenticationError } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class gatecoin extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'gatecoin',
@@ -229,7 +228,7 @@ module.exports = class gatecoin extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let orderbook = await this.publicGetPublicMarketDepthCurrencyPair (this.extend ({
@@ -297,7 +296,7 @@ module.exports = class gatecoin extends Exchange {
         let side = undefined;
         let order = undefined;
         if ('way' in trade) {
-            side = (trade['way'] == 'bid') ? 'buy' : 'sell';
+            side = (trade['way'] === 'bid') ? 'buy' : 'sell';
             let orderId = trade['way'] + 'OrderId';
             order = trade[orderId];
         }
@@ -356,10 +355,10 @@ module.exports = class gatecoin extends Exchange {
         await this.loadMarkets ();
         let order = {
             'Code': this.marketId (symbol),
-            'Way': (side == 'buy') ? 'Bid' : 'Ask',
+            'Way': (side === 'buy') ? 'Bid' : 'Ask',
             'Amount': amount,
         };
-        if (type == 'limit')
+        if (type === 'limit')
             order['Price'] = price;
         if (this.twofa) {
             if ('ValidationCode' in params)
@@ -382,14 +381,14 @@ module.exports = class gatecoin extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             let nonceString = nonce.toString ();
-            let contentType = (method == 'GET') ? '' : 'application/json';
+            let contentType = (method === 'GET') ? '' : 'application/json';
             let auth = method + url + contentType + nonceString;
             auth = auth.toLowerCase ();
             let signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
@@ -398,7 +397,7 @@ module.exports = class gatecoin extends Exchange {
                 'API_REQUEST_SIGNATURE': this.decode (signature),
                 'API_REQUEST_DATE': nonceString,
             };
-            if (method != 'GET') {
+            if (method !== 'GET') {
                 headers['Content-Type'] = contentType;
                 body = this.json (this.extend ({ 'nonce': nonce }, params));
             }
@@ -410,8 +409,8 @@ module.exports = class gatecoin extends Exchange {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('responseStatus' in response)
             if ('message' in response['responseStatus'])
-                if (response['responseStatus']['message'] == 'OK')
+                if (response['responseStatus']['message'] === 'OK')
                     return response;
         throw new ExchangeError (this.id + ' ' + this.json (response));
     }
-}
+};

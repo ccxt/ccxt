@@ -8,7 +8,6 @@ const { ExchangeError, AuthenticationError, DDoSProtection } = require ('./base/
 //  ---------------------------------------------------------------------------
 
 module.exports = class bibox extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bibox',
@@ -43,7 +42,7 @@ module.exports = class bibox extends Exchange {
                 'www': 'https://www.bibox.com',
                 'doc': [
                     'https://github.com/Biboxcom/api_reference/wiki/home_en',
-                    'https://github.com/Biboxcom/api_reference/wiki/api_reference'
+                    'https://github.com/Biboxcom/api_reference/wiki/api_reference',
                 ],
                 'fees': 'https://bibox.zendesk.com/hc/en-us/articles/115004417013-Fee-Structure-on-Bibox',
             },
@@ -213,12 +212,13 @@ module.exports = class bibox extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let size = (limit) ? limit : 200;
-        let response = await this.publicGetMdata (this.extend ({
+        let request = {
             'cmd': 'depth',
             'pair': market['id'],
-            'size': size,
-        }, params));
+        };
+        if (typeof limit !== 'undefined')
+            request['size'] = limit; // default = 200 ?
+        let response = await this.publicGetMdata (this.extend (request, params));
         return this.parseOrderBook (response['result'], this.safeFloat (response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume');
     }
 
@@ -526,4 +526,4 @@ module.exports = class bibox extends Exchange {
             return response['result'][0];
         }
     }
-}
+};

@@ -8,7 +8,6 @@ const { ExchangeError, InvalidOrder } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class cex extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'cex',
@@ -176,7 +175,7 @@ module.exports = class cex extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetOrderBookPair (this.extend ({
             'pair': this.marketId (symbol),

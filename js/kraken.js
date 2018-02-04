@@ -372,16 +372,18 @@ module.exports = class kraken extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let darkpool = symbol.indexOf ('.d') >= 0;
         if (darkpool)
             throw new ExchangeError (this.id + ' does not provide an order book for darkpool symbol ' + symbol);
         let market = this.market (symbol);
-        let response = await this.publicGetDepth (this.extend ({
+        let request = {
             'pair': market['id'],
-            // 'count': 100,
-        }, params));
+        };
+        if (typeof limit !== 'undefined')
+            request['count'] = limit; // 100
+        let response = await this.publicGetDepth (this.extend (request, params));
         let orderbook = response['result'][market['id']];
         return this.parseOrderBook (orderbook);
     }

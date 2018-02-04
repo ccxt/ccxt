@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 // ---------------------------------------------------------------------------
 
@@ -7,7 +7,6 @@ const Exchange = require ('./base/Exchange');
 // ---------------------------------------------------------------------------
 
 module.exports = class bl3p extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bl3p',
@@ -100,7 +99,7 @@ module.exports = class bl3p extends Exchange {
         ];
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let market = this.market (symbol);
         let response = await this.publicGetMarketOrderbook (this.extend ({
             'market': market['id'],
@@ -165,9 +164,9 @@ module.exports = class bl3p extends Exchange {
             'market': market['id'],
             'amount_int': parseInt (amount * 100000000),
             'fee_currency': market['quote'],
-            'type': (side == 'buy') ? 'bid' : 'ask',
+            'type': (side === 'buy') ? 'bid' : 'ask',
         };
-        if (type == 'limit')
+        if (type === 'limit')
             order['price_int'] = parseInt (price * 100000.0);
         let response = await this.privatePostMarketMoneyOrderAdd (this.extend (order, params));
         return {
@@ -184,7 +183,7 @@ module.exports = class bl3p extends Exchange {
         let request = this.implodeParams (path, params);
         let url = this.urls['api'] + '/' + this.version + '/' + request;
         let query = this.omit (params, this.extractParams (path));
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
@@ -202,4 +201,4 @@ module.exports = class bl3p extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-}
+};

@@ -665,7 +665,7 @@ module.exports = class coinexchange extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetGetorderbook (this.extend ({
             'market_id': this.marketId (symbol),

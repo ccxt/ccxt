@@ -8,7 +8,6 @@ const { AuthenticationError, ExchangeError } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class bitstamp extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitstamp',
@@ -191,7 +190,7 @@ module.exports = class bitstamp extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetOrderBookPair (this.extend ({
             'pair': this.marketId (symbol),
@@ -447,4 +446,4 @@ module.exports = class bitstamp extends Exchange {
             }
         }
     }
-}
+};

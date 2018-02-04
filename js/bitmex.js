@@ -8,7 +8,6 @@ const { ExchangeError, DDoSProtection } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class bitmex extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitmex',
@@ -198,7 +197,7 @@ module.exports = class bitmex extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetOrderBookL2 (this.extend ({
             'symbol': this.marketId (symbol),
@@ -431,4 +430,4 @@ module.exports = class bitmex extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-}
+};

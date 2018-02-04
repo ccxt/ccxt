@@ -8,7 +8,6 @@ const { InsufficientFunds, ExchangeError, InvalidOrder, AuthenticationError, Not
 // ----------------------------------------------------------------------------
 
 module.exports = class gdax extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'gdax',
@@ -200,7 +199,7 @@ module.exports = class gdax extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetProductsIdBook (this.extend ({
             'id': this.marketId (symbol),
@@ -605,4 +604,4 @@ module.exports = class gdax extends Exchange {
         }
         return response;
     }
-}
+};

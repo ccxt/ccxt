@@ -137,7 +137,7 @@ module.exports = class bitflyer extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetGetboard (this.extend ({
             'product_code': this.marketId (symbol),

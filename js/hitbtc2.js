@@ -704,12 +704,14 @@ module.exports = class hitbtc2 extends hitbtc {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let orderbook = await this.publicGetOrderbookSymbol (this.extend ({
+        let request = {
             'symbol': this.marketId (symbol),
-            // 'limit': 100, // default = 100, 0 = unlimited
-        }, params));
+        };
+        if (typeof limit !== 'undefined')
+            request['limit'] = limit; // default = 100, 0 = unlimited
+        let orderbook = await this.publicGetOrderbookSymbol (this.extend (request, params));
         return this.parseOrderBook (orderbook, undefined, 'bid', 'ask', 'price', 'size');
     }
 
@@ -1086,6 +1088,8 @@ module.exports = class hitbtc2 extends hitbtc {
                         let message = response['error']['message'];
                         if (message === 'Order not found') {
                             throw new OrderNotFound (this.id + ' order not found in active orders');
+                        } else if (message === 'Quantity not a valid number') {
+                            throw new InvalidOrder (this.id + ' ' + body);
                         } else if (message === 'Insufficient funds') {
                             throw new InsufficientFunds (this.id + ' ' + body);
                         } else if (message === 'Duplicate clientOrderId') {
