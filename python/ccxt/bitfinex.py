@@ -722,10 +722,10 @@ class bitfinex (Exchange):
                     message = response['error']
                 else:
                     raise ExchangeError(feedback)  # malformed(to our knowledge) response
-                exact = self.exceptions.exact
+                exact = self.exceptions['exact']
                 if message in exact:
                     raise exact[message](feedback)
-                broad = self.exceptions.broad
+                broad = self.exceptions['broad']
                 broadKey = self.find_broadly_matched_key(broad, message)
                 if broadKey is not None:
                     raise broad[broadKey](feedback)
