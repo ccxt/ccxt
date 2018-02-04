@@ -253,12 +253,14 @@ class cobinhood extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->publicGetMarketOrderbooksTradingPairId (array_merge (array (
+        $request = array (
             'trading_pair_id' => $this->market_id($symbol),
-            'limit' => 100,
-        ), $params));
+        );
+        if ($limit !== null)
+            $request['limit'] = $limit; // 100
+        $response = $this->publicGetMarketOrderbooksTradingPairId (array_merge ($request, $params));
         return $this->parse_order_book($response['result']['orderbook']);
     }
 

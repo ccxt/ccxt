@@ -434,13 +434,15 @@ class binance (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        orderbook = await self.publicGetDepth(self.extend({
+        request = {
             'symbol': market['id'],
-            'limit': 100,  # default = maximum = 100
-        }, params))
+        }
+        if limit is not None:
+            request['limit'] = limit  # default = maximum = 100
+        orderbook = await self.publicGetDepth(self.extend(request, params))
         return self.parse_order_book(orderbook)
 
     def parse_ticker(self, ticker, market=None):

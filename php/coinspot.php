@@ -79,7 +79,7 @@ class coinspot extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $market = $this->market ($symbol);
         $orderbook = $this->privatePostOrders (array_merge (array (
             'cointype' => $market['id'],
@@ -126,7 +126,7 @@ class coinspot extends Exchange {
 
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $method = 'privatePostMy' . $this->capitalize ($side);
-        if ($type == 'market')
+        if ($type === 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
         $order = array (
             'cointype' => $this->market_id($market),

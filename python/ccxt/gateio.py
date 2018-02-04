@@ -133,7 +133,7 @@ class gateio (Exchange):
             result[code] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         orderbook = self.publicGetOrderBookId(self.extend({
             'id': self.market_id(symbol),

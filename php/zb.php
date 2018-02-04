@@ -184,7 +184,7 @@ class zb extends Exchange {
         return 'market';
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $marketFieldName = $this->get_market_field_name ();

@@ -207,7 +207,7 @@ class bitlish (Exchange):
             'time_range': interval,
         }, params))
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         orderbook = self.publicGetTradesDepth(self.extend({
             'pair_id': self.market_id(symbol),

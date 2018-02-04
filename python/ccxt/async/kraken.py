@@ -375,16 +375,18 @@ class kraken (Exchange):
             }
         return result
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         darkpool = symbol.find('.d') >= 0
         if darkpool:
             raise ExchangeError(self.id + ' does not provide an order book for darkpool symbol ' + symbol)
         market = self.market(symbol)
-        response = await self.publicGetDepth(self.extend({
+        request = {
             'pair': market['id'],
-            # 'count': 100,
-        }, params))
+        }
+        if limit is not None:
+            request['count'] = limit  # 100
+        response = await self.publicGetDepth(self.extend(request, params))
         orderbook = response['result'][market['id']]
         return self.parse_order_book(orderbook)
 

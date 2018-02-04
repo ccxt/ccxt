@@ -135,13 +135,15 @@ class acx (Exchange):
             result[uppercase] = account
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        orderbook = await self.publicGetDepth(self.extend({
+        request = {
             'market': market['id'],
-            'limit': 300,
-        }, params))
+        }
+        if limit is None:
+            request['limit'] = limit  # default = 300
+        orderbook = await self.publicGetDepth(self.extend(request, params))
         timestamp = orderbook['timestamp'] * 1000
         result = self.parse_order_book(orderbook, timestamp)
         result['bids'] = self.sort_by(result['bids'], 0, True)

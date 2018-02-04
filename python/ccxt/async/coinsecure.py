@@ -192,7 +192,7 @@ class coinsecure (Exchange):
         }
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         bids = await self.publicGetExchangeBidOrders(params)
         asks = await self.publicGetExchangeAskOrders(params)
         orderbook = {
@@ -276,9 +276,9 @@ class coinsecure (Exchange):
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
+        # method = 'privateDeleteUserExchangeAskCancelOrderId'  # TODO fixme, have to specify order side here
+        # return await getattr(self, method)({'orderID': id})
         raise ExchangeError(self.id + ' cancelOrder() is not fully implemented yet')
-        method = 'privateDeleteUserExchangeAskCancelOrderId'  # TODO fixme, have to specify order side here
-        return await getattr(self, method)({'orderID': id})
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)

@@ -245,12 +245,14 @@ class cobinhood (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
-        response = await self.publicGetMarketOrderbooksTradingPairId(self.extend({
+        request = {
             'trading_pair_id': self.market_id(symbol),
-            'limit': 100,
-        }, params))
+        }
+        if limit is not None:
+            request['limit'] = limit  # 100
+        response = await self.publicGetMarketOrderbooksTradingPairId(self.extend(request, params))
         return self.parse_order_book(response['result']['orderbook'])
 
     def parse_trade(self, trade, market=None):

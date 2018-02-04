@@ -25,7 +25,7 @@ class btcchina extends Exchange {
                     'private' => 'https://api.btcchina.com/api_trade_v1.php',
                 ),
                 'www' => 'https://www.btcchina.com',
-                'doc' => 'https://www.btcchina.com/apidocs'
+                'doc' => 'https://www.btcchina.com/apidocs',
             ),
             'api' => array (
                 'plus' => array (
@@ -139,7 +139,7 @@ class btcchina extends Exchange {
         return $request;
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $method = $market['api'] . 'GetOrderbook';
@@ -276,7 +276,7 @@ class btcchina extends Exchange {
         $method = 'privatePost' . $this->capitalize ($side) . 'Order2';
         $order = array ();
         $id = strtoupper ($market['id']);
-        if ($type == 'market') {
+        if ($type === 'market') {
             $order['params'] = array ( null, $amount, $id );
         } else {
             $order['params'] = array ( $price, $amount, $id );
@@ -302,7 +302,7 @@ class btcchina extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api] . '/' . $path;
-        if ($api == 'private') {
+        if ($api === 'private') {
             $this->check_required_credentials();
             $p = array ();
             if (is_array ($params) && array_key_exists ('params', $params))

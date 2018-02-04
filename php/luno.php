@@ -118,7 +118,7 @@ class luno extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $orderbook = $this->publicGetOrderbook (array_merge (array (
             'pair' => $this->market_id($symbol),
@@ -129,8 +129,8 @@ class luno extends Exchange {
 
     public function parse_order ($order, $market = null) {
         $timestamp = $order['creation_timestamp'];
-        $status = ($order['state'] == 'PENDING') ? 'open' : 'closed';
-        $side = ($order['type'] == 'ASK') ? 'sell' : 'buy';
+        $status = ($order['state'] === 'PENDING') ? 'open' : 'closed';
+        $side = ($order['type'] === 'ASK') ? 'sell' : 'buy';
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
@@ -253,10 +253,10 @@ class luno extends Exchange {
         $this->load_markets();
         $method = 'privatePost';
         $order = array ( 'pair' => $this->market_id($market) );
-        if ($type == 'market') {
+        if ($type === 'market') {
             $method .= 'Marketorder';
             $order['type'] = strtoupper ($side);
-            if ($side == 'buy')
+            if ($side === 'buy')
                 $order['counter_volume'] = $amount;
             else
                 $order['base_volume'] = $amount;
@@ -264,7 +264,7 @@ class luno extends Exchange {
             $method .= 'Order';
             $order['volume'] = $amount;
             $order['price'] = $price;
-            if ($side == 'buy')
+            if ($side === 'buy')
                 $order['type'] = 'BID';
             else
                 $order['type'] = 'ASK';
@@ -286,7 +286,7 @@ class luno extends Exchange {
         $query = $this->omit ($params, $this->extract_params($path));
         if ($query)
             $url .= '?' . $this->urlencode ($query);
-        if ($api == 'private') {
+        if ($api === 'private') {
             $this->check_required_credentials();
             $auth = $this->encode ($this->apiKey . ':' . $this->secret);
             $auth = base64_encode ($auth);

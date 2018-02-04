@@ -656,7 +656,7 @@ class coinexchange (Exchange):
             result[symbol] = ticker
         return result
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         orderbook = self.publicGetGetorderbook(self.extend({
             'market_id': self.market_id(symbol),

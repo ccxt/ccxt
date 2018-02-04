@@ -240,12 +240,14 @@ class poloniex (Exchange):
             'deposit': {},
         }
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
-        orderbook = await self.publicGetReturnOrderBook(self.extend({
+        request = {
             'currencyPair': self.market_id(symbol),
-            # 'depth': 100,
-        }, params))
+        }
+        if limit is not None:
+            request['depth'] = limit  # 100
+        orderbook = await self.publicGetReturnOrderBook(self.extend(request, params))
         return self.parse_order_book(orderbook)
 
     def parse_ticker(self, ticker, market=None):

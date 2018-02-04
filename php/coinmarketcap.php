@@ -78,7 +78,7 @@ class coinmarketcap extends Exchange {
         ));
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         throw new ExchangeError ('Fetching order books is not supported by the API of ' . $this->id);
     }
 

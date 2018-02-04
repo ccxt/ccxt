@@ -67,11 +67,13 @@ class btcx (Exchange):
             result[uppercase] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, params={}):
-        orderbook = self.publicGetDepthIdLimit(self.extend({
+    def fetch_order_book(self, symbol, limit=None, params={}):
+        request = {
             'id': self.market_id(symbol),
-            'limit': 1000,
-        }, params))
+        }
+        if limit is not None:
+            request['limit'] = limit  # 1000
+        orderbook = self.publicGetDepthIdLimit(self.extend(request, params))
         return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'amount')
 
     def fetch_ticker(self, symbol, params={}):

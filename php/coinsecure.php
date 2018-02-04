@@ -191,7 +191,7 @@ class coinsecure extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $bids = $this->publicGetExchangeBidOrders ($params);
         $asks = $this->publicGetExchangeAskOrders ($params);
         $orderbook = array (
@@ -206,7 +206,7 @@ class coinsecure extends Exchange {
         $ticker = $response['message'];
         $timestamp = $ticker['timestamp'];
         $baseVolume = floatval ($ticker['coinvolume']);
-        if ($symbol == 'BTC/INR') {
+        if ($symbol === 'BTC/INR') {
             $satoshi = 0.00000001;
             $baseVolume = $baseVolume * $satoshi;
         }
@@ -236,7 +236,7 @@ class coinsecure extends Exchange {
 
     public function parse_trade ($trade, $symbol = null) {
         $timestamp = $trade['time'];
-        $side = ($trade['ordType'] == 'bid') ? 'buy' : 'sell';
+        $side = ($trade['ordType'] === 'bid') ? 'buy' : 'sell';
         return array (
             'id' => null,
             'timestamp' => $timestamp,
@@ -263,14 +263,14 @@ class coinsecure extends Exchange {
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
         $method = 'privatePutUserExchange';
         $order = array ();
-        if ($type == 'market') {
+        if ($type === 'market') {
             $method .= 'Instant' . $this->capitalize ($side);
-            if ($side == 'buy')
+            if ($side === 'buy')
                 $order['maxFiat'] = $amount;
             else
                 $order['maxVol'] = $amount;
         } else {
-            $direction = ($side == 'buy') ? 'Bid' : 'Ask';
+            $direction = ($side === 'buy') ? 'Bid' : 'Ask';
             $method .= $direction . 'New';
             $order['rate'] = $price;
             $order['vol'] = $amount;
@@ -283,15 +283,15 @@ class coinsecure extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
+        // $method = 'privateDeleteUserExchangeAskCancelOrderId'; // TODO fixme, have to specify order side here
+        // return $this->$method (array ( 'orderID' => $id ));
         throw new ExchangeError ($this->id . ' cancelOrder () is not fully implemented yet');
-        $method = 'privateDeleteUserExchangeAskCancelOrderId'; // TODO fixme, have to specify order side here
-        return $this->$method (array ( 'orderID' => $id ));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
-        if ($api == 'private') {
+        if ($api === 'private') {
             $this->check_required_credentials();
             $headers = array ( 'Authorization' => $this->apiKey );
             if ($query) {
@@ -303,8 +303,8 @@ class coinsecure extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
-        if ($code == 200) {
-            if (($body[0] == '{') || ($body[0] == '[')) {
+        if ($code === 200) {
+            if (($body[0] === '{') || ($body[0] === '[')) {
                 $response = json_decode ($body, $as_associative_array = true);
                 if (is_array ($response) && array_key_exists ('success', $response)) {
                     $success = $response['success'];

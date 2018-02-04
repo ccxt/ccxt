@@ -73,7 +73,7 @@ class mercado (Exchange):
             },
         })
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         market = self.market(symbol)
         orderbook = await self.publicGetCoinOrderbook(self.extend({
             'coin': market['base'],

@@ -72,7 +72,7 @@ class mixcoins extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $response = $this->publicGetDepth (array_merge (array (
             'market' => $this->market_id($symbol),
         ), $params));

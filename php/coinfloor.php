@@ -77,7 +77,7 @@ class coinfloor extends Exchange {
         ));
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $orderbook = $this->publicGetIdOrderBook (array_merge (array (
             'id' => $this->market_id($symbol),
         ), $params));
@@ -153,7 +153,7 @@ class coinfloor extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $order = array ( 'id' => $this->market_id($symbol) );
         $method = 'privatePostId' . $this->capitalize ($side);
-        if ($type == 'market') {
+        if ($type === 'market') {
             $order['quantity'] = $amount;
             $method .= 'Market';
         } else {
@@ -171,7 +171,7 @@ class coinfloor extends Exchange {
         // curl -k -u '[User ID]/[API key]:[Passphrase]' https://webapi.coinfloor.co.uk:8090/bist/XBT/GBP/balance/
         $url = $this->urls['api'] . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
-        if ($api == 'public') {
+        if ($api === 'public') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {

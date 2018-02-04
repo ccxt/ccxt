@@ -190,7 +190,7 @@ class zb (Exchange):
     def get_market_field_name(self):
         return 'market'
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         marketFieldName = self.get_market_field_name()

@@ -371,16 +371,18 @@ class kraken extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $darkpool = mb_strpos ($symbol, '.d') !== false;
         if ($darkpool)
             throw new ExchangeError ($this->id . ' does not provide an order book for $darkpool $symbol ' . $symbol);
         $market = $this->market ($symbol);
-        $response = $this->publicGetDepth (array_merge (array (
+        $request = array (
             'pair' => $market['id'],
-            // 'count' => 100,
-        ), $params));
+        );
+        if ($limit !== null)
+            $request['count'] = $limit; // 100
+        $response = $this->publicGetDepth (array_merge ($request, $params));
         $orderbook = $response['result'][$market['id']];
         return $this->parse_order_book($orderbook);
     }

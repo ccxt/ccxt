@@ -105,7 +105,7 @@ class btctradeua extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $market = $this->market ($symbol);
         $bids = $this->publicGetTradesBuySymbol (array_merge (array (
             'symbol' => $market['id'],

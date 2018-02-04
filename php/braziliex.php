@@ -236,7 +236,7 @@ class braziliex extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $orderbook = $this->publicGetOrderbookMarket (array_merge (array (
             'market' => $this->market_id($symbol),

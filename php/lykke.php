@@ -303,7 +303,7 @@ class lykke extends Exchange {
         return $this->parse_orders($response, null, $since, $limit);
     }
 
-    public function fetch_order_book ($symbol = null, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetOrderBooksAssetPairId (array_merge (array (
             'AssetPairId' => $this->market_id($symbol),

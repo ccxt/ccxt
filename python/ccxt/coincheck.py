@@ -113,7 +113,7 @@ class coincheck (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         if symbol != 'BTC/JPY':
             raise NotSupported(self.id + ' fetchOrderBook() supports BTC/JPY only')
         orderbook = self.publicGetOrderBooks(params)

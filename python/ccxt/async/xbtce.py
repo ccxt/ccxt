@@ -149,7 +149,7 @@ class xbtce (Exchange):
             result[uppercase] = account
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         orderbook = await self.privateGetLevel2Filter(self.extend({

@@ -664,7 +664,7 @@ class coinexchange extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $orderbook = $this->publicGetGetorderbook (array_merge (array (
             'market_id' => $this->market_id($symbol),

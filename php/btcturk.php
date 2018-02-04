@@ -77,7 +77,7 @@ class btcturk extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $market = $this->market ($symbol);
         $orderbook = $this->publicGetOrderbook (array_merge (array (
             'pairSymbol' => $market['id'],

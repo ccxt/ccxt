@@ -69,7 +69,7 @@ class foxbit extends Exchange {
         ));
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $market = $this->market ($symbol);
         $orderbook = $this->publicGetCurrencyOrderbook (array_merge (array (
             'currency' => $market['quote'],
