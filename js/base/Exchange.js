@@ -365,7 +365,7 @@ module.exports = class Exchange {
         return this.fetch2 (path, type, method, params, headers, body)
     }
 
-    parseJson (responseBody, url, method = 'GET') {
+    parseJson (response, responseBody, url, method) {
         try {
 
             return (responseBody.length > 0) ? JSON.parse (responseBody) : {} // empty object for empty body
@@ -373,7 +373,12 @@ module.exports = class Exchange {
         } catch (e) {
 
             if (this.verbose)
-                console.log ('parseJson:\n', this.id, method, url, 'error', e, "response body:\n'" + responseBody + "'\n")
+                console.log ('parseJson:\n', this.id, method, url, response.status, 'error', e, "response body:\n'" + responseBody + "'\n")
+
+            let title = undefined
+            let match = responseBody.match (/<title>([^<]+)/i)
+            if (match)
+                title = match[1].trim ();
 
             let maintenance = responseBody.match (/offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing/i)
             let ddosProtection = responseBody.match (/cloudflare|incapsula|overload/i)
@@ -386,7 +391,7 @@ module.exports = class Exchange {
                     details = 'offline, on maintenance or unreachable from this location at the moment'
                 if (ddosProtection)
                     error = DDoSProtection
-                throw new error ([ this.id, method, url, details ].join (' '))
+                throw new error ([ this.id, method, url, response.status, title, details ].join (' '))
             }
 
             throw e
@@ -439,7 +444,7 @@ module.exports = class Exchange {
         return response.text ().then (responseBody => {
 
             let jsonRequired = this.parseJsonResponse && !this.skipJsonOnStatusCodes.includes (response.status)
-            let json = jsonRequired ? this.parseJson (responseBody, url, method) : undefined
+            let json = jsonRequired ? this.parseJson (response, responseBody, url, method) : undefined
 
             if (this.verbose)
                 console.log ("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, "\nResponse:\n", requestHeaders, "\n", responseBody, "\n")
