@@ -538,6 +538,8 @@ module.exports = class coinexchange extends Exchange {
         let substitutions = {
             'HNC': 'Huncoin',
             'BON': 'BonPeKaO',
+            'MARS': 'MarsBux',
+            'ETN': 'Ethernex'
         };
         if (currency in substitutions)
             return substitutions[currency];
