@@ -77,6 +77,7 @@ module.exports = class cryptopia extends Exchange {
     commonCurrencyCode (currency) {
         const currencies = {
             'ACC': 'AdCoin',
+            'BAT': 'BatCoin',
             'CC': 'CCX',
             'CMT': 'Comet',
             'FCN': 'Facilecoin',
