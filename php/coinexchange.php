@@ -534,8 +534,14 @@ class coinexchange extends Exchange {
     }
 
     public function common_currency_code ($currency) {
-        if ($currency === 'HNC')
-            return 'Huncoin';
+        $substitutions = array (
+            'BON' => 'BonPeKaO',
+            'ETN' => 'Ethernex',
+            'HNC' => 'Huncoin',
+            'MARS' => 'MarsBux',
+        );
+        if (is_array ($substitutions) && array_key_exists ($currency, $substitutions))
+            return $substitutions[$currency];
         return $currency;
     }
 

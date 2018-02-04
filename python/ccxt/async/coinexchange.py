@@ -536,8 +536,14 @@ class coinexchange (Exchange):
         })
 
     def common_currency_code(self, currency):
-        if currency == 'HNC':
-            return 'Huncoin'
+        substitutions = {
+            'BON': 'BonPeKaO',
+            'ETN': 'Ethernex',
+            'HNC': 'Huncoin',
+            'MARS': 'MarsBux',
+        }
+        if currency in substitutions:
+            return substitutions[currency]
         return currency
 
     async def fetch_currencies(self, params={}):
