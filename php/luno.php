@@ -243,9 +243,12 @@ class luno extends Exchange {
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetTrades (array_merge (array (
+        $request = array (
             'pair' => $market['id'],
-        ), $params));
+        );
+        if ($since !== null)
+            $request['since'] = $since;
+        $response = $this->publicGetTrades (array_merge ($request, $params));
         return $this->parse_trades($response['trades'], $market, $since, $limit);
     }
 
