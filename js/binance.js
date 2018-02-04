@@ -643,7 +643,10 @@ module.exports = class binance extends Exchange {
         let amount = parseFloat (order['origQty']);
         let filled = this.safeFloat (order, 'executedQty', 0.0);
         let remaining = Math.max (amount - filled, 0.0);
-        let cost = (status === 'open') ? price * amount : undefined;
+        let cost = undefined;
+        if (typeof price !== 'undefined')
+            if (typeof filled !== 'undefined')
+                cost = price * filled;
         let result = {
             'info': order,
             'id': order['orderId'].toString (),
