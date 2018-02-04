@@ -278,9 +278,9 @@ declare module 'ccxt' {
         extractParams (str: string): string[];
         createOrder (market: string, type: string, side: string, amount: string, price?: string, params?: string): Promise<any>;
         fetchBalance (params?: any): Promise<Balances>;
-        fetchOrderBook (market: string, limit?: number, params?: any): Promise<OrderBook>;
-        fetchTicker (market: string): Promise<Ticker>;
-        fetchTickers (): Promise<Tickers>;
+        fetchOrderBook (symbol: string, limit?: number, params?: any): Promise<OrderBook>;
+        fetchTicker (symbol: string): Promise<Ticker>;
+        fetchTickers (symbols?: string[]): Promise<Tickers>;
         fetchTrades (symbol: string, since?: number, limit?: number, params?: {}): Promise<Trade[]>;
         fetchOHLCV? (symbol: string, timeframe?: string, since?: number, limit?: number, params?: any = {}): Promise<OHLCV[]>;
         fetchOrders (symbol?: string, since?: number, limit?: number, params?: {}): Promise<Order[]>;
