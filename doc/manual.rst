@@ -1066,7 +1066,7 @@ Some exchanges accept a dictionary of extra parameters to the ``fetchOrderBook (
     $exchange = '\\ccxt\\kraken';
     $exchange = new $exchange ();
     // up to ten orders on each side, for example
-    $limit = 20
+    $limit = 20;
     var_dump ($exchange->fetch_order_book ('BTC/USD', $limit));
 
 The levels of detail or levels of order book aggregation are often number-labelled like L1, L2, L3...
