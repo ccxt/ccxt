@@ -402,7 +402,8 @@ module.exports = class Exchange {
         // override me
     }
 
-    defaultErrorHandler (code, reason, url, method, responseBody) {
+    defaultErrorHandler (response, responseBody, url, method) {
+        const { status: code, statusText: reason } = response
         if ((code >= 200) && (code <= 299))
             return
         let error = undefined
@@ -454,7 +455,7 @@ module.exports = class Exchange {
 
             const args = [ response.status, response.statusText, url, method, requestHeaders, responseBody, json ]
             this.handleErrors (...args)
-            this.defaultErrorHandler (response.status, response.statusText, url, method, responseBody)
+            this.defaultErrorHandler (response, responseBody, url, method)
 
             return jsonRequired ? json : responseBody
         })
