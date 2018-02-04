@@ -601,6 +601,9 @@ const pythonRegexes = [
             .filter (file => file.includes (pattern))
             .map (file => transpileDerivedExchangeFile (folder, file))
 
+        if (classNames.length === 0)
+            return null
+
         let classes = {}
         classNames.forEach (({ className, baseClass }) => {
             classes[className] = baseClass
@@ -705,6 +708,11 @@ const pythonRegexes = [
     createFolderRecursively (phpFolder)
 
     const classes = transpileDerivedExchangeFiles ('./js/', filename)
+
+    if (classes === null) {
+      log.bright.yellow ('0 files transpiled.')
+      return;
+    }
 
     // HINT: if we're going to support specific class definitions this process won't work anymore as it will override the definitions.
     exportTypeScriptDeclarations (classes)
