@@ -244,9 +244,12 @@ module.exports = class luno extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetTrades (this.extend ({
+        let request = {
             'pair': market['id'],
-        }, params));
+        };
+        if (typeof since !== 'undefined')
+            request['since'] = since;
+        let response = await this.publicGetTrades (this.extend (request, params));
         return this.parseTrades (response['trades'], market, since, limit);
     }
 
