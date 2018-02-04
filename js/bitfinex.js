@@ -762,10 +762,10 @@ module.exports = class bitfinex extends Exchange {
                     message = response['error'];
                 else
                     throw new ExchangeError (feedback); // malformed (to our knowledge) response
-                const exact = this.exceptions.exact;
+                const exact = this.exceptions['exact'];
                 if (message in exact)
                     throw new exact[message] (feedback);
-                const broad = this.exceptions.broad;
+                const broad = this.exceptions['broad'];
                 const broadKey = this.findBroadlyMatchedKey (broad, message);
                 if (typeof broadKey !== 'undefined')
                     throw new broad[broadKey] (feedback);
