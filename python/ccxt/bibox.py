@@ -203,15 +203,14 @@ class bibox (Exchange):
         }, params))
         return self.parse_trades(response['result'], market, since, limit)
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol, limit=200, params={}):
         self.load_markets()
         market = self.market(symbol)
         request = {
             'cmd': 'depth',
             'pair': market['id'],
         }
-        if limit is not None:
-            request['size'] = limit  # default = 200 ?
+        request['size'] = limit  # default = 200 ?
         response = self.publicGetMdata(self.extend(request, params))
         return self.parse_order_book(response['result'], self.safe_float(response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume')
 

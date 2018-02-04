@@ -208,15 +208,14 @@ class bibox extends Exchange {
         return $this->parse_trades($response['result'], $market, $since, $limit);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = 200, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
             'cmd' => 'depth',
             'pair' => $market['id'],
         );
-        if ($limit !== null)
-            $request['size'] = $limit; // default = 200 ?
+        $request['size'] = $limit; // default = 200 ?
         $response = $this->publicGetMdata (array_merge ($request, $params));
         return $this->parse_order_book($response['result'], $this->safe_float($response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume');
     }

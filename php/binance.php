@@ -642,6 +642,10 @@ class binance extends Exchange {
         $amount = floatval ($order['origQty']);
         $filled = $this->safe_float($order, 'executedQty', 0.0);
         $remaining = max ($amount - $filled, 0.0);
+        $cost = null;
+        if ($price !== null)
+            if ($filled !== null)
+                $cost = $price * $filled;
         $result = array (
             'info' => $order,
             'id' => (string) $order['orderId'],
@@ -652,7 +656,7 @@ class binance extends Exchange {
             'side' => strtolower ($order['side']),
             'price' => $price,
             'amount' => $amount,
-            'cost' => $price * $amount,
+            'cost' => $cost,
             'filled' => $filled,
             'remaining' => $remaining,
             'status' => $status,
