@@ -640,6 +640,8 @@ class liqui (Exchange):
                         raise AuthenticationError(feedback)
                     elif message.find('invalid parameter') >= 0:  # errorCode 0, returned on buy(symbol, 0, 0)
                         raise InvalidOrder(feedback)
+                    elif message == 'invalid order':
+                        raise InvalidOrder(feedback)
                     elif message == 'Requests too often':
                         raise DDoSProtection(feedback)
                     elif message == 'not available':
