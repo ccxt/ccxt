@@ -511,8 +511,8 @@ module.exports = class liqui extends Exchange {
                         'cost': undefined,
                         'remaining': 0.0,
                     });
-                    if (typeof order["amount"] !== 'undefined' ) {
-                        this.orders[id]["cost"] = order['amount'] * order['price'];
+                    if (typeof order['amount'] !== 'undefined') {
+                        this.orders[id]['cost'] = order['amount'] * order['price'];
                     }
                 }
             }
