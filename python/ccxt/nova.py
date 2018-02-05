@@ -19,6 +19,7 @@ class nova (Exchange):
             'version': 'v2',
             'has': {
                 'CORS': False,
+                'createMarketOrder': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30518571-78ca0bca-9b8a-11e7-8840-64b83a4a94b2.jpg',
@@ -81,7 +82,7 @@ class nova (Exchange):
                 })
         return result
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         orderbook = self.publicGetMarketOpenordersPairBoth(self.extend({
             'pair': self.market_id(symbol),

@@ -127,13 +127,15 @@ class bithumb (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetOrderbookCurrency(self.extend({
-            'count': 50,  # max = 50
+        request = {
             'currency': market['base'],
-        }, params))
+        }
+        if limit is not None:
+            request['count'] = limit  # max = 50
+        response = self.publicGetOrderbookCurrency(self.extend(request, params))
         orderbook = response['data']
         timestamp = int(orderbook['timestamp'])
         return self.parse_order_book(orderbook, timestamp, 'bids', 'asks', 'price', 'quantity')

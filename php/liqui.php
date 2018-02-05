@@ -17,6 +17,7 @@ class liqui extends Exchange {
             'userAgent' => $this->userAgents['chrome'],
             'has' => array (
                 'CORS' => false,
+                'createMarketOrder' => false,
                 'fetchOrder' => true,
                 'fetchOrders' => 'emulated',
                 'fetchOpenOrders' => true,
@@ -200,13 +201,15 @@ class liqui extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetDepthPair (array_merge (array (
+        $request = array (
             'pair' => $market['id'],
-            // 'limit' => 150, // default = 150, max = 2000
-        ), $params));
+        );
+        if ($limit !== null)
+            $request['limit'] = $limit; // default = 150, max = 2000
+        $response = $this->publicGetDepthPair (array_merge ($request, $params));
         $market_id_in_reponse = (is_array ($response) && array_key_exists ($market['id'], $response));
         if (!$market_id_in_reponse)
             throw new ExchangeError ($this->id . ' ' . $market['symbol'] . ' order book is empty or not available');
@@ -307,14 +310,12 @@ class liqui extends Exchange {
             $symbol = $market['symbol'];
         $amount = $trade['amount'];
         $type = 'limit'; // all trades are still limit trades
-        $fee = null;
-        // this is filled by fetchMyTrades() only
-        // is_your_order is always false :\
-        // $isYourOrder = $this->safe_value($trade, 'is_your_order');
-        // $takerOrMaker = 'taker';
-        // if ($isYourOrder)
-        //     $takerOrMaker = 'maker';
-        // $fee = $this->calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker);
+        $isYourOrder = $this->safe_value($trade, 'is_your_order');
+        $takerOrMaker = 'taker';
+        if ($isYourOrder !== null)
+            if ($isYourOrder)
+                $takerOrMaker = 'maker';
+        $fee = $this->calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker);
         return array (
             'id' => $id,
             'order' => $order,

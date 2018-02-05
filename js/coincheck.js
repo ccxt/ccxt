@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -8,7 +8,6 @@ const { ExchangeError, NotSupported } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class coincheck extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'coincheck',
@@ -115,15 +114,15 @@ module.exports = class coincheck extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
-        if (symbol != 'BTC/JPY')
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        if (symbol !== 'BTC/JPY')
             throw new NotSupported (this.id + ' fetchOrderBook () supports BTC/JPY only');
         let orderbook = await this.publicGetOrderBooks (params);
         return this.parseOrderBook (orderbook);
     }
 
     async fetchTicker (symbol, params = {}) {
-        if (symbol != 'BTC/JPY')
+        if (symbol !== 'BTC/JPY')
             throw new NotSupported (this.id + ' fetchTicker () supports BTC/JPY only');
         let ticker = await this.publicGetTicker (params);
         let timestamp = ticker['timestamp'] * 1000;
@@ -165,7 +164,7 @@ module.exports = class coincheck extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        if (symbol != 'BTC/JPY')
+        if (symbol !== 'BTC/JPY')
             throw new NotSupported (this.id + ' fetchTrades () supports BTC/JPY only');
         let market = this.market (symbol);
         let response = await this.publicGetTrades (this.extend ({
@@ -182,10 +181,10 @@ module.exports = class coincheck extends Exchange {
         let order = {
             'pair': this.marketId (symbol),
         };
-        if (type == 'market') {
+        if (type === 'market') {
             let order_type = type + '_' + side;
             order['order_type'] = order_type;
-            let prefix = (side == 'buy') ? (order_type + '_') : '';
+            let prefix = (side === 'buy') ? (order_type + '_') : '';
             order[prefix + 'amount'] = amount;
         } else {
             order['order_type'] = side;
@@ -206,14 +205,14 @@ module.exports = class coincheck extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             let queryString = '';
-            if (method == 'GET') {
+            if (method === 'GET') {
                 if (Object.keys (query).length)
                     url += '?' + this.urlencode (this.keysort (query));
             } else {
@@ -235,11 +234,11 @@ module.exports = class coincheck extends Exchange {
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
-        if (api == 'public')
+        if (api === 'public')
             return response;
         if ('success' in response)
             if (response['success'])
                 return response;
         throw new ExchangeError (this.id + ' ' + this.json (response));
     }
-}
+};

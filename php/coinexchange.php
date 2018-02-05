@@ -534,13 +534,19 @@ class coinexchange extends Exchange {
     }
 
     public function common_currency_code ($currency) {
-        if ($currency === 'HNC')
-            return 'Huncoin';
+        $substitutions = array (
+            'BON' => 'BonPeKaO',
+            'ETN' => 'Ethernex',
+            'HNC' => 'Huncoin',
+            'MARS' => 'MarsBux',
+        );
+        if (is_array ($substitutions) && array_key_exists ($currency, $substitutions))
+            return $substitutions[$currency];
         return $currency;
     }
 
     public function fetch_currencies ($params = array ()) {
-        $response = $this->publicGetCurrencies ($params);
+        $response = $this->publicGetGetcurrencies ($params);
         $currencies = $response['result'];
         $precision = $this->precision['amount'];
         $result = array ();
@@ -584,7 +590,7 @@ class coinexchange extends Exchange {
     }
 
     public function fetch_markets () {
-        $response = $this->publicGetMarkets ();
+        $response = $this->publicGetGetmarkets ();
         $markets = $response['result'];
         $result = array ();
         for ($i = 0; $i < count ($markets); $i++) {
@@ -645,7 +651,7 @@ class coinexchange extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $ticker = $this->publicGetMarketsummary (array_merge (array (
+        $ticker = $this->publicGetGetmarketsummary (array_merge (array (
             'market_id' => $market['id'],
         ), $params));
         return $this->parse_ticker($ticker['result'], $market);
@@ -653,7 +659,7 @@ class coinexchange extends Exchange {
 
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->publicGetMarketsummaries ($params);
+        $response = $this->publicGetGetmarketsummaries ($params);
         $tickers = $response['result'];
         $result = array ();
         for ($i = 0; $i < count ($tickers); $i++) {
@@ -664,9 +670,9 @@ class coinexchange extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $orderbook = $this->publicGetOrderbook (array_merge (array (
+        $orderbook = $this->publicGetGetorderbook (array_merge (array (
             'market_id' => $this->market_id($symbol),
         ), $params));
         return $this->parse_order_book($orderbook['result'], null, 'BuyOrders', 'SellOrders', 'Price', 'Quantity');

@@ -232,7 +232,7 @@ class braziliex (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         orderbook = self.publicGetOrderbookMarket(self.extend({
             'market': self.market_id(symbol),

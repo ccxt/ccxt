@@ -16,6 +16,7 @@ class nova extends Exchange {
             'version' => 'v2',
             'has' => array (
                 'CORS' => false,
+                'createMarketOrder' => false,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/30518571-78ca0bca-9b8a-11e7-8840-64b83a4a94b2.jpg',
@@ -82,7 +83,7 @@ class nova extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $orderbook = $this->publicGetMarketOpenordersPairBoth (array_merge (array (
             'pair' => $this->market_id($symbol),
@@ -165,7 +166,7 @@ class nova extends Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        if ($type == 'market')
+        if ($type === 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
         $this->load_markets();
         $amount = (string) $amount;
@@ -193,11 +194,11 @@ class nova extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/';
-        if ($api == 'private')
+        if ($api === 'private')
             $url .= $api . '/';
         $url .= $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
-        if ($api == 'public') {
+        if ($api === 'public') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
@@ -219,7 +220,7 @@ class nova extends Exchange {
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if (is_array ($response) && array_key_exists ('status', $response))
-            if ($response['status'] != 'success')
+            if ($response['status'] !== 'success')
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;
     }

@@ -15,7 +15,7 @@ class bitbay extends Exchange {
             'rateLimit' => 1000,
             'has' => array (
                 'CORS' => true,
-                'withdraw' => true
+                'withdraw' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg',
@@ -154,7 +154,7 @@ class bitbay extends Exchange {
         throw new ExchangeError ($this->id . ' empty $balance $response ' . $this->json ($response));
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $orderbook = $this->publicGetIdOrderbook (array_merge (array (
             'id' => $this->market_id($symbol),
         ), $params));

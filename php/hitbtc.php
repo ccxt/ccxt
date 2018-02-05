@@ -85,7 +85,7 @@ class hitbtc extends Exchange {
                     'tierBased' => false,
                     'percentage' => false,
                     'withdraw' => array (
-                        'BTC' => 0.00085,
+                        'BTC' => 0.001,
                         'BCC' => 0.0018,
                         'ETH' => 0.00215,
                         'BCH' => 0.0018,
@@ -565,7 +565,7 @@ class hitbtc extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $orderbook = $this->publicGetSymbolOrderbook (array_merge (array (
             'symbol' => $this->market_id($symbol),

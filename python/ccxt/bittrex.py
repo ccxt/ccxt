@@ -34,16 +34,17 @@ class bittrex (Exchange):
             'hasAlreadyAuthenticatedSuccessfully': False,  # a workaround for APIKEY_INVALID
             # new metainfo interface
             'has': {
-                'fetchDepositAddress': True,
                 'CORS': True,
-                'fetchTickers': True,
+                'createMarketOrder': False,
+                'fetchDepositAddress': True,
+                'fetchClosedOrders': 'emulated',
+                'fetchCurrencies': True,
+                'fetchMyTrades': False,
                 'fetchOHLCV': True,
                 'fetchOrder': True,
                 'fetchOrders': True,
-                'fetchClosedOrders': 'emulated',
                 'fetchOpenOrders': True,
-                'fetchMyTrades': False,
-                'fetchCurrencies': True,
+                'fetchTickers': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -220,7 +221,7 @@ class bittrex (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         response = self.publicGetOrderbook(self.extend({
             'market': self.market_id(symbol),
@@ -247,7 +248,11 @@ class bittrex (Exchange):
             symbol = market['symbol']
         previous = self.safe_float(ticker, 'PrevDay')
         last = self.safe_float(ticker, 'Last')
-        change = (last - previous) / previous
+        change = None
+        if last is not None:
+            if previous is not None:
+                if previous > 0:
+                    change = (last - previous) / previous
         return {
             'symbol': symbol,
             'timestamp': timestamp,

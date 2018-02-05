@@ -8,7 +8,6 @@ const { ExchangeError, NotSupported, InsufficientFunds } = require ('./base/erro
 // ---------------------------------------------------------------------------
 
 module.exports = class bitfinex2 extends bitfinex {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitfinex2',
@@ -197,7 +196,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 'RCN/ETH': { 'id': 'tRCNETH', 'symbol': 'RCN/ETH', 'base': 'RCN', 'quote': 'ETH', 'baseId': 'tRCN', 'quoteId': 'zETH' },
                 'FUN/USD': { 'id': 'tFUNUSD', 'symbol': 'FUN/USD', 'base': 'FUN', 'quote': 'USD', 'baseId': 'tFUN', 'quoteId': 'zUSD' },
                 'FUN/BTC': { 'id': 'tFUNBTC', 'symbol': 'FUN/BTC', 'base': 'FUN', 'quote': 'BTC', 'baseId': 'tFUN', 'quoteId': 'zBTC' },
-                'FUN/ETH': { 'id': 'tFUNETH', 'symbol': 'FUN/ETH', 'base': 'FUN', 'quote': 'ETH', 'baseId': 'tFUN', 'quoteId': 'zETH '},
+                'FUN/ETH': { 'id': 'tFUNETH', 'symbol': 'FUN/ETH', 'base': 'FUN', 'quote': 'ETH', 'baseId': 'tFUN', 'quoteId': 'zETH' },
                 'MNA/USD': { 'id': 'tMNAUSD', 'symbol': 'MNA/USD', 'base': 'MNA', 'quote': 'USD', 'baseId': 'tMNA', 'quoteId': 'zUSD' },
                 'MNA/BTC': { 'id': 'tMNABTC', 'symbol': 'MNA/BTC', 'base': 'MNA', 'quote': 'BTC', 'baseId': 'tMNA', 'quoteId': 'zBTC' },
                 'MNA/ETH': { 'id': 'tMNAETH', 'symbol': 'MNA/ETH', 'base': 'MNA', 'quote': 'ETH', 'baseId': 'tMNA', 'quoteId': 'zETH' },
@@ -295,7 +294,7 @@ module.exports = class bitfinex2 extends bitfinex {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let orderbook = await this.publicGetBookSymbolPrecision (this.extend ({
             'symbol': this.marketId (symbol),
             'precision': 'R0',
@@ -477,4 +476,4 @@ module.exports = class bitfinex2 extends bitfinex {
         }
         return response;
     }
-}
+};

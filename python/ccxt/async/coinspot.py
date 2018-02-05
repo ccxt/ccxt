@@ -19,6 +19,7 @@ class coinspot (Exchange):
             'rateLimit': 1000,
             'has': {
                 'CORS': False,
+                'createMarketOrder': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28208429-3cacdf9a-6896-11e7-854e-4c79a772a30f.jpg',
@@ -78,7 +79,7 @@ class coinspot (Exchange):
                 result[uppercase] = account
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         market = self.market(symbol)
         orderbook = await self.privatePostOrders(self.extend({
             'cointype': market['id'],
@@ -133,8 +134,8 @@ class coinspot (Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         raise ExchangeError(self.id + ' cancelOrder() is not fully implemented yet')
-        method = 'privatePostMyBuy'
-        return await getattr(self, method)({'id': id})
+        # method = 'privatePostMyBuy'
+        # return await getattr(self, method)({'id': id})
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         if not self.apiKey:

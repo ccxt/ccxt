@@ -23,8 +23,8 @@ matrix:
 build: off
 shallow_clone: true
 before_test:
-- cinst pandoc
-- pandoc -v
+  - cinst pandoc
+  - pandoc -v
 test_script:
   - refreshenv
   - node --version
@@ -32,4 +32,18 @@ test_script:
   - npm run build
   - npm run test-base
 cache:
-- '%APPDATA%\npm-cache'
+  - '%APPDATA%\npm-cache'
+  - '%LOCALAPPDATA%\pip\Cache'
+after_build:
+  # Remove old or huge cache files to hopefully not exceed the 1GB cache limit.
+  #
+  # If the cache limit is reached, the cache will not be updated (of not even
+  # created in the first run). So this is a trade of between keeping the cache
+  # current and having a cache at all.
+  # NB: This is done only `on_success` since the cache in uploaded only on
+  # success anyway.
+  - C:\cygwin\bin\find "%LOCALAPPDATA%\pip" -type f -mtime +360 -delete
+  - C:\cygwin\bin\find "%LOCALAPPDATA%\pip" -type f -size +10M -delete
+  - C:\cygwin\bin\find "%LOCALAPPDATA%\pip" -empty -delete
+  # Show size of cache
+  - C:\cygwin\bin\du -hs "%LOCALAPPDATA%\pip\Cache"

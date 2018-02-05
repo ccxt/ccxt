@@ -4,10 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async.acx import acx
-import json
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import InsufficientFunds
-from ccxt.base.errors import OrderNotFound
 
 
 class kuna (acx):
@@ -95,25 +92,15 @@ class kuna (acx):
             },
         })
 
-    def handle_errors(self, code, reason, url, method, headers, body):
-        if code == 400:
-            response = json.loads(body)
-            error = self.safe_value(response, 'error')
-            errorCode = self.safe_integer(error, 'code')
-            if errorCode == 2002:
-                raise InsufficientFunds(' '.join([self.id, method, url, code, reason, body]))
-            elif errorCode == 2003:
-                raise OrderNotFound(' '.join([self.id, method, url, code, reason, body]))
-
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         market = self.market(symbol)
         orderBook = await self.publicGetOrderBook(self.extend({
             'market': market['id'],
         }, params))
         return self.parse_order_book(orderBook, None, 'bids', 'asks', 'price', 'remaining_volume')
 
-    async def fetch_l3_order_book(self, symbol, params):
-        return self.fetch_order_book(symbol, params)
+    async def fetch_l3_order_book(self, symbol, limit=None, params={}):
+        return self.fetch_order_book(symbol, limit, params)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:

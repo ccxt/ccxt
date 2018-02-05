@@ -200,7 +200,7 @@ class bitfinex2 (bitfinex):
                 'RCN/ETH': {'id': 'tRCNETH', 'symbol': 'RCN/ETH', 'base': 'RCN', 'quote': 'ETH', 'baseId': 'tRCN', 'quoteId': 'zETH'},
                 'FUN/USD': {'id': 'tFUNUSD', 'symbol': 'FUN/USD', 'base': 'FUN', 'quote': 'USD', 'baseId': 'tFUN', 'quoteId': 'zUSD'},
                 'FUN/BTC': {'id': 'tFUNBTC', 'symbol': 'FUN/BTC', 'base': 'FUN', 'quote': 'BTC', 'baseId': 'tFUN', 'quoteId': 'zBTC'},
-                'FUN/ETH': {'id': 'tFUNETH', 'symbol': 'FUN/ETH', 'base': 'FUN', 'quote': 'ETH', 'baseId': 'tFUN', 'quoteId': 'zETH '},
+                'FUN/ETH': {'id': 'tFUNETH', 'symbol': 'FUN/ETH', 'base': 'FUN', 'quote': 'ETH', 'baseId': 'tFUN', 'quoteId': 'zETH'},
                 'MNA/USD': {'id': 'tMNAUSD', 'symbol': 'MNA/USD', 'base': 'MNA', 'quote': 'USD', 'baseId': 'tMNA', 'quoteId': 'zUSD'},
                 'MNA/BTC': {'id': 'tMNABTC', 'symbol': 'MNA/BTC', 'base': 'MNA', 'quote': 'BTC', 'baseId': 'tMNA', 'quoteId': 'zBTC'},
                 'MNA/ETH': {'id': 'tMNAETH', 'symbol': 'MNA/ETH', 'base': 'MNA', 'quote': 'ETH', 'baseId': 'tMNA', 'quoteId': 'zETH'},
@@ -293,7 +293,7 @@ class bitfinex2 (bitfinex):
                 result[uppercase] = account
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         orderbook = await self.publicGetBookSymbolPrecision(self.extend({
             'symbol': self.market_id(symbol),
             'precision': 'R0',

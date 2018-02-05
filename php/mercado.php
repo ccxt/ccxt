@@ -16,6 +16,7 @@ class mercado extends Exchange {
             'version' => 'v3',
             'has' => array (
                 'CORS' => true,
+                'createMarketOrder' => false,
                 'withdraw' => true,
             ),
             'urls' => array (
@@ -70,7 +71,7 @@ class mercado extends Exchange {
         ));
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $market = $this->market ($symbol);
         $orderbook = $this->publicGetCoinOrderbook (array_merge (array (
             'coin' => $market['base'],

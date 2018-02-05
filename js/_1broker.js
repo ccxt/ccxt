@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 // ---------------------------------------------------------------------------
 
@@ -8,7 +8,6 @@ const { ExchangeError } = require ('./base/errors');
 // ---------------------------------------------------------------------------
 
 module.exports = class _1broker extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': '_1broker',
@@ -96,7 +95,7 @@ module.exports = class _1broker extends Exchange {
                 let symbol = undefined;
                 let base = undefined;
                 let quote = undefined;
-                if ((category == 'FOREX') || (category == 'CRYPTO')) {
+                if ((category === 'FOREX') || (category === 'CRYPTO')) {
                     symbol = market['name'];
                     let parts = symbol.split ('/');
                     base = parts[0];
@@ -138,7 +137,7 @@ module.exports = class _1broker extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privateGetMarketQuotes (this.extend ({
             'symbols': this.marketId (symbol),
@@ -224,11 +223,11 @@ module.exports = class _1broker extends Exchange {
         let order = {
             'symbol': this.marketId (symbol),
             'margin': amount,
-            'direction': (side == 'sell') ? 'short' : 'long',
+            'direction': (side === 'sell') ? 'short' : 'long',
             'leverage': 1,
             'type': side,
         };
-        if (type == 'limit')
+        if (type === 'limit')
             order['price'] = price;
         else
             order['type'] += '_market';
@@ -262,4 +261,4 @@ module.exports = class _1broker extends Exchange {
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
     }
-}
+};

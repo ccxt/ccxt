@@ -117,7 +117,7 @@ class hitbtc2 (hitbtc):
                     'tierBased': False,
                     'percentage': False,
                     'withdraw': {
-                        'BTC': 0.00085,
+                        'BTC': 0.001,
                         'BCC': 0.0018,
                         'ETH': 0.00958,
                         'BCH': 0.0018,
@@ -613,15 +613,17 @@ class hitbtc2 (hitbtc):
             # differentiated fees for each particular method
             precision = 8  # default precision, todo: fix "magic constants"
             code = self.common_currency_code(id)
-            payin = currency['payinEnabled']
-            payout = currency['payoutEnabled']
-            transfer = currency['transferEnabled']
+            payin = self.safe_value(currency, 'payinEnabled')
+            payout = self.safe_value(currency, 'payoutEnabled')
+            transfer = self.safe_value(currency, 'transferEnabled')
             active = payin and payout and transfer
             status = 'ok'
             if 'disabled' in currency:
                 if currency['disabled']:
                     status = 'disabled'
-            type = 'crypto' if (currency['crypto']) else 'fiat'
+            type = 'fiat'
+            if ('crypto' in list(currency.keys())) and currency['crypto']:
+                type = 'crypto'
             result[code] = {
                 'id': id,
                 'code': code,
@@ -698,12 +700,14 @@ class hitbtc2 (hitbtc):
         response = self.publicGetCandlesSymbol(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
-        orderbook = self.publicGetOrderbookSymbol(self.extend({
+        request = {
             'symbol': self.market_id(symbol),
-            # 'limit': 100,  # default = 100, 0 = unlimited
-        }, params))
+        }
+        if limit is not None:
+            request['limit'] = limit  # default = 100, 0 = unlimited
+        orderbook = self.publicGetOrderbookSymbol(self.extend(request, params))
         return self.parse_order_book(orderbook, None, 'bid', 'ask', 'price', 'size')
 
     def parse_ticker(self, ticker, market=None):
@@ -1046,6 +1050,8 @@ class hitbtc2 (hitbtc):
                         message = response['error']['message']
                         if message == 'Order not found':
                             raise OrderNotFound(self.id + ' order not found in active orders')
+                        elif message == 'Quantity not a valid number':
+                            raise InvalidOrder(self.id + ' ' + body)
                         elif message == 'Insufficient funds':
                             raise InsufficientFunds(self.id + ' ' + body)
                         elif message == 'Duplicate clientOrderId':

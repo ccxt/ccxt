@@ -70,11 +70,11 @@ class ccex extends Exchange {
     }
 
     public function common_currency_code ($currency) {
-        if ($currency == 'IOT')
+        if ($currency === 'IOT')
             return 'IoTcoin';
-        if ($currency == 'BLC')
+        if ($currency === 'BLC')
             return 'Cryptobullcoin';
-        if ($currency == 'XID')
+        if ($currency === 'XID')
             return 'InternationalDiamond';
         return $currency;
     }
@@ -120,13 +120,15 @@ class ccex extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->publicGetOrderbook (array_merge (array (
+        $request = array (
             'market' => $this->market_id($symbol),
             'type' => 'both',
-            'depth' => 100,
-        ), $params));
+        );
+        if ($limit !== null)
+            $request['depth'] = $limit; // 100
+        $response = $this->publicGetOrderbook (array_merge ($request, $params));
         $orderbook = $response['result'];
         return $this->parse_order_book($orderbook, null, 'buy', 'sell', 'Rate', 'Quantity');
     }
@@ -241,7 +243,7 @@ class ccex extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api];
-        if ($api == 'private') {
+        if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             $query = $this->keysort (array_merge (array (
@@ -251,7 +253,7 @@ class ccex extends Exchange {
             ), $params));
             $url .= '?' . $this->urlencode ($query);
             $headers = array ( 'apisign' => $this->hmac ($this->encode ($url), $this->encode ($this->secret), 'sha512') );
-        } else if ($api == 'public') {
+        } else if ($api === 'public') {
             $url .= '?' . $this->urlencode (array_merge (array (
                 'a' => 'get' . $path,
             ), $params));
@@ -263,7 +265,7 @@ class ccex extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if ($api == 'tickers')
+        if ($api === 'tickers')
             return $response;
         if (is_array ($response) && array_key_exists ('success', $response))
             if ($response['success'])

@@ -14,15 +14,16 @@ class cryptopia extends Exchange {
             'rateLimit' => 1500,
             'countries' => 'NZ', // New Zealand
             'has' => array (
-                'fetchDepositAddress' => true,
                 'CORS' => false,
-                'fetchTickers' => true,
+                'createMarketOrder' => false,
+                'fetchClosedOrders' => 'emulated',
+                'fetchCurrencies' => true,
+                'fetchDepositAddress' => true,
+                'fetchMyTrades' => true,
                 'fetchOrder' => 'emulated',
                 'fetchOrders' => 'emulated',
                 'fetchOpenOrders' => true,
-                'fetchClosedOrders' => 'emulated',
-                'fetchMyTrades' => true,
-                'fetchCurrencies' => true,
+                'fetchTickers' => true,
                 'deposit' => true,
                 'withdraw' => true,
             ),
@@ -75,6 +76,7 @@ class cryptopia extends Exchange {
     public function common_currency_code ($currency) {
         $currencies = array (
             'ACC' => 'AdCoin',
+            'BAT' => 'BatCoin',
             'CC' => 'CCX',
             'CMT' => 'Comet',
             'FCN' => 'Facilecoin',
@@ -92,6 +94,7 @@ class cryptopia extends Exchange {
     public function currency_id ($currency) {
         $currencies = array (
             'AdCoin' => 'ACC',
+            'BatCoin' => 'BAT',
             'CCX' => 'CC',
             'Comet' => 'CMT',
             'Cubits' => 'QBT',
@@ -106,7 +109,7 @@ class cryptopia extends Exchange {
     }
 
     public function fetch_markets () {
-        $response = $this->publicGetTradePairs ();
+        $response = $this->publicGetGetTradePairs ();
         $result = array ();
         $markets = $response['Data'];
         for ($i = 0; $i < count ($markets); $i++) {
@@ -157,9 +160,9 @@ class cryptopia extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->publicGetMarketOrdersId (array_merge (array (
+        $response = $this->publicGetGetMarketOrdersId (array_merge (array (
             'id' => $this->market_id($symbol),
         ), $params));
         $orderbook = $response['Data'];
@@ -196,7 +199,7 @@ class cryptopia extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetMarketId (array_merge (array (
+        $response = $this->publicGetGetMarketId (array_merge (array (
             'id' => $market['id'],
         ), $params));
         $ticker = $response['Data'];
@@ -205,7 +208,7 @@ class cryptopia extends Exchange {
 
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->publicGetMarkets ($params);
+        $response = $this->publicGetGetMarkets ($params);
         $result = array ();
         $tickers = $response['Data'];
         for ($i = 0; $i < count ($tickers); $i++) {
@@ -278,7 +281,7 @@ class cryptopia extends Exchange {
             'id' => $market['id'],
             'hours' => $hours,
         );
-        $response = $this->publicGetMarketHistoryIdHours (array_merge ($request, $params));
+        $response = $this->publicGetGetMarketHistoryIdHours (array_merge ($request, $params));
         $trades = $response['Data'];
         return $this->parse_trades($trades, $market, $since, $limit);
     }
@@ -296,7 +299,7 @@ class cryptopia extends Exchange {
     }
 
     public function fetch_currencies ($params = array ()) {
-        $response = $this->publicGetCurrencies ($params);
+        $response = $this->publicGetGetCurrencies ($params);
         $currencies = $response['Data'];
         $result = array ();
         for ($i = 0; $i < count ($currencies); $i++) {
@@ -590,12 +593,13 @@ class cryptopia extends Exchange {
         } else {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
-            $body = $this->json ($query);
+            $body = $this->json ($query, array ( 'convertArraysToObjects' => true ));
             $hash = $this->hash ($this->encode ($body), 'md5', 'base64');
             $secret = base64_decode ($this->secret);
             $uri = $this->encode_uri_component($url);
             $lowercase = strtolower ($uri);
-            $payload = $this->apiKey . $method . $lowercase . $nonce . $this->binary_to_string($hash);
+            $hash = $this->binary_to_string($hash);
+            $payload = $this->apiKey . $method . $lowercase . $nonce . $hash;
             $signature = $this->hmac ($this->encode ($payload), $secret, 'sha256', 'base64');
             $auth = 'amx ' . $this->apiKey . ':' . $this->binary_to_string($signature) . ':' . $nonce;
             $headers = array (

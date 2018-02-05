@@ -20,6 +20,7 @@ class gemini (Exchange):
             'version': 'v1',
             'has': {
                 'CORS': False,
+                'createMarketOrder': False,
                 'withdraw': True,
             },
             'urls': {
@@ -86,7 +87,7 @@ class gemini (Exchange):
             })
         return result
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         orderbook = self.publicGetBookSymbol(self.extend({
             'symbol': self.market_id(symbol),

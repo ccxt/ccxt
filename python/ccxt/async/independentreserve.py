@@ -65,8 +65,8 @@ class independentreserve (Exchange):
         })
 
     async def fetch_markets(self):
-        baseCurrencies = await self.publicGetValidPrimaryCurrencyCodes()
-        quoteCurrencies = await self.publicGetValidSecondaryCurrencyCodes()
+        baseCurrencies = await self.publicGetGetValidPrimaryCurrencyCodes()
+        quoteCurrencies = await self.publicGetGetValidSecondaryCurrencyCodes()
         result = []
         for i in range(0, len(baseCurrencies)):
             baseId = baseCurrencies[i]
@@ -109,10 +109,10 @@ class independentreserve (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetOrderBook(self.extend({
+        response = await self.publicGetGetOrderBook(self.extend({
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
         }, params))
@@ -148,7 +148,7 @@ class independentreserve (Exchange):
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetMarketSummary(self.extend({
+        response = await self.publicGetGetMarketSummary(self.extend({
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
         }, params))
@@ -172,7 +172,7 @@ class independentreserve (Exchange):
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetRecentTrades(self.extend({
+        response = await self.publicGetGetRecentTrades(self.extend({
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
             'numberOfRecentTradesToRetrieve': 50,  # max = 50

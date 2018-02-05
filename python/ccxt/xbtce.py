@@ -24,6 +24,7 @@ class xbtce (Exchange):
                 'CORS': False,
                 'fetchTickers': True,
                 'fetchOHLCV': False,
+                'createMarketOrder': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28059414-e235970c-662c-11e7-8c3a-08e31f78684b.jpg',
@@ -148,7 +149,7 @@ class xbtce (Exchange):
             result[uppercase] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         orderbook = self.privateGetLevel2Filter(self.extend({
@@ -249,22 +250,22 @@ class xbtce (Exchange):
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        #     minutes = int(timeframe / 60)  # 1 minute by default
+        #     periodicity = str(minutes)
+        #     self.load_markets()
+        #     market = self.market(symbol)
+        #     if not since:
+        #         since = self.seconds() - 86400 * 7  # last day by defulat
+        #     if not limit:
+        #         limit = 1000  # default
+        #     response = self.privateGetQuotehistorySymbolPeriodicityBarsBid(self.extend({
+        #         'symbol': market['id'],
+        #         'periodicity': periodicity,
+        #         'timestamp': since,
+        #         'count': limit,
+        #     }, params))
+        #     return self.parse_ohlcvs(response['Bars'], market, timeframe, since, limit)
         raise NotSupported(self.id + ' fetchOHLCV is disabled by the exchange')
-        minutes = int(timeframe / 60)  # 1 minute by default
-        periodicity = str(minutes)
-        self.load_markets()
-        market = self.market(symbol)
-        if not since:
-            since = self.seconds() - 86400 * 7  # last day by defulat
-        if not limit:
-            limit = 1000  # default
-        response = self.privateGetQuotehistorySymbolPeriodicityBarsBid(self.extend({
-            'symbol': market['id'],
-            'periodicity': periodicity,
-            'timestamp': since,
-            'count': limit,
-        }, params))
-        return self.parse_ohlcvs(response['Bars'], market, timeframe, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

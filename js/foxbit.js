@@ -8,7 +8,6 @@ const { ExchangeError } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class foxbit extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'foxbit',
@@ -16,6 +15,7 @@ module.exports = class foxbit extends Exchange {
             'countries': 'BR',
             'has': {
                 'CORS': false,
+                'createMarketOrder': false,
             },
             'rateLimit': 1000,
             'version': 'v1',
@@ -70,7 +70,7 @@ module.exports = class foxbit extends Exchange {
         });
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let market = this.market (symbol);
         let orderbook = await this.publicGetCurrencyOrderbook (this.extend ({
             'currency': market['quote'],
@@ -191,4 +191,4 @@ module.exports = class foxbit extends Exchange {
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
     }
-}
+};

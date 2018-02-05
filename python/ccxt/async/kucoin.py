@@ -11,7 +11,9 @@ import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import OrderNotFound
 
 
 class kucoin (Exchange):
@@ -26,9 +28,10 @@ class kucoin (Exchange):
             'userAgent': self.userAgents['chrome'],
             'has': {
                 'CORS': False,
+                'createMarketOrder': False,
                 'fetchTickers': True,
                 'fetchOHLCV': True,  # see the method implementation below
-                'fetchOrder': False,
+                'fetchOrder': True,
                 'fetchOrders': False,
                 'fetchClosedOrders': True,
                 'fetchOpenOrders': True,
@@ -279,7 +282,7 @@ class kucoin (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         response = await self.publicGetOpenOrders(self.extend({
@@ -300,13 +303,29 @@ class kucoin (Exchange):
             price = self.safe_value(order, 'dealPrice')
         if price is None:
             price = self.safe_value(order, 'dealPriceAverage')
-        filled = self.safe_float(order, 'dealAmount')
         remaining = self.safe_float(order, 'pendingAmount')
+        status = self.safe_value(order, 'status')
+        filled = self.safe_float(order, 'dealAmount')
+        if status is None:
+            if remaining is not None:
+                if remaining > 0:
+                    status = 'open'
+                else:
+                    status = 'closed'
+        if status is not None:
+            if status == 'closed':
+                filled = self.safe_float(order, 'amount')
         amount = self.safe_float(order, 'amount')
-        if amount is None:
-            if filled is not None:
+        cost = self.safe_float(order, 'dealValue')
+        if filled is not None:
+            if price is not None:
+                if cost is None:
+                    cost = price * filled
+            if amount is None:
                 if remaining is not None:
                     amount = self.sum(filled, remaining)
+            elif remaining is None:
+                remaining = amount - filled
         side = self.safe_value(order, 'direction')
         if side is None:
             side = order['type'].lower()
@@ -324,12 +343,6 @@ class kucoin (Exchange):
         orderId = self.safe_string(order, 'orderOid')
         if orderId is None:
             orderId = self.safe_string(order, 'oid')
-        status = self.safe_value(order, 'status')
-        if status is None:
-            if remaining > 0:
-                status = 'open'
-            else:
-                status = 'closed'
         result = {
             'info': order,
             'id': orderId,
@@ -340,7 +353,7 @@ class kucoin (Exchange):
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': price * filled,
+            'cost': cost,
             'filled': filled,
             'remaining': remaining,
             'status': status,
@@ -350,10 +363,10 @@ class kucoin (Exchange):
 
     async def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchOrder requires a symbol argument')
+            raise ExchangeError(self.id + ' fetchOrder requires a symbol')
         orderType = self.safe_value(params, 'type')
         if orderType is None:
-            raise ExchangeError(self.id + ' fetchOrder requires a type param')
+            raise ExchangeError(self.id + ' fetchOrder requires parameter type=["BUY"|"SELL"]')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -362,11 +375,14 @@ class kucoin (Exchange):
             'orderOid': id,
         }
         response = await self.privateGetOrderDetail(self.extend(request, params))
+        order = response['data']
+        if not order:
+            raise OrderNotFound(self.id + ' ' + self.json(response))
         return self.parse_order(response['data'], market)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
-            raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol param')
+            raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -417,7 +433,7 @@ class kucoin (Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         if not symbol:
-            raise ExchangeError(self.id + ' cancelOrder requires symbol argument')
+            raise ExchangeError(self.id + ' cancelOrder requires a symbol')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -427,7 +443,7 @@ class kucoin (Exchange):
         if 'type' in params:
             request['type'] = params['type'].upper()
         else:
-            raise ExchangeError(self.id + ' cancelOrder requires type(BUY or SELL) param')
+            raise ExchangeError(self.id + ' cancelOrder requires parameter type=["BUY"|"SELL"]')
         response = await self.privatePostCancelOrder(self.extend(request, params))
         return response
 
@@ -598,26 +614,39 @@ class kucoin (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def throw_exception_on_error(self, response):
-        if 'success' in response:
-            if not response['success']:
-                if 'code' in response:
-                    message = self.safe_string(response, 'msg')
-                    if response['code'] == 'UNAUTH':
-                        if message == 'Invalid nonce':
-                            raise InvalidNonce(self.id + ' ' + message)
-                        raise AuthenticationError(self.id + ' ' + self.json(response))
-                    elif response['code'] == 'ERROR':
-                        if message.find('precision of amount') >= 0:
-                            raise InvalidOrder(self.id + ' ' + message)
-                        if message.find('Min amount each order') >= 0:
-                            raise InvalidOrder(self.id + ' ' + message)
+        # {success: False, code: "ERROR", msg: "Min price:100.0"}
+        # {success: True,  code: "OK",    msg: "Operation succeeded."}
+        if not('success' in list(response.keys())):
+            raise ExchangeError(self.id + ': malformed response: ' + self.json(response))
+        if response['success'] is True:
+            return  # not an error
+        if not('code' in list(response.keys())) or not('msg' in list(response.keys())):
+            raise ExchangeError(self.id + ': malformed response: ' + self.json(response))
+        code = self.safe_string(response, 'code')
+        message = self.safe_string(response, 'msg')
+        feedback = self.id + ' ' + self.json(response)
+        if code == 'UNAUTH':
+            if message == 'Invalid nonce':
+                raise InvalidNonce(feedback)
+            raise AuthenticationError(feedback)
+        elif code == 'ERROR':
+            if message.find('The precision of amount') >= 0:
+                raise InvalidOrder(feedback)  # amount violates precision.amount
+            if message.find('Min amount each order') >= 0:
+                raise InvalidOrder(feedback)  # amount < limits.amount.min
+            if message.find('Min price:') >= 0:
+                raise InvalidOrder(feedback)  # price < limits.price.min
+            if message.find('The precision of price') >= 0:
+                raise InvalidOrder(feedback)  # price violates precision.price
+        elif code == 'NO_BALANCE':
+            if message.find('Insufficient balance') >= 0:
+                raise InsufficientFunds(feedback)
+        raise ExchangeError(self.id + ': unknown response: ' + self.json(response))
 
-    def handle_errors(self, code, reason, url, method, headers, body):
-        if body and(body[0] == '{'):
-            response = json.loads(body)
+    def handle_errors(self, code, reason, url, method, headers, body, response=None):
+        if response is not None:
+            # JS callchain parses body beforehand
             self.throw_exception_on_error(response)
-
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = await self.fetch2(path, api, method, params, headers, body)
-        self.throw_exception_on_error(response)
-        return response
+        elif body and(body[0] == '{'):
+            # Python/PHP callchains don't have json available at self step
+            self.throw_exception_on_error(json.loads(body))

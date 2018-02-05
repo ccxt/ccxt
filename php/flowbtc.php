@@ -100,7 +100,7 @@ class flowbtc extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $orderbook = $this->publicPostGetOrderBook (array_merge (array (
@@ -140,7 +140,7 @@ class flowbtc extends Exchange {
 
     public function parse_trade ($trade, $market) {
         $timestamp = $trade['unixtime'] * 1000;
-        $side = ($trade['incomingOrderSide'] == 0) ? 'buy' : 'sell';
+        $side = ($trade['incomingOrderSide'] === 0) ? 'buy' : 'sell';
         return array (
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -167,7 +167,7 @@ class flowbtc extends Exchange {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        $orderType = ($type == 'market') ? 1 : 0;
+        $orderType = ($type === 'market') ? 1 : 0;
         $order = array (
             'ins' => $this->market_id($symbol),
             'side' => $side,
@@ -194,7 +194,7 @@ class flowbtc extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
-        if ($api == 'public') {
+        if ($api === 'public') {
             if ($params) {
                 $body = $this->json ($params);
             }

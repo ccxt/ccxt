@@ -14,6 +14,7 @@ module.exports = class liqui extends Exchange {
             'userAgent': this.userAgents['chrome'],
             'has': {
                 'CORS': false,
+                'createMarketOrder': false,
                 'fetchOrder': true,
                 'fetchOrders': 'emulated',
                 'fetchOpenOrders': true,
@@ -197,13 +198,15 @@ module.exports = class liqui extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetDepthPair (this.extend ({
+        let request = {
             'pair': market['id'],
-            // 'limit': 150, // default = 150, max = 2000
-        }, params));
+        };
+        if (typeof limit !== 'undefined')
+            request['limit'] = limit; // default = 150, max = 2000
+        let response = await this.publicGetDepthPair (this.extend (request, params));
         let market_id_in_reponse = (market['id'] in response);
         if (!market_id_in_reponse)
             throw new ExchangeError (this.id + ' ' + market['symbol'] + ' order book is empty or not available');
@@ -304,14 +307,12 @@ module.exports = class liqui extends Exchange {
             symbol = market['symbol'];
         let amount = trade['amount'];
         let type = 'limit'; // all trades are still limit trades
-        let fee = undefined;
-        // this is filled by fetchMyTrades() only
-        // is_your_order is always false :\
-        // let isYourOrder = this.safeValue (trade, 'is_your_order');
-        // let takerOrMaker = 'taker';
-        // if (isYourOrder)
-        //     takerOrMaker = 'maker';
-        // let fee = this.calculateFee (symbol, type, side, amount, price, takerOrMaker);
+        let isYourOrder = this.safeValue (trade, 'is_your_order');
+        let takerOrMaker = 'taker';
+        if (typeof isYourOrder !== 'undefined')
+            if (isYourOrder)
+                takerOrMaker = 'maker';
+        let fee = this.calculateFee (symbol, type, side, amount, price, takerOrMaker);
         return {
             'id': id,
             'order': order,

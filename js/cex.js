@@ -8,7 +8,6 @@ const { ExchangeError, InvalidOrder } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class cex extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'cex',
@@ -130,6 +129,7 @@ module.exports = class cex extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'lot': market['minLotSize'],
                 'precision': {
                     'price': this.precisionFromString (market['minPrice']),
                     'amount': -1 * Math.log10 (market['minLotSize']),
@@ -175,7 +175,7 @@ module.exports = class cex extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetOrderBookPair (this.extend ({
             'pair': this.marketId (symbol),
@@ -200,7 +200,7 @@ module.exports = class cex extends Exchange {
         let market = this.market (symbol);
         if (!since)
             since = this.milliseconds () - 86400000; // yesterday
-        let ymd = this.Ymd (since);
+        let ymd = this.ymd (since);
         ymd = ymd.split ('-');
         ymd = ymd.join ('');
         let request = {

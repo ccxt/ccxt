@@ -4,7 +4,8 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async.base.exchange import Exchange
-from ccxt.base.errors import ExchangeError
+import json
+from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 
 
@@ -82,14 +83,18 @@ class acx (Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0.0,
-                    'taker': 0.0,
+                    'maker': 0.2 / 100,
+                    'taker': 0.2 / 100,
                 },
                 'funding': {
                     'tierBased': False,
                     'percentage': True,
                     'withdraw': 0.0,  # There is only 1% fee on withdrawals to your bank account.
                 },
+            },
+            'exceptions': {
+                2002: InsufficientFunds,
+                2003: OrderNotFound,
             },
         })
 
@@ -130,13 +135,15 @@ class acx (Exchange):
             result[uppercase] = account
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        orderbook = await self.publicGetDepth(self.extend({
+        request = {
             'market': market['id'],
-            'limit': 300,
-        }, params))
+        }
+        if limit is None:
+            request['limit'] = limit  # default = 300
+        orderbook = await self.publicGetDepth(self.extend(request, params))
         timestamp = orderbook['timestamp'] * 1000
         result = self.parse_order_book(orderbook, timestamp)
         result['bids'] = self.sort_by(result['bids'], 0, True)
@@ -267,7 +274,7 @@ class acx (Exchange):
         elif state == 'cancel':
             status = 'canceled'
         return {
-            'id': order['id'],
+            'id': str(order['id']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'status': status,
@@ -301,8 +308,9 @@ class acx (Exchange):
         await self.load_markets()
         result = await self.privatePostOrderDelete({'id': id})
         order = self.parse_order(result)
-        if order['status'] == 'closed':
-            raise OrderNotFound(self.id + ' ' + result)
+        status = order['status']
+        if status == 'closed' or status == 'canceled':
+            raise OrderNotFound(self.id + ' ' + self.json(order))
         return order
 
     async def withdraw(self, currency, amount, address, tag=None, params={}):
@@ -360,8 +368,13 @@ class acx (Exchange):
                 headers = {'Content-Type': 'application/x-www-form-urlencoded'}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = await self.fetch2(path, api, method, params, headers, body)
-        if 'error' in response:
-            raise ExchangeError(self.id + ' ' + self.json(response))
-        return response
+    def handle_errors(self, code, reason, url, method, headers, body):
+        if code == 400:
+            response = json.loads(body)
+            error = self.safe_value(response, 'error')
+            errorCode = self.safe_string(error, 'code')
+            feedback = self.id + ' ' + self.json(response)
+            exceptions = self.exceptions
+            if errorCode in exceptions:
+                raise exceptions[errorCode](feedback)
+            # fallback to default error handler

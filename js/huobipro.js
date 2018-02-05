@@ -8,7 +8,6 @@ const { ExchangeError } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class huobipro extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'huobipro',
@@ -25,6 +24,7 @@ module.exports = class huobipro extends Exchange {
                 'fetchOHCLV': true,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1min',
@@ -192,7 +192,7 @@ module.exports = class huobipro extends Exchange {
         };
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.marketGetDepth (this.extend ({
@@ -352,7 +352,7 @@ module.exports = class huobipro extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let open = 0; // 0 for unfilled orders, 1 for filled orders
-        return this.fetchOrders (symbol, undefined, undefined, this.extend ({
+        return await this.fetchOrders (symbol, undefined, undefined, this.extend ({
             'status': open,
         }, params));
     }
@@ -443,6 +443,25 @@ module.exports = class huobipro extends Exchange {
         return await this.privatePostOrderOrdersIdSubmitcancel ({ 'id': id });
     }
 
+    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+        let request = {
+            'address': address, // only supports existing addresses in your withdraw address list
+            'amount': amount,
+            'currency': currency.toLowerCase (),
+        };
+        if (tag)
+            request['addr-tag'] = tag; // only for XRP?
+        let response = await this.privatePostDwWithdrawApiCreate (this.extend (request, params));
+        let id = undefined;
+        if ('data' in response) {
+            id = response['data'];
+        }
+        return {
+            'info': response,
+            'id': id,
+        };
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/';
         if (api === 'market')
@@ -453,7 +472,7 @@ module.exports = class huobipro extends Exchange {
         let query = this.omit (params, this.extractParams (path));
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            let timestamp = this.YmdHMS (this.milliseconds (), 'T');
+            let timestamp = this.ymdhms (this.milliseconds (), 'T');
             let request = this.keysort (this.extend ({
                 'SignatureMethod': 'HmacSHA256',
                 'SignatureVersion': '2',
@@ -491,4 +510,4 @@ module.exports = class huobipro extends Exchange {
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
     }
-}
+};

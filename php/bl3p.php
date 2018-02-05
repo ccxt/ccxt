@@ -99,7 +99,7 @@ class bl3p extends Exchange {
         ];
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $market = $this->market ($symbol);
         $response = $this->publicGetMarketOrderbook (array_merge (array (
             'market' => $market['id'],
@@ -164,9 +164,9 @@ class bl3p extends Exchange {
             'market' => $market['id'],
             'amount_int' => intval ($amount * 100000000),
             'fee_currency' => $market['quote'],
-            'type' => ($side == 'buy') ? 'bid' : 'ask',
+            'type' => ($side === 'buy') ? 'bid' : 'ask',
         );
-        if ($type == 'limit')
+        if ($type === 'limit')
             $order['price_int'] = intval ($price * 100000.0);
         $response = $this->privatePostMarketMoneyOrderAdd (array_merge ($order, $params));
         return array (
@@ -183,7 +183,7 @@ class bl3p extends Exchange {
         $request = $this->implode_params($path, $params);
         $url = $this->urls['api'] . '/' . $this->version . '/' . $request;
         $query = $this->omit ($params, $this->extract_params($path));
-        if ($api == 'public') {
+        if ($api === 'public') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {

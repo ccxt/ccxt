@@ -7,7 +7,6 @@ const Exchange = require ('./base/Exchange');
 //  ---------------------------------------------------------------------------
 
 module.exports = class bitflyer extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitflyer',
@@ -78,9 +77,9 @@ module.exports = class bitflyer extends Exchange {
     }
 
     async fetchMarkets () {
-        let jp_markets = await this.publicGetMarkets ();
-        let us_markets = await this.publicGetMarketsUsa ();
-        let eu_markets = await this.publicGetMarketsEu ();
+        let jp_markets = await this.publicGetGetmarkets ();
+        let us_markets = await this.publicGetGetmarketsUsa ();
+        let eu_markets = await this.publicGetGetmarketsEu ();
         let markets = this.arrayConcat (jp_markets, us_markets);
         markets = this.arrayConcat (markets, eu_markets);
         let result = [];
@@ -116,7 +115,7 @@ module.exports = class bitflyer extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateGetBalance ();
+        let response = await this.privateGetGetbalance ();
         let balances = {};
         for (let b = 0; b < response.length; b++) {
             let account = response[b];
@@ -138,9 +137,9 @@ module.exports = class bitflyer extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let orderbook = await this.publicGetBoard (this.extend ({
+        let orderbook = await this.publicGetGetboard (this.extend ({
             'product_code': this.marketId (symbol),
         }, params));
         return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'size');
@@ -148,7 +147,7 @@ module.exports = class bitflyer extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let ticker = await this.publicGetTicker (this.extend ({
+        let ticker = await this.publicGetGetticker (this.extend ({
             'product_code': this.marketId (symbol),
         }, params));
         let timestamp = this.parse8601 (ticker['timestamp']);
@@ -202,7 +201,7 @@ module.exports = class bitflyer extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetExecutions (this.extend ({
+        let response = await this.publicGetGetexecutions (this.extend ({
             'product_code': market['id'],
         }, params));
         return this.parseTrades (response, market, since, limit);
@@ -271,4 +270,4 @@ module.exports = class bitflyer extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-}
+};

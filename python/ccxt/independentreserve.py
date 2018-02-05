@@ -65,8 +65,8 @@ class independentreserve (Exchange):
         })
 
     def fetch_markets(self):
-        baseCurrencies = self.publicGetValidPrimaryCurrencyCodes()
-        quoteCurrencies = self.publicGetValidSecondaryCurrencyCodes()
+        baseCurrencies = self.publicGetGetValidPrimaryCurrencyCodes()
+        quoteCurrencies = self.publicGetGetValidSecondaryCurrencyCodes()
         result = []
         for i in range(0, len(baseCurrencies)):
             baseId = baseCurrencies[i]
@@ -109,10 +109,10 @@ class independentreserve (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetOrderBook(self.extend({
+        response = self.publicGetGetOrderBook(self.extend({
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
         }, params))
@@ -148,7 +148,7 @@ class independentreserve (Exchange):
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetMarketSummary(self.extend({
+        response = self.publicGetGetMarketSummary(self.extend({
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
         }, params))
@@ -172,7 +172,7 @@ class independentreserve (Exchange):
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetRecentTrades(self.extend({
+        response = self.publicGetGetRecentTrades(self.extend({
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
             'numberOfRecentTradesToRetrieve': 50,  # max = 50

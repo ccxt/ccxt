@@ -28,6 +28,7 @@ class poloniex (Exchange):
                 'createDepositAddress': True,
                 'fetchDepositAddress': True,
                 'CORS': False,
+                'createMarketOrder': False,
                 'fetchOHLCV': True,
                 'fetchMyTrades': True,
                 'fetchOrder': 'emulated',
@@ -239,12 +240,14 @@ class poloniex (Exchange):
             'deposit': {},
         }
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
-        orderbook = await self.publicGetReturnOrderBook(self.extend({
+        request = {
             'currencyPair': self.market_id(symbol),
-            # 'depth': 100,
-        }, params))
+        }
+        if limit is not None:
+            request['depth'] = limit  # 100
+        orderbook = await self.publicGetReturnOrderBook(self.extend(request, params))
         return self.parse_order_book(orderbook)
 
     def parse_ticker(self, ticker, market=None):
@@ -714,19 +717,20 @@ class poloniex (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body):
-        if code >= 400:
-            if body[0] == '{':
-                response = json.loads(body)
-                if 'error' in response:
-                    error = self.id + ' ' + body
-                    if response['error'].find('Total must be at least') >= 0:
-                        raise InvalidOrder(error)
-                    elif response['error'].find('Not enough') >= 0:
-                        raise InsufficientFunds(error)
-                    elif response['error'].find('Nonce must be greater') >= 0:
-                        raise ExchangeNotAvailable(error)
-                    elif response['error'].find('You have already called cancelOrder or moveOrder on self order.') >= 0:
-                        raise CancelPending(error)
+        if body[0] == '{':
+            response = json.loads(body)
+            if 'error' in response:
+                error = self.id + ' ' + body
+                if response['error'] == 'Invalid order number, or you are not the person who placed the order.':
+                    raise OrderNotFound(error)
+                elif response['error'].find('Total must be at least') >= 0:
+                    raise InvalidOrder(error)
+                elif response['error'].find('Not enough') >= 0:
+                    raise InsufficientFunds(error)
+                elif response['error'].find('Nonce must be greater') >= 0:
+                    raise ExchangeNotAvailable(error)
+                elif response['error'].find('You have already called cancelOrder or moveOrder on self order.') >= 0:
+                    raise CancelPending(error)
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = await self.fetch2(path, api, method, params, headers, body)

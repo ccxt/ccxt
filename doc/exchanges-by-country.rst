@@ -32,8 +32,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
 +----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | British Virgin Islands     | |bitfinex2|            | bitfinex2            | `Bitfinex v2 <https://www.bitfinex.com>`__                     | 2     | `API <https://bitfinex.readme.io/v2/docs>`__                                                      |
 +----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
-| British Virgin Islands     | |bter|                 | bter                 | `Bter <https://bter.com>`__                                    | 2     | `API <https://bter.com/api2>`__                                                                   |
-+----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | Bulgaria                   | |coingi|               | coingi               | `Coingi <https://coingi.com>`__                                | \*    | `API <http://docs.coingi.apiary.io/>`__                                                           |
 +----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | Canada                     | |allcoin|              | allcoin              | `Allcoin <https://www.allcoin.com>`__                          | 1     | `API <https://www.allcoin.com/About/APIReference>`__                                              |
@@ -45,8 +43,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
 | China                      | |bibox|                | bibox                | `Bibox <https://www.bibox.com>`__                              | 1     | `API <https://github.com/Biboxcom/api_reference/wiki/home_en>`__                                  |
 +----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | China                      | |btcchina|             | btcchina             | `BTCChina <https://www.btcchina.com>`__                        | 1     | `API <https://www.btcchina.com/apidocs>`__                                                        |
-+----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
-| China                      | |bter|                 | bter                 | `Bter <https://bter.com>`__                                    | 2     | `API <https://bter.com/api2>`__                                                                   |
 +----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | China                      | |chbtc|                | chbtc                | `CHBTC <https://trade.chbtc.com/api>`__                        | 1     | `API <https://www.chbtc.com/i/developer>`__                                                       |
 +----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
@@ -206,6 +202,8 @@ The ccxt library currently supports the following cryptocurrency exchange market
 +----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | Switzerland                | |vaultoro|             | vaultoro             | `Vaultoro <https://www.vaultoro.com>`__                        | 1     | `API <https://api.vaultoro.com>`__                                                                |
 +----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
+| Taiwan                     | |cobinhood|            | cobinhood            | `COBINHOOD <https://cobinhood.com>`__                          | \*    | `API <https://cobinhood.github.io/api-public>`__                                                  |
++----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | Taiwan                     | |qryptos|              | qryptos              | `QRYPTOS <https://www.qryptos.com>`__                          | 2     | `API <https://developers.quoine.com>`__                                                           |
 +----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | Tanzania                   | |nova|                 | nova                 | `Novaexchange <https://novaexchange.com>`__                    | 2     | `API <https://novaexchange.com/remote/faq>`__                                                     |
@@ -300,7 +298,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
 .. |mercado| image:: https://user-images.githubusercontent.com/1294454/27837060-e7c58714-60ea-11e7-9192-f05e86adb83f.jpg
 .. |bitfinex| image:: https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg
 .. |bitfinex2| image:: https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg
-.. |bter| image:: https://user-images.githubusercontent.com/1294454/27980479-cfa3188c-6387-11e7-8191-93fc4184ba5c.jpg
 .. |coingi| image:: https://user-images.githubusercontent.com/1294454/28619707-5c9232a8-7212-11e7-86d6-98fe5d15cc6e.jpg
 .. |allcoin| image:: https://user-images.githubusercontent.com/1294454/31561809-c316b37c-b061-11e7-8d5a-b547b4d730eb.jpg
 .. |quadrigacx| image:: https://user-images.githubusercontent.com/1294454/27766825-98a6d0de-5ee7-11e7-9fa4-38e11a2c6f52.jpg
@@ -361,6 +358,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
 .. |fybse| image:: https://user-images.githubusercontent.com/1294454/27766512-31019772-5edb-11e7-8241-2e675e6797f1.jpg
 .. |lykke| image:: https://user-images.githubusercontent.com/1294454/34487620-3139a7b0-efe6-11e7-90f5-e520cef74451.jpg
 .. |vaultoro| image:: https://user-images.githubusercontent.com/1294454/27766880-f205e870-5ee9-11e7-8fe2-0d5b15880752.jpg
+.. |cobinhood| image:: https://user-images.githubusercontent.com/1294454/35755576-dee02e5c-0878-11e8-989f-1595d80ba47f.jpg
 .. |nova| image:: https://user-images.githubusercontent.com/1294454/30518571-78ca0bca-9b8a-11e7-8840-64b83a4a94b2.jpg
 .. |bxinth| image:: https://user-images.githubusercontent.com/1294454/27766412-567b1eb4-5ed7-11e7-94a8-ff6a3884f6c5.jpg
 .. |btcturk| image:: https://user-images.githubusercontent.com/1294454/27992709-18e15646-64a3-11e7-9fa2-b0950ec7712f.jpg

@@ -117,13 +117,15 @@ class ccex (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
-        response = self.publicGetOrderbook(self.extend({
+        request = {
             'market': self.market_id(symbol),
             'type': 'both',
-            'depth': 100,
-        }, params))
+        }
+        if limit is not None:
+            request['depth'] = limit  # 100
+        response = self.publicGetOrderbook(self.extend(request, params))
         orderbook = response['result']
         return self.parse_order_book(orderbook, None, 'buy', 'sell', 'Rate', 'Quantity')
 

@@ -19,6 +19,7 @@ class zaif (Exchange):
             'version': '1',
             'has': {
                 'CORS': False,
+                'createMarketOrder': False,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'withdraw': True,
@@ -132,7 +133,7 @@ class zaif (Exchange):
             result[uppercase] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         orderbook = self.publicGetDepthPair(self.extend({
             'pair': self.market_id(symbol),

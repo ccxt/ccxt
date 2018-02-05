@@ -8,7 +8,6 @@ const { ExchangeError, AuthenticationError, InvalidOrder, InsufficientFunds, Ord
 //  ---------------------------------------------------------------------------
 
 module.exports = class bittrex extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bittrex',
@@ -19,16 +18,17 @@ module.exports = class bittrex extends Exchange {
             'hasAlreadyAuthenticatedSuccessfully': false, // a workaround for APIKEY_INVALID
             // new metainfo interface
             'has': {
-                'fetchDepositAddress': true,
                 'CORS': true,
-                'fetchTickers': true,
+                'createMarketOrder': false,
+                'fetchDepositAddress': true,
+                'fetchClosedOrders': 'emulated',
+                'fetchCurrencies': true,
+                'fetchMyTrades': false,
                 'fetchOHLCV': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
-                'fetchClosedOrders': 'emulated',
                 'fetchOpenOrders': true,
-                'fetchMyTrades': false,
-                'fetchCurrencies': true,
+                'fetchTickers': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -212,7 +212,7 @@ module.exports = class bittrex extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.publicGetOrderbook (this.extend ({
             'market': this.marketId (symbol),
@@ -242,7 +242,11 @@ module.exports = class bittrex extends Exchange {
             symbol = market['symbol'];
         let previous = this.safeFloat (ticker, 'PrevDay');
         let last = this.safeFloat (ticker, 'Last');
-        let change = (last - previous) / previous;
+        let change = undefined;
+        if (typeof last !== 'undefined')
+            if (typeof previous !== 'undefined')
+                if (previous > 0)
+                    change = (last - previous) / previous;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -733,4 +737,4 @@ module.exports = class bittrex extends Exchange {
         }
         this.throwExceptionOnError (response);
     }
-}
+};

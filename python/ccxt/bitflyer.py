@@ -77,9 +77,9 @@ class bitflyer (Exchange):
         })
 
     def fetch_markets(self):
-        jp_markets = self.publicGetMarkets()
-        us_markets = self.publicGetMarketsUsa()
-        eu_markets = self.publicGetMarketsEu()
+        jp_markets = self.publicGetGetmarkets()
+        us_markets = self.publicGetGetmarketsUsa()
+        eu_markets = self.publicGetGetmarketsEu()
         markets = self.array_concat(jp_markets, us_markets)
         markets = self.array_concat(markets, eu_markets)
         result = []
@@ -112,7 +112,7 @@ class bitflyer (Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        response = self.privateGetBalance()
+        response = self.privateGetGetbalance()
         balances = {}
         for b in range(0, len(response)):
             account = response[b]
@@ -130,16 +130,16 @@ class bitflyer (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
-        orderbook = self.publicGetBoard(self.extend({
+        orderbook = self.publicGetGetboard(self.extend({
             'product_code': self.market_id(symbol),
         }, params))
         return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'size')
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
-        ticker = self.publicGetTicker(self.extend({
+        ticker = self.publicGetGetticker(self.extend({
             'product_code': self.market_id(symbol),
         }, params))
         timestamp = self.parse8601(ticker['timestamp'])
@@ -190,7 +190,7 @@ class bitflyer (Exchange):
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetExecutions(self.extend({
+        response = self.publicGetGetexecutions(self.extend({
             'product_code': market['id'],
         }, params))
         return self.parse_trades(response, market, since, limit)

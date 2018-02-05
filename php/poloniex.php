@@ -17,6 +17,7 @@ class poloniex extends Exchange {
                 'createDepositAddress' => true,
                 'fetchDepositAddress' => true,
                 'CORS' => false,
+                'createMarketOrder' => false,
                 'fetchOHLCV' => true,
                 'fetchMyTrades' => true,
                 'fetchOrder' => 'emulated',
@@ -240,12 +241,14 @@ class poloniex extends Exchange {
         );
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $orderbook = $this->publicGetReturnOrderBook (array_merge (array (
+        $request = array (
             'currencyPair' => $this->market_id($symbol),
-            // 'depth' => 100,
-        ), $params));
+        );
+        if ($limit !== null)
+            $request['depth'] = $limit; // 100
+        $orderbook = $this->publicGetReturnOrderBook (array_merge ($request, $params));
         return $this->parse_order_book($orderbook);
     }
 
@@ -772,20 +775,20 @@ class poloniex extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
-        if ($code >= 400) {
-            if ($body[0] === '{') {
-                $response = json_decode ($body, $as_associative_array = true);
-                if (is_array ($response) && array_key_exists ('error', $response)) {
-                    $error = $this->id . ' ' . $body;
-                    if (mb_strpos ($response['error'], 'Total must be at least') !== false) {
-                        throw new InvalidOrder ($error);
-                    } else if (mb_strpos ($response['error'], 'Not enough') !== false) {
-                        throw new InsufficientFunds ($error);
-                    } else if (mb_strpos ($response['error'], 'Nonce must be greater') !== false) {
-                        throw new ExchangeNotAvailable ($error);
-                    } else if (mb_strpos ($response['error'], 'You have already called cancelOrder or moveOrder on this order.') !== false) {
-                        throw new CancelPending ($error);
-                    }
+        if ($body[0] === '{') {
+            $response = json_decode ($body, $as_associative_array = true);
+            if (is_array ($response) && array_key_exists ('error', $response)) {
+                $error = $this->id . ' ' . $body;
+                if ($response['error'] === 'Invalid order number, or you are not the person who placed the order.') {
+                    throw new OrderNotFound ($error);
+                } else if (mb_strpos ($response['error'], 'Total must be at least') !== false) {
+                    throw new InvalidOrder ($error);
+                } else if (mb_strpos ($response['error'], 'Not enough') !== false) {
+                    throw new InsufficientFunds ($error);
+                } else if (mb_strpos ($response['error'], 'Nonce must be greater') !== false) {
+                    throw new ExchangeNotAvailable ($error);
+                } else if (mb_strpos ($response['error'], 'You have already called cancelOrder or moveOrder on this order.') !== false) {
+                    throw new CancelPending ($error);
                 }
             }
         }

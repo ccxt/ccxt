@@ -91,20 +91,7 @@ class kuna extends acx {
         ));
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
-        if ($code === 400) {
-            $response = json_decode ($body, $as_associative_array = true);
-            $error = $this->safe_value($response, 'error');
-            $errorCode = $this->safe_integer($error, 'code');
-            if ($errorCode === 2002) {
-                throw new InsufficientFunds (implode (' ', array ($this->id, $method, $url, $code, $reason, $body)));
-            } else if ($errorCode === 2003) {
-                throw new OrderNotFound (implode (' ', array ($this->id, $method, $url, $code, $reason, $body)));
-            }
-        }
-    }
-
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $market = $this->market ($symbol);
         $orderBook = $this->publicGetOrderBook (array_merge (array (
             'market' => $market['id'],
@@ -112,8 +99,8 @@ class kuna extends acx {
         return $this->parse_order_book($orderBook, null, 'bids', 'asks', 'price', 'remaining_volume');
     }
 
-    public function fetch_l3_order_book ($symbol, $params) {
-        return $this->fetch_order_book($symbol, $params);
+    public function fetch_l3_order_book ($symbol, $limit = null, $params = array ()) {
+        return $this->fetch_order_book($symbol, $limit, $params);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {

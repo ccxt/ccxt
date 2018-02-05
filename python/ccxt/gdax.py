@@ -83,6 +83,7 @@ class gdax (Exchange):
                         'accounts/{id}',
                         'accounts/{id}/holds',
                         'accounts/{id}/ledger',
+                        'accounts/{id}/transfers',
                         'coinbase-accounts',
                         'fills',
                         'funding',
@@ -200,7 +201,7 @@ class gdax (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         orderbook = self.publicGetProductsIdBook(self.extend({
             'id': self.market_id(symbol),
@@ -261,19 +262,22 @@ class gdax (Exchange):
                     market = self.markets_by_id[marketId]
         if market:
             symbol = market['symbol']
-        fee = None
-        if 'fill_fees' in trade:
-            feeCurrency = None
-            if market:
-                feeCurrency = market['quote']
-            fee = {
-                'cost': self.safe_float(trade, 'fill_fees'),
-                'currency': feeCurrency,
-                'rate': None,
-            }
+        feeRate = None
+        feeCurrency = None
+        if market:
+            feeCurrency = market['quote']
+            if 'liquidity' in trade:
+                rateType = 'taker' if (trade['liquidity'] == 'T') else 'maker'
+                feeRate = market[rateType]
+        feeCost = self.safe_float(trade, 'fill_fees')
+        if feeCost is None:
+            feeCost = self.safe_float(trade, 'fee')
+        fee = {
+            'cost': feeCost,
+            'currency': feeCurrency,
+            'rate': feeRate,
+        }
         type = None
-        if 'liquidity' in trade:
-            type = 'Taker' if (trade['liquidity'] == 'T') else 'Maker'
         id = self.safe_string(trade, 'trade_id')
         orderId = self.safe_string(trade, 'order_id')
         return {
@@ -329,11 +333,11 @@ class gdax (Exchange):
             'granularity': granularity,
         }
         if since is not None:
-            request['start'] = self.YmdHMS(since)
+            request['start'] = self.ymdhms(since)
             if limit is None:
                 # https://docs.gdax.com/#get-historic-rates
                 limit = 350  # max = 350
-            request['end'] = self.YmdHMS(self.sum(limit * granularity * 1000, since))
+            request['end'] = self.ymdhms(self.sum(limit * granularity * 1000, since))
         response = self.publicGetProductsIdCandles(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 

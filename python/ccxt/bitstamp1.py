@@ -76,7 +76,7 @@ class bitstamp1 (Exchange):
             },
         })
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         if symbol != 'BTC/USD':
             raise ExchangeError(self.id + ' ' + self.version + " fetchOrderBook doesn't support " + symbol + ', use it for BTC/USD only')
         orderbook = self.publicGetOrderBook(params)

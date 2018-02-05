@@ -5,7 +5,12 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
+import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import OrderNotFound
 
 
 class bitcoincoid (Exchange):
@@ -17,6 +22,7 @@ class bitcoincoid (Exchange):
             'countries': 'ID',  # Indonesia
             'has': {
                 'CORS': False,
+                'createMarketOrder': False,
                 'fetchTickers': False,
                 'fetchOHLCV': False,
                 'fetchOrder': True,
@@ -37,7 +43,6 @@ class bitcoincoid (Exchange):
                 'www': 'https://www.bitcoin.co.id',
                 'doc': [
                     'https://vip.bitcoin.co.id/downloads/BITCOINCOID-API-DOCUMENTATION.pdf',
-                    'https://vip.bitcoin.co.id/trade_api',
                 ],
             },
             'api': {
@@ -111,7 +116,7 @@ class bitcoincoid (Exchange):
             result[code] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         orderbook = self.publicGetPairDepth(self.extend({
             'pair': self.market_id(symbol),
@@ -244,15 +249,18 @@ class bitcoincoid (Exchange):
         return self.extend({'info': response}, order)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        if not symbol:
-            raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol')
         self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'pair': market['id'],
-        }
+        market = None
+        request = {}
+        if symbol:
+            market = self.market(symbol)
+            request['pair'] = market['id']
         response = self.privatePostOpenOrders(self.extend(request, params))
-        orders = self.parse_orders(response['return']['orders'], market, since, limit)
+        # {success: 1, return: {orders: null}}
+        raw = response['return']['orders']
+        if not raw:
+            return []
+        orders = self.parse_orders(raw, market, since, limit)
         return self.filter_orders_by_symbol(orders, symbol)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -272,6 +280,8 @@ class bitcoincoid (Exchange):
         return orders
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        if type != 'limit':
+            raise ExchangeError(self.id + ' allows limit orders only')
         self.load_markets()
         market = self.market(symbol)
         order = {
@@ -279,8 +289,12 @@ class bitcoincoid (Exchange):
             'type': side,
             'price': price,
         }
-        base = market['baseId']
-        order[base] = amount
+        currency = market['baseId']
+        if side == 'buy':
+            order[market['quoteId']] = amount * price
+        else:
+            order[market['baseId']] = amount
+        order[currency] = amount
         result = self.privatePostTrade(self.extend(order, params))
         return {
             'info': result,
@@ -288,9 +302,17 @@ class bitcoincoid (Exchange):
         }
 
     def cancel_order(self, id, symbol=None, params={}):
+        if symbol is None:
+            raise ExchangeError(self.id + ' cancelOrder requires a symbol argument')
+        side = self.safe_value(params, 'side')
+        if side is None:
+            raise ExchangeError(self.id + ' cancelOrder requires an extra "side" param')
         self.load_markets()
+        market = self.market(symbol)
         return self.privatePostCancelOrder(self.extend({
             'order_id': id,
+            'pair': market['id'],
+            'type': params['side'],
         }, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
@@ -310,8 +332,31 @@ class bitcoincoid (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
-        if 'error' in response:
-            raise ExchangeError(self.id + ' ' + response['error'])
-        return response
+    def handle_errors(self, code, reason, url, method, headers, body, response=None):
+        # {success: 0, error: "invalid order."}
+        if response is None:
+            if body[0] == '{':
+                response = json.loads(body)
+        if not('success' in list(response.keys())):
+            return  # no 'success' property on public responses
+        if response['success'] == 1:
+            # {success: 1, return: {orders: []}}
+            if not('return' in list(response.keys())):
+                raise ExchangeError(self.id + ': malformed response: ' + self.json(response))
+            else:
+                return
+        message = response['error']
+        feedback = self.id + ' ' + self.json(response)
+        if message == 'Insufficient balance.':
+            raise InsufficientFunds(feedback)
+        elif message == 'invalid order.':
+            raise OrderNotFound(feedback)  # cancelOrder(1)
+        elif message.find('Minimum price ') >= 0:
+            raise InvalidOrder(feedback)  # price < limits.price.min, on createLimitBuyOrder('ETH/BTC', 1, 0)
+        elif message.find('Minimum order ') >= 0:
+            raise InvalidOrder(feedback)  # cost < limits.cost.min on createLimitBuyOrder('ETH/BTC', 0, 1)
+        elif message == 'Invalid credentials. API not found or session has expired.':
+            raise AuthenticationError(feedback)  # on bad apiKey
+        elif message == 'Invalid credentials. Bad sign.':
+            raise AuthenticationError(feedback)  # on bad secret
+        raise ExchangeError(self.id + ': unknown error: ' + self.json(response))

@@ -193,7 +193,7 @@ class bitmex (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         orderbook = self.publicGetOrderBookL2(self.extend({
             'symbol': self.market_id(symbol),
@@ -285,7 +285,7 @@ class bitmex (Exchange):
             # 'endTime': '',    # ending date filter for results
         }
         if since is not None:
-            ymdhms = self.YmdHMS(since)
+            ymdhms = self.ymdhms(since)
             ymdhm = ymdhms[0:16]
             request['startTime'] = ymdhm  # starting date filter for results
         if limit is not None:

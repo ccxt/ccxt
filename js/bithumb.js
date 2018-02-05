@@ -8,7 +8,6 @@ const { ExchangeError } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class bithumb extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bithumb',
@@ -131,13 +130,15 @@ module.exports = class bithumb extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetOrderbookCurrency (this.extend ({
-            'count': 50, // max = 50
+        let request = {
             'currency': market['base'],
-        }, params));
+        };
+        if (typeof limit !== 'undefined')
+            request['count'] = limit; // max = 50
+        let response = await this.publicGetOrderbookCurrency (this.extend (request, params));
         let orderbook = response['data'];
         let timestamp = parseInt (orderbook['timestamp']);
         return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 'price', 'quantity');
@@ -339,4 +340,4 @@ module.exports = class bithumb extends Exchange {
         }
         return response;
     }
-}
+};

@@ -15,6 +15,10 @@ const errors = require ('./js/base/errors.js')
 
 // ---------------------------------------------------------------------------
 
+const [ /* node */, /* script */, filename ] = process.argv
+
+// ---------------------------------------------------------------------------
+
 function replaceInFile (filename, regex, replacement) {
     let contents = fs.readFileSync (filename, 'utf8')
     const parts = contents.split (regex)
@@ -591,11 +595,14 @@ const pythonRegexes = [
 
     //-----------------------------------------------------------------------------
 
-    function transpileDerivedExchangeFiles (folder) {
+    function transpileDerivedExchangeFiles (folder, pattern = '.js') {
 
         const classNames = fs.readdirSync (folder)
-            .filter (file => file.includes ('.js'))
+            .filter (file => file.includes (pattern))
             .map (file => transpileDerivedExchangeFile (folder, file))
+
+        if (classNames.length === 0)
+            return null
 
         let classes = {}
         classNames.forEach (({ className, baseClass }) => {
@@ -700,7 +707,12 @@ const pythonRegexes = [
     createFolderRecursively (python3Folder)
     createFolderRecursively (phpFolder)
 
-    const classes = transpileDerivedExchangeFiles ('./js/')
+    const classes = transpileDerivedExchangeFiles ('./js/', filename)
+
+    if (classes === null) {
+      log.bright.yellow ('0 files transpiled.')
+      return;
+    }
 
     // HINT: if we're going to support specific class definitions this process won't work anymore as it will override the definitions.
     exportTypeScriptDeclarations (classes)

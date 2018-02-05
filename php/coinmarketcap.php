@@ -78,16 +78,18 @@ class coinmarketcap extends Exchange {
         ));
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         throw new ExchangeError ('Fetching order books is not supported by the API of ' . $this->id);
     }
 
     public function currency_code ($base, $name) {
         $currencies = array (
-            'Bitgem' => 'Bitgem',
-            'NetCoin' => 'NetCoin',
             'BatCoin' => 'BatCoin',
+            'Bitgem' => 'Bitgem',
+            'BlockCAT' => 'BlockCAT',
+            'Catcoin' => 'Catcoin',
             'iCoin' => 'iCoin',
+            'NetCoin' => 'NetCoin',
         );
         if (is_array ($currencies) && array_key_exists ($name, $currencies))
             return $currencies[$name];

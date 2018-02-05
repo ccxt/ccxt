@@ -89,7 +89,7 @@ class coinmate extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $response = $this->publicGetOrderBook (array_merge (array (
             'currencyPair' => $this->market_id($symbol),
             'groupByPriceLimit' => 'False',
@@ -157,8 +157,8 @@ class coinmate extends Exchange {
         $order = array (
             'currencyPair' => $this->market_id($symbol),
         );
-        if ($type == 'market') {
-            if ($side == 'buy')
+        if ($type === 'market') {
+            if ($side === 'buy')
                 $order['total'] = $amount; // $amount in fiat
             else
                 $order['amount'] = $amount; // $amount in fiat
@@ -181,7 +181,7 @@ class coinmate extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $path;
-        if ($api == 'public') {
+        if ($api === 'public') {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {

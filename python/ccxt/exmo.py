@@ -142,7 +142,7 @@ class exmo (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         response = self.publicGetOrderBook(self.extend({
@@ -248,11 +248,14 @@ class exmo (Exchange):
 
     def withdraw(self, currency, amount, address, tag=None, params={}):
         self.load_markets()
-        result = self.privatePostWithdrawCrypt(self.extend({
+        request = {
             'amount': amount,
             'currency': currency,
             'address': address,
-        }, params))
+        }
+        if tag is not None:
+            request['invoice'] = tag
+        result = self.privatePostWithdrawCrypt(self.extend(request, params))
         return {
             'info': result,
             'id': result['task_id'],

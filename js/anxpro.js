@@ -8,7 +8,6 @@ const { ExchangeError } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class anxpro extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'anxpro',
@@ -96,7 +95,7 @@ module.exports = class anxpro extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let response = await this.publicGetCurrencyPairMoneyDepthFull (this.extend ({
             'currency_pair': this.marketId (symbol),
         }, params));
@@ -226,4 +225,4 @@ module.exports = class anxpro extends Exchange {
                 return response;
         throw new ExchangeError (this.id + ' ' + this.json (response));
     }
-}
+};

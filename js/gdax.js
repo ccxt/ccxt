@@ -8,7 +8,6 @@ const { InsufficientFunds, ExchangeError, InvalidOrder, AuthenticationError, Not
 // ----------------------------------------------------------------------------
 
 module.exports = class gdax extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'gdax',
@@ -76,6 +75,7 @@ module.exports = class gdax extends Exchange {
                         'accounts/{id}',
                         'accounts/{id}/holds',
                         'accounts/{id}/ledger',
+                        'accounts/{id}/transfers',
                         'coinbase-accounts',
                         'fills',
                         'funding',
@@ -199,7 +199,7 @@ module.exports = class gdax extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetProductsIdBook (this.extend ({
             'id': this.marketId (symbol),
@@ -265,20 +265,24 @@ module.exports = class gdax extends Exchange {
         }
         if (market)
             symbol = market['symbol'];
-        let fee = undefined;
-        if ('fill_fees' in trade) {
-            let feeCurrency = undefined;
-            if (market)
-                feeCurrency = market['quote'];
-            fee = {
-                'cost': this.safeFloat (trade, 'fill_fees'),
-                'currency': feeCurrency,
-                'rate': undefined,
-            };
+        let feeRate = undefined;
+        let feeCurrency = undefined;
+        if (market) {
+            feeCurrency = market['quote'];
+            if ('liquidity' in trade) {
+                let rateType = (trade['liquidity'] === 'T') ? 'taker' : 'maker';
+                feeRate = market[rateType];
+            }
         }
+        let feeCost = this.safeFloat (trade, 'fill_fees');
+        if (typeof feeCost === 'undefined')
+            feeCost = this.safeFloat (trade, 'fee');
+        let fee = {
+            'cost': feeCost,
+            'currency': feeCurrency,
+            'rate': feeRate,
+        };
         let type = undefined;
-        if ('liquidity' in trade)
-            type = (trade['liquidity'] === 'T') ? 'Taker' : 'Maker';
         let id = this.safeString (trade, 'trade_id');
         let orderId = this.safeString (trade, 'order_id');
         return {
@@ -339,12 +343,12 @@ module.exports = class gdax extends Exchange {
             'granularity': granularity,
         };
         if (typeof since !== 'undefined') {
-            request['start'] = this.YmdHMS (since);
+            request['start'] = this.ymdhms (since);
             if (typeof limit === 'undefined') {
                 // https://docs.gdax.com/#get-historic-rates
                 limit = 350; // max = 350
             }
-            request['end'] = this.YmdHMS (this.sum (limit * granularity * 1000, since));
+            request['end'] = this.ymdhms (this.sum (limit * granularity * 1000, since));
         }
         let response = await this.publicGetProductsIdCandles (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
@@ -600,4 +604,4 @@ module.exports = class gdax extends Exchange {
         }
         return response;
     }
-}
+};

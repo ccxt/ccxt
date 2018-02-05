@@ -8,7 +8,6 @@ const { ExchangeError } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class zaif extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'zaif',
@@ -18,6 +17,7 @@ module.exports = class zaif extends Exchange {
             'version': '1',
             'has': {
                 'CORS': false,
+                'createMarketOrder': false,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'withdraw': true,
@@ -138,7 +138,7 @@ module.exports = class zaif extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetDepthPair (this.extend ({
             'pair': this.marketId (symbol),
@@ -357,4 +357,4 @@ module.exports = class zaif extends Exchange {
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
     }
-}
+};

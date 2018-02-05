@@ -90,7 +90,7 @@ class btcmarkets extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $orderbook = $this->publicGetMarketIdOrderbook (array_merge (array (
@@ -167,7 +167,7 @@ class btcmarkets extends Exchange {
         $market = $this->market ($symbol);
         $multiplier = 100000000; // for $price and volume
         // does BTC Markets support $market orders at all?
-        $orderSide = ($side == 'buy') ? 'Bid' : 'Ask';
+        $orderSide = ($side === 'buy') ? 'Bid' : 'Ask';
         $order = $this->ordered (array (
             'currency' => $market['quote'],
         ));
@@ -188,7 +188,7 @@ class btcmarkets extends Exchange {
     public function cancel_orders ($ids) {
         $this->load_markets();
         for ($i = 0; $i < count ($ids); $i++) {
-            $ids[$i] = parseInt($ids[$i]);
+            $ids[$i] = intval ($ids[$i]);
         }
         return $this->privatePostOrderCancel (array ( 'orderIds' => $ids ));
     }
@@ -201,9 +201,9 @@ class btcmarkets extends Exchange {
     public function parse_my_trade ($trade, $market) {
         $multiplier = 100000000;
         $timestamp = $trade['creationTime'];
-        $side = ($trade['side'] == 'Bid') ? 'buy' : 'sell';
+        $side = ($trade['side'] === 'Bid') ? 'buy' : 'sell';
         // BTCMarkets always charge in AUD for AUD-related transactions.
-        $currency = ($market['quote'] == 'AUD') ? $market['quote'] : $market['base'];
+        $currency = ($market['quote'] === 'AUD') ? $market['quote'] : $market['base'];
         return array (
             'info' => $trade,
             'id' => (string) $trade['id'],
@@ -233,16 +233,16 @@ class btcmarkets extends Exchange {
 
     public function parse_order ($order, $market = null) {
         $multiplier = 100000000;
-        $side = ($order['orderSide'] == 'Bid') ? 'buy' : 'sell';
-        $type = ($order['ordertype'] == 'Limit') ? 'limit' : 'market';
+        $side = ($order['orderSide'] === 'Bid') ? 'buy' : 'sell';
+        $type = ($order['ordertype'] === 'Limit') ? 'limit' : 'market';
         $timestamp = $order['creationTime'];
         if (!$market) {
-            $market = $this->market($order['instrument'] . "/" . $order['currency']);
+            $market = $this->market ($order['instrument'] . '/' . $order['currency']);
         }
         $status = 'open';
-        if ($order['status'] == 'Failed' || $order['status'] == 'Cancelled' || $order['status'] == 'Partially Cancelled' || $order['status'] == 'Error') {
+        if ($order['status'] === 'Failed' || $order['status'] === 'Cancelled' || $order['status'] === 'Partially Cancelled' || $order['status'] === 'Error') {
             $status = 'canceled';
-        } else if ($order['status'] == "Fully Matched" || $order['status'] == "Partially Matched") {
+        } else if ($order['status'] === 'Fully Matched' || $order['status'] === 'Partially Matched') {
             $status = 'closed';
         }
         $price = $this->safe_float($order, 'price') / $multiplier;
@@ -342,7 +342,7 @@ class btcmarkets extends Exchange {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $uri = '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'] . $uri;
-        if ($api == 'public') {
+        if ($api === 'public') {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {
@@ -354,7 +354,7 @@ class btcmarkets extends Exchange {
                 'apikey' => $this->apiKey,
                 'timestamp' => $nonce,
             );
-            if ($method == 'POST') {
+            if ($method === 'POST') {
                 $body = $this->json ($params);
                 $auth .= $body;
             }
@@ -367,7 +367,7 @@ class btcmarkets extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if ($api == 'private') {
+        if ($api === 'private') {
             if (is_array ($response) && array_key_exists ('success', $response))
                 if (!$response['success'])
                     throw new ExchangeError ($this->id . ' ' . $this->json ($response));

@@ -90,7 +90,7 @@ class hitbtc (Exchange):
                     'tierBased': False,
                     'percentage': False,
                     'withdraw': {
-                        'BTC': 0.00085,
+                        'BTC': 0.001,
                         'BCC': 0.0018,
                         'ETH': 0.00215,
                         'BCH': 0.0018,
@@ -564,7 +564,7 @@ class hitbtc (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         orderbook = self.publicGetSymbolOrderbook(self.extend({
             'symbol': self.market_id(symbol),

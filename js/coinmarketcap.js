@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -8,7 +8,6 @@ const { ExchangeError } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class coinmarketcap extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'coinmarketcap',
@@ -80,16 +79,18 @@ module.exports = class coinmarketcap extends Exchange {
         });
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         throw new ExchangeError ('Fetching order books is not supported by the API of ' + this.id);
     }
 
     currencyCode (base, name) {
         const currencies = {
-            'Bitgem': 'Bitgem',
-            'NetCoin': 'NetCoin',
             'BatCoin': 'BatCoin',
+            'Bitgem': 'Bitgem',
+            'BlockCAT': 'BlockCAT',
+            'Catcoin': 'Catcoin',
             'iCoin': 'iCoin',
+            'NetCoin': 'NetCoin',
         };
         if (name in currencies)
             return currencies[name];
@@ -276,4 +277,4 @@ module.exports = class coinmarketcap extends Exchange {
         }
         return response;
     }
-}
+};

@@ -74,7 +74,7 @@ class bitstamp1 extends Exchange {
         ));
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         if ($symbol !== 'BTC/USD')
             throw new ExchangeError ($this->id . ' ' . $this->version . " fetchOrderBook doesn't support " . $symbol . ', use it for BTC/USD only');
         $orderbook = $this->publicGetOrderBook ($params);

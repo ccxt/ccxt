@@ -17,6 +17,7 @@ class btctradeua (Exchange):
             'rateLimit': 3000,
             'has': {
                 'CORS': True,
+                'createMarketOrder': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27941483-79fc7350-62d9-11e7-9f61-ac47f28fcd96.jpg',
@@ -101,7 +102,7 @@ class btctradeua (Exchange):
                 }
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         market = self.market(symbol)
         bids = self.publicGetTradesBuySymbol(self.extend({
             'symbol': market['id'],

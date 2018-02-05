@@ -122,8 +122,6 @@ The ccxt library currently supports the following 98 cryptocurrency exchange mar
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |btcx|                 | btcx                 | `BTCX <https://btc-x.is>`__                                    | 1     | `API <https://btc-x.is/custom/api-document.html>`__                                               | Iceland, US, EU                            |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
-| |bter|                 | bter                 | `Bter <https://bter.com>`__                                    | 2     | `API <https://bter.com/api2>`__                                                                   | British Virgin Islands, China              |
-+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |bxinth|               | bxinth               | `BX.in.th <https://bx.in.th>`__                                | \*    | `API <https://bx.in.th/info/api>`__                                                               | Thailand                                   |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |ccex|                 | ccex                 | `C-CEX <https://c-cex.com>`__                                  | \*    | `API <https://c-cex.com/?id=api>`__                                                               | Germany, EU                                |
@@ -133,6 +131,8 @@ The ccxt library currently supports the following 98 cryptocurrency exchange mar
 | |chbtc|                | chbtc                | `CHBTC <https://trade.chbtc.com/api>`__                        | 1     | `API <https://www.chbtc.com/i/developer>`__                                                       | China                                      |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |chilebit|             | chilebit             | `ChileBit <https://chilebit.net>`__                            | 1     | `API <https://blinktrade.com/docs>`__                                                             | Chile                                      |
++------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
+| |cobinhood|            | cobinhood            | `COBINHOOD <https://cobinhood.com>`__                          | \*    | `API <https://cobinhood.github.io/api-public>`__                                                  | Taiwan                                     |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |coincheck|            | coincheck            | `coincheck <https://coincheck.com>`__                          | \*    | `API <https://coincheck.com/documents/exchange/api>`__                                            | Japan, Indonesia                           |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -539,6 +539,7 @@ Market Structure
             'amount': 8,      // integer
             'cost': 8,        // integer
         },
+        'lot': 0.00000001,    // order amount should be a multiple of lot
         'limits': {           // value limits when placing orders on this market
             'amount': {
                 'min': 0.01,  // order amount should be > min
@@ -559,6 +560,7 @@ Each market is an associative array (aka dictionary) with the following keys:
 -  ``active``. A boolean indicating whether or not trading this market is currently possible.
 -  ``info``. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
 -  ``precision``. The amounts of decimal digits accepted in order values by exchanges upon order placement for price, amount and cost.
+-  ``lot``. The lot size is the smallest distinguishable step of amount increment accepted by the exchange when placing a new order. The order amount should be a multiple of lot size or, in other words, should be evenly divisible by the lot size.
 -  ``limits``. The minimums and maximums for prices, amounts (volumes) and costs (where cost = price \* amount).
 
 *The ``precision`` and ``limits`` params are currently under heavy development, some of these fields may be missing here and there until the unification process is complete. This does not influence most of the orders but can be significant in extreme cases of very large or very small orders. The ``active`` flag is not yet supported and/or implemented by all markets.*
@@ -778,13 +780,15 @@ Implicit API Methods
 
 Most of exchange-specific API methods are implicit, meaning that they aren't defined explicitly anywhere in code. The library implements a declarative approach for defining implicit (non-unified) exchanges' API methods.
 
-Each method of the API usually has its own endpoint, the library defines all endpoints for each particular exchange in the ``.api`` property. Upon exchange construction an implicit *magic* method (aka *partial function* or *closure*) will be created inside ``defineRestApi()/define_rest_api()`` on the exchange instance for each endpoint from the list of ``.api`` endpoints. Ths is performed for all exchanges universally. Each generated method will be accessible in both ``camelCase`` and ``under_score`` notations.
-
-Each implicit method gets a unique name which is constructed from the ``.api`` definition. For example, with a private HTTPS PUT ``https://api.exchange.com/order/{id}/cancel`` endpoint the corresponding exchange method would be named ``.privatePutOrderIdCancel()``/``.private_put_order_id_cancel()``, having a public HTTPS GET ``https://api.exchange.com/market/ticker/{pair}`` endpoint would result in the corresponding method named ``.publicGetTickerPair()``/``.public_get_ticker_pair()``, and so on...
+Each method of the API usually has its own endpoint. The library defines all endpoints for each particular exchange in the ``.api`` property. Upon exchange construction an implicit *magic* method (aka *partial function* or *closure*) will be created inside ``defineRestApi()/define_rest_api()`` on the exchange instance for each endpoint from the list of ``.api`` endpoints. This is performed for all exchanges universally. Each generated method will be accessible in both ``camelCase`` and ``under_score`` notations.
 
 The endpoints definition is a **full list of ALL API URLs** exposed by an exchange. This list gets converted to callable methods upon exchange instantiation. Each URL in the API endpoint list gets a corresponding callable method. This is done automatically for all exchanges, therefore the ccxt library supports **all possible URLs** offered by crypto exchanges.
 
-An implicit method takes a dictionary of ``params``, sends the request to the exchange and returns an exchange-specific JSON result from the API **as is, unparsed**. The recommended way of working with exchanges is not using exchange-specific implicit methods but using the unified ccxt methods instead. The exchange-specific methods should be used as a fallback in cases when a corresponding unified method isn't available (yet).
+Each implicit method gets a unique name which is constructed from the ``.api`` definition. For example, a private HTTPS PUT ``https://api.exchange.com/order/{id}/cancel`` endpoint will have a corresponding exchange method named ``.privatePutOrderIdCancel()``/``.private_put_order_id_cancel()``. A public HTTPS GET ``https://api.exchange.com/market/ticker/{pair}`` endpoint would result in the corresponding method named ``.publicGetTickerPair()``/``.public_get_ticker_pair()``, and so on.
+
+An implicit method takes a dictionary of parameters, sends the request to the exchange and returns an exchange-specific JSON result from the API **as is, unparsed**. To pass a parameter, add it to the dictionary explicitly under a key equal to the parameter's name. For the examples above, this would look like ``.privatePutOrderIdCancel ({ id: '41987a2b-...' })`` and ``.publicGetTickerPair ({ pair: 'BTC/USD' })``.
+
+The recommended way of working with exchanges is not using exchange-specific implicit methods but using the unified ccxt methods instead. The exchange-specific methods should be used as a fallback in cases when a corresponding unified method isn't available (yet).
 
 To get a list of all available methods with an exchange instance, including implicit methods and unified methods you can simply do the following:
 
@@ -937,8 +941,8 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 
 -  ``fetchMarkets ()``: Fetches a list of all available markets from an exchange and returns an array of markets (objects with properties such as ``symbol``, ``base``, ``quote`` etc.). Some exchanges do not have means for obtaining a list of markets via their online API. For those, the list of markets is hardcoded.
 -  ``loadMarkets ([reload])``: Returns the list of markets as an object indexed by symbol and caches it with the exchange instance. Returns cached markets if loaded already, unless the ``reload = true`` flag is forced.
--  ``fetchOrderBook (symbol[, params])``: Fetch L2/L3 order book for a particular market trading symbol.
--  ``fetchL2OrderBook (symbol[, params])``: Level 2 (price-aggregated) order book for a particular symbol.
+-  ``fetchOrderBook (symbol[, limit = undefined[, params = {}]])``: Fetch L2/L3 order book for a particular market trading symbol.
+-  ``fetchL2OrderBook (symbol[, limit = undefined[, params]])``: Level 2 (price-aggregated) order book for a particular symbol.
 -  ``fetchTrades (symbol[, since[, [limit, [params]]]])``: Fetch recent trades for a particular trading symbol.
 -  ``fetchTicker (symbol)``: Fetch latest ticker data by trading symbol.
 -  ``fetchBalance ()``: Fetch Balance.
@@ -1029,7 +1033,7 @@ Exchanges may return the stack of orders in various levels of details for analys
 Market Depth
 ~~~~~~~~~~~~
 
-Some exchanges accept a second dictionary of extra parameters to the ``fetchOrderBook () / fetch_order_book ()`` function. **All extra ``params`` are exchange-specific (non-unified)**. You will need to consult exchanges docs if you want to override a particular param, like the depth of the order book (or the count of returned orders on both sides). You can get a limited count of returned orders or a desired level of aggregation (aka *market depth*) by specifying an exchange-specific extra ``param`` like so:
+Some exchanges accept a dictionary of extra parameters to the ``fetchOrderBook () / fetch_order_book ()`` function. **All extra ``params`` are exchange-specific (non-unified)**. You will need to consult exchanges docs if you want to override a particular param, like the depth of the order book. You can get a limited count of returned orders or a desired level of aggregation (aka *market depth*) by specifying an limit argument and exchange-specific extra ``params`` like so:
 
 .. code:: javascript
 
@@ -1038,9 +1042,9 @@ Some exchanges accept a second dictionary of extra parameters to the ``fetchOrde
     (async function test () {
         const ccxt = require ('ccxt')
         const exchange = new ccxt.bitfinex ()
-        const orders = await exchange.fetchOrderBook ('BTC/USD', {
-            'limit_bids': 5, // max = 50, bitfinex-specific!
-            'limit_asks': 5, // may be 0 in which case the array is empty
+        const limit = 5
+        const orders = await exchange.fetchOrderBook ('BTC/USD', limit, {
+            // this parameter is exchange-specific, all extra params have unique names per exchange
             'group': 1, // 1 = orders are grouped by price, 0 = orders are separate
         })
     }) ()
@@ -1051,7 +1055,8 @@ Some exchanges accept a second dictionary of extra parameters to the ``fetchOrde
 
     import ccxt
     # return up to ten bidasks on each side of the order book stack
-    ccxt.cex().fetch_order_book('BTC/USD', {'depth': 10})  # cex-specific!
+    limit = 10
+    ccxt.cex().fetch_order_book('BTC/USD', limit)
 
 .. code:: php
 
@@ -1060,9 +1065,9 @@ Some exchanges accept a second dictionary of extra parameters to the ``fetchOrde
     // instantiate the exchange by id
     $exchange = '\\ccxt\\kraken';
     $exchange = new $exchange ();
-    var_dump ($exchange->fetch_order_book ('BTC/USD', array (
-        'count' => 10, // up to ten orders on each side for example, kraken-specific
-    )));
+    // up to ten orders on each side, for example
+    $limit = 20;
+    var_dump ($exchange->fetch_order_book ('BTC/USD', $limit));
 
 The levels of detail or levels of order book aggregation are often number-labelled like L1, L2, L3...
 
@@ -1070,7 +1075,7 @@ The levels of detail or levels of order book aggregation are often number-labell
 -  **L2**: most common level of aggregation where order volumes are grouped by price. If two orders have the same price, they appear as one single order for a volume equal to their total sum. This is most likely the level of aggregation you need for the majority of purposes.
 -  **L3**: most detailed level with no aggregation where each order is separate from other orders. This LOD naturally contains duplicates in the output. So, if two orders have equal prices they are **not** merged together and it's up to the exchange's matching engine to decide on their priority in the stack. You don't really need L3 detail for successful trading. In fact, you most probably don't need it at all. Therefore some exchanges don't support it and always return aggregated order books.
 
-If you want to get an L2 order book, whatever the exchange returns, use the ``fetchL2OrderBook(symbol, params)`` or ``fetch_l2_order_book(symbol, params)`` unified method for that.
+If you want to get an L2 order book, whatever the exchange returns, use the ``fetchL2OrderBook(symbol, limit, params)`` or ``fetch_l2_order_book(symbol, limit, params)`` unified method for that.
 
 Market Price
 ~~~~~~~~~~~~
@@ -2046,12 +2051,12 @@ Notes
 .. |btctradeua| image:: https://user-images.githubusercontent.com/1294454/27941483-79fc7350-62d9-11e7-9f61-ac47f28fcd96.jpg
 .. |btcturk| image:: https://user-images.githubusercontent.com/1294454/27992709-18e15646-64a3-11e7-9fa2-b0950ec7712f.jpg
 .. |btcx| image:: https://user-images.githubusercontent.com/1294454/27766385-9fdcc98c-5ed6-11e7-8f14-66d5e5cd47e6.jpg
-.. |bter| image:: https://user-images.githubusercontent.com/1294454/27980479-cfa3188c-6387-11e7-8191-93fc4184ba5c.jpg
 .. |bxinth| image:: https://user-images.githubusercontent.com/1294454/27766412-567b1eb4-5ed7-11e7-94a8-ff6a3884f6c5.jpg
 .. |ccex| image:: https://user-images.githubusercontent.com/1294454/27766433-16881f90-5ed8-11e7-92f8-3d92cc747a6c.jpg
 .. |cex| image:: https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg
 .. |chbtc| image:: https://user-images.githubusercontent.com/1294454/28555659-f0040dc2-7109-11e7-9d99-688a438bf9f4.jpg
 .. |chilebit| image:: https://user-images.githubusercontent.com/1294454/27991414-1298f0d8-647f-11e7-9c40-d56409266336.jpg
+.. |cobinhood| image:: https://user-images.githubusercontent.com/1294454/35755576-dee02e5c-0878-11e8-989f-1595d80ba47f.jpg
 .. |coincheck| image:: https://user-images.githubusercontent.com/1294454/27766464-3b5c3c74-5ed9-11e7-840e-31b32968e1da.jpg
 .. |coinexchange| image:: https://user-images.githubusercontent.com/1294454/34842303-29c99fca-f71c-11e7-83c1-09d900cb2334.jpg
 .. |coinfloor| image:: https://user-images.githubusercontent.com/1294454/28246081-623fc164-6a1c-11e7-913f-bac0d5576c90.jpg

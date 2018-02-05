@@ -314,7 +314,7 @@ module.exports = class binance extends Exchange {
         const before = this.milliseconds ();
         const response = await this.publicGetTime ();
         const after = this.milliseconds ();
-        this.options['timeDifference'] = (before + after) / 2 - response['serverTime'];
+        this.options['timeDifference'] = parseInt ((before + after) / 2 - response['serverTime']);
         return this.options['timeDifference'];
     }
 
@@ -432,13 +432,15 @@ module.exports = class binance extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let orderbook = await this.publicGetDepth (this.extend ({
+        let request = {
             'symbol': market['id'],
-            'limit': 100, // default = maximum = 100
-        }, params));
+        };
+        if (typeof limit !== 'undefined')
+            request['limit'] = limit; // default = maximum = 100
+        let orderbook = await this.publicGetDepth (this.extend (request, params));
         return this.parseOrderBook (orderbook);
     }
 
@@ -641,6 +643,10 @@ module.exports = class binance extends Exchange {
         let amount = parseFloat (order['origQty']);
         let filled = this.safeFloat (order, 'executedQty', 0.0);
         let remaining = Math.max (amount - filled, 0.0);
+        let cost = undefined;
+        if (typeof price !== 'undefined')
+            if (typeof filled !== 'undefined')
+                cost = price * filled;
         let result = {
             'info': order,
             'id': order['orderId'].toString (),
@@ -651,7 +657,7 @@ module.exports = class binance extends Exchange {
             'side': order['side'].toLowerCase (),
             'price': price,
             'amount': amount,
-            'cost': price * amount,
+            'cost': cost,
             'filled': filled,
             'remaining': remaining,
             'status': status,

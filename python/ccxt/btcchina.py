@@ -28,7 +28,7 @@ class btcchina (Exchange):
                     'private': 'https://api.btcchina.com/api_trade_v1.php',
                 },
                 'www': 'https://www.btcchina.com',
-                'doc': 'https://www.btcchina.com/apidocs'
+                'doc': 'https://www.btcchina.com/apidocs',
             },
             'api': {
                 'plus': {
@@ -136,7 +136,7 @@ class btcchina (Exchange):
         request[field] = market['id']
         return request
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         method = market['api'] + 'GetOrderbook'

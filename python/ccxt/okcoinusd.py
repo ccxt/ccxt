@@ -30,7 +30,7 @@ class okcoinusd (Exchange):
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'withdraw': True,
-                'futureMarkets': False,
+                'futures': False,
             },
             'extension': '.do',  # appended to endpoint URL
             'timeframes': {
@@ -195,7 +195,7 @@ class okcoinusd (Exchange):
                 },
             })
             result.append(market)
-            if (self.has['futureMarkets']) and(market['quote'] == 'USDT'):
+            if (self.has['futures']) and(market['quote'] == 'USDT'):
                 result.append(self.extend(market, {
                     'quote': 'USD',
                     'symbol': market['base'] + '/USD',
@@ -206,13 +206,15 @@ class okcoinusd (Exchange):
                 }))
         return result
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         method = 'publicGet'
         request = {
             'symbol': market['id'],
         }
+        if limit is not None:
+            request['size'] = limit
         if market['future']:
             method += 'Future'
             request['contract_type'] = 'this_week'  # next_week, quarter

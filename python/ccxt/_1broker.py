@@ -129,7 +129,7 @@ class _1broker (Exchange):
         result['BTC']['total'] = total
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         response = self.privateGetMarketQuotes(self.extend({
             'symbols': self.market_id(symbol),

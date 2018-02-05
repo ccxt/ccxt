@@ -33,6 +33,7 @@ class liqui (Exchange):
             'userAgent': self.userAgents['chrome'],
             'has': {
                 'CORS': False,
+                'createMarketOrder': False,
                 'fetchOrder': True,
                 'fetchOrders': 'emulated',
                 'fetchOpenOrders': True,
@@ -206,13 +207,15 @@ class liqui (Exchange):
             result[uppercase] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetDepthPair(self.extend({
+        request = {
             'pair': market['id'],
-            # 'limit': 150,  # default = 150, max = 2000
-        }, params))
+        }
+        if limit is not None:
+            request['limit'] = limit  # default = 150, max = 2000
+        response = self.publicGetDepthPair(self.extend(request, params))
         market_id_in_reponse = (market['id'] in list(response.keys()))
         if not market_id_in_reponse:
             raise ExchangeError(self.id + ' ' + market['symbol'] + ' order book is empty or not available')
@@ -304,14 +307,12 @@ class liqui (Exchange):
             symbol = market['symbol']
         amount = trade['amount']
         type = 'limit'  # all trades are still limit trades
-        fee = None
-        # self is filled by fetchMyTrades() only
-        # is_your_order is always False :\
-        # isYourOrder = self.safe_value(trade, 'is_your_order')
-        # takerOrMaker = 'taker'
-        # if isYourOrder:
-        #     takerOrMaker = 'maker'
-        # fee = self.calculate_fee(symbol, type, side, amount, price, takerOrMaker)
+        isYourOrder = self.safe_value(trade, 'is_your_order')
+        takerOrMaker = 'taker'
+        if isYourOrder is not None:
+            if isYourOrder:
+                takerOrMaker = 'maker'
+        fee = self.calculate_fee(symbol, type, side, amount, price, takerOrMaker)
         return {
             'id': id,
             'order': order,

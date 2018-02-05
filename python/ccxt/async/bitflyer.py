@@ -77,9 +77,9 @@ class bitflyer (Exchange):
         })
 
     async def fetch_markets(self):
-        jp_markets = await self.publicGetMarkets()
-        us_markets = await self.publicGetMarketsUsa()
-        eu_markets = await self.publicGetMarketsEu()
+        jp_markets = await self.publicGetGetmarkets()
+        us_markets = await self.publicGetGetmarketsUsa()
+        eu_markets = await self.publicGetGetmarketsEu()
         markets = self.array_concat(jp_markets, us_markets)
         markets = self.array_concat(markets, eu_markets)
         result = []
@@ -112,7 +112,7 @@ class bitflyer (Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        response = await self.privateGetBalance()
+        response = await self.privateGetGetbalance()
         balances = {}
         for b in range(0, len(response)):
             account = response[b]
@@ -130,16 +130,16 @@ class bitflyer (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
-        orderbook = await self.publicGetBoard(self.extend({
+        orderbook = await self.publicGetGetboard(self.extend({
             'product_code': self.market_id(symbol),
         }, params))
         return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'size')
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
-        ticker = await self.publicGetTicker(self.extend({
+        ticker = await self.publicGetGetticker(self.extend({
             'product_code': self.market_id(symbol),
         }, params))
         timestamp = self.parse8601(ticker['timestamp'])
@@ -190,7 +190,7 @@ class bitflyer (Exchange):
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetExecutions(self.extend({
+        response = await self.publicGetGetexecutions(self.extend({
             'product_code': market['id'],
         }, params))
         return self.parse_trades(response, market, since, limit)

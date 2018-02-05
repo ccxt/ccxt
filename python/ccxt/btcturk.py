@@ -79,7 +79,7 @@ class btcturk (Exchange):
         result[market['quote']] = quote
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         market = self.market(symbol)
         orderbook = self.publicGetOrderbook(self.extend({
             'pairSymbol': market['id'],

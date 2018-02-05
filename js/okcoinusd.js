@@ -23,7 +23,7 @@ module.exports = class okcoinusd extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'withdraw': true,
-                'futureMarkets': false,
+                'futures': false,
             },
             'extension': '.do', // appended to endpoint URL
             'timeframes': {
@@ -189,7 +189,7 @@ module.exports = class okcoinusd extends Exchange {
                 },
             });
             result.push (market);
-            if ((this.has['futureMarkets']) && (market['quote'] === 'USDT')) {
+            if ((this.has['futures']) && (market['quote'] === 'USDT')) {
                 result.push (this.extend (market, {
                     'quote': 'USD',
                     'symbol': market['base'] + '/USD',
@@ -203,13 +203,15 @@ module.exports = class okcoinusd extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let method = 'publicGet';
         let request = {
             'symbol': market['id'],
         };
+        if (typeof limit !== 'undefined')
+            request['size'] = limit;
         if (market['future']) {
             method += 'Future';
             request['contract_type'] = 'this_week'; // next_week, quarter

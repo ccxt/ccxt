@@ -92,7 +92,7 @@ class paymium extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $orderbook = $this->publicGetDataIdDepth (array_merge (array (
             'id' => $this->market_id($symbol),
         ), $params));
@@ -163,7 +163,7 @@ class paymium extends Exchange {
             'direction' => $side,
             'amount' => $amount,
         );
-        if ($type == 'market')
+        if ($type === 'market')
             $order['price'] = $price;
         $response = $this->privatePostUserOrders (array_merge ($order, $params));
         return array (
@@ -181,7 +181,7 @@ class paymium extends Exchange {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
-        if ($api == 'public') {
+        if ($api === 'public') {
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {

@@ -135,13 +135,15 @@ class bleutrade (bittrex):
     def get_order_id_field(self):
         return 'orderid'
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
-        response = await self.publicGetOrderbook(self.extend({
+        request = {
             'market': self.market_id(symbol),
             'type': 'ALL',
-            'depth': 50,
-        }, params))
+        }
+        if limit is not None:
+            request['depth'] = limit  # 50
+        response = await self.publicGetOrderbook(self.extend(request, params))
         orderbook = response['result']
         return self.parse_order_book(orderbook, None, 'buy', 'sell', 'Rate', 'Quantity')
 

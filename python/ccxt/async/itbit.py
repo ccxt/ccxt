@@ -19,6 +19,7 @@ class itbit (Exchange):
             'version': 'v1',
             'has': {
                 'CORS': True,
+                'createMarketOrder': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27822159-66153620-60ad-11e7-89e7-005f6d7f3de0.jpg',
@@ -72,7 +73,7 @@ class itbit (Exchange):
             },
         })
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         orderbook = await self.publicGetMarketsSymbolOrderBook(self.extend({
             'symbol': self.market_id(symbol),
         }, params))

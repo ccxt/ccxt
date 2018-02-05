@@ -107,7 +107,7 @@ class huobi (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         market = self.market(symbol)
         method = market['type'] + 'GetDepthId'
         orderbook = getattr(self, method)(self.extend({'id': market['id']}, params))

@@ -8,7 +8,6 @@ let { ExchangeError } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class southxchange extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'southxchange',
@@ -102,7 +101,7 @@ module.exports = class southxchange extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetBookSymbol (this.extend ({
             'symbol': this.marketId (symbol),
@@ -251,4 +250,4 @@ module.exports = class southxchange extends Exchange {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         return response;
     }
-}
+};

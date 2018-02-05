@@ -19,6 +19,7 @@ class mercado (Exchange):
             'version': 'v3',
             'has': {
                 'CORS': True,
+                'createMarketOrder': False,
                 'withdraw': True,
             },
             'urls': {
@@ -72,7 +73,7 @@ class mercado (Exchange):
             },
         })
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         market = self.market(symbol)
         orderbook = self.publicGetCoinOrderbook(self.extend({
             'coin': market['base'],

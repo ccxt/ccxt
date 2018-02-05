@@ -17,16 +17,17 @@ class bittrex extends Exchange {
             'hasAlreadyAuthenticatedSuccessfully' => false, // a workaround for APIKEY_INVALID
             // new metainfo interface
             'has' => array (
-                'fetchDepositAddress' => true,
                 'CORS' => true,
-                'fetchTickers' => true,
+                'createMarketOrder' => false,
+                'fetchDepositAddress' => true,
+                'fetchClosedOrders' => 'emulated',
+                'fetchCurrencies' => true,
+                'fetchMyTrades' => false,
                 'fetchOHLCV' => true,
                 'fetchOrder' => true,
                 'fetchOrders' => true,
-                'fetchClosedOrders' => 'emulated',
                 'fetchOpenOrders' => true,
-                'fetchMyTrades' => false,
-                'fetchCurrencies' => true,
+                'fetchTickers' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array (
@@ -210,7 +211,7 @@ class bittrex extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetOrderbook (array_merge (array (
             'market' => $this->market_id($symbol),
@@ -240,7 +241,11 @@ class bittrex extends Exchange {
             $symbol = $market['symbol'];
         $previous = $this->safe_float($ticker, 'PrevDay');
         $last = $this->safe_float($ticker, 'Last');
-        $change = ($last - $previous) / $previous;
+        $change = null;
+        if ($last !== null)
+            if ($previous !== null)
+                if ($previous > 0)
+                    $change = ($last - $previous) / $previous;
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,

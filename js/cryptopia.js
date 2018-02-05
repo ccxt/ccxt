@@ -8,7 +8,6 @@ const { ExchangeError, InsufficientFunds, OrderNotFound, OrderNotCached } = requ
 //  ---------------------------------------------------------------------------
 
 module.exports = class cryptopia extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'cryptopia',
@@ -16,15 +15,16 @@ module.exports = class cryptopia extends Exchange {
             'rateLimit': 1500,
             'countries': 'NZ', // New Zealand
             'has': {
-                'fetchDepositAddress': true,
                 'CORS': false,
-                'fetchTickers': true,
+                'createMarketOrder': false,
+                'fetchClosedOrders': 'emulated',
+                'fetchCurrencies': true,
+                'fetchDepositAddress': true,
+                'fetchMyTrades': true,
                 'fetchOrder': 'emulated',
                 'fetchOrders': 'emulated',
                 'fetchOpenOrders': true,
-                'fetchClosedOrders': 'emulated',
-                'fetchMyTrades': true,
-                'fetchCurrencies': true,
+                'fetchTickers': true,
                 'deposit': true,
                 'withdraw': true,
             },
@@ -77,6 +77,7 @@ module.exports = class cryptopia extends Exchange {
     commonCurrencyCode (currency) {
         const currencies = {
             'ACC': 'AdCoin',
+            'BAT': 'BatCoin',
             'CC': 'CCX',
             'CMT': 'Comet',
             'FCN': 'Facilecoin',
@@ -94,6 +95,7 @@ module.exports = class cryptopia extends Exchange {
     currencyId (currency) {
         const currencies = {
             'AdCoin': 'ACC',
+            'BatCoin': 'BAT',
             'CCX': 'CC',
             'Comet': 'CMT',
             'Cubits': 'QBT',
@@ -108,7 +110,7 @@ module.exports = class cryptopia extends Exchange {
     }
 
     async fetchMarkets () {
-        let response = await this.publicGetTradePairs ();
+        let response = await this.publicGetGetTradePairs ();
         let result = [];
         let markets = response['Data'];
         for (let i = 0; i < markets.length; i++) {
@@ -159,9 +161,9 @@ module.exports = class cryptopia extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetMarketOrdersId (this.extend ({
+        let response = await this.publicGetGetMarketOrdersId (this.extend ({
             'id': this.marketId (symbol),
         }, params));
         let orderbook = response['Data'];
@@ -198,7 +200,7 @@ module.exports = class cryptopia extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetMarketId (this.extend ({
+        let response = await this.publicGetGetMarketId (this.extend ({
             'id': market['id'],
         }, params));
         let ticker = response['Data'];
@@ -207,7 +209,7 @@ module.exports = class cryptopia extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetMarkets (params);
+        let response = await this.publicGetGetMarkets (params);
         let result = {};
         let tickers = response['Data'];
         for (let i = 0; i < tickers.length; i++) {
@@ -280,7 +282,7 @@ module.exports = class cryptopia extends Exchange {
             'id': market['id'],
             'hours': hours,
         };
-        let response = await this.publicGetMarketHistoryIdHours (this.extend (request, params));
+        let response = await this.publicGetGetMarketHistoryIdHours (this.extend (request, params));
         let trades = response['Data'];
         return this.parseTrades (trades, market, since, limit);
     }
@@ -298,7 +300,7 @@ module.exports = class cryptopia extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        let response = await this.publicGetCurrencies (params);
+        let response = await this.publicGetGetCurrencies (params);
         let currencies = response['Data'];
         let result = {};
         for (let i = 0; i < currencies.length; i++) {
@@ -592,12 +594,13 @@ module.exports = class cryptopia extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
-            body = this.json (query);
+            body = this.json (query, { 'convertArraysToObjects': true });
             let hash = this.hash (this.encode (body), 'md5', 'base64');
             let secret = this.base64ToBinary (this.secret);
             let uri = this.encodeURIComponent (url);
             let lowercase = uri.toLowerCase ();
-            let payload = this.apiKey + method + lowercase + nonce + this.binaryToString (hash);
+            hash = this.binaryToString (hash);
+            let payload = this.apiKey + method + lowercase + nonce + hash;
             let signature = this.hmac (this.encode (payload), secret, 'sha256', 'base64');
             let auth = 'amx ' + this.apiKey + ':' + this.binaryToString (signature) + ':' + nonce;
             headers = {
@@ -621,4 +624,4 @@ module.exports = class cryptopia extends Exchange {
         }
         throw new ExchangeError (this.id + ' ' + this.json (response));
     }
-}
+};

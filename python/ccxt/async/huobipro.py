@@ -27,6 +27,7 @@ class huobipro (Exchange):
                 'fetchOHCLV': True,
                 'fetchOrders': True,
                 'fetchOpenOrders': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1min',
@@ -188,7 +189,7 @@ class huobipro (Exchange):
             'info': ticker,
         }
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         response = await self.marketGetDepth(self.extend({
@@ -328,7 +329,7 @@ class huobipro (Exchange):
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         open = 0  # 0 for unfilled orders, 1 for filled orders
-        return self.fetch_orders(symbol, None, None, self.extend({
+        return await self.fetch_orders(symbol, None, None, self.extend({
             'status': open,
         }, params))
 
@@ -409,6 +410,23 @@ class huobipro (Exchange):
     async def cancel_order(self, id, symbol=None, params={}):
         return await self.privatePostOrderOrdersIdSubmitcancel({'id': id})
 
+    async def withdraw(self, currency, amount, address, tag=None, params={}):
+        request = {
+            'address': address,  # only supports existing addresses in your withdraw address list
+            'amount': amount,
+            'currency': currency.lower(),
+        }
+        if tag:
+            request['addr-tag'] = tag  # only for XRP?
+        response = await self.privatePostDwWithdrawApiCreate(self.extend(request, params))
+        id = None
+        if 'data' in response:
+            id = response['data']
+        return {
+            'info': response,
+            'id': id,
+        }
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/'
         if api == 'market':
@@ -419,7 +437,7 @@ class huobipro (Exchange):
         query = self.omit(params, self.extract_params(path))
         if api == 'private':
             self.check_required_credentials()
-            timestamp = self.YmdHMS(self.milliseconds(), 'T')
+            timestamp = self.ymdhms(self.milliseconds(), 'T')
             request = self.keysort(self.extend({
                 'SignatureMethod': 'HmacSHA256',
                 'SignatureVersion': '2',

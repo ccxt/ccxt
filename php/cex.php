@@ -128,6 +128,7 @@ class cex extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'lot' => $market['minLotSize'],
                 'precision' => array (
                     'price' => $this->precision_from_string($market['minPrice']),
                     'amount' => -1 * log10 ($market['minLotSize']),
@@ -173,7 +174,7 @@ class cex extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $orderbook = $this->publicGetOrderBookPair (array_merge (array (
             'pair' => $this->market_id($symbol),
@@ -198,7 +199,7 @@ class cex extends Exchange {
         $market = $this->market ($symbol);
         if (!$since)
             $since = $this->milliseconds () - 86400000; // yesterday
-        $ymd = $this->Ymd ($since);
+        $ymd = $this->ymd ($since);
         $ymd = explode ('-', $ymd);
         $ymd = implode ('', $ymd);
         $request = array (

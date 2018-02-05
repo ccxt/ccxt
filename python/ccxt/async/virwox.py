@@ -83,7 +83,7 @@ class virwox (Exchange):
         })
 
     async def fetch_markets(self):
-        markets = await self.publicGetInstruments()
+        markets = await self.publicGetGetInstruments()
         keys = list(markets['result'].keys())
         result = []
         for p in range(0, len(keys)):
@@ -129,13 +129,15 @@ class virwox (Exchange):
             'ask': self.safe_float(result[0], 'bestSellPrice'),
         }
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
-        response = await self.publicPostGetMarketDepth(self.extend({
+        request = {
             'symbols': [symbol],
-            'buyDepth': 100,
-            'sellDepth': 100,
-        }, params))
+        }
+        if limit is not None:
+            request['buyDepth'] = limit  # 100
+            request['sellDepth'] = limit  # 100
+        response = await self.publicPostGetMarketDepth(self.extend(request, params))
         orderbook = response['result'][0]
         return self.parse_order_book(orderbook, None, 'buy', 'sell', 'price', 'volume')
 
@@ -143,10 +145,10 @@ class virwox (Exchange):
         await self.load_markets()
         end = self.milliseconds()
         start = end - 86400000
-        response = await self.publicGetTradedPriceVolume(self.extend({
+        response = await self.publicGetGetTradedPriceVolume(self.extend({
             'instrument': symbol,
-            'endDate': self.YmdHMS(end),
-            'startDate': self.YmdHMS(start),
+            'endDate': self.ymdhms(end),
+            'startDate': self.ymdhms(start),
             'HLOC': 1,
         }, params))
         marketPrice = await self.fetch_market_price(symbol, params)
@@ -196,7 +198,7 @@ class virwox (Exchange):
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
-        response = await self.publicGetRawTradeData(self.extend({
+        response = await self.publicGetGetRawTradeData(self.extend({
             'instrument': symbol,
             'timespan': 3600,
         }, params))

@@ -71,7 +71,7 @@ class fybse extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $orderbook = $this->publicGetOrderbook ($params);
         return $this->parse_order_book($orderbook);
     }
@@ -147,7 +147,7 @@ class fybse extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $path;
-        if ($api == 'public') {
+        if ($api === 'public') {
             $url .= '.json';
         } else {
             $this->check_required_credentials();
@@ -164,7 +164,7 @@ class fybse extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if ($api == 'private')
+        if ($api === 'private')
             if (is_array ($response) && array_key_exists ('error', $response))
                 if ($response['error'])
                     throw new ExchangeError ($this->id . ' ' . $this->json ($response));

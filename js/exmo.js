@@ -8,7 +8,6 @@ const { ExchangeError } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class exmo extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'exmo',
@@ -146,7 +145,7 @@ module.exports = class exmo extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetOrderBook (this.extend ({
@@ -261,11 +260,14 @@ module.exports = class exmo extends Exchange {
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
-        let result = await this.privatePostWithdrawCrypt (this.extend ({
+        let request = {
             'amount': amount,
             'currency': currency,
             'address': address,
-        }, params));
+        };
+        if (typeof tag !== 'undefined')
+            request['invoice'] = tag;
+        let result = await this.privatePostWithdrawCrypt (this.extend (request, params));
         return {
             'info': result,
             'id': result['task_id'],
@@ -299,4 +301,4 @@ module.exports = class exmo extends Exchange {
         }
         return response;
     }
-}
+};

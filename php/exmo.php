@@ -144,7 +144,7 @@ class exmo extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->publicGetOrderBook (array_merge (array (
@@ -259,11 +259,14 @@ class exmo extends Exchange {
 
     public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
         $this->load_markets();
-        $result = $this->privatePostWithdrawCrypt (array_merge (array (
+        $request = array (
             'amount' => $amount,
             'currency' => $currency,
             'address' => $address,
-        ), $params));
+        );
+        if ($tag !== null)
+            $request['invoice'] = $tag;
+        $result = $this->privatePostWithdrawCrypt (array_merge ($request, $params));
         return array (
             'info' => $result,
             'id' => $result['task_id'],

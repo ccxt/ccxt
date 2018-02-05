@@ -16,6 +16,7 @@ class foxbit (Exchange):
             'countries': 'BR',
             'has': {
                 'CORS': False,
+                'createMarketOrder': False,
             },
             'rateLimit': 1000,
             'version': 'v1',
@@ -68,7 +69,7 @@ class foxbit (Exchange):
             'BalanceReqID': self.nonce(),
         })
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         market = self.market(symbol)
         orderbook = self.publicGetCurrencyOrderbook(self.extend({
             'currency': market['quote'],

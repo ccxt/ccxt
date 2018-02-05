@@ -226,7 +226,7 @@ class gatecoin (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         orderbook = self.publicGetPublicMarketDepthCurrencyPair(self.extend({

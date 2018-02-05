@@ -170,15 +170,18 @@ module.exports = class coingi extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let orderbook = await this.currentGetOrderBookPairAskCountBidCountDepth (this.extend ({
+        let request = {
             'pair': market['id'],
-            'askCount': 512, // maximum returned number of asks 1-512
-            'bidCount': 512, // maximum returned number of bids 1-512
             'depth': 32, // maximum number of depth range steps 1-32
-        }, params));
+        };
+        if (typeof limit !== 'undefined') {
+            request['askCount'] = limit; // maximum returned number of asks 1-512
+            request['bidCount'] = limit; // maximum returned number of bids 1-512
+        }
+        let orderbook = await this.currentGetOrderBookPairAskCountBidCountDepth (this.extend (request, params));
         return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'baseAmount');
     }
 

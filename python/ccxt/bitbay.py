@@ -30,7 +30,7 @@ class bitbay (Exchange):
             'rateLimit': 1000,
             'has': {
                 'CORS': True,
-                'withdraw': True
+                'withdraw': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg',
@@ -164,7 +164,7 @@ class bitbay (Exchange):
             return self.parse_balance(result)
         raise ExchangeError(self.id + ' empty balance response ' + self.json(response))
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         orderbook = self.publicGetIdOrderbook(self.extend({
             'id': self.market_id(symbol),
         }, params))
