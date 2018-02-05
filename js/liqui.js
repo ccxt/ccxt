@@ -674,6 +674,8 @@ module.exports = class liqui extends Exchange {
                         throw new AuthenticationError (feedback);
                     } else if (message.indexOf ('invalid parameter') >= 0) { // errorCode 0, returned on buy(symbol, 0, 0)
                         throw new InvalidOrder (feedback);
+                    } else if (message === 'invalid order') {
+                        throw new InvalidOrder (feedback);
                     } else if (message === 'Requests too often') {
                         throw new DDoSProtection (feedback);
                     } else if (message === 'not available') {
