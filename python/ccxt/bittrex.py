@@ -652,6 +652,8 @@ class bittrex (Exchange):
                 raise AuthenticationError(self.id + ' ' + self.json(response))
             if response['message'] == 'INVALID_SIGNATURE':
                 raise AuthenticationError(self.id + ' ' + self.json(response))
+            if response['message'] == 'INVALID_PERMISSION':
+                raise AuthenticationError(self.id + ' ' + self.json(response))
             if response['message'] == 'INSUFFICIENT_FUNDS':
                 raise InsufficientFunds(self.id + ' ' + self.json(response))
             if response['message'] == 'MIN_TRADE_REQUIREMENT_NOT_MET':
