@@ -231,8 +231,8 @@ let testTradeProps = (trade, symbol, now) => {
     if (!isExchangeLackingFilteringTradesBySymbol)
         assert (trade.symbol === symbol, 'trade symbol is not equal to requested symbol: trade: ' + trade.symbol + ' reqeusted: ' + symbol)
 
-    assert (typeof trade.type === 'undefined'  || typeof trade.type === 'string')
-    assert (typeof trade.side === 'undefined'  || trade.side === 'buy' || trade.side === 'sell')
+    assert (typeof trade.type  === 'undefined' || typeof trade.type === 'string')
+    assert (typeof trade.side  === 'undefined' || trade.side === 'buy' || trade.side === 'sell')
     assert (typeof trade.order === 'undefined' || typeof trade.order === 'string')
     assert (typeof trade.price === 'number', 'trade.price is not a number')
     assert (trade.price > 0)
@@ -726,6 +726,12 @@ let loadExchange = async exchange => {
 
     let markets  = await exchange.loadMarkets ()
 
+    assert (typeof exchange.markets === 'object', '.markets is not an object')
+    assert (Array.isArray (exchange.symbols), '.symbols is not an array')
+    assert (exchange.symbols.length > 0, '.symbols.length <= 0 (less than or equal to zero)')
+    assert (Object.keys (exchange.markets).length > 0, 'Object.keys (.markets).length <= 0 (less than or equal to zero)')
+    assert (exchange.symbols.length === Object.keys (exchange.markets).length, 'number of .symbols is not equal to the number of .markets')
+
     let symbols = [
         'BTC/CNY',
         'BTC/USD',
@@ -748,11 +754,13 @@ let loadExchange = async exchange => {
     ]
 
     let result = exchange.symbols.filter (symbol => symbols.indexOf (symbol) >= 0)
+
     if (result.length > 0)
         if (exchange.symbols.length > result.length)
             result = result.join (', ') + ' + more...'
         else
             result = result.join (', ')
+
     log (exchange.symbols.length.toString ().bright.green, 'symbols', result)
 }
 
