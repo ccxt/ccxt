@@ -688,6 +688,8 @@ module.exports = class bittrex extends Exchange {
                 throw new AuthenticationError (this.id + ' ' + this.json (response));
             if (response['message'] === 'INVALID_SIGNATURE')
                 throw new AuthenticationError (this.id + ' ' + this.json (response));
+            if (response['message'] === 'INVALID_PERMISSION')
+                throw new AuthenticationError (this.id + ' ' + this.json (response));
             if (response['message'] === 'INSUFFICIENT_FUNDS')
                 throw new InsufficientFunds (this.id + ' ' + this.json (response));
             if (response['message'] === 'MIN_TRADE_REQUIREMENT_NOT_MET')
