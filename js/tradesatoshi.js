@@ -1,14 +1,13 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError, InvalidOrder, InsufficientFunds, OrderNotFound } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { AuthenticationError, ExchangeError, InvalidOrder, InsufficientFunds, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class tradesatoshi extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'tradesatoshi',
@@ -333,9 +332,9 @@ module.exports = class tradesatoshi extends Exchange {
     parseTrade (trade, market = undefined) {
         let timestamp = this.parse8601 (trade['TimeStamp']);
         let side = undefined;
-        if (trade['OrderType'] == 'BUY') {
+        if (trade['OrderType'] === 'BUY') {
             side = 'buy';
-        } else if (trade['OrderType'] == 'SELL') {
+        } else if (trade['OrderType'] === 'SELL') {
             side = 'sell';
         }
         let id = undefined;
@@ -361,7 +360,7 @@ module.exports = class tradesatoshi extends Exchange {
             'market': market['id'],
         }, params));
         if ('result' in response) {
-            if (typeof response['result'] != 'undefined')
+            if (typeof response['result'] !== 'undefined')
                 return this.parseTrades (response['result'], market, since, limit);
         }
         throw new ExchangeError (this.id + ' fetchTrades() returned undefined response');
@@ -411,7 +410,7 @@ module.exports = class tradesatoshi extends Exchange {
             'market': market['id'],
             'quantity': this.amountToPrecision (symbol, amount),
         };
-        if (type == 'limit')
+        if (type === 'limit')
             order['rate'] = this.priceToPrecision (symbol, price);
         let response = await this[method] (this.extend (order, params));
         let result = {
@@ -431,9 +430,9 @@ module.exports = class tradesatoshi extends Exchange {
         } catch (e) {
             if (this.last_json_response) {
                 let message = this.safeString (this.last_json_response, 'message');
-                if (message == 'ORDER_NOT_OPEN')
+                if (message === 'ORDER_NOT_OPEN')
                     throw new InvalidOrder (this.id + ' cancelOrder() error: ' + this.last_http_response);
-                if (message == 'UUID_INVALID')
+                if (message === 'UUID_INVALID')
                     throw new OrderNotFound (this.id + ' cancelOrder() error: ' + this.last_http_response);
             }
             throw e;
@@ -444,9 +443,9 @@ module.exports = class tradesatoshi extends Exchange {
     parseOrder (order, market = undefined) {
         let side = undefined;
         if ('OrderType' in order)
-            side = (order['OrderType'] == 'LIMIT_BUY') ? 'buy' : 'sell';
+            side = (order['OrderType'] === 'LIMIT_BUY') ? 'buy' : 'sell';
         if ('Type' in order)
-            side = (order['Type'] == 'LIMIT_BUY') ? 'buy' : 'sell';
+            side = (order['Type'] === 'LIMIT_BUY') ? 'buy' : 'sell';
         let status = 'open';
         if (order['Closed']) {
             status = 'closed';
@@ -521,7 +520,7 @@ module.exports = class tradesatoshi extends Exchange {
         } catch (e) {
             if (this.last_json_response) {
                 let message = this.safeString (this.last_json_response, 'message');
-                if (message == 'UUID_INVALID')
+                if (message === 'UUID_INVALID')
                     throw new OrderNotFound (this.id + ' fetchOrder() error: ' + this.last_http_response);
             }
             throw e;
@@ -548,7 +547,7 @@ module.exports = class tradesatoshi extends Exchange {
     }
 
     currencyId (currency) {
-        if (currency == 'BCH')
+        if (currency === 'BCH')
             return 'BCC';
         return currency;
     }
@@ -561,7 +560,7 @@ module.exports = class tradesatoshi extends Exchange {
         let address = this.safeString (response['result'], 'Address');
         let message = this.safeString (response, 'message');
         let status = 'ok';
-        if (!address || message == 'ADDRESS_GENERATING')
+        if (!address || message === 'ADDRESS_GENERATING')
             status = 'pending';
         return {
             'currency': currency,
@@ -591,13 +590,13 @@ module.exports = class tradesatoshi extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/';
-        if (api != 'v2')
+        if (api !== 'v2')
             url += this.version + '/';
-        if (api == 'public') {
+        if (api === 'public') {
             url += api + '/' + method.toLowerCase () + path;
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
-        } else if (api == 'v2') {
+        } else if (api === 'v2') {
             url += path;
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
@@ -605,7 +604,7 @@ module.exports = class tradesatoshi extends Exchange {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             url += api + '/';
-            if (((api == 'account') && (path != 'withdraw')) || (path == 'openorders'))
+            if (((api === 'account') && (path !== 'withdraw')) || (path === 'openorders'))
                 url += method.toLowerCase ();
             url += path + '?' + this.urlencode (this.extend ({
                 'nonce': nonce,
@@ -619,14 +618,14 @@ module.exports = class tradesatoshi extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body) {
         if (code >= 400) {
-            if (body[0] == "{") {
+            if (body[0] === '{') {
                 let response = JSON.parse (body);
                 if ('success' in response) {
                     if (!response['success']) {
                         if ('message' in response) {
-                            if (response['message'] == 'MIN_TRADE_REQUIREMENT_NOT_MET')
+                            if (response['message'] === 'MIN_TRADE_REQUIREMENT_NOT_MET')
                                 throw new InvalidOrder (this.id + ' ' + this.json (response));
-                            if (response['message'] == 'APIKEY_INVALID')
+                            if (response['message'] === 'APIKEY_INVALID')
                                 throw new AuthenticationError (this.id + ' ' + this.json (response));
                         }
                         throw new ExchangeError (this.id + ' ' + this.json (response));
@@ -643,11 +642,11 @@ module.exports = class tradesatoshi extends Exchange {
                 return response;
         }
         if ('message' in response) {
-            if (response['message'] == 'ADDRESS_GENERATING')
+            if (response['message'] === 'ADDRESS_GENERATING')
                 return response;
-            if (response['message'] == "INSUFFICIENT_FUNDS")
+            if (response['message'] === 'INSUFFICIENT_FUNDS')
                 throw new InsufficientFunds (this.id + ' ' + this.json (response));
         }
         throw new ExchangeError (this.id + ' ' + this.json (response));
     }
-}
+};
