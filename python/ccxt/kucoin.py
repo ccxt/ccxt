@@ -235,7 +235,7 @@ class kucoin (Exchange):
                 'name': currency['name'],
                 'active': active,
                 'status': 'ok',
-                'fee': currency['withdrawFeeRate'],  # todo: redesign
+                'fee': currency['withdrawMinFee'],  # todo: redesign
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -298,11 +298,11 @@ class kucoin (Exchange):
         else:
             symbol = order['coinType'] + '/' + order['coinTypePair']
         timestamp = self.safe_value(order, 'createdAt')
-        price = self.safe_value(order, 'price')
+        price = self.safe_float(order, 'price')
         if price is None:
-            price = self.safe_value(order, 'dealPrice')
+            price = self.safe_float(order, 'dealPrice')
         if price is None:
-            price = self.safe_value(order, 'dealPriceAverage')
+            price = self.safe_float(order, 'dealPriceAverage')
         remaining = self.safe_float(order, 'pendingAmount')
         status = self.safe_value(order, 'status')
         filled = self.safe_float(order, 'dealAmount')
@@ -312,11 +312,14 @@ class kucoin (Exchange):
                     status = 'open'
                 else:
                     status = 'closed'
-        if status is not None:
-            if status == 'closed':
-                filled = self.safe_float(order, 'amount')
+        if filled is None:
+            if status is not None:
+                if status == 'closed':
+                    filled = self.safe_float(order, 'amount')
         amount = self.safe_float(order, 'amount')
         cost = self.safe_float(order, 'dealValue')
+        if cost is None:
+            cost = self.safe_float(order, 'dealValueTotal')
         if filled is not None:
             if price is not None:
                 if cost is None:
@@ -332,7 +335,7 @@ class kucoin (Exchange):
         fee = None
         if 'feeTotal' in order:
             fee = {
-                'cost': self.safe_value(order, 'feeTotal'),
+                'cost': self.safe_float(order, 'feeTotal'),
                 'rate': None,
                 'currency': None,
             }

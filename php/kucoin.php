@@ -227,7 +227,7 @@ class kucoin extends Exchange {
                 'name' => $currency['name'],
                 'active' => $active,
                 'status' => 'ok',
-                'fee' => $currency['withdrawFeeRate'], // todo => redesign
+                'fee' => $currency['withdrawMinFee'], // todo => redesign
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
@@ -296,11 +296,11 @@ class kucoin extends Exchange {
             $symbol = $order['coinType'] . '/' . $order['coinTypePair'];
         }
         $timestamp = $this->safe_value($order, 'createdAt');
-        $price = $this->safe_value($order, 'price');
+        $price = $this->safe_float($order, 'price');
         if ($price === null)
-            $price = $this->safe_value($order, 'dealPrice');
+            $price = $this->safe_float($order, 'dealPrice');
         if ($price === null)
-            $price = $this->safe_value($order, 'dealPriceAverage');
+            $price = $this->safe_float($order, 'dealPriceAverage');
         $remaining = $this->safe_float($order, 'pendingAmount');
         $status = $this->safe_value($order, 'status');
         $filled = $this->safe_float($order, 'dealAmount');
@@ -311,12 +311,15 @@ class kucoin extends Exchange {
                 else
                     $status = 'closed';
         }
-        if ($status !== null) {
-            if ($status === 'closed')
-                $filled = $this->safe_float($order, 'amount');
+        if ($filled === null) {
+            if ($status !== null)
+                if ($status === 'closed')
+                    $filled = $this->safe_float($order, 'amount');
         }
         $amount = $this->safe_float($order, 'amount');
         $cost = $this->safe_float($order, 'dealValue');
+        if ($cost === null)
+            $cost = $this->safe_float($order, 'dealValueTotal');
         if ($filled !== null) {
             if ($price !== null) {
                 if ($cost === null)
@@ -335,7 +338,7 @@ class kucoin extends Exchange {
         $fee = null;
         if (is_array ($order) && array_key_exists ('feeTotal', $order)) {
             $fee = array (
-                'cost' => $this->safe_value($order, 'feeTotal'),
+                'cost' => $this->safe_float($order, 'feeTotal'),
                 'rate' => null,
                 'currency' => null,
             );
