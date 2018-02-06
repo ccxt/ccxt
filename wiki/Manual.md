@@ -461,46 +461,46 @@ Examples:
 
 1. `(market['limits']['amount']['min'] == 0.05) && (market['precision']['amount'] == 4)`
 
-In the first example the **amount** of any order placed on the market **must satisfy both conditions**:
+  In the first example the **amount** of any order placed on the market **must satisfy both conditions**:
 
-- The *amount value* should be >= 0.05:
-  ```diff
-  + good: 0.05, 0.051, 0.0501, 0.0502, ..., 0.0599, 0.06, 0.0601, ...
-  - bad: 0.04, 0.049, 0.0499
-  ```
-- *Precision of the amount* should up to 4 decimal digits:
-  ```diff
-  + good: 0.05, 0.051, 0.052, ..., 0.0531, ..., 0.06, ... 0.0719, ...
-  - bad: 0.05001, 0.05000, 0.06001
-  ```
+  - The *amount value* should be >= 0.05:
+    ```diff
+    + good: 0.05, 0.051, 0.0501, 0.0502, ..., 0.0599, 0.06, 0.0601, ...
+    - bad: 0.04, 0.049, 0.0499
+    ```
+  - *Precision of the amount* should up to 4 decimal digits:
+    ```diff
+    + good: 0.05, 0.051, 0.052, ..., 0.0531, ..., 0.06, ... 0.0719, ...
+    - bad: 0.05001, 0.05000, 0.06001
+    ```
 
 2. `(market['limits']['price']['min'] == 0.0019) && (market['precision']['price'] == 5)`
 
-In the second example the **price** of any order placed on the market **must satisfy both conditions**:
+  In the second example the **price** of any order placed on the market **must satisfy both conditions**:
 
-- The *price value* should be >= 0.019:
-  ```diff
-  + good: 0.019, ... 0.0191, ... 0.01911, 0.01912, ...
-  - bad: 0.016, ..., 0.01699
-  ```
-- *Precision of price* should be 5 decimal digits or less:
-  ```diff
-  + good: 0.02, 0.021, 0.0212, 0.02123, 0.02124, 0.02125, ...
-  - bad: 0.017000, 0.017001, ...
-  ```
+  - The *price value* should be >= 0.019:
+    ```diff
+    + good: 0.019, ... 0.0191, ... 0.01911, 0.01912, ...
+    - bad: 0.016, ..., 0.01699
+    ```
+  - *Precision of price* should be 5 decimal digits or less:
+    ```diff
+    + good: 0.02, 0.021, 0.0212, 0.02123, 0.02124, 0.02125, ...
+    - bad: 0.017000, 0.017001, ...
+    ```
 
 3. `(market['limits']['amount']['min'] == 50) && (market['precision']['amount'] == -1)`
 
-- The *amount value* should be greater than 50:
-  ```diff
-  + good: 50, 60, 70, 80, 90, 100, ... 2000, ...
-  - bad: 1, 2, 3, ..., 9
-  ```
-- A negative *amount precision* means that the amount should be an integer multiple of 10:
-  ```diff
-  + good: 50, ..., 110, ... 1230, ..., 1000000, ..., 1234560, ...
-  - bad: 9.5, ... 10.1, ..., 11, ... 200.71, ...
-  ```
+  - The *amount value* should be greater than 50:
+    ```diff
+    + good: 50, 60, 70, 80, 90, 100, ... 2000, ...
+    - bad: 1, 2, 3, ..., 9
+    ```
+  - A negative *amount precision* means that the amount should be an integer multiple of 10:
+    ```diff
+    + good: 50, ..., 110, ... 1230, ..., 1000000, ..., 1234560, ...
+    - bad: 9.5, ... 10.1, ..., 11, ... 200.71, ...
+    ```
 
 *The `precision` and `limits` params are currently under heavy development, some of these fields may be missing here and there until the unification process is complete. This does not influence most of the orders but can be significant in extreme cases of very large or very small orders. The `active` flag is not yet supported and/or implemented by all markets.*
 
