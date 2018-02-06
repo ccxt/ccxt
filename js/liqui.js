@@ -220,45 +220,49 @@ module.exports = class liqui extends Exchange {
 
     async fetchOrderBooks (symbols, params = {}) {
         await this.loadMarkets ();
-        let requestSymbols = [];
+        // let requestSymbols = [];
         let orderBooksResult = [];
-        if (!symbols) {
-            symbols = this.symbols;
-        }
-        for (let i = 0; i < symbols.length; i++) {
-            requestSymbols.push (symbols[i]);
-            let maxRequestSymbolsReached = (i % 200 === 0 && i > 0);
-            let endReached = (i === symbols.length - 1);
-            if (maxRequestSymbolsReached || endReached) {
-                let fetchPairString = this.parseSymbolOrderBooksString (requestSymbols);
-                try {
-                    let response = await this.publicGetDepthPair (this.extend ({
-                        'pair': fetchPairString,
-                    }, params));
-                    if (response) {
-                        let orderBooks = Object.values (response);
-                        let keys = Object.keys (response);
-                        for (let j = 0; j < orderBooks.length; j++) {
-                            let key = keys[j];
-                            let orderbook = this.parseOrderBook (orderBooks[j], undefined, 'bids', 'asks');
-                            orderBooksResult.push (this.extend (orderbook, {
-                                'symbol': key.toUpperCase ().replace ('_', '/'),
-                            }));
-                        }
-                    }
-                } catch (e) {
-                    throw new ExchangeError ('fetchOrderBooks() returned error:' + e.message + ' for pair string: ' + fetchPairString);
-                }
-                requestSymbols = [];
-            }
-        }
+        //     // TODO: rework the implementation below for portability
+        //     if (!symbols) {
+        //         symbols = this.symbols;
+        //     }
+        //     for (let i = 0; i < symbols.length; i++) {
+        //         requestSymbols.push (symbols[i]);
+        //         let maxRequestSymbolsReached = (i % 200 === 0 && i > 0);
+        //         let endReached = (i === symbols.length - 1);
+        //         if (maxRequestSymbolsReached || endReached) {
+        //             let fetchPairString = this.parseSymbolOrderBooksString (requestSymbols);
+        //             try {
+        //                 let response = await this.publicGetDepthPair (this.extend ({
+        //                     'pair': fetchPairString,
+        //                 }, params));
+        //                 if (response) {
+        //                     // the next line is not portable
+        //                     let orderBooks = Object.values (response);
+        //                     let keys = Object.keys (response);
+        //                     for (let j = 0; j < orderBooks.length; j++) {
+        //                         let key = keys[j];
+        //                         let orderbook = this.parseOrderBook (orderBooks[j], undefined, 'bids', 'asks');
+        //                         orderBooksResult.push (this.extend (orderbook, {
+        //                             'symbol': key.toUpperCase ().replace ('_', '/'),
+        //                         }));
+        //                     }
+        //                 }
+        //             } catch (e) {
+        //                 throw new ExchangeError ('fetchOrderBooks() returned error:' + e.message + ' for pair string: ' + fetchPairString);
+        //             }
+        //             requestSymbols = [];
+        //         }
+        //     }
         return orderBooksResult;
     }
 
     parseSymbolOrderBooksString (symbols) {
         let symbolsResultList = [];
         for (let i = 0; i < symbols.length; i++) {
-            symbolsResultList.push (symbols[i].replace ('/', '_').toLowerCase ());
+            let symbol = symbols[i].replace ('/', '_');
+            let lowercase = symbol.toLowerCase ();
+            symbolsResultList.push (lowercase);
         }
         return symbolsResultList.join ('-');
     }

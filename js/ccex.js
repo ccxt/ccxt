@@ -140,44 +140,44 @@ module.exports = class ccex extends Exchange {
         await this.loadMarkets ();
         // let orderBooks = [];
         let orderBooksResult = [];
-        // TODO: rework to satisfy basic rules from the contributing doc, too many errors
-        // try {
-        //     let response = await this.publicGetFullorderbook ();
-        //     if (response && response.success && response.result) {
-        //         let types = Object.keys (response.result);
-        //         for (let i = 0; i < types.length; i++) {
-        //             let type = types[i];
-        //             let orderBookItems = response.result[type];
-        //             for (let j = 0; j < orderBookItems.length; j++) {
-        //                 let orderBookItem = orderBookItems[j];
-        //                 // this line won't transpile, can't use functions like that
-        //                 // it is not portable to other languages
-        //                 // let index = orderBooks.findIndex (function (f) {
-        //                 //     return f['symbol'] === orderBookItem.Market.replace ('-', '/').toUpperCase ();
-        //                 // });
-        //                 // if (index < 0) {
-        //                 //     orderBooks.push ({
-        //                 //         symbol: orderBookItem.Market.replace ('-', '/').toUpperCase (),
-        //                 //         bids: [],
-        //                 //         asks: [],
-        //                 //     });
-        //                 //     index = orderBooks.length - 1;
-        //                 // }
-        //                 // if (type === 'buy') {
-        //                 //     orderBooks[index]['bids'].push ([orderBookItem['Rate'], orderBookItem['Quantity']]);
-        //                 // } else if (type === 'sell') {
-        //                 //     orderBooks[index]['asks'].push ([orderBookItem['Rate'], orderBookItem['Quantity']]);
-        //                 // }
+        //     // TODO: rework to satisfy basic rules from the contributing doc, too many errors
+        //     try {
+        //         let response = await this.publicGetFullorderbook ();
+        //         if (response && response.success && response.result) {
+        //             let types = Object.keys (response.result);
+        //             for (let i = 0; i < types.length; i++) {
+        //                 let type = types[i];
+        //                 let orderBookItems = response.result[type];
+        //                 for (let j = 0; j < orderBookItems.length; j++) {
+        //                     let orderBookItem = orderBookItems[j];
+        //                     // this line won't transpile, can't use functions like that
+        //                     // it is not portable to other languages
+        //                     // let index = orderBooks.findIndex (function (f) {
+        //                     //     return f['symbol'] === orderBookItem.Market.replace ('-', '/').toUpperCase ();
+        //                     // });
+        //                     // if (index < 0) {
+        //                     //     orderBooks.push ({
+        //                     //         symbol: orderBookItem.Market.replace ('-', '/').toUpperCase (),
+        //                     //         bids: [],
+        //                     //         asks: [],
+        //                     //     });
+        //                     //     index = orderBooks.length - 1;
+        //                     // }
+        //                     // if (type === 'buy') {
+        //                     //     orderBooks[index]['bids'].push ([orderBookItem['Rate'], orderBookItem['Quantity']]);
+        //                     // } else if (type === 'sell') {
+        //                     //     orderBooks[index]['asks'].push ([orderBookItem['Rate'], orderBookItem['Quantity']]);
+        //                     // }
+        //                 }
+        //             }
+        //             for (let k = 0; k < orderBooks.length; k++) {
+        //                 let orderBook = orderBooks[k];
+        //                 orderBooksResult.push (orderBook);
         //             }
         //         }
-        //         for (let k = 0; k < orderBooks.length; k++) {
-        //             let orderBook = orderBooks[k];
-        //             orderBooksResult.push (orderBook);
-        //         }
+        //     } catch (e) {
+        //         throw new ExchangeError ('fetchOrderBooks() returned error:' + e.message + ' for full orderbook.');
         //     }
-        // } catch (e) {
-        //     throw new ExchangeError ('fetchOrderBooks() returned error:' + e.message + ' for full orderbook.');
-        // }
         return orderBooksResult;
     }
 

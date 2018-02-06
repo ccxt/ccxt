@@ -172,7 +172,7 @@ module.exports = class cryptopia extends Exchange {
     }
 
     async fetchOrderBooks (symbols, params = {}) {
-        //await this.loadMarkets ();
+        await this.loadMarkets ();
         let requestSymbols = [];
         let orderBooksResult = [];
         if (!symbols) {
