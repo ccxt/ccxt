@@ -264,6 +264,7 @@ class bitfinex (Exchange):
         return currencies[currency] if (currency in list(currencies.keys())) else currency
 
     def fetch_funding_fees(self):
+        self.load_markets()
         response = self.privatePostAccountFees()
         fees = response['withdraw']
         withdraw = {}
@@ -282,6 +283,7 @@ class bitfinex (Exchange):
         }
 
     def fetch_trading_fees(self):
+        self.load_markets()
         response = self.privatePostSummary()
         return {
             'info': response,
