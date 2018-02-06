@@ -161,6 +161,7 @@ class Exchange(object):
         'fetchOpenOrders': False,
         'fetchOrder': False,
         'fetchOrderBook': True,
+        'fetchOrderBooks': False,
         'fetchOrders': False,
         'fetchTicker': True,
         'fetchTickers': False,
