@@ -108,20 +108,30 @@ module.exports = class qryptos extends Exchange {
             let taker = this.safeFloat (market, 'taker_fee');
             let active = !market['disabled'];
             let minAmount = undefined;
+            let minPrice = undefined;
             if (base === 'BTC') {
                 minAmount = 0.001;
             } else if (base === 'ETH') {
                 minAmount = 0.01;
-            } else if (base === 'QASH' || base === 'UBTC' || base === 'DASH' || base === 'NEO' || base === 'BCH') {
-                minAmount = 0.0001;
+            } else {
+                minAmount = undefined;
             }
-            let minPrice = 0.00001;
+            if (quote === 'BTC') {
+                minPrice = 0.00000001;
+            } else if (quote === 'ETH' || quote === 'USD' || quote === 'JPY') {
+                minPrice = 0.00001;
+            } else {
+                minPrice = undefined;
+            }
             let limits = {
                 amount: { min: minAmount },
                 price: { min: minPrice },
                 cost: { min: minPrice * minAmount },
             };
-            let precision = { amount: 8, price: 5 };
+            let precision = {
+                amount: (typeof minAmount !== 'undefined') ? -Math.log10 (minAmount) : undefined,
+                price: (typeof minPrice !== 'undefined') ? -Math.log10 (minPrice) : undefined,
+            };
             result.push ({
                 'id': id,
                 'symbol': symbol,
