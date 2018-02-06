@@ -326,8 +326,10 @@ class Exchange(object):
         """Perform a HTTP request and return decoded JSON data"""
         headers = self.prepare_request_headers(headers)
         url = self.proxy + url
+
         if self.verbose:
             print(method, url, "\nRequest:", headers, "\n", body)
+
         if body:
             body = body.encode()
 
