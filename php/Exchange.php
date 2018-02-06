@@ -608,6 +608,7 @@ abstract class Exchange {
             'fetchOpenOrders' => false,
             'fethcOrder' => false,
             'fethcOrderBook' => true,
+            'fetchOrderBooks' => false,
             'fetchOrders' => false,
             'fetchTicker' => true,
             'fetchTickers' => false,
