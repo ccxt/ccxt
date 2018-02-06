@@ -76,6 +76,7 @@ module.exports = class Exchange {
                 'fetchCurrencies': false,
                 'fetchDepositAddress': false,
                 'fetchFundingFees': false,
+                'fetchL2OrderBook': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': false,
                 'fetchOHLCV': false,
