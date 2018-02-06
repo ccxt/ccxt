@@ -54,6 +54,7 @@ module.exports = class cryptopia extends Exchange {
                         'GetMarketHistory/{id}/{hours}',
                         'GetMarketOrders/{id}',
                         'GetMarketOrders/{id}/{count}',
+                        'GetMarketOrderGroups/{ids}',
                         'GetMarketOrderGroups/{ids}/{count}',
                     ],
                 },
@@ -171,48 +172,35 @@ module.exports = class cryptopia extends Exchange {
         return this.parseOrderBook (orderbook, undefined, 'Buy', 'Sell', 'Price', 'Volume');
     }
 
-    async fetchOrderBooks (symbols, params = {}) {
+    async fetchOrderBooks (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let requestSymbols = [];
-        let orderBooksResult = [];
+        let ids = undefined;
         if (!symbols) {
-            symbols = this.symbols;
-        }
-        for (let i = 0; i < symbols.length; i++) {
-            requestSymbols.push (symbols[i]);
-            let maxRequestSymbolsReached = (i % 20 === 0 && i > 0);
-            let endReached = (i === symbols.length - 1);
-            if (maxRequestSymbolsReached || endReached) {
-                let fetchPairString = this.parseSymbolOrderBooksString (requestSymbols);
-                try {
-                    let response = await this.publicGetMarketOrderGroupsIdsCount (this.extend ({
-                        'ids': fetchPairString,
-                    }, params));
-                    if (response.Success) {
-                        let orderBooks = response.Data;
-                        for (let j = 0; j < orderBooks.length; j++) {
-                            let key = orderBooks[j].Market;
-                            let orderbook = this.parseOrderBook (orderBooks[j], undefined, 'Buy', 'Sell', 'Price', 'Volume');
-                            orderBooksResult.push (this.extend (orderbook, {
-                                'symbol': key.replace ('_', '/'),
-                            }));
-                        }
-                    }
-                } catch (e) {
-                    throw new ExchangeError ('fetchOrderBooks() returned error:' + e.message + ' for pair string: ' + fetchPairString);
-                }
-                requestSymbols = [];
+            ids = this.ids.join ('-');
+            // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
+            if (ids.length > 2048) {
+                let numIds = this.ids.length;
+                throw new ExchangeError (this.id + ' has ' + numIds.toString () + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks');
             }
+        } else {
+            ids = this.marketIds (symbols);
+            ids = ids.join ('-');
         }
-        return orderBooksResult;
-    }
-
-    parseSymbolOrderBooksString (symbols) {
-        let symbolsResultList = [];
-        for (let i = 0; i < symbols.length; i++) {
-            symbolsResultList.push (symbols[i].replace ('/', '_'));
+        let response = await this.publicGetMarketOrderGroupsIds (this.extend ({
+            'ids': ids,
+        }, params));
+        let result = {};
+        for (let i = 0; i < response.length; i++) {
+            let orderbook = response[i];
+            let id = orderbook['Market'];
+            let symbol = id;
+            if (id in this.marketsById) {
+                let market = this.marketsById[id];
+                symbol = market['symbol'];
+            }
+            result[symbol] = this.parseOrderBook (response[id], undefined, 'Buy', 'Sell', 'Price', 'Volume');
         }
-        return symbolsResultList.join ('-');
+        return result;
     }
 
     parseTicker (ticker, market = undefined) {
