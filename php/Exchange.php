@@ -56,6 +56,7 @@ abstract class Exchange {
         'bitstamp',
         'bitstamp1',
         'bittrex',
+        'bitz',
         'bl3p',
         'bleutrade',
         'braziliex',
@@ -522,6 +523,15 @@ abstract class Exchange {
 
         $this->options     = array (); // exchange-specific options if any
 
+        $this->skipJsonOnStatusCodes = false; // TODO: reserved, rewrite the curl routine to parse JSON body anyway
+
+        $this->name      = null;
+        $this->countries = null;
+        $this->version   = null;
+        $this->urls      = array ();
+        $this->api       = array ();
+        $this->comment   = null;
+
         $this->markets     = null;
         $this->symbols     = null;
         $this->ids         = null;
@@ -613,11 +623,14 @@ abstract class Exchange {
         $this->last_http_response = null;
         $this->last_json_response = null;
 
-        $options = array_replace_recursive ($this->describe(), $options);
+        $options = array_merge_recursive ($this->describe(), $options);
 
         if ($options)
             foreach ($options as $key => $value)
-                $this->$key = $value;
+                $this->{$key} =
+                    (property_exists ($this, $key) && is_array ($this->{$key}) && is_array ($value)) ?
+                        array_merge_recursive ($this->{$key}, $value) :
+                        $value;
 
         if ($this->api)
             $this->define_rest_api ($this->api, 'request');
