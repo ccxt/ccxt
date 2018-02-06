@@ -298,11 +298,9 @@ module.exports = class liqui extends Exchange {
         await this.loadMarkets ();
         let ids = undefined;
         if (!symbols) {
-            // let numIds = this.ids.length;
-            // if (numIds > 256)
-            //     throw new ExchangeError (this.id + ' fetchTickers() requires symbols argument');
             ids = this.ids.join ('-');
-            if (ids.length > 2083) {
+            // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
+            if (ids.length > 2048) {
                 let numIds = this.ids.length;
                 throw new ExchangeError (this.id + ' has ' + numIds.toString () + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchTickers');
             }
