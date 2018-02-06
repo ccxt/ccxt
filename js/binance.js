@@ -342,6 +342,7 @@ module.exports = class binance extends Exchange {
                 'price': market['quotePrecision'],
             };
             let active = (market['status'] === 'TRADING');
+            // lot size is deprecated as of 2018.02.06
             let lot = -1 * Math.log10 (precision['amount']);
             let entry = this.extend (this.fees['trading'], {
                 'id': id,
@@ -351,16 +352,16 @@ module.exports = class binance extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
-                'lot': lot,
+                'lot': lot, // lot size is deprecated as of 2018.02.06
                 'active': active,
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': lot,
+                        'min': Math.pow (10, -precision['amount']),
                         'max': undefined,
                     },
                     'price': {
-                        'min': -1 * Math.log10 (precision['price']),
+                        'min': Math.pow (10, -precision['price']),
                         'max': undefined,
                     },
                     'cost': {
@@ -380,7 +381,7 @@ module.exports = class binance extends Exchange {
             if ('LOT_SIZE' in filters) {
                 let filter = filters['LOT_SIZE'];
                 entry['precision']['amount'] = this.precisionFromString (filter['stepSize']);
-                entry['lot'] = parseFloat (filter['stepSize']);
+                entry['lot'] = parseFloat (filter['stepSize']); // lot size is deprecated as of 2018.02.06
                 entry['limits']['amount'] = {
                     'min': parseFloat (filter['minQty']),
                     'max': parseFloat (filter['maxQty']),
