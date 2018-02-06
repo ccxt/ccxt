@@ -162,24 +162,33 @@ module.exports = class exmo extends Exchange {
 
     async fetchOrderBooks (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let orderBooksResult = [];
-        if (typeof symbols === 'undefined')
-            symbols = this.symbols;
-        let fetchPairString = this.parseSymbolOrderBooksString (symbols);
-        let response = await this.publicGetOrderBook (this.extend ({
-            'pair': fetchPairString,
-        }, params));
-        // the next line is not portable
-        let orderbooks = Object.values (response);
-        let keys = Object.keys (response);
-        for (let j = 0; j < orderbooks.length; j++) {
-            let key = keys[j];
-            let orderbook = this.parseOrderBook (orderbooks[j], undefined, 'bid', 'ask', '0', '1');
-            orderBooksResult.push (this.extend (orderbook, {
-                'symbol': key.replace ('_', '/'),
-            }));
+        let ids = undefined;
+        if (!symbols) {
+            ids = this.ids.join (',');
+            // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
+            if (ids.length > 2048) {
+                let numIds = this.ids.length;
+                throw new ExchangeError (this.id + ' has ' + numIds.toString () + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks');
+            }
+        } else {
+            ids = this.marketIds (symbols);
+            ids = ids.join (',');
         }
-        return orderbooks;
+        let response = await this.publicGetOrderBook (this.extend ({
+            'pair': ids,
+        }, params));
+        let result = {};
+        ids = Object.keys (response);
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
+            let symbol = id;
+            if (id in this.marketsById) {
+                let market = this.marketsById[id];
+                symbol = market['symbol'];
+            }
+            result[symbol] = this.parseOrderBook (response[id], undefined, 'bid', 'ask');
+        }
+        return result;
     }
 
     parseTicker (ticker, market = undefined) {
