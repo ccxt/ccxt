@@ -17,6 +17,7 @@ class kucoin extends Exchange {
             'userAgent' => $this->userAgents['chrome'],
             'has' => array (
                 'CORS' => false,
+                'cancelOrders' => true,
                 'createMarketOrder' => false,
                 'fetchTickers' => true,
                 'fetchOHLCV' => true, // see the method implementation below
@@ -95,6 +96,7 @@ class kucoin extends Exchange {
                         'account/{coin}/withdraw/cancel',
                         'cancel-order',
                         'order',
+                        'order/cancel-all',
                         'user/change-lang',
                     ),
                 ),
@@ -444,6 +446,23 @@ class kucoin extends Exchange {
             'info' => $response,
             'id' => $this->safe_string($response['data'], 'orderOid'),
         );
+    }
+
+    public function cancel_orders ($symbol = null, $params = array ()) {
+        // https://kucoinapidocs.docs.apiary.io/#reference/0/trading/cancel-all-orders
+        // docs say $symbol is required, but it seems to be optional
+        // you can cancel all orders, or filter by $symbol or type or both
+        $request = array ();
+        if ($symbol) {
+            $this->load_markets();
+            $market = $this->market ($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        if (is_array ($params) && array_key_exists ('type', $params)) {
+            $request['type'] = strtoupper ($params['type']);
+        }
+        $response = $this->privatePostOrderCancelAll (array_merge ($request, $params));
+        return $response;
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {

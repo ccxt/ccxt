@@ -28,6 +28,7 @@ class kucoin (Exchange):
             'userAgent': self.userAgents['chrome'],
             'has': {
                 'CORS': False,
+                'cancelOrders': True,
                 'createMarketOrder': False,
                 'fetchTickers': True,
                 'fetchOHLCV': True,  # see the method implementation below
@@ -106,6 +107,7 @@ class kucoin (Exchange):
                         'account/{coin}/withdraw/cancel',
                         'cancel-order',
                         'order',
+                        'order/cancel-all',
                         'user/change-lang',
                     ],
                 },
@@ -433,6 +435,20 @@ class kucoin (Exchange):
             'info': response,
             'id': self.safe_string(response['data'], 'orderOid'),
         }
+
+    def cancel_orders(self, symbol=None, params={}):
+        # https://kucoinapidocs.docs.apiary.io/#reference/0/trading/cancel-all-orders
+        # docs say symbol is required, but it seems to be optional
+        # you can cancel all orders, or filter by symbol or type or both
+        request = {}
+        if symbol:
+            self.load_markets()
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        if 'type' in params:
+            request['type'] = params['type'].upper()
+        response = self.privatePostOrderCancelAll(self.extend(request, params))
+        return response
 
     def cancel_order(self, id, symbol=None, params={}):
         if not symbol:
