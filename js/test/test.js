@@ -139,7 +139,7 @@ const printOrderBookOneLiner = (orderbook, method, symbol) => {
     const bids = orderbook.bids
     const asks = orderbook.asks
 
-    log (symbol.green,
+    log (symbol.toString ().green,
         method,
         orderbook['datetime'],
         'bid: '       + ((bids.length > 0) ? human_value (bids[0][0]) : 'N/A'),
@@ -212,9 +212,11 @@ let testOrderBooks = async (exchange) => {
         // log ('fetching order books...')
 
         let orderbooks = await exchange[method] ()
-        Object.values (orderbooks).forEach (orderbook => {
-            testOrderBookProperties (orderbook, method) //, symbol)
-        })
+        log.green (orderbooks)
+
+        // Object.values (orderbooks).forEach (orderbook => {
+        //     testOrderBookProperties (orderbook, method) //, symbol)
+        // })
         return orderbooks
 
     } else {
