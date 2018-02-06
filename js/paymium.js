@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -8,7 +8,6 @@ const { ExchangeError } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class paymium extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'paymium',
@@ -16,7 +15,9 @@ module.exports = class paymium extends Exchange {
             'countries': [ 'FR', 'EU' ],
             'rateLimit': 2000,
             'version': 'v1',
-            'hasCORS': true,
+            'has': {
+                'CORS': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27790564-a945a9d4-5ff9-11e7-9d2d-b635763f2f24.jpg',
                 'api': 'https://paymium.com/api',
@@ -92,7 +93,7 @@ module.exports = class paymium extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let orderbook = await this.publicGetDataIdDepth (this.extend ({
             'id': this.marketId (symbol),
         }, params));
@@ -163,7 +164,7 @@ module.exports = class paymium extends Exchange {
             'direction': side,
             'amount': amount,
         };
-        if (type == 'market')
+        if (type === 'market')
             order['price'] = price;
         let response = await this.privatePostUserOrders (this.extend (order, params));
         return {
@@ -181,7 +182,7 @@ module.exports = class paymium extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
@@ -205,4 +206,4 @@ module.exports = class paymium extends Exchange {
             throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
     }
-}
+};

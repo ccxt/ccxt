@@ -21,7 +21,7 @@ let gitWikiPath = 'ccxt.wiki'
 if (!fs.existsSync (gitWikiPath)) {
 
     log.bright.cyan ('Checking out ccxt.wiki...')
-    execSync ('git clone https://github.com/kroitor/ccxt.wiki.git')
+    execSync ('git clone https://github.com/ccxt/ccxt.wiki.git')
 }
 
 // ---------------------------------------------------------------------------

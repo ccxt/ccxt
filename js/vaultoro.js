@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 // ---------------------------------------------------------------------------
 
@@ -7,7 +7,6 @@ const Exchange = require ('./base/Exchange');
 // ---------------------------------------------------------------------------
 
 module.exports = class vaultoro extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'vaultoro',
@@ -15,7 +14,9 @@ module.exports = class vaultoro extends Exchange {
             'countries': 'CH',
             'rateLimit': 1000,
             'version': '1',
-            'hasCORS': true,
+            'has': {
+                'CORS': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766880-f205e870-5ee9-11e7-8fe2-0d5b15880752.jpg',
                 'api': 'https://api.vaultoro.com',
@@ -98,7 +99,7 @@ module.exports = class vaultoro extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.publicGetOrderbook (params);
         let orderbook = {
@@ -189,7 +190,7 @@ module.exports = class vaultoro extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/';
-        if (api == 'public') {
+        if (api === 'public') {
             url += path;
         } else {
             this.checkRequiredCredentials ();
@@ -207,4 +208,4 @@ module.exports = class vaultoro extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-}
+};

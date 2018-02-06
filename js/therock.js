@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -8,7 +8,6 @@ const { ExchangeError } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class therock extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'therock',
@@ -16,8 +15,10 @@ module.exports = class therock extends Exchange {
             'countries': 'MT',
             'rateLimit': 1000,
             'version': 'v1',
-            'hasCORS': false,
-            'hasFetchTickers': true,
+            'has': {
+                'CORS': false,
+                'fetchTickers': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg',
                 'api': 'https://api.therocktrading.com',
@@ -137,7 +138,7 @@ module.exports = class therock extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetFundsIdOrderbook (this.extend ({
             'id': this.marketId (symbol),
@@ -227,7 +228,7 @@ module.exports = class therock extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        if (type == 'market')
+        if (type === 'market')
             price = 0;
         let response = await this.privatePostFundsFundIdOrders (this.extend ({
             'fund_id': this.marketId (symbol),
@@ -251,7 +252,7 @@ module.exports = class therock extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (api == 'private') {
+        if (api === 'private') {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             let auth = nonce + url;
@@ -274,4 +275,4 @@ module.exports = class therock extends Exchange {
             throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
     }
-}
+};

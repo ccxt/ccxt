@@ -1,6 +1,6 @@
 
 # You shouldn't edit these files, as they're generated automatically from ccxt.js by build scripts.
-# Please read https://github.com/kroitor/ccxt/blob/master/CONTRIBUTING.md#multilanguage-support for details.
+# Please read https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#multilanguage-support for details.
 #
 build/*
 node_modules/

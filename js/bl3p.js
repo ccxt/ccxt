@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 // ---------------------------------------------------------------------------
 
@@ -7,7 +7,6 @@ const Exchange = require ('./base/Exchange');
 // ---------------------------------------------------------------------------
 
 module.exports = class bl3p extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bl3p',
@@ -16,7 +15,9 @@ module.exports = class bl3p extends Exchange {
             'rateLimit': 1000,
             'version': '1',
             'comment': 'An exchange market by BitonicNL',
-            'hasCORS': false,
+            'has': {
+                'CORS': false,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg',
                 'api': 'https://api.bl3p.eu',
@@ -98,7 +99,7 @@ module.exports = class bl3p extends Exchange {
         ];
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let market = this.market (symbol);
         let response = await this.publicGetMarketOrderbook (this.extend ({
             'market': market['id'],
@@ -163,9 +164,9 @@ module.exports = class bl3p extends Exchange {
             'market': market['id'],
             'amount_int': parseInt (amount * 100000000),
             'fee_currency': market['quote'],
-            'type': (side == 'buy') ? 'bid' : 'ask',
+            'type': (side === 'buy') ? 'bid' : 'ask',
         };
-        if (type == 'limit')
+        if (type === 'limit')
             order['price_int'] = parseInt (price * 100000.0);
         let response = await this.privatePostMarketMoneyOrderAdd (this.extend (order, params));
         return {
@@ -182,7 +183,7 @@ module.exports = class bl3p extends Exchange {
         let request = this.implodeParams (path, params);
         let url = this.urls['api'] + '/' + this.version + '/' + request;
         let query = this.omit (params, this.extractParams (path));
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
@@ -200,4 +201,4 @@ module.exports = class bl3p extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-}
+};

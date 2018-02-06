@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 // ---------------------------------------------------------------------------
 
@@ -8,24 +8,17 @@ const { ExchangeError, NotSupported, InsufficientFunds } = require ('./base/erro
 // ---------------------------------------------------------------------------
 
 module.exports = class bitfinex2 extends bitfinex {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitfinex2',
             'name': 'Bitfinex v2',
             'countries': 'VG',
             'version': 'v2',
-            'hasCORS': true,
-            // old metainfo interface
-            'hasFetchOrder': true,
-            'hasFetchTickers': true,
-            'hasFetchOHLCV': true,
-            'hasWithdraw': true,
-            'hasDeposit': false,
-            'hasFetchOpenOrders': false,
-            'hasFetchClosedOrders': false,
             // new metainfo interface
             'has': {
+                'CORS': true,
+                'createOrder': false,
+                'fetchMyTrades': false,
                 'fetchOHLCV': true,
                 'fetchTickers': true,
                 'fetchOrder': true,
@@ -72,7 +65,6 @@ module.exports = class bitfinex2 extends bitfinex {
                         'book/{symbol}/P2',
                         'book/{symbol}/P3',
                         'book/{symbol}/R0',
-                        'symbols_details',
                         'stats1/{key}:{size}:{symbol}/{side}/{section}',
                         'stats1/{key}:{size}:{symbol}/long/last',
                         'stats1/{key}:{size}:{symbol}/long/hist',
@@ -175,6 +167,57 @@ module.exports = class bitfinex2 extends bitfinex {
                 'XRP/USD': { 'id': 'tXRPUSD', 'symbol': 'XRP/USD', 'base': 'XRP', 'quote': 'USD', 'baseId': 'tXRP', 'quoteId': 'zUSD' },
                 'ZEC/BTC': { 'id': 'tZECBTC', 'symbol': 'ZEC/BTC', 'base': 'ZEC', 'quote': 'BTC', 'baseId': 'tZEC', 'quoteId': 'tBTC' },
                 'ZEC/USD': { 'id': 'tZECUSD', 'symbol': 'ZEC/USD', 'base': 'ZEC', 'quote': 'USD', 'baseId': 'tZEC', 'quoteId': 'zUSD' },
+                'YYW/USD': { 'id': 'tYYWUSD', 'symbol': 'YYW/USD', 'base': 'YYW', 'quote': 'USD', 'baseId': 'tYYW', 'quoteId': 'zUSD' },
+                'YYW/BTC': { 'id': 'tYYWBTC', 'symbol': 'YYW/BTC', 'base': 'YYW', 'quote': 'BTC', 'baseId': 'tYYW', 'quoteId': 'zBTC' },
+                'YYW/ETH': { 'id': 'tYYWETH', 'symbol': 'YYW/ETH', 'base': 'YYW', 'quote': 'ETH', 'baseId': 'tYYW', 'quoteId': 'zETH' },
+                'SNT/USD': { 'id': 'tSNTUSD', 'symbol': 'SNT/USD', 'base': 'SNT', 'quote': 'USD', 'baseId': 'tSNT', 'quoteId': 'zUSD' },
+                'SNT/BTC': { 'id': 'tSNTBTC', 'symbol': 'SNT/BTC', 'base': 'SNT', 'quote': 'BTC', 'baseId': 'tSNT', 'quoteId': 'zBTC' },
+                'SNT/ETH': { 'id': 'tSNTETH', 'symbol': 'SNT/ETH', 'base': 'SNT', 'quote': 'ETH', 'baseId': 'tSNT', 'quoteId': 'zETH' },
+                'QASH/USD': { 'id': 'tQASHUSD', 'symbol': 'QASH/USD', 'base': 'QASH', 'quote': 'USD', 'baseId': 'tQASH', 'quoteId': 'zUSD' },
+                'QASH/BTC': { 'id': 'tQASHBTC', 'symbol': 'QASH/BTC', 'base': 'QASH', 'quote': 'BTC', 'baseId': 'tQASH', 'quoteId': 'zBTC' },
+                'QASH/ETH': { 'id': 'tQASHETH', 'symbol': 'QASH/ETH', 'base': 'QASH', 'quote': 'ETH', 'baseId': 'tQASH', 'quoteId': 'zETH' },
+                'GNT/USD': { 'id': 'tGNTUSD', 'symbol': 'GNT/USD', 'base': 'GNT', 'quote': 'USD', 'baseId': 'tGNT', 'quoteId': 'zUSD' },
+                'GNT/BTC': { 'id': 'tGNTBTC', 'symbol': 'GNT/BTC', 'base': 'GNT', 'quote': 'BTC', 'baseId': 'tGNT', 'quoteId': 'zBTC' },
+                'GNT/ETH': { 'id': 'tGNTETH', 'symbol': 'GNT/ETH', 'base': 'GNT', 'quote': 'ETH', 'baseId': 'tGNT', 'quoteId': 'zETH' },
+                'BAT/USD': { 'id': 'tBATUSD', 'symbol': 'BAT/USD', 'base': 'BAT', 'quote': 'USD', 'baseId': 'tBAT', 'quoteId': 'zUSD' },
+                'BAT/BTC': { 'id': 'tBATBTC', 'symbol': 'BAT/BTC', 'base': 'BAT', 'quote': 'BTC', 'baseId': 'tBAT', 'quoteId': 'zBTC' },
+                'BAT/ETH': { 'id': 'tBATETH', 'symbol': 'BAT/ETH', 'base': 'BAT', 'quote': 'ETH', 'baseId': 'tBAT', 'quoteId': 'zETH' },
+                'SPK/USD': { 'id': 'tSPKUSD', 'symbol': 'SPK/USD', 'base': 'SPK', 'quote': 'USD', 'baseId': 'tSPK', 'quoteId': 'zUSD' },
+                'SPK/BTC': { 'id': 'tSPKBTC', 'symbol': 'SPK/BTC', 'base': 'SPK', 'quote': 'BTC', 'baseId': 'tSPK', 'quoteId': 'zBTC' },
+                'SPK/ETH': { 'id': 'tSPKETH', 'symbol': 'SPK/ETH', 'base': 'SPK', 'quote': 'ETH', 'baseId': 'tSPK', 'quoteId': 'zETH' },
+                'TRX/USD': { 'id': 'tTRXUSD', 'symbol': 'TRX/USD', 'base': 'TRX', 'quote': 'USD', 'baseId': 'tTRX', 'quoteId': 'zUSD' },
+                'TRX/BTC': { 'id': 'tTRXBTC', 'symbol': 'TRX/BTC', 'base': 'TRX', 'quote': 'BTC', 'baseId': 'tTRX', 'quoteId': 'zBTC' },
+                'TRX/ETH': { 'id': 'tTRXETH', 'symbol': 'TRX/ETH', 'base': 'TRX', 'quote': 'ETH', 'baseId': 'tTRX', 'quoteId': 'zETH' },
+                'ELF/USD': { 'id': 'tELFUSD', 'symbol': 'ELF/USD', 'base': 'ELF', 'quote': 'USD', 'baseId': 'tELF', 'quoteId': 'zUSD' },
+                'ELF/BTC': { 'id': 'tELFBTC', 'symbol': 'ELF/BTC', 'base': 'ELF', 'quote': 'BTC', 'baseId': 'tELF', 'quoteId': 'zBTC' },
+                'ELF/ETH': { 'id': 'tELFETH', 'symbol': 'ELF/ETH', 'base': 'ELF', 'quote': 'ETH', 'baseId': 'tELF', 'quoteId': 'zETH' },
+                'RCN/USD': { 'id': 'tRCNUSD', 'symbol': 'RCN/USD', 'base': 'RCN', 'quote': 'USD', 'baseId': 'tRCN', 'quoteId': 'zUSD' },
+                'RCN/BTC': { 'id': 'tRCNBTC', 'symbol': 'RCN/BTC', 'base': 'RCN', 'quote': 'BTC', 'baseId': 'tRCN', 'quoteId': 'zBTC' },
+                'RCN/ETH': { 'id': 'tRCNETH', 'symbol': 'RCN/ETH', 'base': 'RCN', 'quote': 'ETH', 'baseId': 'tRCN', 'quoteId': 'zETH' },
+                'FUN/USD': { 'id': 'tFUNUSD', 'symbol': 'FUN/USD', 'base': 'FUN', 'quote': 'USD', 'baseId': 'tFUN', 'quoteId': 'zUSD' },
+                'FUN/BTC': { 'id': 'tFUNBTC', 'symbol': 'FUN/BTC', 'base': 'FUN', 'quote': 'BTC', 'baseId': 'tFUN', 'quoteId': 'zBTC' },
+                'FUN/ETH': { 'id': 'tFUNETH', 'symbol': 'FUN/ETH', 'base': 'FUN', 'quote': 'ETH', 'baseId': 'tFUN', 'quoteId': 'zETH' },
+                'MNA/USD': { 'id': 'tMNAUSD', 'symbol': 'MNA/USD', 'base': 'MNA', 'quote': 'USD', 'baseId': 'tMNA', 'quoteId': 'zUSD' },
+                'MNA/BTC': { 'id': 'tMNABTC', 'symbol': 'MNA/BTC', 'base': 'MNA', 'quote': 'BTC', 'baseId': 'tMNA', 'quoteId': 'zBTC' },
+                'MNA/ETH': { 'id': 'tMNAETH', 'symbol': 'MNA/ETH', 'base': 'MNA', 'quote': 'ETH', 'baseId': 'tMNA', 'quoteId': 'zETH' },
+                'AID/USD': { 'id': 'tAIDUSD', 'symbol': 'AID/USD', 'base': 'AID', 'quote': 'USD', 'baseId': 'tAID', 'quoteId': 'zUSD' },
+                'AID/BTC': { 'id': 'tAIDBTC', 'symbol': 'AID/BTC', 'base': 'AID', 'quote': 'BTC', 'baseId': 'tAID', 'quoteId': 'zBTC' },
+                'AID/ETH': { 'id': 'tAIDETH', 'symbol': 'AID/ETH', 'base': 'AID', 'quote': 'ETH', 'baseId': 'tAID', 'quoteId': 'zETH' },
+                'REP/USD': { 'id': 'tREPUSD', 'symbol': 'REP/USD', 'base': 'REP', 'quote': 'USD', 'baseId': 'tREP', 'quoteId': 'zUSD' },
+                'REP/BTC': { 'id': 'tREPBTC', 'symbol': 'REP/BTC', 'base': 'REP', 'quote': 'BTC', 'baseId': 'tREP', 'quoteId': 'zBTC' },
+                'REP/ETH': { 'id': 'tREPETH', 'symbol': 'REP/ETH', 'base': 'REP', 'quote': 'ETH', 'baseId': 'tREP', 'quoteId': 'zETH' },
+                'SNG/USD': { 'id': 'tSNGUSD', 'symbol': 'SNG/USD', 'base': 'SNG', 'quote': 'USD', 'baseId': 'tSNG', 'quoteId': 'zUSD' },
+                'SNG/BTC': { 'id': 'tSNGBTC', 'symbol': 'SNG/BTC', 'base': 'SNG', 'quote': 'BTC', 'baseId': 'tSNG', 'quoteId': 'zBTC' },
+                'SNG/ETH': { 'id': 'tSNGETH', 'symbol': 'SNG/ETH', 'base': 'SNG', 'quote': 'ETH', 'baseId': 'tSNG', 'quoteId': 'zETH' },
+                'RLC/USD': { 'id': 'tRLCUSD', 'symbol': 'RLC/USD', 'base': 'RLC', 'quote': 'USD', 'baseId': 'tRLC', 'quoteId': 'zUSD' },
+                'RLC/BTC': { 'id': 'tRLCBTC', 'symbol': 'RLC/BTC', 'base': 'RLC', 'quote': 'BTC', 'baseId': 'tRLC', 'quoteId': 'zBTC' },
+                'RLC/ETH': { 'id': 'tRLCETH', 'symbol': 'RLC/ETH', 'base': 'RLC', 'quote': 'ETH', 'baseId': 'tRLC', 'quoteId': 'zETH' },
+                'TNB/USD': { 'id': 'tTNBUSD', 'symbol': 'TNB/USD', 'base': 'TNB', 'quote': 'USD', 'baseId': 'tTNB', 'quoteId': 'zUSD' },
+                'TNB/BTC': { 'id': 'tTNBBTC', 'symbol': 'TNB/BTC', 'base': 'TNB', 'quote': 'BTC', 'baseId': 'tTNB', 'quoteId': 'zBTC' },
+                'TNB/ETH': { 'id': 'tTNBETH', 'symbol': 'TNB/ETH', 'base': 'TNB', 'quote': 'ETH', 'baseId': 'tTNB', 'quoteId': 'zETH' },
+                'ZRX/USD': { 'id': 'tZRXUSD', 'symbol': 'ZRX/USD', 'base': 'ZRX', 'quote': 'USD', 'baseId': 'tZRX', 'quoteId': 'zUSD' },
+                'ZRX/BTC': { 'id': 'tZRXBTC', 'symbol': 'ZRX/BTC', 'base': 'ZRX', 'quote': 'BTC', 'baseId': 'tZRX', 'quoteId': 'zBTC' },
+                'ZRX/ETH': { 'id': 'tZRXETH', 'symbol': 'ZRX/ETH', 'base': 'ZRX', 'quote': 'ETH', 'baseId': 'tZRX', 'quoteId': 'zETH' },
             },
             'fees': {
                 'trading': {
@@ -204,6 +247,12 @@ module.exports = class bitfinex2 extends bitfinex {
                         'AVT': 0.5,
                         'SAN': 0.1,
                         'USDT': 5.0,
+                        'SPK': 9.2784,
+                        'BAT': 9.0883,
+                        'GNT': 8.2881,
+                        'SNT': 14.303,
+                        'QASH': 3.2428,
+                        'YYW': 18.055,
                     },
                 },
             },
@@ -229,8 +278,8 @@ module.exports = class bitfinex2 extends bitfinex {
         for (let b = 0; b < response.length; b++) {
             let balance = response[b];
             let [ accountType, currency, total, interest, available ] = balance;
-            if (accountType == balanceType) {
-                if (currency[0] == 't')
+            if (accountType === balanceType) {
+                if (currency[0] === 't')
                     currency = currency.slice (1);
                 let uppercase = currency.toUpperCase ();
                 uppercase = this.commonCurrencyCode (uppercase);
@@ -245,7 +294,7 @@ module.exports = class bitfinex2 extends bitfinex {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let orderbook = await this.publicGetBookSymbolPrecision (this.extend ({
             'symbol': this.marketId (symbol),
             'precision': 'R0',
@@ -345,12 +394,10 @@ module.exports = class bitfinex2 extends bitfinex {
         let request = {
             'symbol': market['id'],
         };
-        if (since) {
+        if (typeof since !== 'undefined')
             request['start'] = since;
-        }
-        if (limit) {
+        if (typeof limit !== 'undefined')
             request['limit'] = limit;
-        }
         let response = await this.publicGetTradesSymbolHist (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
@@ -362,9 +409,9 @@ module.exports = class bitfinex2 extends bitfinex {
             'timeframe': this.timeframes[timeframe],
             'sort': 1,
         };
-        if (limit)
+        if (typeof limit !== 'undefined')
             request['limit'] = limit;
-        if (since)
+        if (typeof since !== 'undefined')
             request['start'] = since;
         request = this.extend (request, params);
         let response = await this.publicGetCandlesTradeTimeframeSymbolHist (request);
@@ -383,7 +430,7 @@ module.exports = class bitfinex2 extends bitfinex {
         throw new NotSupported (this.id + ' fetchOrder not implemented yet');
     }
 
-    async withdraw (currency, amount, address, params = {}) {
+    async withdraw (currency, amount, address, tag = undefined, params = {}) {
         throw new NotSupported (this.id + ' withdraw not implemented yet');
     }
 
@@ -395,7 +442,7 @@ module.exports = class bitfinex2 extends bitfinex {
         let request = this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'] + '/' + request;
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
@@ -424,9 +471,9 @@ module.exports = class bitfinex2 extends bitfinex {
                 throw new ExchangeError (this.id + ' ' + this.json (response));
             }
             return response;
-        } else if (response == '') {
+        } else if (response === '') {
             throw new ExchangeError (this.id + ' returned empty response');
         }
         return response;
     }
-}
+};

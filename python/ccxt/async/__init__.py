@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.729'
+__version__ = '1.10.1005'
 
 # -----------------------------------------------------------------------------
 
@@ -57,12 +57,12 @@ from ccxt.async.btcmarkets import btcmarkets                    # noqa: F401
 from ccxt.async.btctradeua import btctradeua                    # noqa: F401
 from ccxt.async.btcturk import btcturk                          # noqa: F401
 from ccxt.async.btcx import btcx                                # noqa: F401
-from ccxt.async.bter import bter                                # noqa: F401
 from ccxt.async.bxinth import bxinth                            # noqa: F401
 from ccxt.async.ccex import ccex                                # noqa: F401
 from ccxt.async.cex import cex                                  # noqa: F401
 from ccxt.async.chbtc import chbtc                              # noqa: F401
 from ccxt.async.chilebit import chilebit                        # noqa: F401
+from ccxt.async.cobinhood import cobinhood                      # noqa: F401
 from ccxt.async.coincheck import coincheck                      # noqa: F401
 from ccxt.async.coinexchange import coinexchange                # noqa: F401
 from ccxt.async.coinfloor import coinfloor                      # noqa: F401
@@ -109,7 +109,7 @@ from ccxt.async.paymium import paymium                          # noqa: F401
 from ccxt.async.poloniex import poloniex                        # noqa: F401
 from ccxt.async.qryptos import qryptos                          # noqa: F401
 from ccxt.async.quadrigacx import quadrigacx                    # noqa: F401
-from ccxt.async.quoine import quoine                            # noqa: F401
+from ccxt.async.quoinex import quoinex                          # noqa: F401
 from ccxt.async.southxchange import southxchange                # noqa: F401
 from ccxt.async.surbitcoin import surbitcoin                    # noqa: F401
 from ccxt.async.therock import therock                          # noqa: F401
@@ -157,12 +157,12 @@ exchanges = [
     'btctradeua',
     'btcturk',
     'btcx',
-    'bter',
     'bxinth',
     'ccex',
     'cex',
     'chbtc',
     'chilebit',
+    'cobinhood',
     'coincheck',
     'coinexchange',
     'coinfloor',
@@ -209,7 +209,7 @@ exchanges = [
     'poloniex',
     'qryptos',
     'quadrigacx',
-    'quoine',
+    'quoinex',
     'southxchange',
     'surbitcoin',
     'therock',
