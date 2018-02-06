@@ -593,6 +593,7 @@ abstract class Exchange {
         // API methods metainfo
         $this->has = array (
             'cancelOrder' => $this->hasPrivateAPI,
+            'cancelOrders' => false,
             'createDepositAddress' => false,
             'createOrder' => $this->hasPrivateAPI,
             'createMarketOrder' => $this->hasPrivateAPI,
