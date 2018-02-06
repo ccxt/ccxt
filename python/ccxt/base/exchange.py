@@ -148,6 +148,7 @@ class Exchange(object):
     # API method metainfo
     has = {
         'cancelOrder': hasPrivateAPI,
+        'cancelOrders': False,
         'createDepositAddress': False,
         'createOrder': hasPrivateAPI,
         'deposit': False,
