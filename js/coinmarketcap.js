@@ -1,14 +1,13 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class coinmarketcap extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'coinmarketcap',
@@ -16,16 +15,15 @@ module.exports = class coinmarketcap extends Exchange {
             'rateLimit': 10000,
             'version': 'v1',
             'countries': 'US',
-            'hasCORS': true,
-            'hasPrivateAPI': false,
-            'hasCreateOrder': false,
-            'hasCancelOrder': false,
-            'hasFetchBalance': false,
-            'hasFetchOrderBook': false,
-            'hasFetchTrades': false,
-            'hasFetchTickers': true,
-            'hasFetchCurrencies': true,
             'has': {
+                'CORS': true,
+                'privateAPI': false,
+                'createOrder': false,
+                'cancelOrder': false,
+                'fetchBalance': false,
+                'fetchOrderBook': false,
+                'fetchTrades': false,
+                'fetchTickers': true,
                 'fetchCurrencies': true,
             },
             'urls': {
@@ -81,13 +79,17 @@ module.exports = class coinmarketcap extends Exchange {
         });
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         throw new ExchangeError ('Fetching order books is not supported by the API of ' + this.id);
     }
 
     currencyCode (base, name) {
         const currencies = {
+            'BatCoin': 'BatCoin',
             'Bitgem': 'Bitgem',
+            'BlockCAT': 'BlockCAT',
+            'Catcoin': 'Catcoin',
+            'iCoin': 'iCoin',
             'NetCoin': 'NetCoin',
         };
         if (name in currencies)
@@ -214,7 +216,7 @@ module.exports = class coinmarketcap extends Exchange {
 
     async fetchCurrencies (params = {}) {
         let currencies = await this.publicGetTicker (this.extend ({
-            'limit': 0
+            'limit': 0,
         }, params));
         let result = {};
         for (let i = 0; i < currencies.length; i++) {
@@ -275,4 +277,4 @@ module.exports = class coinmarketcap extends Exchange {
         }
         return response;
     }
-}
+};

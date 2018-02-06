@@ -1,14 +1,13 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class itbit extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'itbit',
@@ -16,7 +15,10 @@ module.exports = class itbit extends Exchange {
             'countries': 'US',
             'rateLimit': 2000,
             'version': 'v1',
-            'hasCORS': true,
+            'has': {
+                'CORS': true,
+                'createMarketOrder': false,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27822159-66153620-60ad-11e7-89e7-005f6d7f3de0.jpg',
                 'api': 'https://api.itbit.com',
@@ -70,7 +72,7 @@ module.exports = class itbit extends Exchange {
         });
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let orderbook = await this.publicGetMarketsSymbolOrderBook (this.extend ({
             'symbol': this.marketId (symbol),
         }, params));
@@ -162,7 +164,7 @@ module.exports = class itbit extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (type == 'market')
+        if (type === 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
         let walletIdInParams = ('walletId' in params);
         if (!walletIdInParams)
@@ -198,7 +200,7 @@ module.exports = class itbit extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
@@ -215,7 +217,7 @@ module.exports = class itbit extends Exchange {
             let binhash = this.binaryConcat (url, hash);
             let signature = this.hmac (binhash, this.encode (this.secret), 'sha512', 'base64');
             headers = {
-                'Authorization': self.apiKey + ':' + signature,
+                'Authorization': this.apiKey + ':' + signature,
                 'Content-Type': 'application/json',
                 'X-Auth-Timestamp': timestamp,
                 'X-Auth-Nonce': nonce,
@@ -230,4 +232,4 @@ module.exports = class itbit extends Exchange {
             throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
     }
-}
+};

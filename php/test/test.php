@@ -1,5 +1,6 @@
 <?php
 
+error_reporting (E_ALL | E_STRICT);
 date_default_timezone_set ('UTC');
 
 include_once 'ccxt.php';
@@ -79,7 +80,7 @@ function test_order_book ($exchange, $symbol) {
 
 function test_trades ($exchange, $symbol) {
 
-    if ($exchange->hasFetchTrades) {
+    if ($exchange->has['fetchTrades']) {
 
         $delay = $exchange->rateLimit * 1000;
         usleep ($delay);
@@ -235,4 +236,3 @@ if (count ($argv) > 1) {
     }
 
 }
-

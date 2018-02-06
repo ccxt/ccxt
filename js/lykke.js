@@ -1,14 +1,12 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
-var Exchange = require ('./base/Exchange')
-var { ExchangeError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class lykke extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'lykke',
@@ -16,12 +14,8 @@ module.exports = class lykke extends Exchange {
             'countries': 'CH',
             'version': 'v1',
             'rateLimit': 200,
-            'hasCORS': false,
-            // obsolete metainfo interface
-            'hasFetchTrades': false,
-            'hasFetchOHLCV': false,
-            // new metainfo interface
             'has': {
+                'CORS': false,
                 'fetchOHLCV': false,
                 'fetchTrades': false,
             },
@@ -52,7 +46,7 @@ module.exports = class lykke extends Exchange {
                 'mobile': {
                     'get': [
                         'AllAssetPairRates/{market}',
-                    ]
+                    ],
                 },
                 'public': {
                     'get': [
@@ -60,7 +54,7 @@ module.exports = class lykke extends Exchange {
                         'AssetPairs/{id}',
                         'IsAlive',
                         'OrderBooks',
-                        'OrderBooks/{AssetPairId}'
+                        'OrderBooks/{AssetPairId}',
                     ],
                 },
                 'private': {
@@ -128,9 +122,9 @@ module.exports = class lykke extends Exchange {
             'OrderAction': this.capitalize (side),
             'Volume': amount,
         };
-        if (type == 'market') {
-            query['Asset'] = (side == 'buy') ? market['base'] : market['quote'];
-        } else if (type == 'limit') {
+        if (type === 'market') {
+            query['Asset'] = (side === 'buy') ? market['base'] : market['quote'];
+        } else if (type === 'limit') {
             query['Price'] = price;
         }
         let method = 'privatePostOrders' + this.capitalize (type);
@@ -218,23 +212,23 @@ module.exports = class lykke extends Exchange {
     }
 
     parseOrderStatus (status) {
-        if (status == 'Pending') {
+        if (status === 'Pending') {
             return 'open';
-        } else if (status == 'InOrderBook') {
+        } else if (status === 'InOrderBook') {
             return 'open';
-        } else if (status == 'Processing') {
+        } else if (status === 'Processing') {
             return 'open';
-        } else if (status == 'Matched') {
+        } else if (status === 'Matched') {
             return 'closed';
-        } else if (status == 'Cancelled') {
+        } else if (status === 'Cancelled') {
             return 'canceled';
-        } else if (status == 'NotEnoughFunds') {
+        } else if (status === 'NotEnoughFunds') {
             return 'NotEnoughFunds';
-        } else if (status == 'NoLiquidity') {
+        } else if (status === 'NoLiquidity') {
             return 'NoLiquidity';
-        } else if (status == 'UnknownAsset') {
+        } else if (status === 'UnknownAsset') {
             return 'UnknownAsset';
-        } else if (status == 'LeadToNegativeSpread') {
+        } else if (status === 'LeadToNegativeSpread') {
             return 'LeadToNegativeSpread';
         }
         return status;
@@ -309,7 +303,7 @@ module.exports = class lykke extends Exchange {
         return this.parseOrders (response, undefined, since, limit);
     }
 
-    async fetchOrderBook (symbol = undefined, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.publicGetOrderBooksAssetPairId (this.extend ({
             'AssetPairId': this.marketId (symbol),
@@ -350,11 +344,11 @@ module.exports = class lykke extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
-        } else if (api == 'private') {
-            if (method == 'GET')
+        } else if (api === 'private') {
+            if (method === 'GET')
                 if (Object.keys (query).length)
                     url += '?' + this.urlencode (query);
             this.checkRequiredCredentials ();
@@ -363,11 +357,10 @@ module.exports = class lykke extends Exchange {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
             };
-            if (method == 'POST')
+            if (method === 'POST')
                 if (Object.keys (params).length)
                     body = this.json (params);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-
-}
+};

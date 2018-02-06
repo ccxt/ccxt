@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.650'
+__version__ = '1.10.1016'
 
 # -----------------------------------------------------------------------------
 
@@ -31,6 +31,7 @@ from ccxt.async._1btcxe import _1btcxe                          # noqa: F401
 from ccxt.async.acx import acx                                  # noqa: F401
 from ccxt.async.allcoin import allcoin                          # noqa: F401
 from ccxt.async.anxpro import anxpro                            # noqa: F401
+from ccxt.async.bibox import bibox                              # noqa: F401
 from ccxt.async.binance import binance                          # noqa: F401
 from ccxt.async.bit2c import bit2c                              # noqa: F401
 from ccxt.async.bitbay import bitbay                            # noqa: F401
@@ -46,6 +47,7 @@ from ccxt.async.bitso import bitso                              # noqa: F401
 from ccxt.async.bitstamp import bitstamp                        # noqa: F401
 from ccxt.async.bitstamp1 import bitstamp1                      # noqa: F401
 from ccxt.async.bittrex import bittrex                          # noqa: F401
+from ccxt.async.bitz import bitz                                # noqa: F401
 from ccxt.async.bl3p import bl3p                                # noqa: F401
 from ccxt.async.bleutrade import bleutrade                      # noqa: F401
 from ccxt.async.braziliex import braziliex                      # noqa: F401
@@ -56,13 +58,14 @@ from ccxt.async.btcmarkets import btcmarkets                    # noqa: F401
 from ccxt.async.btctradeua import btctradeua                    # noqa: F401
 from ccxt.async.btcturk import btcturk                          # noqa: F401
 from ccxt.async.btcx import btcx                                # noqa: F401
-from ccxt.async.bter import bter                                # noqa: F401
 from ccxt.async.bxinth import bxinth                            # noqa: F401
 from ccxt.async.ccex import ccex                                # noqa: F401
 from ccxt.async.cex import cex                                  # noqa: F401
 from ccxt.async.chbtc import chbtc                              # noqa: F401
 from ccxt.async.chilebit import chilebit                        # noqa: F401
+from ccxt.async.cobinhood import cobinhood                      # noqa: F401
 from ccxt.async.coincheck import coincheck                      # noqa: F401
+from ccxt.async.coinexchange import coinexchange                # noqa: F401
 from ccxt.async.coinfloor import coinfloor                      # noqa: F401
 from ccxt.async.coingi import coingi                            # noqa: F401
 from ccxt.async.coinmarketcap import coinmarketcap              # noqa: F401
@@ -107,7 +110,7 @@ from ccxt.async.paymium import paymium                          # noqa: F401
 from ccxt.async.poloniex import poloniex                        # noqa: F401
 from ccxt.async.qryptos import qryptos                          # noqa: F401
 from ccxt.async.quadrigacx import quadrigacx                    # noqa: F401
-from ccxt.async.quoine import quoine                            # noqa: F401
+from ccxt.async.quoinex import quoinex                          # noqa: F401
 from ccxt.async.southxchange import southxchange                # noqa: F401
 from ccxt.async.surbitcoin import surbitcoin                    # noqa: F401
 from ccxt.async.therock import therock                          # noqa: F401
@@ -129,6 +132,7 @@ exchanges = [
     'acx',
     'allcoin',
     'anxpro',
+    'bibox',
     'binance',
     'bit2c',
     'bitbay',
@@ -144,6 +148,7 @@ exchanges = [
     'bitstamp',
     'bitstamp1',
     'bittrex',
+    'bitz',
     'bl3p',
     'bleutrade',
     'braziliex',
@@ -154,13 +159,14 @@ exchanges = [
     'btctradeua',
     'btcturk',
     'btcx',
-    'bter',
     'bxinth',
     'ccex',
     'cex',
     'chbtc',
     'chilebit',
+    'cobinhood',
     'coincheck',
+    'coinexchange',
     'coinfloor',
     'coingi',
     'coinmarketcap',
@@ -205,7 +211,7 @@ exchanges = [
     'poloniex',
     'qryptos',
     'quadrigacx',
-    'quoine',
+    'quoinex',
     'southxchange',
     'surbitcoin',
     'therock',

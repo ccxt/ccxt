@@ -51,7 +51,7 @@ const checkAgainst = strict ?
         // instantiate the exchange
         let exchange = new ccxt[id] ()
 
-        if (exchange.hasPublicAPI) {
+        if (exchange.has.publicAPI) {
 
             try {
 

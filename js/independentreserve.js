@@ -1,20 +1,21 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
+const Exchange = require ('./base/Exchange');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class independentreserve extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'independentreserve',
             'name': 'Independent Reserve',
             'countries': [ 'AU', 'NZ' ], // Australia, New Zealand
             'rateLimit': 1000,
-            'hasCORS': false,
+            'has': {
+                'CORS': false,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30521662-cf3f477c-9bcb-11e7-89bc-d1ac85012eda.jpg',
                 'api': {
@@ -64,8 +65,8 @@ module.exports = class independentreserve extends Exchange {
     }
 
     async fetchMarkets () {
-        let baseCurrencies = await this.publicGetValidPrimaryCurrencyCodes ();
-        let quoteCurrencies = await this.publicGetValidSecondaryCurrencyCodes ();
+        let baseCurrencies = await this.publicGetGetValidPrimaryCurrencyCodes ();
+        let quoteCurrencies = await this.publicGetGetValidSecondaryCurrencyCodes ();
         let result = [];
         for (let i = 0; i < baseCurrencies.length; i++) {
             let baseId = baseCurrencies[i];
@@ -113,10 +114,10 @@ module.exports = class independentreserve extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetOrderBook (this.extend ({
+        let response = await this.publicGetGetOrderBook (this.extend ({
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
         }, params));
@@ -154,7 +155,7 @@ module.exports = class independentreserve extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetMarketSummary (this.extend ({
+        let response = await this.publicGetGetMarketSummary (this.extend ({
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
         }, params));
@@ -180,7 +181,7 @@ module.exports = class independentreserve extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetRecentTrades (this.extend ({
+        let response = await this.publicGetGetRecentTrades (this.extend ({
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
             'numberOfRecentTradesToRetrieve': 50, // max = 50
@@ -194,13 +195,13 @@ module.exports = class independentreserve extends Exchange {
         let capitalizedOrderType = this.capitalize (type);
         let method = 'privatePostPlace' + capitalizedOrderType + 'Order';
         let orderType = capitalizedOrderType;
-        orderType += (side == 'sell') ?  'Offer' : 'Bid';
+        orderType += (side === 'sell') ?  'Offer' : 'Bid';
         let order = this.ordered ({
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
             'orderType': orderType,
         });
-        if (type == 'limit')
+        if (type === 'limit')
             order['price'] = price;
         order['volume'] = amount;
         let response = await this[method] (this.extend (order, params));
@@ -217,7 +218,7 @@ module.exports = class independentreserve extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + path;
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
@@ -252,4 +253,4 @@ module.exports = class independentreserve extends Exchange {
         // todo error handling
         return response;
     }
-}
+};
