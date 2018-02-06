@@ -16,7 +16,7 @@ class chbtc extends zb {
             'version' => 'v1',
             'has' => array (
                 'CORS' => false,
-                'fetchOrder' => true
+                'fetchOrder' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28555659-f0040dc2-7109-11e7-9d99-688a438bf9f4.jpg',
@@ -50,7 +50,7 @@ class chbtc extends zb {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if ($api == 'private') {
+        if ($api === 'private') {
             if (is_array ($response) && array_key_exists ('code', $response))
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         }

@@ -255,6 +255,7 @@ module.exports = class bitfinex extends Exchange {
     }
 
     async fetchFundingFees () {
+        await this.loadMarkets ();
         const response = await this.privatePostAccountFees ();
         const fees = response['withdraw'];
         const withdraw = {};
@@ -276,6 +277,7 @@ module.exports = class bitfinex extends Exchange {
     }
 
     async fetchTradingFees () {
+        await this.loadMarkets ();
         let response = await this.privatePostSummary ();
         return {
             'info': response,

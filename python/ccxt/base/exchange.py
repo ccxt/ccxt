@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.1015'
+__version__ = '1.10.1019'
 
 # -----------------------------------------------------------------------------
 
@@ -148,6 +148,7 @@ class Exchange(object):
     # API method metainfo
     has = {
         'cancelOrder': hasPrivateAPI,
+        'cancelOrders': False,
         'createDepositAddress': False,
         'createOrder': hasPrivateAPI,
         'deposit': False,

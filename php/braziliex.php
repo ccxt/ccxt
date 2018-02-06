@@ -14,10 +14,11 @@ class braziliex extends Exchange {
             'countries' => 'BR',
             'rateLimit' => 1000,
             'has' => array (
-                'fetchDepositAddress' => true,
+                'fetchCurrencies' => true,
                 'fetchTickers' => true,
                 'fetchOpenOrders' => true,
                 'fetchMyTrades' => true,
+                'fetchDepositAddress' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/34703593-c4498674-f504-11e7-8d14-ff8e44fb78c1.jpg',
@@ -69,17 +70,18 @@ class braziliex extends Exchange {
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $currency = $currencies[$id];
-            $precision = $currency['decimal'];
+            $precision = $this->safe_integer($currency, 'decimal');
             $uppercase = strtoupper ($id);
             $code = $this->common_currency_code($uppercase);
-            $active = $currency['active'] == 1;
+            $active = $this->safe_integer($currency, 'active') === 1;
             $status = 'ok';
-            if ($currency['under_maintenance'] != 0) {
+            $maintenance = $this->safe_integer($currency, 'under_maintenance');
+            if ($maintenance !== 0) {
                 $active = false;
                 $status = 'maintenance';
             }
-            $canWithdraw = $currency['is_withdrawal_active'] == 1;
-            $canDeposit = $currency['is_deposit_active'] == 1;
+            $canWithdraw = $this->safe_integer($currency, 'is_withdrawal_active') === 1;
+            $canDeposit = $this->safe_integer($currency, 'is_deposit_active') === 1;
             if (!$canWithdraw || !$canDeposit)
                 $active = false;
             $result[$code] = array (
@@ -89,9 +91,7 @@ class braziliex extends Exchange {
                 'active' => $active,
                 'status' => $status,
                 'precision' => $precision,
-                'wallet' => array (
-                    'address' => null,
-                    'extra' => null,
+                'funding' => array (
                     'withdraw' => array (
                         'active' => $canWithdraw,
                         'fee' => $currency['txWithdrawalFee'],
@@ -142,7 +142,7 @@ class braziliex extends Exchange {
             $base = $this->common_currency_code($base);
             $quote = $this->common_currency_code($quote);
             $symbol = $base . '/' . $quote;
-            $active = $market['active'] == 1;
+            $active = $this->safe_integer($market, 'active') === 1;
             $precision = array (
                 'amount' => 8,
                 'price' => 8,
@@ -354,7 +354,7 @@ class braziliex extends Exchange {
             'amount' => $amount,
         ), $params));
         $success = $this->safe_integer($response, 'success');
-        if ($success != 1)
+        if ($success !== 1)
             throw new InvalidOrder ($this->id . ' ' . $this->json ($response));
         $parts = explode (' / ', $response['message']);
         $parts = mb_substr ($parts, 1);
@@ -407,9 +407,9 @@ class braziliex extends Exchange {
         return $this->parse_trades($trades['trade_history'], $market, $since, $limit);
     }
 
-    public function fetch_deposit_address ($currencyCode, $params = array ()) {
+    public function fetch_deposit_address ($code, $params = array ()) {
         $this->load_markets();
-        $currency = $this->currency ($currencyCode);
+        $currency = $this->currency ($code);
         $response = $this->privatePostDepositAddress (array_merge (array (
             'currency' => $currency['id'],
         ), $params));
@@ -418,7 +418,7 @@ class braziliex extends Exchange {
             throw new ExchangeError ($this->id . ' fetchDepositAddress failed => ' . $this->last_http_response);
         $tag = $this->safe_string($response, 'payment_id');
         return array (
-            'currency' => $currencyCode,
+            'currency' => $code,
             'address' => $address,
             'tag' => $tag,
             'status' => 'ok',
@@ -429,7 +429,7 @@ class braziliex extends Exchange {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $api;
         $query = $this->omit ($params, $this->extract_params($path));
-        if ($api == 'public') {
+        if ($api === 'public') {
             $url .= '/' . $this->implode_params($path, $params);
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
@@ -454,9 +454,9 @@ class braziliex extends Exchange {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if (is_array ($response) && array_key_exists ('success', $response)) {
             $success = $this->safe_integer($response, 'success');
-            if ($success == 0) {
+            if ($success === 0) {
                 $message = $this->safe_string($response, 'message');
-                if ($message == 'Invalid APIKey')
+                if ($message === 'Invalid APIKey')
                     throw new AuthenticationError ($message);
                 throw new ExchangeError ($message);
             }

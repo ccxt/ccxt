@@ -254,6 +254,7 @@ class bitfinex extends Exchange {
     }
 
     public function fetch_funding_fees () {
+        $this->load_markets();
         $response = $this->privatePostAccountFees ();
         $fees = $response['withdraw'];
         $withdraw = array ();
@@ -275,6 +276,7 @@ class bitfinex extends Exchange {
     }
 
     public function fetch_trading_fees () {
+        $this->load_markets();
         $response = $this->privatePostSummary ();
         return array (
             'info' => $response,
