@@ -620,7 +620,7 @@ module.exports = class Exchange {
     extractParams (string) {
         let re = /{([\w-]+)}/g
         let matches = []
-        let match = re.exect (string)
+        let match = re.exec (string)
         while (match) {
             matches.push (match[1])
             match = re.exec (string)
