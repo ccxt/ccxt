@@ -236,8 +236,7 @@ module.exports = class livecoin extends Exchange {
         return this.parseBalance (result);
     }
 
-    // should be deleted when base class fetchFees exists
-    async fetchFees (params = {}) {
+    async fetchFees (params = {}) { // should be deleted when base class fetchFees exists
         await this.loadMarkets ();
         let commissionInfo = await this.privateGetExchangeCommissionCommonInfo ();
         let commission = this.safeFloat (commissionInfo, 'commission');
