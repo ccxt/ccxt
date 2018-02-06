@@ -66,6 +66,7 @@ module.exports = class Exchange {
                 'CORS': false,
                 'publicAPI': true,
                 'privateAPI': true,
+                'cancelAllOrders': false,
                 'cancelOrder': true,
                 'createDepositAddress': false,
                 'createOrder': true,
