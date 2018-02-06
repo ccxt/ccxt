@@ -353,6 +353,7 @@ class binance (Exchange):
                 'price': market['quotePrecision'],
             }
             active = (market['status'] == 'TRADING')
+            # lot size is deprecated as of 2018.02.06
             lot = -1 * math.log10(precision['amount'])
             entry = self.extend(self.fees['trading'], {
                 'id': id,
@@ -362,16 +363,16 @@ class binance (Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
-                'lot': lot,
+                'lot': lot,  # lot size is deprecated as of 2018.02.06
                 'active': active,
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': lot,
+                        'min': math.pow(10, -precision['amount']),
                         'max': None,
                     },
                     'price': {
-                        'min': -1 * math.log10(precision['price']),
+                        'min': math.pow(10, -precision['price']),
                         'max': None,
                     },
                     'cost': {
@@ -390,7 +391,7 @@ class binance (Exchange):
             if 'LOT_SIZE' in filters:
                 filter = filters['LOT_SIZE']
                 entry['precision']['amount'] = self.precision_from_string(filter['stepSize'])
-                entry['lot'] = float(filter['stepSize'])
+                entry['lot'] = float(filter['stepSize'])  # lot size is deprecated as of 2018.02.06
                 entry['limits']['amount'] = {
                     'min': float(filter['minQty']),
                     'max': float(filter['maxQty']),
