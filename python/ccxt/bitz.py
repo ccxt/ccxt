@@ -195,7 +195,7 @@ class bitz (Exchange):
             result[symbol] = self.parse_ticker(tickers[id], market)
         return result
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         response = self.publicGetDepth(self.extend({
             'coin': self.market_id(symbol),
