@@ -160,51 +160,26 @@ module.exports = class exmo extends Exchange {
         });
     }
 
-    async fetchOrderBooks (symbols, params = {}) {
+    async fetchOrderBooks (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        // let requestSymbols = [];
         let orderBooksResult = [];
-        //     // TODO: rework the implementation below for portability
-        //     if (!symbols) {
-        //         symbols = this.symbols;
-        //     }
-        //     for (let i = 0; i < symbols.length; i++) {
-        //         requestSymbols.push (symbols[i]);
-        //         let maxRequestSymbolsReached = (i % 200 === 0 && i > 0);
-        //         let endReached = (i === symbols.length - 1);
-        //         if (maxRequestSymbolsReached || endReached) {
-        //             let fetchPairString = this.parseSymbolOrderBooksString (requestSymbols);
-        //             try {
-        //                 let response = await this.publicGetOrderBook (this.extend ({
-        //                     'pair': fetchPairString,
-        //                 }, params));
-        //                 if (response) {
-        //                     // the next line is not portable
-        //                     let orderBooks = Object.values (response);
-        //                     let keys = Object.keys (response);
-        //                     for (let j = 0; j < orderBooks.length; j++) {
-        //                         let key = keys[j];
-        //                         let orderbook = this.parseOrderBook (orderBooks[j], undefined, 'bid', 'ask', '0', '1');
-        //                         orderBooksResult.push (this.extend (orderbook, {
-        //                             'symbol': key.replace ('_', '/'),
-        //                         }));
-        //                     }
-        //                 }
-        //             } catch (e) {
-        //                 throw new ExchangeError ('fetchOrderBooks() returned error:' + e.message + ' for pair string: ' + fetchPairString);
-        //             }
-        //             requestSymbols = [];
-        //         }
-        //     }
-        return orderBooksResult;
-    }
-
-    parseSymbolOrderBooksString (symbols) {
-        let symbolsResultList = [];
-        for (let i = 0; i < symbols.length; i++) {
-            symbolsResultList.push (symbols[i].replace ('/', '_'));
+        if (typeof symbols === 'undefined')
+            symbols = this.symbols;
+        let fetchPairString = this.parseSymbolOrderBooksString (symbols);
+        let response = await this.publicGetOrderBook (this.extend ({
+            'pair': fetchPairString,
+        }, params));
+        // the next line is not portable
+        let orderbooks = Object.values (response);
+        let keys = Object.keys (response);
+        for (let j = 0; j < orderbooks.length; j++) {
+            let key = keys[j];
+            let orderbook = this.parseOrderBook (orderbooks[j], undefined, 'bid', 'ask', '0', '1');
+            orderBooksResult.push (this.extend (orderbook, {
+                'symbol': key.replace ('_', '/'),
+            }));
         }
-        return symbolsResultList.join (',');
+        return orderbooks;
     }
 
     parseTicker (ticker, market = undefined) {
