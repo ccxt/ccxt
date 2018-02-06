@@ -22,7 +22,7 @@ module.exports = class bitfinex extends Exchange {
                 'deposit': true,
                 'fetchClosedOrders': true,
                 'fetchDepositAddress': true,
-                'fetchFundingFees': true,
+                'fetchFees': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
@@ -297,7 +297,7 @@ module.exports = class bitfinex extends Exchange {
         throw new NotImplemented (this.id + ' loadFees() not implemented yet');
     }
 
-    async fetchFees () {
+    async fetchFees () {  // this can be removed since it is now dealt with in the base class
         let fundingFees = await this.fetchFundingFees ();
         let tradingFees = await this.fetchTradingFees ();
         return this.deepExtend (fundingFees, tradingFees);
