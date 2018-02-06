@@ -3,12 +3,11 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InsufficientFunds, NotSupported, InvalidOrder, OrderNotFound } = require ('./base/errors');
+const { NotImplemented, DDoSProtection, AuthenticationError, ExchangeError, InsufficientFunds, NotSupported, InvalidOrder, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class bitfinex extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitfinex',
@@ -16,25 +15,20 @@ module.exports = class bitfinex extends Exchange {
             'countries': 'VG',
             'version': 'v1',
             'rateLimit': 1500,
-            'hasCORS': false,
-            // old metainfo interface
-            'hasFetchOrder': true,
-            'hasFetchTickers': true,
-            'hasDeposit': true,
-            'hasWithdraw': true,
-            'hasFetchOHLCV': true,
-            'hasFetchOpenOrders': true,
-            'hasFetchClosedOrders': true,
             // new metainfo interface
             'has': {
-                'fetchOHLCV': true,
-                'fetchTickers': true,
-                'fetchOrder': true,
-                'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
-                'fetchMyTrades': true,
-                'withdraw': true,
+                'CORS': false,
+                'createDepositAddress': true,
                 'deposit': true,
+                'fetchClosedOrders': true,
+                'fetchDepositAddress': true,
+                'fetchFundingFees': true,
+                'fetchMyTrades': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchTickers': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -171,7 +165,7 @@ module.exports = class bitfinex extends Exchange {
                         'SAN': 0.1,
                         'DASH': 0.01,
                         'ETC': 0.01,
-                        'XPR': 0.02,
+                        'XRP': 0.02,
                         'YYW': 0.1,
                         'NEO': 0,
                         'ZEC': 0.1,
@@ -186,30 +180,63 @@ module.exports = class bitfinex extends Exchange {
                         'USDT': 0,
                     },
                     'withdraw': {
-                        'BTC': 0.0005,
+                        'BTC': 0.0008,
                         'IOTA': 0.5,
                         'ETH': 0.01,
-                        'BCH': 0.01,
-                        'LTC': 0.1,
-                        'EOS': 0.1,
-                        'XMR': 0.04,
-                        'SAN': 0.1,
-                        'DASH': 0.01,
                         'ETC': 0.01,
-                        'XPR': 0.02,
-                        'YYW': 0.1,
+                        'BCH': 0.0001,
+                        'LTC': 0.001,
+                        'EOS': 0.8609,
+                        'XMR': 0.04,
+                        'SAN': 3.2779,
+                        'DASH': 0.01,
+                        'XRP': 0.02,
+                        'YYW': 40.543,
                         'NEO': 0,
-                        'ZEC': 0.1,
+                        'ZEC': 0.001,
                         'BTG': 0,
-                        'OMG': 0.1,
-                        'DATA': 1,
-                        'QASH': 1,
+                        'OMG': 0.5897,
+                        'DATA': 52.405,
+                        'FUN': 90.402,
+                        'GNT': 15.435,
+                        'MNA': 76.821,
+                        'BAT': 17.223,
+                        'SPK': 24.708,
+                        'QASH': 6.1629,
                         'ETP': 0.01,
                         'QTUM': 0.01,
-                        'EDO': 0.5,
-                        'AVT': 0.5,
-                        'USDT': 5,
+                        'EDO': 2.5238,
+                        'AVT': 3.2495,
+                        'USDT': 20.0,
+                        'ZRX': 5.6442,
+                        'TNB': 87.511,
+                        'SNT': 32.736,
+                        'QSH': undefined,
+                        'TRX': undefined,
+                        'RCN': undefined,
+                        'RLC': undefined,
+                        'AID': undefined,
+                        'SNG': undefined,
+                        'REP': undefined,
+                        'ELF': undefined,
                     },
+                },
+            },
+            'exceptions': {
+                'exact': {
+                    'Order could not be cancelled.': OrderNotFound, // non-existent order
+                    'No such order found.': OrderNotFound, // ?
+                    'Order price must be positive.': InvalidOrder, // on price <= 0
+                    'Could not find a key matching the given X-BFX-APIKEY.': AuthenticationError,
+                    'This API key does not have permission for this action': AuthenticationError, // authenticated but not authorized
+                    'Key price should be a decimal number, e.g. "123.456"': InvalidOrder, // on isNaN (price)
+                    'Key amount should be a decimal number, e.g. "123.456"': InvalidOrder, // on isNaN (amount)
+                    'ERR_RATE_LIMIT': DDoSProtection,
+                },
+                'broad': {
+                    'Invalid order: not enough exchange balance for ': InsufficientFunds, // when buy, cost > quote currency
+                    'Invalid order: minimum size for ': InvalidOrder, // when amount below limits.amount.min
+                    'Invalid order': InvalidOrder, // ?
                 },
             },
         });
@@ -225,6 +252,53 @@ module.exports = class bitfinex extends Exchange {
             'DAT': 'DATA',
         };
         return (currency in currencies) ? currencies[currency] : currency;
+    }
+
+    async fetchFundingFees () {
+        const response = await this.privatePostAccountFees ();
+        const fees = response['withdraw'];
+        const withdraw = {};
+        const ids = Object.keys (fees);
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            let code = id;
+            if (id in this.currencies_by_id) {
+                let currency = this.currencies_by_id[id];
+                code = currency['code'];
+            }
+            withdraw[code] = this.safeFloat (fees, id);
+        }
+        return {
+            'info': response,
+            'withdraw': withdraw,
+            'deposit': withdraw,  // only for deposits of less than $1000
+        };
+    }
+
+    async fetchTradingFees () {
+        let response = await this.privatePostSummary ();
+        return {
+            'info': response,
+            'maker': this.safeFloat (response, 'maker_fee'),
+            'taker': this.safeFloat (response, 'taker_fee'),
+        };
+    }
+
+    async loadFees () {
+        // // PHP does flat copying for arrays
+        // // setting fees on the exchange instance isn't portable, unfortunately...
+        // // this should probably go into the base class as well
+        // let funding = this.fees['funding'];
+        // const fees = await this.fetchFundingFees ();
+        // funding = this.deepExtend (funding, fees);
+        // return funding;
+        throw new NotImplemented (this.id + ' loadFees() not implemented yet');
+    }
+
+    async fetchFees () {
+        let fundingFees = await this.fetchFundingFees ();
+        let tradingFees = await this.fetchTradingFees ();
+        return this.deepExtend (fundingFees, tradingFees);
     }
 
     async fetchMarkets () {
@@ -256,7 +330,7 @@ module.exports = class bitfinex extends Exchange {
                 'min': limits['amount']['min'] * limits['price']['min'],
                 'max': undefined,
             };
-            result.push (this.extend (this.fees['trading'], {
+            result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -268,7 +342,7 @@ module.exports = class bitfinex extends Exchange {
                 'limits': limits,
                 'lot': Math.pow (10, -precision['amount']),
                 'info': market,
-            }));
+            });
         }
         return result;
     }
@@ -294,7 +368,7 @@ module.exports = class bitfinex extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetBookSymbol (this.extend ({
             'symbol': this.marketId (symbol),
@@ -405,12 +479,10 @@ module.exports = class bitfinex extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = { 'symbol': market['id'] };
-        if (limit) {
+        if (typeof limit !== 'undefined')
             request['limit_trades'] = limit;
-        }
-        if (since) {
+        if (typeof since !== 'undefined')
             request['timestamp'] = parseInt (since / 1000);
-        }
         let response = await this.privatePostMytrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
@@ -437,7 +509,7 @@ module.exports = class bitfinex extends Exchange {
             order['price'] = price.toString ();
         }
         let result = await this.privatePostOrderNew (this.extend (order, params));
-        return this.parseOrder(result);
+        return this.parseOrder (result);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -504,11 +576,11 @@ module.exports = class bitfinex extends Exchange {
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {};
-        if (limit)
+        if (typeof limit !== 'undefined')
             request['limit'] = limit;
         let response = await this.privatePostOrdersHist (this.extend (request, params));
         let orders = this.parseOrders (response, undefined, since, limit);
-        if (symbol)
+        if (typeof symbol !== 'undefined')
             orders = this.filterBy (orders, 'symbol', symbol);
         orders = this.filterBy (orders, 'status', 'closed');
         return orders;
@@ -542,9 +614,9 @@ module.exports = class bitfinex extends Exchange {
             'timeframe': this.timeframes[timeframe],
             'sort': 1,
         };
-        if (limit)
+        if (typeof limit !== 'undefined')
             request['limit'] = limit;
-        if (since)
+        if (typeof since !== 'undefined')
             request['start'] = since;
         request = this.extend (request, params);
         let response = await this.v2GetCandlesTradeTimeframeSymbolHist (request);
@@ -552,33 +624,23 @@ module.exports = class bitfinex extends Exchange {
     }
 
     getCurrencyName (currency) {
-        if (currency === 'BTC') {
-            return 'bitcoin';
-        } else if (currency === 'LTC') {
-            return 'litecoin';
-        } else if (currency === 'ETH') {
-            return 'ethereum';
-        } else if (currency === 'ETC') {
-            return 'ethereumc';
-        } else if (currency === 'OMNI') {
-            return 'mastercoin'; // ???
-        } else if (currency === 'ZEC') {
-            return 'zcash';
-        } else if (currency === 'XMR') {
-            return 'monero';
-        } else if (currency === 'USD') {
-            return 'wire';
-        } else if (currency === 'DASH') {
-            return 'dash';
-        } else if (currency === 'XRP') {
-            return 'ripple';
-        } else if (currency === 'EOS') {
-            return 'eos';
-        } else if (currency === 'BCH') {
-            return 'bcash';
-        } else if (currency === 'USDT') {
-            return 'tetheruso';
-        }
+        const names = {
+            'BTC': 'bitcoin',
+            'LTC': 'litecoin',
+            'ETH': 'ethereum',
+            'ETC': 'ethereumc',
+            'OMNI': 'mastercoin', // left by previous author, now throws {"message":"Unknown method"}
+            'ZEC': 'zcash',
+            'XMR': 'monero',
+            'USD': 'wire', // left by previous author, now throws {"message":"Unknown method"}
+            'DASH': 'dash',
+            'XRP': 'ripple',
+            'EOS': 'eos',
+            'BCH': 'bcash',
+            'USDT': 'tetheruso',
+        };
+        if (currency in names)
+            return names[currency];
         throw new NotSupported (this.id + ' ' + currency + ' not supported for withdrawal');
     }
 
@@ -602,15 +664,22 @@ module.exports = class bitfinex extends Exchange {
             'renew': 0, // a value of 1 will generate a new address
         };
         let response = await this.privatePostDepositNew (this.extend (request, params));
+        let address = response['address'];
+        let tag = undefined;
+        if ('address_pool' in response) {
+            tag = address;
+            address = response['address_pool'];
+        }
         return {
             'currency': currency,
-            'address': response['address'],
+            'address': address,
+            'tag': tag,
             'status': 'ok',
             'info': response,
         };
     }
 
-    async withdraw (currency, amount, address, params = {}) {
+    async withdraw (currency, amount, address, tag = undefined, params = {}) {
         let name = this.getCurrencyName (currency);
         let request = {
             'withdraw_type': name,
@@ -618,6 +687,8 @@ module.exports = class bitfinex extends Exchange {
             'amount': amount.toString (),
             'address': address,
         };
+        if (tag)
+            request['payment_id'] = tag;
         let responses = await this.privatePostWithdraw (this.extend (request, params));
         let response = responses[0];
         return {
@@ -667,41 +738,39 @@ module.exports = class bitfinex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body) {
-        if (code >= 400) {
-            if (body[0] === "{") {
-                let response = JSON.parse (body);
-                let message = response['message'];
-                let error = this.id + ' ' + message;
-                if (code === 400) {
-                    if (message.indexOf ('Key price should be a decimal number') >= 0) {
-                        throw new InvalidOrder (error);
-                    } else if (message.indexOf ('Invalid order: not enough exchange balance') >= 0) {
-                        throw new InsufficientFunds (error);
-                    } else if (message.indexOf ('Order could not be cancelled.') >= 0) {
-                        throw new OrderNotFound (error);
-                    } else if (message.indexOf ('Invalid order') >= 0) {
-                        throw new InvalidOrder (error);
-                    } else if (message.indexOf ('Order price must be positive.') >= 0) {
-                        throw new InvalidOrder (error);
-                    } else if (message.indexOf ('Key amount should be a decimal number') >= 0) {
-                        throw new InvalidOrder (error);
-                    }
-                } else if (code === 404) {
-                    if (message.indexOf ('No such order found.') >= 0) {
-                        throw new OrderNotFound (error);
-                    }
-                }
-            }
-            throw new ExchangeError (this.id + ' ' + body);
+    findBroadlyMatchedKey (map, broadString) {
+        const partialKeys = Object.keys (map);
+        for (let i = 0; i < partialKeys.length; i++) {
+            const partialKey = partialKeys[i];
+            if (broadString.indexOf (partialKey) >= 0)
+                return partialKey;
         }
+        return undefined;
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('message' in response) {
-            throw new ExchangeError (this.id + ' ' + this.json (response));
+    handleErrors (code, reason, url, method, headers, body) {
+        if (body.length < 2)
+            return;
+        if (code >= 400) {
+            if (body[0] === '{') {
+                const response = JSON.parse (body);
+                const feedback = this.id + ' ' + this.json (response);
+                let message = undefined;
+                if ('message' in response)
+                    message = response['message'];
+                else if ('error' in response)
+                    message = response['error'];
+                else
+                    throw new ExchangeError (feedback); // malformed (to our knowledge) response
+                const exact = this.exceptions['exact'];
+                if (message in exact)
+                    throw new exact[message] (feedback);
+                const broad = this.exceptions['broad'];
+                const broadKey = this.findBroadlyMatchedKey (broad, message);
+                if (typeof broadKey !== 'undefined')
+                    throw new broad[broadKey] (feedback);
+                throw new ExchangeError (feedback); // unknown message
+            }
         }
-        return response;
     }
 };

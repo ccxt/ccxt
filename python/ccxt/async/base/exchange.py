@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.729'
+__version__ = '1.10.1005'
 
 # -----------------------------------------------------------------------------
 
@@ -110,12 +110,14 @@ class Exchange(BaseExchange):
             print(url, method, url, "\nRequest:", headers, body)
         encoded_body = body.encode() if body else None
         session_method = getattr(self.session, method.lower())
+        http_status_code = None
         try:
             # print('URL: {0}, Encoded Body: {1}, Headers: {2}, Timeout: {3}, Proxy: {4}'.format(url, encoded_body, headers, self.timeout, self.aiohttp_proxy))
             async with session_method(url, data=encoded_body, headers=headers, timeout=(self.timeout / 1000), proxy=self.aiohttp_proxy) as response:
+                http_status_code = response.status
                 text = await response.text()
-                self.handle_errors(response.status, text, url, method, None, text)
-                self.handle_rest_errors(None, response.status, text, url, method)
+                self.handle_errors(http_status_code, text, url, method, None, text)
+                self.handle_rest_errors(None, http_status_code, text, url, method)
         except socket.gaierror as e:
             self.raise_error(ExchangeError, url, method, e, None)
         except concurrent.futures._base.TimeoutError as e:
@@ -126,6 +128,7 @@ class Exchange(BaseExchange):
             self.raise_error(ExchangeError, url, method, e, None)
         if self.verbose:
             print(method, url, "\nResponse:", headers, text)
+        self.handle_errors(http_status_code, text, url, method, None, text)
         return self.handle_rest_response(text, url, method, headers, body)
 
     async def load_markets(self, reload=False):
@@ -151,8 +154,8 @@ class Exchange(BaseExchange):
         balance = await self.fetch_balance(params)
         return balance[part]
 
-    async def fetch_l2_order_book(self, symbol, params={}):
-        orderbook = await self.fetch_order_book(symbol, params)
+    async def fetch_l2_order_book(self, symbol, limit=None, params={}):
+        orderbook = await self.fetch_order_book(symbol, limit, params)
         return self.extend(orderbook, {
             'bids': self.sort_by(self.aggregate(orderbook['bids']), 0, True),
             'asks': self.sort_by(self.aggregate(orderbook['asks']), 0),

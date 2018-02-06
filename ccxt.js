@@ -31,13 +31,13 @@ SOFTWARE.
 //-----------------------------------------------------------------------------
 
 const Exchange  = require ('./js/base/Exchange')
-const functions = require ('./js/base/functions')
-const errors    = require ('./js/base/errors')
+    , functions = require ('./js/base/functions')
+    , errors    = require ('./js/base/errors')
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.10.729'
+const version = '1.10.1005'
 
 Exchange.ccxtVersion = version
 
@@ -75,12 +75,12 @@ const exchanges = {
     'btctradeua':              require ('./js/btctradeua.js'),
     'btcturk':                 require ('./js/btcturk.js'),
     'btcx':                    require ('./js/btcx.js'),
-    'bter':                    require ('./js/bter.js'),
     'bxinth':                  require ('./js/bxinth.js'),
     'ccex':                    require ('./js/ccex.js'),
     'cex':                     require ('./js/cex.js'),
     'chbtc':                   require ('./js/chbtc.js'),
     'chilebit':                require ('./js/chilebit.js'),
+    'cobinhood':               require ('./js/cobinhood.js'),
     'coincheck':               require ('./js/coincheck.js'),
     'coinexchange':            require ('./js/coinexchange.js'),
     'coinfloor':               require ('./js/coinfloor.js'),
@@ -127,7 +127,7 @@ const exchanges = {
     'poloniex':                require ('./js/poloniex.js'),
     'qryptos':                 require ('./js/qryptos.js'),
     'quadrigacx':              require ('./js/quadrigacx.js'),
-    'quoine':                  require ('./js/quoine.js'),
+    'quoinex':                 require ('./js/quoinex.js'),
     'southxchange':            require ('./js/southxchange.js'),
     'surbitcoin':              require ('./js/surbitcoin.js'),
     'therock':                 require ('./js/therock.js'),

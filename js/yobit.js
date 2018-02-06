@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 // ---------------------------------------------------------------------------
 
@@ -8,7 +8,6 @@ const { ExchangeError, InsufficientFunds, DDoSProtection } = require ('./base/er
 // ---------------------------------------------------------------------------
 
 module.exports = class yobit extends liqui {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'yobit',
@@ -16,8 +15,12 @@ module.exports = class yobit extends liqui {
             'countries': 'RU',
             'rateLimit': 3000, // responses are cached every 2 seconds
             'version': '3',
-            'hasCORS': false,
-            'hasWithdraw': true,
+            'has': {
+                'createDepositAddress': true,
+                'fetchDepositAddress': true,
+                'CORS': false,
+                'withdraw': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg',
                 'api': {
@@ -167,7 +170,7 @@ module.exports = class yobit extends liqui {
         };
     }
 
-    async withdraw (currency, amount, address, params = {}) {
+    async withdraw (currency, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostWithdrawCoinsToAddress (this.extend ({
             'coinName': currency,
@@ -186,9 +189,9 @@ module.exports = class yobit extends liqui {
             if (!response['success']) {
                 if (response['error'].indexOf ('Insufficient funds') >= 0) { // not enougTh is a typo inside Liqui's own API...
                     throw new InsufficientFunds (this.id + ' ' + this.json (response));
-                } else if (response['error'] == 'Requests too often') {
+                } else if (response['error'] === 'Requests too often') {
                     throw new DDoSProtection (this.id + ' ' + this.json (response));
-                } else if ((response['error'] == 'not available') || (response['error'] == 'external service unavailable')) {
+                } else if ((response['error'] === 'not available') || (response['error'] === 'external service unavailable')) {
                     throw new DDoSProtection (this.id + ' ' + this.json (response));
                 } else {
                     throw new ExchangeError (this.id + ' ' + this.json (response));
@@ -197,5 +200,4 @@ module.exports = class yobit extends liqui {
         }
         return response;
     }
-
-}
+};

@@ -88,12 +88,12 @@ The ccxt library currently supports the following 98 cryptocurrency exchange mar
 |![btctradeua](https://user-images.githubusercontent.com/1294454/27941483-79fc7350-62d9-11e7-9f61-ac47f28fcd96.jpg)         | btctradeua         | [BTC Trade UA](https://btc-trade.com.ua)                  | *   | [API](https://docs.google.com/document/d/1ocYA0yMy_RXd561sfG3qEPZ80kyll36HUxvCRe5GbhE/edit)  | Ukraine                                 |
 |![btcturk](https://user-images.githubusercontent.com/1294454/27992709-18e15646-64a3-11e7-9fa2-b0950ec7712f.jpg)            | btcturk            | [BTCTurk](https://www.btcturk.com)                        | *   | [API](https://github.com/BTCTrader/broker-api-docs)                                          | Turkey                                  |
 |![btcx](https://user-images.githubusercontent.com/1294454/27766385-9fdcc98c-5ed6-11e7-8f14-66d5e5cd47e6.jpg)               | btcx               | [BTCX](https://btc-x.is)                                  | 1   | [API](https://btc-x.is/custom/api-document.html)                                             | Iceland, US, EU                         |
-|![bter](https://user-images.githubusercontent.com/1294454/27980479-cfa3188c-6387-11e7-8191-93fc4184ba5c.jpg)               | bter               | [Bter](https://bter.com)                                  | 2   | [API](https://bter.com/api2)                                                                 | British Virgin Islands, China           |
 |![bxinth](https://user-images.githubusercontent.com/1294454/27766412-567b1eb4-5ed7-11e7-94a8-ff6a3884f6c5.jpg)             | bxinth             | [BX.in.th](https://bx.in.th)                              | *   | [API](https://bx.in.th/info/api)                                                             | Thailand                                |
 |![ccex](https://user-images.githubusercontent.com/1294454/27766433-16881f90-5ed8-11e7-92f8-3d92cc747a6c.jpg)               | ccex               | [C-CEX](https://c-cex.com)                                | *   | [API](https://c-cex.com/?id=api)                                                             | Germany, EU                             |
 |![cex](https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg)                | cex                | [CEX.IO](https://cex.io)                                  | *   | [API](https://cex.io/cex-api)                                                                | UK, EU, Cyprus, Russia                  |
 |![chbtc](https://user-images.githubusercontent.com/1294454/28555659-f0040dc2-7109-11e7-9d99-688a438bf9f4.jpg)              | chbtc              | [CHBTC](https://trade.chbtc.com/api)                      | 1   | [API](https://www.chbtc.com/i/developer)                                                     | China                                   |
 |![chilebit](https://user-images.githubusercontent.com/1294454/27991414-1298f0d8-647f-11e7-9c40-d56409266336.jpg)           | chilebit           | [ChileBit](https://chilebit.net)                          | 1   | [API](https://blinktrade.com/docs)                                                           | Chile                                   |
+|![cobinhood](https://user-images.githubusercontent.com/1294454/35755576-dee02e5c-0878-11e8-989f-1595d80ba47f.jpg)          | cobinhood          | [COBINHOOD](https://cobinhood.com)                        | *   | [API](https://cobinhood.github.io/api-public)                                                | Taiwan                                  |
 |![coincheck](https://user-images.githubusercontent.com/1294454/27766464-3b5c3c74-5ed9-11e7-840e-31b32968e1da.jpg)          | coincheck          | [coincheck](https://coincheck.com)                        | *   | [API](https://coincheck.com/documents/exchange/api)                                          | Japan, Indonesia                        |
 |![coinexchange](https://user-images.githubusercontent.com/1294454/34842303-29c99fca-f71c-11e7-83c1-09d900cb2334.jpg)       | coinexchange       | [CoinExchange](https://www.coinexchange.io)               | *   | [API](https://coinexchangeio.github.io/slate/)                                               | India, Japan, South Korea, Vietnam, US  |
 |![coinfloor](https://user-images.githubusercontent.com/1294454/28246081-623fc164-6a1c-11e7-913f-bac0d5576c90.jpg)          | coinfloor          | [coinfloor](https://www.coinfloor.co.uk)                  | *   | [API](https://github.com/coinfloor/api)                                                      | UK                                      |
@@ -140,7 +140,7 @@ The ccxt library currently supports the following 98 cryptocurrency exchange mar
 |![poloniex](https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg)           | poloniex           | [Poloniex](https://poloniex.com)                          | *   | [API](https://poloniex.com/support/api/)                                                     | US                                      |
 |![qryptos](https://user-images.githubusercontent.com/1294454/30953915-b1611dc0-a436-11e7-8947-c95bd5a42086.jpg)            | qryptos            | [QRYPTOS](https://www.qryptos.com)                        | 2   | [API](https://developers.quoine.com)                                                         | China, Taiwan                           |
 |![quadrigacx](https://user-images.githubusercontent.com/1294454/27766825-98a6d0de-5ee7-11e7-9fa4-38e11a2c6f52.jpg)         | quadrigacx         | [QuadrigaCX](https://www.quadrigacx.com)                  | 2   | [API](https://www.quadrigacx.com/api_info)                                                   | Canada                                  |
-|![quoine](https://user-images.githubusercontent.com/1294454/27766844-9615a4e8-5ee8-11e7-8814-fcd004db8cdd.jpg)             | quoine             | [QUOINE](https://www.quoine.com)                          | 2   | [API](https://developers.quoine.com)                                                         | Japan, Singapore, Vietnam               |
+|![quoinex](https://user-images.githubusercontent.com/1294454/35047114-0e24ad4a-fbaa-11e7-96a9-69c1a756083b.jpg)            | quoinex            | [QUOINEX](https://quoinex.com/)                           | 2   | [API](https://developers.quoine.com)                                                         | Japan, Singapore, Vietnam               |
 |![southxchange](https://user-images.githubusercontent.com/1294454/27838912-4f94ec8a-60f6-11e7-9e5d-bbf9bd50a559.jpg)       | southxchange       | [SouthXchange](https://www.southxchange.com)              | *   | [API](https://www.southxchange.com/Home/Api)                                                 | Argentina                               |
 |![surbitcoin](https://user-images.githubusercontent.com/1294454/27991511-f0a50194-6481-11e7-99b5-8f02932424cc.jpg)         | surbitcoin         | [SurBitcoin](https://surbitcoin.com)                      | 1   | [API](https://blinktrade.com/docs)                                                           | Venezuela                               |
 |![therock](https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg)            | therock            | [TheRockTrading](https://therocktrading.com)              | 1   | [API](https://api.therocktrading.com/doc/v1/index.html)                                      | Malta                                   |
@@ -236,9 +236,32 @@ Here's an overview of base exchange properties with values added for example:
     },
     'version':         'v1',            // string ending with digits
     'api':             { ... },         // dictionary of api endpoints
-    'hasFetchTickers':  true,           // true if the exchange implements fetchTickers ()
-    'hasFetchOHLCV':    false,          // true if the exchange implements fetchOHLCV ()
-    'timeframes': {                     // empty if the exchange !hasFetchOHLCV
+    'has': {                            // exchange capabilities
+        'CORS': false,
+        'publicAPI': true,
+        'privateAPI': true,
+        'cancelOrder': true,
+        'createDepositAddress': false,
+        'createOrder': true,
+        'deposit': false,
+        'fetchBalance': true,
+        'fetchClosedOrders': false,
+        'fetchCurrencies': false,
+        'fetchDepositAddress': false,
+        'fetchMarkets': true,
+        'fetchMyTrades': false,
+        'fetchOHLCV': false,
+        'fetchOpenOrders': false,
+        'fetchOrder': false,
+        'fetchOrderBook': true,
+        'fetchOrders': false,
+        'fetchTicker': true,
+        'fetchTickers': false,
+        'fetchBidsAsks': false,
+        'fetchTrades': true,
+        'withdraw': false,
+    },
+    'timeframes': {                     // empty if the exchange !has.fetchOHLCV
         '1m': '1minute',
         '1h': '1hour',
         '1d': '1day',
@@ -281,9 +304,7 @@ Below is a detailed description of each of the base exchange properties:
 
 - `api`: An associative array containing a definition of all API endpoints exposed by a crypto exchange. The API definition is used by ccxt to automatically construct callable instance methods for each available endpoint.
 
-- `hasFetchTickers`: This is a boolean property indicating if the exchange has the fetchTickers () method available. When this property is false, the exchange will also throw a NotSupported exception upon a call to fetchTickers ().
-
-- `hasFetchOHLCV`: This is a boolean property indicating if the exchange has the fetchOHLCV () method available. When this property is false, the exchange will also throw a NotSupported exception upon a call to fetchOHLCV (). Also, if this property is true, the `timeframes` property is populated as well.
+- `has`: This is an associative array of exchange capabilities (e.g `fetchTickers`, `fetchOHLCV` or `CORS`).
 
 - `timeframes`: An associative array of timeframes, supported by the fetchOHLCV method of the exchange. This is only populated when `hasFetchTickers` property is true.
 
@@ -313,6 +334,46 @@ Below is a detailed description of each of the base exchange properties:
 
 - `uid`: A unique id of your account. This can be a string literal or a number. Some exchanges also require this for trading, but most of them don't.
 
+- `has`: An assoc-array containing flags for exchange capabilities, including the following:
+
+    ```
+    'has': {
+
+        'CORS': false,  // has Cross-Origin Resource Sharing enabled (works from browser) or not
+
+        'publicAPI': true,  // has public API available and implemented, true/false
+        'privateAPI': true, // has private API available and implemented, true/false
+
+        // unified methods availability flags (can be true, false, or 'emulated'):
+
+        'cancelOrder': true,
+        'createDepositAddress': false,
+        'createOrder': true,
+        'deposit': false,
+        'fetchBalance': true,
+        'fetchClosedOrders': false,
+        'fetchCurrencies': false,
+        'fetchDepositAddress': false,
+        'fetchMarkets': true,
+        'fetchMyTrades': false,
+        'fetchOHLCV': false,
+        'fetchOpenOrders': false,
+        'fetchOrder': false,
+        'fetchOrderBook': true,
+        'fetchOrders': false,
+        'fetchTicker': true,
+        'fetchTickers': false,
+        'fetchBidsAsks': false,
+        'fetchTrades': true,
+        'withdraw': false,
+    }
+    ```
+
+    The meaning of each flag showing availability of this or that method is:
+        - boolean `true` means the method is natively available from the exchange API and unified in the ccxt library
+        - boolean `false` means the method isn't natively available from the exchange API or not unified in the ccxt library yet
+        - string `'emulated` string means the endpoint isn't natively available from the exchange API but reconstructed by the ccxt library from available true-methods
+
 ## Rate Limit
 
 Exchanges usually impose what is called a *rate limit*. Exchanges will remember and track your user credentials and your IP address and will not allow you to query the API too frequently. They balance their load and control traffic congestion to protect API servers from (D)DoS and misuse.
@@ -327,7 +388,9 @@ Some exchanges are [DDoS](https://en.wikipedia.org/wiki/Denial-of-service_attack
 
 If you encounter DDoS protection errors and cannot reach a particular exchange then:
 
-- try later
+- try using a cloudscraper:
+  - https://github.com/ccxt/ccxt/blob/master/examples/js/bypass-cloudflare.js
+  - https://github.com/ccxt/ccxt/blob/master/examples/py/bypass-cloudflare.py
 - use a proxy (this is less responsive, though)
 - ask the exchange support to add you to a whitelist
 - run your software in close proximity to the exchange (same country, same city, same datacenter, same server rack, same server)
@@ -367,6 +430,7 @@ In terms of the ccxt library, every exchange offers multiple markets within itse
         'amount': 8,      // integer
         'cost': 8,        // integer
     },
+    'lot': 0.00000001,    // order amount should be a multiple of lot
     'limits': {           // value limits when placing orders on this market
         'amount': {
             'min': 0.01,  // order amount should be > min
@@ -388,6 +452,7 @@ Each market is an associative array (aka dictionary) with the following keys:
 - `active`. A boolean indicating whether or not trading this market is currently possible.
 - `info`. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
 - `precision`. The amounts of decimal digits accepted in order values by exchanges upon order placement for price, amount and cost.
+- `lot`. The lot size is the smallest distinguishable step of amount increment accepted by the exchange when placing a new order. The order amount should be a multiple of lot size or, in other words, should be evenly divisible by the lot size.
 - `limits`. The minimums and maximums for prices, amounts (volumes) and costs (where cost = price * amount).
 
 *The `precision` and `limits` params are currently under heavy development, some of these fields may be missing here and there until the unification process is complete. This does not influence most of the orders but can be significant in extreme cases of very large or very small orders. The `active` flag is not yet supported and/or implemented by all markets.*
@@ -598,13 +663,25 @@ The endpoint URLs are predefined in the `api` property for each exchange. You do
 
 ## Implicit API Methods
 
-In the code for each exchange, you'll notice that functions that make API requests aren't explicitly defined. This is because the `api` definition in the exchange description JSON is used to create *magic functions* (aka *partial functions* or *closures*) inside the exchange subclass. That implicit injection is done by the `defineRestApi/define_rest_api` base exchange method.
+Most of exchange-specific API methods are implicit, meaning that they aren't defined explicitly anywhere in code. The library implements a declarative approach for defining implicit (non-unified) exchanges' API methods.
 
-Each partial function takes a dictionary of `params` and returns the API response. For example, if an exchange offers a HTTP GET URL for querying prices like `https://example.com/public/quotes`, it is converted to a method named `example.publicGetQuotes (params = {}) / $example->publicGetQuotes ($params = array ())`.
+Each method of the API usually has its own endpoint. The library defines all endpoints for each particular exchange in the `.api` property. Upon exchange construction an implicit *magic* method (aka *partial function* or *closure*) will be created inside `defineRestApi()/define_rest_api()` on the exchange instance for each endpoint from the list of `.api` endpoints. This is performed for all exchanges universally. Each generated method will be accessible in both `camelCase` and `under_score` notations.
 
-Upon instantiation the base exchange class takes each URL from its list of endpoints, splits it into words, and then makes up a callable function name from those words by using a partial construct.
+The endpoints definition is a **full list of ALL API URLs** exposed by an exchange. This list gets converted to callable methods upon exchange instantiation. Each URL in the API endpoint list gets a corresponding callable method. This is done automatically for all exchanges, therefore the ccxt library supports **all possible URLs** offered by crypto exchanges.
 
-The endpoint definition is a **full list of ALL API URLs** exposed by an exchange. This list gets converted to callable methods upon exchange instantiation. Each URL in the API endpoint list gets a corresponding callable method. This is done automatically for all exchanges, therefore the ccxt library supports **all possible URLs** offered by crypto exchanges.
+Each implicit method gets a unique name which is constructed from the `.api` definition. For example, a private HTTPS PUT `https://api.exchange.com/order/{id}/cancel` endpoint will have a corresponding exchange method named `.privatePutOrderIdCancel()`/`.private_put_order_id_cancel()`. A public HTTPS GET `https://api.exchange.com/market/ticker/{pair}` endpoint would result in the corresponding method named `.publicGetTickerPair()`/`.public_get_ticker_pair()`, and so on.
+
+An implicit method takes a dictionary of parameters, sends the request to the exchange and returns an exchange-specific JSON result from the API **as is, unparsed**. To pass a parameter, add it to the dictionary explicitly under a key equal to the parameter's name. For the examples above, this would look like `.privatePutOrderIdCancel ({ id: '41987a2b-...' })` and `.publicGetTickerPair ({ pair: 'BTC/USD' })`.
+
+The recommended way of working with exchanges is not using exchange-specific implicit methods but using the unified ccxt methods instead. The exchange-specific methods should be used as a fallback in cases when a corresponding unified method isn't available (yet).
+
+To get a list of all available methods with an exchange instance, including implicit methods and unified methods you can simply do the following:
+
+```
+console.log (new ccxt.kraken ())   // JavaScript
+print (dir (ccxt.hitbtc ()))        # Python
+var_dump (new \ccxt\okcoinusd ()); // PHP
+```
 
 ## Public/Private API
 
@@ -735,8 +812,8 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 
 - `fetchMarkets ()`: Fetches a list of all available markets from an exchange and returns an array of markets (objects with properties such as `symbol`, `base`, `quote` etc.). Some exchanges do not have means for obtaining a list of markets via their online API. For those, the list of markets is hardcoded.
 - `loadMarkets ([reload])`: Returns the list of markets as an object indexed by symbol and caches it with the exchange instance. Returns cached markets if loaded already, unless the `reload = true` flag is forced.
-- `fetchOrderBook (symbol[, params])`: Fetch L2/L3 order book for a particular market trading symbol.
-- `fetchL2OrderBook (symbol[, params])`: Level 2 (price-aggregated) order book for a particular symbol.
+- `fetchOrderBook (symbol[, limit = undefined[, params = {}]])`: Fetch L2/L3 order book for a particular market trading symbol.
+- `fetchL2OrderBook (symbol[, limit = undefined[, params]])`: Level 2 (price-aggregated) order book for a particular symbol.
 - `fetchTrades (symbol[, since[, [limit, [params]]]])`: Fetch recent trades for a particular trading symbol.
 - `fetchTicker (symbol)`: Fetch latest ticker data by trading symbol.
 - `fetchBalance ()`: Fetch Balance.
@@ -764,7 +841,7 @@ Note, that most of methods of the unified API accept an optional `params` parame
 - [OHLCV Candlestick Charts](https://github.com/ccxt/ccxt/wiki/Manual#ohlcv-candlestick-charts)
 - [Public Trades And Closed Orders](https://github.com/ccxt/ccxt/wiki/Manual#trades-orders-executions-transactions)
 
-## Order Book / Market Depth
+## Order Book
 
 Exchanges expose information on open orders with bid (buy) and ask (sell) prices, volumes and other data. Usually there is a separate endpoint for querying current state (stack frame) of the *order book* for a particular market. An order book is also often called *market depth*. The order book information is used in the trading decision making process.
 
@@ -822,7 +899,9 @@ Prices and amounts are floats. The bids array is sorted by price in descending o
 
 Exchanges may return the stack of orders in various levels of details for analysis. It is either in full detail containing each and every order, or it is aggregated having slightly less detail where orders are grouped and merged by price and volume. Having greater detail requires more traffic and bandwidth and is slower in general but gives a benefit of higher precision. Having less detail is usually faster, but may not be  enough in some very specific cases.
 
-Some exchanges accept a second dictionary of extra parameters to the `fetchOrderBook () / fetch_order_book ()` function allowing you to get the level of aggregation you need, like so:
+### Market Depth
+
+Some exchanges accept a dictionary of extra parameters to the `fetchOrderBook () / fetch_order_book ()` function. **All extra `params` are exchange-specific (non-unified)**. You will need to consult exchanges docs if you want to override a particular param, like the depth of the order book. You can get a limited count of returned orders or a desired level of aggregation (aka *market depth*) by specifying an limit argument and exchange-specific extra `params` like so:
 
 ```JavaScript
 // JavaScript
@@ -830,9 +909,9 @@ Some exchanges accept a second dictionary of extra parameters to the `fetchOrder
 (async function test () {
     const ccxt = require ('ccxt')
     const exchange = new ccxt.bitfinex ()
-    const orders = await exchange.fetchOrderBook ('BTC/USD', {
-        'limit_bids': 5, // max = 50
-        'limit_asks': 5, // may be 0 in which case the array is empty
+    const limit = 5
+    const orders = await exchange.fetchOrderBook ('BTC/USD', limit, {
+        // this parameter is exchange-specific, all extra params have unique names per exchange
         'group': 1, // 1 = orders are grouped by price, 0 = orders are separate
     })
 }) ()
@@ -843,7 +922,8 @@ Some exchanges accept a second dictionary of extra parameters to the `fetchOrder
 
 import ccxt
 # return up to ten bidasks on each side of the order book stack
-ccxt.cex().fetch_order_book('BTC/USD', {'depth': 10})
+limit = 10
+ccxt.cex().fetch_order_book('BTC/USD', limit)
 ```
 
 ```PHP
@@ -852,9 +932,9 @@ ccxt.cex().fetch_order_book('BTC/USD', {'depth': 10})
 // instantiate the exchange by id
 $exchange = '\\ccxt\\kraken';
 $exchange = new $exchange ();
-var_dump ($exchange->fetch_order_book ('BTC/USD', array (
-    'count' => 10, // up to ten orders on each side for example
-)));
+// up to ten orders on each side, for example
+$limit = 20;
+var_dump ($exchange->fetch_order_book ('BTC/USD', $limit));
 ```
 
 The levels of detail or levels of order book aggregation are often number-labelled like L1, L2, L3...
@@ -863,7 +943,7 @@ The levels of detail or levels of order book aggregation are often number-labell
 - **L2**: most common level of aggregation where order volumes are grouped by price. If two orders have the same price, they appear as one single order for a volume equal to their total sum. This is most likely the level of aggregation you need for the majority of purposes.
 - **L3**: most detailed level with no aggregation where each order is separate from other orders. This LOD naturally contains duplicates in the output. So, if two orders have equal prices they are **not** merged together and it's up to the exchange's matching engine to decide on their priority in the stack. You don't really need L3 detail for successful trading. In fact, you most probably don't need it at all. Therefore some exchanges don't support it and always return aggregated order books.
 
-If you want to get an L2 order book, whatever the exchange returns, use the `fetchL2OrderBook(symbol, params)` or `fetch_l2_order_book(symbol, params)` unified method for that.
+If you want to get an L2 order book, whatever the exchange returns, use the `fetchL2OrderBook(symbol, limit, params)` or `fetch_l2_order_book(symbol, limit, params)` unified method for that.
 
 ### Market Price
 
@@ -1019,7 +1099,7 @@ You can call the unified `fetchOHLCV` / `fetch_ohlcv` method to get the list of 
 ```JavaScript
 // JavaScript
 let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms));
-if (exchange.hasFetchOHLCV) {
+if (exchange.has.fetchOHLCV) {
     (async () => {
         for (symbol in exchange.markets) {
             await sleep (exchange.rateLimit) // milliseconds
@@ -1061,13 +1141,13 @@ The fetchOHLCV method shown above returns a list (a flat array) of OHLCV candles
         4240.6,        // (H)ighest price
         4230.0,        // (L)owest price
         4230.7,        // (C)losing price
-        37.72941911    // (V)olume
+        37.72941911    // (V)olume (in terms of the base currency)
     ],
     ...
 ]
 ```
 
-## Trades, Orders, Executions, Transactions
+## Trades, Executions, Transactions
 
 ```diff
 - this is under heavy development right now, contributions appreciated
@@ -1350,27 +1430,12 @@ exchange.fetchOpenOrders (symbol = undefined, since = undefined, limit = undefin
 
 #### Closed Orders
 
+Do not confuse *closed orders* with *trades* (aka *fills*)! An order can be closed (filled with) multiple opposing trades! So, a closed order is not the same as a trade. In general, the order does not have a `fee` at all, but each particular user trade does have `fee`, `cost` and other properties. However,
+many exchanges propagate those properties to the orders as well.
+
 ```JavaScript
 exchange.fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {})
 ```
-
-#### Trades / Transactions / Fills / Executions
-
-```
-- this part of the unified API is currenty a work in progress
-- there may be some issues and missing implementations here and there
-- contributions, pull requests and feedback appreciated
-```
-
-##### Recent Trades
-
-```JavaScript
-exchange.fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {})
-```
-
-##### Trades By Order Id
-
-```UNDER CONSTRUCTION```
 
 ### Order Structure
 
@@ -1492,6 +1557,42 @@ exchange.cancel_order ('1234567890') # replace with your order id here (a string
 $exchange->cancel_order ('1234567890'); // replace with your order id here (a string)
 ```
 
+#### Exceptions on order cancelling
+
+The `cancelOrder()` is usually used on open orders only. However, it may happen that your order gets executed (filled and closed)
+before your cancel-request comes in, so a cancel-request might hit an already-closed order.
+
+A cancel-request might also throw a `NetworkError` indicating that the order might or might not have been canceled successfully and whether you need to retry or not. Consecutive calls to `cancelOrder()` may hit an already canceled order as well.
+
+As such, `cancelOrder()` can throw an `OrderNotFound` exception in these cases:
+- canceling an already-closed order
+- canceling an already-canceled order
+
+
+## Trades / Transactions / Fills / Executions
+
+```
+- this part of the unified API is currenty a work in progress
+- there may be some issues and missing implementations here and there
+- contributions, pull requests and feedback appreciated
+```
+
+A trade is a result of order execution. Note, that orders and trades have 1-n relationship: execution of 1 order may result in several trades.
+
+
+### Recent Trades
+
+```JavaScript
+exchange.fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {})
+```
+
+Returns ordered array of trades (most recent trade first).
+
+### Trades By Order Id
+
+```UNDER CONSTRUCTION```
+
+
 ## Funding Your Account
 
 ```diff
@@ -1502,12 +1603,27 @@ $exchange->cancel_order ('1234567890'); // replace with your order id here (a st
 
 ### Deposit
 
-```UNDER CONSTRUCTION```
+```
+fetchDepositAddress (code, params={})
+createDepositAddress (code, params={})
+```
+
+- code is the currency code
+- params contains optional extra overrides
+
+```
+{
+    'currency': currency, // currency code
+    'address': address,   // address in terms of requested currency
+    'status': status,     // 'ok' or other
+    'info': response,     // raw unparsed data as returned from the exchange
+}
+```
 
 ### Withdraw
 
 ```
-exchange.withdraw (currency, amount, address, params = {})
+exchange.withdraw (currency, amount, address, tag = undefined, params = {})
 ```
 
 The withdraw method returns a dictionary containing the withdrawal id, which is usually the txid of the onchain transaction itself, or an internal *withdrawal request id* registered within the exchange. The returned value looks as follows:
@@ -1518,6 +1634,8 @@ The withdraw method returns a dictionary containing the withdrawal id, which is 
     'id': '12345567890', // string withdrawal id, if any
 }
 ```
+
+With certain currencies, like AEON, BTS, GXS, NXT, SBD, STEEM, STR, XEM, XLM, XMR, XRP, an additional argument `tag` is usually required by exchanges. The tag is a memo or a message or a payment id that is attached to a withdrawal transaction.
 
 Some exchanges require a manual approval of each withdrawal by means of 2FA (2-factor authentication). In order to approve your withdrawal you usually have to either click their secret link in your email inbox or enter a Google Authenticator code or an Authy code on their website to verify that withdrawal transaction was requested intentionally.
 
@@ -1653,6 +1771,8 @@ Below is an outline of exception inheritance hierarchy:
 |   |
 |   +---+ AuthenticationError
 |   |
+|   +---+ InvalidNonce
+|   |
 |   +---+ InsufficientFunds
 |   |
 |   +---+ InvalidOrder
@@ -1680,6 +1800,10 @@ Below is an outline of exception inheritance hierarchy:
 - `InvalidOrder`: This exception is the base class for all exceptions related to the unified order API.
     - `OrderNotFound`: Raised when you are trying to fetch or cancel a non-existent order.
 - `AuthenticationError`: Raised when an exchange requires one of the API credentials that you've missed to specify, or when there's a mistake in the keypair or an outdated nonce. Most of the time you need `apiKey` and `secret`, some times you also need `uid` and/or `password`.
+- `InvalidNonce`: Raised when your nonce is less than the previous nonce used with your keypair, as described in the [Authentication](https://github.com/ccxt/ccxt/wiki/Manual#authentication) section. This type of exception is thrown in these cases (in order of precedence for checking):
+    - Your API keys are not fresh and new (have been used with some different software or script already).
+    - The same keypair is shared across multiple instances of the exchange class (for example, in a multithreaded environment or in separate processes).
+    - Your system clock is out of synch. System time should be synched with UTC in a non-DST timezone at a rate of once every ten minutes or even more frequently because of the clock drifting. **Enabling time synch in Windows is usually not enough!** You have to set it up with the OS Registry (Google *"time synch frequency"* for your OS).
 - `NetworkError`: All errors related to networking are usually recoverable, meaning that networking problems, traffic congestion, unavailability is usually time-dependent. Making a retry later is usually enough to recover from a NetworkError, but if it doesn't go away, then it may indicate some persistent problem with the exchange or with your connection.
     - `DDoSProtection`: This exception is thrown whenever Cloudflare or Incapsula rate limiter restrictions are enforced per user or region/location. The ccxt library does a case-insensitive search in the response received from the exchange for one of the following keywords:
         - `cloudflare`
@@ -1699,16 +1823,19 @@ Below is an outline of exception inheritance hierarchy:
 
 In case you experience any difficulty connecting to a particular exchange, do the following in order of precedence:
 
-1. Check the [CHANGELOG](https://github.com/ccxt/ccxt/blob/master/CHANGELOG.md) for recent updates.
-2. Turn `verbose = true` to get more detail about it.
-3. Check you API credentials. Try a fresh new keypair if possible.
-4. Check your nonce. If you used your API keys with other software, you most likely should [override your nonce function](#overriding-the-nonce) to match your previous nonce value. A nonce usually can be easily reset by generating a new unused keypair.
-5. Check your request rate if you are getting nonce errors. Your private requests should not follow one another quickly. You should not send them one after another in a split second or in short time. The exchange will most likely ban you if you don't make a delay before sending each new request. In other words, you should not hit their rate limit by sending unlimited private requests too frequently. Add a delay to your subsequent requests, like show in the long-poller [examples](https://github.com/ccxt/ccxt/tree/master/examples), also [here](https://github.com/ccxt/ccxt/wiki/Manual#order-book--market-depth).
-6. Read the [docs for your exchange](https://github.com/ccxt/ccxt/wiki/Exchanges) and compare your verbose output to the docs.
-7. Check your connectivity with the exchange by accessing it with your browser.
-8. Check your connection with the exchange through a proxy. Read the [Proxy](https://github.com/ccxt/ccxt/wiki/Install#proxy) section for more details.
-9. Try accesing the exchange from a different computer or a remote server, to see if this is a local or global issue with the exchange.
-10. Check if there were any news from the exchange recently regarding downtime for maintenance. Some exchanges go offline for updates regularly (like once a week).
+- Check the [CHANGELOG](https://github.com/ccxt/ccxt/blob/master/CHANGELOG.md) for recent updates.
+- Turn `verbose = true` to get more detail about it.
+- Check your API credentials. Try a fresh new keypair if possible.
+- If it is a Cloudflare protection error, try these examples:
+  - https://github.com/ccxt/ccxt/blob/master/examples/js/bypass-cloudflare.js
+  - https://github.com/ccxt/ccxt/blob/master/examples/py/bypass-cloudflare.py
+- Check your nonce. If you used your API keys with other software, you most likely should [override your nonce function](#overriding-the-nonce) to match your previous nonce value. A nonce usually can be easily reset by generating a new unused keypair. If you are getting nonce errors with an existing key, try with a new API key that hasn't been used yet.
+- Check your request rate if you are getting nonce errors. Your private requests should not follow one another quickly. You should not send them one after another in a split second or in short time. The exchange will most likely ban you if you don't make a delay before sending each new request. In other words, you should not hit their rate limit by sending unlimited private requests too frequently. Add a delay to your subsequent requests, like show in the long-poller [examples](https://github.com/ccxt/ccxt/tree/master/examples), also [here](https://github.com/ccxt/ccxt/wiki/Manual#order-book--market-depth).
+- Read the [docs for your exchange](https://github.com/ccxt/ccxt/wiki/Exchanges) and compare your verbose output to the docs.
+- Check your connectivity with the exchange by accessing it with your browser.
+- Check your connection with the exchange through a proxy. Read the [Proxy](https://github.com/ccxt/ccxt/wiki/Install#proxy) section for more details.
+- Try accesing the exchange from a different computer or a remote server, to see if this is a local or global issue with the exchange.
+- Check if there were any news from the exchange recently regarding downtime for maintenance. Some exchanges go offline for updates regularly (like once a week).
 
 ## Notes
 

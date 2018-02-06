@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -8,16 +8,17 @@ let { ExchangeError } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class southxchange extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'southxchange',
             'name': 'SouthXchange',
             'countries': 'AR', // Argentina
             'rateLimit': 1000,
-            'hasFetchTickers': true,
-            'hasCORS': false,
-            'hasWithdraw': true,
+            'has': {
+                'CORS': true,
+                'fetchTickers': true,
+                'withdraw': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27838912-4f94ec8a-60f6-11e7-9e5d-bbf9bd50a559.jpg',
                 'api': 'https://www.southxchange.com/api',
@@ -100,7 +101,7 @@ module.exports = class southxchange extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetBookSymbol (this.extend ({
             'symbol': this.marketId (symbol),
@@ -198,7 +199,7 @@ module.exports = class southxchange extends Exchange {
             'type': side,
             'amount': amount,
         };
-        if (type == 'limit')
+        if (type === 'limit')
             order['limitPrice'] = price;
         let response = await this.privatePostPlaceOrder (this.extend (order, params));
         return {
@@ -214,7 +215,7 @@ module.exports = class southxchange extends Exchange {
         }, params));
     }
 
-    async withdraw (currency, amount, address, params = {}) {
+    async withdraw (currency, amount, address, tag = undefined, params = {}) {
         let response = await this.privatePostWithdraw (this.extend ({
             'currency': currency,
             'address': address,
@@ -229,7 +230,7 @@ module.exports = class southxchange extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (api == 'private') {
+        if (api === 'private') {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             query = this.extend ({
@@ -249,4 +250,4 @@ module.exports = class southxchange extends Exchange {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         return response;
     }
-}
+};

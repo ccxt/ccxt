@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -8,7 +8,6 @@ const { NotSupported } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class bitlish extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitlish',
@@ -16,10 +15,12 @@ module.exports = class bitlish extends Exchange {
             'countries': [ 'GB', 'EU', 'RU' ],
             'rateLimit': 1500,
             'version': 'v1',
-            'hasCORS': false,
-            'hasFetchTickers': true,
-            'hasFetchOHLCV': true,
-            'hasWithdraw': true,
+            'has': {
+                'CORS': false,
+                'fetchTickers': true,
+                'fetchOHLCV': true,
+                'withdraw': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766275-dcfc6c30-5ed3-11e7-839d-00a846385d0b.jpg',
                 'api': 'https://bitlish.com/api',
@@ -117,15 +118,15 @@ module.exports = class bitlish extends Exchange {
     commonCurrencyCode (currency) {
         if (!this.substituteCommonCurrencyCodes)
             return currency;
-        if (currency == 'XBT')
+        if (currency === 'XBT')
             return 'BTC';
-        if (currency == 'BCC')
+        if (currency === 'BCC')
             return 'BCH';
-        if (currency == 'DRK')
+        if (currency === 'DRK')
             return 'DASH';
-        if (currency == 'DSH')
+        if (currency === 'DSH')
             currency = 'DASH';
-        if (currency == 'XDG')
+        if (currency === 'XDG')
             currency = 'DOGE';
         return currency;
     }
@@ -214,7 +215,7 @@ module.exports = class bitlish extends Exchange {
         }, params));
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetTradesDepth (this.extend ({
             'pair_id': this.marketId (symbol),
@@ -227,7 +228,7 @@ module.exports = class bitlish extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let side = (trade['dir'] == 'bid') ? 'buy' : 'sell';
+        let side = (trade['dir'] === 'bid') ? 'buy' : 'sell';
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
@@ -266,9 +267,9 @@ module.exports = class bitlish extends Exchange {
             let account = response[currency];
             currency = currency.toUpperCase ();
             // issue #4 bitlish names Dash as DSH, instead of DASH
-            if (currency == 'DSH')
+            if (currency === 'DSH')
                 currency = 'DASH';
-            if (currency == 'XDG')
+            if (currency === 'XDG')
                 currency = 'DOGE';
             balance[currency] = account;
         }
@@ -297,10 +298,10 @@ module.exports = class bitlish extends Exchange {
         await this.loadMarkets ();
         let order = {
             'pair_id': this.marketId (symbol),
-            'dir': (side == 'buy') ? 'bid' : 'ask',
+            'dir': (side === 'buy') ? 'bid' : 'ask',
             'amount': amount,
         };
-        if (type == 'limit')
+        if (type === 'limit')
             order['price'] = price;
         let result = await this.privatePostCreateTrade (this.extend (order, params));
         return {
@@ -314,9 +315,9 @@ module.exports = class bitlish extends Exchange {
         return await this.privatePostCancelTrade ({ 'id': id });
     }
 
-    async withdraw (currency, amount, address, params = {}) {
+    async withdraw (currency, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
-        if (currency != 'BTC') {
+        if (currency !== 'BTC') {
             // they did not document other types...
             throw new NotSupported (this.id + ' currently supports BTC withdrawals only, until they document other currencies...');
         }
@@ -334,8 +335,8 @@ module.exports = class bitlish extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
-        if (api == 'public') {
-            if (method == 'GET') {
+        if (api === 'public') {
+            if (method === 'GET') {
                 if (Object.keys (params).length)
                     url += '?' + this.urlencode (params);
             } else {
@@ -349,4 +350,4 @@ module.exports = class bitlish extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-}
+};

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.729'
+__version__ = '1.10.1005'
 
 # -----------------------------------------------------------------------------
 
@@ -35,6 +35,7 @@ import hmac
 import io
 import json
 import math
+from numbers import Number
 import re
 from requests import Session
 from requests.utils import default_user_agent
@@ -113,7 +114,8 @@ class Exchange(object):
     twofa = False
     marketsById = None
     markets_by_id = None
-    # proxy_hit_rate = {}
+    currencies_by_id = None
+    options = {}  # Python does not allow to define properties in run-time with setattr
 
     hasPublicAPI = True
     hasPrivateAPI = True
@@ -239,12 +241,6 @@ class Exchange(object):
                     lowercase_path = [x.strip().lower() for x in split_path]
                     underscore_suffix = '_'.join([k for k in lowercase_path if len(k)])
 
-                    if camelcase_suffix.find(camelcase_method) == 0:
-                        camelcase_suffix = camelcase_suffix[len(camelcase_method):]
-
-                    if underscore_suffix.find(lowercase_method) == 0:
-                        underscore_suffix = underscore_suffix[len(lowercase_method):]
-
                     camelcase = api_type + camelcase_method + Exchange.capitalize(camelcase_suffix)
                     underscore = api_type + '_' + lowercase_method + '_' + underscore_suffix.lower()
 
@@ -331,7 +327,7 @@ class Exchange(object):
         headers = self.prepare_request_headers(headers)
         url = self.proxy + url
         if self.verbose:
-            print(method, url, "\nRequest:", headers, body)
+            print(method, url, "\nRequest:", headers, "\n", body)
         if body:
             body = body.encode()
 
@@ -368,16 +364,19 @@ class Exchange(object):
             self.raise_error(ExchangeError, url, method, e)
 
         if self.verbose:
-            print(method, url, "\nResponse:", str(response.headers), self.last_http_response)
+            print(method, url, str(response.status_code), "\nResponse:", str(response.headers), "\n", self.last_http_response)
 
+        self.handle_errors(response.status_code, response.reason, url, method, None, self.last_http_response)
         return self.handle_rest_response(self.last_http_response, url, method, headers, body)
 
     def handle_rest_errors(self, exception, http_status_code, response, url, method='GET'):
         error = None
         if http_status_code in [418, 429]:
             error = DDoSProtection
-        elif http_status_code in [404, 409, 422, 500, 501, 502, 520, 521, 522, 525]:
+        elif http_status_code in [404, 409, 500, 501, 502, 520, 521, 522, 525]:
             error = ExchangeNotAvailable
+        elif http_status_code in [422]:
+            error = ExchangeError
         elif http_status_code in [400, 403, 405, 503, 530]:
             # special case to detect ddos protection
             error = ExchangeNotAvailable
@@ -419,19 +418,29 @@ class Exchange(object):
 
     @staticmethod
     def safe_float(dictionary, key, default_value=None):
-        return float(dictionary[key]) if key is not None and (key in dictionary) and dictionary[key] else default_value
+        value = default_value
+        try:
+            value = float(dictionary[key]) if (key is not None) and (key in dictionary) and (dictionary[key] is not None) else default_value
+        except ValueError:
+            value = default_value
+        return value
 
     @staticmethod
     def safe_string(dictionary, key, default_value=None):
-        return str(dictionary[key]) if key is not None and (key in dictionary) and dictionary[key] else default_value
+        return str(dictionary[key]) if key is not None and (key in dictionary) and dictionary[key] is not None else default_value
 
     @staticmethod
     def safe_integer(dictionary, key, default_value=None):
-        return int(dictionary[key]) if key is not None and (key in dictionary) and dictionary[key] else default_value
+        if key is None or (key not in dictionary):
+            return default_value
+        value = dictionary[key]
+        if isinstance(value, Number) or (isinstance(value, basestring) and value.isnumeric()):
+            return int(value)
+        return default_value
 
     @staticmethod
     def safe_value(dictionary, key, default_value=None):
-        return dictionary[key] if key is not None and (key in dictionary) and dictionary[key] else default_value
+        return dictionary[key] if key is not None and (key in dictionary) and dictionary[key] is not None else default_value
 
     @staticmethod
     def truncate(num, precision=0):
@@ -443,7 +452,7 @@ class Exchange(object):
     @staticmethod
     def truncate_to_string(num, precision=0):
         if precision > 0:
-            parts = ('%.20f' % Decimal(num)).split('.')
+            parts = ('%f' % Decimal(num)).split('.')
             decimal_digits = parts[1][:precision].rstrip('0')
             decimal_digits = decimal_digits if len(decimal_digits) else '0'
             return parts[0] + '.' + decimal_digits
@@ -522,7 +531,7 @@ class Exchange(object):
     def index_by(array, key):
         result = {}
         if type(array) is dict:
-            array = list(Exchange.keysort(array).items())
+            array = Exchange.keysort(array).values()
         for element in array:
             if (key in element) and (element[key] is not None):
                 k = element[key]
@@ -539,7 +548,7 @@ class Exchange(object):
 
     @staticmethod
     def extract_params(string):
-        return re.findall(r'{([a-zA-Z0-9_]+?)}', string)
+        return re.findall(r'{([\w-]+)}', string)
 
     @staticmethod
     def implode_params(string, params):
@@ -644,12 +653,12 @@ class Exchange(object):
         return utc.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-6] + "{:<03d}".format(int(timestamp) % 1000) + 'Z'
 
     @staticmethod
-    def Ymd(timestamp):
+    def ymd(timestamp):
         utc_datetime = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
         return utc_datetime.strftime('%Y-%m-%d')
 
     @staticmethod
-    def YmdHMS(timestamp, infix=' '):
+    def ymdhms(timestamp, infix=' '):
         utc_datetime = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
         return utc_datetime.strftime('%Y-%m-%d' + infix + '%H:%M:%S')
 
@@ -729,8 +738,8 @@ class Exchange(object):
         return json.loads(input)
 
     @staticmethod
-    def json(input):
-        return json.dumps(input, separators=(',', ':'))
+    def json(data, params=None):
+        return json.dumps(data, separators=(',', ':'))
 
     @staticmethod
     def encode(string):
@@ -820,6 +829,7 @@ class Exchange(object):
             } for market in values if 'quote' in market]
             currencies = self.sort_by(base_currencies + quote_currencies, 'code')
             self.currencies = self.deep_extend(self.index_by(currencies, 'code'), self.currencies)
+        self.currencies_by_id = self.index_by(list(self.currencies.values()), 'id')
         return self.markets
 
     def load_markets(self, reload=False):
@@ -854,16 +864,16 @@ class Exchange(object):
         raise NotSupported(self.id + ' fetch_orders() is not implemented yet')
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        raise NotSupported(self.id + ' fetch_open_orders() not implemented yet')
+        raise NotSupported(self.id + ' fetch_open_orders() is not implemented yet')
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        raise NotSupported(self.id + ' fetch_closed_orders() not implemented yet')
+        raise NotSupported(self.id + ' fetch_closed_orders() is not implemented yet')
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
-        raise NotSupported(self.id + ' fetch_my_trades() not implemented yet')
+        raise NotSupported(self.id + ' fetch_my_trades() is not implemented yet')
 
     def fetch_order_trades(self, id, symbol=None, params={}):
-        raise NotSupported(self.id + ' fetch_order_trades() not implemented yet')
+        raise NotSupported(self.id + ' fetch_order_trades() is not implemented yet')
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return ohlcv
@@ -901,8 +911,8 @@ class Exchange(object):
                 raise ExchangeError(self.id + ' unrecognized bidask format: ' + str(bidasks[0]))
         return result
 
-    def fetch_l2_order_book(self, symbol, params={}):
-        orderbook = self.fetch_order_book(symbol, params)
+    def fetch_l2_order_book(self, symbol, limit=None, params={}):
+        orderbook = self.fetch_order_book(symbol, limit, params)
         return self.extend(orderbook, {
             'bids': self.sort_by(self.aggregate(orderbook['bids']), 0, True),
             'asks': self.sort_by(self.aggregate(orderbook['asks']), 0),
@@ -989,13 +999,13 @@ class Exchange(object):
         market = self.market(symbol)
         return market['id'] if type(market) is dict else symbol
 
-    def calculate_fee(self, symbol, type, side, amount, price, taker_or_maker='taker', params={}):
+    def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]
-        rate = market[taker_or_maker]
+        rate = market[takerOrMaker]
         cost = float(self.cost_to_precision(symbol, amount * price))
         return {
             'rate': rate,
-            'type': taker_or_maker,
+            'type': takerOrMaker,
             'currency': market['quote'],
             'cost': float(self.fee_to_precision(symbol, rate * cost)),
         }
@@ -1014,6 +1024,12 @@ class Exchange(object):
             raise ExchangeError(self.id + ' edit_order() requires enableRateLimit = true')
         self.cancel_order(id, symbol)
         return self.create_order(symbol, *args)
+
+    def create_limit_order(self, symbol, *args):
+        return self.create_order(symbol, 'limit', *args)
+
+    def create_market_order(self, symbol, *args):
+        return self.create_order(symbol, 'market', *args)
 
     def create_limit_buy_order(self, symbol, *args):
         return self.create_order(symbol, 'limit', 'buy', *args)

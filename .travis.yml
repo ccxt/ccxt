@@ -3,7 +3,7 @@ python:
   - "3.5"
 cache:
   directories:
-    - $HOME/.cache/pip
+    # - $HOME/.cache/pip
     - $HOME/.npm
     - node_modules
 
@@ -23,6 +23,7 @@ before_install:
 - sudo -H pip3 install --upgrade setuptools pip wheel requests
 - sudo -H pip3 install --upgrade tox twine
 - pip install --upgrade aiohttp requests
+- pip2 install requests[security]
 script:
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then npm config set git-tag-version=false && NPM_VERSION=$(npm version patch); fi
 - cp package.json LICENSE.txt keys.json python

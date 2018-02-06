@@ -21,7 +21,7 @@ let printUsage = function () {
             let id = ccxt.exchanges[i]
 
             const exchange = new ccxt[id] ()
-            if (exchange.hasPublicAPI) {
+            if (exchange.has.publicAPI) {
 
                 try {
 

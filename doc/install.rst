@@ -8,15 +8,15 @@ The easiest way to install the ccxt library is to use builtin package managers:
 
 This library is shipped as an all-in-one module implementation with minimalistic dependencies and requirements:
 
--  ```ccxt.js`` <https://github.com/kroitor/ccxt/blob/master/ccxt.js>`__ in JavaScript
--  ```./python/`` <https://github.com/kroitor/ccxt/blob/master/python/>`__ in Python (generated from JS)
--  ```ccxt.php`` <https://github.com/kroitor/ccxt/blob/master/ccxt.php>`__ in PHP (generated from JS)
+-  ```ccxt.js`` <https://github.com/ccxt/ccxt/blob/master/ccxt.js>`__ in JavaScript
+-  ```./python/`` <https://github.com/ccxt/ccxt/blob/master/python/>`__ in Python (generated from JS)
+-  ```ccxt.php`` <https://github.com/ccxt/ccxt/blob/master/ccxt.php>`__ in PHP (generated from JS)
 
-You can also clone it into your project directory from `ccxt GitHub repository <https://github.com/kroitor/ccxt>`__:
+You can also clone it into your project directory from `ccxt GitHub repository <https://github.com/ccxt/ccxt>`__:
 
 .. code:: shell
 
-    git clone https://github.com/kroitor/ccxt.git
+    git clone https://github.com/ccxt/ccxt.git
 
 An alternative way of installing this library into your code is to copy a single file manually into your working directory with language extension appropriate for your environment.
 
@@ -77,7 +77,7 @@ PHP
 
 The autoloadable version of ccxt can be installed with `**Packagist/Composer** <https://packagist.org/packages/ccxt/ccxt>`__ (PHP 5.3+).
 
-It can also be installed from the source code: `**``ccxt.php``** <https://raw.githubusercontent.com/kroitor/ccxt/master/php>`__
+It can also be installed from the source code: `**``ccxt.php``** <https://raw.githubusercontent.com/ccxt/ccxt/master/php>`__
 
 It requires common PHP modules:
 
@@ -94,7 +94,7 @@ It requires common PHP modules:
 Proxy
 -----
 
-In some specific cases you may want a proxy, if you experience issues with `DDoS protection by Cloudflare <https://github.com/kroitor/ccxt/wiki/Manual#ddos-protection-by-cloudflare>`__ or your network / country / IP is rejected by their filters.
+In some specific cases you may want a proxy, if you experience issues with `DDoS protection by Cloudflare <https://github.com/ccxt/ccxt/wiki/Manual#ddos-protection-by-cloudflare>`__ or your network / country / IP is rejected by their filters.
 
 If you need a proxy, use the ``proxy`` property (a string literal) containing base URL of http(s) proxy. It is for use with web browsers and from blocked locations.
 

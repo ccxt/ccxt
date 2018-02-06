@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -7,7 +7,6 @@ const Exchange = require ('./base/Exchange');
 //  ---------------------------------------------------------------------------
 
 module.exports = class btcchina extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'btcchina',
@@ -15,7 +14,9 @@ module.exports = class btcchina extends Exchange {
             'countries': 'CN',
             'rateLimit': 1500,
             'version': 'v1',
-            'hasCORS': true,
+            'has': {
+                'CORS': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766368-465b3286-5ed6-11e7-9a11-0f6467e1d82b.jpg',
                 'api': {
@@ -24,7 +25,7 @@ module.exports = class btcchina extends Exchange {
                     'private': 'https://api.btcchina.com/api_trade_v1.php',
                 },
                 'www': 'https://www.btcchina.com',
-                'doc': 'https://www.btcchina.com/apidocs'
+                'doc': 'https://www.btcchina.com/apidocs',
             },
             'api': {
                 'plus': {
@@ -138,7 +139,7 @@ module.exports = class btcchina extends Exchange {
         return request;
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let method = market['api'] + 'GetOrderbook';
@@ -275,7 +276,7 @@ module.exports = class btcchina extends Exchange {
         let method = 'privatePost' + this.capitalize (side) + 'Order2';
         let order = {};
         let id = market['id'].toUpperCase ();
-        if (type == 'market') {
+        if (type === 'market') {
             order['params'] = [ undefined, amount, id ];
         } else {
             order['params'] = [ price, amount, id ];
@@ -301,7 +302,7 @@ module.exports = class btcchina extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + path;
-        if (api == 'private') {
+        if (api === 'private') {
             this.checkRequiredCredentials ();
             let p = [];
             if ('params' in params)
@@ -334,4 +335,4 @@ module.exports = class btcchina extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-}
+};

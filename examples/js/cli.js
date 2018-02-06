@@ -13,6 +13,7 @@ const ccxt      = require ('../../ccxt.js')
     , asTable   = require ('as-table')
     , util      = require ('util')
     , log       = require ('ololog').configure ({ locate: false })
+    , { ExchangeError, NetworkError } = ccxt
 
 //-----------------------------------------------------------------------------
 
@@ -25,7 +26,8 @@ process.on ('unhandledRejection', e => { log.bright.red.error (e); process.exit 
 
 //-----------------------------------------------------------------------------
 
-const exchange = new (ccxt)[exchangeId] ({ verbose })
+const timeout = 30000
+const exchange = new (ccxt)[exchangeId] ({ verbose, timeout })
 
 //-----------------------------------------------------------------------------
 
@@ -74,8 +76,48 @@ async function main () {
             return param.match (/[a-zA-Z]/g) ? param : parseFloat (param)
         })
 
-        if (typeof exchange[methodName] == 'function') {
-            log (await exchange[methodName] (... args))
+        if (typeof exchange[methodName] === 'function') {
+            try {
+
+                log (exchange.id + '.' + methodName, '(' + args.join (', ') + ')')
+
+                const result = await exchange[methodName] (... args)
+
+                if (Array.isArray (result)) {
+
+                    result.forEach (object => {
+                        log ('-------------------------------------------')
+                        log (object)
+                    })
+
+                    log (result.length > 0 ? asTable (result) : result)
+
+                } else {
+
+                    log.maxDepth (10).maxArrayLength (1000) (result)
+                }
+
+
+            } catch (e) {
+
+                if (e instanceof ExchangeError) {
+
+                    log.red (e.constructor.name, e.message)
+
+                } else if (e instanceof NetworkError) {
+
+                    log.yellow (e.constructor.name, e.message)
+
+                }
+
+                log.dim ('---------------------------------------------------')
+
+                // rethrow for call-stack // other errors
+                throw e
+
+            }
+        } else if (typeof exchange[methodName] === 'undefined') {
+            log.red (exchange.id + '.' + methodName + ': no such property')
         } else {
             log (exchange[methodName])
         }

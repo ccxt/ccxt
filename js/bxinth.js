@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -8,15 +8,16 @@ const { ExchangeError } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class bxinth extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bxinth',
             'name': 'BX.in.th',
             'countries': 'TH', // Thailand
             'rateLimit': 1500,
-            'hasCORS': false,
-            'hasFetchTickers': true,
+            'has': {
+                'CORS': false,
+                'fetchTickers': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766412-567b1eb4-5ed7-11e7-94a8-ff6a3884f6c5.jpg',
                 'api': 'https://bx.in.th/api',
@@ -94,9 +95,9 @@ module.exports = class bxinth extends Exchange {
 
     commonCurrencyCode (currency) {
         // why would they use three letters instead of four for currency codes
-        if (currency == 'DAS')
+        if (currency === 'DAS')
             return 'DASH';
-        if (currency == 'DOG')
+        if (currency === 'DOG')
             return 'DOGE';
         return currency;
     }
@@ -121,7 +122,7 @@ module.exports = class bxinth extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetOrderbook (this.extend ({
             'pairing': this.marketId (symbol),
@@ -236,7 +237,7 @@ module.exports = class bxinth extends Exchange {
             url += path + '/';
         if (Object.keys (params).length)
             url += '?' + this.urlencode (params);
-        if (api == 'private') {
+        if (api === 'private') {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             let auth = this.apiKey + nonce.toString () + this.secret;
@@ -256,11 +257,11 @@ module.exports = class bxinth extends Exchange {
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
-        if (api == 'public')
+        if (api === 'public')
             return response;
         if ('success' in response)
             if (response['success'])
                 return response;
         throw new ExchangeError (this.id + ' ' + this.json (response));
     }
-}
+};
