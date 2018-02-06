@@ -100,6 +100,8 @@ The ccxt library currently supports the following cryptocurrency exchange market
 +----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | Hong Kong                  | |anxpro|               | anxpro               | `ANXPro <https://anxpro.com>`__                                | 2     | `API <http://docs.anxv2.apiary.io>`__                                                             |
 +----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
+| Hong Kong                  | |bitz|                 | bitz                 | `Bit-Z <https://www.bit-z.com/>`__                             | \*    | `API <https://www.bit-z.com/api.html>`__                                                          |
++----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | Hong Kong                  | |gatecoin|             | gatecoin             | `Gatecoin <https://gatecoin.com>`__                            | \*    | `API <https://gatecoin.com/api>`__                                                                |
 +----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | Hong Kong                  | |kucoin|               | kucoin               | `Kucoin <https://kucoin.com>`__                                | 1     | `API <https://kucoinapidocs.docs.apiary.io>`__                                                    |
@@ -326,6 +328,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
 .. |ccex| image:: https://user-images.githubusercontent.com/1294454/27766433-16881f90-5ed8-11e7-92f8-3d92cc747a6c.jpg
 .. |paymium| image:: https://user-images.githubusercontent.com/1294454/27790564-a945a9d4-5ff9-11e7-9d2d-b635763f2f24.jpg
 .. |anxpro| image:: https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg
+.. |bitz| image:: https://www.bit-z.com/images/index/logo.png
 .. |gatecoin| image:: https://user-images.githubusercontent.com/1294454/28646817-508457f2-726c-11e7-9eeb-3528d2413a58.jpg
 .. |kucoin| image:: https://user-images.githubusercontent.com/1294454/33795655-b3c46e48-dcf6-11e7-8abe-dc4588ba7901.jpg
 .. |mixcoins| image:: https://user-images.githubusercontent.com/1294454/30237212-ed29303c-9535-11e7-8af8-fcd381cfa20c.jpg
