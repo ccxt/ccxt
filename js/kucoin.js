@@ -18,7 +18,7 @@ module.exports = class kucoin extends Exchange {
             'userAgent': this.userAgents['chrome'],
             'has': {
                 'CORS': false,
-                'cancelAllOrders': true,
+                'cancelOrders': true,
                 'createMarketOrder': false,
                 'fetchTickers': true,
                 'fetchOHLCV': true, // see the method implementation below
@@ -449,7 +449,7 @@ module.exports = class kucoin extends Exchange {
         };
     }
 
-    async cancelAllOrders (symbol = undefined, params = {}) {
+    async cancelOrders (symbol = undefined, params = {}) {
         // https://kucoinapidocs.docs.apiary.io/#reference/0/trading/cancel-all-orders
         // docs say symbol is required, but it seems to be optional
         // you can cancel all orders, or filter by symbol or type or both
