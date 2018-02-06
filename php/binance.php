@@ -341,6 +341,7 @@ class binance extends Exchange {
                 'price' => $market['quotePrecision'],
             );
             $active = ($market['status'] === 'TRADING');
+            // $lot size is deprecated as of 2018.02.06
             $lot = -1 * log10 ($precision['amount']);
             $entry = array_merge ($this->fees['trading'], array (
                 'id' => $id,
@@ -350,16 +351,16 @@ class binance extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'info' => $market,
-                'lot' => $lot,
+                'lot' => $lot, // $lot size is deprecated as of 2018.02.06
                 'active' => $active,
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => $lot,
+                        'min' => pow (10, -$precision['amount']),
                         'max' => null,
                     ),
                     'price' => array (
-                        'min' => -1 * log10 ($precision['price']),
+                        'min' => pow (10, -$precision['price']),
                         'max' => null,
                     ),
                     'cost' => array (
@@ -379,7 +380,7 @@ class binance extends Exchange {
             if (is_array ($filters) && array_key_exists ('LOT_SIZE', $filters)) {
                 $filter = $filters['LOT_SIZE'];
                 $entry['precision']['amount'] = $this->precision_from_string($filter['stepSize']);
-                $entry['lot'] = floatval ($filter['stepSize']);
+                $entry['lot'] = floatval ($filter['stepSize']); // $lot size is deprecated as of 2018.02.06
                 $entry['limits']['amount'] = array (
                     'min' => floatval ($filter['minQty']),
                     'max' => floatval ($filter['maxQty']),
