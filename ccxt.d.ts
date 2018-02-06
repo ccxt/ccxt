@@ -153,6 +153,10 @@ declare module 'ccxt' {
         used: number,
         total: number
     }
+    
+    export interface PartialBalances {
+        [currency: string]: number;
+    }
 
     export interface Balances {
         info: any;
@@ -278,6 +282,9 @@ declare module 'ccxt' {
         extractParams (str: string): string[];
         createOrder (market: string, type: string, side: string, amount: string, price?: string, params?: string): Promise<any>;
         fetchBalance (params?: any): Promise<Balances>;
+        fetchTotalBalance (params?: any): Promise<PartialBalances>;
+        fetchUsedBalance (params?: any): Promise<PartialBalances>;
+        fetchFreeBalance (params?: any): Promise<PartialBalances>;
         fetchOrderBook (symbol: string, limit?: number, params?: any): Promise<OrderBook>;
         fetchTicker (symbol: string): Promise<Ticker>;
         fetchTickers (symbols?: string[]): Promise<Tickers>;

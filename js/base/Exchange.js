@@ -157,7 +157,6 @@ module.exports = class Exchange {
 
         this.iso8601          = timestamp => new Date (timestamp).toISOString ()
         this.parse8601        = x => Date.parse (((x.indexOf ('+') >= 0) || (x.slice (-1) === 'Z')) ? x : (x + 'Z'))
-        this.milliseconds     = now
         this.microseconds     = () => now () * 1000 // TODO: utilize performance.now for that purpose
         this.seconds          = () => Math.floor (now () / 1000)
 
@@ -231,6 +230,10 @@ module.exports = class Exchange {
 
     nonce () {
         return this.seconds ()
+    }
+    
+    milliseconds () {
+        return now ()
     }
 
     encodeURIComponent (...args) {
