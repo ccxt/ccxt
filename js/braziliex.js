@@ -15,10 +15,11 @@ module.exports = class braziliex extends Exchange {
             'countries': 'BR',
             'rateLimit': 1000,
             'has': {
-                'fetchDepositAddress': true,
+                'fetchCurrencies': true,
                 'fetchTickers': true,
                 'fetchOpenOrders': true,
                 'fetchMyTrades': true,
+                'fetchDepositAddress': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/34703593-c4498674-f504-11e7-8d14-ff8e44fb78c1.jpg',
@@ -70,17 +71,18 @@ module.exports = class braziliex extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
             let currency = currencies[id];
-            let precision = currency['decimal'];
+            let precision = this.safeInteger (currency, 'decimal');
             let uppercase = id.toUpperCase ();
             let code = this.commonCurrencyCode (uppercase);
-            let active = currency['active'] === 1;
+            let active = this.safeInteger (currency, 'active') === 1;
             let status = 'ok';
-            if (currency['under_maintenance'] !== 0) {
+            let maintenance = this.safeInteger (currency, 'under_maintenance');
+            if (maintenance !== 0) {
                 active = false;
                 status = 'maintenance';
             }
-            let canWithdraw = currency['is_withdrawal_active'] === 1;
-            let canDeposit = currency['is_deposit_active'] === 1;
+            let canWithdraw = this.safeInteger (currency, 'is_withdrawal_active') === 1;
+            let canDeposit = this.safeInteger (currency, 'is_deposit_active') === 1;
             if (!canWithdraw || !canDeposit)
                 active = false;
             result[code] = {
@@ -90,9 +92,7 @@ module.exports = class braziliex extends Exchange {
                 'active': active,
                 'status': status,
                 'precision': precision,
-                'wallet': {
-                    'address': undefined,
-                    'extra': undefined,
+                'funding': {
                     'withdraw': {
                         'active': canWithdraw,
                         'fee': currency['txWithdrawalFee'],
@@ -143,7 +143,7 @@ module.exports = class braziliex extends Exchange {
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
-            let active = market['active'] === 1;
+            let active = this.safeInteger (market, 'active') === 1;
             let precision = {
                 'amount': 8,
                 'price': 8,
@@ -408,9 +408,9 @@ module.exports = class braziliex extends Exchange {
         return this.parseTrades (trades['trade_history'], market, since, limit);
     }
 
-    async fetchDepositAddress (currencyCode, params = {}) {
+    async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        let currency = this.currency (currencyCode);
+        let currency = this.currency (code);
         let response = await this.privatePostDepositAddress (this.extend ({
             'currency': currency['id'],
         }, params));
@@ -419,7 +419,7 @@ module.exports = class braziliex extends Exchange {
             throw new ExchangeError (this.id + ' fetchDepositAddress failed: ' + this.last_http_response);
         let tag = this.safeString (response, 'payment_id');
         return {
-            'currency': currencyCode,
+            'currency': code,
             'address': address,
             'tag': tag,
             'status': 'ok',
