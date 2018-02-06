@@ -113,25 +113,28 @@ module.exports = class qryptos extends Exchange {
                 minAmount = 0.001;
             } else if (base === 'ETH') {
                 minAmount = 0.01;
-            } else {
-                minAmount = undefined;
             }
             if (quote === 'BTC') {
                 minPrice = 0.00000001;
             } else if (quote === 'ETH' || quote === 'USD' || quote === 'JPY') {
                 minPrice = 0.00001;
-            } else {
-                minPrice = undefined;
             }
             let limits = {
-                amount: { min: minAmount },
-                price: { min: minPrice },
-                cost: { min: minPrice * minAmount },
+                'amount': { 'min': minAmount },
+                'price': { 'min': minPrice },
+                'cost': { 'min': undefined },
             };
+            if (typeof minPrice !== 'undefined')
+                if (typeof minAmount !== 'undefined')
+                    limits['cost']['min'] = minPrice * minAmount;
             let precision = {
-                amount: (typeof minAmount !== 'undefined') ? -Math.log10 (minAmount) : undefined,
-                price: (typeof minPrice !== 'undefined') ? -Math.log10 (minPrice) : undefined,
+                'amount': undefined,
+                'price': undefined,
             };
+            if (typeof minAmount !== 'undefined')
+                precision['amount'] = -Math.log10 (minAmount);
+            if (typeof minPrice !== 'undefined')
+                precision['price'] = -Math.log10 (minPrice);
             result.push ({
                 'id': id,
                 'symbol': symbol,
