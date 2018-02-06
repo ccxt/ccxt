@@ -172,17 +172,15 @@ class coingi (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol, limit=512, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        orderbook = await self.currentGetOrderBookPairAskCountBidCountDepth(self.extend({
             'pair': market['id'],
             'depth': 32,  # maximum number of depth range steps 1-32
-        }
-        if limit is not None:
-            request['askCount'] = limit  # maximum returned number of asks 1-512
-            request['bidCount'] = limit  # maximum returned number of bids 1-512
-        orderbook = await self.currentGetOrderBookPairAskCountBidCountDepth(self.extend(request, params))
+            'askCount': limit,  # maximum returned number of asks 1-512
+            'bidCount': limit,  # maximum returned number of bids 1-512
+        }, params))
         return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'baseAmount')
 
     def parse_ticker(self, ticker, market=None):
