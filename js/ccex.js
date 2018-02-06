@@ -138,33 +138,45 @@ module.exports = class ccex extends Exchange {
 
     async fetchOrderBooks (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let result = {};
+        let orderbooks = {};
         let response = await this.publicGetFullorderbook ();
         let types = Object.keys (response['result']);
         for (let i = 0; i < types.length; i++) {
             let type = types[i];
-            let orderBookItems = response['result'][type];
-            for (let j = 0; j < orderBookItems.length; j++) {
-                let orderBookItem = orderBookItems[j];
-                // this line won't transpile, can't use functions like that
-                // it is not portable to other languages
-                let index = orderBooks.findIndex (function (f) {
-                    return f['symbol'] === orderBookItem['Market'].replace ('-', '/').toUpperCase ();
-                });
-                if (index < 0) {
-                    orderBooks.push ({
-                        symbol: orderBookItem['Market'].replace ('-', '/').toUpperCase (),
-                        bids: [],
-                        asks: [],
-                    });
-                    index = orderBooks.length - 1;
+            let bidasks = response['result'][type];
+            let bidasksByMarketId = this.groupBy (bidasks, 'Market');
+            let marketIds = Object.keys (bidasksByMarketId);
+            for (let j = 0; j < marketIds.length; j++) {
+                let marketId = marketIds[j];
+                let symbol = marketId.toUpperCase ();
+                let side = type;
+                if (symbol in this.markets_by_id) {
+                    let market = this.markets_by_id[symbol];
+                    symbol = market['symbol'];
+                } else {
+                    let [ base, quote ] = symbol.split ('-');
+                    let invertedId = quote + '-' + base;
+                    if (invertedId in this.marketsById) {
+                        let market = this.marketsById[invertedId];
+                        symbol = market['symbol'];
+                        side = (type === 'buy') ? 'sell' : 'buy';
+                    }
                 }
-                if (type === 'buy') {
-                    orderBooks[index]['bids'].push ([orderBookItem['Rate'], orderBookItem['Quantity']]);
-                } else if (type === 'sell') {
-                    orderBooks[index]['asks'].push ([orderBookItem['Rate'], orderBookItem['Quantity']]);
+                if (!(symbol in orderbooks)) {
+                    orderbooks[symbol] = {};
                 }
+                //     if (side in orderbooks[symbol]) {
+                //         console.log ('DEBUG');
+                //         process.exit ();
+                //     }
+                orderbooks[symbol][side] = bidasksByMarketId[marketId];
             }
+        }
+        let result = {};
+        let keys = Object.keys (orderbooks);
+        for (let k = 0; k < keys.length; k++) {
+            let key = keys[k];
+            result[key] = this.parseOrderBook (orderbooks[key], undefined, 'buy', 'sell', 'Rate', 'Quantity');
         }
         return result;
     }
@@ -234,7 +246,7 @@ module.exports = class ccex extends Exchange {
     parseTrade (trade, market) {
         let timestamp = this.parse8601 (trade['TimeStamp']);
         return {
-            'id': trade['Id'],
+            'id': trade['Id'].toString (),
             'info': trade,
             'order': undefined,
             'timestamp': timestamp,
