@@ -461,6 +461,7 @@ module.exports = class kucoin extends Exchange {
         }
         if ('type' in params) {
             request['type'] = params['type'].toUpperCase ();
+            params = this.omit (params, 'type');
         }
         let response = await this.privatePostOrderCancelAll (this.extend (request, params));
         return response;
