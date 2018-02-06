@@ -93,7 +93,6 @@ class Exchange(BaseExchange):
         """Perform a HTTP request and return decoded JSON data"""
         if proxy:
             self.proxy = proxy
-            self.userAgent = ''.join([random.choice(string.ascii_letters) for n in range(5)]) + '/' + '{0}.{1}.{2}'.format(random.choice(string.digits), random.choice(string.digits), random.choice(string.digits))
         headers = headers or {}
         headers.update(self.headers)
         if self.userAgent:
@@ -111,6 +110,7 @@ class Exchange(BaseExchange):
         encoded_body = body.encode() if body else None
         session_method = getattr(self.session, method.lower())
         http_status_code = None
+        print('Headers= {0}'.format(headers))
         try:
             # print('URL: {0}, Encoded Body: {1}, Headers: {2}, Timeout: {3}, Proxy: {4}'.format(url, encoded_body, headers, self.timeout, self.aiohttp_proxy))
             async with session_method(url, data=encoded_body, headers=headers, timeout=(self.timeout / 1000), proxy=self.aiohttp_proxy) as response:
