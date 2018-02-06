@@ -15,6 +15,7 @@ module.exports = class liqui extends Exchange {
             'has': {
                 'CORS': false,
                 'createMarketOrder': false,
+                'fetchOrderBooks': true,
                 'fetchOrder': true,
                 'fetchOrders': 'emulated',
                 'fetchOpenOrders': true,
@@ -215,6 +216,51 @@ module.exports = class liqui extends Exchange {
         result['bids'] = this.sortBy (result['bids'], 0, true);
         result['asks'] = this.sortBy (result['asks'], 0);
         return result;
+    }
+
+    async fetchOrderBooks (symbols, params = {}) {
+        await this.loadMarkets ();
+        let requestSymbols = [];
+        let orderBooksResult = [];
+        if (!symbols) {
+            symbols = this.symbols;
+        }
+        for (let i = 0; i < symbols.length; i++) {
+            requestSymbols.push (symbols[i]);
+            let maxRequestSymbolsReached = (i % 200 === 0 && i > 0);
+            let endReached = (i === symbols.length - 1);
+            if (maxRequestSymbolsReached || endReached) {
+                let fetchPairString = this.parseSymbolOrderBooksString (requestSymbols);
+                try {
+                    let response = await this.publicGetDepthPair (this.extend ({
+                        'pair': fetchPairString,
+                    }, params));
+                    if (response) {
+                        let orderBooks = Object.values (response);
+                        let keys = Object.keys (response);
+                        for (let j = 0; j < orderBooks.length; j++) {
+                            let key = keys[j];
+                            let orderbook = this.parseOrderBook (orderBooks[j], undefined, 'bids', 'asks');
+                            orderBooksResult.push (this.extend (orderbook, {
+                                'symbol': key.toUpperCase ().replace ('_', '/'),
+                            }));
+                        }
+                    }
+                } catch (e) {
+                    throw new ExchangeError ('fetchOrderBooks() returned error:' + e.message + ' for pair string: ' + fetchPairString);
+                }
+                requestSymbols = [];
+            }
+        }
+        return orderBooksResult;
+    }
+
+    parseSymbolOrderBooksString (symbols) {
+        let symbolsResultList = [];
+        for (let i = 0; i < symbols.length; i++) {
+            symbolsResultList.push (symbols[i].replace ('/', '_').toLowerCase ());
+        }
+        return symbolsResultList.join ('-');
     }
 
     parseTicker (ticker, market = undefined) {
