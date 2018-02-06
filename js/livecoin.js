@@ -249,9 +249,9 @@ module.exports = class livecoin extends Exchange {
         };
     }
 
-    async fetchTradingFees() {
+    async fetchTradingFees (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateGetExchangeCommissionCommonInfo ();
+        let response = await this.privateGetExchangeCommissionCommonInfo (params);
         const commision = this.safeFloat (response, 'commission');
         return {
             'info': response,
