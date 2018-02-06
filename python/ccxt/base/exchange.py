@@ -64,7 +64,7 @@ except ImportError:
 try:
     basestring  # Python 3
 except NameError:
-    basestring = str  # Python 2
+    basestring = str  # Python 2 .
 
 # -----------------------------------------------------------------------------
 
