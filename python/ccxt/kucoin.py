@@ -447,6 +447,7 @@ class kucoin (Exchange):
             request['symbol'] = market['id']
         if 'type' in params:
             request['type'] = params['type'].upper()
+            params = self.omit(params, 'type')
         response = self.privatePostOrderCancelAll(self.extend(request, params))
         return response
 
@@ -461,6 +462,7 @@ class kucoin (Exchange):
         }
         if 'type' in params:
             request['type'] = params['type'].upper()
+            params = self.omit(params, 'type')
         else:
             raise ExchangeError(self.id + ' cancelOrder requires parameter type=["BUY"|"SELL"]')
         response = self.privatePostCancelOrder(self.extend(request, params))
