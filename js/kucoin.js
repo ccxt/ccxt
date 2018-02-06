@@ -478,6 +478,7 @@ module.exports = class kucoin extends Exchange {
         };
         if ('type' in params) {
             request['type'] = params['type'].toUpperCase ();
+            params = this.omit (params, 'type');
         } else {
             throw new ExchangeError (this.id + ' cancelOrder requires parameter type=["BUY"|"SELL"]');
         }
