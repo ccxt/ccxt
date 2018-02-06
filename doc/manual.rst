@@ -539,7 +539,6 @@ Market Structure
             'amount': 8,      // integer
             'cost': 8,        // integer
         },
-        'lot': 0.00000001,    // order amount should be a multiple of lot
         'limits': {           // value limits when placing orders on this market
             'amount': {
                 'min': 0.01,  // order amount should be > min
@@ -560,8 +559,66 @@ Each market is an associative array (aka dictionary) with the following keys:
 -  ``active``. A boolean indicating whether or not trading this market is currently possible.
 -  ``info``. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
 -  ``precision``. The amounts of decimal digits accepted in order values by exchanges upon order placement for price, amount and cost.
--  ``lot``. The lot size is the smallest distinguishable step of amount increment accepted by the exchange when placing a new order. The order amount should be a multiple of lot size or, in other words, should be evenly divisible by the lot size.
 -  ``limits``. The minimums and maximums for prices, amounts (volumes) and costs (where cost = price \* amount).
+
+Precision And Limits
+~~~~~~~~~~~~~~~~~~~~
+
+**Do not confuse ``limits`` with ``precision``!** Precision has nothing to do with min limits. A precision of 8 digits does not necessarily mean a min limit of 0.0000001. The opposite is also true: a min limit of 0.0001 does not necessarily mean a precision of 4.
+
+Examples:
+
+1. ``(market['limits']['amount']['min'] == 0.05) && (market['precision']['amount'] == 4)``
+
+In the first example the **amount** of any order placed on the market **must satisfy both conditions**:
+
+-  The *amount value* should be >= 0.05:
+
+   .. code:: diff
+
+       + good: 0.05, 0.051, 0.0501, 0.0502, ..., 0.0599, 0.06, 0.0601, ...
+       - bad: 0.04, 0.049, 0.0499
+
+-  *Precision of the amount* should up to 4 decimal digits:
+
+   .. code:: diff
+
+       + good: 0.05, 0.051, 0.052, ..., 0.0531, ..., 0.06, ... 0.0719, ...
+       - bad: 0.05001, 0.05000, 0.06001
+
+2. ``(market['limits']['price']['min'] == 0.0019) && (market['precision']['price'] == 5)``
+
+In the second example the **price** of any order placed on the market **must satisfy both conditions**:
+
+-  The *price value* should be >= 0.019:
+
+   .. code:: diff
+
+       + good: 0.019, ... 0.0191, ... 0.01911, 0.01912, ...
+       - bad: 0.016, ..., 0.01699
+
+-  *Precision of price* should be 5 decimal digits or less:
+
+   .. code:: diff
+
+       + good: 0.02, 0.021, 0.0212, 0.02123, 0.02124, 0.02125, ...
+       - bad: 0.017000, 0.017001, ...
+
+3. ``(market['limits']['amount']['min'] == 50) && (market['precision']['amount'] == -1)``
+
+-  The *amount value* should be greater than 50:
+
+   .. code:: diff
+
+       + good: 50, 60, 70, 80, 90, 100, ... 2000, ...
+       - bad: 1, 2, 3, ..., 9
+
+-  A negative *amount precision* means that the amount should be an integer multiple of 10:
+
+   .. code:: diff
+
+       + good: 50, ..., 110, ... 1230, ..., 1000000, ..., 1234560, ...
+       - bad: 9.5, ... 10.1, ..., 11, ... 200.71, ...
 
 *The ``precision`` and ``limits`` params are currently under heavy development, some of these fields may be missing here and there until the unification process is complete. This does not influence most of the orders but can be significant in extreme cases of very large or very small orders. The ``active`` flag is not yet supported and/or implemented by all markets.*
 
