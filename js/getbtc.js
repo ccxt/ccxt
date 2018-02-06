@@ -7,7 +7,6 @@ const _1btcxe = require ('./_1btcxe.js');
 // ---------------------------------------------------------------------------
 
 module.exports = class getbtc extends _1btcxe {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'getbtc',
@@ -36,4 +35,4 @@ module.exports = class getbtc extends _1btcxe {
             { 'id': 'USD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'precision': { 'amount': 8, 'price': 8 }, 'lot': 0.00000001, 'limits': { 'amount': { 'min': 0.00000001, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }}},
         ];
     }
-}
+};
