@@ -5,32 +5,34 @@
 const functions = require ('./functions')
     , Market    = require ('./Market')
 
-const { isNode
-      , keys
-      , values
-      , deepExtend
-      , extend
-      , flatten
-      , indexBy
-      , sortBy
-      , groupBy
-      , aggregate
-      , uuid
-      , unCamelCase
-      , precisionFromString
-      , throttle
-      , capitalize
-      , now
-      , sleep
-      , timeout
-      , TimedOut } = functions
+const {
+    isNode
+    , keys
+    , values
+    , deepExtend
+    , extend
+    , flatten
+    , indexBy
+    , sortBy
+    , groupBy
+    , aggregate
+    , uuid
+    , unCamelCase
+    , precisionFromString
+    , throttle
+    , capitalize
+    , now
+    , sleep
+    , timeout
+    , TimedOut } = functions
 
-const { ExchangeError
-      , NotSupported
-      , AuthenticationError
-      , DDoSProtection
-      , RequestTimeout
-      , ExchangeNotAvailable } = require ('./errors')
+const {
+    ExchangeError
+    , NotSupported
+    , AuthenticationError
+    , DDoSProtection
+    , RequestTimeout
+    , ExchangeNotAvailable } = require ('./errors')
 
 const defaultFetch = isNode ? require ('fetch-ponyfill') ().fetch : fetch
 
@@ -618,9 +620,11 @@ module.exports = class Exchange {
     extractParams (string) {
         let re = /{([\w-]+)}/g
         let matches = []
-        let match
-        while (match = re.exec (string))
+        let match = re.exect (string)
+        while (match) {
             matches.push (match[1])
+            match = re.exec (string)
+        }
         return matches
     }
 
