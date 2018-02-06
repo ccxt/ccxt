@@ -82,6 +82,7 @@ module.exports = class Exchange {
                 'fetchOpenOrders': false,
                 'fetchOrder': false,
                 'fetchOrderBook': true,
+                'fetchOrderBooks': false,
                 'fetchOrders': false,
                 'fetchTicker': true,
                 'fetchTickers': false,
@@ -231,7 +232,7 @@ module.exports = class Exchange {
     nonce () {
         return this.seconds ()
     }
-    
+
     milliseconds () {
         return now ()
     }
