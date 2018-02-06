@@ -455,7 +455,7 @@ Each market is an associative array (aka dictionary) with the following keys:
 
 ### Precision And Limits
 
-**Do not confuse `limits` with `precision`!. Precision has NOTHING TO DO with min limits. A precision of 8 digits does not necessarily mean a min limit of 0.0000001! The opposite is also true: a min limit of 0.0001 does not necessarily mean a precision of 4!**.
+**Do not confuse `limits` with `precision`!** Precision has nothing to do with min limits. A precision of 8 digits does not necessarily mean a min limit of 0.0000001. The opposite is also true: a min limit of 0.0001 does not necessarily mean a precision of 4.
 
 Examples:
 
