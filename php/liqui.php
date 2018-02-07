@@ -538,12 +538,17 @@ class liqui extends Exchange {
             } else {
                 $order = $this->orders[$id];
                 if ($order['status'] === 'open') {
-                    $this->orders[$id] = array_merge ($order, array (
+                    $order = array_merge ($order, array (
                         'status' => 'closed',
-                        'cost' => $order['amount'] * $order['price'],
+                        'cost' => null,
                         'filled' => $order['amount'],
                         'remaining' => 0.0,
                     ));
+                    if ($order['cost'] == null) {
+                        if ($order['filled'] != null)
+                            $order['cost'] = $order['filled'] * $order['price'];
+                    }
+                    $this->orders[$id] = $order;
                 }
             }
             $order = $this->orders[$id];

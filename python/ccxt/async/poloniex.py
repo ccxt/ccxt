@@ -527,12 +527,16 @@ class poloniex (Exchange):
             else:
                 order = self.orders[id]
                 if order['status'] == 'open':
-                    self.orders[id] = self.extend(order, {
+                    order = self.extend(order, {
                         'status': 'closed',
-                        'cost': order['amount'] * order['price'],
+                        'cost': None,
                         'filled': order['amount'],
                         'remaining': 0.0,
                     })
+                    if order['cost'] is None:
+                        if order['filled'] is not None:
+                            order['cost'] = order['filled'] * order['price']
+                    self.orders[id] = order
             order = self.orders[id]
             if market:
                 if order['symbol'] == symbol:
