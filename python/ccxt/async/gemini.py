@@ -65,6 +65,11 @@ class gemini (Exchange):
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'taker': 0.0025,
+                },
+            },
         })
 
     async def fetch_markets(self):
@@ -83,7 +88,6 @@ class gemini (Exchange):
                 'base': base,
                 'quote': quote,
                 'info': market,
-                'taker': 0.0025,
             })
         return result
 

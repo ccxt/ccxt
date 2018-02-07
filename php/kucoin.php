@@ -183,7 +183,7 @@ class kucoin extends Exchange {
                 'price' => 8,
             );
             $active = $market['trading'];
-            $result[] = array_merge ($this->fees['trading'], array (
+            $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
@@ -202,7 +202,7 @@ class kucoin extends Exchange {
                         'max' => null,
                     ),
                 ),
-            ));
+            );
         }
         return $result;
     }

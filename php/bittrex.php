@@ -162,7 +162,7 @@ class bittrex extends Exchange {
                 'price' => 8,
             );
             $active = $market['IsActive'];
-            $result[] = array_merge ($this->fees['trading'], array (
+            $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
@@ -183,7 +183,7 @@ class bittrex extends Exchange {
                         'max' => null,
                     ),
                 ),
-            ));
+            );
         }
         return $result;
     }

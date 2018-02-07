@@ -170,7 +170,7 @@ class liqui (Exchange):
             }
             hidden = self.safe_integer(market, 'hidden')
             active = (hidden == 0)
-            result.append(self.extend(self.fees['trading'], {
+            result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -181,7 +181,7 @@ class liqui (Exchange):
                 'precision': precision,
                 'limits': limits,
                 'info': market,
-            }))
+            })
         return result
 
     def fetch_balance(self, params={}):

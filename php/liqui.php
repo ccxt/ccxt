@@ -159,7 +159,7 @@ class liqui extends Exchange {
             );
             $hidden = $this->safe_integer($market, 'hidden');
             $active = ($hidden === 0);
-            $result[] = array_merge ($this->fees['trading'], array (
+            $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
@@ -170,7 +170,7 @@ class liqui extends Exchange {
                 'precision' => $precision,
                 'limits' => $limits,
                 'info' => $market,
-            ));
+            );
         }
         return $result;
     }

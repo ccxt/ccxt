@@ -26,11 +26,9 @@ class getbtc (_1btcxe):
                     'maker': 0.20 / 100,
                 },
             },
+            'markets': {
+                'BTC/USD': {'lot': 1e-08, 'symbol': 'BTC/USD', 'quote': 'USD', 'base': 'BTC', 'precision': {'amount': 8, 'price': 8}, 'id': 'USD', 'limits': {'amount': {'max': None, 'min': 1e-08}, 'price': {'max': 'None', 'min': 1e-08}}},
+                'BTC/EUR': {'lot': 1e-08, 'symbol': 'BTC/EUR', 'quote': 'EUR', 'base': 'BTC', 'precision': {'amount': 8, 'price': 8}, 'id': 'EUR', 'limits': {'amount': {'max': None, 'min': 1e-08}, 'price': {'max': 'None', 'min': 1e-08}}},
+                'BTC/RUB': {'lot': 1e-08, 'symbol': 'BTC/RUB', 'quote': 'RUB', 'base': 'BTC', 'precision': {'amount': 8, 'price': 8}, 'id': 'RUB', 'limits': {'amount': {'max': None, 'min': 1e-08}, 'price': {'max': 'None', 'min': 1e-08}}},
+            },
         })
-
-    async def fetch_markets(self):
-        return [
-            {'id': 'EUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'precision': {'amount': 8, 'price': 8}, 'lot': 0.00000001, 'limits': {'amount': {'min': 0.00000001, 'max': None}, 'price': {'min': 0.00000001, 'max': None}}},
-            {'id': 'RUB', 'symbol': 'BTC/RUB', 'base': 'BTC', 'quote': 'RUB', 'precision': {'amount': 8, 'price': 8}, 'lot': 0.00000001, 'limits': {'amount': {'min': 0.00000001, 'max': None}, 'price': {'min': 0.00000001, 'max': None}}},
-            {'id': 'USD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'precision': {'amount': 8, 'price': 8}, 'lot': 0.00000001, 'limits': {'amount': {'min': 0.00000001, 'max': None}, 'price': {'min': 0.00000001, 'max': None}}},
-        ]

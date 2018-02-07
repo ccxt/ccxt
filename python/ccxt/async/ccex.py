@@ -93,13 +93,13 @@ class ccex (Exchange):
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
-            result.append(self.extend(self.fees['trading'], {
+            result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'info': market,
-            }))
+            })
         return result
 
     async def fetch_balance(self, params={}):

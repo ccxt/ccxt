@@ -355,7 +355,7 @@ class binance (Exchange):
             active = (market['status'] == 'TRADING')
             # lot size is deprecated as of 2018.02.06
             lot = -1 * math.log10(precision['amount'])
-            entry = self.extend(self.fees['trading'], {
+            entry = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -380,7 +380,7 @@ class binance (Exchange):
                         'max': None,
                     },
                 },
-            })
+            }
             if 'PRICE_FILTER' in filters:
                 filter = filters['PRICE_FILTER']
                 entry['precision']['price'] = self.precision_from_string(filter['tickSize'])

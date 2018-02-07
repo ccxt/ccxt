@@ -193,7 +193,7 @@ class kucoin (Exchange):
                 'price': 8,
             }
             active = market['trading']
-            result.append(self.extend(self.fees['trading'], {
+            result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -212,7 +212,7 @@ class kucoin (Exchange):
                         'max': None,
                     },
                 },
-            }))
+            })
         return result
 
     def fetch_currencies(self, params={}):

@@ -92,13 +92,13 @@ class ccex extends Exchange {
             $base = $this->common_currency_code($base);
             $quote = $this->common_currency_code($quote);
             $symbol = $base . '/' . $quote;
-            $result[] = array_merge ($this->fees['trading'], array (
+            $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
                 'info' => $market,
-            ));
+            );
         }
         return $result;
     }

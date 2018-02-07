@@ -153,7 +153,7 @@ class gdax (Exchange):
                 'amount': 8,
                 'price': self.precision_from_string(self.safe_string(market, 'quote_increment')),
             }
-            taker = self.fees['trading']['taker']
+            taker = self.fees['trading']['taker']  # does not seem right
             if (base == 'ETH') or (base == 'LTC'):
                 taker = 0.003
             active = market['status'] == 'online'

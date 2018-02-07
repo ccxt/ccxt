@@ -146,7 +146,7 @@ class lykke (Exchange):
                 'amount': market['Accuracy'],
                 'price': market['InvertedAccuracy'],
             }
-            result.append(self.extend(self.fees['trading'], {
+            result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -165,7 +165,7 @@ class lykke (Exchange):
                         'max': math.pow(10, precision['price']),
                     },
                 },
-            }))
+            })
         return result
 
     def parse_ticker(self, ticker, market=None):

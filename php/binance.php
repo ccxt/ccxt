@@ -343,7 +343,7 @@ class binance extends Exchange {
             $active = ($market['status'] === 'TRADING');
             // $lot size is deprecated as of 2018.02.06
             $lot = -1 * log10 ($precision['amount']);
-            $entry = array_merge ($this->fees['trading'], array (
+            $entry = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
@@ -368,7 +368,7 @@ class binance extends Exchange {
                         'max' => null,
                     ),
                 ),
-            ));
+            );
             if (is_array ($filters) && array_key_exists ('PRICE_FILTER', $filters)) {
                 $filter = $filters['PRICE_FILTER'];
                 $entry['precision']['price'] = $this->precision_from_string($filter['tickSize']);

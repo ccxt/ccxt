@@ -99,7 +99,7 @@ class bibox extends Exchange {
                 'amount' => 8,
                 'price' => 8,
             );
-            $result[] = array_merge ($this->fees['trading'], array (
+            $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
@@ -118,7 +118,7 @@ class bibox extends Exchange {
                         'max' => null,
                     ),
                 ),
-            ));
+            );
         }
         return $result;
     }
