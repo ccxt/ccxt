@@ -186,19 +186,20 @@ module.exports = class cryptopia extends Exchange {
             ids = this.marketIds (symbols);
             ids = ids.join ('-');
         }
-        let response = await this.publicGetMarketOrderGroupsIds (this.extend ({
+        let response = await this.publicGetGetMarketOrderGroupsIds (this.extend ({
             'ids': ids,
         }, params));
+        let orderbooks = response['Data'];
         let result = {};
-        for (let i = 0; i < response.length; i++) {
-            let orderbook = response[i];
-            let id = orderbook['Market'];
+        for (let i = 0; i < orderbooks.length; i++) {
+            let orderbook = orderbooks[i];
+            let id = this.safeString (orderbook, 'TradePairId');
             let symbol = id;
             if (id in this.marketsById) {
                 let market = this.marketsById[id];
                 symbol = market['symbol'];
             }
-            result[symbol] = this.parseOrderBook (response[id], undefined, 'Buy', 'Sell', 'Price', 'Volume');
+            result[symbol] = this.parseOrderBook (orderbook, undefined, 'Buy', 'Sell', 'Price', 'Volume');
         }
         return result;
     }
