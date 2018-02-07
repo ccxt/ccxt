@@ -167,7 +167,9 @@ class bitstamp (Exchange):
                 'amount': market['base_decimals'],
                 'price': market['counter_decimals'],
             }
-            cost, currency = market['minimum_order'].split(' ')
+            parts = market['minimum_order'].split(' ')
+            cost = parts[0]
+            # cost, currency = market['minimum_order'].split(' ')
             active = (market['trading'] == 'Enabled')
             lot = math.pow(10, -precision['amount'])
             result.append({

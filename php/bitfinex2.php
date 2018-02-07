@@ -276,7 +276,10 @@ class bitfinex2 extends bitfinex {
         $result = array ( 'info' => $response );
         for ($b = 0; $b < count ($response); $b++) {
             $balance = $response[$b];
-            list ($accountType, $currency, $total, $interest, $available) = $balance;
+            $accountType = $balance[0];
+            $currency = $balance[1];
+            $total = $balance[2];
+            $available = $balance[4];
             if ($accountType === $balanceType) {
                 if ($currency[0] === 't')
                     $currency = mb_substr ($currency, 1);

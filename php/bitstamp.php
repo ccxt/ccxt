@@ -156,7 +156,9 @@ class bitstamp extends Exchange {
                 'amount' => $market['base_decimals'],
                 'price' => $market['counter_decimals'],
             );
-            list ($cost, $currency) = explode (' ', $market['minimum_order']);
+            $parts = explode (' ', $market['minimum_order']);
+            $cost = $parts[0];
+            // list ($cost, $currency) = explode (' ', $market['minimum_order']);
             $active = ($market['trading'] === 'Enabled');
             $lot = pow (10, -$precision['amount']);
             $result[] = array (
