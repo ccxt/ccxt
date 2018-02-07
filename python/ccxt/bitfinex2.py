@@ -279,7 +279,10 @@ class bitfinex2 (bitfinex):
         result = {'info': response}
         for b in range(0, len(response)):
             balance = response[b]
-            accountType, currency, total, interest, available = balance
+            accountType = balance[0]
+            currency = balance[1]
+            total = balance[2]
+            available = balance[4]
             if accountType == balanceType:
                 if currency[0] == 't':
                     currency = currency[1:]
