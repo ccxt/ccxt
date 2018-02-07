@@ -131,7 +131,7 @@ module.exports = class coinnest extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = trade['date'] * 1000;
+        let timestamp = parseInt (trade['date']) * 1000;
         let price = parseFloat (trade['price']);
         let amount = parseFloat (trade['amount']);
         let symbol = market['symbol'];
