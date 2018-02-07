@@ -2004,7 +2004,7 @@ Below is an outline of exception inheritance hierarchy:
         |
         +---+ DDoSProtection
         |
-        +---+ TimeoutError
+        +---+ RequestTimeout
         |
         +---+ ExchangeNotAvailable
 
