@@ -88,8 +88,8 @@ class bl3p (Exchange):
 
     def parse_bid_ask(self, bidask, priceKey=0, amountKey=0):
         return [
-            bidask['price_int'] / 100000.0,
-            bidask['amount_int'] / 100000000.0,
+            bidask[priceKey] / 100000.0,
+            bidask[amountKey] / 100000000.0,
         ]
 
     def fetch_order_book(self, symbol, limit=None, params={}):
@@ -98,7 +98,7 @@ class bl3p (Exchange):
             'market': market['id'],
         }, params))
         orderbook = response['data']
-        return self.parse_order_book(orderbook)
+        return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price_int', 'amount_int')
 
     def fetch_ticker(self, symbol, params={}):
         ticker = self.publicGetMarketTicker(self.extend({
