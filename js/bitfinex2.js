@@ -277,7 +277,10 @@ module.exports = class bitfinex2 extends bitfinex {
         let result = { 'info': response };
         for (let b = 0; b < response.length; b++) {
             let balance = response[b];
-            let [ accountType, currency, total, interest, available ] = balance;
+            let accountType = balance[0];
+            let currency = balance[1];
+            let total = balance[2];
+            let available = balance[4];
             if (accountType === balanceType) {
                 if (currency[0] === 't')
                     currency = currency.slice (1);
