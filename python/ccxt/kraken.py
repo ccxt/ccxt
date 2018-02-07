@@ -531,6 +531,7 @@ class kraken (Exchange):
             type = 'limit' if (trade[4] == 'l') else 'market'
             price = float(trade[0])
             amount = float(trade[1])
+            id = trade[6]  # artificially added as per  #1794
         symbol = market['symbol'] if (market) else None
         return {
             'id': id,
@@ -553,7 +554,16 @@ class kraken (Exchange):
         response = self.publicGetTrades(self.extend({
             'pair': id,
         }, params))
-        trades = response['result'][id]
+        # {result: {marketid: [...trades]}, last: "last_trade_id"}
+        result = response['result']
+        trades = result[id]
+        # trades is a sorted array: last(most recent trade) goes last
+        length = len(trades)
+        if length <= 0:
+            return []
+        lastTrade = trades[length - 1]
+        lastTradeId = self.safe_string(result, 'last')
+        lastTrade.append(lastTradeId)
         return self.parse_trades(trades, market, since, limit)
 
     def fetch_balance(self, params={}):

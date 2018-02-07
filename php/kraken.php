@@ -539,6 +539,7 @@ class kraken extends Exchange {
             $type = ($trade[4] === 'l') ? 'limit' : 'market';
             $price = floatval ($trade[0]);
             $amount = floatval ($trade[1]);
+            $id = $trade[6]; // artificially added as per #1794
         }
         $symbol = ($market) ? $market['symbol'] : null;
         return array (
@@ -563,7 +564,16 @@ class kraken extends Exchange {
         $response = $this->publicGetTrades (array_merge (array (
             'pair' => $id,
         ), $params));
-        $trades = $response['result'][$id];
+        // array ( $result => {marketid => [...trades]), last => "last_trade_id"}
+        $result = $response['result'];
+        $trades = $result[$id];
+        // $trades is a sorted array => last (most recent trade) goes last
+        $length = is_array ($trades) ? count ($trades) : 0;
+        if ($length <= 0)
+            return array ();
+        $lastTrade = $trades[$length - 1];
+        $lastTradeId = $this->safe_string($result, 'last');
+        $lastTrade[] = $lastTradeId;
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
