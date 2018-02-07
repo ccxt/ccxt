@@ -17,6 +17,7 @@ module.exports = class ccex extends Exchange {
             'has': {
                 'CORS': false,
                 'fetchTickers': true,
+                'fetchOrderBooks': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766433-16881f90-5ed8-11e7-92f8-3d92cc747a6c.jpg',
@@ -45,6 +46,7 @@ module.exports = class ccex extends Exchange {
                         'markets',
                         'marketsummaries',
                         'orderbook',
+                        'fullorderbook',
                     ],
                 },
                 'private': {
@@ -134,6 +136,45 @@ module.exports = class ccex extends Exchange {
         return this.parseOrderBook (orderbook, undefined, 'buy', 'sell', 'Rate', 'Quantity');
     }
 
+    async fetchOrderBooks (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        let orderbooks = {};
+        let response = await this.publicGetFullorderbook ();
+        let types = Object.keys (response['result']);
+        for (let i = 0; i < types.length; i++) {
+            let type = types[i];
+            let bidasks = response['result'][type];
+            let bidasksByMarketId = this.groupBy (bidasks, 'Market');
+            let marketIds = Object.keys (bidasksByMarketId);
+            for (let j = 0; j < marketIds.length; j++) {
+                let marketId = marketIds[j];
+                let symbol = marketId.toUpperCase ();
+                let side = type;
+                if (symbol in this.markets_by_id) {
+                    let market = this.markets_by_id[symbol];
+                    symbol = market['symbol'];
+                } else {
+                    let [ base, quote ] = symbol.split ('-');
+                    let invertedId = quote + '-' + base;
+                    if (invertedId in this.markets_by_id) {
+                        let market = this.markets_by_id[invertedId];
+                        symbol = market['symbol'];
+                    }
+                }
+                if (!(symbol in orderbooks))
+                    orderbooks[symbol] = {};
+                orderbooks[symbol][side] = bidasksByMarketId[marketId];
+            }
+        }
+        let result = {};
+        let keys = Object.keys (orderbooks);
+        for (let k = 0; k < keys.length; k++) {
+            let key = keys[k];
+            result[key] = this.parseOrderBook (orderbooks[key], undefined, 'buy', 'sell', 'Rate', 'Quantity');
+        }
+        return result;
+    }
+
     parseTicker (ticker, market = undefined) {
         let timestamp = ticker['updated'] * 1000;
         let symbol = undefined;
@@ -199,7 +240,7 @@ module.exports = class ccex extends Exchange {
     parseTrade (trade, market) {
         let timestamp = this.parse8601 (trade['TimeStamp']);
         return {
-            'id': trade['Id'],
+            'id': trade['Id'].toString (),
             'info': trade,
             'order': undefined,
             'timestamp': timestamp,

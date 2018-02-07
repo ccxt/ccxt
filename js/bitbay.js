@@ -300,6 +300,23 @@ module.exports = class bitbay extends Exchange {
                 //      { 'code': 502, 'message': 'Invalid sign' }
                 //      { 'code': 0, 'message': 'offer funds not exceeding minimums' }
                 //
+                //      400 At least one parameter wasn't set
+                //      401 Invalid order type
+                //      402 No orders with specified currencies
+                //      403 Invalid payment currency name
+                //      404 Error. Wrong transaction type
+                //      405 Order with this id doesn't exist
+                //      406 No enough money or crypto
+                //      408 Invalid currency name
+                //      501 Invalid public key
+                //      502 Invalid sign
+                //      503 Invalid moment parameter. Request time doesn't match current server time
+                //      504 Invalid method
+                //      505 Key has no permission for this action
+                //      506 Account locked. Please contact with customer service
+                //      509 The BIC/SWIFT is required for this currency
+                //      510 Invalid market name
+                //
                 let code = response['code']; // always an integer
                 const feedback = this.id + ' ' + this.json (response);
                 const exceptions = this.exceptions;

@@ -22,6 +22,7 @@ module.exports = class cryptopia extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchMyTrades': true,
                 'fetchOrder': 'emulated',
+                'fetchOrderBooks': true,
                 'fetchOrders': 'emulated',
                 'fetchOpenOrders': true,
                 'fetchTickers': true,
@@ -53,6 +54,7 @@ module.exports = class cryptopia extends Exchange {
                         'GetMarketHistory/{id}/{hours}',
                         'GetMarketOrders/{id}',
                         'GetMarketOrders/{id}/{count}',
+                        'GetMarketOrderGroups/{ids}',
                         'GetMarketOrderGroups/{ids}/{count}',
                     ],
                 },
@@ -168,6 +170,38 @@ module.exports = class cryptopia extends Exchange {
         }, params));
         let orderbook = response['Data'];
         return this.parseOrderBook (orderbook, undefined, 'Buy', 'Sell', 'Price', 'Volume');
+    }
+
+    async fetchOrderBooks (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        let ids = undefined;
+        if (!symbols) {
+            ids = this.ids.join ('-');
+            // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
+            if (ids.length > 2048) {
+                let numIds = this.ids.length;
+                throw new ExchangeError (this.id + ' has ' + numIds.toString () + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks');
+            }
+        } else {
+            ids = this.marketIds (symbols);
+            ids = ids.join ('-');
+        }
+        let response = await this.publicGetGetMarketOrderGroupsIds (this.extend ({
+            'ids': ids,
+        }, params));
+        let orderbooks = response['Data'];
+        let result = {};
+        for (let i = 0; i < orderbooks.length; i++) {
+            let orderbook = orderbooks[i];
+            let id = this.safeString (orderbook, 'TradePairId');
+            let symbol = id;
+            if (id in this.marketsById) {
+                let market = this.marketsById[id];
+                symbol = market['symbol'];
+            }
+            result[symbol] = this.parseOrderBook (orderbook, undefined, 'Buy', 'Sell', 'Price', 'Volume');
+        }
+        return result;
     }
 
     parseTicker (ticker, market = undefined) {
