@@ -1231,7 +1231,7 @@ To get the individual ticker data from an exchange for each particular trading p
 All At Once
 ~~~~~~~~~~~
 
-Some markets (not all of them) also support fetching all tickers at once. See `their docs <https://github.com/ccxt/ccxt/wiki/Manual#exchanges>`__ for details. You can fetch all tickers with a single call like so:
+Some exchanges (not all of them) also support fetching all tickers at once. See `their docs <https://github.com/ccxt/ccxt/wiki/Manual#exchanges>`__ for details. You can fetch all tickers with a single call like so:
 
 .. code:: javascript
 
