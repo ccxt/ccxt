@@ -671,10 +671,18 @@ module.exports = class kucoin extends Exchange {
     }
 
     throwExceptionOnError (response) {
-        // { success: false, code: "ERROR", msg: "Min price:100.0" }
-        // { success: true,  code: "OK",    msg: "Operation succeeded." }
+        //
+        // API endpoints return the following formats
+        //     { success: false, code: "ERROR", msg: "Min price:100.0" }
+        //     { success: true,  code: "OK",    msg: "Operation succeeded." }
+        //
+        // Web OHLCV endpoint returns this:
+        //     { s: "ok", o: [], h: [], l: [], c: [], v: [] }
+        //
+        // This particular method handles API responses only
+        //
         if (!('success' in response))
-            throw new ExchangeError (this.id + ': malformed response: ' + this.json (response));
+            return;
         if (response['success'] === true)
             return; // not an error
         if (!('code' in response) || !('msg' in response))
