@@ -253,9 +253,9 @@ class bitfinex extends Exchange {
         return (is_array ($currencies) && array_key_exists ($currency, $currencies)) ? $currencies[$currency] : $currency;
     }
 
-    public function fetch_funding_fees () {
+    public function fetch_funding_fees ($params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostAccountFees ();
+        $response = $this->privatePostAccountFees ($params);
         $fees = $response['withdraw'];
         $withdraw = array ();
         $ids = is_array ($fees) ? array_keys ($fees) : array ();
@@ -275,9 +275,9 @@ class bitfinex extends Exchange {
         );
     }
 
-    public function fetch_trading_fees () {
+    public function fetch_trading_fees ($params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostSummary ();
+        $response = $this->privatePostSummary ($params);
         return array (
             'info' => $response,
             'maker' => $this->safe_float($response, 'maker_fee'),

@@ -61,26 +61,26 @@ class kraken extends Exchange {
                     'maker' => 0.16 / 100,
                     'tiers' => array (
                         'taker' => [
-                            [0, 0.26 / 100],
-                            [50000, 0.24 / 100],
-                            [100000, 0.22 / 100],
-                            [250000, 0.2 / 100],
-                            [500000, 0.18 / 100],
-                            [1000000, 0.16 / 100],
-                            [2500000, 0.14 / 100],
-                            [5000000, 0.12 / 100],
-                            [10000000, 0.1 / 100],
+                            [0, 0.0026],
+                            [50000, 0.0024],
+                            [100000, 0.0022],
+                            [250000, 0.0020],
+                            [500000, 0.0018],
+                            [1000000, 0.0016],
+                            [2500000, 0.0014],
+                            [5000000, 0.0012],
+                            [10000000, 0.0001],
                         ],
                         'maker' => [
-                            [0, 0.16 / 100],
-                            [50000, 0.14 / 100],
-                            [100000, 0.12 / 100],
-                            [250000, 0.10 / 100],
-                            [500000, 0.8 / 100],
-                            [1000000, 0.6 / 100],
-                            [2500000, 0.4 / 100],
-                            [5000000, 0.2 / 100],
-                            [10000000, 0.0 / 100],
+                            [0, 0.0016],
+                            [50000, 0.0014],
+                            [100000, 0.0012],
+                            [250000, 0.0010],
+                            [500000, 0.0008],
+                            [1000000, 0.0006],
+                            [2500000, 0.0004],
+                            [5000000, 0.0002],
+                            [10000000, 0.0],
                         ],
                     ),
                 ),
@@ -369,6 +369,29 @@ class kraken extends Exchange {
             );
         }
         return $result;
+    }
+
+    public function fetch_trading_fees ($params = array ()) {
+        $this->load_markets();
+        $this->check_required_credentials();
+        $response = $this->privatePostTradeVolume ($params);
+        $tradedVolume = $this->safe_float($response['result'], 'volume');
+        $tiers = $this->fees['trading']['tiers'];
+        $taker = $tiers['taker'][1];
+        $maker = $tiers['maker'][1];
+        for ($i = 0; $i < count ($tiers['taker']); $i++) {
+            if ($tradedVolume >= $tiers['taker'][$i][0])
+                $taker = $tiers['taker'][$i][1];
+        }
+        for ($i = 0; $i < count ($tiers['maker']); $i++) {
+            if ($tradedVolume >= $tiers['maker'][$i][0])
+                $maker = $tiers['maker'][$i][1];
+        }
+        return array (
+            'info' => $response,
+            'maker' => $maker,
+            'taker' => $taker,
+        );
     }
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
