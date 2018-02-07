@@ -218,53 +218,35 @@ module.exports = class liqui extends Exchange {
         return result;
     }
 
-    async fetchOrderBooks (symbols, params = {}) {
+    async fetchOrderBooks (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        // let requestSymbols = [];
-        let orderBooksResult = [];
-        //     // TODO: rework the implementation below for portability
-        //     if (!symbols) {
-        //         symbols = this.symbols;
-        //     }
-        //     for (let i = 0; i < symbols.length; i++) {
-        //         requestSymbols.push (symbols[i]);
-        //         let maxRequestSymbolsReached = (i % 200 === 0 && i > 0);
-        //         let endReached = (i === symbols.length - 1);
-        //         if (maxRequestSymbolsReached || endReached) {
-        //             let fetchPairString = this.parseSymbolOrderBooksString (requestSymbols);
-        //             try {
-        //                 let response = await this.publicGetDepthPair (this.extend ({
-        //                     'pair': fetchPairString,
-        //                 }, params));
-        //                 if (response) {
-        //                     // the next line is not portable
-        //                     let orderBooks = Object.values (response);
-        //                     let keys = Object.keys (response);
-        //                     for (let j = 0; j < orderBooks.length; j++) {
-        //                         let key = keys[j];
-        //                         let orderbook = this.parseOrderBook (orderBooks[j], undefined, 'bids', 'asks');
-        //                         orderBooksResult.push (this.extend (orderbook, {
-        //                             'symbol': key.toUpperCase ().replace ('_', '/'),
-        //                         }));
-        //                     }
-        //                 }
-        //             } catch (e) {
-        //                 throw new ExchangeError ('fetchOrderBooks() returned error:' + e.message + ' for pair string: ' + fetchPairString);
-        //             }
-        //             requestSymbols = [];
-        //         }
-        //     }
-        return orderBooksResult;
-    }
-
-    parseSymbolOrderBooksString (symbols) {
-        let symbolsResultList = [];
-        for (let i = 0; i < symbols.length; i++) {
-            let symbol = symbols[i].replace ('/', '_');
-            let lowercase = symbol.toLowerCase ();
-            symbolsResultList.push (lowercase);
+        let ids = undefined;
+        if (!symbols) {
+            ids = this.ids.join ('-');
+            // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
+            if (ids.length > 2048) {
+                let numIds = this.ids.length;
+                throw new ExchangeError (this.id + ' has ' + numIds.toString () + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks');
+            }
+        } else {
+            ids = this.marketIds (symbols);
+            ids = ids.join ('-');
         }
-        return symbolsResultList.join ('-');
+        let response = await this.publicGetDepthPair (this.extend ({
+            'pair': ids,
+        }, params));
+        let result = {};
+        ids = Object.keys (response);
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
+            let symbol = id;
+            if (id in this.marketsById) {
+                let market = this.marketsById[id];
+                symbol = market['symbol'];
+            }
+            result[symbol] = this.parseOrderBook (response[id]);
+        }
+        return result;
     }
 
     parseTicker (ticker, market = undefined) {
