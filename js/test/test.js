@@ -785,10 +785,10 @@ let loadExchange = async exchange => {
 
     let symbols = [
         'BTC/CNY',
-        'ETH/BTC',
         'BTC/USD',
         'BTC/EUR',
         'BTC/ETH',
+        'ETH/BTC',
         'BTC/JPY',
         'ETH/EUR',
         'ETH/JPY',
