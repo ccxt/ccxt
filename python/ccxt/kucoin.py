@@ -635,10 +635,18 @@ class kucoin (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def throw_exception_on_error(self, response):
-        # {success: False, code: "ERROR", msg: "Min price:100.0"}
-        # {success: True,  code: "OK",    msg: "Operation succeeded."}
+        #
+        # API endpoints return the following formats
+        #     {success: False, code: "ERROR", msg: "Min price:100.0"}
+        #     {success: True,  code: "OK",    msg: "Operation succeeded."}
+        #
+        # Web OHLCV endpoint returns self:
+        #     {s: "ok", o: [], h: [], l: [], c: [], v: []}
+        #
+        # This particular method handles API responses only
+        #
         if not('success' in list(response.keys())):
-            raise ExchangeError(self.id + ': malformed response: ' + self.json(response))
+            return
         if response['success'] is True:
             return  # not an error
         if not('code' in list(response.keys())) or not('msg' in list(response.keys())):
