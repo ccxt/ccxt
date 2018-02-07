@@ -67,8 +67,8 @@ module.exports = class independentreserve extends Exchange {
                     'maker': 0.5 / 100,
                     'percentage': true,
                     'tierBased': false,
-                }
-            }
+                },
+            },
         });
     }
 
