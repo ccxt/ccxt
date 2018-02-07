@@ -118,7 +118,7 @@ module.exports = class livecoin extends Exchange {
                 'min': Math.pow (10, -precision['price']),
                 'max': Math.pow (10, precision['price']),
             };
-            result.push (this.extend (this.fees['trading'], {
+            result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -126,7 +126,7 @@ module.exports = class livecoin extends Exchange {
                 'precision': precision,
                 'limits': limits,
                 'info': market,
-            }));
+            });
         }
         return result;
     }

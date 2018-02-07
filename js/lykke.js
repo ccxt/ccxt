@@ -150,7 +150,7 @@ module.exports = class lykke extends Exchange {
                 'amount': market['Accuracy'],
                 'price': market['InvertedAccuracy'],
             };
-            result.push (this.extend (this.fees['trading'], {
+            result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -169,7 +169,7 @@ module.exports = class lykke extends Exchange {
                         'max': Math.pow (10, precision['price']),
                     },
                 },
-            }));
+            });
         }
         return result;
     }
