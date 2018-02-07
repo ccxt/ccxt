@@ -141,7 +141,6 @@ module.exports = class ccex extends Exchange {
         let orderbooks = {};
         let response = await this.publicGetFullorderbook ();
         let types = Object.keys (response['result']);
-        const log = require ('ololog');
         for (let i = 0; i < types.length; i++) {
             let type = types[i];
             let bidasks = response['result'][type];
