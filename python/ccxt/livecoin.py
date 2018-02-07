@@ -124,7 +124,7 @@ class livecoin (Exchange):
                 'min': math.pow(10, -precision['price']),
                 'max': math.pow(10, precision['price']),
             }
-            result.append(self.extend(self.fees['trading'], {
+            result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -132,7 +132,7 @@ class livecoin (Exchange):
                 'precision': precision,
                 'limits': limits,
                 'info': market,
-            }))
+            })
         return result
 
     def fetch_currencies(self, params={}):

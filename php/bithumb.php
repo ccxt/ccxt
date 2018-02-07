@@ -77,7 +77,7 @@ class bithumb extends Exchange {
                 $base = $id;
                 $quote = 'KRW';
                 $symbol = $id . '/' . $quote;
-                $result[] = array_merge ($this->fees['trading'], array (
+                $result[] = array (
                     'id' => $id,
                     'symbol' => $symbol,
                     'base' => $base,
@@ -103,7 +103,7 @@ class bithumb extends Exchange {
                             'max' => null,
                         ),
                     ),
-                ));
+                );
             }
         }
         return $result;

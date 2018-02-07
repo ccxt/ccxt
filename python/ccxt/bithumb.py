@@ -80,7 +80,7 @@ class bithumb (Exchange):
                 base = id
                 quote = 'KRW'
                 symbol = id + '/' + quote
-                result.append(self.extend(self.fees['trading'], {
+                result.append({
                     'id': id,
                     'symbol': symbol,
                     'base': base,
@@ -106,7 +106,7 @@ class bithumb (Exchange):
                             'max': None,
                         },
                     },
-                }))
+                })
         return result
 
     def fetch_balance(self, params={}):

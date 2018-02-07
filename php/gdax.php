@@ -145,7 +145,7 @@ class gdax extends Exchange {
                 'amount' => 8,
                 'price' => $this->precision_from_string($this->safe_string($market, 'quote_increment')),
             );
-            $taker = $this->fees['trading']['taker'];
+            $taker = $this->fees['trading']['taker'];  // does not seem right
             if (($base === 'ETH') || ($base === 'LTC')) {
                 $taker = 0.003;
             }

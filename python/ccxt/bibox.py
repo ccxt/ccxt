@@ -104,7 +104,7 @@ class bibox (Exchange):
                 'amount': 8,
                 'price': 8,
             }
-            result.append(self.extend(self.fees['trading'], {
+            result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -123,7 +123,7 @@ class bibox (Exchange):
                         'max': None,
                     },
                 },
-            }))
+            })
         return result
 
     def parse_ticker(self, ticker, market=None):
