@@ -23,8 +23,8 @@ class cobinhood (Exchange):
             },
             'timeframes': {
                 # the first two don't seem to work at all
-                # '1m': '1m',
-                # '5m': '5m',
+                '1m': '1m',
+                '5m': '5m',
                 '15m': '15m',
                 '30m': '30m',
                 '1h': '1h',
@@ -300,20 +300,28 @@ class cobinhood (Exchange):
             float(ohlcv['volume']),
         ]
 
-    async def fetch_ohlcv(self, symbol, timeframe='15m', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        query = {
+        #
+        # they say in their docs that end_time defaults to current server time
+        # but if you don't specify it, their range limits does not allow you to query anything
+        #
+        # they also say that start_time defaults to 0,
+        # but most calls fail if you do not specify any of end_time
+        #
+        # to make things worse, their docs say it should be a Unix Timestamp
+        # but with seconds it fails, so we set milliseconds(somehow it works that way)
+        #
+        endTime = self.milliseconds()
+        request = {
             'trading_pair_id': market['id'],
             'timeframe': self.timeframes[timeframe],
-            # they say in their docs that end_time defaults to current server time
-            # but if you don't specify it, their range limits does not allow you to query anything
-            'end_time': self.milliseconds(),
+            'end_time': endTime,
         }
-        if since:
-            # in their docs they say that start_time defaults to 0, but, obviously it does not
-            query['start_time'] = since
-        response = await self.publicGetChartCandlesTradingPairId(self.extend(query, params))
+        if since is not None:
+            request['start_time'] = since
+        response = await self.publicGetChartCandlesTradingPairId(self.extend(request, params))
         ohlcv = response['result']['candles']
         return self.parse_ohlcvs(ohlcv, market, timeframe, since, limit)
 
