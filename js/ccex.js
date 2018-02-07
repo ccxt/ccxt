@@ -141,6 +141,7 @@ module.exports = class ccex extends Exchange {
         let orderbooks = {};
         let response = await this.publicGetFullorderbook ();
         let types = Object.keys (response['result']);
+        const log = require ('ololog');
         for (let i = 0; i < types.length; i++) {
             let type = types[i];
             let bidasks = response['result'][type];
@@ -156,19 +157,13 @@ module.exports = class ccex extends Exchange {
                 } else {
                     let [ base, quote ] = symbol.split ('-');
                     let invertedId = quote + '-' + base;
-                    if (invertedId in this.marketsById) {
-                        let market = this.marketsById[invertedId];
+                    if (invertedId in this.markets_by_id) {
+                        let market = this.markets_by_id[invertedId];
                         symbol = market['symbol'];
-                        side = (type === 'buy') ? 'sell' : 'buy';
                     }
                 }
-                if (!(symbol in orderbooks)) {
+                if (!(symbol in orderbooks))
                     orderbooks[symbol] = {};
-                }
-                //     if (side in orderbooks[symbol]) {
-                //         console.log ('DEBUG');
-                //         process.exit ();
-                //     }
                 orderbooks[symbol][side] = bidasksByMarketId[marketId];
             }
         }
