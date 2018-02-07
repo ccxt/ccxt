@@ -128,7 +128,11 @@ module.exports = class Exchange {
             'parseJsonResponse': true, // whether a reply is required to be in JSON or not
             'skipJsonOnStatusCodes': [], // array of http status codes which override requirement for JSON response
             'exceptions': undefined,
-            'parseBalanceFromOpenOrders': false, // some exchanges return balance updates from order API endpoints
+            // some exchanges report only 'free' on `fetchBlance` call (i.e. report no 'used' funds)
+            // in this case ccxt will try to infer 'used' funds from open order cache, which might be stale
+            // still, some exchanges report number of open orders together with balance
+            // if you set the following flag to 'true' ccxt will leave 'used' funds undefined in case of discrepancy
+            'dontGetUsedBalanceFromStaleCache': false,
         } // return
     } // describe ()
 
@@ -693,8 +697,11 @@ module.exports = class Exchange {
         currencies.forEach (currency => {
 
             if (typeof balance[currency].used === 'undefined') {
+                // exchange reports only 'free' balance -> try to derive 'used' funds from open orders cache
 
-                if (this.parseBalanceFromOpenOrders && ('open_orders' in balance['info'])) {
+                if (this.dontGetUsedBalanceFromStaleCache && ('open_orders' in balance['info'])) {
+                    // liqui exchange reports number of open orders with balance response
+                    // use it to validate the cache
                     const exchangeOrdersCount = balance['info']['open_orders'];
                     const cachedOrdersCount = Object.values (this.orders).filter (order => (order['status'] === 'open')).length;
                     if (cachedOrdersCount === exchangeOrdersCount) {
@@ -735,7 +742,7 @@ module.exports = class Exchange {
 
     filterBySinceLimit (array, since = undefined, limit = undefined) {
         if (typeof since !== 'undefined')
-            array = array.filter (entry => entry.timestamp > since)
+            array = array.filter (entry => entry.timestamp >= since)
         if (typeof limit !== 'undefined')
             array = array.slice (0, limit)
         return array

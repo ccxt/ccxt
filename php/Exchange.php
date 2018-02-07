@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.10.1026';
+$version = '1.10.1029';
 
 abstract class Exchange {
 
@@ -632,7 +632,7 @@ abstract class Exchange {
             foreach ($options as $key => $value)
                 $this->{$key} =
                     (property_exists ($this, $key) && is_array ($this->{$key}) && is_array ($value)) ?
-                        array_merge_recursive ($this->{$key}, $value) :
+                        array_replace_recursive ($this->{$key}, $value) :
                         $value;
 
         if ($this->api)
