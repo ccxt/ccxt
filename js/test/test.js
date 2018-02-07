@@ -387,7 +387,7 @@ let testSymbol = async (exchange, symbol) => {
 
         await testOrderBook   (exchange, symbol)
         await testL2OrderBook (exchange, symbol)
-        await testOrderBooks  (exchange)
+        // await testOrderBooks  (exchange)
     }
 }
 
