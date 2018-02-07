@@ -171,7 +171,7 @@ module.exports = class coinnest extends Exchange {
             let parts = key.split ('_');
             if (parts.length !== 2)
                 continue;
-            let type =  parts[1];
+            let type = parts[1];
             if (type !== 'reserved' && type !== 'balance')
                 continue;
             let currency = parts[0].toUpperCase ();
@@ -227,7 +227,7 @@ module.exports = class coinnest extends Exchange {
             'remaining': remaining,
             'trades': undefined,
             'fee': undefined,
-            'info': order,
+            'info': this.safeValue (order, 'info', order),
         };
     }
 
@@ -247,6 +247,7 @@ module.exports = class coinnest extends Exchange {
             'price': price,
             'amount_total': amount,
             'amount_over': amount,
+            'info': response,
         };
         let id = order['id'];
         this.orders[id] = this.parseOrder (order, market);
