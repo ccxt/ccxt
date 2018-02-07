@@ -157,7 +157,9 @@ module.exports = class bitstamp extends Exchange {
                 'amount': market['base_decimals'],
                 'price': market['counter_decimals'],
             };
-            let [ cost, currency ] = market['minimum_order'].split (' ');
+            let parts = market['minimum_order'].split (' ');
+            let cost = parts[0];
+            // let [ cost, currency ] = market['minimum_order'].split (' ');
             let active = (market['trading'] === 'Enabled');
             let lot = Math.pow (10, -precision['amount']);
             result.push ({
