@@ -236,7 +236,7 @@ class livecoin extends Exchange {
     }
 
     public function fetch_fees ($params = array ()) {
-        $tradingFees = $this->fetch_trading_fees ($params);
+        $tradingFees = $this->fetch_trading_fees($params);
         return array_merge ($tradingFees, array (
             'withdraw' => 0.0,
         ));

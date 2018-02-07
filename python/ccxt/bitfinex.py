@@ -33,7 +33,7 @@ class bitfinex (Exchange):
                 'deposit': True,
                 'fetchClosedOrders': True,
                 'fetchDepositAddress': True,
-                'fetchFundingFees': True,
+                'fetchFees': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,

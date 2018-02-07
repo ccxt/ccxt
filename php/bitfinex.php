@@ -21,7 +21,7 @@ class bitfinex extends Exchange {
                 'deposit' => true,
                 'fetchClosedOrders' => true,
                 'fetchDepositAddress' => true,
-                'fetchFundingFees' => true,
+                'fetchFees' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
@@ -290,15 +290,15 @@ class bitfinex extends Exchange {
         // // setting $fees on the exchange instance isn't portable, unfortunately...
         // // this should probably go into the base class as well
         // $funding = $this->fees['funding'];
-        // $fees = $this->fetch_funding_fees ();
+        // $fees = $this->fetch_funding_fees();
         // $funding = array_replace_recursive ($funding, $fees);
         // return $funding;
         throw new NotImplemented ($this->id . ' loadFees() not implemented yet');
     }
 
     public function fetch_fees () {
-        $fundingFees = $this->fetch_funding_fees ();
-        $tradingFees = $this->fetch_trading_fees ();
+        $fundingFees = $this->fetch_funding_fees();
+        $tradingFees = $this->fetch_trading_fees();
         return array_replace_recursive ($fundingFees, $tradingFees);
     }
 
