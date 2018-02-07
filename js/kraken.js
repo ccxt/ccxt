@@ -540,6 +540,7 @@ module.exports = class kraken extends Exchange {
             type = (trade[4] === 'l') ? 'limit' : 'market';
             price = parseFloat (trade[0]);
             amount = parseFloat (trade[1]);
+            id = trade[6]; // artificially added as per #1794
         }
         let symbol = (market) ? market['symbol'] : undefined;
         return {
@@ -564,7 +565,16 @@ module.exports = class kraken extends Exchange {
         let response = await this.publicGetTrades (this.extend ({
             'pair': id,
         }, params));
-        let trades = response['result'][id];
+        // { result: {marketid: [...trades]}, last: "last_trade_id"}
+        let result = response['result'];
+        let trades = result[id];
+        // trades is a sorted array: last (most recent trade) goes last
+        let length = trades.length;
+        if (length <= 0)
+            return [];
+        let lastTrade = trades[length - 1];
+        let lastTradeId = this.safeString (result, 'last');
+        lastTrade.push (lastTradeId);
         return this.parseTrades (trades, market, since, limit);
     }
 
