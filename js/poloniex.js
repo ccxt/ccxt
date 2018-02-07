@@ -560,15 +560,17 @@ module.exports = class poloniex extends Exchange {
             } else {
                 let order = this.orders[id];
                 if (order['status'] === 'open') {
-                    this.orders[id] = this.extend (order, {
+                    order = this.extend (order, {
                         'status': 'closed',
                         'cost': undefined,
                         'filled': order['amount'],
                         'remaining': 0.0,
                     });
-                    if (typeof order['amount'] !== 'undefined') {
-                        this.orders[id]['cost'] = order['amount'] * order['price'];
+                    if (typeof order['cost'] === 'undefined') {
+                        if (typeof order['filled'] !== 'undefined')
+                            order['cost'] = order['filled'] * order['price'];
                     }
+                    this.orders[id] = order;
                 }
             }
             let order = this.orders[id];
