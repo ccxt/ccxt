@@ -146,11 +146,16 @@ module.exports = class btcalpha extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let reponse = await this.publicGetOrderbookPairName (this.extend ({
+        let request = {
             'pair_name': this.marketId (symbol),
-        }, params));
+        };
+        if (limit) {
+            request['limit_sell'] = limit;
+            request['limit_buy'] = limit;
+        }
+        let reponse = await this.publicGetOrderbookPairName (this.extend (request, params));
         return this.parseOrderBook (reponse, undefined, 'buy', 'sell', 'price', 'amount');
     }
 
