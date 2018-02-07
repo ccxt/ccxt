@@ -327,15 +327,14 @@ module.exports = class cobinhood extends Exchange {
         // but with seconds it fails, so we set milliseconds (somehow it works that way)
         //
         let endTime = this.milliseconds ();
-        let query = {
+        let request = {
             'trading_pair_id': market['id'],
             'timeframe': this.timeframes[timeframe],
             'end_time': endTime,
         };
-        if (since) {
-            query['start_time'] = since;
-        }
-        let response = await this.publicGetChartCandlesTradingPairId (this.extend (query, params));
+        if (typeof since !== 'undefined')
+            request['start_time'] = since;
+        let response = await this.publicGetChartCandlesTradingPairId (this.extend (request, params));
         let ohlcv = response['result']['candles'];
         return this.parseOHLCVs (ohlcv, market, timeframe, since, limit);
     }
