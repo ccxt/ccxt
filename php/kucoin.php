@@ -460,6 +460,7 @@ class kucoin extends Exchange {
         }
         if (is_array ($params) && array_key_exists ('type', $params)) {
             $request['type'] = strtoupper ($params['type']);
+            $params = $this->omit ($params, 'type');
         }
         $response = $this->privatePostOrderCancelAll (array_merge ($request, $params));
         return $response;
@@ -476,6 +477,7 @@ class kucoin extends Exchange {
         );
         if (is_array ($params) && array_key_exists ('type', $params)) {
             $request['type'] = strtoupper ($params['type']);
+            $params = $this->omit ($params, 'type');
         } else {
             throw new ExchangeError ($this->id . ' cancelOrder requires parameter type=["BUY"|"SELL"]');
         }
