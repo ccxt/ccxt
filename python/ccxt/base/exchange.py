@@ -821,11 +821,16 @@ class Exchange(object):
     def set_markets(self, markets, currencies=None):
         values = list(markets.values()) if type(markets) is dict else markets
         for i in range(0, len(values)):
+            values[i]['fee_loaded'] = 'maker' in values[i] and 'taker' in values[i] and 'fee_loaded' not in values[i]
             values[i] = self.extend(
                 self.fees['trading'],
                 {'precision': self.precision, 'limits': self.limits},
                 values[i]
             )
+            if self.fees['trading']['fee_loaded']:
+                values[i] = self.deep_extend(values[i], self.fees['trading'])
+                # not sure whether to keep fetched_fee 'info' together with market 'info'
+
         self.markets = self.index_by(values, 'symbol')
         self.markets_by_id = self.index_by(values, 'id')
         self.marketsById = self.markets_by_id
@@ -861,7 +866,7 @@ class Exchange(object):
 
     def populate_fees(self):
         if not (hasattr(self, 'markets') or hasattr(self, 'currencies')):
-            return
+            raise ExchangeError(self.id + ' markets or currencies not loaded')
 
         for currency, data in self.currencies.items():  # try load withdrawal fees from currencies
             if 'fee' in data and data['fee'] is not None:
@@ -883,6 +888,9 @@ class Exchange(object):
             self.fees['trading']['fee_loaded'] = True
 
         self.fees = self.deep_extend(self.fees, fetched_fees)
+        populate_currencies = {currency: {'fee': value} for currency, value in self.fees['funding']['withdraw'].items()}
+        self.set_markets(self.markets, populate_currencies)
+
         return self.fees
 
     def fetch_markets(self):
