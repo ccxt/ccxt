@@ -156,7 +156,7 @@ module.exports = class coinnest extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let trades = await this.publicGetPubTrades (this.extend ({
-            'coin': market['id'],
+            'coin': market['baseId'],
         }, params));
         return this.parseTrades (trades, market, since, limit);
     }
@@ -235,7 +235,7 @@ module.exports = class coinnest extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.privatePostTradeAdd (this.extend ({
-            'coin': market['id'],
+            'coin': market['baseId'],
             'type': side,
             'number': amount,
             'price': price,
@@ -278,7 +278,7 @@ module.exports = class coinnest extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'coin': market['id'],
+            'coin': market['baseId'],
         };
         if (since)
             request['since'] = parseInt (since / 1000);
