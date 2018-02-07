@@ -381,12 +381,15 @@ module.exports = class bitstamp extends Exchange {
             status = 'closed';
         let amount = this.safeFloat (order, 'amount');
         let filled = 0;
-        let trades = this.safeValue (order, 'transactions');
-        if (typeof trades !== 'undefined')
-            trades = this.parseTrades (trades, market);
-        if (Array.isArray (trades)) {
-            for (let i = 0; i < trades.length; i++) {
-                filled += trades[i]['amount'];
+        let trades = [];
+        let transactions = this.safeValue (order, 'transactions');
+        if (typeof transactions !== 'undefined') {
+            if (Array.isArray (transactions)) {
+                for (let i = 0; i < transactions.length; i++) {
+                    let trade = this.parseTrade (transactions[i], market);
+                    filled += trade['amount'];
+                    trades.push (trade);
+                }
             }
         }
         let remaining = amount - filled;
@@ -409,7 +412,7 @@ module.exports = class bitstamp extends Exchange {
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
-            'trades': undefined,
+            'trades': trades,
             'fee': fee,
             'info': order,
         };
