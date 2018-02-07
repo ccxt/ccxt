@@ -94,8 +94,8 @@ module.exports = class bl3p extends Exchange {
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 0) {
         return [
-            bidask['price_int'] / 100000.0,
-            bidask['amount_int'] / 100000000.0,
+            bidask[priceKey] / 100000.0,
+            bidask[amountKey] / 100000000.0,
         ];
     }
 
@@ -105,7 +105,7 @@ module.exports = class bl3p extends Exchange {
             'market': market['id'],
         }, params));
         let orderbook = response['data'];
-        return this.parseOrderBook (orderbook);
+        return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price_int', 'amount_int');
     }
 
     async fetchTicker (symbol, params = {}) {
