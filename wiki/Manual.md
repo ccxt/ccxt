@@ -1084,7 +1084,7 @@ var_dump ($exchange->fetch_ticker ($symbols[$random])); // ticker for a random s
 
 ### All At Once
 
-Some markets (not all of them) also support fetching all tickers at once. See [their docs](https://github.com/ccxt/ccxt/wiki/Manual#exchanges) for details. You can fetch all tickers with a single call like so:
+Some exchanges (not all of them) also support fetching all tickers at once. See [their docs](https://github.com/ccxt/ccxt/wiki/Manual#exchanges) for details. You can fetch all tickers with a single call like so:
 
 ```JavaScript
 // JavaScript
