@@ -91,7 +91,16 @@ class Exchange(object):
     symbols = None
     precision = {}
     limits = {}
-    fees = {'trading': {}, 'funding': {}}
+    fees = {
+        'trading': {
+            'fee_loaded': False,
+        },
+        'funding': {
+            'fee_loaded': False,
+            'withdraw': {},
+            'deposit': {},
+        },
+    }
     ids = None
     currencies = None
     tickers = None
@@ -156,6 +165,7 @@ class Exchange(object):
         'fetchClosedOrders': False,
         'fetchCurrencies': False,
         'fetchDepositAddress': False,
+        'fetchFees': False,
         'fetchL2OrderBook': True,
         'fetchMarkets': True,
         'fetchMyTrades': False,
@@ -849,8 +859,54 @@ class Exchange(object):
             currencies = self.fetch_currencies()
         return self.set_markets(markets, currencies)
 
+    def populate_fees(self):
+        if not (hasattr(self, 'markets') or hasattr(self, 'currencies')):
+            return
+
+        for currency, data in self.currencies.items():  # try load withdrawal fees from currencies
+            if 'fee' in data and data['fee'] is not None:
+                self.fees['funding']['withdraw'][currency] = data['fee']
+                self.fees['funding']['fee_loaded'] = True
+
+        # find a way to populate trading fees from markets
+
+    def load_fees(self):
+        self.load_markets()
+        self.populate_fees()
+        if not self.has['fetchFees']:
+            return self.fees
+
+        fetched_fees = self.fetch_fees()
+        if fetched_fees['funding']:
+            self.fees['funding']['fee_loaded'] = True
+        if fetched_fees['trading']:
+            self.fees['trading']['fee_loaded'] = True
+
+        self.fees = self.deep_extend(self.fees, fetched_fees)
+        return self.fees
+
     def fetch_markets(self):
         return self.markets
+
+    def fetch_fees(self):
+        trading = {}
+        funding = {}
+        try:
+            trading = self.fetch_trading_fees()
+        except AuthenticationError:
+            pass
+        except AttributeError:
+            pass
+
+        try:
+            funding = self.fetch_funding_fees()
+        except AuthenticationError:
+            pass
+        except AttributeError:
+            pass
+
+        return {'trading': trading,
+                'funding': funding}
 
     def fetch_bids_asks(self, symbols=None, params={}):
         raise NotSupported(self.id + ' API does not allow to fetch all prices at once with a single call to fetch_bid_asks() for now')
