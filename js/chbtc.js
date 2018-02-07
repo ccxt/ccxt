@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 // ---------------------------------------------------------------------------
 
@@ -8,7 +8,6 @@ const { ExchangeError } = require ('./base/errors');
 // ---------------------------------------------------------------------------
 
 module.exports = class chbtc extends zb {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'chbtc',
@@ -18,7 +17,7 @@ module.exports = class chbtc extends zb {
             'version': 'v1',
             'has': {
                 'CORS': false,
-                'fetchOrder': true
+                'fetchOrder': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28555659-f0040dc2-7109-11e7-9d99-688a438bf9f4.jpg',
@@ -52,7 +51,7 @@ module.exports = class chbtc extends zb {
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
-        if (api == 'private') {
+        if (api === 'private') {
             if ('code' in response)
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         }
@@ -62,5 +61,4 @@ module.exports = class chbtc extends zb {
         }
         return response;
     }
-
-}
+};

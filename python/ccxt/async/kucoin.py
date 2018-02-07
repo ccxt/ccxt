@@ -28,6 +28,7 @@ class kucoin (Exchange):
             'userAgent': self.userAgents['chrome'],
             'has': {
                 'CORS': False,
+                'cancelOrders': True,
                 'createMarketOrder': False,
                 'fetchTickers': True,
                 'fetchOHLCV': True,  # see the method implementation below
@@ -106,6 +107,7 @@ class kucoin (Exchange):
                         'account/{coin}/withdraw/cancel',
                         'cancel-order',
                         'order',
+                        'order/cancel-all',
                         'user/change-lang',
                     ],
                 },
@@ -434,6 +436,21 @@ class kucoin (Exchange):
             'id': self.safe_string(response['data'], 'orderOid'),
         }
 
+    async def cancel_orders(self, symbol=None, params={}):
+        # https://kucoinapidocs.docs.apiary.io/#reference/0/trading/cancel-all-orders
+        # docs say symbol is required, but it seems to be optional
+        # you can cancel all orders, or filter by symbol or type or both
+        request = {}
+        if symbol:
+            await self.load_markets()
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        if 'type' in params:
+            request['type'] = params['type'].upper()
+            params = self.omit(params, 'type')
+        response = await self.privatePostOrderCancelAll(self.extend(request, params))
+        return response
+
     async def cancel_order(self, id, symbol=None, params={}):
         if not symbol:
             raise ExchangeError(self.id + ' cancelOrder requires a symbol')
@@ -445,6 +462,7 @@ class kucoin (Exchange):
         }
         if 'type' in params:
             request['type'] = params['type'].upper()
+            params = self.omit(params, 'type')
         else:
             raise ExchangeError(self.id + ' cancelOrder requires parameter type=["BUY"|"SELL"]')
         response = await self.privatePostCancelOrder(self.extend(request, params))

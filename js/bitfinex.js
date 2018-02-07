@@ -254,9 +254,9 @@ module.exports = class bitfinex extends Exchange {
         return (currency in currencies) ? currencies[currency] : currency;
     }
 
-    async fetchFundingFees () {
+    async fetchFundingFees (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privatePostAccountFees ();
+        const response = await this.privatePostAccountFees (params);
         const fees = response['withdraw'];
         const withdraw = {};
         const ids = Object.keys (fees);
@@ -276,9 +276,9 @@ module.exports = class bitfinex extends Exchange {
         };
     }
 
-    async fetchTradingFees () {
+    async fetchTradingFees (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostSummary ();
+        let response = await this.privatePostSummary (params);
         return {
             'info': response,
             'maker': this.safeFloat (response, 'maker_fee'),

@@ -20,10 +20,11 @@ class braziliex (Exchange):
             'countries': 'BR',
             'rateLimit': 1000,
             'has': {
-                'fetchDepositAddress': True,
+                'fetchCurrencies': True,
                 'fetchTickers': True,
                 'fetchOpenOrders': True,
                 'fetchMyTrades': True,
+                'fetchDepositAddress': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/34703593-c4498674-f504-11e7-8d14-ff8e44fb78c1.jpg',
@@ -74,16 +75,17 @@ class braziliex (Exchange):
         for i in range(0, len(ids)):
             id = ids[i]
             currency = currencies[id]
-            precision = currency['decimal']
+            precision = self.safe_integer(currency, 'decimal')
             uppercase = id.upper()
             code = self.common_currency_code(uppercase)
-            active = currency['active'] == 1
+            active = self.safe_integer(currency, 'active') == 1
             status = 'ok'
-            if currency['under_maintenance'] != 0:
+            maintenance = self.safe_integer(currency, 'under_maintenance')
+            if maintenance != 0:
                 active = False
                 status = 'maintenance'
-            canWithdraw = currency['is_withdrawal_active'] == 1
-            canDeposit = currency['is_deposit_active'] == 1
+            canWithdraw = self.safe_integer(currency, 'is_withdrawal_active') == 1
+            canDeposit = self.safe_integer(currency, 'is_deposit_active') == 1
             if not canWithdraw or not canDeposit:
                 active = False
             result[code] = {
@@ -93,9 +95,7 @@ class braziliex (Exchange):
                 'active': active,
                 'status': status,
                 'precision': precision,
-                'wallet': {
-                    'address': None,
-                    'extra': None,
+                'funding': {
                     'withdraw': {
                         'active': canWithdraw,
                         'fee': currency['txWithdrawalFee'],
@@ -144,7 +144,7 @@ class braziliex (Exchange):
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
-            active = market['active'] == 1
+            active = self.safe_integer(market, 'active') == 1
             precision = {
                 'amount': 8,
                 'price': 8,
@@ -391,9 +391,9 @@ class braziliex (Exchange):
         }, params))
         return self.parse_trades(trades['trade_history'], market, since, limit)
 
-    def fetch_deposit_address(self, currencyCode, params={}):
+    def fetch_deposit_address(self, code, params={}):
         self.load_markets()
-        currency = self.currency(currencyCode)
+        currency = self.currency(code)
         response = self.privatePostDepositAddress(self.extend({
             'currency': currency['id'],
         }, params))
@@ -402,7 +402,7 @@ class braziliex (Exchange):
             raise ExchangeError(self.id + ' fetchDepositAddress failed: ' + self.last_http_response)
         tag = self.safe_string(response, 'payment_id')
         return {
-            'currency': currencyCode,
+            'currency': code,
             'address': address,
             'tag': tag,
             'status': 'ok',

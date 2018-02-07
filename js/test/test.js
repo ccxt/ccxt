@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 /*  ------------------------------------------------------------------------ */
 
@@ -134,7 +134,23 @@ let testTicker = async (exchange, symbol) => {
 
 //-----------------------------------------------------------------------------
 
-let testOrderBookProperties = (symbol, orderbook) => {
+const printOrderBookOneLiner = (orderbook, method, symbol) => {
+
+    const bids = orderbook.bids
+    const asks = orderbook.asks
+
+    log (symbol.toString ().green,
+        method,
+        orderbook['datetime'],
+        'bid: '       + ((bids.length > 0) ? human_value (bids[0][0]) : 'N/A'),
+        'bidVolume: ' + ((bids.length > 0) ? human_value (bids[0][1]) : 'N/A'),
+        'ask: '       + ((asks.length > 0) ? human_value (asks[0][0]) : 'N/A'),
+        'askVolume: ' + ((asks.length > 0) ? human_value (asks[0][1]) : 'N/A'))
+}
+
+//-----------------------------------------------------------------------------
+
+let testOrderBookProperties = (orderbook, method, symbol) => {
 
     const format = {
         'bids': [],
@@ -147,14 +163,6 @@ let testOrderBookProperties = (symbol, orderbook) => {
 
     const bids = orderbook.bids
     const asks = orderbook.asks
-
-    log (symbol.green,
-        orderbook['datetime'],
-        'bid: '       + ((bids.length > 0) ? human_value (bids[0][0]) : 'N/A'),
-        'bidVolume: ' + ((bids.length > 0) ? human_value (bids[0][1]) : 'N/A'),
-        'ask: '       + ((asks.length > 0) ? human_value (asks[0][0]) : 'N/A'),
-        'askVolume: ' + ((asks.length > 0) ? human_value (asks[0][1]) : 'N/A'))
-
 
     for (let i = 1; i < bids.length; i++) {
         // debugger;
@@ -169,6 +177,8 @@ let testOrderBookProperties = (symbol, orderbook) => {
         if (bids.length && asks.length)
             assert (bids[0][0] <= asks[0][0])
 
+
+    printOrderBookOneLiner (orderbook, method, symbol)
 }
 
 //-----------------------------------------------------------------------------
@@ -177,12 +187,44 @@ let testOrderBook = async (exchange, symbol) => {
 
     // log (symbol.green, 'fetching order book...')
 
-    let orderbook = await exchange.fetchOrderBook (symbol)
+    const method = 'fetchOrderBook'
 
-    testOrderBookProperties (symbol, orderbook)
+    if (exchange.has[method]) {
 
-    return orderbook
+        let orderbook = await exchange[method] (symbol)
+        testOrderBookProperties (orderbook, method, symbol)
+        return orderbook
+
+    } else {
+
+        log (method + '() not supported')
+    }
 }
+
+//-----------------------------------------------------------------------------
+
+let testOrderBooks = async (exchange) => {
+
+    const method = 'fetchOrderBooks'
+
+    if (exchange.has[method]) {
+
+        // log ('fetching order books...')
+
+        let orderbooks = await exchange[method] ()
+        log.green (orderbooks)
+
+        // Object.values (orderbooks).forEach (orderbook => {
+        //     testOrderBookProperties (orderbook, method) //, symbol)
+        // })
+        return orderbooks
+
+    } else {
+
+        log (method + '() not supported')
+    }
+}
+
 
 //-----------------------------------------------------------------------------
 
@@ -190,11 +232,19 @@ let testL2OrderBook = async (exchange, symbol) => {
 
     // log (symbol.green, 'fetching order book...')
 
-    let orderbook = await exchange.fetchL2OrderBook (symbol)
+    const method = 'fetchL2OrderBook'
 
-    testOrderBookProperties (symbol, orderbook)
+    if (exchange.has[method]) {
 
-    return orderbook
+        let orderbook = await exchange[method] (symbol)
+        testOrderBookProperties (orderbook, method, symbol)
+        return orderbook
+
+    } else {
+
+        log (method + '() not supported')
+    }
+
 }
 
 //-----------------------------------------------------------------------------
@@ -256,7 +306,7 @@ let testTrades = async (exchange, symbol) => {
         for (let i = 0; i < trades.length; i++) {
             testTradeProps (trades[i], symbol, now)
             if (i > 0)
-                assert (trades[i].timestamp <= trades[i-1].timestamp)
+                assert (trades[i].timestamp <= trades[i - 1].timestamp)
         }
         // log (asTable (trades))
 
@@ -337,6 +387,7 @@ let testSymbol = async (exchange, symbol) => {
 
         await testOrderBook   (exchange, symbol)
         await testL2OrderBook (exchange, symbol)
+        // await testOrderBooks  (exchange)
     }
 }
 
@@ -359,7 +410,7 @@ let testOrderProps = (order, symbol, now) => {
     assert (order.amount >= 0)
     if (order.filled) {
         assert (typeof order.filled === 'number')
-        assert (order.filled >=0 && order.filled <= order.amount)
+        assert (order.filled >= 0 && order.filled <= order.amount)
     }
     if (order.remaining) {
         assert (typeof order.remaining === 'number')
@@ -462,7 +513,7 @@ let testMyTrades = async (exchange, symbol) => {
         for (let i = 0; i < trades.length; i++) {
             testTradeProps (trades[i], symbol, now)
             if (i > 0)
-                assert (trades[i].timestamp <= trades[i-1].timestamp)
+                assert (trades[i].timestamp <= trades[i - 1].timestamp)
         }
         // trades.forEach (trade => log.dim ('-'.repeat (80), "\n", trade))
         // log (asTable (trades))

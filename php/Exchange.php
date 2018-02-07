@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.10.1016';
+$version = '1.10.1024';
 
 abstract class Exchange {
 
@@ -593,6 +593,7 @@ abstract class Exchange {
         // API methods metainfo
         $this->has = array (
             'cancelOrder' => $this->hasPrivateAPI,
+            'cancelOrders' => false,
             'createDepositAddress' => false,
             'createOrder' => $this->hasPrivateAPI,
             'createMarketOrder' => $this->hasPrivateAPI,
@@ -602,6 +603,7 @@ abstract class Exchange {
             'fetchClosedOrders' => false,
             'fetchCurrencies' => false,
             'fetchDepositAddress' => false,
+            'fetchL2OrderBook' => true,
             'fetchMarkets' => true,
             'fetchMyTrades' => false,
             'fetchOHLCV' => false,

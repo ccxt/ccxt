@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.1016'
+__version__ = '1.10.1024'
 
 # -----------------------------------------------------------------------------
 
@@ -157,6 +157,7 @@ class Exchange(object):
     # API method metainfo
     has = {
         'cancelOrder': hasPrivateAPI,
+        'cancelOrders': False,
         'createDepositAddress': False,
         'createOrder': hasPrivateAPI,
         'deposit': False,
@@ -165,6 +166,7 @@ class Exchange(object):
         'fetchCurrencies': False,
         'fetchDepositAddress': False,
         'fetchFees': False,
+        'fetchL2OrderBook': True,
         'fetchMarkets': True,
         'fetchMyTrades': False,
         'fetchOHLCV': False,

@@ -16,6 +16,7 @@ class ccex extends Exchange {
             'has' => array (
                 'CORS' => false,
                 'fetchTickers' => true,
+                'fetchOrderBooks' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766433-16881f90-5ed8-11e7-92f8-3d92cc747a6c.jpg',
@@ -44,6 +45,7 @@ class ccex extends Exchange {
                         'markets',
                         'marketsummaries',
                         'orderbook',
+                        'fullorderbook',
                     ),
                 ),
                 'private' => array (
@@ -133,6 +135,45 @@ class ccex extends Exchange {
         return $this->parse_order_book($orderbook, null, 'buy', 'sell', 'Rate', 'Quantity');
     }
 
+    public function fetch_order_books ($symbols = null, $params = array ()) {
+        $this->load_markets();
+        $orderbooks = array ();
+        $response = $this->publicGetFullorderbook ();
+        $types = is_array ($response['result']) ? array_keys ($response['result']) : array ();
+        for ($i = 0; $i < count ($types); $i++) {
+            $type = $types[$i];
+            $bidasks = $response['result'][$type];
+            $bidasksByMarketId = $this->group_by($bidasks, 'Market');
+            $marketIds = is_array ($bidasksByMarketId) ? array_keys ($bidasksByMarketId) : array ();
+            for ($j = 0; $j < count ($marketIds); $j++) {
+                $marketId = $marketIds[$j];
+                $symbol = strtoupper ($marketId);
+                $side = $type;
+                if (is_array ($this->markets_by_id) && array_key_exists ($symbol, $this->markets_by_id)) {
+                    $market = $this->markets_by_id[$symbol];
+                    $symbol = $market['symbol'];
+                } else {
+                    list ($base, $quote) = explode ('-', $symbol);
+                    $invertedId = $quote . '-' . $base;
+                    if (is_array ($this->markets_by_id) && array_key_exists ($invertedId, $this->markets_by_id)) {
+                        $market = $this->markets_by_id[$invertedId];
+                        $symbol = $market['symbol'];
+                    }
+                }
+                if (!(is_array ($orderbooks) && array_key_exists ($symbol, $orderbooks)))
+                    $orderbooks[$symbol] = array ();
+                $orderbooks[$symbol][$side] = $bidasksByMarketId[$marketId];
+            }
+        }
+        $result = array ();
+        $keys = is_array ($orderbooks) ? array_keys ($orderbooks) : array ();
+        for ($k = 0; $k < count ($keys); $k++) {
+            $key = $keys[$k];
+            $result[$key] = $this->parse_order_book($orderbooks[$key], null, 'buy', 'sell', 'Rate', 'Quantity');
+        }
+        return $result;
+    }
+
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = $ticker['updated'] * 1000;
         $symbol = null;
@@ -198,7 +239,7 @@ class ccex extends Exchange {
     public function parse_trade ($trade, $market) {
         $timestamp = $this->parse8601 ($trade['TimeStamp']);
         return array (
-            'id' => $trade['Id'],
+            'id' => (string) $trade['Id'],
             'info' => $trade,
             'order' => null,
             'timestamp' => $timestamp,

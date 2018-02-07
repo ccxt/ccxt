@@ -28,6 +28,7 @@ class livecoin (Exchange):
                 'CORS': False,
                 'fetchTickers': True,
                 'fetchCurrencies': True,
+                'fetchFees': True,
                 'fetchOrders': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
@@ -234,14 +235,19 @@ class livecoin (Exchange):
         return self.parse_balance(result)
 
     def fetch_fees(self, params={}):
+        tradingFees = self.fetch_trading_fees(params)
+        return self.extend(tradingFees, {
+            'withdraw': 0.0,
+        })
+
+    def fetch_trading_fees(self, params={}):
         self.load_markets()
-        commissionInfo = self.privateGetExchangeCommissionCommonInfo()
-        commission = self.safe_float(commissionInfo, 'commission')
+        response = self.privateGetExchangeCommissionCommonInfo(params)
+        commission = self.safe_float(response, 'commission')
         return {
-            'info': commissionInfo,
+            'info': response,
             'maker': commission,
             'taker': commission,
-            'withdraw': 0.0,
         }
 
     def fetch_order_book(self, symbol, limit=None, params={}):

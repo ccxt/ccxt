@@ -18,6 +18,7 @@ class livecoin extends Exchange {
                 'CORS' => false,
                 'fetchTickers' => true,
                 'fetchCurrencies' => true,
+                'fetchFees' => true,
                 'fetchOrders' => true,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
@@ -235,14 +236,20 @@ class livecoin extends Exchange {
     }
 
     public function fetch_fees ($params = array ()) {
+        $tradingFees = $this->fetch_trading_fees ($params);
+        return array_merge ($tradingFees, array (
+            'withdraw' => 0.0,
+        ));
+    }
+
+    public function fetch_trading_fees ($params = array ()) {
         $this->load_markets();
-        $commissionInfo = $this->privateGetExchangeCommissionCommonInfo ();
-        $commission = $this->safe_float($commissionInfo, 'commission');
+        $response = $this->privateGetExchangeCommissionCommonInfo ($params);
+        $commission = $this->safe_float($response, 'commission');
         return array (
-            'info' => $commissionInfo,
+            'info' => $response,
             'maker' => $commission,
             'taker' => $commission,
-            'withdraw' => 0.0,
         );
     }
 

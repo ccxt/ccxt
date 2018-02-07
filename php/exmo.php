@@ -16,6 +16,7 @@ class exmo extends Exchange {
             'version' => 'v1',
             'has' => array (
                 'CORS' => false,
+                'fetchOrderBooks' => true,
                 'fetchTickers' => true,
                 'withdraw' => true,
             ),
@@ -156,6 +157,37 @@ class exmo extends Exchange {
             'bids' => $this->sort_by($orderbook['bids'], 0, true),
             'asks' => $this->sort_by($orderbook['asks'], 0),
         ));
+    }
+
+    public function fetch_order_books ($symbols = null, $params = array ()) {
+        $this->load_markets();
+        $ids = null;
+        if (!$symbols) {
+            $ids = implode (',', $this->ids);
+            // max URL length is 2083 $symbols, including http schema, hostname, tld, etc...
+            if (strlen ($ids) > 2048) {
+                $numIds = is_array ($this->ids) ? count ($this->ids) : 0;
+                throw new ExchangeError ($this->id . ' has ' . (string) $numIds . ' $symbols exceeding max URL length, you are required to specify a list of $symbols in the first argument to fetchOrderBooks');
+            }
+        } else {
+            $ids = $this->market_ids($symbols);
+            $ids = implode (',', $ids);
+        }
+        $response = $this->publicGetOrderBook (array_merge (array (
+            'pair' => $ids,
+        ), $params));
+        $result = array ();
+        $ids = is_array ($response) ? array_keys ($response) : array ();
+        for ($i = 0; $i < count ($ids); $i++) {
+            $id = $ids[$i];
+            $symbol = $id;
+            if (is_array ($this->marketsById) && array_key_exists ($id, $this->marketsById)) {
+                $market = $this->marketsById[$id];
+                $symbol = $market['symbol'];
+            }
+            $result[$symbol] = $this->parse_order_book($response[$id], null, 'bid', 'ask');
+        }
+        return $result;
     }
 
     public function parse_ticker ($ticker, $market = null) {

@@ -19,6 +19,7 @@ class exmo (Exchange):
             'version': 'v1',
             'has': {
                 'CORS': False,
+                'fetchOrderBooks': True,
                 'fetchTickers': True,
                 'withdraw': True,
             },
@@ -154,6 +155,32 @@ class exmo (Exchange):
             'bids': self.sort_by(orderbook['bids'], 0, True),
             'asks': self.sort_by(orderbook['asks'], 0),
         })
+
+    def fetch_order_books(self, symbols=None, params={}):
+        self.load_markets()
+        ids = None
+        if not symbols:
+            ids = ','.join(self.ids)
+            # max URL length is 2083 symbols, including http schema, hostname, tld, etc...
+            if len(ids) > 2048:
+                numIds = len(self.ids)
+                raise ExchangeError(self.id + ' has ' + str(numIds) + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks')
+        else:
+            ids = self.market_ids(symbols)
+            ids = ','.join(ids)
+        response = self.publicGetOrderBook(self.extend({
+            'pair': ids,
+        }, params))
+        result = {}
+        ids = list(response.keys())
+        for i in range(0, len(ids)):
+            id = ids[i]
+            symbol = id
+            if id in self.marketsById:
+                market = self.marketsById[id]
+                symbol = market['symbol']
+            result[symbol] = self.parse_order_book(response[id], None, 'bid', 'ask')
+        return result
 
     def parse_ticker(self, ticker, market=None):
         timestamp = ticker['updated'] * 1000
