@@ -22,8 +22,8 @@ module.exports = class cobinhood extends Exchange {
             },
             'timeframes': {
                 // the first two don't seem to work at all
-                // '1m': '1m',
-                // '5m': '5m',
+                '1m': '1m',
+                '5m': '5m',
                 '15m': '15m',
                 '30m': '30m',
                 '1h': '1h',
@@ -313,18 +313,26 @@ module.exports = class cobinhood extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '15m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
+        //
+        // they say in their docs that end_time defaults to current server time
+        // but if you don't specify it, their range limits does not allow you to query anything
+        //
+        // they also say that start_time defaults to 0,
+        // but most calls fail if you do not specify any of end_time
+        //
+        // to make things worse, their docs say it should be a Unix Timestamp
+        // but with seconds it fails, so we set milliseconds (somehow it works that way)
+        //
+        let endTime = this.milliseconds ();
         let query = {
             'trading_pair_id': market['id'],
             'timeframe': this.timeframes[timeframe],
-            // they say in their docs that end_time defaults to current server time
-            // but if you don't specify it, their range limits does not allow you to query anything
-            'end_time': this.milliseconds (),
+            'end_time': endTime,
         };
         if (since) {
-            // in their docs they say that start_time defaults to 0, but, obviously it does not
             query['start_time'] = since;
         }
         let response = await this.publicGetChartCandlesTradingPairId (this.extend (query, params));
