@@ -541,8 +541,15 @@ module.exports = class kraken extends Exchange {
         let response = await this.publicGetTrades (this.extend ({
             'pair': id,
         }, params));
-        let trades = response['result'][id];
-        return this.parseTrades (trades, market, since, limit);
+        // { result: {marketid: [...trades]}, last: "last_trade_id"}
+        let result = response['result'];
+        let rawTrades = result[id];
+        let trades = this.parseTrades (rawTrades, market, since, limit);
+        // trades is a sorted array last (most recent trade) goes first
+        let lastTrade = trades[0];
+        let lastTradeId = this.safeString (result, 'last');
+        lastTrade['id'] = lastTradeId;
+        return trades;
     }
 
     async fetchBalance (params = {}) {
