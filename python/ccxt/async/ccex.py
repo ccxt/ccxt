@@ -19,6 +19,7 @@ class ccex (Exchange):
             'has': {
                 'CORS': False,
                 'fetchTickers': True,
+                'fetchOrderBooks': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766433-16881f90-5ed8-11e7-92f8-3d92cc747a6c.jpg',
@@ -47,6 +48,7 @@ class ccex (Exchange):
                         'markets',
                         'marketsummaries',
                         'orderbook',
+                        'fullorderbook',
                     ],
                 },
                 'private': {
@@ -129,6 +131,39 @@ class ccex (Exchange):
         orderbook = response['result']
         return self.parse_order_book(orderbook, None, 'buy', 'sell', 'Rate', 'Quantity')
 
+    async def fetch_order_books(self, symbols=None, params={}):
+        await self.load_markets()
+        orderbooks = {}
+        response = await self.publicGetFullorderbook()
+        types = list(response['result'].keys())
+        for i in range(0, len(types)):
+            type = types[i]
+            bidasks = response['result'][type]
+            bidasksByMarketId = self.group_by(bidasks, 'Market')
+            marketIds = list(bidasksByMarketId.keys())
+            for j in range(0, len(marketIds)):
+                marketId = marketIds[j]
+                symbol = marketId.upper()
+                side = type
+                if symbol in self.markets_by_id:
+                    market = self.markets_by_id[symbol]
+                    symbol = market['symbol']
+                else:
+                    base, quote = symbol.split('-')
+                    invertedId = quote + '-' + base
+                    if invertedId in self.markets_by_id:
+                        market = self.markets_by_id[invertedId]
+                        symbol = market['symbol']
+                if not(symbol in list(orderbooks.keys())):
+                    orderbooks[symbol] = {}
+                orderbooks[symbol][side] = bidasksByMarketId[marketId]
+        result = {}
+        keys = list(orderbooks.keys())
+        for k in range(0, len(keys)):
+            key = keys[k]
+            result[key] = self.parse_order_book(orderbooks[key], None, 'buy', 'sell', 'Rate', 'Quantity')
+        return result
+
     def parse_ticker(self, ticker, market=None):
         timestamp = ticker['updated'] * 1000
         symbol = None
@@ -189,7 +224,7 @@ class ccex (Exchange):
     def parse_trade(self, trade, market):
         timestamp = self.parse8601(trade['TimeStamp'])
         return {
-            'id': trade['Id'],
+            'id': str(trade['Id']),
             'info': trade,
             'order': None,
             'timestamp': timestamp,

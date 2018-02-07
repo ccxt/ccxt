@@ -34,6 +34,7 @@ class liqui (Exchange):
             'has': {
                 'CORS': False,
                 'createMarketOrder': False,
+                'fetchOrderBooks': True,
                 'fetchOrder': True,
                 'fetchOrders': 'emulated',
                 'fetchOpenOrders': True,
@@ -225,6 +226,32 @@ class liqui (Exchange):
         result['asks'] = self.sort_by(result['asks'], 0)
         return result
 
+    def fetch_order_books(self, symbols=None, params={}):
+        self.load_markets()
+        ids = None
+        if not symbols:
+            ids = '-'.join(self.ids)
+            # max URL length is 2083 symbols, including http schema, hostname, tld, etc...
+            if len(ids) > 2048:
+                numIds = len(self.ids)
+                raise ExchangeError(self.id + ' has ' + str(numIds) + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks')
+        else:
+            ids = self.market_ids(symbols)
+            ids = '-'.join(ids)
+        response = self.publicGetDepthPair(self.extend({
+            'pair': ids,
+        }, params))
+        result = {}
+        ids = list(response.keys())
+        for i in range(0, len(ids)):
+            id = ids[i]
+            symbol = id
+            if id in self.marketsById:
+                market = self.marketsById[id]
+                symbol = market['symbol']
+            result[symbol] = self.parse_order_book(response[id])
+        return result
+
     def parse_ticker(self, ticker, market=None):
         timestamp = ticker['updated'] * 1000
         symbol = None
@@ -255,11 +282,9 @@ class liqui (Exchange):
         self.load_markets()
         ids = None
         if not symbols:
-            # numIds = len(self.ids)
-            # if numIds > 256:
-            #     raise ExchangeError(self.id + ' fetchTickers() requires symbols argument')
             ids = '-'.join(self.ids)
-            if len(ids) > 2083:
+            # max URL length is 2083 symbols, including http schema, hostname, tld, etc...
+            if len(ids) > 2048:
                 numIds = len(self.ids)
                 raise ExchangeError(self.id + ' has ' + str(numIds) + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchTickers')
         else:
