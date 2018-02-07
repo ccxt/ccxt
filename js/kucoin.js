@@ -184,7 +184,7 @@ module.exports = class kucoin extends Exchange {
                 'price': 8,
             };
             let active = market['trading'];
-            result.push (this.extend (this.fees['trading'], {
+            result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -203,7 +203,7 @@ module.exports = class kucoin extends Exchange {
                         'max': undefined,
                     },
                 },
-            }));
+            });
         }
         return result;
     }

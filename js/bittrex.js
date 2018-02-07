@@ -163,7 +163,7 @@ module.exports = class bittrex extends Exchange {
                 'price': 8,
             };
             let active = market['IsActive'];
-            result.push (this.extend (this.fees['trading'], {
+            result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -184,7 +184,7 @@ module.exports = class bittrex extends Exchange {
                         'max': undefined,
                     },
                 },
-            }));
+            });
         }
         return result;
     }

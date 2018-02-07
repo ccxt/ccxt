@@ -146,7 +146,7 @@ module.exports = class gdax extends Exchange {
                 'amount': 8,
                 'price': this.precisionFromString (this.safeString (market, 'quote_increment')),
             };
-            let taker = this.fees['trading']['taker'];
+            let taker = this.fees['trading']['taker'];  // does not seem right
             if ((base === 'ETH') || (base === 'LTC')) {
                 taker = 0.003;
             }

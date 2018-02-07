@@ -100,7 +100,7 @@ module.exports = class bibox extends Exchange {
                 'amount': 8,
                 'price': 8,
             };
-            result.push (this.extend (this.fees['trading'], {
+            result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -119,7 +119,7 @@ module.exports = class bibox extends Exchange {
                         'max': undefined,
                     },
                 },
-            }));
+            });
         }
         return result;
     }

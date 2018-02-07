@@ -156,7 +156,7 @@ module.exports = class liqui extends Exchange {
             };
             let hidden = this.safeInteger (market, 'hidden');
             let active = (hidden === 0);
-            result.push (this.extend (this.fees['trading'], {
+            result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -167,7 +167,7 @@ module.exports = class liqui extends Exchange {
                 'precision': precision,
                 'limits': limits,
                 'info': market,
-            }));
+            });
         }
         return result;
     }
