@@ -3,6 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -224,9 +225,8 @@ module.exports = class bitflyer extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        if (!symbol) {
-          throw new ExchangeError (this.id + ' cancelOrder requires a symbol param');
-        }
+        if (typeof symbol === 'undefined')
+            throw new ExchangeError (this.id + ' cancelOrder() requires a symbol argument');
         await this.loadMarkets ();
         return await this.privatePostCancelchildorder (this.extend ({
             'product_code': this.marketId (symbol),
