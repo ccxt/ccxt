@@ -252,18 +252,23 @@ class bitstamp (Exchange):
         if side is None:
             side = 'buy' if (trade['type'] == '0') else 'sell'
         orderId = self.safe_string(trade, 'order_id')
-        if 'currency_pair' in trade:
-            marketId = trade['currency_pair']
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
         id = self.safe_string(trade, 'tid')
         id = self.safe_string(trade, 'id', id)
+        if market is None:
+            keys = list(trade.keys())
+            for i in range(0, len(keys)):
+                if keys[i].find('_') >= 0:
+                    marketId = keys[i].replace('_', '')
+                    if marketId in self.markets_by_id:
+                        market = self.markets_by_id[marketId]
+        feeCost = self.safe_float(trade, 'fee')
+        feeCurrency = None
         if market is not None:
             price = self.safe_float(trade, market['symbolId'], price)
             amount = self.safe_float(trade, market['baseId'], amount)
-        if market is not None:
+            feeCurrency = market['quote']
             symbol = market['symbol']
         return {
             'id': id,
@@ -276,6 +281,10 @@ class bitstamp (Exchange):
             'side': side,
             'price': price,
             'amount': amount,
+            'fee': {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            },
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):

@@ -246,21 +246,28 @@ class bitstamp extends Exchange {
         if ($side === null)
             $side = ($trade['type'] === '0') ? 'buy' : 'sell';
         $orderId = $this->safe_string($trade, 'order_id');
-        if (is_array ($trade) && array_key_exists ('currency_pair', $trade)) {
-            $marketId = $trade['currency_pair'];
-            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
-                $market = $this->markets_by_id[$marketId];
-        }
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
         $id = $this->safe_string($trade, 'tid');
         $id = $this->safe_string($trade, 'id', $id);
+        if ($market === null) {
+            $keys = is_array ($trade) ? array_keys ($trade) : array ();
+            for ($i = 0; $i < count ($keys); $i++) {
+                if (mb_strpos ($keys[$i], '_') !== false) {
+                    $marketId = str_replace ('_', '', $keys[$i]);
+                    if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
+                        $market = $this->markets_by_id[$marketId];
+                }
+            }
+        }
+        $feeCost = $this->safe_float($trade, 'fee');
+        $feeCurrency = null;
         if ($market !== null) {
             $price = $this->safe_float($trade, $market['symbolId'], $price);
             $amount = $this->safe_float($trade, $market['baseId'], $amount);
-        }
-        if ($market !== null)
+            $feeCurrency = $market['quote'];
             $symbol = $market['symbol'];
+        }
         return array (
             'id' => $id,
             'info' => $trade,
@@ -272,6 +279,10 @@ class bitstamp extends Exchange {
             'side' => $side,
             'price' => $price,
             'amount' => $amount,
+            'fee' => array (
+                'cost' => $feeCost,
+                'currency' => $feeCurrency,
+            ),
         );
     }
 
