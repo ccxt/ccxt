@@ -21,7 +21,8 @@ module.exports = class bibox extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchTickers': true,
-                'fetchOrders': true,
+                'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'withdraw': true,
@@ -329,13 +330,13 @@ module.exports = class bibox extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let orderType = (type === 'limit') ? 2 : 1;
-        let response = await this.privatePostOrder ({
+        let response = await this.privatePostOrderpending ({
             'cmd': 'orderpending/trade',
             'body': this.extend ({
                 'pair': market['id'],
                 'account_type': 0,
                 'order_type': orderType,
-                'order_side': side,
+                'order_side': side === 'buy' ? 1 : 2,
                 'pay_bix': 0,
                 'amount': amount,
                 'price': price,
@@ -348,7 +349,7 @@ module.exports = class bibox extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        let response = await this.privatePostCancelOrder ({
+        let response = await this.privatePostOrderpending ({
             'cmd': 'orderpending/cancelTrade',
             'body': this.extend ({
                 'orders_id': id,
@@ -367,13 +368,14 @@ module.exports = class bibox extends Exchange {
         let type = (order['order_type'] === 1) ? 'market' : 'limit';
         let timestamp = order['createdAt'];
         let price = order['price'];
-        let filled = order['amount'];
-        let amount = this.safeInteger (order, 'deal_amount');
+        let filled = this.safeFloat (order, 'deal_amount');
+        let amount = this.safeFloat (order, 'amount');
+        let cost = this.safeFloat (order, 'money');
         let remaining = amount - filled;
         let side = (order['order_side'] === 1) ? 'buy' : 'sell';
         let status = undefined;
         if ('status' in order) {
-            status = this.parseOrderStatus (order['status']);
+            status = this.parseOrderStatus (this.safeString (order, 'status'));
         }
         let result = {
             'info': order,
@@ -385,7 +387,7 @@ module.exports = class bibox extends Exchange {
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': price * filled,
+            'cost': cost ? cost : price * filled,
             'filled': filled,
             'remaining': remaining,
             'status': status,
@@ -394,7 +396,7 @@ module.exports = class bibox extends Exchange {
         return result;
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status) { // status, 1-pending transaction, 2-part transaction, 3-full transaction，4-part canceled，5-canceled，6-canceling
         let statuses = {
             '1': 'pending',
             '2': 'open',
@@ -406,9 +408,9 @@ module.exports = class bibox extends Exchange {
         return this.safeString (statuses, status, status.toLowerCase ());
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!symbol)
-            throw new ExchangeError (this.id + ' fetchOrders requires a symbol param');
+            throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol param');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let size = (limit) ? limit : 200;
@@ -421,7 +423,26 @@ module.exports = class bibox extends Exchange {
                 'size': size,
             }, params),
         });
-        let orders = ('items' in response) ? response['items'] : [];
+        let orders = ('result' in response) && ('items' in response['result']) ? response['result']['items'] : [];
+        return this.parseOrders (orders, market, since, limit);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (!symbol)
+            throw new ExchangeError (this.id + ' fetchClosedOrders requires a symbol param');
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let size = (limit) ? limit : 200;
+        let response = await this.privatePostOrderpending ({
+            'cmd': 'orderpending/pendingHistoryList',
+            'body': this.extend ({
+                'pair': market['id'],
+                'account_type': 0, // 0 - regular, 1 - margin
+                'page': 1,
+                'size': size,
+            }, params),
+        });
+        let orders = ('result' in response) && ('items' in response['result']) ? response['result']['items'] : [];
         return this.parseOrders (orders, market, since, limit);
     }
 
