@@ -17,6 +17,7 @@ module.exports = class bxinth extends Exchange {
             'has': {
                 'CORS': false,
                 'fetchTickers': true,
+                'fetchOpenOrders': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766412-567b1eb4-5ed7-11e7-94a8-ff6a3884f6c5.jpg',
