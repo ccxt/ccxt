@@ -7,10 +7,10 @@ from ccxt.async.base.exchange import Exchange
 import math
 import json
 from ccxt.base.errors import AuthenticationError
-from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import InvalidNonce
 
 
 class qryptos (Exchange):
