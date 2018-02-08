@@ -184,17 +184,34 @@ module.exports = class bibox extends Exchange {
 
     parseTrade (trade, market = undefined) {
         let timestamp = trade['time'];
-        let side = (trade['side'] === '1') ? 'buy' : 'sell';
+        let side = this.safeInteger (trade, 'side');
+        side = this.safeInteger (trade, 'order_side', side);
+        side = (side === 1) ? 'buy' : 'sell';
+        if (typeof market === 'undefined') {
+            let marketId = this.safeString (trade, 'pair');
+            if (typeof marketId !== 'undefined')
+                if (marketId in this.markets_by_id)
+                    market = this.markets_by_id[marketId];
+        }
+        let symbol = (typeof market !== 'undefined') ? market['symbol'] : undefined;
+        let fee = undefined;
+        if ('fee' in trade) {
+            fee = {
+                'cost': this.safeFloat (trade, 'fee'),
+                'currency': undefined,
+            };
+        }
         return {
             'id': undefined,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': 'limit',
             'side': side,
             'price': parseFloat (trade['price']),
             'amount': parseFloat (trade['amount']),
+            'fee': fee,
         };
     }
 
@@ -233,15 +250,14 @@ module.exports = class bibox extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 1000, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let size = (limit) ? limit : 1000;
         let response = await this.publicGetMdata (this.extend ({
             'cmd': 'kline',
             'pair': market['id'],
             'period': this.timeframes[timeframe],
-            'size': size,
+            'size': limit,
         }, params));
         return this.parseOHLCVs (response['result'], market, timeframe, since, limit);
     }
@@ -330,13 +346,14 @@ module.exports = class bibox extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let orderType = (type === 'limit') ? 2 : 1;
+        let orderSide = (side === 'buy') ? 1 : 2;
         let response = await this.privatePostOrderpending ({
             'cmd': 'orderpending/trade',
             'body': this.extend ({
                 'pair': market['id'],
                 'account_type': 0,
                 'order_type': orderType,
-                'order_side': side === 'buy' ? 1 : 2,
+                'order_side': orderSide,
                 'pay_bix': 0,
                 'amount': amount,
                 'price': price,
@@ -371,12 +388,17 @@ module.exports = class bibox extends Exchange {
         let filled = this.safeFloat (order, 'deal_amount');
         let amount = this.safeFloat (order, 'amount');
         let cost = this.safeFloat (order, 'money');
-        let remaining = amount - filled;
-        let side = (order['order_side'] === 1) ? 'buy' : 'sell';
-        let status = undefined;
-        if ('status' in order) {
-            status = this.parseOrderStatus (this.safeString (order, 'status'));
+        let remaining = undefined;
+        if (typeof filled !== 'undefined') {
+            if (typeof amount !== 'undefined')
+                remaining = amount - filled;
+            if (typeof cost === 'undefined')
+                cost = price * filled;
         }
+        let side = (order['order_side'] === 1) ? 'buy' : 'sell';
+        let status = this.safeString (order, 'status');
+        if (typeof status !== 'undefined')
+            status = this.parseOrderStatus (status);
         let result = {
             'info': order,
             'id': this.safeString (order, 'id'),
@@ -396,21 +418,22 @@ module.exports = class bibox extends Exchange {
         return result;
     }
 
-    parseOrderStatus (status) { // status, 1-pending transaction, 2-part transaction, 3-full transaction，4-part canceled，5-canceled，6-canceling
+    parseOrderStatus (status) {
         let statuses = {
-            '1': 'pending',
-            '2': 'open',
-            '3': 'closed',
-            '4': 'canceled',
-            '5': 'canceled',
-            '6': 'canceled',
+            // original comments from bibox:
+            '1': 'pending', // pending
+            '2': 'open', // part completed
+            '3': 'closed', // completed
+            '4': 'canceled', // part canceled
+            '5': 'canceled', // canceled
+            '6': 'canceled', // canceling
         };
         return this.safeString (statuses, status, status.toLowerCase ());
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (!symbol)
-            throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol param');
+        if (typeof symbol === 'undefined')
+            throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let size = (limit) ? limit : 200;
@@ -423,32 +446,31 @@ module.exports = class bibox extends Exchange {
                 'size': size,
             }, params),
         });
-        let orders = ('result' in response) && ('items' in response['result']) ? response['result']['items'] : [];
+        let orders = this.safeValue (response['result'], 'items', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (!symbol)
-            throw new ExchangeError (this.id + ' fetchClosedOrders requires a symbol param');
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = 200, params = {}) {
+        if (typeof symbol === 'undefined')
+            throw new ExchangeError (this.id + ' fetchClosedOrders requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let size = (limit) ? limit : 200;
         let response = await this.privatePostOrderpending ({
             'cmd': 'orderpending/pendingHistoryList',
             'body': this.extend ({
                 'pair': market['id'],
                 'account_type': 0, // 0 - regular, 1 - margin
                 'page': 1,
-                'size': size,
+                'size': limit,
             }, params),
         });
-        let orders = ('result' in response) && ('items' in response['result']) ? response['result']['items'] : [];
+        let orders = this.safeValue (response['result'], 'items', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!symbol)
-            throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol param');
+            throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let size = (limit) ? limit : 200;
@@ -461,8 +483,8 @@ module.exports = class bibox extends Exchange {
                 'size': size,
             }, params),
         });
-        let orders = ('items' in response) ? response['items'] : [];
-        return this.parseOrders (orders, market, since, limit);
+        let trades = this.safeValue (response['result'], 'items', []);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     async fetchDepositAddress (code, params = {}) {
