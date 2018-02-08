@@ -472,7 +472,6 @@ module.exports = class binance extends Exchange {
             'close': this.safeFloat (ticker, 'prevClosePrice'),
             'first': undefined,
             'last': this.safeFloat (ticker, 'lastPrice'),
-            'lastQty':this.safeFloat (ticker, 'lastQty'),
             'change': this.safeFloat (ticker, 'priceChange'),
             'percentage': this.safeFloat (ticker, 'priceChangePercent'),
             'average': undefined,
