@@ -231,6 +231,46 @@ module.exports = class bxinth extends Exchange {
         });
     }
 
+    async parseOrder (order, market = undefined) {
+        let side = this.safeString (order, 'order_type');
+        let symbol = undefined;
+        if (typeof market === 'undefined') {
+            let marketId = this.safeString (order, 'pairing_id');
+            if (typeof marketId !== 'undefined')
+                if (marketId in this.markets_by_id)
+                    market = this.markets_by_id[marketId];
+        }
+        if (typeof market !== 'undefined')
+            symbol = market['symbol'];
+        let timestamp = this.parse8601 (order['date']);
+        let price = this.safeFloat (order, 'rate');
+        let amount = this.safeFloat (order, 'amount');
+        return {
+            'info': order,
+            'id': order['order_id'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': 'limit',
+            'side': side,
+            'price': price,
+            'amount': amount,
+        };
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let request = {};
+        let market = undefined;
+        if (typeof symbol !== 'undefined') {
+            market = this.market (symbol);
+            request['pairing'] = market['id'];
+        }
+        let response = this.privatePostGetorders (this.extend (request, params));
+        let orders = this.parseOrders (response['orders'], market, since, limit);
+        return this.filterOrdersBySymbol (orders, symbol);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/';
         if (path)
