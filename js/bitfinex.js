@@ -227,7 +227,7 @@ module.exports = class bitfinex extends Exchange {
                     'Nonce is too small.': InvalidNonce,
                 },
                 'broad': {
-                    'Invalid order: not enough exchange balance for ': InsufficientFunds, // when buy, cost > quote currency
+                    'Invalid order: not enough exchange balance for ': InsufficientFunds, // when buying cost is greater than the available quote currency
                     'Invalid order: minimum size for ': InvalidOrder, // when amount below limits.amount.min
                     'Invalid order': InvalidOrder, // ?
                 },
