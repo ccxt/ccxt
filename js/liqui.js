@@ -15,6 +15,7 @@ module.exports = class liqui extends Exchange {
             'has': {
                 'CORS': false,
                 'createMarketOrder': false,
+                'fetchOrderBooks': true,
                 'fetchOrder': true,
                 'fetchOrders': 'emulated',
                 'fetchOpenOrders': true,
@@ -155,7 +156,7 @@ module.exports = class liqui extends Exchange {
             };
             let hidden = this.safeInteger (market, 'hidden');
             let active = (hidden === 0);
-            result.push (this.extend (this.fees['trading'], {
+            result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -166,7 +167,7 @@ module.exports = class liqui extends Exchange {
                 'precision': precision,
                 'limits': limits,
                 'info': market,
-            }));
+            });
         }
         return result;
     }
@@ -198,13 +199,15 @@ module.exports = class liqui extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetDepthPair (this.extend ({
+        let request = {
             'pair': market['id'],
-            // 'limit': 150, // default = 150, max = 2000
-        }, params));
+        };
+        if (typeof limit !== 'undefined')
+            request['limit'] = limit; // default = 150, max = 2000
+        let response = await this.publicGetDepthPair (this.extend (request, params));
         let market_id_in_reponse = (market['id'] in response);
         if (!market_id_in_reponse)
             throw new ExchangeError (this.id + ' ' + market['symbol'] + ' order book is empty or not available');
@@ -212,6 +215,37 @@ module.exports = class liqui extends Exchange {
         let result = this.parseOrderBook (orderbook);
         result['bids'] = this.sortBy (result['bids'], 0, true);
         result['asks'] = this.sortBy (result['asks'], 0);
+        return result;
+    }
+
+    async fetchOrderBooks (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        let ids = undefined;
+        if (!symbols) {
+            ids = this.ids.join ('-');
+            // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
+            if (ids.length > 2048) {
+                let numIds = this.ids.length;
+                throw new ExchangeError (this.id + ' has ' + numIds.toString () + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks');
+            }
+        } else {
+            ids = this.marketIds (symbols);
+            ids = ids.join ('-');
+        }
+        let response = await this.publicGetDepthPair (this.extend ({
+            'pair': ids,
+        }, params));
+        let result = {};
+        ids = Object.keys (response);
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
+            let symbol = id;
+            if (id in this.marketsById) {
+                let market = this.marketsById[id];
+                symbol = market['symbol'];
+            }
+            result[symbol] = this.parseOrderBook (response[id]);
+        }
         return result;
     }
 
@@ -246,11 +280,9 @@ module.exports = class liqui extends Exchange {
         await this.loadMarkets ();
         let ids = undefined;
         if (!symbols) {
-            // let numIds = this.ids.length;
-            // if (numIds > 256)
-            //     throw new ExchangeError (this.id + ' fetchTickers() requires symbols argument');
             ids = this.ids.join ('-');
-            if (ids.length > 2083) {
+            // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
+            if (ids.length > 2048) {
                 let numIds = this.ids.length;
                 throw new ExchangeError (this.id + ' has ' + numIds.toString () + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchTickers');
             }
@@ -503,12 +535,17 @@ module.exports = class liqui extends Exchange {
             } else {
                 let order = this.orders[id];
                 if (order['status'] === 'open') {
-                    this.orders[id] = this.extend (order, {
+                    order = this.extend (order, {
                         'status': 'closed',
-                        'cost': order['amount'] * order['price'],
+                        'cost': undefined,
                         'filled': order['amount'],
                         'remaining': 0.0,
                     });
+                    if (typeof order['cost'] === 'undefined') {
+                        if (typeof order['filled'] !== 'undefined')
+                            order['cost'] = order['filled'] * order['price'];
+                    }
+                    this.orders[id] = order;
                 }
             }
             let order = this.orders[id];
@@ -671,6 +708,8 @@ module.exports = class liqui extends Exchange {
                     } else if (message === 'api key dont have trade permission') {
                         throw new AuthenticationError (feedback);
                     } else if (message.indexOf ('invalid parameter') >= 0) { // errorCode 0, returned on buy(symbol, 0, 0)
+                        throw new InvalidOrder (feedback);
+                    } else if (message === 'invalid order') {
                         throw new InvalidOrder (feedback);
                     } else if (message === 'Requests too often') {
                         throw new DDoSProtection (feedback);

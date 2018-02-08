@@ -47,7 +47,7 @@ class bibox (Exchange):
                 'www': 'https://www.bibox.com',
                 'doc': [
                     'https://github.com/Biboxcom/api_reference/wiki/home_en',
-                    'https://github.com/Biboxcom/api_reference/wiki/api_reference'
+                    'https://github.com/Biboxcom/api_reference/wiki/api_reference',
                 ],
                 'fees': 'https://bibox.zendesk.com/hc/en-us/articles/115004417013-Fee-Structure-on-Bibox',
             },
@@ -104,7 +104,7 @@ class bibox (Exchange):
                 'amount': 8,
                 'price': 8,
             }
-            result.append(self.extend(self.fees['trading'], {
+            result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -123,7 +123,7 @@ class bibox (Exchange):
                         'max': None,
                     },
                 },
-            }))
+            })
         return result
 
     def parse_ticker(self, ticker, market=None):
@@ -203,15 +203,15 @@ class bibox (Exchange):
         }, params))
         return self.parse_trades(response['result'], market, since, limit)
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol, limit=200, params={}):
         self.load_markets()
         market = self.market(symbol)
-        size = limit if (limit) else 200
-        response = self.publicGetMdata(self.extend({
+        request = {
             'cmd': 'depth',
             'pair': market['id'],
-            'size': size,
-        }, params))
+        }
+        request['size'] = limit  # default = 200 ?
+        response = self.publicGetMdata(self.extend(request, params))
         return self.parse_order_book(response['result'], self.safe_float(response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume')
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):

@@ -95,7 +95,7 @@ module.exports = class anxpro extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let response = await this.publicGetCurrencyPairMoneyDepthFull (this.extend ({
             'currency_pair': this.marketId (symbol),
         }, params));

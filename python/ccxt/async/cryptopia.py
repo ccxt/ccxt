@@ -29,6 +29,7 @@ class cryptopia (Exchange):
                 'fetchDepositAddress': True,
                 'fetchMyTrades': True,
                 'fetchOrder': 'emulated',
+                'fetchOrderBooks': True,
                 'fetchOrders': 'emulated',
                 'fetchOpenOrders': True,
                 'fetchTickers': True,
@@ -60,6 +61,7 @@ class cryptopia (Exchange):
                         'GetMarketHistory/{id}/{hours}',
                         'GetMarketOrders/{id}',
                         'GetMarketOrders/{id}/{count}',
+                        'GetMarketOrderGroups/{ids}',
                         'GetMarketOrderGroups/{ids}/{count}',
                     ],
                 },
@@ -83,6 +85,7 @@ class cryptopia (Exchange):
     def common_currency_code(self, currency):
         currencies = {
             'ACC': 'AdCoin',
+            'BAT': 'BatCoin',
             'CC': 'CCX',
             'CMT': 'Comet',
             'FCN': 'Facilecoin',
@@ -99,6 +102,7 @@ class cryptopia (Exchange):
     def currency_id(self, currency):
         currencies = {
             'AdCoin': 'ACC',
+            'BatCoin': 'BAT',
             'CCX': 'CC',
             'Comet': 'CMT',
             'Cubits': 'QBT',
@@ -161,13 +165,40 @@ class cryptopia (Exchange):
             })
         return result
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         response = await self.publicGetGetMarketOrdersId(self.extend({
             'id': self.market_id(symbol),
         }, params))
         orderbook = response['Data']
         return self.parse_order_book(orderbook, None, 'Buy', 'Sell', 'Price', 'Volume')
+
+    async def fetch_order_books(self, symbols=None, params={}):
+        await self.load_markets()
+        ids = None
+        if not symbols:
+            ids = '-'.join(self.ids)
+            # max URL length is 2083 symbols, including http schema, hostname, tld, etc...
+            if len(ids) > 2048:
+                numIds = len(self.ids)
+                raise ExchangeError(self.id + ' has ' + str(numIds) + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks')
+        else:
+            ids = self.market_ids(symbols)
+            ids = '-'.join(ids)
+        response = await self.publicGetGetMarketOrderGroupsIds(self.extend({
+            'ids': ids,
+        }, params))
+        orderbooks = response['Data']
+        result = {}
+        for i in range(0, len(orderbooks)):
+            orderbook = orderbooks[i]
+            id = self.safe_string(orderbook, 'TradePairId')
+            symbol = id
+            if id in self.marketsById:
+                market = self.marketsById[id]
+                symbol = market['symbol']
+            result[symbol] = self.parse_order_book(orderbook, None, 'Buy', 'Sell', 'Price', 'Volume')
+        return result
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()

@@ -37,7 +37,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.10.947'
+const version = '1.10.1044'
 
 Exchange.ccxtVersion = version
 
@@ -65,6 +65,7 @@ const exchanges = {
     'bitstamp':                require ('./js/bitstamp.js'),
     'bitstamp1':               require ('./js/bitstamp1.js'),
     'bittrex':                 require ('./js/bittrex.js'),
+    'bitz':                    require ('./js/bitz.js'),
     'bl3p':                    require ('./js/bl3p.js'),
     'bleutrade':               require ('./js/bleutrade.js'),
     'braziliex':               require ('./js/braziliex.js'),
@@ -75,12 +76,12 @@ const exchanges = {
     'btctradeua':              require ('./js/btctradeua.js'),
     'btcturk':                 require ('./js/btcturk.js'),
     'btcx':                    require ('./js/btcx.js'),
-    'bter':                    require ('./js/bter.js'),
     'bxinth':                  require ('./js/bxinth.js'),
     'ccex':                    require ('./js/ccex.js'),
     'cex':                     require ('./js/cex.js'),
     'chbtc':                   require ('./js/chbtc.js'),
     'chilebit':                require ('./js/chilebit.js'),
+    'cobinhood':               require ('./js/cobinhood.js'),
     'coincheck':               require ('./js/coincheck.js'),
     'coinexchange':            require ('./js/coinexchange.js'),
     'coinfloor':               require ('./js/coinfloor.js'),

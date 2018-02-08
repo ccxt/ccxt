@@ -65,6 +65,11 @@ class gemini (Exchange):
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'taker': 0.0025,
+                },
+            },
         })
 
     async def fetch_markets(self):
@@ -83,11 +88,10 @@ class gemini (Exchange):
                 'base': base,
                 'quote': quote,
                 'info': market,
-                'taker': 0.0025,
             })
         return result
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         orderbook = await self.publicGetBookSymbol(self.extend({
             'symbol': self.market_id(symbol),

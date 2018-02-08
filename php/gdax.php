@@ -29,15 +29,9 @@ class gdax extends Exchange {
                 '1m' => 60,
                 '5m' => 300,
                 '15m' => 900,
-                '30m' => 1800,
                 '1h' => 3600,
-                '2h' => 7200,
-                '4h' => 14400,
-                '12h' => 43200,
+                '6h' => 21600,
                 '1d' => 86400,
-                '1w' => 604800,
-                '1M' => 2592000,
-                '1y' => 31536000,
             ),
             'urls' => array (
                 'test' => 'https://api-public.sandbox.gdax.com',
@@ -151,7 +145,7 @@ class gdax extends Exchange {
                 'amount' => 8,
                 'price' => $this->precision_from_string($this->safe_string($market, 'quote_increment')),
             );
-            $taker = $this->fees['trading']['taker'];
+            $taker = $this->fees['trading']['taker'];  // does not seem right
             if (($base === 'ETH') || ($base === 'LTC')) {
                 $taker = 0.003;
             }
@@ -198,7 +192,7 @@ class gdax extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $orderbook = $this->publicGetProductsIdBook (array_merge (array (
             'id' => $this->market_id($symbol),
@@ -342,12 +336,12 @@ class gdax extends Exchange {
             'granularity' => $granularity,
         );
         if ($since !== null) {
-            $request['start'] = $this->YmdHMS ($since);
+            $request['start'] = $this->ymdhms ($since);
             if ($limit === null) {
                 // https://docs.gdax.com/#get-historic-rates
                 $limit = 350; // max = 350
             }
-            $request['end'] = $this->YmdHMS ($this->sum ($limit * $granularity * 1000, $since));
+            $request['end'] = $this->ymdhms ($this->sum ($limit * $granularity * 1000, $since));
         }
         $response = $this->publicGetProductsIdCandles (array_merge ($request, $params));
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);

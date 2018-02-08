@@ -138,7 +138,7 @@ module.exports = class zaif extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetDepthPair (this.extend ({
             'pair': this.marketId (symbol),

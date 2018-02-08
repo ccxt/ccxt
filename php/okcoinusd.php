@@ -22,7 +22,7 @@ class okcoinusd extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
                 'withdraw' => true,
-                'futureMarkets' => false,
+                'futures' => false,
             ),
             'extension' => '.do', // appended to endpoint URL
             'timeframes' => array (
@@ -188,7 +188,7 @@ class okcoinusd extends Exchange {
                 ),
             ));
             $result[] = $market;
-            if (($this->has['futureMarkets']) && ($market['quote'] === 'USDT')) {
+            if (($this->has['futures']) && ($market['quote'] === 'USDT')) {
                 $result[] = array_merge ($market, array (
                     'quote' => 'USD',
                     'symbol' => $market['base'] . '/USD',
@@ -202,13 +202,15 @@ class okcoinusd extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $method = 'publicGet';
         $request = array (
             'symbol' => $market['id'],
         );
+        if ($limit !== null)
+            $request['size'] = $limit;
         if ($market['future']) {
             $method .= 'Future';
             $request['contract_type'] = 'this_week'; // next_week, quarter

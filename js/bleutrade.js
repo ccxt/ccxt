@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 // ---------------------------------------------------------------------------
 
@@ -8,7 +8,6 @@ const { AuthenticationError, InvalidOrder, InsufficientFunds, DDoSProtection } =
 // ---------------------------------------------------------------------------
 
 module.exports = class bleutrade extends bittrex {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bleutrade',
@@ -103,7 +102,7 @@ module.exports = class bleutrade extends bittrex {
                 'price': 8,
             };
             let active = market['IsActive'];
-            result.push (this.extend (this.fees['trading'], {
+            result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -126,7 +125,7 @@ module.exports = class bleutrade extends bittrex {
                         'max': undefined,
                     },
                 },
-            }));
+            });
         }
         return result;
     }
@@ -135,13 +134,15 @@ module.exports = class bleutrade extends bittrex {
         return 'orderid';
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetOrderbook (this.extend ({
+        let request = {
             'market': this.marketId (symbol),
             'type': 'ALL',
-            'depth': 50,
-        }, params));
+        };
+        if (typeof limit !== 'undefined')
+            request['depth'] = limit; // 50
+        let response = await this.publicGetOrderbook (this.extend (request, params));
         let orderbook = response['result'];
         return this.parseOrderBook (orderbook, undefined, 'buy', 'sell', 'Rate', 'Quantity');
     }
@@ -163,4 +164,4 @@ module.exports = class bleutrade extends bittrex {
                 throw new InvalidOrder (this.id + ' order cost should be over 50k satoshi ' + this.json (response));
         }
     }
-}
+};

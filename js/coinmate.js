@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -8,7 +8,6 @@ const { ExchangeError } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class coinmate extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'coinmate',
@@ -91,7 +90,7 @@ module.exports = class coinmate extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let response = await this.publicGetOrderBook (this.extend ({
             'currencyPair': this.marketId (symbol),
             'groupByPriceLimit': 'False',
@@ -159,8 +158,8 @@ module.exports = class coinmate extends Exchange {
         let order = {
             'currencyPair': this.marketId (symbol),
         };
-        if (type == 'market') {
-            if (side == 'buy')
+        if (type === 'market') {
+            if (side === 'buy')
                 order['total'] = amount; // amount in fiat
             else
                 order['amount'] = amount; // amount in fiat
@@ -183,7 +182,7 @@ module.exports = class coinmate extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + path;
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
@@ -211,4 +210,4 @@ module.exports = class coinmate extends Exchange {
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
     }
-}
+};

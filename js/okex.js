@@ -7,7 +7,6 @@ const okcoinusd = require ('./okcoinusd.js');
 // ---------------------------------------------------------------------------
 
 module.exports = class okex extends okcoinusd {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'okex',
@@ -15,10 +14,9 @@ module.exports = class okex extends okcoinusd {
             'countries': [ 'CN', 'US' ],
             'has': {
                 'CORS': false,
-                'hutureMarkets': true,
+                'futures': true,
                 'hasFetchTickers': true,
                 'fetchTickers': true,
-                'futureMarkets': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg',
@@ -43,6 +41,17 @@ module.exports = class okex extends okcoinusd {
         return currency;
     }
 
+    async fetchMarkets () {
+        let markets = await super.fetchMarkets ();
+        for (let i = 0; i < markets.length; i++) {
+            if (markets[i]['spot']) {
+                markets[i]['maker'] = -0.001;
+                markets[i]['taker'] = 0.001;
+            }
+        }
+        return markets;
+    }
+
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {};
@@ -64,4 +73,4 @@ module.exports = class okex extends okcoinusd {
         }
         return result;
     }
-}
+};

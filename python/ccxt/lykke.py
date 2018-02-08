@@ -146,7 +146,7 @@ class lykke (Exchange):
                 'amount': market['Accuracy'],
                 'price': market['InvertedAccuracy'],
             }
-            result.append(self.extend(self.fees['trading'], {
+            result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -165,7 +165,7 @@ class lykke (Exchange):
                         'max': math.pow(10, precision['price']),
                     },
                 },
-            }))
+            })
         return result
 
     def parse_ticker(self, ticker, market=None):
@@ -286,7 +286,7 @@ class lykke (Exchange):
         }, params))
         return self.parse_orders(response, None, since, limit)
 
-    def fetch_order_book(self, symbol=None, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         response = self.publicGetOrderBooksAssetPairId(self.extend({
             'AssetPairId': self.market_id(symbol),

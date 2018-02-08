@@ -610,15 +610,17 @@ class hitbtc2 extends hitbtc {
             // differentiated fees for each particular method
             $precision = 8; // default $precision, todo => fix "magic constants"
             $code = $this->common_currency_code($id);
-            $payin = $currency['payinEnabled'];
-            $payout = $currency['payoutEnabled'];
-            $transfer = $currency['transferEnabled'];
+            $payin = $this->safe_value($currency, 'payinEnabled');
+            $payout = $this->safe_value($currency, 'payoutEnabled');
+            $transfer = $this->safe_value($currency, 'transferEnabled');
             $active = $payin && $payout && $transfer;
             $status = 'ok';
             if (is_array ($currency) && array_key_exists ('disabled', $currency))
                 if ($currency['disabled'])
                     $status = 'disabled';
-            $type = ($currency['crypto']) ? 'crypto' : 'fiat';
+            $type = 'fiat';
+            if ((is_array ($currency) && array_key_exists ('crypto', $currency)) && $currency['crypto'])
+                $type = 'crypto';
             $result[$code] = array (
                 'id' => $id,
                 'code' => $code,
@@ -701,12 +703,14 @@ class hitbtc2 extends hitbtc {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $orderbook = $this->publicGetOrderbookSymbol (array_merge (array (
+        $request = array (
             'symbol' => $this->market_id($symbol),
-            // 'limit' => 100, // default = 100, 0 = unlimited
-        ), $params));
+        );
+        if ($limit !== null)
+            $request['limit'] = $limit; // default = 100, 0 = unlimited
+        $orderbook = $this->publicGetOrderbookSymbol (array_merge ($request, $params));
         return $this->parse_order_book($orderbook, null, 'bid', 'ask', 'price', 'size');
     }
 
@@ -1083,6 +1087,8 @@ class hitbtc2 extends hitbtc {
                         $message = $response['error']['message'];
                         if ($message === 'Order not found') {
                             throw new OrderNotFound ($this->id . ' order not found in active orders');
+                        } else if ($message === 'Quantity not a valid number') {
+                            throw new InvalidOrder ($this->id . ' ' . $body);
                         } else if ($message === 'Insufficient funds') {
                             throw new InsufficientFunds ($this->id . ' ' . $body);
                         } else if ($message === 'Duplicate clientOrderId') {

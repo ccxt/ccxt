@@ -133,13 +133,16 @@ module.exports = class virwox extends Exchange {
         };
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicPostGetMarketDepth (this.extend ({
+        let request = {
             'symbols': [ symbol ],
-            'buyDepth': 100,
-            'sellDepth': 100,
-        }, params));
+        };
+        if (typeof limit !== 'undefined') {
+            request['buyDepth'] = limit; // 100
+            request['sellDepth'] = limit; // 100
+        }
+        let response = await this.publicPostGetMarketDepth (this.extend (request, params));
         let orderbook = response['result'][0];
         return this.parseOrderBook (orderbook, undefined, 'buy', 'sell', 'price', 'volume');
     }
@@ -150,8 +153,8 @@ module.exports = class virwox extends Exchange {
         let start = end - 86400000;
         let response = await this.publicGetGetTradedPriceVolume (this.extend ({
             'instrument': symbol,
-            'endDate': this.YmdHMS (end),
-            'startDate': this.YmdHMS (start),
+            'endDate': this.ymdhms (end),
+            'startDate': this.ymdhms (start),
             'HLOC': 1,
         }, params));
         let marketPrice = await this.fetchMarketPrice (symbol, params);

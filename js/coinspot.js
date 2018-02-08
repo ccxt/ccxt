@@ -80,7 +80,7 @@ module.exports = class coinspot extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let market = this.market (symbol);
         let orderbook = await this.privatePostOrders (this.extend ({
             'cointype': market['id'],
@@ -127,7 +127,7 @@ module.exports = class coinspot extends Exchange {
 
     createOrder (market, type, side, amount, price = undefined, params = {}) {
         let method = 'privatePostMy' + this.capitalize (side);
-        if (type == 'market')
+        if (type === 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
         let order = {
             'cointype': this.marketId (market),

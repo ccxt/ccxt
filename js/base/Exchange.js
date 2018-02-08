@@ -5,32 +5,34 @@
 const functions = require ('./functions')
     , Market    = require ('./Market')
 
-const { isNode
-      , keys
-      , values
-      , deepExtend
-      , extend
-      , flatten
-      , indexBy
-      , sortBy
-      , groupBy
-      , aggregate
-      , uuid
-      , unCamelCase
-      , precisionFromString
-      , throttle
-      , capitalize
-      , now
-      , sleep
-      , timeout
-      , TimedOut } = functions
+const {
+    isNode
+    , keys
+    , values
+    , deepExtend
+    , extend
+    , flatten
+    , indexBy
+    , sortBy
+    , groupBy
+    , aggregate
+    , uuid
+    , unCamelCase
+    , precisionFromString
+    , throttle
+    , capitalize
+    , now
+    , sleep
+    , timeout
+    , TimedOut } = functions
 
-const { ExchangeError
-      , NotSupported
-      , AuthenticationError
-      , DDoSProtection
-      , RequestTimeout
-      , ExchangeNotAvailable } = require ('./errors')
+const {
+    ExchangeError
+    , NotSupported
+    , AuthenticationError
+    , DDoSProtection
+    , RequestTimeout
+    , ExchangeNotAvailable } = require ('./errors')
 
 const defaultFetch = isNode ? require ('fetch-ponyfill') ().fetch : fetch
 
@@ -67,23 +69,27 @@ module.exports = class Exchange {
                 'publicAPI': true,
                 'privateAPI': true,
                 'cancelOrder': true,
+                'cancelOrders': false,
                 'createDepositAddress': false,
                 'createOrder': true,
                 'deposit': false,
                 'fetchBalance': true,
+                'fetchBidsAsks': false,
                 'fetchClosedOrders': false,
                 'fetchCurrencies': false,
                 'fetchDepositAddress': false,
+                'fetchFundingFees': false,
+                'fetchL2OrderBook': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': false,
                 'fetchOHLCV': false,
                 'fetchOpenOrders': false,
                 'fetchOrder': false,
                 'fetchOrderBook': true,
+                'fetchOrderBooks': false,
                 'fetchOrders': false,
                 'fetchTicker': true,
                 'fetchTickers': false,
-                'fetchBidsAsks': false,
                 'fetchTrades': true,
                 'withdraw': false,
             },
@@ -122,7 +128,11 @@ module.exports = class Exchange {
             'parseJsonResponse': true, // whether a reply is required to be in JSON or not
             'skipJsonOnStatusCodes': [], // array of http status codes which override requirement for JSON response
             'exceptions': undefined,
-            'parseBalanceFromOpenOrders': false, // some exchanges return balance updates from order API endpoints
+            // some exchanges report only 'free' on `fetchBlance` call (i.e. report no 'used' funds)
+            // in this case ccxt will try to infer 'used' funds from open order cache, which might be stale
+            // still, some exchanges report number of open orders together with balance
+            // if you set the following flag to 'true' ccxt will leave 'used' funds undefined in case of discrepancy
+            'dontGetUsedBalanceFromStaleCache': false,
         } // return
     } // describe ()
 
@@ -156,7 +166,6 @@ module.exports = class Exchange {
 
         this.iso8601          = timestamp => new Date (timestamp).toISOString ()
         this.parse8601        = x => Date.parse (((x.indexOf ('+') >= 0) || (x.slice (-1) === 'Z')) ? x : (x + 'Z'))
-        this.milliseconds     = now
         this.microseconds     = () => now () * 1000 // TODO: utilize performance.now for that purpose
         this.seconds          = () => Math.floor (now () / 1000)
 
@@ -230,6 +239,10 @@ module.exports = class Exchange {
 
     nonce () {
         return this.seconds ()
+    }
+
+    milliseconds () {
+        return now ()
     }
 
     encodeURIComponent (...args) {
@@ -364,12 +377,20 @@ module.exports = class Exchange {
         return this.fetch2 (path, type, method, params, headers, body)
     }
 
-    parseJson (responseBody, url, method = 'GET') {
+    parseJson (response, responseBody, url, method) {
         try {
 
             return (responseBody.length > 0) ? JSON.parse (responseBody) : {} // empty object for empty body
 
         } catch (e) {
+
+            if (this.verbose)
+                console.log ('parseJson:\n', this.id, method, url, response.status, 'error', e, "response body:\n'" + responseBody + "'\n")
+
+            let title = undefined
+            let match = responseBody.match (/<title>([^<]+)/i)
+            if (match)
+                title = match[1].trim ();
 
             let maintenance = responseBody.match (/offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing/i)
             let ddosProtection = responseBody.match (/cloudflare|incapsula|overload/i)
@@ -382,11 +403,8 @@ module.exports = class Exchange {
                     details = 'offline, on maintenance or unreachable from this location at the moment'
                 if (ddosProtection)
                     error = DDoSProtection
-                throw new error ([ this.id, method, url, details ].join (' '))
+                throw new error ([ this.id, method, url, response.status, title, details ].join (' '))
             }
-
-            if (this.verbose)
-                console.log ('parseJson:\n', this.id, method, url, 'error', e, "response body:\n'" + responseBody + "'\n")
 
             throw e
         }
@@ -396,7 +414,8 @@ module.exports = class Exchange {
         // override me
     }
 
-    defaultErrorHandler (code, reason, url, method, responseBody) {
+    defaultErrorHandler (response, responseBody, url, method) {
+        const { status: code, statusText: reason } = response
         if ((code >= 200) && (code <= 299))
             return
         let error = undefined
@@ -438,7 +457,7 @@ module.exports = class Exchange {
         return response.text ().then (responseBody => {
 
             let jsonRequired = this.parseJsonResponse && !this.skipJsonOnStatusCodes.includes (response.status)
-            let json = jsonRequired ? this.parseJson (responseBody, url, method) : undefined
+            let json = jsonRequired ? this.parseJson (response, responseBody, url, method) : undefined
 
             if (this.verbose)
                 console.log ("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, "\nResponse:\n", requestHeaders, "\n", responseBody, "\n")
@@ -448,7 +467,7 @@ module.exports = class Exchange {
 
             const args = [ response.status, response.statusText, url, method, requestHeaders, responseBody, json ]
             this.handleErrors (...args)
-            this.defaultErrorHandler (response.status, response.statusText, url, method, responseBody)
+            this.defaultErrorHandler (response, responseBody, url, method)
 
             return jsonRequired ? json : responseBody
         })
@@ -606,9 +625,11 @@ module.exports = class Exchange {
     extractParams (string) {
         let re = /{([\w-]+)}/g
         let matches = []
-        let match
-        while (match = re.exec (string))
+        let match = re.exec (string)
+        while (match) {
             matches.push (match[1])
+            match = re.exec (string)
+        }
         return matches
     }
 
@@ -636,8 +657,8 @@ module.exports = class Exchange {
         return Object.values (bidasks || []).map (bidask => this.parseBidAsk (bidask, priceKey, amountKey))
     }
 
-    async fetchL2OrderBook (symbol, params = {}) {
-        let orderbook = await this.fetchOrderBook (symbol, params)
+    async fetchL2OrderBook (symbol, limit = undefined, params = {}) {
+        let orderbook = await this.fetchOrderBook (symbol, limit, params)
         return extend (orderbook, {
             'bids': sortBy (aggregate (orderbook.bids), 0, true),
             'asks': sortBy (aggregate (orderbook.asks), 0),
@@ -676,8 +697,11 @@ module.exports = class Exchange {
         currencies.forEach (currency => {
 
             if (typeof balance[currency].used === 'undefined') {
+                // exchange reports only 'free' balance -> try to derive 'used' funds from open orders cache
 
-                if (this.parseBalanceFromOpenOrders && ('open_orders' in balance['info'])) {
+                if (this.dontGetUsedBalanceFromStaleCache && ('open_orders' in balance['info'])) {
+                    // liqui exchange reports number of open orders with balance response
+                    // use it to validate the cache
                     const exchangeOrdersCount = balance['info']['open_orders'];
                     const cachedOrdersCount = Object.values (this.orders).filter (order => (order['status'] === 'open')).length;
                     if (cachedOrdersCount === exchangeOrdersCount) {
@@ -718,7 +742,7 @@ module.exports = class Exchange {
 
     filterBySinceLimit (array, since = undefined, limit = undefined) {
         if (typeof since !== 'undefined')
-            array = array.filter (entry => entry.timestamp > since)
+            array = array.filter (entry => entry.timestamp >= since)
         if (typeof limit !== 'undefined')
             array = array.slice (0, limit)
         return array
@@ -843,7 +867,7 @@ module.exports = class Exchange {
         }
     }
 
-    Ymd (timestamp, infix = ' ') {
+    ymd (timestamp, infix = ' ') {
         let date = new Date (timestamp)
         let Y = date.getUTCFullYear ()
         let m = date.getUTCMonth () + 1
@@ -853,7 +877,7 @@ module.exports = class Exchange {
         return Y + '-' + m + '-' + d
     }
 
-    YmdHMS (timestamp, infix = ' ') {
+    ymdhms (timestamp, infix = ' ') {
         let date = new Date (timestamp)
         let Y = date.getUTCFullYear ()
         let m = date.getUTCMonth () + 1

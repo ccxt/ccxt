@@ -28,7 +28,7 @@ SOFTWARE.
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.10.947'
+__version__ = '1.10.1044'
 
 # ----------------------------------------------------------------------------
 
@@ -71,6 +71,7 @@ from ccxt.bitso import bitso                                # noqa: F401
 from ccxt.bitstamp import bitstamp                          # noqa: F401
 from ccxt.bitstamp1 import bitstamp1                        # noqa: F401
 from ccxt.bittrex import bittrex                            # noqa: F401
+from ccxt.bitz import bitz                                  # noqa: F401
 from ccxt.bl3p import bl3p                                  # noqa: F401
 from ccxt.bleutrade import bleutrade                        # noqa: F401
 from ccxt.braziliex import braziliex                        # noqa: F401
@@ -81,12 +82,12 @@ from ccxt.btcmarkets import btcmarkets                      # noqa: F401
 from ccxt.btctradeua import btctradeua                      # noqa: F401
 from ccxt.btcturk import btcturk                            # noqa: F401
 from ccxt.btcx import btcx                                  # noqa: F401
-from ccxt.bter import bter                                  # noqa: F401
 from ccxt.bxinth import bxinth                              # noqa: F401
 from ccxt.ccex import ccex                                  # noqa: F401
 from ccxt.cex import cex                                    # noqa: F401
 from ccxt.chbtc import chbtc                                # noqa: F401
 from ccxt.chilebit import chilebit                          # noqa: F401
+from ccxt.cobinhood import cobinhood                        # noqa: F401
 from ccxt.coincheck import coincheck                        # noqa: F401
 from ccxt.coinexchange import coinexchange                  # noqa: F401
 from ccxt.coinfloor import coinfloor                        # noqa: F401
@@ -171,6 +172,7 @@ exchanges = [
     'bitstamp',
     'bitstamp1',
     'bittrex',
+    'bitz',
     'bl3p',
     'bleutrade',
     'braziliex',
@@ -181,12 +183,12 @@ exchanges = [
     'btctradeua',
     'btcturk',
     'btcx',
-    'bter',
     'bxinth',
     'ccex',
     'cex',
     'chbtc',
     'chilebit',
+    'cobinhood',
     'coincheck',
     'coinexchange',
     'coinfloor',

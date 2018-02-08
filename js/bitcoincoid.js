@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -36,7 +36,6 @@ module.exports = class bitcoincoid extends Exchange {
                 'www': 'https://www.bitcoin.co.id',
                 'doc': [
                     'https://vip.bitcoin.co.id/downloads/BITCOINCOID-API-DOCUMENTATION.pdf',
-                    'https://vip.bitcoin.co.id/trade_api',
                 ],
             },
             'api': {
@@ -113,7 +112,7 @@ module.exports = class bitcoincoid extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetPairDepth (this.extend ({
             'pair': this.marketId (symbol),
@@ -256,15 +255,19 @@ module.exports = class bitcoincoid extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (!symbol)
-            throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol');
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
-            'pair': market['id'],
-        };
+        let market = undefined;
+        let request = {};
+        if (symbol) {
+            market = this.market (symbol);
+            request['pair'] = market['id'];
+        }
         let response = await this.privatePostOpenOrders (this.extend (request, params));
-        let orders = this.parseOrders (response['return']['orders'], market, since, limit);
+        // { success: 1, return: { orders: null }}
+        let raw = response['return']['orders'];
+        if (!raw)
+            return [];
+        let orders = this.parseOrders (raw, market, since, limit);
         return this.filterOrdersBySymbol (orders, symbol);
     }
 
@@ -344,10 +347,35 @@ module.exports = class bitcoincoid extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('error' in response)
-            throw new ExchangeError (this.id + ' ' + response['error']);
-        return response;
+    handleErrors (code, reason, url, method, headers, body, response = undefined) {
+        // { success: 0, error: "invalid order." }
+        if (typeof response === 'undefined')
+            if (body[0] === '{')
+                response = JSON.parse (body);
+        if (!('success' in response))
+            return; // no 'success' property on public responses
+        if (response['success'] === 1) {
+            // { success: 1, return: { orders: [] }}
+            if (!('return' in response))
+                throw new ExchangeError (this.id + ': malformed response: ' + this.json (response));
+            else
+                return;
+        }
+        let message = response['error'];
+        let feedback = this.id + ' ' + this.json (response);
+        if (message === 'Insufficient balance.') {
+            throw new InsufficientFunds (feedback);
+        } else if (message === 'invalid order.') {
+            throw new OrderNotFound (feedback); // cancelOrder(1)
+        } else if (message.indexOf ('Minimum price ') >= 0) {
+            throw new InvalidOrder (feedback); // price < limits.price.min, on createLimitBuyOrder ('ETH/BTC', 1, 0)
+        } else if (message.indexOf ('Minimum order ') >= 0) {
+            throw new InvalidOrder (feedback); // cost < limits.cost.min on createLimitBuyOrder ('ETH/BTC', 0, 1)
+        } else if (message === 'Invalid credentials. API not found or session has expired.') {
+            throw new AuthenticationError (feedback); // on bad apiKey
+        } else if (message === 'Invalid credentials. Bad sign.') {
+            throw new AuthenticationError (feedback); // on bad secret
+        }
+        throw new ExchangeError (this.id + ': unknown error: ' + this.json (response));
     }
 };

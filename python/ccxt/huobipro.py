@@ -27,6 +27,7 @@ class huobipro (Exchange):
                 'fetchOHCLV': True,
                 'fetchOrders': True,
                 'fetchOpenOrders': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1min',
@@ -188,7 +189,7 @@ class huobipro (Exchange):
             'info': ticker,
         }
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         response = self.marketGetDepth(self.extend({
@@ -409,6 +410,23 @@ class huobipro (Exchange):
     def cancel_order(self, id, symbol=None, params={}):
         return self.privatePostOrderOrdersIdSubmitcancel({'id': id})
 
+    def withdraw(self, currency, amount, address, tag=None, params={}):
+        request = {
+            'address': address,  # only supports existing addresses in your withdraw address list
+            'amount': amount,
+            'currency': currency.lower(),
+        }
+        if tag:
+            request['addr-tag'] = tag  # only for XRP?
+        response = self.privatePostDwWithdrawApiCreate(self.extend(request, params))
+        id = None
+        if 'data' in response:
+            id = response['data']
+        return {
+            'info': response,
+            'id': id,
+        }
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/'
         if api == 'market':
@@ -419,7 +437,7 @@ class huobipro (Exchange):
         query = self.omit(params, self.extract_params(path))
         if api == 'private':
             self.check_required_credentials()
-            timestamp = self.YmdHMS(self.milliseconds(), 'T')
+            timestamp = self.ymdhms(self.milliseconds(), 'T')
             request = self.keysort(self.extend({
                 'SignatureMethod': 'HmacSHA256',
                 'SignatureVersion': '2',

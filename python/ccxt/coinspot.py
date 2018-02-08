@@ -79,7 +79,7 @@ class coinspot (Exchange):
                 result[uppercase] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         market = self.market(symbol)
         orderbook = self.privatePostOrders(self.extend({
             'cointype': market['id'],

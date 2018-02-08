@@ -8,7 +8,6 @@ const { ExchangeError, AuthenticationError, DDoSProtection } = require ('./base/
 //  ---------------------------------------------------------------------------
 
 module.exports = class bibox extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bibox',
@@ -43,7 +42,7 @@ module.exports = class bibox extends Exchange {
                 'www': 'https://www.bibox.com',
                 'doc': [
                     'https://github.com/Biboxcom/api_reference/wiki/home_en',
-                    'https://github.com/Biboxcom/api_reference/wiki/api_reference'
+                    'https://github.com/Biboxcom/api_reference/wiki/api_reference',
                 ],
                 'fees': 'https://bibox.zendesk.com/hc/en-us/articles/115004417013-Fee-Structure-on-Bibox',
             },
@@ -101,7 +100,7 @@ module.exports = class bibox extends Exchange {
                 'amount': 8,
                 'price': 8,
             };
-            result.push (this.extend (this.fees['trading'], {
+            result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -120,7 +119,7 @@ module.exports = class bibox extends Exchange {
                         'max': undefined,
                     },
                 },
-            }));
+            });
         }
         return result;
     }
@@ -210,15 +209,15 @@ module.exports = class bibox extends Exchange {
         return this.parseTrades (response['result'], market, since, limit);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol, limit = 200, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let size = (limit) ? limit : 200;
-        let response = await this.publicGetMdata (this.extend ({
+        let request = {
             'cmd': 'depth',
             'pair': market['id'],
-            'size': size,
-        }, params));
+        };
+        request['size'] = limit; // default = 200 ?
+        let response = await this.publicGetMdata (this.extend (request, params));
         return this.parseOrderBook (response['result'], this.safeFloat (response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume');
     }
 
@@ -526,4 +525,4 @@ module.exports = class bibox extends Exchange {
             return response['result'][0];
         }
     }
-}
+};

@@ -536,8 +536,14 @@ class coinexchange (Exchange):
         })
 
     def common_currency_code(self, currency):
-        if currency == 'HNC':
-            return 'Huncoin'
+        substitutions = {
+            'BON': 'BonPeKaO',
+            'ETN': 'Ethernex',
+            'HNC': 'Huncoin',
+            'MARS': 'MarsBux',
+        }
+        if currency in substitutions:
+            return substitutions[currency]
         return currency
 
     def fetch_currencies(self, params={}):
@@ -656,7 +662,7 @@ class coinexchange (Exchange):
             result[symbol] = ticker
         return result
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         orderbook = self.publicGetGetorderbook(self.extend({
             'market_id': self.market_id(symbol),

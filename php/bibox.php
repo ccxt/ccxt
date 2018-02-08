@@ -41,7 +41,7 @@ class bibox extends Exchange {
                 'www' => 'https://www.bibox.com',
                 'doc' => array (
                     'https://github.com/Biboxcom/api_reference/wiki/home_en',
-                    'https://github.com/Biboxcom/api_reference/wiki/api_reference'
+                    'https://github.com/Biboxcom/api_reference/wiki/api_reference',
                 ),
                 'fees' => 'https://bibox.zendesk.com/hc/en-us/articles/115004417013-Fee-Structure-on-Bibox',
             ),
@@ -99,7 +99,7 @@ class bibox extends Exchange {
                 'amount' => 8,
                 'price' => 8,
             );
-            $result[] = array_merge ($this->fees['trading'], array (
+            $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
@@ -118,7 +118,7 @@ class bibox extends Exchange {
                         'max' => null,
                     ),
                 ),
-            ));
+            );
         }
         return $result;
     }
@@ -208,15 +208,15 @@ class bibox extends Exchange {
         return $this->parse_trades($response['result'], $market, $since, $limit);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = 200, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $size = ($limit) ? $limit : 200;
-        $response = $this->publicGetMdata (array_merge (array (
+        $request = array (
             'cmd' => 'depth',
             'pair' => $market['id'],
-            'size' => $size,
-        ), $params));
+        );
+        $request['size'] = $limit; // default = 200 ?
+        $response = $this->publicGetMdata (array_merge ($request, $params));
         return $this->parse_order_book($response['result'], $this->safe_float($response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume');
     }
 

@@ -89,8 +89,11 @@ class lakebtc extends Exchange {
         $ids = is_array ($balances) ? array_keys ($balances) : array ();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
-            $currency = $this->currencies[$id];
-            $code = $currency['code'];
+            $code = $id;
+            if (is_array ($this->currencies) && array_key_exists ($id, $this->currencies)) {
+                $currency = $this->currencies[$id];
+                $code = $currency['code'];
+            }
             $balance = floatval ($balances[$id]);
             $account = array (
                 'free' => $balance,
@@ -102,7 +105,7 @@ class lakebtc extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $orderbook = $this->publicGetBcorderbook (array_merge (array (
             'symbol' => $this->market_id($symbol),

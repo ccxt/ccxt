@@ -17,6 +17,7 @@ class kucoin extends Exchange {
             'userAgent' => $this->userAgents['chrome'],
             'has' => array (
                 'CORS' => false,
+                'cancelOrders' => true,
                 'createMarketOrder' => false,
                 'fetchTickers' => true,
                 'fetchOHLCV' => true, // see the method implementation below
@@ -95,6 +96,7 @@ class kucoin extends Exchange {
                         'account/{coin}/withdraw/cancel',
                         'cancel-order',
                         'order',
+                        'order/cancel-all',
                         'user/change-lang',
                     ),
                 ),
@@ -181,7 +183,7 @@ class kucoin extends Exchange {
                 'price' => 8,
             );
             $active = $market['trading'];
-            $result[] = array_merge ($this->fees['trading'], array (
+            $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
@@ -200,7 +202,7 @@ class kucoin extends Exchange {
                         'max' => null,
                     ),
                 ),
-            ));
+            );
         }
         return $result;
     }
@@ -227,7 +229,7 @@ class kucoin extends Exchange {
                 'name' => $currency['name'],
                 'active' => $active,
                 'status' => 'ok',
-                'fee' => $currency['withdrawFeeRate'], // todo => redesign
+                'fee' => $currency['withdrawMinFee'], // todo => redesign
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
@@ -278,7 +280,7 @@ class kucoin extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->publicGetOpenOrders (array_merge (array (
@@ -296,11 +298,11 @@ class kucoin extends Exchange {
             $symbol = $order['coinType'] . '/' . $order['coinTypePair'];
         }
         $timestamp = $this->safe_value($order, 'createdAt');
-        $price = $this->safe_value($order, 'price');
+        $price = $this->safe_float($order, 'price');
         if ($price === null)
-            $price = $this->safe_value($order, 'dealPrice');
+            $price = $this->safe_float($order, 'dealPrice');
         if ($price === null)
-            $price = $this->safe_value($order, 'dealPriceAverage');
+            $price = $this->safe_float($order, 'dealPriceAverage');
         $remaining = $this->safe_float($order, 'pendingAmount');
         $status = $this->safe_value($order, 'status');
         $filled = $this->safe_float($order, 'dealAmount');
@@ -311,12 +313,15 @@ class kucoin extends Exchange {
                 else
                     $status = 'closed';
         }
-        if ($status !== null) {
-            if ($status === 'closed')
-                $filled = $this->safe_float($order, 'amount');
+        if ($filled === null) {
+            if ($status !== null)
+                if ($status === 'closed')
+                    $filled = $this->safe_float($order, 'amount');
         }
         $amount = $this->safe_float($order, 'amount');
         $cost = $this->safe_float($order, 'dealValue');
+        if ($cost === null)
+            $cost = $this->safe_float($order, 'dealValueTotal');
         if ($filled !== null) {
             if ($price !== null) {
                 if ($cost === null)
@@ -335,7 +340,7 @@ class kucoin extends Exchange {
         $fee = null;
         if (is_array ($order) && array_key_exists ('feeTotal', $order)) {
             $fee = array (
-                'cost' => $this->safe_value($order, 'feeTotal'),
+                'cost' => $this->safe_float($order, 'feeTotal'),
                 'rate' => null,
                 'currency' => null,
             );
@@ -368,10 +373,10 @@ class kucoin extends Exchange {
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         if ($symbol === null)
-            throw new ExchangeError ($this->id . ' fetchOrder requires a $symbol argument');
+            throw new ExchangeError ($this->id . ' fetchOrder requires a symbol');
         $orderType = $this->safe_value($params, 'type');
         if ($orderType === null)
-            throw new ExchangeError ($this->id . ' fetchOrder requires a type param');
+            throw new ExchangeError ($this->id . ' fetchOrder requires parameter type=["BUY"|"SELL"]');
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
@@ -380,12 +385,15 @@ class kucoin extends Exchange {
             'orderOid' => $id,
         );
         $response = $this->privateGetOrderDetail (array_merge ($request, $params));
+        $order = $response['data'];
+        if (!$order)
+            throw new OrderNotFound ($this->id . ' ' . $this->json ($response));
         return $this->parse_order($response['data'], $market);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if (!$symbol)
-            throw new ExchangeError ($this->id . ' fetchOpenOrders requires a $symbol param');
+            throw new ExchangeError ($this->id . ' fetchOpenOrders requires a symbol');
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
@@ -440,9 +448,27 @@ class kucoin extends Exchange {
         );
     }
 
+    public function cancel_orders ($symbol = null, $params = array ()) {
+        // https://kucoinapidocs.docs.apiary.io/#reference/0/trading/cancel-all-orders
+        // docs say $symbol is required, but it seems to be optional
+        // you can cancel all orders, or filter by $symbol or type or both
+        $request = array ();
+        if ($symbol) {
+            $this->load_markets();
+            $market = $this->market ($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        if (is_array ($params) && array_key_exists ('type', $params)) {
+            $request['type'] = strtoupper ($params['type']);
+            $params = $this->omit ($params, 'type');
+        }
+        $response = $this->privatePostOrderCancelAll (array_merge ($request, $params));
+        return $response;
+    }
+
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         if (!$symbol)
-            throw new ExchangeError ($this->id . ' cancelOrder requires $symbol argument');
+            throw new ExchangeError ($this->id . ' cancelOrder requires a symbol');
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
@@ -451,8 +477,9 @@ class kucoin extends Exchange {
         );
         if (is_array ($params) && array_key_exists ('type', $params)) {
             $request['type'] = strtoupper ($params['type']);
+            $params = $this->omit ($params, 'type');
         } else {
-            throw new ExchangeError ($this->id . ' cancelOrder requires type (BUY or SELL) param');
+            throw new ExchangeError ($this->id . ' cancelOrder requires parameter type=["BUY"|"SELL"]');
         }
         $response = $this->privatePostCancelOrder (array_merge ($request, $params));
         return $response;
@@ -643,35 +670,52 @@ class kucoin extends Exchange {
     }
 
     public function throw_exception_on_error ($response) {
-        if (is_array ($response) && array_key_exists ('success', $response)) {
-            if (!$response['success']) {
-                if (is_array ($response) && array_key_exists ('code', $response)) {
-                    $message = $this->safe_string($response, 'msg');
-                    if ($response['code'] === 'UNAUTH') {
-                        if ($message === 'Invalid nonce')
-                            throw new InvalidNonce ($this->id . ' ' . $message);
-                        throw new AuthenticationError ($this->id . ' ' . $this->json ($response));
-                    } else if ($response['code'] === 'ERROR') {
-                        if (mb_strpos ($message, 'precision of amount') !== false)
-                            throw new InvalidOrder ($this->id . ' ' . $message);
-                        if (mb_strpos ($message, 'Min amount each order') !== false)
-                            throw new InvalidOrder ($this->id . ' ' . $message);
-                    }
-                }
-            }
+        //
+        // API endpoints return the following formats
+        //     array ( success => false, $code => "ERROR", msg => "Min price:100.0" )
+        //     array ( success => true,  $code => "OK",    msg => "Operation succeeded." )
+        //
+        // Web OHLCV endpoint returns this:
+        //     array ( s => "ok", o => array (), h => array (), l => array (), c => array (), v => array () )
+        //
+        // This particular method handles API responses only
+        //
+        if (!(is_array ($response) && array_key_exists ('success', $response)))
+            return;
+        if ($response['success'] === true)
+            return; // not an error
+        if (!(is_array ($response) && array_key_exists ('code', $response)) || !(is_array ($response) && array_key_exists ('msg', $response)))
+            throw new ExchangeError ($this->id . ' => malformed $response => ' . $this->json ($response));
+        $code = $this->safe_string($response, 'code');
+        $message = $this->safe_string($response, 'msg');
+        $feedback = $this->id . ' ' . $this->json ($response);
+        if ($code === 'UNAUTH') {
+            if ($message === 'Invalid nonce')
+                throw new InvalidNonce ($feedback);
+            throw new AuthenticationError ($feedback);
+        } else if ($code === 'ERROR') {
+            if (mb_strpos ($message, 'The precision of amount') !== false)
+                throw new InvalidOrder ($feedback); // amount violates precision.amount
+            if (mb_strpos ($message, 'Min amount each order') !== false)
+                throw new InvalidOrder ($feedback); // amount < limits.amount.min
+            if (mb_strpos ($message, 'Min price:') !== false)
+                throw new InvalidOrder ($feedback); // price < limits.price.min
+            if (mb_strpos ($message, 'The precision of price') !== false)
+                throw new InvalidOrder ($feedback); // price violates precision.price
+        } else if ($code === 'NO_BALANCE') {
+            if (mb_strpos ($message, 'Insufficient balance') !== false)
+                throw new InsufficientFunds ($feedback);
         }
+        throw new ExchangeError ($this->id . ' => unknown $response => ' . $this->json ($response));
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
-        if ($body && ($body[0] === '{')) {
-            $response = json_decode ($body, $as_associative_array = true);
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
+        if ($response !== null) {
+            // JS callchain parses $body beforehand
             $this->throw_exception_on_error($response);
+        } else if ($body && ($body[0] === '{')) {
+            // Python/PHP callchains don't have json available at this step
+            $this->throw_exception_on_error(json_decode ($body, $as_associative_array = true));
         }
-    }
-
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        $this->throw_exception_on_error($response);
-        return $response;
     }
 }

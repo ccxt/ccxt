@@ -132,13 +132,16 @@ class virwox extends Exchange {
         );
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->publicPostGetMarketDepth (array_merge (array (
+        $request = array (
             'symbols' => array ( $symbol ),
-            'buyDepth' => 100,
-            'sellDepth' => 100,
-        ), $params));
+        );
+        if ($limit !== null) {
+            $request['buyDepth'] = $limit; // 100
+            $request['sellDepth'] = $limit; // 100
+        }
+        $response = $this->publicPostGetMarketDepth (array_merge ($request, $params));
         $orderbook = $response['result'][0];
         return $this->parse_order_book($orderbook, null, 'buy', 'sell', 'price', 'volume');
     }
@@ -149,8 +152,8 @@ class virwox extends Exchange {
         $start = $end - 86400000;
         $response = $this->publicGetGetTradedPriceVolume (array_merge (array (
             'instrument' => $symbol,
-            'endDate' => $this->YmdHMS ($end),
-            'startDate' => $this->YmdHMS ($start),
+            'endDate' => $this->ymdhms ($end),
+            'startDate' => $this->ymdhms ($start),
             'HLOC' => 1,
         ), $params));
         $marketPrice = $this->fetch_market_price ($symbol, $params);

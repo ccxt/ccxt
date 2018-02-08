@@ -38,15 +38,9 @@ class gdax (Exchange):
                 '1m': 60,
                 '5m': 300,
                 '15m': 900,
-                '30m': 1800,
                 '1h': 3600,
-                '2h': 7200,
-                '4h': 14400,
-                '12h': 43200,
+                '6h': 21600,
                 '1d': 86400,
-                '1w': 604800,
-                '1M': 2592000,
-                '1y': 31536000,
             },
             'urls': {
                 'test': 'https://api-public.sandbox.gdax.com',
@@ -159,7 +153,7 @@ class gdax (Exchange):
                 'amount': 8,
                 'price': self.precision_from_string(self.safe_string(market, 'quote_increment')),
             }
-            taker = self.fees['trading']['taker']
+            taker = self.fees['trading']['taker']  # does not seem right
             if (base == 'ETH') or (base == 'LTC'):
                 taker = 0.003
             active = market['status'] == 'online'
@@ -201,7 +195,7 @@ class gdax (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         orderbook = self.publicGetProductsIdBook(self.extend({
             'id': self.market_id(symbol),
@@ -333,11 +327,11 @@ class gdax (Exchange):
             'granularity': granularity,
         }
         if since is not None:
-            request['start'] = self.YmdHMS(since)
+            request['start'] = self.ymdhms(since)
             if limit is None:
                 # https://docs.gdax.com/#get-historic-rates
                 limit = 350  # max = 350
-            request['end'] = self.YmdHMS(self.sum(limit * granularity * 1000, since))
+            request['end'] = self.ymdhms(self.sum(limit * granularity * 1000, since))
         response = self.publicGetProductsIdCandles(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 

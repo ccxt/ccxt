@@ -176,7 +176,7 @@ class bittrex (Exchange):
                 'price': 8,
             }
             active = market['IsActive']
-            result.append(self.extend(self.fees['trading'], {
+            result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -197,7 +197,7 @@ class bittrex (Exchange):
                         'max': None,
                     },
                 },
-            }))
+            })
         return result
 
     async def fetch_balance(self, params={}):
@@ -221,7 +221,7 @@ class bittrex (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         response = await self.publicGetOrderbook(self.extend({
             'market': self.market_id(symbol),
@@ -242,7 +242,7 @@ class bittrex (Exchange):
         return self.parse_order_book(orderbook, None, 'buy', 'sell', 'Rate', 'Quantity')
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = self.parse8601(ticker['TimeStamp'])
+        timestamp = self.parse8601(ticker['TimeStamp'] + '+00:00')
         symbol = None
         if market:
             symbol = market['symbol']
@@ -347,7 +347,7 @@ class bittrex (Exchange):
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.parse8601(trade['TimeStamp'])
+        timestamp = self.parse8601(trade['TimeStamp'] + '+00:00')
         side = None
         if trade['OrderType'] == 'BUY':
             side = 'buy'
@@ -380,7 +380,7 @@ class bittrex (Exchange):
         raise ExchangeError(self.id + ' fetchTrades() returned None response')
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1d', since=None, limit=None):
-        timestamp = self.parse8601(ohlcv['T'])
+        timestamp = self.parse8601(ohlcv['T'] + '+00:00')
         return [
             timestamp,
             ohlcv['O'],
@@ -489,11 +489,11 @@ class bittrex (Exchange):
             symbol = market['symbol']
         timestamp = None
         if 'Opened' in order:
-            timestamp = self.parse8601(order['Opened'])
+            timestamp = self.parse8601(order['Opened'] + '+00:00')
         if 'TimeStamp' in order:
-            timestamp = self.parse8601(order['TimeStamp'])
+            timestamp = self.parse8601(order['TimeStamp'] + '+00:00')
         if 'Created' in order:
-            timestamp = self.parse8601(order['Created'])
+            timestamp = self.parse8601(order['Created'] + '+00:00')
         fee = None
         commission = None
         if 'Commission' in order:
@@ -651,6 +651,8 @@ class bittrex (Exchange):
             if response['message'] == 'APISIGN_NOT_PROVIDED':
                 raise AuthenticationError(self.id + ' ' + self.json(response))
             if response['message'] == 'INVALID_SIGNATURE':
+                raise AuthenticationError(self.id + ' ' + self.json(response))
+            if response['message'] == 'INVALID_PERMISSION':
                 raise AuthenticationError(self.id + ' ' + self.json(response))
             if response['message'] == 'INSUFFICIENT_FUNDS':
                 raise InsufficientFunds(self.id + ' ' + self.json(response))

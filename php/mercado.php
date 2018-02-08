@@ -71,7 +71,7 @@ class mercado extends Exchange {
         ));
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $market = $this->market ($symbol);
         $orderbook = $this->publicGetCoinOrderbook (array_merge (array (
             'coin' => $market['base'],

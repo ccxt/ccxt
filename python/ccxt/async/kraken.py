@@ -80,26 +80,26 @@ class kraken (Exchange):
                     'maker': 0.16 / 100,
                     'tiers': {
                         'taker': [
-                            [0, 0.26 / 100],
-                            [50000, 0.24 / 100],
-                            [100000, 0.22 / 100],
-                            [250000, 0.2 / 100],
-                            [500000, 0.18 / 100],
-                            [1000000, 0.16 / 100],
-                            [2500000, 0.14 / 100],
-                            [5000000, 0.12 / 100],
-                            [10000000, 0.1 / 100],
+                            [0, 0.0026],
+                            [50000, 0.0024],
+                            [100000, 0.0022],
+                            [250000, 0.0020],
+                            [500000, 0.0018],
+                            [1000000, 0.0016],
+                            [2500000, 0.0014],
+                            [5000000, 0.0012],
+                            [10000000, 0.0001],
                         ],
                         'maker': [
-                            [0, 0.16 / 100],
-                            [50000, 0.14 / 100],
-                            [100000, 0.12 / 100],
-                            [250000, 0.10 / 100],
-                            [500000, 0.8 / 100],
-                            [1000000, 0.6 / 100],
-                            [2500000, 0.4 / 100],
-                            [5000000, 0.2 / 100],
-                            [10000000, 0.0 / 100],
+                            [0, 0.0016],
+                            [50000, 0.0014],
+                            [100000, 0.0012],
+                            [250000, 0.0010],
+                            [500000, 0.0008],
+                            [1000000, 0.0006],
+                            [2500000, 0.0004],
+                            [5000000, 0.0002],
+                            [10000000, 0.0],
                         ],
                     },
                 },
@@ -375,16 +375,38 @@ class kraken (Exchange):
             }
         return result
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_trading_fees(self, params={}):
+        await self.load_markets()
+        self.check_required_credentials()
+        response = await self.privatePostTradeVolume(params)
+        tradedVolume = self.safe_float(response['result'], 'volume')
+        tiers = self.fees['trading']['tiers']
+        taker = tiers['taker'][1]
+        maker = tiers['maker'][1]
+        for i in range(0, len(tiers['taker'])):
+            if tradedVolume >= tiers['taker'][i][0]:
+                taker = tiers['taker'][i][1]
+        for i in range(0, len(tiers['maker'])):
+            if tradedVolume >= tiers['maker'][i][0]:
+                maker = tiers['maker'][i][1]
+        return {
+            'info': response,
+            'maker': maker,
+            'taker': taker,
+        }
+
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         darkpool = symbol.find('.d') >= 0
         if darkpool:
             raise ExchangeError(self.id + ' does not provide an order book for darkpool symbol ' + symbol)
         market = self.market(symbol)
-        response = await self.publicGetDepth(self.extend({
+        request = {
             'pair': market['id'],
-            # 'count': 100,
-        }, params))
+        }
+        if limit is not None:
+            request['count'] = limit  # 100
+        response = await self.publicGetDepth(self.extend(request, params))
         orderbook = response['result'][market['id']]
         return self.parse_order_book(orderbook)
 
@@ -509,6 +531,7 @@ class kraken (Exchange):
             type = 'limit' if (trade[4] == 'l') else 'market'
             price = float(trade[0])
             amount = float(trade[1])
+            id = trade[6]  # artificially added as per  #1794
         symbol = market['symbol'] if (market) else None
         return {
             'id': id,
@@ -531,7 +554,16 @@ class kraken (Exchange):
         response = await self.publicGetTrades(self.extend({
             'pair': id,
         }, params))
-        trades = response['result'][id]
+        # {result: {marketid: [...trades]}, last: "last_trade_id"}
+        result = response['result']
+        trades = result[id]
+        # trades is a sorted array: last(most recent trade) goes last
+        length = len(trades)
+        if length <= 0:
+            return []
+        lastTrade = trades[length - 1]
+        lastTradeId = self.safe_string(result, 'last')
+        lastTrade.append(lastTradeId)
         return self.parse_trades(trades, market, since, limit)
 
     async def fetch_balance(self, params={}):

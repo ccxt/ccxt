@@ -72,7 +72,7 @@ class fybse (Exchange):
         result['info'] = balance
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         orderbook = await self.publicGetOrderbook(params)
         return self.parse_order_book(orderbook)
 

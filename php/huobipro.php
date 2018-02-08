@@ -23,6 +23,7 @@ class huobipro extends Exchange {
                 'fetchOHCLV' => true,
                 'fetchOrders' => true,
                 'fetchOpenOrders' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array (
                 '1m' => '1min',
@@ -190,7 +191,7 @@ class huobipro extends Exchange {
         );
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->marketGetDepth (array_merge (array (
@@ -441,6 +442,25 @@ class huobipro extends Exchange {
         return $this->privatePostOrderOrdersIdSubmitcancel (array ( 'id' => $id ));
     }
 
+    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+        $request = array (
+            'address' => $address, // only supports existing addresses in your withdraw $address list
+            'amount' => $amount,
+            'currency' => strtolower ($currency),
+        );
+        if ($tag)
+            $request['addr-tag'] = $tag; // only for XRP?
+        $response = $this->privatePostDwWithdrawApiCreate (array_merge ($request, $params));
+        $id = null;
+        if (is_array ($response) && array_key_exists ('data', $response)) {
+            $id = $response['data'];
+        }
+        return array (
+            'info' => $response,
+            'id' => $id,
+        );
+    }
+
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = '/';
         if ($api === 'market')
@@ -451,7 +471,7 @@ class huobipro extends Exchange {
         $query = $this->omit ($params, $this->extract_params($path));
         if ($api === 'private') {
             $this->check_required_credentials();
-            $timestamp = $this->YmdHMS ($this->milliseconds (), 'T');
+            $timestamp = $this->ymdhms ($this->milliseconds (), 'T');
             $request = $this->keysort (array_merge (array (
                 'SignatureMethod' => 'HmacSHA256',
                 'SignatureVersion' => '2',

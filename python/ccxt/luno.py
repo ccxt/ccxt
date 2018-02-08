@@ -116,7 +116,7 @@ class luno (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         orderbook = self.publicGetOrderbook(self.extend({
             'pair': self.market_id(symbol),
@@ -232,9 +232,12 @@ class luno (Exchange):
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetTrades(self.extend({
+        request = {
             'pair': market['id'],
-        }, params))
+        }
+        if since is not None:
+            request['since'] = since
+        response = self.publicGetTrades(self.extend(request, params))
         return self.parse_trades(response['trades'], market, since, limit)
 
     def create_order(self, market, type, side, amount, price=None, params={}):

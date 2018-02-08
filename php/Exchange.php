@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.10.947';
+$version = '1.10.1044';
 
 abstract class Exchange {
 
@@ -56,6 +56,7 @@ abstract class Exchange {
         'bitstamp',
         'bitstamp1',
         'bittrex',
+        'bitz',
         'bl3p',
         'bleutrade',
         'braziliex',
@@ -66,12 +67,12 @@ abstract class Exchange {
         'btctradeua',
         'btcturk',
         'btcx',
-        'bter',
         'bxinth',
         'ccex',
         'cex',
         'chbtc',
         'chilebit',
+        'cobinhood',
         'coincheck',
         'coinexchange',
         'coinfloor',
@@ -447,11 +448,11 @@ abstract class Exchange {
         return $time;
     }
 
-    public static function Ymd ($timestamp, $infix = ' ') {
+    public static function ymd ($timestamp, $infix = ' ') {
         return gmdate ('Y-m-d', (int) round ($timestamp / 1000));
     }
 
-    public static function YmdHMS ($timestamp, $infix = ' ') {
+    public static function ymdhms ($timestamp, $infix = ' ') {
         return gmdate ('Y-m-d\\' . $infix . 'H:i:s', (int) round ($timestamp / 1000));
     }
 
@@ -522,6 +523,15 @@ abstract class Exchange {
 
         $this->options     = array (); // exchange-specific options if any
 
+        $this->skipJsonOnStatusCodes = false; // TODO: reserved, rewrite the curl routine to parse JSON body anyway
+
+        $this->name      = null;
+        $this->countries = null;
+        $this->version   = null;
+        $this->urls      = array ();
+        $this->api       = array ();
+        $this->comment   = null;
+
         $this->markets     = null;
         $this->symbols     = null;
         $this->ids         = null;
@@ -583,6 +593,7 @@ abstract class Exchange {
         // API methods metainfo
         $this->has = array (
             'cancelOrder' => $this->hasPrivateAPI,
+            'cancelOrders' => false,
             'createDepositAddress' => false,
             'createOrder' => $this->hasPrivateAPI,
             'createMarketOrder' => $this->hasPrivateAPI,
@@ -592,12 +603,14 @@ abstract class Exchange {
             'fetchClosedOrders' => false,
             'fetchCurrencies' => false,
             'fetchDepositAddress' => false,
+            'fetchL2OrderBook' => true,
             'fetchMarkets' => true,
             'fetchMyTrades' => false,
             'fetchOHLCV' => false,
             'fetchOpenOrders' => false,
             'fethcOrder' => false,
             'fethcOrderBook' => true,
+            'fetchOrderBooks' => false,
             'fetchOrders' => false,
             'fetchTicker' => true,
             'fetchTickers' => false,
@@ -613,11 +626,14 @@ abstract class Exchange {
         $this->last_http_response = null;
         $this->last_json_response = null;
 
-        $options = array_replace_recursive ($this->describe(), $options);
+        $options = array_merge_recursive ($this->describe(), $options);
 
         if ($options)
             foreach ($options as $key => $value)
-                $this->$key = $value;
+                $this->{$key} =
+                    (property_exists ($this, $key) && is_array ($this->{$key}) && is_array ($value)) ?
+                        array_replace_recursive ($this->{$key}, $value) :
+                        $value;
 
         if ($this->api)
             $this->define_rest_api ($this->api, 'request');
@@ -751,9 +767,8 @@ abstract class Exchange {
         curl_setopt ($this->curl, CURLOPT_URL, $url);
 
         if ($this->timeout) {
-            $seconds = intval ($this->timeout / 1000);
-            curl_setopt ($this->curl, CURLOPT_CONNECTTIMEOUT, $seconds);
-            curl_setopt ($this->curl, CURLOPT_TIMEOUT, $seconds);
+            curl_setopt ($this->curl, CURLOPT_CONNECTTIMEOUT_MS, (int)($this->timeout));
+            curl_setopt ($this->curl, CURLOPT_TIMEOUT_MS, (int)($this->timeout));
         }
 
         curl_setopt ($this->curl, CURLOPT_RETURNTRANSFER, true);
@@ -1075,16 +1090,16 @@ abstract class Exchange {
         return $this->parse_bids_asks ($bidasks, $price_key, $amount_key);
     }
 
-    public function fetch_l2_order_book ($symbol, $params = array ()) {
-        $orderbook = $this->fetch_order_book ($symbol, $params);
+    public function fetch_l2_order_book ($symbol, $limit = null, $params = array ()) {
+        $orderbook = $this->fetch_order_book ($symbol, $limit, $params);
         return array_merge ($orderbook, array (
             'bids' => $this->sort_by ($this->aggregate ($orderbook['bids']), 0, true),
             'asks' => $this->sort_by ($this->aggregate ($orderbook['asks']), 0),
         ));
     }
 
-    public function fetchL2OrderBook ($symbol, $params = array ()) {
-        return $this->fetch_l2_order_book ($symbol, $params);
+    public function fetchL2OrderBook ($symbol, $limit = null, $params = array ()) {
+        return $this->fetch_l2_order_book ($symbol, $limit, $params);
     }
 
     public function parse_order_book ($orderbook, $timestamp = null, $bids_key = 'bids', $asks_key = 'asks', $price_key = 0, $amount_key = 1) {
@@ -1278,8 +1293,8 @@ abstract class Exchange {
 		throw new NotSupported ($this->id . ' fetch_balance() not implemented yet');
 	}
 
-    public function fetchOrderBook ($symbol, $params = array ()) {
-        return $this->fetch_order_book ($symbol, $params);
+    public function fetchOrderBook ($symbol, $limit = null, $params = array ()) {
+        return $this->fetch_order_book ($symbol, $limit, $params);
     }
 
     public function fetchTicker ($symbol, $params = array ()) {

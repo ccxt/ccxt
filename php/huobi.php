@@ -108,7 +108,7 @@ class huobi extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $market = $this->market ($symbol);
         $method = $market['type'] . 'GetDepthId';
         $orderbook = $this->$method (array_merge (array ( 'id' => $market['id'] ), $params));
@@ -201,7 +201,7 @@ class huobi extends Exchange {
             'amount' => $amount,
             'market' => strtolower ($market['quote']),
         );
-        if ($type == 'limit')
+        if ($type === 'limit')
             $order['price'] = $price;
         else
             $method .= $this->capitalize ($type);
@@ -218,7 +218,7 @@ class huobi extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'];
-        if ($api == 'trade') {
+        if ($api === 'trade') {
             $this->check_required_credentials();
             $url .= '/api' . $this->version;
             $query = $this->keysort (array_merge (array (
@@ -246,7 +246,7 @@ class huobi extends Exchange {
     public function request ($path, $api = 'trade', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if (is_array ($response) && array_key_exists ('status', $response))
-            if ($response['status'] == 'error')
+            if ($response['status'] === 'error')
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         if (is_array ($response) && array_key_exists ('code', $response))
             throw new ExchangeError ($this->id . ' ' . $this->json ($response));

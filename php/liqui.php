@@ -18,6 +18,7 @@ class liqui extends Exchange {
             'has' => array (
                 'CORS' => false,
                 'createMarketOrder' => false,
+                'fetchOrderBooks' => true,
                 'fetchOrder' => true,
                 'fetchOrders' => 'emulated',
                 'fetchOpenOrders' => true,
@@ -158,7 +159,7 @@ class liqui extends Exchange {
             );
             $hidden = $this->safe_integer($market, 'hidden');
             $active = ($hidden === 0);
-            $result[] = array_merge ($this->fees['trading'], array (
+            $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
@@ -169,7 +170,7 @@ class liqui extends Exchange {
                 'precision' => $precision,
                 'limits' => $limits,
                 'info' => $market,
-            ));
+            );
         }
         return $result;
     }
@@ -201,13 +202,15 @@ class liqui extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetDepthPair (array_merge (array (
+        $request = array (
             'pair' => $market['id'],
-            // 'limit' => 150, // default = 150, max = 2000
-        ), $params));
+        );
+        if ($limit !== null)
+            $request['limit'] = $limit; // default = 150, max = 2000
+        $response = $this->publicGetDepthPair (array_merge ($request, $params));
         $market_id_in_reponse = (is_array ($response) && array_key_exists ($market['id'], $response));
         if (!$market_id_in_reponse)
             throw new ExchangeError ($this->id . ' ' . $market['symbol'] . ' order book is empty or not available');
@@ -215,6 +218,37 @@ class liqui extends Exchange {
         $result = $this->parse_order_book($orderbook);
         $result['bids'] = $this->sort_by($result['bids'], 0, true);
         $result['asks'] = $this->sort_by($result['asks'], 0);
+        return $result;
+    }
+
+    public function fetch_order_books ($symbols = null, $params = array ()) {
+        $this->load_markets();
+        $ids = null;
+        if (!$symbols) {
+            $ids = implode ('-', $this->ids);
+            // max URL length is 2083 $symbols, including http schema, hostname, tld, etc...
+            if (strlen ($ids) > 2048) {
+                $numIds = is_array ($this->ids) ? count ($this->ids) : 0;
+                throw new ExchangeError ($this->id . ' has ' . (string) $numIds . ' $symbols exceeding max URL length, you are required to specify a list of $symbols in the first argument to fetchOrderBooks');
+            }
+        } else {
+            $ids = $this->market_ids($symbols);
+            $ids = implode ('-', $ids);
+        }
+        $response = $this->publicGetDepthPair (array_merge (array (
+            'pair' => $ids,
+        ), $params));
+        $result = array ();
+        $ids = is_array ($response) ? array_keys ($response) : array ();
+        for ($i = 0; $i < count ($ids); $i++) {
+            $id = $ids[$i];
+            $symbol = $id;
+            if (is_array ($this->marketsById) && array_key_exists ($id, $this->marketsById)) {
+                $market = $this->marketsById[$id];
+                $symbol = $market['symbol'];
+            }
+            $result[$symbol] = $this->parse_order_book($response[$id]);
+        }
         return $result;
     }
 
@@ -249,11 +283,9 @@ class liqui extends Exchange {
         $this->load_markets();
         $ids = null;
         if (!$symbols) {
-            // $numIds = is_array ($this->ids) ? count ($this->ids) : 0;
-            // if ($numIds > 256)
-            //     throw new ExchangeError ($this->id . ' fetchTickers() requires $symbols argument');
             $ids = implode ('-', $this->ids);
-            if (strlen ($ids) > 2083) {
+            // max URL length is 2083 $symbols, including http schema, hostname, tld, etc...
+            if (strlen ($ids) > 2048) {
                 $numIds = is_array ($this->ids) ? count ($this->ids) : 0;
                 throw new ExchangeError ($this->id . ' has ' . (string) $numIds . ' $symbols exceeding max URL length, you are required to specify a list of $symbols in the first argument to fetchTickers');
             }
@@ -506,12 +538,17 @@ class liqui extends Exchange {
             } else {
                 $order = $this->orders[$id];
                 if ($order['status'] === 'open') {
-                    $this->orders[$id] = array_merge ($order, array (
+                    $order = array_merge ($order, array (
                         'status' => 'closed',
-                        'cost' => $order['amount'] * $order['price'],
+                        'cost' => null,
                         'filled' => $order['amount'],
                         'remaining' => 0.0,
                     ));
+                    if ($order['cost'] == null) {
+                        if ($order['filled'] != null)
+                            $order['cost'] = $order['filled'] * $order['price'];
+                    }
+                    $this->orders[$id] = $order;
                 }
             }
             $order = $this->orders[$id];
@@ -674,6 +711,8 @@ class liqui extends Exchange {
                     } else if ($message === 'api key dont have trade permission') {
                         throw new AuthenticationError ($feedback);
                     } else if (mb_strpos ($message, 'invalid parameter') !== false) { // errorCode 0, returned on buy(symbol, 0, 0)
+                        throw new InvalidOrder ($feedback);
+                    } else if ($message === 'invalid order') {
                         throw new InvalidOrder ($feedback);
                     } else if ($message === 'Requests too often') {
                         throw new DDoSProtection ($feedback);

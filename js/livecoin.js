@@ -8,7 +8,6 @@ const { ExchangeError, AuthenticationError, NotSupported, InvalidOrder, OrderNot
 //  ---------------------------------------------------------------------------
 
 module.exports = class livecoin extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'livecoin',
@@ -20,6 +19,7 @@ module.exports = class livecoin extends Exchange {
                 'CORS': false,
                 'fetchTickers': true,
                 'fetchCurrencies': true,
+                'fetchFees': true,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
@@ -118,7 +118,7 @@ module.exports = class livecoin extends Exchange {
                 'min': Math.pow (10, -precision['price']),
                 'max': Math.pow (10, precision['price']),
             };
-            result.push (this.extend (this.fees['trading'], {
+            result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -126,7 +126,7 @@ module.exports = class livecoin extends Exchange {
                 'precision': precision,
                 'limits': limits,
                 'info': market,
-            }));
+            });
         }
         return result;
     }
@@ -237,24 +237,32 @@ module.exports = class livecoin extends Exchange {
     }
 
     async fetchFees (params = {}) {
+        let tradingFees = await this.fetchTradingFees (params);
+        return this.extend (tradingFees, {
+            'withdraw': 0.0,
+        });
+    }
+
+    async fetchTradingFees (params = {}) {
         await this.loadMarkets ();
-        let commissionInfo = await this.privateGetExchangeCommissionCommonInfo ();
-        let commission = this.safeFloat (commissionInfo, 'commission');
+        let response = await this.privateGetExchangeCommissionCommonInfo (params);
+        const commission = this.safeFloat (response, 'commission');
         return {
-            'info': commissionInfo,
+            'info': response,
             'maker': commission,
             'taker': commission,
-            'withdraw': 0.0,
         };
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let orderbook = await this.publicGetExchangeOrderBook (this.extend ({
+        let request = {
             'currencyPair': this.marketId (symbol),
             'groupByPrice': 'false',
-            'depth': 100,
-        }, params));
+        };
+        if (typeof limit !== 'undefined')
+            request['depth'] = limit; // 100
+        let orderbook = await this.publicGetExchangeOrderBook (this.extend (request, params));
         let timestamp = orderbook['timestamp'];
         return this.parseOrderBook (orderbook, timestamp);
     }
@@ -571,4 +579,4 @@ module.exports = class livecoin extends Exchange {
         }
         return response;
     }
-}
+};

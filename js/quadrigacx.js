@@ -93,7 +93,7 @@ module.exports = class quadrigacx extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let orderbook = await this.publicGetOrderBook (this.extend ({
             'book': this.marketId (symbol),
         }, params));

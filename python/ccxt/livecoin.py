@@ -28,6 +28,7 @@ class livecoin (Exchange):
                 'CORS': False,
                 'fetchTickers': True,
                 'fetchCurrencies': True,
+                'fetchFees': True,
                 'fetchOrders': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
@@ -123,7 +124,7 @@ class livecoin (Exchange):
                 'min': math.pow(10, -precision['price']),
                 'max': math.pow(10, precision['price']),
             }
-            result.append(self.extend(self.fees['trading'], {
+            result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -131,7 +132,7 @@ class livecoin (Exchange):
                 'precision': precision,
                 'limits': limits,
                 'info': market,
-            }))
+            })
         return result
 
     def fetch_currencies(self, params={}):
@@ -234,23 +235,30 @@ class livecoin (Exchange):
         return self.parse_balance(result)
 
     def fetch_fees(self, params={}):
+        tradingFees = self.fetch_trading_fees(params)
+        return self.extend(tradingFees, {
+            'withdraw': 0.0,
+        })
+
+    def fetch_trading_fees(self, params={}):
         self.load_markets()
-        commissionInfo = self.privateGetExchangeCommissionCommonInfo()
-        commission = self.safe_float(commissionInfo, 'commission')
+        response = self.privateGetExchangeCommissionCommonInfo(params)
+        commission = self.safe_float(response, 'commission')
         return {
-            'info': commissionInfo,
+            'info': response,
             'maker': commission,
             'taker': commission,
-            'withdraw': 0.0,
         }
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
-        orderbook = self.publicGetExchangeOrderBook(self.extend({
+        request = {
             'currencyPair': self.market_id(symbol),
             'groupByPrice': 'false',
-            'depth': 100,
-        }, params))
+        }
+        if limit is not None:
+            request['depth'] = limit  # 100
+        orderbook = self.publicGetExchangeOrderBook(self.extend(request, params))
         timestamp = orderbook['timestamp']
         return self.parse_order_book(orderbook, timestamp)
 

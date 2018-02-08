@@ -62,6 +62,14 @@ class independentreserve (Exchange):
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'taker': 0.5 / 100,
+                    'maker': 0.5 / 100,
+                    'percentage': True,
+                    'tierBased': False,
+                },
+            },
         })
 
     async def fetch_markets(self):
@@ -78,8 +86,6 @@ class independentreserve (Exchange):
                 quote = self.common_currency_code(quoteIdUppercase)
                 id = baseId + '/' + quoteId
                 symbol = base + '/' + quote
-                taker = 0.5 / 100
-                maker = 0.5 / 100
                 result.append({
                     'id': id,
                     'symbol': symbol,
@@ -87,8 +93,6 @@ class independentreserve (Exchange):
                     'quote': quote,
                     'baseId': baseId,
                     'quoteId': quoteId,
-                    'taker': taker,
-                    'maker': maker,
                     'info': id,
                 })
         return result
@@ -109,7 +113,7 @@ class independentreserve (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         response = await self.publicGetGetOrderBook(self.extend({

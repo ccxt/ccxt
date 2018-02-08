@@ -313,7 +313,7 @@ class binance extends Exchange {
         $before = $this->milliseconds ();
         $response = $this->publicGetTime ();
         $after = $this->milliseconds ();
-        $this->options['timeDifference'] = ($before . $after) / 2 - $response['serverTime'];
+        $this->options['timeDifference'] = intval (($before . $after) / 2 - $response['serverTime']);
         return $this->options['timeDifference'];
     }
 
@@ -341,8 +341,9 @@ class binance extends Exchange {
                 'price' => $market['quotePrecision'],
             );
             $active = ($market['status'] === 'TRADING');
+            // $lot size is deprecated as of 2018.02.06
             $lot = -1 * log10 ($precision['amount']);
-            $entry = array_merge ($this->fees['trading'], array (
+            $entry = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
@@ -350,16 +351,16 @@ class binance extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'info' => $market,
-                'lot' => $lot,
+                'lot' => $lot, // $lot size is deprecated as of 2018.02.06
                 'active' => $active,
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => $lot,
+                        'min' => pow (10, -$precision['amount']),
                         'max' => null,
                     ),
                     'price' => array (
-                        'min' => -1 * log10 ($precision['price']),
+                        'min' => pow (10, -$precision['price']),
                         'max' => null,
                     ),
                     'cost' => array (
@@ -367,7 +368,7 @@ class binance extends Exchange {
                         'max' => null,
                     ),
                 ),
-            ));
+            );
             if (is_array ($filters) && array_key_exists ('PRICE_FILTER', $filters)) {
                 $filter = $filters['PRICE_FILTER'];
                 $entry['precision']['price'] = $this->precision_from_string($filter['tickSize']);
@@ -379,7 +380,7 @@ class binance extends Exchange {
             if (is_array ($filters) && array_key_exists ('LOT_SIZE', $filters)) {
                 $filter = $filters['LOT_SIZE'];
                 $entry['precision']['amount'] = $this->precision_from_string($filter['stepSize']);
-                $entry['lot'] = floatval ($filter['stepSize']);
+                $entry['lot'] = floatval ($filter['stepSize']); // $lot size is deprecated as of 2018.02.06
                 $entry['limits']['amount'] = array (
                     'min' => floatval ($filter['minQty']),
                     'max' => floatval ($filter['maxQty']),
@@ -431,13 +432,15 @@ class binance extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $orderbook = $this->publicGetDepth (array_merge (array (
+        $request = array (
             'symbol' => $market['id'],
-            'limit' => 100, // default = maximum = 100
-        ), $params));
+        );
+        if ($limit !== null)
+            $request['limit'] = $limit; // default = maximum = 100
+        $orderbook = $this->publicGetDepth (array_merge ($request, $params));
         return $this->parse_order_book($orderbook);
     }
 
@@ -640,6 +643,10 @@ class binance extends Exchange {
         $amount = floatval ($order['origQty']);
         $filled = $this->safe_float($order, 'executedQty', 0.0);
         $remaining = max ($amount - $filled, 0.0);
+        $cost = null;
+        if ($price !== null)
+            if ($filled !== null)
+                $cost = $price * $filled;
         $result = array (
             'info' => $order,
             'id' => (string) $order['orderId'],
@@ -650,7 +657,7 @@ class binance extends Exchange {
             'side' => strtolower ($order['side']),
             'price' => $price,
             'amount' => $amount,
-            'cost' => $price * $amount,
+            'cost' => $cost,
             'filled' => $filled,
             'remaining' => $remaining,
             'status' => $status,

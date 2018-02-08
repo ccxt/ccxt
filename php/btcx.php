@@ -67,11 +67,13 @@ class btcx extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
-        $orderbook = $this->publicGetDepthIdLimit (array_merge (array (
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+        $request = array (
             'id' => $this->market_id($symbol),
-            'limit' => 1000,
-        ), $params));
+        );
+        if ($limit !== null)
+            $request['limit'] = $limit; // 1000
+        $orderbook = $this->publicGetDepthIdLimit (array_merge ($request, $params));
         return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'price', 'amount');
     }
 
@@ -104,7 +106,7 @@ class btcx extends Exchange {
 
     public function parse_trade ($trade, $market) {
         $timestamp = intval ($trade['date']) * 1000;
-        $side = ($trade['type'] == 'ask') ? 'sell' : 'buy';
+        $side = ($trade['type'] === 'ask') ? 'sell' : 'buy';
         return array (
             'id' => $trade['id'],
             'info' => $trade,
@@ -146,7 +148,7 @@ class btcx extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/';
-        if ($api == 'public') {
+        if ($api === 'public') {
             $url .= $this->implode_params($path, $params);
         } else {
             $this->check_required_credentials();

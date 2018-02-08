@@ -535,8 +535,14 @@ module.exports = class coinexchange extends Exchange {
     }
 
     commonCurrencyCode (currency) {
-        if (currency === 'HNC')
-            return 'Huncoin';
+        let substitutions = {
+            'BON': 'BonPeKaO',
+            'ETN': 'Ethernex',
+            'HNC': 'Huncoin',
+            'MARS': 'MarsBux',
+        };
+        if (currency in substitutions)
+            return substitutions[currency];
         return currency;
     }
 
@@ -665,7 +671,7 @@ module.exports = class coinexchange extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetGetorderbook (this.extend ({
             'market_id': this.marketId (symbol),

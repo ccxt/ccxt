@@ -15,7 +15,7 @@ class bitbay extends Exchange {
             'rateLimit' => 1000,
             'has' => array (
                 'CORS' => true,
-                'withdraw' => true
+                'withdraw' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg',
@@ -154,7 +154,7 @@ class bitbay extends Exchange {
         throw new ExchangeError ($this->id . ' empty $balance $response ' . $this->json ($response));
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $orderbook = $this->publicGetIdOrderbook (array_merge (array (
             'id' => $this->market_id($symbol),
         ), $params));
@@ -298,6 +298,23 @@ class bitbay extends Exchange {
                 //      array ( 'success' => 1, ... )
                 //      array ( 'code' => 502, 'message' => 'Invalid sign' )
                 //      array ( 'code' => 0, 'message' => 'offer funds not exceeding minimums' )
+                //
+                //      400 At least one parameter wasn't set
+                //      401 Invalid order type
+                //      402 No orders with specified currencies
+                //      403 Invalid payment currency name
+                //      404 Error. Wrong transaction type
+                //      405 Order with this id doesn't exist
+                //      406 No enough money or crypto
+                //      408 Invalid currency name
+                //      501 Invalid public key
+                //      502 Invalid sign
+                //      503 Invalid moment parameter. Request time doesn't match current server time
+                //      504 Invalid $method
+                //      505 Key has no permission for this action
+                //      506 Account locked. Please contact with customer service
+                //      509 The BIC/SWIFT is required for this currency
+                //      510 Invalid market name
                 //
                 $code = $response['code']; // always an integer
                 $feedback = $this->id . ' ' . $this->json ($response);

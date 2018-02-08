@@ -113,6 +113,32 @@ class qryptos (Exchange):
             maker = self.safe_float(market, 'maker_fee')
             taker = self.safe_float(market, 'taker_fee')
             active = not market['disabled']
+            minAmount = None
+            minPrice = None
+            if base == 'BTC':
+                minAmount = 0.001
+            elif base == 'ETH':
+                minAmount = 0.01
+            if quote == 'BTC':
+                minPrice = 0.00000001
+            elif quote == 'ETH' or quote == 'USD' or quote == 'JPY':
+                minPrice = 0.00001
+            limits = {
+                'amount': {'min': minAmount},
+                'price': {'min': minPrice},
+                'cost': {'min': None},
+            }
+            if minPrice is not None:
+                if minAmount is not None:
+                    limits['cost']['min'] = minPrice * minAmount
+            precision = {
+                'amount': None,
+                'price': None,
+            }
+            if minAmount is not None:
+                precision['amount'] = -math.log10(minAmount)
+            if minPrice is not None:
+                precision['price'] = -math.log10(minPrice)
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -120,6 +146,8 @@ class qryptos (Exchange):
                 'quote': quote,
                 'maker': maker,
                 'taker': taker,
+                'limits': limits,
+                'precision': precision,
                 'active': active,
                 'info': market,
             })
@@ -127,7 +155,7 @@ class qryptos (Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        balances = self.privateGetAccountsBalance()
+        balances = self.privateGetAccountsBalance(params)
         result = {'info': balances}
         for b in range(0, len(balances)):
             balance = balances[b]
@@ -141,7 +169,7 @@ class qryptos (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         orderbook = self.publicGetProductsIdPriceLevels(self.extend({
             'id': self.market_id(symbol),
@@ -264,6 +292,7 @@ class qryptos (Exchange):
                 status = 'canceled'
         amount = float(order['quantity'])
         filled = float(order['filled_quantity'])
+        price = float(order['price'])
         symbol = None
         if market:
             symbol = market['symbol']
@@ -275,7 +304,7 @@ class qryptos (Exchange):
             'status': status,
             'symbol': symbol,
             'side': order['side'],
-            'price': order['price'],
+            'price': price,
             'amount': amount,
             'filled': filled,
             'remaining': amount - filled,
@@ -354,7 +383,7 @@ class qryptos (Exchange):
     def handle_errors(self, code, reason, url, method, headers, body, response=None):
         if code >= 200 and code <= 299:
             return
-        messages = self.exceptions.messages
+        messages = self.exceptions['messages']
         if code == 401:
             # expected non-json response
             if body in messages:

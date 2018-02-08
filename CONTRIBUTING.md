@@ -73,10 +73,14 @@ The following is a set of rules for contributing to the ccxt library codebase.
 
 ### What You Need To Have
 
-- Node.js (version 8 or higher)
-- Python 2/3
-- PHP 5.3+
-- [Pandoc](https://pandoc.org/installing.html)
+- Node.js 8+
+- Python 3.5+ and Python 2.7+
+- PHP 5.3+ with the following extensions installed and enabled:
+  - cURL
+  - iconv
+  - mbstring
+  - PCRE
+- [Pandoc](https://pandoc.org/installing.html) 1.19+
 
 ### What You Need To Know
 
@@ -278,7 +282,7 @@ Builds are automated with [Travis CI](https://travis-ci.org/ccxt/ccxt). The buil
 
 Windows builds are automated with [Appveyor](https://ci.appveyor.com/project/ccxt/ccxt). The build steps for Appveyor are in the [`appveyor.yml`](https://github.com/ccxt/ccxt/blob/master/appveyor.yml) file.
 
-Incoming pull requests are automatically validated by the CI service. You can watch the build process online here: [travis-ci.org/ccxt-dev/ccxt/builds](https://travis-ci.org/ccxt-dev/ccxt/builds).
+Incoming pull requests are automatically validated by the CI service. You can watch the build process online here: [travis-ci.org/ccxt/ccxt/builds](https://travis-ci.org/ccxt/ccxt/builds).
 
 #### How To Build & Run Tests On Your Local Machine
 

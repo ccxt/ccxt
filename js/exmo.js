@@ -17,6 +17,7 @@ module.exports = class exmo extends Exchange {
             'version': 'v1',
             'has': {
                 'CORS': false,
+                'fetchOrderBooks': true,
                 'fetchTickers': true,
                 'withdraw': true,
             },
@@ -145,7 +146,7 @@ module.exports = class exmo extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetOrderBook (this.extend ({
@@ -157,6 +158,37 @@ module.exports = class exmo extends Exchange {
             'bids': this.sortBy (orderbook['bids'], 0, true),
             'asks': this.sortBy (orderbook['asks'], 0),
         });
+    }
+
+    async fetchOrderBooks (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        let ids = undefined;
+        if (!symbols) {
+            ids = this.ids.join (',');
+            // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
+            if (ids.length > 2048) {
+                let numIds = this.ids.length;
+                throw new ExchangeError (this.id + ' has ' + numIds.toString () + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks');
+            }
+        } else {
+            ids = this.marketIds (symbols);
+            ids = ids.join (',');
+        }
+        let response = await this.publicGetOrderBook (this.extend ({
+            'pair': ids,
+        }, params));
+        let result = {};
+        ids = Object.keys (response);
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
+            let symbol = id;
+            if (id in this.marketsById) {
+                let market = this.marketsById[id];
+                symbol = market['symbol'];
+            }
+            result[symbol] = this.parseOrderBook (response[id], undefined, 'bid', 'ask');
+        }
+        return result;
     }
 
     parseTicker (ticker, market = undefined) {
@@ -260,11 +292,14 @@ module.exports = class exmo extends Exchange {
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
-        let result = await this.privatePostWithdrawCrypt (this.extend ({
+        let request = {
             'amount': amount,
             'currency': currency,
             'address': address,
-        }, params));
+        };
+        if (typeof tag !== 'undefined')
+            request['invoice'] = tag;
+        let result = await this.privatePostWithdrawCrypt (this.extend (request, params));
         return {
             'info': result,
             'id': result['task_id'],

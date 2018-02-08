@@ -611,15 +611,17 @@ module.exports = class hitbtc2 extends hitbtc {
             // differentiated fees for each particular method
             let precision = 8; // default precision, todo: fix "magic constants"
             let code = this.commonCurrencyCode (id);
-            let payin = currency['payinEnabled'];
-            let payout = currency['payoutEnabled'];
-            let transfer = currency['transferEnabled'];
+            let payin = this.safeValue (currency, 'payinEnabled');
+            let payout = this.safeValue (currency, 'payoutEnabled');
+            let transfer = this.safeValue (currency, 'transferEnabled');
             let active = payin && payout && transfer;
             let status = 'ok';
             if ('disabled' in currency)
                 if (currency['disabled'])
                     status = 'disabled';
-            let type = (currency['crypto']) ? 'crypto' : 'fiat';
+            let type = 'fiat';
+            if (('crypto' in currency) && currency['crypto'])
+                type = 'crypto';
             result[code] = {
                 'id': id,
                 'code': code,
@@ -702,12 +704,14 @@ module.exports = class hitbtc2 extends hitbtc {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let orderbook = await this.publicGetOrderbookSymbol (this.extend ({
+        let request = {
             'symbol': this.marketId (symbol),
-            // 'limit': 100, // default = 100, 0 = unlimited
-        }, params));
+        };
+        if (typeof limit !== 'undefined')
+            request['limit'] = limit; // default = 100, 0 = unlimited
+        let orderbook = await this.publicGetOrderbookSymbol (this.extend (request, params));
         return this.parseOrderBook (orderbook, undefined, 'bid', 'ask', 'price', 'size');
     }
 
@@ -1084,6 +1088,8 @@ module.exports = class hitbtc2 extends hitbtc {
                         let message = response['error']['message'];
                         if (message === 'Order not found') {
                             throw new OrderNotFound (this.id + ' order not found in active orders');
+                        } else if (message === 'Quantity not a valid number') {
+                            throw new InvalidOrder (this.id + ' ' + body);
                         } else if (message === 'Insufficient funds') {
                             throw new InsufficientFunds (this.id + ' ' + body);
                         } else if (message === 'Duplicate clientOrderId') {

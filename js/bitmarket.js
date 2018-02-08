@@ -8,7 +8,6 @@ const { ExchangeError } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class bitmarket extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitmarket',
@@ -198,7 +197,7 @@ module.exports = class bitmarket extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let orderbook = await this.publicGetJsonMarketOrderbook (this.extend ({
             'market': this.marketId (symbol),
         }, params));
@@ -370,4 +369,4 @@ module.exports = class bitmarket extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-}
+};

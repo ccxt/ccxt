@@ -108,31 +108,11 @@ class zb extends Exchange {
                     ),
                 ),
                 'trading' => array (
+                    'maker' => 0.2 / 100,
+                    'taker' => 0.2 / 100,
                 ),
             ),
         ));
-    }
-
-    public function get_trading_fee_from_base_quote ($base, $quote) {
-        // $base => $quote
-        $fees = array (
-            'BTC' => array ( 'USDT' => 0.0 ),
-            'BCH' => array ( 'BTC' => 0.001, 'USDT' => 0.001 ),
-            'LTC' => array ( 'BTC' => 0.001, 'USDT' => 0.0 ),
-            'ETH' => array ( 'BTC' => 0.001, 'USDT' => 0.0 ),
-            'ETC' => array ( 'BTC' => 0.001, 'USDT' => 0.0 ),
-            'BTS' => array ( 'BTC' => 0.001, 'USDT' => 0.001 ),
-            'EOS' => array ( 'BTC' => 0.001, 'USDT' => 0.001 ),
-            'HSR' => array ( 'BTC' => 0.001, 'USDT' => 0.001 ),
-            'QTUM' => array ( 'BTC' => 0.001, 'USDT' => 0.001 ),
-            'USDT' => array ( 'BTC' => 0.0 ),
-        );
-        if (is_array ($fees) && array_key_exists ($base, $fees)) {
-            $quoteFees = $fees[$base];
-            if (is_array ($quoteFees) && array_key_exists ($quote, $quoteFees))
-                return $quoteFees[$quote];
-        }
-        return null;
     }
 
     public function fetch_markets () {
@@ -146,7 +126,6 @@ class zb extends Exchange {
             $base = strtoupper ($this->common_currency_code($baseId));
             $quote = strtoupper ($this->common_currency_code($quoteId));
             $symbol = $base . '/' . $quote;
-            $fee = $this->get_trading_fee_from_base_quote ($base, $quote);
             $precision = array (
                 'amount' => $market['amountScale'],
                 'price' => $market['priceScale'],
@@ -159,9 +138,6 @@ class zb extends Exchange {
                 'quoteId' => $quoteId,
                 'base' => $base,
                 'quote' => $quote,
-                'info' => $market,
-                'maker' => $fee,
-                'taker' => $fee,
                 'lot' => $lot,
                 'active' => true,
                 'precision' => $precision,
@@ -179,6 +155,7 @@ class zb extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'info' => $market,
             );
         }
         return $result;
@@ -207,7 +184,7 @@ class zb extends Exchange {
         return 'market';
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $marketFieldName = $this->get_market_field_name ();

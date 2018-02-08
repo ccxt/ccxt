@@ -169,14 +169,14 @@ class coingi extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = 512, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $orderbook = $this->currentGetOrderBookPairAskCountBidCountDepth (array_merge (array (
             'pair' => $market['id'],
-            'askCount' => 512, // maximum returned number of asks 1-512
-            'bidCount' => 512, // maximum returned number of bids 1-512
             'depth' => 32, // maximum number of depth range steps 1-32
+            'askCount' => $limit, // maximum returned number of asks 1-512
+            'bidCount' => $limit, // maximum returned number of bids 1-512
         ), $params));
         return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'price', 'baseAmount');
     }

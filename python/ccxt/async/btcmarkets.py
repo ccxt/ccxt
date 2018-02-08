@@ -93,7 +93,7 @@ class btcmarkets (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         orderbook = await self.publicGetMarketIdOrderbook(self.extend({
@@ -228,11 +228,11 @@ class btcmarkets (Exchange):
         type = 'limit' if (order['ordertype'] == 'Limit') else 'market'
         timestamp = order['creationTime']
         if not market:
-            market = self.market(order['instrument'] + "/" + order['currency'])
+            market = self.market(order['instrument'] + '/' + order['currency'])
         status = 'open'
         if order['status'] == 'Failed' or order['status'] == 'Cancelled' or order['status'] == 'Partially Cancelled' or order['status'] == 'Error':
             status = 'canceled'
-        elif order['status'] == "Fully Matched" or order['status'] == "Partially Matched":
+        elif order['status'] == 'Fully Matched' or order['status'] == 'Partially Matched':
             status = 'closed'
         price = self.safe_float(order, 'price') / multiplier
         amount = self.safe_float(order, 'volume') / multiplier

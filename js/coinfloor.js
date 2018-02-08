@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -8,7 +8,6 @@ const { ExchangeError } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class coinfloor extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'coinfloor',
@@ -79,7 +78,7 @@ module.exports = class coinfloor extends Exchange {
         });
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let orderbook = await this.publicGetIdOrderBook (this.extend ({
             'id': this.marketId (symbol),
         }, params));
@@ -155,7 +154,7 @@ module.exports = class coinfloor extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         let order = { 'id': this.marketId (symbol) };
         let method = 'privatePostId' + this.capitalize (side);
-        if (type == 'market') {
+        if (type === 'market') {
             order['quantity'] = amount;
             method += 'Market';
         } else {
@@ -173,7 +172,7 @@ module.exports = class coinfloor extends Exchange {
         // curl -k -u '[User ID]/[API key]:[Passphrase]' https://webapi.coinfloor.co.uk:8090/bist/XBT/GBP/balance/
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
@@ -189,4 +188,4 @@ module.exports = class coinfloor extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-}
+};

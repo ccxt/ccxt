@@ -61,6 +61,11 @@ class gemini extends Exchange {
                     ),
                 ),
             ),
+            'fees' => array (
+                'trading' => array (
+                    'taker' => 0.0025,
+                ),
+            ),
         ));
     }
 
@@ -80,13 +85,12 @@ class gemini extends Exchange {
                 'base' => $base,
                 'quote' => $quote,
                 'info' => $market,
-                'taker' => 0.0025,
             );
         }
         return $result;
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $orderbook = $this->publicGetBookSymbol (array_merge (array (
             'symbol' => $this->market_id($symbol),

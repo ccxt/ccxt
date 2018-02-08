@@ -242,12 +242,14 @@ module.exports = class poloniex extends Exchange {
         };
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let orderbook = await this.publicGetReturnOrderBook (this.extend ({
+        let request = {
             'currencyPair': this.marketId (symbol),
-            // 'depth': 100,
-        }, params));
+        };
+        if (typeof limit !== 'undefined')
+            request['depth'] = limit; // 100
+        let orderbook = await this.publicGetReturnOrderBook (this.extend (request, params));
         return this.parseOrderBook (orderbook);
     }
 
@@ -558,12 +560,17 @@ module.exports = class poloniex extends Exchange {
             } else {
                 let order = this.orders[id];
                 if (order['status'] === 'open') {
-                    this.orders[id] = this.extend (order, {
+                    order = this.extend (order, {
                         'status': 'closed',
-                        'cost': order['amount'] * order['price'],
+                        'cost': undefined,
                         'filled': order['amount'],
                         'remaining': 0.0,
                     });
+                    if (typeof order['cost'] === 'undefined') {
+                        if (typeof order['filled'] !== 'undefined')
+                            order['cost'] = order['filled'] * order['price'];
+                    }
+                    this.orders[id] = order;
                 }
             }
             let order = this.orders[id];
@@ -774,20 +781,20 @@ module.exports = class poloniex extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body) {
-        if (code >= 400) {
-            if (body[0] === '{') {
-                let response = JSON.parse (body);
-                if ('error' in response) {
-                    let error = this.id + ' ' + body;
-                    if (response['error'].indexOf ('Total must be at least') >= 0) {
-                        throw new InvalidOrder (error);
-                    } else if (response['error'].indexOf ('Not enough') >= 0) {
-                        throw new InsufficientFunds (error);
-                    } else if (response['error'].indexOf ('Nonce must be greater') >= 0) {
-                        throw new ExchangeNotAvailable (error);
-                    } else if (response['error'].indexOf ('You have already called cancelOrder or moveOrder on this order.') >= 0) {
-                        throw new CancelPending (error);
-                    }
+        if (body[0] === '{') {
+            let response = JSON.parse (body);
+            if ('error' in response) {
+                let error = this.id + ' ' + body;
+                if (response['error'] === 'Invalid order number, or you are not the person who placed the order.') {
+                    throw new OrderNotFound (error);
+                } else if (response['error'].indexOf ('Total must be at least') >= 0) {
+                    throw new InvalidOrder (error);
+                } else if (response['error'].indexOf ('Not enough') >= 0) {
+                    throw new InsufficientFunds (error);
+                } else if (response['error'].indexOf ('Nonce must be greater') >= 0) {
+                    throw new ExchangeNotAvailable (error);
+                } else if (response['error'].indexOf ('You have already called cancelOrder or moveOrder on this order.') >= 0) {
+                    throw new CancelPending (error);
                 }
             }
         }

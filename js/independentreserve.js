@@ -61,6 +61,14 @@ module.exports = class independentreserve extends Exchange {
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'taker': 0.5 / 100,
+                    'maker': 0.5 / 100,
+                    'percentage': true,
+                    'tierBased': false,
+                },
+            },
         });
     }
 
@@ -78,8 +86,6 @@ module.exports = class independentreserve extends Exchange {
                 let quote = this.commonCurrencyCode (quoteIdUppercase);
                 let id = baseId + '/' + quoteId;
                 let symbol = base + '/' + quote;
-                let taker = 0.5 / 100;
-                let maker = 0.5 / 100;
                 result.push ({
                     'id': id,
                     'symbol': symbol,
@@ -87,8 +93,6 @@ module.exports = class independentreserve extends Exchange {
                     'quote': quote,
                     'baseId': baseId,
                     'quoteId': quoteId,
-                    'taker': taker,
-                    'maker': maker,
                     'info': id,
                 });
             }
@@ -114,7 +118,7 @@ module.exports = class independentreserve extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetGetOrderBook (this.extend ({

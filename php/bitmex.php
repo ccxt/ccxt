@@ -196,7 +196,7 @@ class bitmex extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $orderbook = $this->publicGetOrderBookL2 (array_merge (array (
             'symbol' => $this->market_id($symbol),
@@ -292,7 +292,7 @@ class bitmex extends Exchange {
             // 'endTime' => '',    // ending date $filter for results
         );
         if ($since !== null) {
-            $ymdhms = $this->YmdHMS ($since);
+            $ymdhms = $this->ymdhms ($since);
             $ymdhm = mb_substr ($ymdhms, 0, 16);
             $request['startTime'] = $ymdhm; // starting date $filter for results
         }

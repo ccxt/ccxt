@@ -314,7 +314,7 @@ module.exports = class binance extends Exchange {
         const before = this.milliseconds ();
         const response = await this.publicGetTime ();
         const after = this.milliseconds ();
-        this.options['timeDifference'] = (before + after) / 2 - response['serverTime'];
+        this.options['timeDifference'] = parseInt ((before + after) / 2 - response['serverTime']);
         return this.options['timeDifference'];
     }
 
@@ -342,8 +342,9 @@ module.exports = class binance extends Exchange {
                 'price': market['quotePrecision'],
             };
             let active = (market['status'] === 'TRADING');
+            // lot size is deprecated as of 2018.02.06
             let lot = -1 * Math.log10 (precision['amount']);
-            let entry = this.extend (this.fees['trading'], {
+            let entry = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -351,16 +352,16 @@ module.exports = class binance extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
-                'lot': lot,
+                'lot': lot, // lot size is deprecated as of 2018.02.06
                 'active': active,
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': lot,
+                        'min': Math.pow (10, -precision['amount']),
                         'max': undefined,
                     },
                     'price': {
-                        'min': -1 * Math.log10 (precision['price']),
+                        'min': Math.pow (10, -precision['price']),
                         'max': undefined,
                     },
                     'cost': {
@@ -368,7 +369,7 @@ module.exports = class binance extends Exchange {
                         'max': undefined,
                     },
                 },
-            });
+            };
             if ('PRICE_FILTER' in filters) {
                 let filter = filters['PRICE_FILTER'];
                 entry['precision']['price'] = this.precisionFromString (filter['tickSize']);
@@ -380,7 +381,7 @@ module.exports = class binance extends Exchange {
             if ('LOT_SIZE' in filters) {
                 let filter = filters['LOT_SIZE'];
                 entry['precision']['amount'] = this.precisionFromString (filter['stepSize']);
-                entry['lot'] = parseFloat (filter['stepSize']);
+                entry['lot'] = parseFloat (filter['stepSize']); // lot size is deprecated as of 2018.02.06
                 entry['limits']['amount'] = {
                     'min': parseFloat (filter['minQty']),
                     'max': parseFloat (filter['maxQty']),
@@ -432,13 +433,15 @@ module.exports = class binance extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let orderbook = await this.publicGetDepth (this.extend ({
+        let request = {
             'symbol': market['id'],
-            'limit': 100, // default = maximum = 100
-        }, params));
+        };
+        if (typeof limit !== 'undefined')
+            request['limit'] = limit; // default = maximum = 100
+        let orderbook = await this.publicGetDepth (this.extend (request, params));
         return this.parseOrderBook (orderbook);
     }
 
@@ -641,6 +644,10 @@ module.exports = class binance extends Exchange {
         let amount = parseFloat (order['origQty']);
         let filled = this.safeFloat (order, 'executedQty', 0.0);
         let remaining = Math.max (amount - filled, 0.0);
+        let cost = undefined;
+        if (typeof price !== 'undefined')
+            if (typeof filled !== 'undefined')
+                cost = price * filled;
         let result = {
             'info': order,
             'id': order['orderId'].toString (),
@@ -651,7 +658,7 @@ module.exports = class binance extends Exchange {
             'side': order['side'].toLowerCase (),
             'price': price,
             'amount': amount,
-            'cost': price * amount,
+            'cost': cost,
             'filled': filled,
             'remaining': remaining,
             'status': status,

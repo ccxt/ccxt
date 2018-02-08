@@ -90,8 +90,10 @@ class lakebtc (Exchange):
         ids = list(balances.keys())
         for i in range(0, len(ids)):
             id = ids[i]
-            currency = self.currencies[id]
-            code = currency['code']
+            code = id
+            if id in self.currencies:
+                currency = self.currencies[id]
+                code = currency['code']
             balance = float(balances[id])
             account = {
                 'free': balance,
@@ -101,7 +103,7 @@ class lakebtc (Exchange):
             result[code] = account
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         orderbook = await self.publicGetBcorderbook(self.extend({
             'symbol': self.market_id(symbol),

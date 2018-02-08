@@ -106,6 +106,34 @@ class qryptos extends Exchange {
             $maker = $this->safe_float($market, 'maker_fee');
             $taker = $this->safe_float($market, 'taker_fee');
             $active = !$market['disabled'];
+            $minAmount = null;
+            $minPrice = null;
+            if ($base === 'BTC') {
+                $minAmount = 0.001;
+            } else if ($base === 'ETH') {
+                $minAmount = 0.01;
+            }
+            if ($quote === 'BTC') {
+                $minPrice = 0.00000001;
+            } else if ($quote === 'ETH' || $quote === 'USD' || $quote === 'JPY') {
+                $minPrice = 0.00001;
+            }
+            $limits = array (
+                'amount' => array ( 'min' => $minAmount ),
+                'price' => array ( 'min' => $minPrice ),
+                'cost' => array ( 'min' => null ),
+            );
+            if ($minPrice !== null)
+                if ($minAmount !== null)
+                    $limits['cost']['min'] = $minPrice * $minAmount;
+            $precision = array (
+                'amount' => null,
+                'price' => null,
+            );
+            if ($minAmount !== null)
+                $precision['amount'] = -log10 ($minAmount);
+            if ($minPrice !== null)
+                $precision['price'] = -log10 ($minPrice);
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -113,6 +141,8 @@ class qryptos extends Exchange {
                 'quote' => $quote,
                 'maker' => $maker,
                 'taker' => $taker,
+                'limits' => $limits,
+                'precision' => $precision,
                 'active' => $active,
                 'info' => $market,
             );
@@ -122,7 +152,7 @@ class qryptos extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $balances = $this->privateGetAccountsBalance ();
+        $balances = $this->privateGetAccountsBalance ($params);
         $result = array ( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
@@ -138,7 +168,7 @@ class qryptos extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $orderbook = $this->publicGetProductsIdPriceLevels (array_merge (array (
             'id' => $this->market_id($symbol),
@@ -274,6 +304,7 @@ class qryptos extends Exchange {
         }
         $amount = floatval ($order['quantity']);
         $filled = floatval ($order['filled_quantity']);
+        $price = floatval ($order['price']);
         $symbol = null;
         if ($market) {
             $symbol = $market['symbol'];
@@ -286,7 +317,7 @@ class qryptos extends Exchange {
             'status' => $status,
             'symbol' => $symbol,
             'side' => $order['side'],
-            'price' => $order['price'],
+            'price' => $price,
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $amount - $filled,
@@ -307,7 +338,7 @@ class qryptos extends Exchange {
         return $this->parse_order($order);
     }
 
-    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params=array ()) {
+    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
         $request = array ();
@@ -377,7 +408,7 @@ class qryptos extends Exchange {
     public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
         if ($code >= 200 && $code <= 299)
             return;
-        $messages = $this->exceptions.messages;
+        $messages = $this->exceptions['messages'];
         if ($code === 401) {
             // expected non-json $response
             if (is_array ($messages) && array_key_exists ($body, $messages))

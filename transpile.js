@@ -15,6 +15,10 @@ const errors = require ('./js/base/errors.js')
 
 // ---------------------------------------------------------------------------
 
+const [ /* node */, /* script */, filename ] = process.argv
+
+// ---------------------------------------------------------------------------
+
 function replaceInFile (filename, regex, replacement) {
     let contents = fs.readFileSync (filename, 'utf8')
     const parts = contents.split (regex)
@@ -71,6 +75,9 @@ const commonRegexes = [
     [ /\.groupBy\s/g, '.group_by'],
     [ /\.marketIds\s/g, '.market_ids'],
     [ /\.marketId\s/g, '.market_id'],
+    [ /\.fetchFundingFees\s/g, '.fetch_funding_fees'],
+    [ /\.fetchTradingFees\s/g, '.fetch_trading_fees'],
+    [ /\.fetchFees\s/g, '.fetch_fees'],
     [ /\.fetchL2OrderBook\s/g, '.fetch_l2_order_book'],
     [ /\.fetchOrderBook\s/g, '.fetch_order_book'],
     [ /\.fetchMyTrades\s/g, '.fetch_my_trades'],
@@ -90,6 +97,7 @@ const commonRegexes = [
     [ /\.feeToPrecision\s/g, '.fee_to_precision'],
     [ /\.costToPrecision\s/g, '.cost_to_precision'],
     [ /\.commonCurrencyCode\s/g, '.common_currency_code'],
+    [ /\.loadFees\s/g, '.load_fees'],
     [ /\.loadMarkets\s/g, '.load_markets'],
     [ /\.fetchMarkets\s/g, '.fetch_markets'],
     [ /\.appendInactiveMarkets\s/g, '.append_inactive_markets'],
@@ -591,11 +599,14 @@ const pythonRegexes = [
 
     //-----------------------------------------------------------------------------
 
-    function transpileDerivedExchangeFiles (folder) {
+    function transpileDerivedExchangeFiles (folder, pattern = '.js') {
 
         const classNames = fs.readdirSync (folder)
-            .filter (file => file.includes ('.js'))
+            .filter (file => file.includes (pattern))
             .map (file => transpileDerivedExchangeFile (folder, file))
+
+        if (classNames.length === 0)
+            return null
 
         let classes = {}
         classNames.forEach (({ className, baseClass }) => {
@@ -700,7 +711,12 @@ const pythonRegexes = [
     createFolderRecursively (python3Folder)
     createFolderRecursively (phpFolder)
 
-    const classes = transpileDerivedExchangeFiles ('./js/')
+    const classes = transpileDerivedExchangeFiles ('./js/', filename)
+
+    if (classes === null) {
+      log.bright.yellow ('0 files transpiled.')
+      return;
+    }
 
     // HINT: if we're going to support specific class definitions this process won't work anymore as it will override the definitions.
     exportTypeScriptDeclarations (classes)

@@ -28,17 +28,18 @@ class bitfinex (Exchange):
             'rateLimit': 1500,
             # new metainfo interface
             'has': {
-                'createDepositAddress': True,
-                'fetchDepositAddress': True,
                 'CORS': False,
-                'fetchOHLCV': True,
-                'fetchTickers': True,
-                'fetchOrder': True,
-                'fetchOpenOrders': True,
-                'fetchClosedOrders': True,
-                'fetchMyTrades': True,
-                'withdraw': True,
+                'createDepositAddress': True,
                 'deposit': True,
+                'fetchClosedOrders': True,
+                'fetchDepositAddress': True,
+                'fetchFees': True,
+                'fetchMyTrades': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchTickers': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1m',
@@ -200,7 +201,6 @@ class bitfinex (Exchange):
                         'XMR': 0.04,
                         'SAN': 3.2779,
                         'DASH': 0.01,
-                        'ETC': 0.01,
                         'XRP': 0.02,
                         'YYW': 40.543,
                         'NEO': 0,
@@ -220,10 +220,26 @@ class bitfinex (Exchange):
                         'AVT': 3.2495,
                         'USDT': 20.0,
                         'ZRX': 5.6442,
-                        'ETP': 0.01,
                         'TNB': 87.511,
                         'SNT': 32.736,
                     },
+                },
+            },
+            'exceptions': {
+                'exact': {
+                    'Order could not be cancelled.': OrderNotFound,  # non-existent order
+                    'No such order found.': OrderNotFound,  # ?
+                    'Order price must be positive.': InvalidOrder,  # on price <= 0
+                    'Could not find a key matching the given X-BFX-APIKEY.': AuthenticationError,
+                    'This API key does not have permission for self action': AuthenticationError,  # authenticated but not authorized
+                    'Key price should be a decimal number, e.g. "123.456"': InvalidOrder,  # on isNaN(price)
+                    'Key amount should be a decimal number, e.g. "123.456"': InvalidOrder,  # on isNaN(amount)
+                    'ERR_RATE_LIMIT': DDoSProtection,
+                },
+                'broad': {
+                    'Invalid order: not enough exchange balance for ': InsufficientFunds,  # when buy, cost > quote currency
+                    'Invalid order: minimum size for ': InvalidOrder,  # when amount below limits.amount.min
+                    'Invalid order': InvalidOrder,  # ?
                 },
             },
         })
@@ -238,6 +254,49 @@ class bitfinex (Exchange):
             'DAT': 'DATA',
         }
         return currencies[currency] if (currency in list(currencies.keys())) else currency
+
+    def fetch_funding_fees(self, params={}):
+        self.load_markets()
+        response = self.privatePostAccountFees(params)
+        fees = response['withdraw']
+        withdraw = {}
+        ids = list(fees.keys())
+        for i in range(0, len(ids)):
+            id = ids[i]
+            code = id
+            if id in self.currencies_by_id:
+                currency = self.currencies_by_id[id]
+                code = currency['code']
+            withdraw[code] = self.safe_float(fees, id)
+        return {
+            'info': response,
+            'withdraw': withdraw,
+            'deposit': withdraw,  # only for deposits of less than $1000
+        }
+
+    def fetch_trading_fees(self, params={}):
+        self.load_markets()
+        response = self.privatePostSummary(params)
+        return {
+            'info': response,
+            'maker': self.safe_float(response, 'maker_fee'),
+            'taker': self.safe_float(response, 'taker_fee'),
+        }
+
+    def load_fees(self):
+        #  # PHP does flat copying for arrays
+        #  # setting fees on the exchange instance isn't portable, unfortunately...
+        #  # self should probably go into the base class as well
+        # funding = self.fees['funding']
+        # fees = self.fetch_funding_fees()
+        # funding = self.deep_extend(funding, fees)
+        # return funding
+        raise NotImplemented(self.id + ' loadFees() not implemented yet')
+
+    def fetch_fees(self):
+        fundingFees = self.fetch_funding_fees()
+        tradingFees = self.fetch_trading_fees()
+        return self.deep_extend(fundingFees, tradingFees)
 
     def fetch_markets(self):
         markets = self.publicGetSymbolsDetails()
@@ -268,7 +327,7 @@ class bitfinex (Exchange):
                 'min': limits['amount']['min'] * limits['price']['min'],
                 'max': None,
             }
-            result.append(self.extend(self.fees['trading'], {
+            result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -280,7 +339,7 @@ class bitfinex (Exchange):
                 'limits': limits,
                 'lot': math.pow(10, -precision['amount']),
                 'info': market,
-            }))
+            })
         return result
 
     def fetch_balance(self, params={}):
@@ -301,7 +360,7 @@ class bitfinex (Exchange):
                 result[uppercase] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         orderbook = self.publicGetBookSymbol(self.extend({
             'symbol': self.market_id(symbol),
@@ -532,32 +591,27 @@ class bitfinex (Exchange):
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def get_currency_name(self, currency):
-        if currency == 'BTC':
-            return 'bitcoin'
-        elif currency == 'LTC':
-            return 'litecoin'
-        elif currency == 'ETH':
-            return 'ethereum'
-        elif currency == 'ETC':
-            return 'ethereumc'
-        elif currency == 'OMNI':
-            return 'mastercoin'  # ???
-        elif currency == 'ZEC':
-            return 'zcash'
-        elif currency == 'XMR':
-            return 'monero'
-        elif currency == 'USD':
-            return 'wire'
-        elif currency == 'DASH':
-            return 'dash'
-        elif currency == 'XRP':
-            return 'ripple'
-        elif currency == 'EOS':
-            return 'eos'
-        elif currency == 'BCH':
-            return 'bcash'
-        elif currency == 'USDT':
-            return 'tetheruso'
+        names = {
+            'BTC': 'bitcoin',
+            'LTC': 'litecoin',
+            'ETH': 'ethereum',
+            'ETC': 'ethereumc',
+            'OMNI': 'mastercoin',
+            'ZEC': 'zcash',
+            'XMR': 'monero',
+            'USD': 'wire',
+            'DASH': 'dash',
+            'XRP': 'ripple',
+            'EOS': 'eos',
+            'BCH': 'bcash',  # undocumented
+            'USDT': 'tetheruso',  # undocumented
+            'NEO': 'neo',  # #1811
+            'AVT': 'aventus',  # #1811
+            'QTUM': 'qtum',  # #1811
+            'EDO': 'eidoo',  # #1811
+        }
+        if currency in names:
+            return names[currency]
         raise NotSupported(self.id + ' ' + currency + ' not supported for withdrawal')
 
     def create_deposit_address(self, currency, params={}):
@@ -644,39 +698,33 @@ class bitfinex (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
+    def find_broadly_matched_key(self, map, broadString):
+        partialKeys = list(map.keys())
+        for i in range(0, len(partialKeys)):
+            partialKey = partialKeys[i]
+            if broadString.find(partialKey) >= 0:
+                return partialKey
+        return None
+
     def handle_errors(self, code, reason, url, method, headers, body):
         if len(body) < 2:
             return
         if code >= 400:
             if body[0] == '{':
                 response = json.loads(body)
+                feedback = self.id + ' ' + self.json(response)
+                message = None
                 if 'message' in response:
                     message = response['message']
-                    error = self.id + ' ' + message
-                    if message.find('Key price should be a decimal number') >= 0:
-                        raise InvalidOrder(error)
-                    elif message.find('Invalid order: not enough exchange balance') >= 0:
-                        raise InsufficientFunds(error)
-                    elif message == 'Order could not be cancelled.':
-                        raise OrderNotFound(error)
-                    elif message.find('Invalid order') >= 0:
-                        raise InvalidOrder(error)
-                    elif message == 'Order price must be positive.':
-                        raise InvalidOrder(error)
-                    elif message.find('Key amount should be a decimal number') >= 0:
-                        raise InvalidOrder(error)
-                    elif message == 'No such order found.':
-                        raise OrderNotFound(error)
-                    elif message == 'Could not find a key matching the given X-BFX-APIKEY.':
-                        raise AuthenticationError(error)
                 elif 'error' in response:
-                    code = response['error']
-                    error = self.id + ' ' + code
-                    if code == 'ERR_RATE_LIMIT':
-                        raise DDoSProtection(error)
-
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
-        if 'message' in response:
-            raise ExchangeError(self.id + ' ' + self.json(response))
-        return response
+                    message = response['error']
+                else:
+                    raise ExchangeError(feedback)  # malformed(to our knowledge) response
+                exact = self.exceptions['exact']
+                if message in exact:
+                    raise exact[message](feedback)
+                broad = self.exceptions['broad']
+                broadKey = self.find_broadly_matched_key(broad, message)
+                if broadKey is not None:
+                    raise broad[broadKey](feedback)
+                raise ExchangeError(feedback)  # unknown message

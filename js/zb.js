@@ -109,31 +109,11 @@ module.exports = class zb extends Exchange {
                     },
                 },
                 'trading': {
+                    'maker': 0.2 / 100,
+                    'taker': 0.2 / 100,
                 },
             },
         });
-    }
-
-    getTradingFeeFromBaseQuote (base, quote) {
-        // base: quote
-        let fees = {
-            'BTC': { 'USDT': 0.0 },
-            'BCH': { 'BTC': 0.001, 'USDT': 0.001 },
-            'LTC': { 'BTC': 0.001, 'USDT': 0.0 },
-            'ETH': { 'BTC': 0.001, 'USDT': 0.0 },
-            'ETC': { 'BTC': 0.001, 'USDT': 0.0 },
-            'BTS': { 'BTC': 0.001, 'USDT': 0.001 },
-            'EOS': { 'BTC': 0.001, 'USDT': 0.001 },
-            'HSR': { 'BTC': 0.001, 'USDT': 0.001 },
-            'QTUM': { 'BTC': 0.001, 'USDT': 0.001 },
-            'USDT': { 'BTC': 0.0 },
-        };
-        if (base in fees) {
-            let quoteFees = fees[base];
-            if (quote in quoteFees)
-                return quoteFees[quote];
-        }
-        return undefined;
     }
 
     async fetchMarkets () {
@@ -147,7 +127,6 @@ module.exports = class zb extends Exchange {
             let base = this.commonCurrencyCode (baseId.toUpperCase ());
             let quote = this.commonCurrencyCode (quoteId.toUpperCase ());
             let symbol = base + '/' + quote;
-            let fee = this.getTradingFeeFromBaseQuote (base, quote);
             let precision = {
                 'amount': market['amountScale'],
                 'price': market['priceScale'],
@@ -160,9 +139,6 @@ module.exports = class zb extends Exchange {
                 'quoteId': quoteId,
                 'base': base,
                 'quote': quote,
-                'info': market,
-                'maker': fee,
-                'taker': fee,
                 'lot': lot,
                 'active': true,
                 'precision': precision,
@@ -180,6 +156,7 @@ module.exports = class zb extends Exchange {
                         'max': undefined,
                     },
                 },
+                'info': market,
             });
         }
         return result;
@@ -208,7 +185,7 @@ module.exports = class zb extends Exchange {
         return 'market';
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let marketFieldName = this.getMarketFieldName ();

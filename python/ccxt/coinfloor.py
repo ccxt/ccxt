@@ -78,7 +78,7 @@ class coinfloor (Exchange):
             'id': self.market_id(symbol),
         })
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         orderbook = self.publicGetIdOrderBook(self.extend({
             'id': self.market_id(symbol),
         }, params))

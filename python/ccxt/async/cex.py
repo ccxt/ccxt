@@ -173,7 +173,7 @@ class cex (Exchange):
                 result[currency] = account
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         orderbook = await self.publicGetOrderBookPair(self.extend({
             'pair': self.market_id(symbol),
@@ -196,7 +196,7 @@ class cex (Exchange):
         market = self.market(symbol)
         if not since:
             since = self.milliseconds() - 86400000  # yesterday
-        ymd = self.Ymd(since)
+        ymd = self.ymd(since)
         ymd = ymd.split('-')
         ymd = ''.join(ymd)
         request = {

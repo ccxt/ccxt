@@ -8,7 +8,6 @@ const { ExchangeError, NotSupported, InsufficientFunds } = require ('./base/erro
 // ---------------------------------------------------------------------------
 
 module.exports = class bitfinex2 extends bitfinex {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitfinex2',
@@ -110,17 +109,9 @@ module.exports = class bitfinex2 extends bitfinex {
                 'AVT/BTC': { 'id': 'tAVTBTC', 'symbol': 'AVT/BTC', 'base': 'AVT', 'quote': 'BTC', 'baseId': 'tAVT', 'quoteId': 'tBTC' },
                 'AVT/ETH': { 'id': 'tAVTETH', 'symbol': 'AVT/ETH', 'base': 'AVT', 'quote': 'ETH', 'baseId': 'tAVT', 'quoteId': 'tETH' },
                 'AVT/USD': { 'id': 'tAVTUSD', 'symbol': 'AVT/USD', 'base': 'AVT', 'quote': 'USD', 'baseId': 'tAVT', 'quoteId': 'zUSD' },
-                'CST_BCC/BTC': { 'id': 'tBCCBTC', 'symbol': 'CST_BCC/BTC', 'base': 'CST_BCC', 'quote': 'BTC', 'baseId': 'tBCC', 'quoteId': 'tBTC' },
-                'CST_BCC/USD': { 'id': 'tBCCUSD', 'symbol': 'CST_BCC/USD', 'base': 'CST_BCC', 'quote': 'USD', 'baseId': 'tBCC', 'quoteId': 'zUSD' },
                 'BCH/BTC': { 'id': 'tBCHBTC', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'baseId': 'tBCH', 'quoteId': 'tBTC' },
                 'BCH/ETH': { 'id': 'tBCHETH', 'symbol': 'BCH/ETH', 'base': 'BCH', 'quote': 'ETH', 'baseId': 'tBCH', 'quoteId': 'tETH' },
                 'BCH/USD': { 'id': 'tBCHUSD', 'symbol': 'BCH/USD', 'base': 'BCH', 'quote': 'USD', 'baseId': 'tBCH', 'quoteId': 'zUSD' },
-                'CST_BCU/BTC': { 'id': 'tBCUBTC', 'symbol': 'CST_BCU/BTC', 'base': 'CST_BCU', 'quote': 'BTC', 'baseId': 'tBCU', 'quoteId': 'tBTC' },
-                'CST_BCU/USD': { 'id': 'tBCUUSD', 'symbol': 'CST_BCU/USD', 'base': 'CST_BCU', 'quote': 'USD', 'baseId': 'tBCU', 'quoteId': 'zUSD' },
-                'BT1/BTC': { 'id': 'tBT1BTC', 'symbol': 'BT1/BTC', 'base': 'BT1', 'quote': 'BTC', 'baseId': 'tBT1', 'quoteId': 'tBTC' },
-                'BT1/USD': { 'id': 'tBT1USD', 'symbol': 'BT1/USD', 'base': 'BT1', 'quote': 'USD', 'baseId': 'tBT1', 'quoteId': 'zUSD' },
-                'BT2/BTC': { 'id': 'tBT2BTC', 'symbol': 'BT2/BTC', 'base': 'BT2', 'quote': 'BTC', 'baseId': 'tBT2', 'quoteId': 'tBTC' },
-                'BT2/USD': { 'id': 'tBT2USD', 'symbol': 'BT2/USD', 'base': 'BT2', 'quote': 'USD', 'baseId': 'tBT2', 'quoteId': 'zUSD' },
                 'BTC/USD': { 'id': 'tBTCUSD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'baseId': 'tBTC', 'quoteId': 'zUSD' },
                 'BTC/EUR': { 'id': 'tBTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'tBTC', 'quoteId': 'zEUR' },
                 'BTG/BTC': { 'id': 'tBTGBTC', 'symbol': 'BTG/BTC', 'base': 'BTG', 'quote': 'BTC', 'baseId': 'tBTG', 'quoteId': 'tBTC' },
@@ -197,7 +188,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 'RCN/ETH': { 'id': 'tRCNETH', 'symbol': 'RCN/ETH', 'base': 'RCN', 'quote': 'ETH', 'baseId': 'tRCN', 'quoteId': 'zETH' },
                 'FUN/USD': { 'id': 'tFUNUSD', 'symbol': 'FUN/USD', 'base': 'FUN', 'quote': 'USD', 'baseId': 'tFUN', 'quoteId': 'zUSD' },
                 'FUN/BTC': { 'id': 'tFUNBTC', 'symbol': 'FUN/BTC', 'base': 'FUN', 'quote': 'BTC', 'baseId': 'tFUN', 'quoteId': 'zBTC' },
-                'FUN/ETH': { 'id': 'tFUNETH', 'symbol': 'FUN/ETH', 'base': 'FUN', 'quote': 'ETH', 'baseId': 'tFUN', 'quoteId': 'zETH '},
+                'FUN/ETH': { 'id': 'tFUNETH', 'symbol': 'FUN/ETH', 'base': 'FUN', 'quote': 'ETH', 'baseId': 'tFUN', 'quoteId': 'zETH' },
                 'MNA/USD': { 'id': 'tMNAUSD', 'symbol': 'MNA/USD', 'base': 'MNA', 'quote': 'USD', 'baseId': 'tMNA', 'quoteId': 'zUSD' },
                 'MNA/BTC': { 'id': 'tMNABTC', 'symbol': 'MNA/BTC', 'base': 'MNA', 'quote': 'BTC', 'baseId': 'tMNA', 'quoteId': 'zBTC' },
                 'MNA/ETH': { 'id': 'tMNAETH', 'symbol': 'MNA/ETH', 'base': 'MNA', 'quote': 'ETH', 'baseId': 'tMNA', 'quoteId': 'zETH' },
@@ -278,7 +269,10 @@ module.exports = class bitfinex2 extends bitfinex {
         let result = { 'info': response };
         for (let b = 0; b < response.length; b++) {
             let balance = response[b];
-            let [ accountType, currency, total, interest, available ] = balance;
+            let accountType = balance[0];
+            let currency = balance[1];
+            let total = balance[2];
+            let available = balance[4];
             if (accountType === balanceType) {
                 if (currency[0] === 't')
                     currency = currency.slice (1);
@@ -295,7 +289,7 @@ module.exports = class bitfinex2 extends bitfinex {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let orderbook = await this.publicGetBookSymbolPrecision (this.extend ({
             'symbol': this.marketId (symbol),
             'precision': 'R0',
@@ -477,4 +471,4 @@ module.exports = class bitfinex2 extends bitfinex {
         }
         return response;
     }
-}
+};

@@ -326,7 +326,7 @@ class binance (Exchange):
         before = self.milliseconds()
         response = await self.publicGetTime()
         after = self.milliseconds()
-        self.options['timeDifference'] = (before + after) / 2 - response['serverTime']
+        self.options['timeDifference'] = int((before + after) / 2 - response['serverTime'])
         return self.options['timeDifference']
 
     async def fetch_markets(self):
@@ -353,8 +353,9 @@ class binance (Exchange):
                 'price': market['quotePrecision'],
             }
             active = (market['status'] == 'TRADING')
+            # lot size is deprecated as of 2018.02.06
             lot = -1 * math.log10(precision['amount'])
-            entry = self.extend(self.fees['trading'], {
+            entry = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -362,16 +363,16 @@ class binance (Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
-                'lot': lot,
+                'lot': lot,  # lot size is deprecated as of 2018.02.06
                 'active': active,
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': lot,
+                        'min': math.pow(10, -precision['amount']),
                         'max': None,
                     },
                     'price': {
-                        'min': -1 * math.log10(precision['price']),
+                        'min': math.pow(10, -precision['price']),
                         'max': None,
                     },
                     'cost': {
@@ -379,7 +380,7 @@ class binance (Exchange):
                         'max': None,
                     },
                 },
-            })
+            }
             if 'PRICE_FILTER' in filters:
                 filter = filters['PRICE_FILTER']
                 entry['precision']['price'] = self.precision_from_string(filter['tickSize'])
@@ -390,7 +391,7 @@ class binance (Exchange):
             if 'LOT_SIZE' in filters:
                 filter = filters['LOT_SIZE']
                 entry['precision']['amount'] = self.precision_from_string(filter['stepSize'])
-                entry['lot'] = float(filter['stepSize'])
+                entry['lot'] = float(filter['stepSize'])  # lot size is deprecated as of 2018.02.06
                 entry['limits']['amount'] = {
                     'min': float(filter['minQty']),
                     'max': float(filter['maxQty']),
@@ -434,13 +435,15 @@ class binance (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        orderbook = await self.publicGetDepth(self.extend({
+        request = {
             'symbol': market['id'],
-            'limit': 100,  # default = maximum = 100
-        }, params))
+        }
+        if limit is not None:
+            request['limit'] = limit  # default = maximum = 100
+        orderbook = await self.publicGetDepth(self.extend(request, params))
         return self.parse_order_book(orderbook)
 
     def parse_ticker(self, ticker, market=None):
@@ -623,6 +626,10 @@ class binance (Exchange):
         amount = float(order['origQty'])
         filled = self.safe_float(order, 'executedQty', 0.0)
         remaining = max(amount - filled, 0.0)
+        cost = None
+        if price is not None:
+            if filled is not None:
+                cost = price * filled
         result = {
             'info': order,
             'id': str(order['orderId']),
@@ -633,7 +640,7 @@ class binance (Exchange):
             'side': order['side'].lower(),
             'price': price,
             'amount': amount,
-            'cost': price * amount,
+            'cost': cost,
             'filled': filled,
             'remaining': remaining,
             'status': status,

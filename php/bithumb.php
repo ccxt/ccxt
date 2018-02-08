@@ -77,7 +77,7 @@ class bithumb extends Exchange {
                 $base = $id;
                 $quote = 'KRW';
                 $symbol = $id . '/' . $quote;
-                $result[] = array_merge ($this->fees['trading'], array (
+                $result[] = array (
                     'id' => $id,
                     'symbol' => $symbol,
                     'base' => $base,
@@ -103,7 +103,7 @@ class bithumb extends Exchange {
                             'max' => null,
                         ),
                     ),
-                ));
+                );
             }
         }
         return $result;
@@ -129,13 +129,15 @@ class bithumb extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetOrderbookCurrency (array_merge (array (
-            'count' => 50, // max = 50
+        $request = array (
             'currency' => $market['base'],
-        ), $params));
+        );
+        if ($limit !== null)
+            $request['count'] = $limit; // max = 50
+        $response = $this->publicGetOrderbookCurrency (array_merge ($request, $params));
         $orderbook = $response['data'];
         $timestamp = intval ($orderbook['timestamp']);
         return $this->parse_order_book($orderbook, $timestamp, 'bids', 'asks', 'price', 'quantity');

@@ -34,6 +34,7 @@ class liqui (Exchange):
             'has': {
                 'CORS': False,
                 'createMarketOrder': False,
+                'fetchOrderBooks': True,
                 'fetchOrder': True,
                 'fetchOrders': 'emulated',
                 'fetchOpenOrders': True,
@@ -169,7 +170,7 @@ class liqui (Exchange):
             }
             hidden = self.safe_integer(market, 'hidden')
             active = (hidden == 0)
-            result.append(self.extend(self.fees['trading'], {
+            result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -180,7 +181,7 @@ class liqui (Exchange):
                 'precision': precision,
                 'limits': limits,
                 'info': market,
-            }))
+            })
         return result
 
     def fetch_balance(self, params={}):
@@ -207,13 +208,15 @@ class liqui (Exchange):
             result[uppercase] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetDepthPair(self.extend({
+        request = {
             'pair': market['id'],
-            # 'limit': 150,  # default = 150, max = 2000
-        }, params))
+        }
+        if limit is not None:
+            request['limit'] = limit  # default = 150, max = 2000
+        response = self.publicGetDepthPair(self.extend(request, params))
         market_id_in_reponse = (market['id'] in list(response.keys()))
         if not market_id_in_reponse:
             raise ExchangeError(self.id + ' ' + market['symbol'] + ' order book is empty or not available')
@@ -221,6 +224,32 @@ class liqui (Exchange):
         result = self.parse_order_book(orderbook)
         result['bids'] = self.sort_by(result['bids'], 0, True)
         result['asks'] = self.sort_by(result['asks'], 0)
+        return result
+
+    def fetch_order_books(self, symbols=None, params={}):
+        self.load_markets()
+        ids = None
+        if not symbols:
+            ids = '-'.join(self.ids)
+            # max URL length is 2083 symbols, including http schema, hostname, tld, etc...
+            if len(ids) > 2048:
+                numIds = len(self.ids)
+                raise ExchangeError(self.id + ' has ' + str(numIds) + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks')
+        else:
+            ids = self.market_ids(symbols)
+            ids = '-'.join(ids)
+        response = self.publicGetDepthPair(self.extend({
+            'pair': ids,
+        }, params))
+        result = {}
+        ids = list(response.keys())
+        for i in range(0, len(ids)):
+            id = ids[i]
+            symbol = id
+            if id in self.marketsById:
+                market = self.marketsById[id]
+                symbol = market['symbol']
+            result[symbol] = self.parse_order_book(response[id])
         return result
 
     def parse_ticker(self, ticker, market=None):
@@ -253,11 +282,9 @@ class liqui (Exchange):
         self.load_markets()
         ids = None
         if not symbols:
-            # numIds = len(self.ids)
-            # if numIds > 256:
-            #     raise ExchangeError(self.id + ' fetchTickers() requires symbols argument')
             ids = '-'.join(self.ids)
-            if len(ids) > 2083:
+            # max URL length is 2083 symbols, including http schema, hostname, tld, etc...
+            if len(ids) > 2048:
                 numIds = len(self.ids)
                 raise ExchangeError(self.id + ' has ' + str(numIds) + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchTickers')
         else:
@@ -487,12 +514,16 @@ class liqui (Exchange):
             else:
                 order = self.orders[id]
                 if order['status'] == 'open':
-                    self.orders[id] = self.extend(order, {
+                    order = self.extend(order, {
                         'status': 'closed',
-                        'cost': order['amount'] * order['price'],
+                        'cost': None,
                         'filled': order['amount'],
                         'remaining': 0.0,
                     })
+                    if order['cost'] is None:
+                        if order['filled'] is not None:
+                            order['cost'] = order['filled'] * order['price']
+                    self.orders[id] = order
             order = self.orders[id]
             if symbol:
                 if order['symbol'] == symbol:
@@ -637,6 +668,8 @@ class liqui (Exchange):
                     elif message == 'api key dont have trade permission':
                         raise AuthenticationError(feedback)
                     elif message.find('invalid parameter') >= 0:  # errorCode 0, returned on buy(symbol, 0, 0)
+                        raise InvalidOrder(feedback)
+                    elif message == 'invalid order':
                         raise InvalidOrder(feedback)
                     elif message == 'Requests too often':
                         raise DDoSProtection(feedback)

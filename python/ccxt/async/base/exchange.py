@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.947'
+__version__ = '1.10.1044'
 
 # -----------------------------------------------------------------------------
 
@@ -89,38 +89,39 @@ class Exchange(BaseExchange):
 
     async def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
-        headers = headers or {}
-        headers.update(self.headers)
-        if self.userAgent:
-            if type(self.userAgent) is str:
-                headers.update({'User-Agent': self.userAgent})
-            elif (type(self.userAgent) is dict) and ('User-Agent' in self.userAgent):
-                headers.update(self.userAgent)
-        if self.proxy:
-            headers.update({'Origin': '*'})
-        headers.update({'Accept-Encoding': 'gzip, deflate'})
+        headers = self.prepare_request_headers(headers)
+
         url = self.proxy + url
+
         if self.verbose:
             print(url, method, url, "\nRequest:", headers, body)
+
         encoded_body = body.encode() if body else None
         session_method = getattr(self.session, method.lower())
         http_status_code = None
+
         try:
             async with session_method(url, data=encoded_body, headers=headers, timeout=(self.timeout / 1000), proxy=self.aiohttp_proxy) as response:
                 http_status_code = response.status
                 text = await response.text()
                 self.handle_errors(http_status_code, text, url, method, None, text)
                 self.handle_rest_errors(None, http_status_code, text, url, method)
+
         except socket.gaierror as e:
             self.raise_error(ExchangeError, url, method, e, None)
+
         except concurrent.futures._base.TimeoutError as e:
             raise RequestTimeout(' '.join([self.id, method, url, 'request timeout']))
+
         except aiohttp.client_exceptions.ServerDisconnectedError as e:
             self.raise_error(ExchangeError, url, method, e, None)
+
         except aiohttp.client_exceptions.ClientConnectorError as e:
             self.raise_error(ExchangeError, url, method, e, None)
+
         if self.verbose:
             print(method, url, "\nResponse:", headers, text)
+
         self.handle_errors(http_status_code, text, url, method, None, text)
         return self.handle_rest_response(text, url, method, headers, body)
 
@@ -147,8 +148,8 @@ class Exchange(BaseExchange):
         balance = await self.fetch_balance(params)
         return balance[part]
 
-    async def fetch_l2_order_book(self, symbol, params={}):
-        orderbook = await self.fetch_order_book(symbol, params)
+    async def fetch_l2_order_book(self, symbol, limit=None, params={}):
+        orderbook = await self.fetch_order_book(symbol, limit, params)
         return self.extend(orderbook, {
             'bids': self.sort_by(self.aggregate(orderbook['bids']), 0, True),
             'asks': self.sort_by(self.aggregate(orderbook['asks']), 0),
