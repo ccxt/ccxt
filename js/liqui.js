@@ -508,14 +508,19 @@ module.exports = class liqui extends Exchange {
         return this.orders[id];
     }
 
-    updateInactiveCachedOrders (openOrders, symbol) {
+    updateOrdersCache (openOrders, symbol) {
+        for (let j = 0; j < openOrders.length; j++) {
+            // update local cache with opened orders
+            const id = openOrders[j]['id'];
+            this.orders[id] = openOrders[j];
+        }
         let openOrdersIndexedById = this.indexBy (openOrders, 'id');
         let cachedOrderIds = Object.keys (this.orders);
         for (let k = 0; k < cachedOrderIds.length; k++) {
             // try to find every cached order in open orders array
             // possible reasons why cached order is not there:
-            // - order was closed or cancelled
-            // - symbol mismatch (e.g. cached BTC/USDT, fetched ETH/USDT)
+            // - order was closed or cancelled -> update cache
+            // - symbol mismatch (e.g. cached BTC/USDT, fetched ETH/USDT) -> skip
             let id = cachedOrderIds[k];
             if (!(id in openOrdersIndexedById)) {
                 // cached order is not in open orders array
@@ -557,12 +562,7 @@ module.exports = class liqui extends Exchange {
         let openOrders = [];
         if ('return' in response)
             openOrders = this.parseOrders (response['return'], market);
-        for (let j = 0; j < openOrders.length; j++) {
-            // update local cache with opened orders
-            const id = openOrders[j]['id'];
-            this.orders[id] = openOrders[j];
-        }
-        this.updateInactiveCachedOrders (openOrders, symbol);
+        this.updateOrdersCache (openOrders, symbol);
         let result = this.filterOrdersBySymbol (this.orders, symbol);
         return this.filterBySinceLimit (result, since, limit);
     }
