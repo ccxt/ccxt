@@ -2,6 +2,6 @@
 
 namespace ccxt;
 
-class InvalidNonce extends ExchangeError {
+class InvalidNonce extends NetworkError {
 
 }
