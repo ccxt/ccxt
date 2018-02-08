@@ -41,6 +41,24 @@ class okex extends okcoinusd {
         return $currency;
     }
 
+    public function calculate_fee ($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
+        $market = $this->markets[$symbol];
+        $key = 'quote';
+        $rate = $market[$takerOrMaker];
+        $cost = floatval ($this->cost_to_precision($symbol, $amount * $rate));
+        if ($side === 'sell') {
+            $cost *= $price;
+        } else {
+            $key = 'base';
+        }
+        return array (
+            'type' => $takerOrMaker,
+            'currency' => $market[$key],
+            'rate' => $rate,
+            'cost' => floatval ($this->fee_to_precision($symbol, $cost)),
+        );
+    }
+
     public function fetch_markets () {
         $markets = parent::fetch_markets();
         // TODO => they have a new fee schedule as of Feb 7
