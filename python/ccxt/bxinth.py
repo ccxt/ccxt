@@ -219,21 +219,19 @@ class bxinth (Exchange):
         })
 
     def parse_order(self, order, market=None):
-        side = None
-        if 'order_type' in order:
-            side = 'buy' if (order['order_type'] == 'buy') else 'sell'
+        side = self.safe_string(order, 'order_type')
         symbol = None
-        if not market:
-            if 'pairing_id' in order:
-                if str(order['pairing_id']) in self.markets_by_id:
-                    market = self.markets_by_id[str(order['pairing_id'])]
-        if market:
+        if market is None:
+            marketId = self.safe_string(order, 'pairing_id')
+            if marketId is not None:
+                if marketId in self.markets_by_id:
+                    market = self.markets_by_id[marketId]
+        if market is not None:
             symbol = market['symbol']
-        if 'date' in order:
-            timestamp = self.parse8601(order['date'])
+        timestamp = self.parse8601(order['date'])
         price = self.safe_float(order, 'rate')
         amount = self.safe_float(order, 'amount')
-        result = {
+        return {
             'info': order,
             'id': order['order_id'],
             'timestamp': timestamp,
@@ -242,15 +240,14 @@ class bxinth (Exchange):
             'type': 'limit',
             'side': side,
             'price': price,
-            'amount': amount
+            'amount': amount,
         }
-        return result
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         request = {}
         market = None
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['pairing'] = market['id']
         response = self.privatePostGetorders(self.extend(request, params))
