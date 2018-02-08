@@ -262,12 +262,24 @@ class bitcoincoid extends Exchange {
             $request['pair'] = $market['id'];
         }
         $response = $this->privatePostOpenOrders (array_merge ($request, $params));
-        // array ( success => 1, return => { $orders => null )}
-        $raw = $response['return']['orders'];
-        if (!$raw)
+        $rawOrders = $response['return']['orders'];
+        // array ( success => 1, return => { orders => null )} if no orders
+        if (!$rawOrders)
             return array ();
-        $orders = $this->parse_orders($raw, $market, $since, $limit);
-        return $this->filter_orders_by_symbol($orders, $symbol);
+        // array ( success => 1, return => { orders => array ( ... objects ) )} for orders fetched by $symbol
+        if ($symbol !== null)
+            return $this->parse_orders($rawOrders, $market, $since, $limit);
+        // array ( success => 1, return => { orders => array ( marketid => array ( ... objects ) ))} if all orders are fetched
+        $marketIds = is_array ($rawOrders) ? array_keys ($rawOrders) : array ();
+        $exchangeOrders = array ();
+        for ($i = 0; $i < count ($marketIds); $i++) {
+            $marketId = $marketIds[$i];
+            $marketOrders = $rawOrders[$marketId];
+            $market = $this->marketsById[$marketId];
+            $parsedOrders = $this->parse_orders($marketOrders, $market, $since, $limit);
+            $exchangeOrders = $this->array_concat($exchangeOrders, $parsedOrders);
+        }
+        return $exchangeOrders;
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
