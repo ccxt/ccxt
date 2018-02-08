@@ -247,21 +247,28 @@ module.exports = class bitstamp extends Exchange {
         if (typeof side === 'undefined')
             side = (trade['type'] === '0') ? 'buy' : 'sell';
         let orderId = this.safeString (trade, 'order_id');
-        if ('currency_pair' in trade) {
-            let marketId = trade['currency_pair'];
-            if (marketId in this.markets_by_id)
-                market = this.markets_by_id[marketId];
-        }
         let price = this.safeFloat (trade, 'price');
         let amount = this.safeFloat (trade, 'amount');
         let id = this.safeString (trade, 'tid');
         id = this.safeString (trade, 'id', id);
+        if (typeof market === 'undefined') {
+            let keys = Object.keys (trade);
+            for (let i = 0; i < keys.length; i++) {
+                if (keys[i].indexOf ('_') >= 0) {
+                    let marketId = keys[i].replace ('_', '');
+                    if (marketId in this.markets_by_id)
+                        market = this.markets_by_id[marketId];
+                }
+            }
+        }
+        let feeCost = this.safeFloat (trade, 'fee');
+        let feeCurrency = undefined;
         if (typeof market !== 'undefined') {
             price = this.safeFloat (trade, market['symbolId'], price);
             amount = this.safeFloat (trade, market['baseId'], amount);
-        }
-        if (typeof market !== 'undefined')
+            feeCurrency = market['quote'];
             symbol = market['symbol'];
+        }
         return {
             'id': id,
             'info': trade,
@@ -273,6 +280,10 @@ module.exports = class bitstamp extends Exchange {
             'side': side,
             'price': price,
             'amount': amount,
+            'fee': {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            },
         };
     }
 
