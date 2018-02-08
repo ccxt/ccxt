@@ -376,16 +376,15 @@ $hitbtc->create_order ('BTC/USD', 'limit', 'buy', 1, 3000, array ('clientOrderId
 
 Please read the [CONTRIBUTING](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) document before making changes that you would like adopted in the code. Also, read the [Manual](https://github.com/ccxt/ccxt/wiki) for more details.
 
-This project exists thanks to all the people who contribute. 
-<a href="graphs/contributors"><img src="https://opencollective.com/ccxt/contributors.svg?width=890" /></a>
-
 ## Support Developer Team
 
 We are investing a significant amount of time into the development of this library. If CCXT made your life easier and you like it and want to help us improve it further or if you want to speed up new features and exchanges, please, support us with a tip. We appreciate all contributions!
 
 ### Sponsors
 
-Support this project by becoming a sponsor. Your logo will show up here with a link to your website. [[Become a sponsor](https://opencollective.com/ccxt#sponsor)]
+Support this project by becoming a sponsor. Your logo will show up here with a link to your website.
+
+[[Become a sponsor](https://opencollective.com/ccxt#sponsor)]
 
 <a href="https://opencollective.com/ccxt/sponsor/0/website" target="_blank"><img src="https://opencollective.com/ccxt/sponsor/0/avatar.svg"></a>
 <a href="https://opencollective.com/ccxt/sponsor/1/website" target="_blank"><img src="https://opencollective.com/ccxt/sponsor/1/avatar.svg"></a>
@@ -400,13 +399,17 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 
 ### Supporters
 
-Thank you to all our supporters! 🙏 [[Become a supporter](https://opencollective.com/ccxt#backer)]
+Thank you to all our supporters!
+
+[[Become a supporter](https://opencollective.com/ccxt#backer)]
 
 <a href="https://opencollective.com/ccxt#supporters" target="_blank"><img src="https://opencollective.com/ccxt/supporters.svg?width=890"></a>
 
 ### Backers
 
-Thank you to all our backers! 🙏 [[Become a backer](https://opencollective.com/ccxt#backer)]
+Thank you to all our backers!
+
+[[Become a backer](https://opencollective.com/ccxt#backer)]
 
 <a href="https://opencollective.com/ccxt#backers" target="_blank"><img src="https://opencollective.com/ccxt/backers.svg?width=890"></a>
 
