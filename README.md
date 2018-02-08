@@ -401,7 +401,7 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 
 Thank you to all our supporters!
 
-[[Become a supporter](https://opencollective.com/ccxt#backer)]
+[[Become a supporter](https://opencollective.com/ccxt#supporter)]
 
 <a href="https://opencollective.com/ccxt/supporter/0/website" target="_blank"><img src="https://opencollective.com/ccxt/supporter/0/avatar.svg"></a>
 <a href="https://opencollective.com/ccxt/supporter/1/website" target="_blank"><img src="https://opencollective.com/ccxt/supporter/1/avatar.svg"></a>
