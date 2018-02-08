@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+from ccxt.base.errors import ExchangeError
 
 
 class bitflyer (Exchange):
@@ -211,9 +212,12 @@ class bitflyer (Exchange):
         }
 
     def cancel_order(self, id, symbol=None, params={}):
+        if symbol is None:
+            raise ExchangeError(self.id + ' cancelOrder() requires a symbol argument')
         self.load_markets()
         return self.privatePostCancelchildorder(self.extend({
-            'parent_order_id': id,
+            'product_code': self.market_id(symbol),
+            'child_order_acceptance_id': id,
         }, params))
 
     def withdraw(self, currency, amount, address, tag=None, params={}):
