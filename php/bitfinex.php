@@ -223,6 +223,7 @@ class bitfinex extends Exchange {
                     'Key price should be a decimal number, e.g. "123.456"' => '\\ccxt\\InvalidOrder', // on isNaN (price)
                     'Key amount should be a decimal number, e.g. "123.456"' => '\\ccxt\\InvalidOrder', // on isNaN (amount)
                     'ERR_RATE_LIMIT' => '\\ccxt\\DDoSProtection',
+                    'Nonce is too small.' => '\\ccxt\\InvalidNonce',
                 ),
                 'broad' => array (
                     'Invalid order => not enough exchange balance for ' => '\\ccxt\\InsufficientFunds', // when buy, cost > quote currency
