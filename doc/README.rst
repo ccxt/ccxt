@@ -1,7 +1,7 @@
 CCXT – CryptoCurrency eXchange Trading Library
 ==============================================
 
-|Build Status| |npm| |PyPI| |NPM Downloads| |NSP Status| |Gitter| |Supported Exchanges|
+|Build Status| |npm| |PyPI| |NPM Downloads| |NSP Status| |Gitter| |Supported Exchanges| |Open Collective|
 
 A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
 
@@ -498,17 +498,19 @@ We are investing a significant amount of time into the development of this libra
 Sponsors
 ~~~~~~~~
 
-`Become our sponsor <https://opencollective.com/ccxt#sponsor>`__ and get your logo on our Github page with a link to your site.
+Support this project by becoming a sponsor. Your logo will show up here with a link to your website.
+
+[`Become a sponsor <https://opencollective.com/ccxt#sponsor>`__]
 
 Supporters
 ~~~~~~~~~~
 
-`Become our supporter <https://opencollective.com/ccxt#supporter>`__ with a monthly payment and get your nick/link on our GitHub page.
+Thank you to all our supporters! [`Become a supporter <https://opencollective.com/ccxt#supporter>`__]
 
 Backers
 ~~~~~~~
 
-`Become a backer <https://opencollective.com/ccxt#backer>`__ with a small monthly donation and help us continue our activities.
+Thank you to all our backers! [`Become a backer <https://opencollective.com/ccxt#backer>`__]
 
 Crypto
 ~~~~~~
@@ -536,6 +538,8 @@ Thank you!
    :target: https://gitter.im/ccxt-dev/ccxt?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge
 .. |Supported Exchanges| image:: https://img.shields.io/badge/exchanges-99-blue.svg
    :target: https://github.com/ccxt/ccxt/wiki/Exchange-Markets
+.. |Open Collective| image:: https://opencollective.com/ccxt/backers/badge.svg
+   :target: https://opencollective.com/ccxt
 .. |_1broker| image:: https://user-images.githubusercontent.com/1294454/27766021-420bd9fc-5ecb-11e7-8ed6-56d0081efed2.jpg
 .. |_1btcxe| image:: https://user-images.githubusercontent.com/1294454/27766049-2b294408-5ecc-11e7-85cc-adaff013dc1a.jpg
 .. |acx| image:: https://user-images.githubusercontent.com/1294454/30247614-1fe61c74-9621-11e7-9e8c-f1a627afa279.jpg
