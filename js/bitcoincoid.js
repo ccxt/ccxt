@@ -267,10 +267,10 @@ module.exports = class bitcoincoid extends Exchange {
         // { success: 1, return: { orders: null }} if no orders
         if (!rawOrders)
             return [];
-        // { success: 1, return: { orders: [...objects] }} for orders fetched by symbol
+        // { success: 1, return: { orders: [ ... objects ] }} for orders fetched by symbol
         if (typeof symbol !== 'undefined')
             return this.parseOrders (rawOrders, market, since, limit);
-        // { success: 1, return: { orders: { marketid: [...objects], }}} if all orders are fetched
+        // { success: 1, return: { orders: { marketid: [ ... objects ] }}} if all orders are fetched
         let marketIds = Object.keys (rawOrders);
         let exchangeOrders = [];
         for (let i = 0; i < marketIds.length; i++) {
@@ -278,7 +278,7 @@ module.exports = class bitcoincoid extends Exchange {
             let marketOrders = rawOrders[marketId];
             market = this.marketsById[marketId];
             let parsedOrders = this.parseOrders (marketOrders, market, since, limit);
-            exchangeOrders.concat (parsedOrders);
+            exchangeOrders = this.arrayConcat (exchangeOrders, parsedOrders);
         }
         return exchangeOrders;
     }
