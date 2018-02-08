@@ -1843,14 +1843,14 @@ Below is an outline of exception inheritance hierarchy:
     - required parameter is missing
     - the format of parameters is incorrect
     - an exchange replies with an unclear answer
-
-   Other exceptions derived from `ExchangeError`:
-   - `NotSupported`: This exception is raised if the endpoint is not offered/not supported by the exchange API.
-   - `AuthenticationError`: Raised when an exchange requires one of the API credentials that you've missed to specify, or when there's a mistake in the keypair or an outdated nonce. Most of the time you need `apiKey` and `secret`, sometimes you also need `uid` and/or `password`.
-   - `InsufficientFunds`: This exception is raised when you don't have enough currency on your account balance to place an order.
-   - `InvalidOrder`: This exception is the base class for all exceptions related to the unified order API.
-     - `OrderNotFound`: Raised when you are trying to fetch or cancel a non-existent order.
-   - `NetworkError`: All errors related to networking are usually recoverable, meaning that networking problems, traffic congestion, unavailability is usually time-dependent. Making a retry later is usually enough to recover from a NetworkError, but if it doesn't go away, then it may indicate some persistent problem with the exchange or with your connection.
+    
+    Other exceptions derived from `ExchangeError`:
+    - `NotSupported`: This exception is raised if the endpoint is not offered/not supported by the exchange API.
+    - `AuthenticationError`: Raised when an exchange requires one of the API credentials that you've missed to specify, or when there's a mistake in the keypair or an outdated nonce. Most of the time you need `apiKey` and `secret`, sometimes you also need `uid` and/or `password`.
+    - `InsufficientFunds`: This exception is raised when you don't have enough currency on your account balance to place an order.
+    - `InvalidOrder`: This exception is the base class for all exceptions related to the unified order API.
+      - `OrderNotFound`: Raised when you are trying to fetch or cancel a non-existent order.
+    - `NetworkError`: All errors related to networking are usually recoverable, meaning that networking problems, traffic congestion, unavailability is usually time-dependent. Making a retry later is usually enough to recover from a NetworkError, but if it doesn't go away, then it may indicate some persistent problem with the exchange or with your connection.
       - `DDoSProtection`: This exception is thrown whenever Cloudflare or Incapsula rate limiter restrictions are enforced per user or region/location. The ccxt library does a case-insensitive search in the response received from the exchange for one of the following keywords:
         - `cloudflare`
         - `incapsula`
