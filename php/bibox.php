@@ -20,7 +20,8 @@ class bibox extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchTickers' => true,
-                'fetchOrders' => true,
+                'fetchOpenOrders' => true,
+                'fetchClosedOrders' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'withdraw' => true,
@@ -182,17 +183,34 @@ class bibox extends Exchange {
 
     public function parse_trade ($trade, $market = null) {
         $timestamp = $trade['time'];
-        $side = ($trade['side'] === '1') ? 'buy' : 'sell';
+        $side = $this->safe_integer($trade, 'side');
+        $side = $this->safe_integer($trade, 'order_side', $side);
+        $side = ($side === 1) ? 'buy' : 'sell';
+        if ($market === null) {
+            $marketId = $this->safe_string($trade, 'pair');
+            if ($marketId !== null)
+                if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
+                    $market = $this->markets_by_id[$marketId];
+        }
+        $symbol = ($market !== null) ? $market['symbol'] : null;
+        $fee = null;
+        if (is_array ($trade) && array_key_exists ('fee', $trade)) {
+            $fee = array (
+                'cost' => $this->safe_float($trade, 'fee'),
+                'currency' => null,
+            );
+        }
         return array (
             'id' => null,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'type' => 'limit',
             'side' => $side,
             'price' => floatval ($trade['price']),
             'amount' => floatval ($trade['amount']),
+            'fee' => $fee,
         );
     }
 
@@ -231,15 +249,14 @@ class bibox extends Exchange {
         ];
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = 1000, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $size = ($limit) ? $limit : 1000;
         $response = $this->publicGetMdata (array_merge (array (
             'cmd' => 'kline',
             'pair' => $market['id'],
             'period' => $this->timeframes[$timeframe],
-            'size' => $size,
+            'size' => $limit,
         ), $params));
         return $this->parse_ohlcvs($response['result'], $market, $timeframe, $since, $limit);
     }
@@ -328,13 +345,14 @@ class bibox extends Exchange {
         $this->load_markets();
         $market = $this->market ($symbol);
         $orderType = ($type === 'limit') ? 2 : 1;
-        $response = $this->privatePostOrder (array (
+        $orderSide = ($side === 'buy') ? 1 : 2;
+        $response = $this->privatePostOrderpending (array (
             'cmd' => 'orderpending/trade',
             'body' => array_merge (array (
                 'pair' => $market['id'],
                 'account_type' => 0,
                 'order_type' => $orderType,
-                'order_side' => $side,
+                'order_side' => $orderSide,
                 'pay_bix' => 0,
                 'amount' => $amount,
                 'price' => $price,
@@ -347,7 +365,7 @@ class bibox extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        $response = $this->privatePostCancelOrder (array (
+        $response = $this->privatePostOrderpending (array (
             'cmd' => 'orderpending/cancelTrade',
             'body' => array_merge (array (
                 'orders_id' => $id,
@@ -366,14 +384,20 @@ class bibox extends Exchange {
         $type = ($order['order_type'] === 1) ? 'market' : 'limit';
         $timestamp = $order['createdAt'];
         $price = $order['price'];
-        $filled = $order['amount'];
-        $amount = $this->safe_integer($order, 'deal_amount');
-        $remaining = $amount - $filled;
-        $side = ($order['order_side'] === 1) ? 'buy' : 'sell';
-        $status = null;
-        if (is_array ($order) && array_key_exists ('status', $order)) {
-            $status = $this->parse_order_status($order['status']);
+        $filled = $this->safe_float($order, 'deal_amount');
+        $amount = $this->safe_float($order, 'amount');
+        $cost = $this->safe_float($order, 'money');
+        $remaining = null;
+        if ($filled !== null) {
+            if ($amount !== null)
+                $remaining = $amount - $filled;
+            if ($cost === null)
+                $cost = $price * $filled;
         }
+        $side = ($order['order_side'] === 1) ? 'buy' : 'sell';
+        $status = $this->safe_string($order, 'status');
+        if ($status !== null)
+            $status = $this->parse_order_status($status);
         $result = array (
             'info' => $order,
             'id' => $this->safe_string($order, 'id'),
@@ -384,7 +408,7 @@ class bibox extends Exchange {
             'side' => $side,
             'price' => $price,
             'amount' => $amount,
-            'cost' => $price * $filled,
+            'cost' => $cost ? $cost : $price * $filled,
             'filled' => $filled,
             'remaining' => $remaining,
             'status' => $status,
@@ -395,19 +419,20 @@ class bibox extends Exchange {
 
     public function parse_order_status ($status) {
         $statuses = array (
-            '1' => 'pending',
-            '2' => 'open',
-            '3' => 'closed',
-            '4' => 'canceled',
-            '5' => 'canceled',
-            '6' => 'canceled',
+            // original comments from bibox:
+            '1' => 'pending', // pending
+            '2' => 'open', // part completed
+            '3' => 'closed', // completed
+            '4' => 'canceled', // part canceled
+            '5' => 'canceled', // canceled
+            '6' => 'canceled', // canceling
         );
         return $this->safe_string($statuses, $status, strtolower ($status));
     }
 
-    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if (!$symbol)
-            throw new ExchangeError ($this->id . ' fetchOrders requires a $symbol param');
+    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null)
+            throw new ExchangeError ($this->id . ' fetchOpenOrders requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
         $size = ($limit) ? $limit : 200;
@@ -420,13 +445,31 @@ class bibox extends Exchange {
                 'size' => $size,
             ), $params),
         ));
-        $orders = (is_array ($response) && array_key_exists ('items', $response)) ? $response['items'] : array ();
+        $orders = $this->safe_value($response['result'], 'items', array ());
+        return $this->parse_orders($orders, $market, $since, $limit);
+    }
+
+    public function fetch_closed_orders ($symbol = null, $since = null, $limit = 200, $params = array ()) {
+        if ($symbol === null)
+            throw new ExchangeError ($this->id . ' fetchClosedOrders requires a $symbol argument');
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $response = $this->privatePostOrderpending (array (
+            'cmd' => 'orderpending/pendingHistoryList',
+            'body' => array_merge (array (
+                'pair' => $market['id'],
+                'account_type' => 0, // 0 - regular, 1 - margin
+                'page' => 1,
+                'size' => $limit,
+            ), $params),
+        ));
+        $orders = $this->safe_value($response['result'], 'items', array ());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if (!$symbol)
-            throw new ExchangeError ($this->id . ' fetchMyTrades requires a $symbol param');
+            throw new ExchangeError ($this->id . ' fetchMyTrades requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
         $size = ($limit) ? $limit : 200;
@@ -439,8 +482,8 @@ class bibox extends Exchange {
                 'size' => $size,
             ), $params),
         ));
-        $orders = (is_array ($response) && array_key_exists ('items', $response)) ? $response['items'] : array ();
-        return $this->parse_orders($orders, $market, $since, $limit);
+        $trades = $this->safe_value($response['result'], 'items', array ());
+        return $this->parse_trades($trades, $market, $since, $limit);
     }
 
     public function fetch_deposit_address ($code, $params = array ()) {
