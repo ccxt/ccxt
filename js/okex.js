@@ -43,10 +43,16 @@ module.exports = class okex extends okcoinusd {
 
     async fetchMarkets () {
         let markets = await super.fetchMarkets ();
+        // TODO: they have a new fee schedule as of Feb 7
+        // the new fees are progressive and depend on 30-day traded volume
+        // the following is the worst case
         for (let i = 0; i < markets.length; i++) {
             if (markets[i]['spot']) {
-                markets[i]['maker'] = -0.001;
-                markets[i]['taker'] = 0.001;
+                markets[i]['maker'] = 0.0015;
+                markets[i]['taker'] = 0.0020;
+            } else {
+                markets[i]['maker'] = 0.0003;
+                markets[i]['taker'] = 0.0005;
             }
         }
         return markets;
