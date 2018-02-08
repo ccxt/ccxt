@@ -226,7 +226,7 @@ class bitfinex extends Exchange {
                     'Nonce is too small.' => '\\ccxt\\InvalidNonce',
                 ),
                 'broad' => array (
-                    'Invalid order => not enough exchange balance for ' => '\\ccxt\\InsufficientFunds', // when buy, cost > quote currency
+                    'Invalid order => not enough exchange balance for ' => '\\ccxt\\InsufficientFunds', // when buying cost is greater than the available quote currency
                     'Invalid order => minimum size for ' => '\\ccxt\\InvalidOrder', // when amount below limits.amount.min
                     'Invalid order' => '\\ccxt\\InvalidOrder', // ?
                 ),
