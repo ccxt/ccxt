@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { NotImplemented, DDoSProtection, AuthenticationError, ExchangeError, InsufficientFunds, NotSupported, InvalidOrder, OrderNotFound } = require ('./base/errors');
+const { NotImplemented, DDoSProtection, AuthenticationError, ExchangeError, InsufficientFunds, NotSupported, InvalidOrder, OrderNotFound, InvalidNonce } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -224,6 +224,7 @@ module.exports = class bitfinex extends Exchange {
                     'Key price should be a decimal number, e.g. "123.456"': InvalidOrder, // on isNaN (price)
                     'Key amount should be a decimal number, e.g. "123.456"': InvalidOrder, // on isNaN (amount)
                     'ERR_RATE_LIMIT': DDoSProtection,
+                    'Nonce is too small.': InvalidNonce,
                 },
                 'broad': {
                     'Invalid order: not enough exchange balance for ': InsufficientFunds, // when buy, cost > quote currency
