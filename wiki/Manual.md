@@ -1837,36 +1837,37 @@ Below is an outline of exception inheritance hierarchy:
 ```
 
 - `BaseError`: Generic error class for all sorts of errors, including accessibility and request/response mismatch. Users should catch this exception at the very least, if no error differentiation is required.
-    - `ExchangeError`: This exception is thrown when an exchange server replies with an error in JSON. Possible reasons:
-        - endpoint is switched off by the exchange
-        - symbol not found on the exchange
-        - required parameter is missing
-        - the format of parameters is incorrect
-        - an exchange replies with an unclear answer
-        Other exceptions derived from `ExchangeError`:
-        - `NotSupported`: This exception is raised if the endpoint is not offered/not supported by the exchange API.
-        - `AuthenticationError`: Raised when an exchange requires one of the API credentials that you've missed to specify, or when there's a mistake in the keypair or an outdated nonce. Most of the time you need `apiKey` and `secret`, sometimes you also need `uid` and/or `password`.
-        - `InsufficientFunds`: This exception is raised when you don't have enough currency on your account balance to place an order.
-        - `InvalidOrder`: This exception is the base class for all exceptions related to the unified order API.
-            - `OrderNotFound`: Raised when you are trying to fetch or cancel a non-existent order.
-    - `NetworkError`: All errors related to networking are usually recoverable, meaning that networking problems, traffic congestion, unavailability is usually time-dependent. Making a retry later is usually enough to recover from a NetworkError, but if it doesn't go away, then it may indicate some persistent problem with the exchange or with your connection.
-        - `DDoSProtection`: This exception is thrown whenever Cloudflare or Incapsula rate limiter restrictions are enforced per user or region/location. The ccxt library does a case-insensitive search in the response received from the exchange for one of the following keywords:
-            - `cloudflare`
-            - `incapsula`
-        - `RequestTimeout`: The name literally says it all. This exception is raised when connection with the exchange fails or data is not fully received in a specified amount of time. This is controlled by the `timeout` option.
-        - `ExchangeNotAvailable`: The ccxt library throws this error if it detects any of the following keywords in response:
-            - `offline`
-            - `unavailable`
-            - `busy`
-            - `retry`
-            - `wait`
-            - `maintain`
-            - `maintenance`
-            - `maintenancing`
-        - `InvalidNonce`: Raised when your nonce is less than the previous nonce used with your keypair, as described in the [Authentication](https://github.com/ccxt/ccxt/wiki/Manual#authentication) section. This type of exception is thrown in these cases (in order of precedence for checking):
-            - Your API keys are not fresh and new (have been used with some different software or script already).
-            - The same keypair is shared across multiple instances of the exchange class (for example, in a multithreaded environment or in separate processes).
-            - Your system clock is out of synch. System time should be synched with UTC in a non-DST timezone at a rate of once every ten minutes or even more frequently because of the clock drifting. **Enabling time synch in Windows is usually not enough!** You have to set it up with the OS Registry (Google *"time synch frequency"* for your OS).
+  - `ExchangeError`: This exception is thrown when an exchange server replies with an error in JSON. Possible reasons:
+    - endpoint is switched off by the exchange
+    - symbol not found on the exchange
+    - required parameter is missing
+    - the format of parameters is incorrect
+    - an exchange replies with an unclear answer
+
+   Other exceptions derived from `ExchangeError`:
+   - `NotSupported`: This exception is raised if the endpoint is not offered/not supported by the exchange API.
+   - `AuthenticationError`: Raised when an exchange requires one of the API credentials that you've missed to specify, or when there's a mistake in the keypair or an outdated nonce. Most of the time you need `apiKey` and `secret`, sometimes you also need `uid` and/or `password`.
+   - `InsufficientFunds`: This exception is raised when you don't have enough currency on your account balance to place an order.
+   - `InvalidOrder`: This exception is the base class for all exceptions related to the unified order API.
+     - `OrderNotFound`: Raised when you are trying to fetch or cancel a non-existent order.
+   - `NetworkError`: All errors related to networking are usually recoverable, meaning that networking problems, traffic congestion, unavailability is usually time-dependent. Making a retry later is usually enough to recover from a NetworkError, but if it doesn't go away, then it may indicate some persistent problem with the exchange or with your connection.
+      - `DDoSProtection`: This exception is thrown whenever Cloudflare or Incapsula rate limiter restrictions are enforced per user or region/location. The ccxt library does a case-insensitive search in the response received from the exchange for one of the following keywords:
+        - `cloudflare`
+        - `incapsula`
+      - `RequestTimeout`: The name literally says it all. This exception is raised when connection with the exchange fails or data is not fully received in a specified amount of time. This is controlled by the `timeout` option.
+      - `ExchangeNotAvailable`: The ccxt library throws this error if it detects any of the following keywords in response:
+        - `offline`
+        - `unavailable`
+        - `busy`
+        - `retry`
+        - `wait`
+        - `maintain`
+        - `maintenance`
+        - `maintenancing`
+      - `InvalidNonce`: Raised when your nonce is less than the previous nonce used with your keypair, as described in the [Authentication](https://github.com/ccxt/ccxt/wiki/Manual#authentication) section. This type of exception is thrown in these cases (in order of precedence for checking):
+        - Your API keys are not fresh and new (have been used with some different software or script already).
+        - The same keypair is shared across multiple instances of the exchange class (for example, in a multithreaded environment or in separate processes).
+        - Your system clock is out of synch. System time should be synched with UTC in a non-DST timezone at a rate of once every ten minutes or even more frequently because of the clock drifting. **Enabling time synch in Windows is usually not enough!** You have to set it up with the OS Registry (Google *"time synch frequency"* for your OS).
 
 # Troubleshooting
 
