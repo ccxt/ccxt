@@ -642,10 +642,7 @@ class kucoin extends Exchange {
         $endpoint = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . $endpoint;
         $query = $this->omit ($params, $this->extract_params($path));
-        if ($api === 'public') {
-            if ($query)
-                $url .= '?' . $this->urlencode ($query);
-        } else {
+        if ($api === 'private') {
             $this->check_required_credentials();
             // their $nonce is always a calibrated synched milliseconds-timestamp
             $nonce = $this->milliseconds ();
@@ -667,6 +664,9 @@ class kucoin extends Exchange {
                 'KC-API-NONCE' => $nonce,
                 'KC-API-SIGNATURE' => $signature,
             );
+        } else {
+            if ($query)
+                $url .= '?' . $this->urlencode ($query);
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
