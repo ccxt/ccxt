@@ -337,7 +337,9 @@ module.exports = class kucoin extends Exchange {
         }
         let side = this.safeValue (order, 'direction');
         if (typeof side === 'undefined')
-            side = order['type'].toLowerCase ();
+            side = order['type'];
+        if (typeof side !== 'undefined')
+            side = side.toLowerCase ();
         let fee = undefined;
         if ('feeTotal' in order) {
             fee = {
