@@ -685,16 +685,16 @@ module.exports = class poloniex extends Exchange {
             }, params));
         } catch (e) {
             if (e instanceof CancelPending) {
-                // We've sent a cencellation request and get back control until it finished
-                // (e.g. due to non-blocking call or 'RequestTimeout' exception).
-                // If we then retry and hit the exchange when it's still processing our request
-                // it will throw the following exception.
-                // In this case it looks like Polo won't show this order in the list of active
-                // orders and our order cache will mark this order as 'closed' (see #1801 for details).
-                // Proactively mark it as 'canceled' here to avoid that.
-                // If for some reason Polo won't successfully complete cancellation and the order
-                // will appear to be active again its state will be restored in cache during
-                // a subsequent `fetchOrder` call.
+                // A request to cancel the order has been sent already.
+                // If we then attempt to cancel the order the second time
+                // before the first request is processed the exchange will
+                // throw a CancelPending exception. Poloniex won't show the
+                // order in the list of active (open) orders and the cached
+                // order will be marked as 'closed' (see #1801 for details).
+                // To avoid that we proactively mark the order as 'canceled'
+                // here. If for some reason the order does not get canceled
+                // and still appears in the active list then the order cache
+                // will eventually get back in sync on a call to `fetchOrder`.
                 if (id in this.orders)
                     this.orders[id]['status'] = 'canceled';
             }
