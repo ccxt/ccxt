@@ -626,7 +626,7 @@ abstract class Exchange {
         $this->last_http_response = null;
         $this->last_json_response = null;
 
-        $options = array_merge_recursive ($this->describe(), $options);
+        $options = array_replace_recursive ($this->describe(), $options);
 
         if ($options)
             foreach ($options as $key => $value)
