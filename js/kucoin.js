@@ -46,6 +46,7 @@ module.exports = class kucoin extends Exchange {
                     'public': 'https://api.kucoin.com',
                     'private': 'https://api.kucoin.com',
                     'kitchen': 'https://kitchen.kucoin.com',
+                    'kitchen-2': 'https://kitchen-2.kucoin.com',
                 },
                 'www': 'https://kucoin.com',
                 'doc': 'https://kucoinapidocs.docs.apiary.io',
@@ -592,7 +593,8 @@ module.exports = class kucoin extends Exchange {
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let end = this.seconds ();
+        let now = this.seconds ();
+        let end = now;
         let resolution = this.timeframes[timeframe];
         // convert 'resolution' to minutes in order to calculate 'from' later
         let minutes = resolution;
@@ -605,23 +607,24 @@ module.exports = class kucoin extends Exchange {
                 limit = 52; // 52 weeks, 1 year
             minutes = 10080;
         } else if (typeof limit === 'undefined') {
-            limit = 1440;
-            minutes = 1440;
-            resolution = 'D';
+            limit = 1440; // last 24 hours (24 x 60)
+            // minutes = 1440;
+            // resolution = 'D';
         }
-        let start = end - minutes * 60 * limit;
+        let start = end - limit * minutes * 60;
+        // if 'since' has been supplied by user
         if (typeof since !== 'undefined') {
-            start = parseInt (since / 1000);
-            end = this.sum (start, minutes * 60 * limit);
+            start = parseInt (since / 1000); // convert milliseconds to seconds
+            end = this.sum (start, limit * minutes * 60);
+            end = Math.min (now, end);
         }
         let request = {
             'symbol': market['id'],
-            'type': this.timeframes[timeframe],
             'resolution': resolution,
             'from': start,
             'to': end,
         };
-        let response = await this.kitchenGetOpenChartHistory (this.extend (request, params));
+        let response = await this.publicGetOpenChartHistory (this.extend (request, params));
         return this.parseTradingViewOHLCVs (response, market, timeframe, since, limit);
     }
 
