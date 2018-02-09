@@ -18,7 +18,7 @@ class bitmex (Exchange):
             'countries': 'SC',  # Seychelles
             'version': 'v1',
             'userAgent': None,
-            'rateLimit': 1500,
+            'rateLimit': 2000,
             'has': {
                 'CORS': False,
                 'fetchOHLCV': True,

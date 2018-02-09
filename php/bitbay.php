@@ -215,6 +215,8 @@ class bitbay extends Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        if ($type !== 'limit')
+            throw new ExchangeError ($this->id . ' allows limit orders only');
         $market = $this->market ($symbol);
         return $this->privatePostTrade (array_merge (array (
             'type' => $side,
