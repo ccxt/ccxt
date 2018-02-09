@@ -333,7 +333,9 @@ class kucoin (Exchange):
                 remaining = amount - filled
         side = self.safe_value(order, 'direction')
         if side is None:
-            side = order['type'].lower()
+            side = order['type']
+        if side is not None:
+            side = side.lower()
         fee = None
         if 'feeTotal' in order:
             fee = {
