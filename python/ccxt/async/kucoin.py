@@ -56,6 +56,7 @@ class kucoin (Exchange):
                     'public': 'https://api.kucoin.com',
                     'private': 'https://api.kucoin.com',
                     'kitchen': 'https://kitchen.kucoin.com',
+                    'kitchen-2': 'https://kitchen-2.kucoin.com',
                 },
                 'www': 'https://kucoin.com',
                 'doc': 'https://kucoinapidocs.docs.apiary.io',
@@ -564,7 +565,8 @@ class kucoin (Exchange):
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        end = self.seconds()
+        now = self.seconds()
+        end = now
         resolution = self.timeframes[timeframe]
         # convert 'resolution' to minutes in order to calculate 'from' later
         minutes = resolution
@@ -577,21 +579,22 @@ class kucoin (Exchange):
                 limit = 52  # 52 weeks, 1 year
             minutes = 10080
         elif limit is None:
-            limit = 1440
-            minutes = 1440
-            resolution = 'D'
-        start = end - minutes * 60 * limit
+            limit = 1440  # last 24 hours(24 x 60)
+            # minutes = 1440
+            # resolution = 'D'
+        start = end - limit * minutes * 60
+        # if 'since' has been supplied by user
         if since is not None:
-            start = int(since / 1000)
-            end = self.sum(start, minutes * 60 * limit)
+            start = int(since / 1000)  # convert milliseconds to seconds
+            end = self.sum(start, limit * minutes * 60)
+            end = min(now, end)
         request = {
             'symbol': market['id'],
-            'type': self.timeframes[timeframe],
             'resolution': resolution,
             'from': start,
             'to': end,
         }
-        response = await self.kitchenGetOpenChartHistory(self.extend(request, params))
+        response = await self.publicGetOpenChartHistory(self.extend(request, params))
         return self.parse_trading_view_ohlcvs(response, market, timeframe, since, limit)
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
