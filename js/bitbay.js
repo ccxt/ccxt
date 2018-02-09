@@ -216,6 +216,8 @@ module.exports = class bitbay extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        if (type !== 'limit')
+            throw new ExchangeError (this.id + ' allows limit orders only');
         let market = this.market (symbol);
         return this.privatePostTrade (this.extend ({
             'type': side,
