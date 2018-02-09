@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.10.1066';
+$version = '1.10.1067';
 
 abstract class Exchange {
 
@@ -718,7 +718,7 @@ abstract class Exchange {
         $elapsed = $now - $this->lastRestRequestTimestamp;
         if ($elapsed < $this->rateLimit) {
             $delay = $this->rateLimit - $elapsed;
-            usleep ($delay * 1000.0);
+              usleep ((int)($delay * 1000.0));
         }
     }
 
