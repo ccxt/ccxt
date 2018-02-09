@@ -611,10 +611,7 @@ class kucoin (Exchange):
         endpoint = '/' + self.version + '/' + self.implode_params(path, params)
         url = self.urls['api'][api] + endpoint
         query = self.omit(params, self.extract_params(path))
-        if api == 'public':
-            if query:
-                url += '?' + self.urlencode(query)
-        else:
+        if api == 'private':
             self.check_required_credentials()
             # their nonce is always a calibrated synched milliseconds-timestamp
             nonce = self.milliseconds()
@@ -634,6 +631,9 @@ class kucoin (Exchange):
                 'KC-API-NONCE': nonce,
                 'KC-API-SIGNATURE': signature,
             }
+        else:
+            if query:
+                url += '?' + self.urlencode(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def throw_exception_on_error(self, response):
