@@ -506,17 +506,23 @@ module.exports = class bibox extends Exchange {
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
         let currency = this.currency (code);
-        let request = {
-            'cmd': 'transfer/transferOut',
-            'body': this.extend ({
-                'coin_symbol': currency,
-                'amount': amount,
-                'addr': address,
-            }, params),
+        if (typeof this.password === 'undefined')
+            if (!('trade_pwd' in params))
+                throw new ExchangeError (this.id + ' withdraw() requires this.password set on the exchange instance or a trade_pwd parameter');
+        if (!('totp_code' in params))
+            throw new ExchangeError (this.id + ' withdraw() requires a totp_code parameter for 2FA authentication');
+        let body = {
+            'trade_pwd': this.password,
+            'coin_symbol': currency['id'],
+            'amount': amount,
+            'addr': address,
         };
         if (typeof tag !== 'undefined')
-            request['body']['address_remark'] = tag;
-        let response = await this.privatePostTransfer (request);
+            body['address_remark'] = tag;
+        let response = await this.privatePostTransfer ({
+            'cmd': 'transfer/transferOut',
+            'body': this.extend (body, params),
+        });
         return {
             'info': response,
             'id': undefined,
