@@ -15,7 +15,7 @@ module.exports = class bitmex extends Exchange {
             'countries': 'SC', // Seychelles
             'version': 'v1',
             'userAgent': undefined,
-            'rateLimit': 1500,
+            'rateLimit': 2000,
             'has': {
                 'CORS': false,
                 'fetchOHLCV': true,
