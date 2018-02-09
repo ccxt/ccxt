@@ -45,6 +45,7 @@ class kucoin extends Exchange {
                     'public' => 'https://api.kucoin.com',
                     'private' => 'https://api.kucoin.com',
                     'kitchen' => 'https://kitchen.kucoin.com',
+                    'kitchen-2' => 'https://kitchen-2.kucoin.com',
                 ),
                 'www' => 'https://kucoin.com',
                 'doc' => 'https://kucoinapidocs.docs.apiary.io',
@@ -591,7 +592,8 @@ class kucoin extends Exchange {
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $end = $this->seconds ();
+        $now = $this->seconds ();
+        $end = $now;
         $resolution = $this->timeframes[$timeframe];
         // convert 'resolution' to $minutes in order to calculate 'from' later
         $minutes = $resolution;
@@ -604,23 +606,24 @@ class kucoin extends Exchange {
                 $limit = 52; // 52 weeks, 1 year
             $minutes = 10080;
         } else if ($limit === null) {
-            $limit = 1440;
-            $minutes = 1440;
-            $resolution = 'D';
+            $limit = 1440; // last 24 hours (24 x 60)
+            // $minutes = 1440;
+            // $resolution = 'D';
         }
-        $start = $end - $minutes * 60 * $limit;
+        $start = $end - $limit * $minutes * 60;
+        // if 'since' has been supplied by user
         if ($since !== null) {
-            $start = intval ($since / 1000);
-            $end = $this->sum ($start, $minutes * 60 * $limit);
+            $start = intval ($since / 1000); // convert milliseconds to seconds
+            $end = $this->sum ($start, $limit * $minutes * 60);
+            $end = min ($now, $end);
         }
         $request = array (
             'symbol' => $market['id'],
-            'type' => $this->timeframes[$timeframe],
             'resolution' => $resolution,
             'from' => $start,
             'to' => $end,
         );
-        $response = $this->kitchenGetOpenChartHistory (array_merge ($request, $params));
+        $response = $this->publicGetOpenChartHistory (array_merge ($request, $params));
         return $this->parse_trading_view_ohlcvs ($response, $market, $timeframe, $since, $limit);
     }
 
