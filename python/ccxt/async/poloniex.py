@@ -553,7 +553,7 @@ class poloniex (Exchange):
         for i in range(0, len(orders)):
             if orders[i]['id'] == id:
                 return orders[i]
-        raise OrderNotCached(self.id + ' order id ' + str(id) + ' not found in cache')
+        raise OrderNotCached(self.id + ' order id ' + str(id) + ' is not in "open" state and not found in cache')
 
     def filter_orders_by_status(self, orders, status):
         result = []
@@ -634,13 +634,23 @@ class poloniex (Exchange):
             response = await self.privatePostCancelOrder(self.extend({
                 'orderNumber': id,
             }, params))
-            if id in self.orders:
-                self.orders[id]['status'] = 'canceled'
         except Exception as e:
-            if self.last_http_response:
-                if self.last_http_response.find('Invalid order') >= 0:
-                    raise OrderNotFound(self.id + ' cancelOrder() error: ' + self.last_http_response)
+            if isinstance(e, CancelPending):
+                # A request to cancel the order has been sent already.
+                # If we then attempt to cancel the order the second time
+                # before the first request is processed the exchange will
+                # raise a CancelPending exception. Poloniex won't show the
+                # order in the list of active(open) orders and the cached
+                # order will be marked as 'closed'(see  #1801 for details).
+                # To avoid that we proactively mark the order as 'canceled'
+                # here. If for some reason the order does not get canceled
+                # and still appears in the active list then the order cache
+                # will eventually get back in sync on a call to `fetchOrder`.
+                if id in self.orders:
+                    self.orders[id]['status'] = 'canceled'
             raise e
+        if id in self.orders:
+            self.orders[id]['status'] = 'canceled'
         return response
 
     async def fetch_order_status(self, id, symbol=None):
@@ -724,24 +734,17 @@ class poloniex (Exchange):
         if body[0] == '{':
             response = json.loads(body)
             if 'error' in response:
-                error = self.id + ' ' + body
-                if response['error'] == 'Invalid order number, or you are not the person who placed the order.':
-                    raise OrderNotFound(error)
-                elif response['error'].find('Total must be at least') >= 0:
-                    raise InvalidOrder(error)
-                elif response['error'].find('Not enough') >= 0:
-                    raise InsufficientFunds(error)
-                elif response['error'].find('Nonce must be greater') >= 0:
-                    raise ExchangeNotAvailable(error)
-                elif response['error'].find('You have already called cancelOrder or moveOrder on self order.') >= 0:
-                    raise CancelPending(error)
-
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = await self.fetch2(path, api, method, params, headers, body)
-        if 'error' in response:
-            error = self.id + ' ' + self.json(response)
-            failed = response['error'].find('Not enough') >= 0
-            if failed:
-                raise InsufficientFunds(error)
-            raise ExchangeError(error)
-        return response
+                error = response['error']
+                feedback = self.id + ' ' + self.json(response)
+                if error == 'Invalid order number, or you are not the person who placed the order.':
+                    raise OrderNotFound(feedback)
+                elif error.find('Total must be at least') >= 0:
+                    raise InvalidOrder(feedback)
+                elif error.find('Not enough') >= 0:
+                    raise InsufficientFunds(feedback)
+                elif error.find('Nonce must be greater') >= 0:
+                    raise ExchangeNotAvailable(feedback)
+                elif error.find('You have already called cancelOrder or moveOrder on self order.') >= 0:
+                    raise CancelPending(feedback)
+                else:
+                    raise ExchangeError(self.id + ': unknown error: ' + self.json(response))

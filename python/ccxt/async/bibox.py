@@ -480,17 +480,23 @@ class bibox (Exchange):
     async def withdraw(self, code, amount, address, tag=None, params={}):
         await self.load_markets()
         currency = self.currency(code)
-        request = {
-            'cmd': 'transfer/transferOut',
-            'body': self.extend({
-                'coin_symbol': currency,
-                'amount': amount,
-                'addr': address,
-            }, params),
+        if self.password is None:
+            if not('trade_pwd' in list(params.keys())):
+                raise ExchangeError(self.id + ' withdraw() requires self.password set on the exchange instance or a trade_pwd parameter')
+        if not('totp_code' in list(params.keys())):
+            raise ExchangeError(self.id + ' withdraw() requires a totp_code parameter for 2FA authentication')
+        body = {
+            'trade_pwd': self.password,
+            'coin_symbol': currency['id'],
+            'amount': amount,
+            'addr': address,
         }
         if tag is not None:
-            request['body']['address_remark'] = tag
-        response = await self.privatePostTransfer(request)
+            body['address_remark'] = tag
+        response = await self.privatePostTransfer({
+            'cmd': 'transfer/transferOut',
+            'body': self.extend(body, params),
+        })
         return {
             'info': response,
             'id': None,

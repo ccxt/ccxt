@@ -505,17 +505,23 @@ class bibox extends Exchange {
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency ($code);
-        $request = array (
-            'cmd' => 'transfer/transferOut',
-            'body' => array_merge (array (
-                'coin_symbol' => $currency,
-                'amount' => $amount,
-                'addr' => $address,
-            ), $params),
+        if ($this->password === null)
+            if (!(is_array ($params) && array_key_exists ('trade_pwd', $params)))
+                throw new ExchangeError ($this->id . ' withdraw() requires $this->password set on the exchange instance or a trade_pwd parameter');
+        if (!(is_array ($params) && array_key_exists ('totp_code', $params)))
+            throw new ExchangeError ($this->id . ' withdraw() requires a totp_code parameter for 2FA authentication');
+        $body = array (
+            'trade_pwd' => $this->password,
+            'coin_symbol' => $currency['id'],
+            'amount' => $amount,
+            'addr' => $address,
         );
         if ($tag !== null)
-            $request['body']['address_remark'] = $tag;
-        $response = $this->privatePostTransfer ($request);
+            $body['address_remark'] = $tag;
+        $response = $this->privatePostTransfer (array (
+            'cmd' => 'transfer/transferOut',
+            'body' => array_merge ($body, $params),
+        ));
         return array (
             'info' => $response,
             'id' => null,
