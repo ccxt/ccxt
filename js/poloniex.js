@@ -593,7 +593,7 @@ module.exports = class poloniex extends Exchange {
             if (orders[i]['id'] === id)
                 return orders[i];
         }
-        throw new OrderNotCached (this.id + ' order id ' + id.toString () + ' not found in cache');
+        throw new OrderNotCached (this.id + ' order id ' + id.toString () + ' is not in "open" state and not found in cache');
     }
 
     filterOrdersByStatus (orders, status) {
@@ -782,33 +782,24 @@ module.exports = class poloniex extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body) {
         if (body[0] === '{') {
-            let response = JSON.parse (body);
+            const response = JSON.parse (body);
             if ('error' in response) {
-                let error = this.id + ' ' + body;
-                if (response['error'] === 'Invalid order number, or you are not the person who placed the order.') {
-                    throw new OrderNotFound (error);
-                } else if (response['error'].indexOf ('Total must be at least') >= 0) {
-                    throw new InvalidOrder (error);
-                } else if (response['error'].indexOf ('Not enough') >= 0) {
-                    throw new InsufficientFunds (error);
-                } else if (response['error'].indexOf ('Nonce must be greater') >= 0) {
-                    throw new ExchangeNotAvailable (error);
-                } else if (response['error'].indexOf ('You have already called cancelOrder or moveOrder on this order.') >= 0) {
-                    throw new CancelPending (error);
+                const error = response['error'];
+                const feedback = this.id + ' ' + this.json (response);
+                if (error === 'Invalid order number, or you are not the person who placed the order.') {
+                    throw new OrderNotFound (feedback);
+                } else if (error.indexOf ('Total must be at least') >= 0) {
+                    throw new InvalidOrder (feedback);
+                } else if (error.indexOf ('Not enough') >= 0) {
+                    throw new InsufficientFunds (feedback);
+                } else if (error.indexOf ('Nonce must be greater') >= 0) {
+                    throw new ExchangeNotAvailable (feedback);
+                } else if (error.indexOf ('You have already called cancelOrder or moveOrder on this order.') >= 0) {
+                    throw new CancelPending (feedback);
+                } else {
+                    throw new ExchangeError (this.id + ': unknown error: ' + this.json (response));
                 }
             }
         }
-    }
-
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('error' in response) {
-            let error = this.id + ' ' + this.json (response);
-            let failed = response['error'].indexOf ('Not enough') >= 0;
-            if (failed)
-                throw new InsufficientFunds (error);
-            throw new ExchangeError (error);
-        }
-        return response;
     }
 };
