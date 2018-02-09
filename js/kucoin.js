@@ -643,10 +643,7 @@ module.exports = class kucoin extends Exchange {
         let endpoint = '/' + this.version + '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + endpoint;
         let query = this.omit (params, this.extractParams (path));
-        if (api === 'public') {
-            if (Object.keys (query).length)
-                url += '?' + this.urlencode (query);
-        } else {
+        if (api === 'private') {
             this.checkRequiredCredentials ();
             // their nonce is always a calibrated synched milliseconds-timestamp
             let nonce = this.milliseconds ();
@@ -668,6 +665,9 @@ module.exports = class kucoin extends Exchange {
                 'KC-API-NONCE': nonce,
                 'KC-API-SIGNATURE': signature,
             };
+        } else {
+            if (Object.keys (query).length)
+                url += '?' + this.urlencode (query);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
