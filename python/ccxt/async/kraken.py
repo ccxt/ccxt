@@ -397,10 +397,9 @@ class kraken (Exchange):
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
-        darkpool = symbol.find('.d') >= 0
-        if darkpool:
-            raise ExchangeError(self.id + ' does not provide an order book for darkpool symbol ' + symbol)
         market = self.market(symbol)
+        if market['darkpool']:
+            raise ExchangeError(self.id + ' does not provide an order book for darkpool symbol ' + symbol)
         request = {
             'pair': market['id'],
         }
