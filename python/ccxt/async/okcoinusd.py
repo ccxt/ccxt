@@ -140,7 +140,8 @@ class okcoinusd (Exchange):
                 '20015': OrderNotFound,  # for future markets
                 '1013': InvalidOrder,  # no contract type(PR-1101)
                 '1027': InvalidOrder,  # createLimitBuyOrder(symbol, 0, 0): Incorrect parameter may exceeded limits
-                '1002': InsufficientFunds,  # The transaction amount exceed the balance
+                '1002': InsufficientFunds,  # "The transaction amount exceed the balance"
+                '1050': InvalidOrder,  # returned when trying to cancel an order that was filled or canceled previously
                 '10000': ExchangeError,  # createLimitBuyOrder(symbol, None, None)
                 '10005': AuthenticationError,  # bad apiKey
                 '10008': ExchangeError,  # Illegal URL parameter

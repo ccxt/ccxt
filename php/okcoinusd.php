@@ -132,7 +132,8 @@ class okcoinusd extends Exchange {
                 '20015' => '\\ccxt\\OrderNotFound', // for future markets
                 '1013' => '\\ccxt\\InvalidOrder', // no contract type (PR-1101)
                 '1027' => '\\ccxt\\InvalidOrder', // createLimitBuyOrder(symbol, 0, 0) => Incorrect parameter may exceeded limits
-                '1002' => '\\ccxt\\InsufficientFunds', // The transaction amount exceed the balance
+                '1002' => '\\ccxt\\InsufficientFunds', // "The transaction amount exceed the balance"
+                '1050' => '\\ccxt\\InvalidOrder', // returned when trying to cancel an order that was filled or canceled previously
                 '10000' => '\\ccxt\\ExchangeError', // createLimitBuyOrder(symbol, null, null)
                 '10005' => '\\ccxt\\AuthenticationError', // bad apiKey
                 '10008' => '\\ccxt\\ExchangeError', // Illegal URL parameter
