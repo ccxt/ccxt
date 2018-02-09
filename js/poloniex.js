@@ -593,7 +593,7 @@ module.exports = class poloniex extends Exchange {
             if (orders[i]['id'] === id)
                 return orders[i];
         }
-        throw new OrderNotCached (this.id + ' order id ' + id.toString () + ' not found in cache');
+        throw new OrderNotCached (this.id + ' order id ' + id.toString () + ' is not in "open" state and not found in cache');
     }
 
     filterOrdersByStatus (orders, status) {
@@ -683,15 +683,25 @@ module.exports = class poloniex extends Exchange {
             response = await this.privatePostCancelOrder (this.extend ({
                 'orderNumber': id,
             }, params));
-            if (id in this.orders)
-                this.orders[id]['status'] = 'canceled';
         } catch (e) {
-            if (this.last_http_response) {
-                if (this.last_http_response.indexOf ('Invalid order') >= 0)
-                    throw new OrderNotFound (this.id + ' cancelOrder() error: ' + this.last_http_response);
+            if (e instanceof CancelPending) {
+                // We've sent a cencellation request and get back control until it finished
+                // (e.g. due to non-blocking call or 'RequestTimeout' exception).
+                // If we then retry and hit the exchange when it's still processing our request
+                // it will throw the following exception.
+                // In this case it looks like Polo won't show this order in the list of active
+                // orders and our order cache will mark this order as 'closed' (see #1801 for details).
+                // Proactively mark it as 'canceled' here to avoid that.
+                // If for some reason Polo won't successfully complete cancellation and the order
+                // will appear to be active again its state will be restored in cache during
+                // a subsequent `fetchOrder` call.
+                if (id in this.orders)
+                    this.orders[id]['status'] = 'canceled';
             }
             throw e;
         }
+        if (id in this.orders)
+            this.orders[id]['status'] = 'canceled';
         return response;
     }
 
@@ -782,33 +792,24 @@ module.exports = class poloniex extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body) {
         if (body[0] === '{') {
-            let response = JSON.parse (body);
+            const response = JSON.parse (body);
             if ('error' in response) {
-                let error = this.id + ' ' + body;
-                if (response['error'] === 'Invalid order number, or you are not the person who placed the order.') {
-                    throw new OrderNotFound (error);
-                } else if (response['error'].indexOf ('Total must be at least') >= 0) {
-                    throw new InvalidOrder (error);
-                } else if (response['error'].indexOf ('Not enough') >= 0) {
-                    throw new InsufficientFunds (error);
-                } else if (response['error'].indexOf ('Nonce must be greater') >= 0) {
-                    throw new ExchangeNotAvailable (error);
-                } else if (response['error'].indexOf ('You have already called cancelOrder or moveOrder on this order.') >= 0) {
-                    throw new CancelPending (error);
+                const error = response['error'];
+                const feedback = this.id + ' ' + this.json (response);
+                if (error === 'Invalid order number, or you are not the person who placed the order.') {
+                    throw new OrderNotFound (feedback);
+                } else if (error.indexOf ('Total must be at least') >= 0) {
+                    throw new InvalidOrder (feedback);
+                } else if (error.indexOf ('Not enough') >= 0) {
+                    throw new InsufficientFunds (feedback);
+                } else if (error.indexOf ('Nonce must be greater') >= 0) {
+                    throw new ExchangeNotAvailable (feedback);
+                } else if (error.indexOf ('You have already called cancelOrder or moveOrder on this order.') >= 0) {
+                    throw new CancelPending (feedback);
+                } else {
+                    throw new ExchangeError (this.id + ': unknown error: ' + this.json (response));
                 }
             }
         }
-    }
-
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('error' in response) {
-            let error = this.id + ' ' + this.json (response);
-            let failed = response['error'].indexOf ('Not enough') >= 0;
-            if (failed)
-                throw new InsufficientFunds (error);
-            throw new ExchangeError (error);
-        }
-        return response;
     }
 };
