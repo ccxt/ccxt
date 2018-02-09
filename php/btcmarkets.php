@@ -348,6 +348,7 @@ class btcmarkets extends Exchange {
         } else {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
+            // eslint-disable-next-line quotes
             $auth = $uri . "\n" . $nonce . "\n";
             $headers = array (
                 'Content-Type' => 'application/json',

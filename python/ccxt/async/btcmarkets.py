@@ -329,6 +329,7 @@ class btcmarkets (Exchange):
         else:
             self.check_required_credentials()
             nonce = str(self.nonce())
+            # eslint-disable-next-line quotes
             auth = uri + "\n" + nonce + "\n"
             headers = {
                 'Content-Type': 'application/json',

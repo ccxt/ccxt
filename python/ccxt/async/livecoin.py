@@ -353,7 +353,9 @@ class livecoin (Exchange):
         else:
             status = 'canceled'
         symbol = order['currencyPair']
-        base, quote = symbol.split('/')
+        parts = symbol.split('/')
+        quote = parts[1]
+        # base, quote = symbol.split('/')
         type = None
         side = None
         if order['type'].find('MARKET') >= 0:
