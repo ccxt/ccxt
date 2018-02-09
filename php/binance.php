@@ -74,6 +74,8 @@ class binance extends Exchange {
                         'depositHistory',
                         'withdrawHistory',
                         'depositAddress',
+                        'accountStatus',
+                        'systemStatus',
                     ),
                 ),
                 'v3' => array (
