@@ -508,35 +508,30 @@ module.exports = class liqui extends Exchange {
         return this.orders[id];
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        // if (!symbol)
-        //     throw new ExchangeError (this.id + ' fetchOrders requires a symbol');
-        await this.loadMarkets ();
-        let request = {};
-        let market = undefined;
-        if (symbol) {
-            let market = this.market (symbol);
-            request['pair'] = market['id'];
-        }
-        let response = await this.privatePostActiveOrders (this.extend (request, params));
-        let openOrders = [];
-        if ('return' in response)
-            openOrders = this.parseOrders (response['return'], market);
+    updateCachedOrders (openOrders, symbol) {
+        // update local cache with open orders
         for (let j = 0; j < openOrders.length; j++) {
-            this.orders[openOrders[j]['id']] = openOrders[j];
+            const id = openOrders[j]['id'];
+            this.orders[id] = openOrders[j];
         }
         let openOrdersIndexedById = this.indexBy (openOrders, 'id');
         let cachedOrderIds = Object.keys (this.orders);
-        let result = [];
         for (let k = 0; k < cachedOrderIds.length; k++) {
+            // match each cached order to an order in the open orders array
+            // possible reasons why a cached order may be missing in the open orders array:
+            // - order was closed or canceled -> update cache
+            // - symbol mismatch (e.g. cached BTC/USDT, fetched ETH/USDT) -> skip
             let id = cachedOrderIds[k];
-            if (id in openOrdersIndexedById) {
-                this.orders[id] = this.extend (this.orders[id], openOrdersIndexedById[id]);
-            } else {
+            if (!(id in openOrdersIndexedById)) {
+                // cached order is not in open orders array
                 let order = this.orders[id];
+                // if we fetched orders by symbol and it doesn't match the cached order -> won't update the cached order
+                if (typeof symbol !== 'undefined' && symbol !== order['symbol'])
+                    continue;
+                // order is cached but not present in the list of open orders -> mark the cached order as closed
                 if (order['status'] === 'open') {
                     order = this.extend (order, {
-                        'status': 'closed',
+                        'status': 'closed', // likewise it might have been canceled externally (unnoticed by "us")
                         'cost': undefined,
                         'filled': order['amount'],
                         'remaining': 0.0,
@@ -548,14 +543,26 @@ module.exports = class liqui extends Exchange {
                     this.orders[id] = order;
                 }
             }
-            let order = this.orders[id];
-            if (symbol) {
-                if (order['symbol'] === symbol)
-                    result.push (order);
-            } else {
-                result.push (order);
-            }
         }
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        // if (!symbol)
+        //     throw new ExchangeError (this.id + ' fetchOrders requires a symbol');
+        await this.loadMarkets ();
+        let request = {};
+        let market = undefined;
+        if (symbol) {
+            let market = this.market (symbol);
+            request['pair'] = market['id'];
+        }
+        let response = await this.privatePostActiveOrders (this.extend (request, params));
+        // liqui etc can only return 'open' orders (i.e. no way to fetch 'closed' orders)
+        let openOrders = [];
+        if ('return' in response)
+            openOrders = this.parseOrders (response['return'], market);
+        this.updateCachedOrders (openOrders, symbol);
+        let result = this.filterOrdersBySymbol (this.orders, symbol);
         return this.filterBySinceLimit (result, since, limit);
     }
 
@@ -583,13 +590,13 @@ module.exports = class liqui extends Exchange {
         await this.loadMarkets ();
         let market = undefined;
         let request = {
-            // 'from': 123456789, // trade ID, from which the display starts numerical 0
+            // 'from': 123456789, // trade ID, from which the display starts numerical 0 (test result: liqui ignores this field)
             // 'count': 1000, // the number of trades for display numerical, default = 1000
             // 'from_id': trade ID, from which the display starts numerical 0
             // 'end_id': trade ID on which the display ends numerical ∞
-            // 'order': 'ASC', // sorting, default = DESC
-            // 'since': 1234567890, // UTC start time, default = 0
-            // 'end': 1234567890, // UTC end time, default = ∞
+            // 'order': 'ASC', // sorting, default = DESC (test result: liqui ignores this field, most recent trade always goes last)
+            // 'since': 1234567890, // UTC start time, default = 0 (test result: liqui ignores this field)
+            // 'end': 1234567890, // UTC end time, default = ∞ (test result: liqui ignores this field)
             // 'pair': 'eth_btc', // default = all markets
         };
         if (typeof symbol !== 'undefined') {
