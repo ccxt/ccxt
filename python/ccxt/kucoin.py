@@ -565,8 +565,7 @@ class kucoin (Exchange):
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        now = self.seconds()
-        end = now
+        end = self.seconds()
         resolution = self.timeframes[timeframe]
         # convert 'resolution' to minutes in order to calculate 'from' later
         minutes = resolution
@@ -579,15 +578,16 @@ class kucoin (Exchange):
                 limit = 52  # 52 weeks, 1 year
             minutes = 10080
         elif limit is None:
-            limit = 1440  # last 24 hours(24 x 60)
-            # minutes = 1440
-            # resolution = 'D'
+            # last 1440 periods, whatever the duration of the period is
+            # for 1m it equals 1 day(24 hours)
+            # for 5m it equals 5 days
+            # ...
+            limit = 1440
         start = end - limit * minutes * 60
         # if 'since' has been supplied by user
         if since is not None:
             start = int(since / 1000)  # convert milliseconds to seconds
-            end = self.sum(start, limit * minutes * 60)
-            end = min(now, end)
+            end = min(end, self.sum(start, limit * minutes * 60))
         request = {
             'symbol': market['id'],
             'resolution': resolution,
