@@ -365,7 +365,9 @@ module.exports = class livecoin extends Exchange {
             status = 'canceled';
         }
         let symbol = order['currencyPair'];
-        let [ base, quote ] = symbol.split ('/');
+        let parts = symbol.split ('/');
+        let quote = parts[1];
+        // let [ base, quote ] = symbol.split ('/');
         let type = undefined;
         let side = undefined;
         if (order['type'].indexOf ('MARKET') >= 0) {
