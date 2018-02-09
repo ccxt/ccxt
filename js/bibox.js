@@ -506,15 +506,17 @@ module.exports = class bibox extends Exchange {
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
         let currency = this.currency (code);
-        let response = await this.privatePostTransfer ({
+        let request = {
             'cmd': 'transfer/transferOut',
             'body': this.extend ({
                 'coin_symbol': currency,
                 'amount': amount,
                 'addr': address,
-                'addr_remark': '',
             }, params),
-        });
+        };
+        if (typeof tag !== 'undefined')
+            request['body']['address_remark'] = tag;
+        let response = await this.privatePostTransfer (request);
         return {
             'info': response,
             'id': undefined,
@@ -525,14 +527,10 @@ module.exports = class bibox extends Exchange {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
         let cmds = this.json ([ params ]);
         if (api === 'public') {
-            if (method === 'GET') {
-                if (Object.keys (params).length)
-                    url += '?' + this.urlencode (params);
-            } else {
-                body = {
-                    'cmds': cmds,
-                };
-            }
+            if (method !== 'GET')
+                body = { 'cmds': cmds };
+            else if (Object.keys (params).length)
+                url += '?' + this.urlencode (params);
         } else {
             this.checkRequiredCredentials ();
             body = {
@@ -541,8 +539,10 @@ module.exports = class bibox extends Exchange {
                 'sign': this.hmac (this.encode (cmds), this.encode (this.secret), 'md5'),
             };
         }
+        if (typeof body !== 'undefined')
+            body = this.json (body, { 'convertArraysToObjects': true });
         headers = { 'Content-Type': 'application/json' };
-        return { 'url': url, 'method': method, 'body': this.json (body), 'headers': headers };
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
