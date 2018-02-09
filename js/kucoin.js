@@ -593,8 +593,7 @@ module.exports = class kucoin extends Exchange {
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let now = this.seconds ();
-        let end = now;
+        let end = this.seconds ();
         let resolution = this.timeframes[timeframe];
         // convert 'resolution' to minutes in order to calculate 'from' later
         let minutes = resolution;
@@ -607,16 +606,17 @@ module.exports = class kucoin extends Exchange {
                 limit = 52; // 52 weeks, 1 year
             minutes = 10080;
         } else if (typeof limit === 'undefined') {
-            limit = 1440; // last 24 hours (24 x 60)
-            // minutes = 1440;
-            // resolution = 'D';
+            // last 1440 periods, whatever the duration of the period is
+            // for 1m it equals 1 day (24 hours)
+            // for 5m it equals 5 days
+            // ...
+            limit = 1440;
         }
         let start = end - limit * minutes * 60;
         // if 'since' has been supplied by user
         if (typeof since !== 'undefined') {
             start = parseInt (since / 1000); // convert milliseconds to seconds
-            end = this.sum (start, limit * minutes * 60);
-            end = Math.min (now, end);
+            end = Math.min (end, this.sum (start, limit * minutes * 60));
         }
         let request = {
             'symbol': market['id'],
