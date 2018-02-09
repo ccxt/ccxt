@@ -508,31 +508,30 @@ module.exports = class liqui extends Exchange {
         return this.orders[id];
     }
 
-    updateOrdersCache (openOrders, symbol) {
+    updateCachedOrders (openOrders, symbol) {
+        // update local cache with open orders
         for (let j = 0; j < openOrders.length; j++) {
-            // update local cache with opened orders
             const id = openOrders[j]['id'];
             this.orders[id] = openOrders[j];
         }
         let openOrdersIndexedById = this.indexBy (openOrders, 'id');
         let cachedOrderIds = Object.keys (this.orders);
         for (let k = 0; k < cachedOrderIds.length; k++) {
-            // try to find every cached order in open orders array
-            // possible reasons why cached order is not there:
-            // - order was closed or cancelled -> update cache
+            // match each cached order to an order in the open orders array
+            // possible reasons why a cached order may be missing in the open orders array:
+            // - order was closed or canceled -> update cache
             // - symbol mismatch (e.g. cached BTC/USDT, fetched ETH/USDT) -> skip
             let id = cachedOrderIds[k];
             if (!(id in openOrdersIndexedById)) {
                 // cached order is not in open orders array
                 let order = this.orders[id];
-                if (typeof symbol !== 'undefined' && symbol !== order['symbol']) {
-                    // fetched a particular symbol but it doesn't match the order in the cache -> won't update
+                // if we fetched orders by symbol and it doesn't match the cached order -> won't update the cached order
+                if (typeof symbol !== 'undefined' && symbol !== order['symbol'])
                     continue;
-                }
-                // order is cached but not opened -> mark as closed
+                // order is cached but not present in the list of open orders -> mark the cached order as closed
                 if (order['status'] === 'open') {
                     order = this.extend (order, {
-                        'status': 'closed', // likewise it might have been canceled
+                        'status': 'closed', // likewise it might have been canceled externally (unnoticed by "us")
                         'cost': undefined,
                         'filled': order['amount'],
                         'remaining': 0.0,
@@ -562,7 +561,7 @@ module.exports = class liqui extends Exchange {
         let openOrders = [];
         if ('return' in response)
             openOrders = this.parseOrders (response['return'], market);
-        this.updateOrdersCache (openOrders, symbol);
+        this.updateCachedOrders (openOrders, symbol);
         let result = this.filterOrdersBySymbol (this.orders, symbol);
         return this.filterBySinceLimit (result, since, limit);
     }
