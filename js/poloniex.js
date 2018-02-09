@@ -683,15 +683,25 @@ module.exports = class poloniex extends Exchange {
             response = await this.privatePostCancelOrder (this.extend ({
                 'orderNumber': id,
             }, params));
-            if (id in this.orders)
-                this.orders[id]['status'] = 'canceled';
         } catch (e) {
-            if (this.last_http_response) {
-                if (this.last_http_response.indexOf ('Invalid order') >= 0)
-                    throw new OrderNotFound (this.id + ' cancelOrder() error: ' + this.last_http_response);
+            if (e instanceof CancelPending) {
+                // We've sent a cencellation request and get back control until it finished
+                // (e.g. due to non-blocking call or 'RequestTimeout' exception).
+                // If we then retry and hit the exchange when it's still processing our request
+                // it will throw the following exception.
+                // In this case it looks like Polo won't show this order in the list of active
+                // orders and our order cache will mark this order as 'closed' (see #1801 for details).
+                // Proactively mark it as 'canceled' here to avoid that.
+                // If for some reason Polo won't successfully complete cancellation and the order
+                // will appear to be active again its state will be restored in cache during
+                // a subsequent `fetchOrder` call.
+                if (id in this.orders)
+                    this.orders[id]['status'] = 'canceled';
             }
             throw e;
         }
+        if (id in this.orders)
+            this.orders[id]['status'] = 'canceled';
         return response;
     }
 
