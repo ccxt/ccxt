@@ -336,7 +336,9 @@ class kucoin extends Exchange {
         }
         $side = $this->safe_value($order, 'direction');
         if ($side === null)
-            $side = strtolower ($order['type']);
+            $side = $order['type'];
+        if ($side !== null)
+            $side = strtolower ($side);
         $fee = null;
         if (is_array ($order) && array_key_exists ('feeTotal', $order)) {
             $fee = array (
