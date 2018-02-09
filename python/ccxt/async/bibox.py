@@ -480,15 +480,17 @@ class bibox (Exchange):
     async def withdraw(self, code, amount, address, tag=None, params={}):
         await self.load_markets()
         currency = self.currency(code)
-        response = await self.privatePostTransfer({
+        request = {
             'cmd': 'transfer/transferOut',
             'body': self.extend({
                 'coin_symbol': currency,
                 'amount': amount,
                 'addr': address,
-                'addr_remark': '',
             }, params),
-        })
+        }
+        if tag is not None:
+            request['body']['address_remark'] = tag
+        response = await self.privatePostTransfer(request)
         return {
             'info': response,
             'id': None,
@@ -498,13 +500,10 @@ class bibox (Exchange):
         url = self.urls['api'] + '/' + self.version + '/' + path
         cmds = self.json([params])
         if api == 'public':
-            if method == 'GET':
-                if params:
-                    url += '?' + self.urlencode(params)
-            else:
-                body = {
-                    'cmds': cmds,
-                }
+            if method != 'GET':
+                body = {'cmds': cmds}
+            elif params:
+                url += '?' + self.urlencode(params)
         else:
             self.check_required_credentials()
             body = {
@@ -512,8 +511,10 @@ class bibox (Exchange):
                 'apikey': self.apiKey,
                 'sign': self.hmac(self.encode(cmds), self.encode(self.secret), hashlib.md5),
             }
+        if body is not None:
+            body = self.json(body, {'convertArraysToObjects': True})
         headers = {'Content-Type': 'application/json'}
-        return {'url': url, 'method': method, 'body': self.json(body), 'headers': headers}
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = await self.fetch2(path, api, method, params, headers, body)

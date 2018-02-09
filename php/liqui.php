@@ -511,35 +511,30 @@ class liqui extends Exchange {
         return $this->orders[$id];
     }
 
-    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        // if (!$symbol)
-        //     throw new ExchangeError ($this->id . ' fetchOrders requires a symbol');
-        $this->load_markets();
-        $request = array ();
-        $market = null;
-        if ($symbol) {
-            $market = $this->market ($symbol);
-            $request['pair'] = $market['id'];
-        }
-        $response = $this->privatePostActiveOrders (array_merge ($request, $params));
-        $openOrders = array ();
-        if (is_array ($response) && array_key_exists ('return', $response))
-            $openOrders = $this->parse_orders($response['return'], $market);
+    public function update_cached_orders ($openOrders, $symbol) {
+        // update local cache with open orders
         for ($j = 0; $j < count ($openOrders); $j++) {
-            $this->orders[$openOrders[$j]['id']] = $openOrders[$j];
+            $id = $openOrders[$j]['id'];
+            $this->orders[$id] = $openOrders[$j];
         }
         $openOrdersIndexedById = $this->index_by($openOrders, 'id');
         $cachedOrderIds = is_array ($this->orders) ? array_keys ($this->orders) : array ();
-        $result = array ();
         for ($k = 0; $k < count ($cachedOrderIds); $k++) {
+            // match each cached $order to an $order in the open orders array
+            // possible reasons why a cached $order may be missing in the open orders array:
+            // - $order was closed or canceled -> update cache
+            // - $symbol mismatch (e.g. cached BTC/USDT, fetched ETH/USDT) -> skip
             $id = $cachedOrderIds[$k];
-            if (is_array ($openOrdersIndexedById) && array_key_exists ($id, $openOrdersIndexedById)) {
-                $this->orders[$id] = array_merge ($this->orders[$id], $openOrdersIndexedById[$id]);
-            } else {
+            if (!(is_array ($openOrdersIndexedById) && array_key_exists ($id, $openOrdersIndexedById))) {
+                // cached $order is not in open orders array
                 $order = $this->orders[$id];
+                // if we fetched orders by $symbol and it doesn't match the cached $order -> won't update the cached $order
+                if ($symbol !== null && $symbol !== $order['symbol'])
+                    continue;
+                // $order is cached but not present in the list of open orders -> mark the cached $order as closed
                 if ($order['status'] === 'open') {
                     $order = array_merge ($order, array (
-                        'status' => 'closed',
+                        'status' => 'closed', // likewise it might have been canceled externally (unnoticed by "us")
                         'cost' => null,
                         'filled' => $order['amount'],
                         'remaining' => 0.0,
@@ -551,14 +546,26 @@ class liqui extends Exchange {
                     $this->orders[$id] = $order;
                 }
             }
-            $order = $this->orders[$id];
-            if ($symbol) {
-                if ($order['symbol'] === $symbol)
-                    $result[] = $order;
-            } else {
-                $result[] = $order;
-            }
         }
+    }
+
+    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        // if (!$symbol)
+        //     throw new ExchangeError ($this->id . ' fetchOrders requires a symbol');
+        $this->load_markets();
+        $request = array ();
+        $market = null;
+        if ($symbol) {
+            $market = $this->market ($symbol);
+            $request['pair'] = $market['id'];
+        }
+        $response = $this->privatePostActiveOrders (array_merge ($request, $params));
+        // liqui etc can only return 'open' orders (i.e. no way to fetch 'closed' orders)
+        $openOrders = array ();
+        if (is_array ($response) && array_key_exists ('return', $response))
+            $openOrders = $this->parse_orders($response['return'], $market);
+        $this->update_cached_orders ($openOrders, $symbol);
+        $result = $this->filter_orders_by_symbol($this->orders, $symbol);
         return $this->filter_by_since_limit($result, $since, $limit);
     }
 
@@ -586,13 +593,13 @@ class liqui extends Exchange {
         $this->load_markets();
         $market = null;
         $request = array (
-            // 'from' => 123456789, // trade ID, from which the display starts numerical 0
+            // 'from' => 123456789, // trade ID, from which the display starts numerical 0 (test result => liqui ignores this field)
             // 'count' => 1000, // the number of $trades for display numerical, default = 1000
             // 'from_id' => trade ID, from which the display starts numerical 0
             // 'end_id' => trade ID on which the display ends numerical ∞
-            // 'order' => 'ASC', // sorting, default = DESC
-            // 'since' => 1234567890, // UTC start time, default = 0
-            // 'end' => 1234567890, // UTC end time, default = ∞
+            // 'order' => 'ASC', // sorting, default = DESC (test result => liqui ignores this field, most recent trade always goes last)
+            // 'since' => 1234567890, // UTC start time, default = 0 (test result => liqui ignores this field)
+            // 'end' => 1234567890, // UTC end time, default = ∞ (test result => liqui ignores this field)
             // 'pair' => 'eth_btc', // default = all markets
         );
         if ($symbol !== null) {
