@@ -342,7 +342,16 @@ Thank you to all the people who have already contributed to ccxt!
 
 Thank you to all our backers! [[Become a backer](https://opencollective.com/ccxt#backer)]
 
-<a href="https://opencollective.com/ccxt#backers" target="_blank"><img src="https://opencollective.com/ccxt/backers.svg?width=890"></a>
+<a href="https://opencollective.com/ccxt/supporter/0/website" target="_blank"><img src="https://opencollective.com/ccxt/supporter/0/avatar.svg"></a>
+<a href="https://opencollective.com/ccxt/supporter/1/website" target="_blank"><img src="https://opencollective.com/ccxt/supporter/1/avatar.svg"></a>
+<a href="https://opencollective.com/ccxt/supporter/2/website" target="_blank"><img src="https://opencollective.com/ccxt/supporter/2/avatar.svg"></a>
+<a href="https://opencollective.com/ccxt/supporter/3/website" target="_blank"><img src="https://opencollective.com/ccxt/supporter/3/avatar.svg"></a>
+<a href="https://opencollective.com/ccxt/supporter/4/website" target="_blank"><img src="https://opencollective.com/ccxt/supporter/4/avatar.svg"></a>
+<a href="https://opencollective.com/ccxt/supporter/5/website" target="_blank"><img src="https://opencollective.com/ccxt/supporter/5/avatar.svg"></a>
+<a href="https://opencollective.com/ccxt/supporter/6/website" target="_blank"><img src="https://opencollective.com/ccxt/supporter/6/avatar.svg"></a>
+<a href="https://opencollective.com/ccxt/supporter/7/website" target="_blank"><img src="https://opencollective.com/ccxt/supporter/7/avatar.svg"></a>
+<a href="https://opencollective.com/ccxt/supporter/8/website" target="_blank"><img src="https://opencollective.com/ccxt/supporter/8/avatar.svg"></a>
+<a href="https://opencollective.com/ccxt/supporter/9/website" target="_blank"><img src="https://opencollective.com/ccxt/supporter/9/avatar.svg"></a>
 
 ### Sponsors
 
