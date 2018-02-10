@@ -539,7 +539,9 @@ module.exports = class kraken extends Exchange {
             type = (trade[4] === 'l') ? 'limit' : 'market';
             price = parseFloat (trade[0]);
             amount = parseFloat (trade[1]);
-            id = trade[6]; // artificially added as per #1794
+            let tradeLength = trade.length;
+            if (tradeLength > 6)
+                id = trade[6]; // artificially added as per #1794
         }
         let symbol = (market) ? market['symbol'] : undefined;
         return {
