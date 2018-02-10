@@ -191,6 +191,7 @@ class bl3p extends Exchange {
             $nonce = $this->nonce ();
             $body = $this->urlencode (array_merge (array ( 'nonce' => $nonce ), $query));
             $secret = base64_decode ($this->secret);
+            // eslint-disable-next-line quotes
             $auth = $request . "\0" . $body;
             $signature = $this->hmac ($this->encode ($auth), $secret, 'sha512', 'base64');
             $headers = array (

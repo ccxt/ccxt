@@ -364,7 +364,9 @@ class livecoin extends Exchange {
             $status = 'canceled';
         }
         $symbol = $order['currencyPair'];
-        list ($base, $quote) = explode ('/', $symbol);
+        $parts = explode ('/', $symbol);
+        $quote = $parts[1];
+        // list ($base, $quote) = explode ('/', $symbol);
         $type = null;
         $side = null;
         if (mb_strpos ($order['type'], 'MARKET') !== false) {
