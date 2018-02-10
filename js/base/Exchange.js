@@ -822,6 +822,18 @@ module.exports = class Exchange {
         return this.createOrder (symbol, 'limit', 'sell', ...args)
     }
 
+    createIOCLimitOrder (symbol, ...args) {
+        throw new NotSupported (this.id + ' createIOCLimitOrder not supported yet');
+    }
+
+    createIOCBuyLimitOrder (symbol, ...args) {
+        return this.createIOCLimitOrder (symbol, 'buy', ...args);
+    }
+
+    createIOCSellLimitOrder (symbol, ...args) {
+        return this.createIOCLimitOrder (symbol, 'sell', ...args);
+    }
+
     createMarketBuyOrder (symbol, amount, params = {}) {
         return this.createOrder (symbol, 'market', 'buy', amount, undefined, params)
     }
