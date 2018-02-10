@@ -829,8 +829,6 @@ class Exchange(object):
             self.populate_fees()
 
     def load_private(self, fees=True, reload=False):
-        print(reload)
-
         if fees:
             self.load_fees(reload=reload)
 
