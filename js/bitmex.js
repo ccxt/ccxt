@@ -233,16 +233,24 @@ module.exports = class bitmex extends Exchange {
             filter['symbol'] = market['id'];
         }
         let request = { 'filter': filter };
-        let response = await this.privateGetOrder (this.deepExtend (request, params));
+        let full_params = this.deepExtend (request, params);
+        // why the hassle? urlencode in python is kinda broken for nested dicts.
+        // E.g. self.urlencode({"filter": {"open": True}}) will return "filter={'open':+True}"
+        // Bitmex doesn't like that. Hence resorting to this hack.
+        full_params['filter'] = JSON.stringify (full_params['filter']);
+        let response = await this.privateGetOrder (full_params);
         return this.parseOrders (response, market, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchOrders (symbol, since, limit, this.extend ({ 'open': true }, params));
+        let filter_params = { 'filter': { 'open': true }};
+        return await this.fetchOrders (symbol, since, limit, this.extend (filter_params, params));
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchOrders (symbol, since, limit, this.extend ({ 'open': false }, params));
+        // Bitmex barfs if you set 'open': false in the filter...
+        let orders = await this.fetchOrders (symbol, since, limit, params);
+        return this.filterBy (orders, 'status', 'closed');
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -378,11 +386,11 @@ module.exports = class bitmex extends Exchange {
                 symbol = market['symbol'];
             }
         }
-        let timestamp = undefined;
+        let datetime_value = undefined;
         if ('timestamp' in order)
-            timestamp = order['timestamp'];
+            datetime_value = order['timestamp'];
         else if ('transactTime' in order)
-            timestamp = order['transactTime'];
+            datetime_value = order['transactTime'];
         else
             throw new ExchangeError (this.id + ' malformed order: ' + this.json (order));
         let price = parseFloat (order['price']);
@@ -393,11 +401,12 @@ module.exports = class bitmex extends Exchange {
         if (typeof price !== 'undefined')
             if (typeof filled !== 'undefined')
                 cost = price * filled;
+        let timestamp = this.parse8601 (datetime_value);
         let result = {
             'info': order,
-            'id': order['orderId'].toString (),
+            'id': order['orderID'].toString (),
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': datetime_value,
             'symbol': symbol,
             'type': order['ordType'].toLowerCase (),
             'side': order['side'].toLowerCase (),
