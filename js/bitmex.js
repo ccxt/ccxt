@@ -20,6 +20,9 @@ module.exports = class bitmex extends Exchange {
                 'CORS': false,
                 'fetchOHLCV': true,
                 'withdraw': true,
+                'fetchOrders': true,
+                'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -220,6 +223,27 @@ module.exports = class bitmex extends Exchange {
         result['asks'] = this.sortBy (result['asks'], 0);
         return result;
     }
+    
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        let filter = { };
+        if (typeof symbol !== 'undefined') {
+            market = this.market (symbol);
+            filter['symbol'] = market['id'];
+        }
+        let request = { 'filter': filter };
+        let response = await this.privateGetOrder (this.deepExtend (request, params));
+        return this.parseOrders (response, market, since, limit);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchOrders (symbol, since, limit, this.extend ({ 'open': true }, params));
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchOrders (symbol, since, limit, this.extend ({ 'open': false }, params));
+    }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
@@ -324,6 +348,68 @@ module.exports = class bitmex extends Exchange {
             'price': trade['price'],
             'amount': trade['size'],
         };
+    }
+
+    parseOrderStatus (status) {
+        let statuses = {
+            'new': 'open',
+            'partiallyfilled': 'open',
+            'filled': 'closed',
+            'canceled': 'canceled',
+            'rejected': 'rejected',
+            'expired': 'expired',
+        };
+        return this.safeString (statuses, status.toLowerCase ());
+    }
+
+    parseOrder (order, market = undefined) {
+        let status = this.safeValue (order, 'ordStatus');
+        if (typeof status !== 'undefined')
+            status = this.parseOrderStatus (status);
+        else
+            throw new ExchangeError (this.id + ' order is missing ordStatus field: ' + this.json (order));
+        let symbol = undefined;
+        if (market) {
+            symbol = market['symbol'];
+        } else {
+            let id = order['symbol'];
+            if (id in this.markets_by_id) {
+                market = this.markets_by_id[id];
+                symbol = market['symbol'];
+            }
+        }
+        let timestamp = undefined;
+        if ('timestamp' in order)
+            timestamp = order['timestamp'];
+        else if ('transactTime' in order)
+            timestamp = order['transactTime'];
+        else
+            throw new ExchangeError (this.id + ' malformed order: ' + this.json (order));
+        let price = parseFloat (order['price']);
+        let amount = parseFloat (order['orderQty']);
+        let filled = this.safeFloat (order, 'cumQty', 0.0);
+        let remaining = Math.max (amount - filled, 0.0);
+        let cost = undefined;
+        if (typeof price !== 'undefined')
+            if (typeof filled !== 'undefined')
+                cost = price * filled;
+        let result = {
+            'info': order,
+            'id': order['orderId'].toString (),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': order['ordType'].toLowerCase (),
+            'side': order['side'].toLowerCase (),
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': undefined,
+        };
+        return result;
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
