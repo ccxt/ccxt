@@ -8,6 +8,7 @@ import hashlib
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import DDoSProtection
 
 
@@ -528,7 +529,11 @@ class bibox (Exchange):
         if 'error' in response:
             if 'code' in response['error']:
                 code = response['error']['code']
-                if code == '3012':
+                if code == '2068':
+                    # \u4e0b\u5355\u6570\u91cf\u4e0d\u80fd\u4f4e\u4e8e
+                    # The number of orders can not be less than
+                    raise InvalidOrder(message)
+                elif code == '3012':
                     raise AuthenticationError(message)  # invalid api key
                 elif code == '3025':
                     raise AuthenticationError(message)  # signature failed
