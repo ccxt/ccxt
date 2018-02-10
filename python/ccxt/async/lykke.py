@@ -20,6 +20,9 @@ class lykke (Exchange):
                 'CORS': False,
                 'fetchOHLCV': False,
                 'fetchTrades': False,
+                'fetchOpenOrders': True,
+                'fetchClosedOrders': True,
+                'fetchOrders': True,
             },
             'requiredCredentials': {
                 'apiKey': True,

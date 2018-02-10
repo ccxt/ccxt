@@ -20,6 +20,7 @@ class cobinhood (Exchange):
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
+                'fetchOrder': True,
             },
             'timeframes': {
                 # the first two don't seem to work at all

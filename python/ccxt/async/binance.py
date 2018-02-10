@@ -39,6 +39,7 @@ class binance (Exchange):
                 'fetchOrder': True,
                 'fetchOrders': True,
                 'fetchOpenOrders': True,
+                'fetchClosedOrders': True,
                 'withdraw': True,
             },
             'timeframes': {

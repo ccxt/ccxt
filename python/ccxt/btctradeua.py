@@ -18,6 +18,7 @@ class btctradeua (Exchange):
             'has': {
                 'CORS': True,
                 'createMarketOrder': False,
+                'fetchOpenOrders': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27941483-79fc7350-62d9-11e7-9f61-ac47f28fcd96.jpg',
