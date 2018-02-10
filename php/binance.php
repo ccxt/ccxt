@@ -24,6 +24,7 @@ class binance extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrders' => true,
                 'fetchOpenOrders' => true,
+                'fetchClosedOrders' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array (
