@@ -456,7 +456,7 @@ Each market is an associative array (aka dictionary) with the following keys:
 
 ### Precision And Limits
 
-**Do not confuse `limits` with `precision`!** Precision has nothing to do with min limits. A precision of 8 digits does not necessarily mean a min limit of 0.0000001. The opposite is also true: a min limit of 0.0001 does not necessarily mean a precision of 4.
+**Do not confuse `limits` with `precision`!** Precision has nothing to do with min limits. A precision of 8 digits does not necessarily mean a min limit of 0.00000001. The opposite is also true: a min limit of 0.0001 does not necessarily mean a precision of 4.
 
 Examples:
 
@@ -1844,7 +1844,7 @@ Below is an outline of exception inheritance hierarchy:
     - required parameter is missing
     - the format of parameters is incorrect
     - an exchange replies with an unclear answer
-    
+
     Other exceptions derived from `ExchangeError`:
     - `NotSupported`: This exception is raised if the endpoint is not offered/not supported by the exchange API.
     - `AuthenticationError`: Raised when an exchange requires one of the API credentials that you've missed to specify, or when there's a mistake in the keypair or an outdated nonce. Most of the time you need `apiKey` and `secret`, sometimes you also need `uid` and/or `password`.
