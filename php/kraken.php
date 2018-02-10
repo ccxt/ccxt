@@ -538,7 +538,9 @@ class kraken extends Exchange {
             $type = ($trade[4] === 'l') ? 'limit' : 'market';
             $price = floatval ($trade[0]);
             $amount = floatval ($trade[1]);
-            $id = $trade[6]; // artificially added as per #1794
+            $tradeLength = is_array ($trade) ? count ($trade) : 0;
+            if ($tradeLength > 6)
+                $id = $trade[6]; // artificially added as per #1794
         }
         $symbol = ($market) ? $market['symbol'] : null;
         return array (
