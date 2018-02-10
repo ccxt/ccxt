@@ -276,7 +276,7 @@ module.exports = class Exchange {
         this.executeRestRequest = function (url, method = 'GET', headers = undefined, body = undefined) {
 
             let promise =
-                fetchImplementation (url, { method, headers, body, 'agent': this.tunnelAgent || null, timeout: this.timeout })
+                fetchImplementation (url, { method, headers, body, 'agent': this.agent || null, timeout: this.timeout })
                     .catch (e => {
                         if (isNode)
                             throw new ExchangeNotAvailable ([ this.id, method, url, e.type, e.message ].join (' '))
