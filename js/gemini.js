@@ -16,8 +16,16 @@ module.exports = class gemini extends Exchange {
             'rateLimit': 1500, // 200 for private API
             'version': 'v1',
             'has': {
+                'fetchDepositAddress': false,
                 'CORS': false,
-                'createMarketOrder': false,
+                'fetchBidsAsks': false,
+                'fetchTickers': false,
+                'fetchOHLCV': false,
+                'fetchMyTrades': true,
+                'fetchOrder': false,
+                'fetchOrders': false,
+                'fetchOpenOrders': false,
+                'fetchClosedOrders': false,
                 'withdraw': true,
             },
             'urls': {
