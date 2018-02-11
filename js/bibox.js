@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, DDoSProtection, InvalidOrder } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, DDoSProtection, ExchangeNotAvailable, InvalidOrder } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -568,6 +568,10 @@ module.exports = class bibox extends Exchange {
                     throw new AuthenticationError (message); // invalid api key
                 else if (code === '3025')
                     throw new AuthenticationError (message); // signature failed
+                else if (code === '4000')
+                    // \u5f53\u524d\u7f51\u7edc\u8fde\u63a5\u4e0d\u7a33\u5b9a\uff0c\u8bf7\u7a0d\u5019\u91cd\u8bd5
+                    // The current network connection is unstable. Please try again later
+                    throw new ExchangeNotAvailable (message);
                 else if (code === '4003')
                     throw new DDoSProtection (message); // server is busy, try again later
             }
