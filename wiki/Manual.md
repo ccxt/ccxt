@@ -1394,8 +1394,6 @@ The returned balance structure is as follows:
 
 Some exchanges may not return full balance info. Many exchanges do not return balances for your empty or unused accounts. In that case some currencies may be missing in returned balance structure.
 
-Also, some exchanges cannot return certain fields and are only capable of telling a total balance (without details). Therefore some or all of the free, used and total amounts may be undefined, None or null. You need to account for that when working with returned balances.
-
 ```JavaScript
 // JavaScript
 (async () => {
@@ -1412,6 +1410,11 @@ print (exchange.fetch_balance ())
 // PHP
 var_dump ($exchange->fetch_balance ());
 ```
+
+### Balance inference
+
+Some exchanges return only `free` or only `total` amount, i.e. `used` amount is not known. In such cases ccxt will try to estimate that `used` part using [Orders Cache](#orders-cache) and infer all three fields using known two.
+
 
 ## Orders
 
@@ -1625,7 +1628,7 @@ For the emulation to work `ccxt` tracks orders' statuses in its own order cache 
 
 When you then call `fetchOpenOrders` ccxt checks if it can find cached open orders in the exchange's response and if it can't it then marks this order in cache as 'closed' (i.e. fulfilled).
 
-It will work transparently for you in most cases, still if you access the same exchange's account through separate ccxt instances or do not pay extra care when handling order management exceptions the order cache may fall out of sync.
+It will work transparently for you in most cases, still if you access the same exchange's account through separate ccxt instances or do not pay [extra care](#error-handling) when handling order management exceptions the order cache may fall out of sync.
 
 
 ## Trades / Transactions / Fills / Executions
