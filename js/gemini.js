@@ -132,8 +132,19 @@ module.exports = class gemini extends Exchange {
 
     parseTrade (trade, market) {
         let timestamp = trade['timestampms'];
+        let order = undefined
+        if ('orderId' in trade)
+            order = trade['orderId'].toString ();
+        let fee = undefined;
+        if ('fee_amount' in trade) {
+            fee = {
+                'cost': parseFloat (trade['fee_amount']),
+                'currency': this.commonCurrencyCode (trade['fee_currency']),
+            };
+        }
         return {
             'id': trade['tid'].toString (),
+            'order': order,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -141,7 +152,9 @@ module.exports = class gemini extends Exchange {
             'type': undefined,
             'side': trade['type'],
             'price': parseFloat (trade['price']),
+            'cost': parseFloat (trade['price']) * parseFloat (trade['amount']),
             'amount': parseFloat (trade['amount']),
+            'fee': fee,
         };
     }
 
