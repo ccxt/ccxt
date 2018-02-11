@@ -23,6 +23,9 @@ class bitmex (Exchange):
                 'CORS': False,
                 'fetchOHLCV': True,
                 'withdraw': True,
+                'fetchOrders': True,
+                'fetchOpenOrders': True,
+                'fetchClosedOrders': True,
             },
             'timeframes': {
                 '1m': '1m',
@@ -215,6 +218,32 @@ class bitmex (Exchange):
         result['asks'] = self.sort_by(result['asks'], 0)
         return result
 
+    def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        market = None
+        filter = {}
+        if symbol is not None:
+            market = self.market(symbol)
+            filter['symbol'] = market['id']
+        request = self.deep_extend({
+            'filter': filter,
+        }, params)
+        # why the hassle? urlencode in python is kinda broken for nested dicts.
+        # E.g. self.urlencode({"filter": {"open": True}}) will return "filter={'open':+True}"
+        # Bitmex doesn't like that. Hence resorting to self hack.
+        request['filter'] = self.json(request['filter'])
+        response = self.privateGetOrder(request)
+        return self.parse_orders(response, market, since, limit)
+
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        filter_params = {'filter': {'open': True}}
+        return self.fetch_orders(symbol, since, limit, self.extend(filter_params, params))
+
+    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        # Bitmex barfs if you set 'open': False in the filter...
+        orders = self.fetch_orders(symbol, since, limit, params)
+        return self.filter_by(orders, 'status', 'closed')
+
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
@@ -313,6 +342,61 @@ class bitmex (Exchange):
             'price': trade['price'],
             'amount': trade['size'],
         }
+
+    def parse_order_status(self, status):
+        statuses = {
+            'new': 'open',
+            'partiallyfilled': 'open',
+            'filled': 'closed',
+            'canceled': 'canceled',
+            'rejected': 'rejected',
+            'expired': 'expired',
+        }
+        return self.safe_string(statuses, status.lower())
+
+    def parse_order(self, order, market=None):
+        status = self.safe_value(order, 'ordStatus')
+        if status is not None:
+            status = self.parse_order_status(status)
+        symbol = None
+        if market:
+            symbol = market['symbol']
+        else:
+            id = order['symbol']
+            if id in self.markets_by_id:
+                market = self.markets_by_id[id]
+                symbol = market['symbol']
+        datetime_value = None
+        if 'timestamp' in order:
+            datetime_value = order['timestamp']
+        elif 'transactTime' in order:
+            datetime_value = order['transactTime']
+        price = float(order['price'])
+        amount = float(order['orderQty'])
+        filled = self.safe_float(order, 'cumQty', 0.0)
+        remaining = max(amount - filled, 0.0)
+        cost = None
+        if price is not None:
+            if filled is not None:
+                cost = price * filled
+        timestamp = self.parse8601(datetime_value)
+        result = {
+            'info': order,
+            'id': str(order['orderID']),
+            'timestamp': timestamp,
+            'datetime': datetime_value,
+            'symbol': symbol,
+            'type': order['ordType'].lower(),
+            'side': order['side'].lower(),
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': None,
+        }
+        return result
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
