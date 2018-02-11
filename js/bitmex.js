@@ -223,22 +223,23 @@ module.exports = class bitmex extends Exchange {
         result['asks'] = this.sortBy (result['asks'], 0);
         return result;
     }
-    
+
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
-        let filter = { };
+        let filter = {};
         if (typeof symbol !== 'undefined') {
             market = this.market (symbol);
             filter['symbol'] = market['id'];
         }
-        let request = { 'filter': filter };
-        let full_params = this.deepExtend (request, params);
+        let request = this.deepExtend ({
+            'filter': filter,
+        }, params);
         // why the hassle? urlencode in python is kinda broken for nested dicts.
         // E.g. self.urlencode({"filter": {"open": True}}) will return "filter={'open':+True}"
         // Bitmex doesn't like that. Hence resorting to this hack.
-        full_params['filter'] = JSON.stringify (full_params['filter']);
-        let response = await this.privateGetOrder (full_params);
+        request['filter'] = this.json (request['filter']);
+        let response = await this.privateGetOrder (request);
         return this.parseOrders (response, market, since, limit);
     }
 
