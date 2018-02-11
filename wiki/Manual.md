@@ -1413,7 +1413,7 @@ var_dump ($exchange->fetch_balance ());
 
 ### Balance inference
 
-Some exchanges return only `free` or only `total` amount, i.e. `used` amount is not known. In such cases ccxt will try to estimate that `used` part using [Orders Cache](#orders-cache) and infer all three fields using known two.
+Some exchanges return only `free` or only `total` amount, i.e. `used` amount is not known. In such cases ccxt will try to estimate that `used` part using [Orders Cache](#orders-cache) and infer all three fields the using known two.
 
 
 ## Orders
@@ -1622,7 +1622,7 @@ As such, `cancelOrder()` can throw an `OrderNotFound` exception in these cases:
 
 ### Orders Cache
 
-Some exchanges support only `fetchOpenOrders` method which means you can't query `closed` and `canceled` orders. For these exchanges, ccxt emulates `fetchOrder` and `fetchClosedOrders` methods.
+Some exchanges support only `fetchOpenOrders` method which means you can't query `closed` and `canceled` orders direct. For these exchanges, ccxt emulates `fetchOrder` and `fetchClosedOrders` methods.
 
 For the emulation to work `ccxt` tracks orders' statuses in its own order cache accessible through the `.orders` property. When you call order manipulation methods such as `create/cancel/editOrder` then order's status gets recorded into the cache.
 
@@ -1630,7 +1630,7 @@ When you then call `fetchOpenOrders` ccxt checks if it can find cached open orde
 
 It will work transparently for you in most cases, still if you access the same exchange's account through separate ccxt instances or do not pay [extra care](#error-handling) when handling order management exceptions the order cache may fall out of sync, in particular:
 - if an order's cancellation request bypass ccxt then on subsequent call to `fetchOpenOrders` it will erroneously mark the order as 'closed'
-- if `fetchOrder (id)` is emulated and you query an order id which is not currently 'open' and not in ccxt's cache then `OrderNotFound` will be thrown
+- if `fetchOrder (id)` is emulated and you query an order id which is not currently 'open' (i.e. won't be returned by an exchange) and not in ccxt's cache then `OrderNotFound` will be thrown
 
 
 ## Trades / Transactions / Fills / Executions
