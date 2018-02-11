@@ -1628,7 +1628,9 @@ For the emulation to work `ccxt` tracks orders' statuses in its own order cache 
 
 When you then call `fetchOpenOrders` ccxt checks if it can find cached open orders in the exchange's response and if it can't it then marks this order in cache as 'closed' (i.e. fulfilled).
 
-It will work transparently for you in most cases, still if you access the same exchange's account through separate ccxt instances or do not pay [extra care](#error-handling) when handling order management exceptions the order cache may fall out of sync.
+It will work transparently for you in most cases, still if you access the same exchange's account through separate ccxt instances or do not pay [extra care](#error-handling) when handling order management exceptions the order cache may fall out of sync, in particular:
+- if an order's cancellation request bypass ccxt then on subsequent call to `fetchOpenOrders` it will erroneously mark the order as 'closed'
+- if `fetchOrder (id)` is emulated and you query an order id which is not currently 'open' and not in ccxt's cache then `OrderNotFound` will be thrown
 
 
 ## Trades / Transactions / Fills / Executions
