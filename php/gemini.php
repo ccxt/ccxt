@@ -146,8 +146,8 @@ class gemini extends Exchange {
         if ($fee !== null) {
             $currency = $this->safe_string($trade, 'fee_currency');
             if ($currency !== null) {
-                if (is_array ($this->currencies) && array_key_exists ($currency, $this->currencies))
-                    $currency = $this->currencies[$currency]['code'];
+                if (is_array ($this->currencies_by_id) && array_key_exists ($currency, $this->currencies_by_id))
+                    $currency = $this->currencies_by_id[$currency]['code'];
                 $currency = $this->common_currency_code($currency);
             }
             $fee = array (
