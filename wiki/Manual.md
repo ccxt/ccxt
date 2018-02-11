@@ -1617,6 +1617,17 @@ As such, `cancelOrder()` can throw an `OrderNotFound` exception in these cases:
 - canceling an already-canceled order
 
 
+### Orders Cache
+
+Some exchanges support only `fetchOpenOrders` method which means you can't query `closed` and `canceled` orders. For these exchanges, ccxt emulates `fetchOrder` and `fetchClosedOrders` methods.
+
+For the emulation to work `ccxt` tracks orders' statuses in its own order cache accessible through the `.orders` property. When you call order manipulation methods such as `create/cancel/editOrder` then order's status gets recorded into the cache.
+
+When you then call `fetchOpenOrders` ccxt checks if it can find cached open orders in the exchange's response and if it can't it then marks this order in cache as 'closed' (i.e. fulfilled).
+
+It will work transparently for you in most cases, still if you access the same exchange's account through separate ccxt instances or do not pay extra care when handling order management exceptions the order cache may fall out of sync.
+
+
 ## Trades / Transactions / Fills / Executions
 
 ```
