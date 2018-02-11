@@ -145,8 +145,8 @@ class gemini (Exchange):
         if fee is not None:
             currency = self.safe_string(trade, 'fee_currency')
             if currency is not None:
-                if currency in self.currencies:
-                    currency = self.currencies[currency]['code']
+                if currency in self.currencies_by_id:
+                    currency = self.currencies_by_id[currency]['code']
                 currency = self.common_currency_code(currency)
             fee = {
                 'cost': float(trade['fee_amount']),
