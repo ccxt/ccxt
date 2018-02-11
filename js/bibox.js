@@ -409,7 +409,7 @@ module.exports = class bibox extends Exchange {
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': cost ? cost : price * filled,
+            'cost': cost ? cost : parseFloat (price) * filled,
             'filled': filled,
             'remaining': remaining,
             'status': status,
@@ -432,15 +432,18 @@ module.exports = class bibox extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (typeof symbol === 'undefined')
-            throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol argument');
-        await this.loadMarkets ();
-        let market = this.market (symbol);
+        let market = undefined;
+        let pair = undefined;
+        if (typeof symbol !== 'undefined') {
+            await this.loadMarkets ();
+            market = this.market (symbol);
+            pair = market['id'];
+        }
         let size = (limit) ? limit : 200;
         let response = await this.privatePostOrderpending ({
             'cmd': 'orderpending/orderPendingList',
             'body': this.extend ({
-                'pair': market['id'],
+                'pair': pair,
                 'account_type': 0, // 0 - regular, 1 - margin
                 'page': 1,
                 'size': size,
