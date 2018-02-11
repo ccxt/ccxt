@@ -77,8 +77,8 @@ module.exports = class lykke extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'maker': 0.0010,
-                    'taker': 0.0019,
+                    'maker': 0.0, // as of 7 Feb 2018, see https://github.com/ccxt/ccxt/issues/1863
+                    'taker': 0.0, // https://www.lykke.com/cp/wallet-fees-and-limits
                 },
                 'funding': {
                     'tierBased': false,
