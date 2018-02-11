@@ -106,6 +106,7 @@ class kucoin (Exchange):
                     'post': [
                         'account/{coin}/withdraw/apply',
                         'account/{coin}/withdraw/cancel',
+                        'account/promotion/draw',
                         'cancel-order',
                         'order',
                         'order/cancel-all',
