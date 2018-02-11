@@ -140,16 +140,24 @@ module.exports = class gemini extends Exchange {
 
     parseTrade (trade, market) {
         let timestamp = trade['timestampms'];
-        let order = undefined
+        let order = undefined;
         if ('orderId' in trade)
             order = trade['orderId'].toString ();
-        let fee = undefined;
-        if ('fee_amount' in trade) {
+        let fee = this.safeFloat (trade, 'fee_amount');
+        if (typeof fee !== 'undefined') {
+            let currency = this.safeString (trade, 'fee_currency');
+            if (typeof currency !== 'undefined') {
+                if (currency in this.currencies)
+                    currency = this.currencies[currency]['code'];
+                currency = this.commonCurrencyCode (currency);
+            }
             fee = {
                 'cost': parseFloat (trade['fee_amount']),
-                'currency': this.commonCurrencyCode (trade['fee_currency']),
+                'currency': currency,
             };
         }
+        let price = parseFloat (trade['price']);
+        let amount = parseFloat (trade['amount']);
         return {
             'id': trade['tid'].toString (),
             'order': order,
@@ -159,9 +167,9 @@ module.exports = class gemini extends Exchange {
             'symbol': market['symbol'],
             'type': undefined,
             'side': trade['type'],
-            'price': parseFloat (trade['price']),
-            'cost': parseFloat (trade['price']) * parseFloat (trade['amount']),
-            'amount': parseFloat (trade['amount']),
+            'price': price,
+            'cost': price * amount,
+            'amount': amount,
             'fee': fee,
         };
     }
