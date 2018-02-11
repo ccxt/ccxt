@@ -1,5 +1,6 @@
 <?php
-
+include "ccxt.php";
+var_dump (\ccxt\Exchange::$exchanges); // print a list of all available exchange classes
 /*
 
 MIT License
