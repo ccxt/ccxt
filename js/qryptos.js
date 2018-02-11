@@ -289,10 +289,13 @@ module.exports = class qryptos extends Exchange {
         return order;
     }
 
-    parseOrder (order) {
+    parseOrder (order, market = undefined) {
         let timestamp = order['created_at'] * 1000;
-        let marketId = order['product_id'].toString ();
-        let market = this.marketsById[marketId];
+        let marketId = this.safeString (order, 'product_id');
+        if (typeof marketId !== 'undefined') {
+            if (marketId in this.markets_by_id)
+                market = this.markets_by_id[market];
+        }
         let status = undefined;
         if ('status' in order) {
             if (order['status'] === 'live') {
