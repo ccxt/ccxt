@@ -278,10 +278,12 @@ class qryptos (Exchange):
             raise OrderNotFound(self.id + ' ' + self.json(order))
         return order
 
-    def parse_order(self, order):
+    def parse_order(self, order, market=None):
         timestamp = order['created_at'] * 1000
-        marketId = str(order['product_id'])
-        market = self.marketsById[marketId]
+        marketId = self.safe_string(order, 'product_id')
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[market]
         status = None
         if 'status' in order:
             if order['status'] == 'live':

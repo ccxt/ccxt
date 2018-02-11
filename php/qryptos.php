@@ -288,10 +288,13 @@ class qryptos extends Exchange {
         return $order;
     }
 
-    public function parse_order ($order) {
+    public function parse_order ($order, $market = null) {
         $timestamp = $order['created_at'] * 1000;
-        $marketId = (string) $order['product_id'];
-        $market = $this->marketsById[$marketId];
+        $marketId = $this->safe_string($order, 'product_id');
+        if ($marketId !== null) {
+            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
+                $market = $this->markets_by_id[$market];
+        }
         $status = null;
         if (is_array ($order) && array_key_exists ('status', $order)) {
             if ($order['status'] === 'live') {
