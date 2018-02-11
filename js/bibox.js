@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, DDoSProtection, InvalidOrder } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, DDoSProtection, ExchangeNotAvailable, InvalidOrder } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -409,7 +409,7 @@ module.exports = class bibox extends Exchange {
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': cost ? cost : price * filled,
+            'cost': cost ? cost : parseFloat (price) * filled,
             'filled': filled,
             'remaining': remaining,
             'status': status,
@@ -432,15 +432,18 @@ module.exports = class bibox extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (typeof symbol === 'undefined')
-            throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol argument');
-        await this.loadMarkets ();
-        let market = this.market (symbol);
+        let market = undefined;
+        let pair = undefined;
+        if (typeof symbol !== 'undefined') {
+            await this.loadMarkets ();
+            market = this.market (symbol);
+            pair = market['id'];
+        }
         let size = (limit) ? limit : 200;
         let response = await this.privatePostOrderpending ({
             'cmd': 'orderpending/orderPendingList',
             'body': this.extend ({
-                'pair': market['id'],
+                'pair': pair,
                 'account_type': 0, // 0 - regular, 1 - margin
                 'page': 1,
                 'size': size,
@@ -565,6 +568,10 @@ module.exports = class bibox extends Exchange {
                     throw new AuthenticationError (message); // invalid api key
                 else if (code === '3025')
                     throw new AuthenticationError (message); // signature failed
+                else if (code === '4000')
+                    // \u5f53\u524d\u7f51\u7edc\u8fde\u63a5\u4e0d\u7a33\u5b9a\uff0c\u8bf7\u7a0d\u5019\u91cd\u8bd5
+                    // The current network connection is unstable. Please try again later
+                    throw new ExchangeNotAvailable (message);
                 else if (code === '4003')
                     throw new DDoSProtection (message); // server is busy, try again later
             }
