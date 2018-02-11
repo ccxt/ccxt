@@ -556,7 +556,11 @@ class bibox extends Exchange {
         if (is_array ($response) && array_key_exists ('error', $response)) {
             if (is_array ($response['error']) && array_key_exists ('code', $response['error'])) {
                 $code = $response['error']['code'];
-                if ($code === '3012')
+                if ($code === '2068')
+                    // \u4e0b\u5355\u6570\u91cf\u4e0d\u80fd\u4f4e\u4e8e
+                    // The number of orders can not be less than
+                    throw new InvalidOrder ($message);
+                else if ($code === '3012')
                     throw new AuthenticationError ($message); // invalid $api key
                 else if ($code === '3025')
                     throw new AuthenticationError ($message); // signature failed

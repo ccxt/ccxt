@@ -236,7 +236,7 @@ The ccxt library currently supports the following 99 cryptocurrency exchange mar
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |therock|              | therock              | `TheRockTrading <https://therocktrading.com>`__                | 1     | `API <https://api.therocktrading.com/doc/v1/index.html>`__                                        | Malta                                      |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
-| |tidex|                | tidex                | `Tidex <https://tidex.com>`__                                  | 3     | `API <https://tidex.com/public-api>`__                                                            | UK                                         |
+| |tidex|                | tidex                | `Tidex <https://tidex.com>`__                                  | 3     | `API <https://tidex.com/exchange/public-api>`__                                                   | UK                                         |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |urdubit|              | urdubit              | `UrduBit <https://urdubit.com>`__                              | 1     | `API <https://blinktrade.com/docs>`__                                                             | Pakistan                                   |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -566,7 +566,7 @@ Each market is an associative array (aka dictionary) with the following keys:
 Precision And Limits
 ~~~~~~~~~~~~~~~~~~~~
 
-**Do not confuse ``limits`` with ``precision``!** Precision has nothing to do with min limits. A precision of 8 digits does not necessarily mean a min limit of 0.0000001. The opposite is also true: a min limit of 0.0001 does not necessarily mean a precision of 4.
+**Do not confuse ``limits`` with ``precision``!** Precision has nothing to do with min limits. A precision of 8 digits does not necessarily mean a min limit of 0.00000001. The opposite is also true: a min limit of 0.0001 does not necessarily mean a precision of 4.
 
 Examples:
 

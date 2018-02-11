@@ -16,8 +16,16 @@ module.exports = class gemini extends Exchange {
             'rateLimit': 1500, // 200 for private API
             'version': 'v1',
             'has': {
+                'fetchDepositAddress': false,
                 'CORS': false,
-                'createMarketOrder': false,
+                'fetchBidsAsks': false,
+                'fetchTickers': false,
+                'fetchOHLCV': false,
+                'fetchMyTrades': true,
+                'fetchOrder': false,
+                'fetchOrders': false,
+                'fetchOpenOrders': false,
+                'fetchClosedOrders': false,
                 'withdraw': true,
             },
             'urls': {
@@ -132,16 +140,37 @@ module.exports = class gemini extends Exchange {
 
     parseTrade (trade, market) {
         let timestamp = trade['timestampms'];
+        let order = undefined;
+        if ('orderId' in trade)
+            order = trade['orderId'].toString ();
+        let fee = this.safeFloat (trade, 'fee_amount');
+        if (typeof fee !== 'undefined') {
+            let currency = this.safeString (trade, 'fee_currency');
+            if (typeof currency !== 'undefined') {
+                if (currency in this.currencies)
+                    currency = this.currencies[currency]['code'];
+                currency = this.commonCurrencyCode (currency);
+            }
+            fee = {
+                'cost': parseFloat (trade['fee_amount']),
+                'currency': currency,
+            };
+        }
+        let price = parseFloat (trade['price']);
+        let amount = parseFloat (trade['amount']);
         return {
             'id': trade['tid'].toString (),
+            'order': order,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
             'type': undefined,
             'side': trade['type'],
-            'price': parseFloat (trade['price']),
-            'amount': parseFloat (trade['amount']),
+            'price': price,
+            'cost': price * amount,
+            'amount': amount,
+            'fee': fee,
         };
     }
 
