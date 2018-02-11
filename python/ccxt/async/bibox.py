@@ -10,6 +10,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import ExchangeNotAvailable
 
 
 class bibox (Exchange):
@@ -390,7 +391,7 @@ class bibox (Exchange):
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': cost if cost else price * filled,
+            'cost': cost if cost else float(price) * filled,
             'filled': filled,
             'remaining': remaining,
             'status': status,
@@ -411,15 +412,17 @@ class bibox (Exchange):
         return self.safe_string(statuses, status, status.lower())
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        if symbol is None:
-            raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol argument')
-        await self.load_markets()
-        market = self.market(symbol)
+        market = None
+        pair = None
+        if symbol is not None:
+            await self.load_markets()
+            market = self.market(symbol)
+            pair = market['id']
         size = limit if (limit) else 200
         response = await self.privatePostOrderpending({
             'cmd': 'orderpending/orderPendingList',
             'body': self.extend({
-                'pair': market['id'],
+                'pair': pair,
                 'account_type': 0,  # 0 - regular, 1 - margin
                 'page': 1,
                 'size': size,
@@ -537,6 +540,10 @@ class bibox (Exchange):
                     raise AuthenticationError(message)  # invalid api key
                 elif code == '3025':
                     raise AuthenticationError(message)  # signature failed
+                elif code == '4000':
+                    # \u5f53\u524d\u7f51\u7edc\u8fde\u63a5\u4e0d\u7a33\u5b9a\uff0c\u8bf7\u7a0d\u5019\u91cd\u8bd5
+                    # The current network connection is unstable. Please try again later
+                    raise ExchangeNotAvailable(message)
                 elif code == '4003':
                     raise DDoSProtection(message)  # server is busy, try again later
             raise ExchangeError(message)

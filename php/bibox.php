@@ -408,7 +408,7 @@ class bibox extends Exchange {
             'side' => $side,
             'price' => $price,
             'amount' => $amount,
-            'cost' => $cost ? $cost : $price * $filled,
+            'cost' => $cost ? $cost : floatval ($price) * $filled,
             'filled' => $filled,
             'remaining' => $remaining,
             'status' => $status,
@@ -431,15 +431,18 @@ class bibox extends Exchange {
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if ($symbol === null)
-            throw new ExchangeError ($this->id . ' fetchOpenOrders requires a $symbol argument');
-        $this->load_markets();
-        $market = $this->market ($symbol);
+        $market = null;
+        $pair = null;
+        if ($symbol !== null) {
+            $this->load_markets();
+            $market = $this->market ($symbol);
+            $pair = $market['id'];
+        }
         $size = ($limit) ? $limit : 200;
         $response = $this->privatePostOrderpending (array (
             'cmd' => 'orderpending/orderPendingList',
             'body' => array_merge (array (
-                'pair' => $market['id'],
+                'pair' => $pair,
                 'account_type' => 0, // 0 - regular, 1 - margin
                 'page' => 1,
                 'size' => $size,
@@ -564,6 +567,10 @@ class bibox extends Exchange {
                     throw new AuthenticationError ($message); // invalid $api key
                 else if ($code === '3025')
                     throw new AuthenticationError ($message); // signature failed
+                else if ($code === '4000')
+                    // \u5f53\u524d\u7f51\u7edc\u8fde\u63a5\u4e0d\u7a33\u5b9a\uff0c\u8bf7\u7a0d\u5019\u91cd\u8bd5
+                    // The current network connection is unstable. Please try again later
+                    throw new ExchangeNotAvailable ($message);
                 else if ($code === '4003')
                     throw new DDoSProtection ($message); // server is busy, try again later
             }
