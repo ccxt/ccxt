@@ -19,6 +19,9 @@ class bitmex extends Exchange {
                 'CORS' => false,
                 'fetchOHLCV' => true,
                 'withdraw' => true,
+                'fetchOrders' => true,
+                'fetchOpenOrders' => true,
+                'fetchClosedOrders' => true,
             ),
             'timeframes' => array (
                 '1m' => '1m',
@@ -220,6 +223,36 @@ class bitmex extends Exchange {
         return $result;
     }
 
+    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = null;
+        $filter = array ();
+        if ($symbol !== null) {
+            $market = $this->market ($symbol);
+            $filter['symbol'] = $market['id'];
+        }
+        $request = array_replace_recursive (array (
+            'filter' => $filter,
+        ), $params);
+        // why the hassle? urlencode in python is kinda broken for nested dicts.
+        // E.g. self.urlencode(array ("$filter" => array ("open" => True))) will return "$filter=array ('open':+True)"
+        // Bitmex doesn't like that. Hence resorting to this hack.
+        $request['filter'] = $this->json ($request['filter']);
+        $response = $this->privateGetOrder ($request);
+        return $this->parse_orders($response, $market, $since, $limit);
+    }
+
+    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $filter_params = array ( 'filter' => array ( 'open' => true ));
+        return $this->fetch_orders($symbol, $since, $limit, array_merge ($filter_params, $params));
+    }
+
+    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        // Bitmex barfs if you set 'open' => false in the filter...
+        $orders = $this->fetch_orders($symbol, $since, $limit, $params);
+        return $this->filter_by($orders, 'status', 'closed');
+    }
+
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -323,6 +356,65 @@ class bitmex extends Exchange {
             'price' => $trade['price'],
             'amount' => $trade['size'],
         );
+    }
+
+    public function parse_order_status ($status) {
+        $statuses = array (
+            'new' => 'open',
+            'partiallyfilled' => 'open',
+            'filled' => 'closed',
+            'canceled' => 'canceled',
+            'rejected' => 'rejected',
+            'expired' => 'expired',
+        );
+        return $this->safe_string($statuses, strtolower ($status));
+    }
+
+    public function parse_order ($order, $market = null) {
+        $status = $this->safe_value($order, 'ordStatus');
+        if ($status !== null)
+            $status = $this->parse_order_status($status);
+        $symbol = null;
+        if ($market) {
+            $symbol = $market['symbol'];
+        } else {
+            $id = $order['symbol'];
+            if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$id];
+                $symbol = $market['symbol'];
+            }
+        }
+        $datetime_value = null;
+        if (is_array ($order) && array_key_exists ('timestamp', $order))
+            $datetime_value = $order['timestamp'];
+        else if (is_array ($order) && array_key_exists ('transactTime', $order))
+            $datetime_value = $order['transactTime'];
+        $price = floatval ($order['price']);
+        $amount = floatval ($order['orderQty']);
+        $filled = $this->safe_float($order, 'cumQty', 0.0);
+        $remaining = max ($amount - $filled, 0.0);
+        $cost = null;
+        if ($price !== null)
+            if ($filled !== null)
+                $cost = $price * $filled;
+        $timestamp = $this->parse8601 ($datetime_value);
+        $result = array (
+            'info' => $order,
+            'id' => (string) $order['orderID'],
+            'timestamp' => $timestamp,
+            'datetime' => $datetime_value,
+            'symbol' => $symbol,
+            'type' => strtolower ($order['ordType']),
+            'side' => strtolower ($order['side']),
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
+            'filled' => $filled,
+            'remaining' => $remaining,
+            'status' => $status,
+            'fee' => null,
+        );
+        return $result;
     }
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
