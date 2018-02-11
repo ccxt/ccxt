@@ -1872,7 +1872,7 @@ Below is an outline of exception inheritance hierarchy:
       - `incapsula`
     - `RequestTimeout`: The name literally says it all. This exception is raised when connection with the exchange fails or data is not fully received in a specified amount of time. This is controlled by the `timeout` option. When you receive this exception you actually don't know if it's request or response part failed (i.e. it might have been accepted by the server). Thus it's advised to handle this exception in the following manner:
       - for read-only requests: retry
-      - for `cancelOrder (id, symbol)` request: retry. If you order has been cancelled on the first try you'll get `OrderNotFound` exception this time.
+      - for `cancelOrder (id, symbol)` request: retry. If you order has been cancelled on the first try you'll get `OrderNotFound` exception this time. Do not call `fetch*Order(s)` at this stage, it may cause [order cache](#orders-cache) to fall out of sync.
       - for `createOrder ()` requests: refresh state with `fetchOpenOrders` to check if you order has been created.
     - `ExchangeNotAvailable`: The ccxt library throws this error if it detects any of the following keywords in response:
       - `offline`
