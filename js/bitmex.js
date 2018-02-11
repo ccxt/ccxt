@@ -375,8 +375,6 @@ module.exports = class bitmex extends Exchange {
         let status = this.safeValue (order, 'ordStatus');
         if (typeof status !== 'undefined')
             status = this.parseOrderStatus (status);
-        else
-            throw new ExchangeError (this.id + ' order is missing ordStatus field: ' + this.json (order));
         let symbol = undefined;
         if (market) {
             symbol = market['symbol'];
@@ -392,8 +390,6 @@ module.exports = class bitmex extends Exchange {
             datetime_value = order['timestamp'];
         else if ('transactTime' in order)
             datetime_value = order['transactTime'];
-        else
-            throw new ExchangeError (this.id + ' malformed order: ' + this.json (order));
         let price = parseFloat (order['price']);
         let amount = parseFloat (order['orderQty']);
         let filled = this.safeFloat (order, 'cumQty', 0.0);
