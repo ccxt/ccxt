@@ -293,7 +293,7 @@ class qryptos extends Exchange {
         $marketId = $this->safe_string($order, 'product_id');
         if ($marketId !== null) {
             if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
-                $market = $this->markets_by_id[$market];
+                $market = $this->markets_by_id[$marketId];
         }
         $status = null;
         if (is_array ($order) && array_key_exists ('status', $order)) {

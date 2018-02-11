@@ -283,7 +283,7 @@ class qryptos (Exchange):
         marketId = self.safe_string(order, 'product_id')
         if marketId is not None:
             if marketId in self.markets_by_id:
-                market = self.markets_by_id[market]
+                market = self.markets_by_id[marketId]
         status = None
         if 'status' in order:
             if order['status'] == 'live':
