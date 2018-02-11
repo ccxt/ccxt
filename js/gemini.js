@@ -147,8 +147,8 @@ module.exports = class gemini extends Exchange {
         if (typeof fee !== 'undefined') {
             let currency = this.safeString (trade, 'fee_currency');
             if (typeof currency !== 'undefined') {
-                if (currency in this.currencies)
-                    currency = this.currencies[currency]['code'];
+                if (currency in this.currencies_by_id)
+                    currency = this.currencies_by_id[currency]['code'];
                 currency = this.commonCurrencyCode (currency);
             }
             fee = {
