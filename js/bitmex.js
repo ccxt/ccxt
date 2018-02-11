@@ -20,6 +20,9 @@ module.exports = class bitmex extends Exchange {
                 'CORS': false,
                 'fetchOHLCV': true,
                 'withdraw': true,
+                'fetchOrders': true,
+                'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -221,6 +224,36 @@ module.exports = class bitmex extends Exchange {
         return result;
     }
 
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        let filter = {};
+        if (typeof symbol !== 'undefined') {
+            market = this.market (symbol);
+            filter['symbol'] = market['id'];
+        }
+        let request = this.deepExtend ({
+            'filter': filter,
+        }, params);
+        // why the hassle? urlencode in python is kinda broken for nested dicts.
+        // E.g. self.urlencode({"filter": {"open": True}}) will return "filter={'open':+True}"
+        // Bitmex doesn't like that. Hence resorting to this hack.
+        request['filter'] = this.json (request['filter']);
+        let response = await this.privateGetOrder (request);
+        return this.parseOrders (response, market, since, limit);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        let filter_params = { 'filter': { 'open': true }};
+        return await this.fetchOrders (symbol, since, limit, this.extend (filter_params, params));
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        // Bitmex barfs if you set 'open': false in the filter...
+        let orders = await this.fetchOrders (symbol, since, limit, params);
+        return this.filterBy (orders, 'status', 'closed');
+    }
+
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -324,6 +357,65 @@ module.exports = class bitmex extends Exchange {
             'price': trade['price'],
             'amount': trade['size'],
         };
+    }
+
+    parseOrderStatus (status) {
+        let statuses = {
+            'new': 'open',
+            'partiallyfilled': 'open',
+            'filled': 'closed',
+            'canceled': 'canceled',
+            'rejected': 'rejected',
+            'expired': 'expired',
+        };
+        return this.safeString (statuses, status.toLowerCase ());
+    }
+
+    parseOrder (order, market = undefined) {
+        let status = this.safeValue (order, 'ordStatus');
+        if (typeof status !== 'undefined')
+            status = this.parseOrderStatus (status);
+        let symbol = undefined;
+        if (market) {
+            symbol = market['symbol'];
+        } else {
+            let id = order['symbol'];
+            if (id in this.markets_by_id) {
+                market = this.markets_by_id[id];
+                symbol = market['symbol'];
+            }
+        }
+        let datetime_value = undefined;
+        if ('timestamp' in order)
+            datetime_value = order['timestamp'];
+        else if ('transactTime' in order)
+            datetime_value = order['transactTime'];
+        let price = parseFloat (order['price']);
+        let amount = parseFloat (order['orderQty']);
+        let filled = this.safeFloat (order, 'cumQty', 0.0);
+        let remaining = Math.max (amount - filled, 0.0);
+        let cost = undefined;
+        if (typeof price !== 'undefined')
+            if (typeof filled !== 'undefined')
+                cost = price * filled;
+        let timestamp = this.parse8601 (datetime_value);
+        let result = {
+            'info': order,
+            'id': order['orderID'].toString (),
+            'timestamp': timestamp,
+            'datetime': datetime_value,
+            'symbol': symbol,
+            'type': order['ordType'].toLowerCase (),
+            'side': order['side'].toLowerCase (),
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': undefined,
+        };
+        return result;
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
