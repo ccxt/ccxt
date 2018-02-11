@@ -294,7 +294,7 @@ module.exports = class qryptos extends Exchange {
         let marketId = this.safeString (order, 'product_id');
         if (typeof marketId !== 'undefined') {
             if (marketId in this.markets_by_id)
-                market = this.markets_by_id[market];
+                market = this.markets_by_id[marketId];
         }
         let status = undefined;
         if ('status' in order) {
