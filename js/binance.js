@@ -739,18 +739,11 @@ module.exports = class binance extends Exchange {
             throw new ExchangeError (this.id + ' cancelOrder requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = undefined;
-        try {
-            response = await this.privateDeleteOrder (this.extend ({
-                'symbol': market['id'],
-                'orderId': parseInt (id),
-                // 'origClientOrderId': id,
-            }, params));
-        } catch (e) {
-            if (this.last_http_response.indexOf ('UNKNOWN_ORDER') >= 0)
-                throw new OrderNotFound (this.id + ' cancelOrder() error: ' + this.last_http_response);
-            throw e;
-        }
+        let response = await this.privateDeleteOrder (this.extend ({
+            'symbol': market['id'],
+            'orderId': parseInt (id),
+            // 'origClientOrderId': id,
+        }, params));
         return response;
     }
 
