@@ -468,8 +468,7 @@ class bitstamp extends Exchange {
         $method .= 'Post' . $this->capitalize ($name) . 'Withdrawal';
         $query = $params;
         if ($code === 'XRP') {
-            $tag = $this->safe_string($params, 'destination_tag');
-            if ($tag) {
+            if ($tag !== null) {
                 $request['destination_tag'] = $tag;
                 $query = $this->omit ($params, 'destination_tag');
             } else {

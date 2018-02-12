@@ -452,8 +452,7 @@ class bitstamp (Exchange):
         method += 'Post' + self.capitalize(name) + 'Withdrawal'
         query = params
         if code == 'XRP':
-            tag = self.safe_string(params, 'destination_tag')
-            if tag:
+            if tag is not None:
                 request['destination_tag'] = tag
                 query = self.omit(params, 'destination_tag')
             else:
