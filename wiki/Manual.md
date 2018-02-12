@@ -1413,8 +1413,7 @@ var_dump ($exchange->fetch_balance ());
 
 ### Balance inference
 
-Some exchanges return only `free` or only `total` amount, i.e. `used` amount is not known. In such cases ccxt will try to estimate that `used` part using [Orders Cache](#orders-cache) and infer all three fields the using known two.
-
+Some exchanges do not return the full set of balance information from their API. Those will only return just the `free` or just the `total` funds, i.e. funds `used` on orders unknown. In such cases ccxt will try to obtain the missing data from [Orders Cache](#orders-cache) and will guess complete balance info from what is known for sure. However, in rare cases the available info may not be enough to deduce the missing part, thus, **the user shoud be aware of the possibility of not getting complete balance info from less sophisticated exchanges**.
 
 ## Orders
 
