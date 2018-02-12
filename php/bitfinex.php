@@ -286,7 +286,7 @@ class bitfinex extends Exchange {
         // $fees = $this->fetch_funding_fees();
         // $funding = array_replace_recursive ($funding, $fees);
         // return $funding;
-        throw new NotImplemented ($this->id . ' loadFees() not implemented yet');
+        throw new NotSupported ($this->id . ' loadFees() not implemented yet');
     }
 
     public function fetch_fees () {

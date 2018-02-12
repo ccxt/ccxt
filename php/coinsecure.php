@@ -285,7 +285,7 @@ class coinsecure extends Exchange {
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         // $method = 'privateDeleteUserExchangeAskCancelOrderId'; // TODO fixme, have to specify order side here
         // return $this->$method (array ( 'orderID' => $id ));
-        throw new ExchangeError ($this->id . ' cancelOrder () is not fully implemented yet');
+        throw new NotSupported ($this->id . ' cancelOrder () is not fully implemented yet');
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

@@ -457,7 +457,7 @@ class bitstamp extends Exchange {
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $isFiat = $this->is_fiat ($code);
         if ($isFiat)
-            throw new ExchangeError ($this->id . ' fiat withdraw() for ' . $code . ' is not implemented yet');
+            throw new NotSupported ($this->id . ' fiat withdraw() for ' . $code . ' is not implemented yet');
         $name = $this->get_currency_name ($code);
         $request = array (
             'amount' => $amount,
