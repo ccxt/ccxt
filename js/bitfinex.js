@@ -457,7 +457,10 @@ module.exports = class bitfinex extends Exchange {
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': undefined,
+            'fee': {
+                'cost': parseFloat (trade['fee_amount']),
+                'currency': this.currencies_by_id[trade['fee_currency']]['code'],
+            },
         };
     }
 
