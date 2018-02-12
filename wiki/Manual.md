@@ -1413,7 +1413,7 @@ var_dump ($exchange->fetch_balance ());
 
 ### Balance inference
 
-Some exchanges do not return the full set of balance information from their API. Those will only return just the `free` or just the `total` funds, i.e. funds `used` on orders unknown. In such cases ccxt will try to obtain the missing data from [Orders Cache](#orders-cache) and will guess complete balance info from what is known for sure. However, in rare cases the available info may not be enough to deduce the missing part, thus, **the user shoud be aware of the possibility of not getting complete balance info from less sophisticated exchanges**.
+Some exchanges do not return the full set of balance information from their API. Those will only return just the `free` or just the `total` funds, i.e. funds `used` on orders unknown. In such cases ccxt will try to obtain the missing data from [.orders cache](#orders-cache) and will guess complete balance info from what is known for sure. However, in rare cases the available info may not be enough to deduce the missing part, thus, **the user shoud be aware of the possibility of not getting complete balance info from less sophisticated exchanges**.
 
 ## Orders
 
@@ -1493,8 +1493,7 @@ exchange.fetchOpenOrders (symbol = undefined, since = undefined, limit = undefin
 
 #### Closed Orders
 
-Do not confuse *closed orders* with *trades* (aka *fills*)! An order can be closed (filled with) multiple opposing trades! So, a closed order is not the same as a trade. In general, the order does not have a `fee` at all, but each particular user trade does have `fee`, `cost` and other properties. However,
-many exchanges propagate those properties to the orders as well.
+Do not confuse *closed orders* with *trades* aka *fills* ! An order can be closed (filled) with multiple opposing trades! So, a *closed order* is not the same as a *trade*. In general, the order does not have a `fee` at all, but each particular user trade does have `fee`, `cost` and other properties. However, many exchanges propagate those properties to the orders as well.
 
 ```JavaScript
 exchange.fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {})
@@ -1653,8 +1652,7 @@ It will work transparently for you in most cases, still if you access the same e
 - contributions, pull requests and feedback appreciated
 ```
 
-A trade is a result of order execution. Note, that orders and trades have 1-n relationship: execution of 1 order may result in several trades.
-
+A trade is a result of order execution. Note, that orders and trades have a one-to-many relationship: an execution of one order may result in several trades. However, when one order matches another opposing order, the pair of two matching orders yields one trade. Thus, when an order matches multiple opposing orders, this yields multiple trades, one trade per each pair of matched orders.
 
 ### Recent Trades
 
@@ -1886,7 +1884,7 @@ Below is an outline of exception inheritance hierarchy:
       - `incapsula`
     - `RequestTimeout`: The name literally says it all. This exception is raised when connection with the exchange fails or data is not fully received in a specified amount of time. This is controlled by the `timeout` option. When you receive this exception you actually don't know if it's request or response part failed (i.e. it might have been accepted by the server). Thus it's advised to handle this exception in the following manner:
       - for read-only requests: retry
-      - for `cancelOrder (id, symbol)` request: retry. If you order has been canceled on the first try you'll get `OrderNotFound` exception this time. Do not call `fetch*Order(s)` at this stage, it may cause [order cache](#orders-cache) to fall out of sync.
+      - for `cancelOrder (id, symbol)` request: retry. If you order has been canceled on the first try you'll get `OrderNotFound` exception this time. Do not call `fetch*Order(s)` at this stage, it may cause [.orders cache](#orders-cache) to fall out of sync.
       - for `createOrder ()` requests: refresh state with `fetchOpenOrders` to check if you order has been created.
     - `ExchangeNotAvailable`: The ccxt library throws this error if it detects any of the following keywords in response:
       - `offline`
