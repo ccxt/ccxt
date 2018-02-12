@@ -1434,15 +1434,72 @@ The list of methods for querying orders consists of the following:
 - `fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {})`
 - `fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {})`
 
-### Order cache
+Note that the naming of those methods indicates if the method returns a single order or multiple orders (an array/list of orders). Note, that `fetchOrder()` requires a mandatory order id argument (a string). Some exchanges also require a symbol to fetch an order by id, where order ids can intersect with various trading pairs. Also note that all other methods above return an array (a list) of orders. Most of them will also require a symbol, however, some exchanges allow querying with a symbol unspecified (all symbols).
 
+The library will throw a NotSupported exception if a user calls a method that is not available from the exchange or is not implemented in ccxt.
+
+To check if any of the above methods are available, look into the `.has` property of the exchange:
+
+```JavaScript
+// JavaScript
+'use strict';
+
+const ccxt = require ('ccxt')
+const id = 'poloniex'
+exchange = new ccxt[id] ()
+console.log (exchange.has)
 ```
-TBD
+
+```Python
+# Python
+import ccxt
+id = 'cryptopia'
+exchange = getattr(ccxt, 'id') ()
+print(exchange.has)
 ```
+
+```PHP
+// PHP
+$exchange = new \ccxt\liqui ();
+print_r ($exchange->has); // or var_dump
+```
+
+A typical structure of the `.has` property usually contains the following flags corresponding to order API methods for querying orders:
+
+```JavaScript
+exchange.has = {
+
+    // ... other flags ...
+
+    'fetchOrder': true, // available from the exchange directly and implemented in ccxt
+    'fetchOrders': false, // not available from the exchange or not implemented in ccxt
+    'fetchOpenOrders': true,
+    'fetchClosedOrders': 'emulated', // not available from the exchange, but emulated in ccxt
+
+    // ... other flags ...
+
+}
+```
+
+The meanings of boolean `true` and `false` are obvious. A string value of `emulated` means that particular method is missing in the exchange API and ccxt will workaround that where possible by adding a caching layer, the `.orders` cache. The next section describes the inner workings of the `.orders` cache, one has to understand it to do order management with ccxt effectively.
+
+### .orders cache
+
+Some exchanges do not have a method for fetching closed orders or all orders. They will  offer just the `fetchOpenOrders` method, sometimes they will are generous to offer a `fetchOrder` method. This means that they don't have any means of fetching the order history.
+
+which means you can't query `closed` and `canceled` orders direct. For these exchanges, ccxt emulates `fetchOrder` and `fetchClosedOrders` methods.
+
+For the emulation to work `ccxt` tracks orders' statuses in its own order cache accessible through the `.orders` property. When you call order manipulation methods such as `create/cancel/editOrder` then order's status gets recorded into the cache.
+
+When you then call `fetchOpenOrders` ccxt checks if it can find cached open orders in the exchange's response and if it can't it then marks this order in cache as 'closed' (i.e. fulfilled).
+
+It will work transparently for you in most cases, still if you access the same exchange's account through separate ccxt instances or do not pay [extra care](#error-handling) when handling order management exceptions the order cache may fall out of sync, in particular:
+- if an order's cancelation request bypass ccxt then on subsequent call to `fetchOpenOrders` it will erroneously mark the order as 'closed'
+- if `fetchOrder (id)` is emulated and you query an order id which is not currently 'open' (i.e. won't be returned by an exchange) and not in ccxt's cache then `OrderNotFound` will be thrown
 
 #### By Order Id
 
-To get details of a particular order by its id, use the fetchOrder / fetch_order method. Some exchanges also require a symbol even when fetching a particular order by id.
+To get the details of a particular order by its id, use the fetchOrder / fetch_order method. Some exchanges also require a symbol even when fetching a particular order by id.
 
 The signature of the fetchOrder/fetch_order method is as follows:
 
@@ -1629,20 +1686,6 @@ A cancel-request might also throw a `NetworkError` indicating that the order mig
 As such, `cancelOrder()` can throw an `OrderNotFound` exception in these cases:
 - canceling an already-closed order
 - canceling an already-canceled order
-
-
-### Orders Cache
-
-Some exchanges support only `fetchOpenOrders` method which means you can't query `closed` and `canceled` orders direct. For these exchanges, ccxt emulates `fetchOrder` and `fetchClosedOrders` methods.
-
-For the emulation to work `ccxt` tracks orders' statuses in its own order cache accessible through the `.orders` property. When you call order manipulation methods such as `create/cancel/editOrder` then order's status gets recorded into the cache.
-
-When you then call `fetchOpenOrders` ccxt checks if it can find cached open orders in the exchange's response and if it can't it then marks this order in cache as 'closed' (i.e. fulfilled).
-
-It will work transparently for you in most cases, still if you access the same exchange's account through separate ccxt instances or do not pay [extra care](#error-handling) when handling order management exceptions the order cache may fall out of sync, in particular:
-- if an order's cancelation request bypass ccxt then on subsequent call to `fetchOpenOrders` it will erroneously mark the order as 'closed'
-- if `fetchOrder (id)` is emulated and you query an order id which is not currently 'open' (i.e. won't be returned by an exchange) and not in ccxt's cache then `OrderNotFound` will be thrown
-
 
 ## Trades / Transactions / Fills / Executions
 
