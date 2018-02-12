@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ExchangeError } = require ('./base/errors');
+const { AuthenticationError, ExchangeError, NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -458,7 +458,7 @@ module.exports = class bitstamp extends Exchange {
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         let isFiat = this.isFiat (code);
         if (isFiat)
-            throw new ExchangeError (this.id + ' fiat withdraw() for ' + code + ' is not implemented yet');
+            throw new NotSupported (this.id + ' fiat withdraw() for ' + code + ' is not implemented yet');
         let name = this.getCurrencyName (code);
         let request = {
             'amount': amount,
