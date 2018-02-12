@@ -1394,8 +1394,6 @@ The returned balance structure is as follows:
 
 Some exchanges may not return full balance info. Many exchanges do not return balances for your empty or unused accounts. In that case some currencies may be missing in returned balance structure.
 
-Also, some exchanges cannot return certain fields and are only capable of telling a total balance (without details). Therefore some or all of the free, used and total amounts may be undefined, None or null. You need to account for that when working with returned balances.
-
 ```JavaScript
 // JavaScript
 (async () => {
@@ -1412,6 +1410,11 @@ print (exchange.fetch_balance ())
 // PHP
 var_dump ($exchange->fetch_balance ());
 ```
+
+### Balance inference
+
+Some exchanges return only `free` or only `total` amount, i.e. `used` amount is not known. In such cases ccxt will try to estimate that `used` part using [Orders Cache](#orders-cache) and infer all three fields the using known two.
+
 
 ## Orders
 
@@ -1628,6 +1631,19 @@ A cancel-request might also throw a `NetworkError` indicating that the order mig
 As such, `cancelOrder()` can throw an `OrderNotFound` exception in these cases:
 - canceling an already-closed order
 - canceling an already-canceled order
+
+
+### Orders Cache
+
+Some exchanges support only `fetchOpenOrders` method which means you can't query `closed` and `canceled` orders direct. For these exchanges, ccxt emulates `fetchOrder` and `fetchClosedOrders` methods.
+
+For the emulation to work `ccxt` tracks orders' statuses in its own order cache accessible through the `.orders` property. When you call order manipulation methods such as `create/cancel/editOrder` then order's status gets recorded into the cache.
+
+When you then call `fetchOpenOrders` ccxt checks if it can find cached open orders in the exchange's response and if it can't it then marks this order in cache as 'closed' (i.e. fulfilled).
+
+It will work transparently for you in most cases, still if you access the same exchange's account through separate ccxt instances or do not pay [extra care](#error-handling) when handling order management exceptions the order cache may fall out of sync, in particular:
+- if an order's cancellation request bypass ccxt then on subsequent call to `fetchOpenOrders` it will erroneously mark the order as 'closed'
+- if `fetchOrder (id)` is emulated and you query an order id which is not currently 'open' (i.e. won't be returned by an exchange) and not in ccxt's cache then `OrderNotFound` will be thrown
 
 
 ## Trades / Transactions / Fills / Executions
@@ -1869,7 +1885,10 @@ Below is an outline of exception inheritance hierarchy:
     - `DDoSProtection`: This exception is thrown whenever Cloudflare or Incapsula rate limiter restrictions are enforced per user or region/location. The ccxt library does a case-insensitive search in the response received from the exchange for one of the following keywords:
       - `cloudflare`
       - `incapsula`
-    - `RequestTimeout`: The name literally says it all. This exception is raised when connection with the exchange fails or data is not fully received in a specified amount of time. This is controlled by the `timeout` option.
+    - `RequestTimeout`: The name literally says it all. This exception is raised when connection with the exchange fails or data is not fully received in a specified amount of time. This is controlled by the `timeout` option. When you receive this exception you actually don't know if it's request or response part failed (i.e. it might have been accepted by the server). Thus it's advised to handle this exception in the following manner:
+      - for read-only requests: retry
+      - for `cancelOrder (id, symbol)` request: retry. If you order has been cancelled on the first try you'll get `OrderNotFound` exception this time. Do not call `fetch*Order(s)` at this stage, it may cause [order cache](#orders-cache) to fall out of sync.
+      - for `createOrder ()` requests: refresh state with `fetchOpenOrders` to check if you order has been created.
     - `ExchangeNotAvailable`: The ccxt library throws this error if it detects any of the following keywords in response:
       - `offline`
       - `unavailable`
