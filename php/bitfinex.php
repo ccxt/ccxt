@@ -456,7 +456,10 @@ class bitfinex extends Exchange {
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
-            'fee' => null,
+            'fee' => array (
+                'cost' => floatval ($trade['fee_amount']),
+                'currency' => $this->currencies_by_id[$trade['fee_currency']]['code'],
+            ),
         );
     }
 

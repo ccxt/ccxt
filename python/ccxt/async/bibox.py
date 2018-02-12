@@ -9,6 +9,7 @@ import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 
@@ -532,7 +533,12 @@ class bibox (Exchange):
         if 'error' in response:
             if 'code' in response['error']:
                 code = response['error']['code']
-                if code == '2068':
+                if code == '2033':
+                    # \u64cd\u4f5c\u5931\u8d25\uff01\u8ba2\u5355\u5df2\u5b8c\u6210\u6216\u5df2\u64a4\u9500
+                    # operation failednot  Orders have been completed or revoked
+                    # e.g. trying to cancel a filled order
+                    raise OrderNotFound(message)
+                elif code == '2068':
                     # \u4e0b\u5355\u6570\u91cf\u4e0d\u80fd\u4f4e\u4e8e
                     # The number of orders can not be less than
                     raise InvalidOrder(message)
