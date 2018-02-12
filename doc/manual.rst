@@ -476,9 +476,10 @@ Below is a detailed description of each of the base exchange properties:
        }
 
    The meaning of each flag showing availability of this or that method is:
-   - boolean ``true`` means the method is natively available from the exchange API and unified in the ccxt library
-   - boolean ``false`` means the method isn't natively available from the exchange API or not unified in the ccxt library yet
-   - string ``'emulated`` string means the endpoint isn't natively available from the exchange API but reconstructed by the ccxt library from available true-methods
+
+   -  boolean ``true`` means the method is natively available from the exchange API and unified in the ccxt library
+   -  boolean ``false`` means the method isn't natively available from the exchange API or not unified in the ccxt library yet
+   -  an ``'emulated'`` string means the endpoint isn't natively available from the exchange API but reconstructed by the ccxt library from available true-methods
 
 Rate Limit
 ----------
