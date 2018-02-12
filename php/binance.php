@@ -738,18 +738,11 @@ class binance extends Exchange {
             throw new ExchangeError ($this->id . ' cancelOrder requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = null;
-        try {
-            $response = $this->privateDeleteOrder (array_merge (array (
-                'symbol' => $market['id'],
-                'orderId' => intval ($id),
-                // 'origClientOrderId' => $id,
-            ), $params));
-        } catch (Exception $e) {
-            if (mb_strpos ($this->last_http_response, 'UNKNOWN_ORDER') !== false)
-                throw new OrderNotFound ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
-            throw $e;
-        }
+        $response = $this->privateDeleteOrder (array_merge (array (
+            'symbol' => $market['id'],
+            'orderId' => intval ($id),
+            // 'origClientOrderId' => $id,
+        ), $params));
         return $response;
     }
 

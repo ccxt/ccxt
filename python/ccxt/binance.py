@@ -713,17 +713,11 @@ class binance (Exchange):
             raise ExchangeError(self.id + ' cancelOrder requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        response = None
-        try:
-            response = self.privateDeleteOrder(self.extend({
-                'symbol': market['id'],
-                'orderId': int(id),
-                # 'origClientOrderId': id,
-            }, params))
-        except Exception as e:
-            if self.last_http_response.find('UNKNOWN_ORDER') >= 0:
-                raise OrderNotFound(self.id + ' cancelOrder() error: ' + self.last_http_response)
-            raise e
+        response = self.privateDeleteOrder(self.extend({
+            'symbol': market['id'],
+            'orderId': int(id),
+            # 'origClientOrderId': id,
+        }, params))
         return response
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
