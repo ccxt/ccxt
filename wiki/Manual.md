@@ -1953,8 +1953,8 @@ Below is an outline of exception inheritance hierarchy:
       - for fetching requests it is safe to retry the call
       - for a request to `cancelOrder(id, symbol)` a user is required to retry the same call the second time. If the order in question has been canceled on the first try you'll get `OrderNotFound` exception upon the second attempt. If instead of a retry a user calls a `fetchOrder()`, `fetchOrders()`, `fetchOpenOrders()` or `fetchClosedOrders()` right away without a retry to call `cancelOrder()`, this may cause the [`.orders` cache](#orders-cache) to fall out of sync.
       - if a request to `createOrder()` fails with a `RequestTimeout` the user should:
-        - update the `.orders` cache with a call to `fetchOrder()`, `fetchOrders()`, `fetchOpenOrders()`, `fetchClosedOrders()` to check if the request to place the order has succeeded and the order is open
-        - if the order is not `'open'` a user should `fetchBalance()` to check if it's got changed in case the order had been created on the first run, then filled and closed by the time of the second check. Note that balance [relies](#balance-inference) on the `.orders` cache and thus should be called only after the cache update
+        - update the `.orders` cache with a call to `fetchOrders()`, `fetchOpenOrders()`, `fetchClosedOrders()` to check if the request to place the order has succeeded and the order is now open
+        - if the order is not `'open'` the user should `fetchBalance()` to check if the balance has changed since the order was created on the first run, then filled and closed by the time of the second check. Note that `fetchBalance()` relies on the `.orders` cache for [balance inference](#balance-inference) and thus should only be called after updating the cache!
     - `ExchangeNotAvailable`: The ccxt library throws this error if it detects any of the following keywords in response:
       - `offline`
       - `unavailable`
