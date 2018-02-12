@@ -104,6 +104,7 @@ class Exchange(BaseExchange):
             async with session_method(url, data=encoded_body, headers=headers, timeout=(self.timeout / 1000), proxy=self.aiohttp_proxy) as response:
                 http_status_code = response.status
                 text = await response.text()
+                self.last_http_response = text
                 self.handle_errors(http_status_code, text, url, method, None, text)
                 self.handle_rest_errors(None, http_status_code, text, url, method)
 
