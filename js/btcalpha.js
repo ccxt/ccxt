@@ -190,13 +190,15 @@ module.exports = class btcalpha extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        if (!limit)
-            limit = 100; // default
-        let trades = await this.publicGetExchanges (this.extend ({
-            'pair': market['id'],
-            'limit': limit,
-        }, params));
+        let market = undefined;
+        let request = {};
+        if (typeof symbol !== 'undefined') {
+            market = this.market (symbol);
+            request['pair'] = market['id'];
+        }
+        if (limit)
+            request['limit'] = limit;
+        let trades = await this.publicGetExchanges (this.extend (request, params));
         return this.parseTrades (trades, market, since, limit);
     }
 
