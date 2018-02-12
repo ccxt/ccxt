@@ -26,7 +26,7 @@ module.exports = class kucoin extends Exchange {
                 'fetchOrders': false,
                 'fetchClosedOrders': true,
                 'fetchOpenOrders': true,
-                'fetchMyTrades': false,
+                'fetchMyTrades': true,
                 'fetchCurrencies': true,
                 'withdraw': true,
             },
@@ -578,6 +578,20 @@ module.exports = class kucoin extends Exchange {
             'symbol': market['id'],
         }, params));
         return this.parseTrades (response['data'], market, since, limit);
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (!symbol)
+            throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol argument');
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'symbol': market['id'],
+        };
+        if (limit)
+            request['limit'] = limit;
+        let response = await this.privateGetDealOrders (this.extend (request, params));
+        return this.parseTrades (response, market, since, limit);
     }
 
     parseTradingViewOHLCVs (ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
