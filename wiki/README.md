@@ -51,7 +51,7 @@ Welcome to the ccxt wiki!
         - [Market Orders](https://github.com/ccxt/ccxt/wiki/Manual#market-orders)
         - [Limit Orders](https://github.com/ccxt/ccxt/wiki/Manual#limit-orders)
         - [Custom Params](https://github.com/ccxt/ccxt/wiki/Manual#custom-order-params)
-      - [Cancelling Orders](https://github.com/ccxt/ccxt/wiki/Manual#cancelling-orders)
+      - [Canceling Orders](https://github.com/ccxt/ccxt/wiki/Manual#canceling-orders)
     - [Trades / Transactions / Fills / Executions](https://github.com/ccxt-dev/ccxt/wiki/Manual#trades--transactions--fills--executions)
     - [Funding Your Account](https://github.com/ccxt/ccxt/wiki/Manual#funding-your-account)
       - [Deposit](https://github.com/ccxt/ccxt/wiki/Manual#deposit)
