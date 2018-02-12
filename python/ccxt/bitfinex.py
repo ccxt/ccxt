@@ -447,10 +447,7 @@ class bitfinex (Exchange):
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': {
-                'cost': float(trade['fee_amount']),
-                'currency': self.currencies_by_id[trade['fee_currency']]['code'],
-            },
+            'fee': None,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
