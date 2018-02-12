@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { NotImplemented, DDoSProtection, AuthenticationError, ExchangeError, InsufficientFunds, NotSupported, InvalidOrder, OrderNotFound, InvalidNonce } = require ('./base/errors');
+const { NotSupported, DDoSProtection, AuthenticationError, ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound, InvalidNonce } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -287,7 +287,7 @@ module.exports = class bitfinex extends Exchange {
         // const fees = await this.fetchFundingFees ();
         // funding = this.deepExtend (funding, fees);
         // return funding;
-        throw new NotImplemented (this.id + ' loadFees() not implemented yet');
+        throw new NotSupported (this.id + ' loadFees() not implemented yet');
     }
 
     async fetchFees () {  // this can be removed since it is now dealt with in the base class
