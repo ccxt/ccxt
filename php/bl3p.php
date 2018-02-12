@@ -94,8 +94,8 @@ class bl3p extends Exchange {
 
     public function parse_bid_ask ($bidask, $priceKey = 0, $amountKey = 0) {
         return [
-            $bidask['price_int'] / 100000.0,
-            $bidask['amount_int'] / 100000000.0,
+            $bidask[$priceKey] / 100000.0,
+            $bidask[$amountKey] / 100000000.0,
         ];
     }
 
@@ -105,7 +105,7 @@ class bl3p extends Exchange {
             'market' => $market['id'],
         ), $params));
         $orderbook = $response['data'];
-        return $this->parse_order_book($orderbook);
+        return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'price_int', 'amount_int');
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {
@@ -191,6 +191,7 @@ class bl3p extends Exchange {
             $nonce = $this->nonce ();
             $body = $this->urlencode (array_merge (array ( 'nonce' => $nonce ), $query));
             $secret = base64_decode ($this->secret);
+            // eslint-disable-next-line quotes
             $auth = $request . "\0" . $body;
             $signature = $this->hmac ($this->encode ($auth), $secret, 'sha512', 'base64');
             $headers = array (

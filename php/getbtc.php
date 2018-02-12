@@ -25,14 +25,11 @@ class getbtc extends _1btcxe {
                     'maker' => 0.20 / 100,
                 ),
             ),
+            'markets' => array (
+                'BTC/USD' => array ( 'lot' => 1e-08, 'symbol' => 'BTC/USD', 'quote' => 'USD', 'base' => 'BTC', 'precision' => array ( 'amount' => 8, 'price' => 8 ), 'id' => 'USD', 'limits' => array ( 'amount' => array ( 'max' => null, 'min' => 1e-08 ), 'price' => array ( 'max' => 'null', 'min' => 1e-08 ))),
+                'BTC/EUR' => array ( 'lot' => 1e-08, 'symbol' => 'BTC/EUR', 'quote' => 'EUR', 'base' => 'BTC', 'precision' => array ( 'amount' => 8, 'price' => 8 ), 'id' => 'EUR', 'limits' => array ( 'amount' => array ( 'max' => null, 'min' => 1e-08 ), 'price' => array ( 'max' => 'null', 'min' => 1e-08 ))),
+                'BTC/RUB' => array ( 'lot' => 1e-08, 'symbol' => 'BTC/RUB', 'quote' => 'RUB', 'base' => 'BTC', 'precision' => array ( 'amount' => 8, 'price' => 8 ), 'id' => 'RUB', 'limits' => array ( 'amount' => array ( 'max' => null, 'min' => 1e-08 ), 'price' => array ( 'max' => 'null', 'min' => 1e-08 ))),
+            ),
         ));
-    }
-
-    public function fetch_markets () {
-        return array (
-            array ( 'id' => 'EUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', 'precision' => array ( 'amount' => 8, 'price' => 8 ), 'lot' => 0.00000001, 'limits' => array ( 'amount' => array ( 'min' => 0.00000001, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ))),
-            array ( 'id' => 'RUB', 'symbol' => 'BTC/RUB', 'base' => 'BTC', 'quote' => 'RUB', 'precision' => array ( 'amount' => 8, 'price' => 8 ), 'lot' => 0.00000001, 'limits' => array ( 'amount' => array ( 'min' => 0.00000001, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ))),
-            array ( 'id' => 'USD', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD', 'precision' => array ( 'amount' => 8, 'price' => 8 ), 'lot' => 0.00000001, 'limits' => array ( 'amount' => array ( 'min' => 0.00000001, 'max' => null ), 'price' => array ( 'min' => 0.00000001, 'max' => null ))),
-        );
     }
 }

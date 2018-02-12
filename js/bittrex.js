@@ -163,7 +163,7 @@ module.exports = class bittrex extends Exchange {
                 'price': 8,
             };
             let active = market['IsActive'];
-            result.push (this.extend (this.fees['trading'], {
+            result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -184,7 +184,7 @@ module.exports = class bittrex extends Exchange {
                         'max': undefined,
                     },
                 },
-            }));
+            });
         }
         return result;
     }
@@ -236,7 +236,7 @@ module.exports = class bittrex extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = this.parse8601 (ticker['TimeStamp']);
+        let timestamp = this.parse8601 (ticker['TimeStamp'] + '+00:00');
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
@@ -348,7 +348,7 @@ module.exports = class bittrex extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = this.parse8601 (trade['TimeStamp']);
+        let timestamp = this.parse8601 (trade['TimeStamp'] + '+00:00');
         let side = undefined;
         if (trade['OrderType'] === 'BUY') {
             side = 'buy';
@@ -385,7 +385,7 @@ module.exports = class bittrex extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {
-        let timestamp = this.parse8601 (ohlcv['T']);
+        let timestamp = this.parse8601 (ohlcv['T'] + '+00:00');
         return [
             timestamp,
             ohlcv['O'],
@@ -507,11 +507,11 @@ module.exports = class bittrex extends Exchange {
             symbol = market['symbol'];
         let timestamp = undefined;
         if ('Opened' in order)
-            timestamp = this.parse8601 (order['Opened']);
+            timestamp = this.parse8601 (order['Opened'] + '+00:00');
         if ('TimeStamp' in order)
-            timestamp = this.parse8601 (order['TimeStamp']);
+            timestamp = this.parse8601 (order['TimeStamp'] + '+00:00');
         if ('Created' in order)
-            timestamp = this.parse8601 (order['Created']);
+            timestamp = this.parse8601 (order['Created'] + '+00:00');
         let fee = undefined;
         let commission = undefined;
         if ('Commission' in order) {

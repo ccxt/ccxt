@@ -15,6 +15,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import InvalidNonce
 
 
 class bitfinex (Exchange):
@@ -33,7 +34,7 @@ class bitfinex (Exchange):
                 'deposit': True,
                 'fetchClosedOrders': True,
                 'fetchDepositAddress': True,
-                'fetchFundingFees': True,
+                'fetchFees': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
@@ -222,14 +223,6 @@ class bitfinex (Exchange):
                         'ZRX': 5.6442,
                         'TNB': 87.511,
                         'SNT': 32.736,
-                        'QSH': None,
-                        'TRX': None,
-                        'RCN': None,
-                        'RLC': None,
-                        'AID': None,
-                        'SNG': None,
-                        'REP': None,
-                        'ELF': None,
                     },
                 },
             },
@@ -243,9 +236,10 @@ class bitfinex (Exchange):
                     'Key price should be a decimal number, e.g. "123.456"': InvalidOrder,  # on isNaN(price)
                     'Key amount should be a decimal number, e.g. "123.456"': InvalidOrder,  # on isNaN(amount)
                     'ERR_RATE_LIMIT': DDoSProtection,
+                    'Nonce is too small.': InvalidNonce,
                 },
                 'broad': {
-                    'Invalid order: not enough exchange balance for ': InsufficientFunds,  # when buy, cost > quote currency
+                    'Invalid order: not enough exchange balance for ': InsufficientFunds,  # when buying cost is greater than the available quote currency
                     'Invalid order: minimum size for ': InvalidOrder,  # when amount below limits.amount.min
                     'Invalid order': InvalidOrder,  # ?
                 },
@@ -263,8 +257,9 @@ class bitfinex (Exchange):
         }
         return currencies[currency] if (currency in list(currencies.keys())) else currency
 
-    def fetch_funding_fees(self):
-        response = self.privatePostAccountFees()
+    def fetch_funding_fees(self, params={}):
+        self.load_markets()
+        response = self.privatePostAccountFees(params)
         fees = response['withdraw']
         withdraw = {}
         ids = list(fees.keys())
@@ -281,8 +276,9 @@ class bitfinex (Exchange):
             'deposit': withdraw,  # only for deposits of less than $1000
         }
 
-    def fetch_trading_fees(self):
-        response = self.privatePostSummary()
+    def fetch_trading_fees(self, params={}):
+        self.load_markets()
+        response = self.privatePostSummary(params)
         return {
             'info': response,
             'maker': self.safe_float(response, 'maker_fee'),
@@ -297,7 +293,7 @@ class bitfinex (Exchange):
         # fees = self.fetch_funding_fees()
         # funding = self.deep_extend(funding, fees)
         # return funding
-        raise NotImplemented(self.id + ' loadFees() not implemented yet')
+        raise NotSupported(self.id + ' loadFees() not implemented yet')
 
     def fetch_fees(self):
         fundingFees = self.fetch_funding_fees()
@@ -602,15 +598,19 @@ class bitfinex (Exchange):
             'LTC': 'litecoin',
             'ETH': 'ethereum',
             'ETC': 'ethereumc',
-            'OMNI': 'mastercoin',  # left by previous author, now throws {"message":"Unknown method"}
+            'OMNI': 'mastercoin',
             'ZEC': 'zcash',
             'XMR': 'monero',
-            'USD': 'wire',  # left by previous author, now throws {"message":"Unknown method"}
+            'USD': 'wire',
             'DASH': 'dash',
             'XRP': 'ripple',
             'EOS': 'eos',
-            'BCH': 'bcash',
-            'USDT': 'tetheruso',
+            'BCH': 'bcash',  # undocumented
+            'USDT': 'tetheruso',  # undocumented
+            'NEO': 'neo',  # #1811
+            'AVT': 'aventus',  # #1811
+            'QTUM': 'qtum',  # #1811
+            'EDO': 'eidoo',  # #1811
         }
         if currency in names:
             return names[currency]

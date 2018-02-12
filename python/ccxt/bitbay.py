@@ -15,9 +15,9 @@ import hashlib
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
-from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import InvalidNonce
 
 
 class bitbay (Exchange):
@@ -221,6 +221,8 @@ class bitbay (Exchange):
         return self.parse_trades(response, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        if type != 'limit':
+            raise ExchangeError(self.id + ' allows limit orders only')
         market = self.market(symbol)
         return self.privatePostTrade(self.extend({
             'type': side,
@@ -297,6 +299,23 @@ class bitbay (Exchange):
                 #      {'success': 1, ...}
                 #      {'code': 502, 'message': 'Invalid sign'}
                 #      {'code': 0, 'message': 'offer funds not exceeding minimums'}
+                #
+                #      400 At least one parameter wasn't set
+                #      401 Invalid order type
+                #      402 No orders with specified currencies
+                #      403 Invalid payment currency name
+                #      404 Error. Wrong transaction type
+                #      405 Order with self id doesn't exist
+                #      406 No enough money or crypto
+                #      408 Invalid currency name
+                #      501 Invalid public key
+                #      502 Invalid sign
+                #      503 Invalid moment parameter. Request time doesn't match current server time
+                #      504 Invalid method
+                #      505 Key has no permission for self action
+                #      506 Account locked. Please contact with customer service
+                #      509 The BIC/SWIFT is required for self currency
+                #      510 Invalid market name
                 #
                 code = response['code']  # always an integer
                 feedback = self.id + ' ' + self.json(response)

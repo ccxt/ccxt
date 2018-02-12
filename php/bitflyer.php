@@ -224,9 +224,12 @@ class bitflyer extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
+        if ($symbol === null)
+            throw new ExchangeError ($this->id . ' cancelOrder() requires a $symbol argument');
         $this->load_markets();
         return $this->privatePostCancelchildorder (array_merge (array (
-            'parent_order_id' => $id,
+            'product_code' => $this->market_id($symbol),
+            'child_order_acceptance_id' => $id,
         ), $params));
     }
 

@@ -39,6 +39,7 @@ class binance (Exchange):
                 'fetchOrder': True,
                 'fetchOrders': True,
                 'fetchOpenOrders': True,
+                'fetchClosedOrders': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -89,6 +90,8 @@ class binance (Exchange):
                         'depositHistory',
                         'withdrawHistory',
                         'depositAddress',
+                        'accountStatus',
+                        'systemStatus',
                     ],
                 },
                 'v3': {
@@ -353,8 +356,9 @@ class binance (Exchange):
                 'price': market['quotePrecision'],
             }
             active = (market['status'] == 'TRADING')
+            # lot size is deprecated as of 2018.02.06
             lot = -1 * math.log10(precision['amount'])
-            entry = self.extend(self.fees['trading'], {
+            entry = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -362,16 +366,16 @@ class binance (Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
-                'lot': lot,
+                'lot': lot,  # lot size is deprecated as of 2018.02.06
                 'active': active,
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': lot,
+                        'min': math.pow(10, -precision['amount']),
                         'max': None,
                     },
                     'price': {
-                        'min': -1 * math.log10(precision['price']),
+                        'min': math.pow(10, -precision['price']),
                         'max': None,
                     },
                     'cost': {
@@ -379,7 +383,7 @@ class binance (Exchange):
                         'max': None,
                     },
                 },
-            })
+            }
             if 'PRICE_FILTER' in filters:
                 filter = filters['PRICE_FILTER']
                 entry['precision']['price'] = self.precision_from_string(filter['tickSize'])
@@ -390,7 +394,7 @@ class binance (Exchange):
             if 'LOT_SIZE' in filters:
                 filter = filters['LOT_SIZE']
                 entry['precision']['amount'] = self.precision_from_string(filter['stepSize'])
-                entry['lot'] = float(filter['stepSize'])
+                entry['lot'] = float(filter['stepSize'])  # lot size is deprecated as of 2018.02.06
                 entry['limits']['amount'] = {
                     'min': float(filter['minQty']),
                     'max': float(filter['maxQty']),
@@ -470,8 +474,8 @@ class binance (Exchange):
             'close': self.safe_float(ticker, 'prevClosePrice'),
             'first': None,
             'last': self.safe_float(ticker, 'lastPrice'),
-            'change': self.safe_float(ticker, 'priceChangePercent'),
-            'percentage': None,
+            'change': self.safe_float(ticker, 'priceChange'),
+            'percentage': self.safe_float(ticker, 'priceChangePercent'),
             'average': None,
             'baseVolume': self.safe_float(ticker, 'volume'),
             'quoteVolume': self.safe_float(ticker, 'quoteVolume'),
@@ -709,17 +713,11 @@ class binance (Exchange):
             raise ExchangeError(self.id + ' cancelOrder requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        response = None
-        try:
-            response = await self.privateDeleteOrder(self.extend({
-                'symbol': market['id'],
-                'orderId': int(id),
-                # 'origClientOrderId': id,
-            }, params))
-        except Exception as e:
-            if self.last_http_response.find('UNKNOWN_ORDER') >= 0:
-                raise OrderNotFound(self.id + ' cancelOrder() error: ' + self.last_http_response)
-            raise e
+        response = await self.privateDeleteOrder(self.extend({
+            'symbol': market['id'],
+            'orderId': int(id),
+            # 'origClientOrderId': id,
+        }, params))
         return response
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):

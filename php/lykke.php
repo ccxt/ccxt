@@ -18,6 +18,9 @@ class lykke extends Exchange {
                 'CORS' => false,
                 'fetchOHLCV' => false,
                 'fetchTrades' => false,
+                'fetchOpenOrders' => true,
+                'fetchClosedOrders' => true,
+                'fetchOrders' => true,
             ),
             'requiredCredentials' => array (
                 'apiKey' => true,
@@ -74,8 +77,8 @@ class lykke extends Exchange {
                 'trading' => array (
                     'tierBased' => false,
                     'percentage' => true,
-                    'maker' => 0.0010,
-                    'taker' => 0.0019,
+                    'maker' => 0.0, // as of 7 Feb 2018, see https://github.com/ccxt/ccxt/issues/1863
+                    'taker' => 0.0, // https://www.lykke.com/cp/wallet-fees-and-limits
                 ),
                 'funding' => array (
                     'tierBased' => false,
@@ -150,7 +153,7 @@ class lykke extends Exchange {
                 'amount' => $market['Accuracy'],
                 'price' => $market['InvertedAccuracy'],
             );
-            $result[] = array_merge ($this->fees['trading'], array (
+            $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
@@ -169,7 +172,7 @@ class lykke extends Exchange {
                         'max' => pow (10, $precision['price']),
                     ),
                 ),
-            ));
+            );
         }
         return $result;
     }

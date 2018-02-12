@@ -15,6 +15,7 @@ module.exports = class liqui extends Exchange {
             'has': {
                 'CORS': false,
                 'createMarketOrder': false,
+                'fetchOrderBooks': true,
                 'fetchOrder': true,
                 'fetchOrders': 'emulated',
                 'fetchOpenOrders': true,
@@ -155,7 +156,7 @@ module.exports = class liqui extends Exchange {
             };
             let hidden = this.safeInteger (market, 'hidden');
             let active = (hidden === 0);
-            result.push (this.extend (this.fees['trading'], {
+            result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -166,7 +167,7 @@ module.exports = class liqui extends Exchange {
                 'precision': precision,
                 'limits': limits,
                 'info': market,
-            }));
+            });
         }
         return result;
     }
@@ -217,6 +218,37 @@ module.exports = class liqui extends Exchange {
         return result;
     }
 
+    async fetchOrderBooks (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        let ids = undefined;
+        if (!symbols) {
+            ids = this.ids.join ('-');
+            // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
+            if (ids.length > 2048) {
+                let numIds = this.ids.length;
+                throw new ExchangeError (this.id + ' has ' + numIds.toString () + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks');
+            }
+        } else {
+            ids = this.marketIds (symbols);
+            ids = ids.join ('-');
+        }
+        let response = await this.publicGetDepthPair (this.extend ({
+            'pair': ids,
+        }, params));
+        let result = {};
+        ids = Object.keys (response);
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
+            let symbol = id;
+            if (id in this.marketsById) {
+                let market = this.marketsById[id];
+                symbol = market['symbol'];
+            }
+            result[symbol] = this.parseOrderBook (response[id]);
+        }
+        return result;
+    }
+
     parseTicker (ticker, market = undefined) {
         let timestamp = ticker['updated'] * 1000;
         let symbol = undefined;
@@ -248,11 +280,9 @@ module.exports = class liqui extends Exchange {
         await this.loadMarkets ();
         let ids = undefined;
         if (!symbols) {
-            // let numIds = this.ids.length;
-            // if (numIds > 256)
-            //     throw new ExchangeError (this.id + ' fetchTickers() requires symbols argument');
             ids = this.ids.join ('-');
-            if (ids.length > 2083) {
+            // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
+            if (ids.length > 2048) {
                 let numIds = this.ids.length;
                 throw new ExchangeError (this.id + ' has ' + numIds.toString () + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchTickers');
             }
@@ -478,6 +508,44 @@ module.exports = class liqui extends Exchange {
         return this.orders[id];
     }
 
+    updateCachedOrders (openOrders, symbol) {
+        // update local cache with open orders
+        for (let j = 0; j < openOrders.length; j++) {
+            const id = openOrders[j]['id'];
+            this.orders[id] = openOrders[j];
+        }
+        let openOrdersIndexedById = this.indexBy (openOrders, 'id');
+        let cachedOrderIds = Object.keys (this.orders);
+        for (let k = 0; k < cachedOrderIds.length; k++) {
+            // match each cached order to an order in the open orders array
+            // possible reasons why a cached order may be missing in the open orders array:
+            // - order was closed or canceled -> update cache
+            // - symbol mismatch (e.g. cached BTC/USDT, fetched ETH/USDT) -> skip
+            let id = cachedOrderIds[k];
+            if (!(id in openOrdersIndexedById)) {
+                // cached order is not in open orders array
+                let order = this.orders[id];
+                // if we fetched orders by symbol and it doesn't match the cached order -> won't update the cached order
+                if (typeof symbol !== 'undefined' && symbol !== order['symbol'])
+                    continue;
+                // order is cached but not present in the list of open orders -> mark the cached order as closed
+                if (order['status'] === 'open') {
+                    order = this.extend (order, {
+                        'status': 'closed', // likewise it might have been canceled externally (unnoticed by "us")
+                        'cost': undefined,
+                        'filled': order['amount'],
+                        'remaining': 0.0,
+                    });
+                    if (typeof order['cost'] === 'undefined') {
+                        if (typeof order['filled'] !== 'undefined')
+                            order['cost'] = order['filled'] * order['price'];
+                    }
+                    this.orders[id] = order;
+                }
+            }
+        }
+    }
+
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         // if (!symbol)
         //     throw new ExchangeError (this.id + ' fetchOrders requires a symbol');
@@ -489,38 +557,12 @@ module.exports = class liqui extends Exchange {
             request['pair'] = market['id'];
         }
         let response = await this.privatePostActiveOrders (this.extend (request, params));
+        // liqui etc can only return 'open' orders (i.e. no way to fetch 'closed' orders)
         let openOrders = [];
         if ('return' in response)
             openOrders = this.parseOrders (response['return'], market);
-        for (let j = 0; j < openOrders.length; j++) {
-            this.orders[openOrders[j]['id']] = openOrders[j];
-        }
-        let openOrdersIndexedById = this.indexBy (openOrders, 'id');
-        let cachedOrderIds = Object.keys (this.orders);
-        let result = [];
-        for (let k = 0; k < cachedOrderIds.length; k++) {
-            let id = cachedOrderIds[k];
-            if (id in openOrdersIndexedById) {
-                this.orders[id] = this.extend (this.orders[id], openOrdersIndexedById[id]);
-            } else {
-                let order = this.orders[id];
-                if (order['status'] === 'open') {
-                    this.orders[id] = this.extend (order, {
-                        'status': 'closed',
-                        'cost': order['amount'] * order['price'],
-                        'filled': order['amount'],
-                        'remaining': 0.0,
-                    });
-                }
-            }
-            let order = this.orders[id];
-            if (symbol) {
-                if (order['symbol'] === symbol)
-                    result.push (order);
-            } else {
-                result.push (order);
-            }
-        }
+        this.updateCachedOrders (openOrders, symbol);
+        let result = this.filterOrdersBySymbol (this.orders, symbol);
         return this.filterBySinceLimit (result, since, limit);
     }
 
@@ -548,13 +590,13 @@ module.exports = class liqui extends Exchange {
         await this.loadMarkets ();
         let market = undefined;
         let request = {
-            // 'from': 123456789, // trade ID, from which the display starts numerical 0
+            // 'from': 123456789, // trade ID, from which the display starts numerical 0 (test result: liqui ignores this field)
             // 'count': 1000, // the number of trades for display numerical, default = 1000
             // 'from_id': trade ID, from which the display starts numerical 0
             // 'end_id': trade ID on which the display ends numerical ∞
-            // 'order': 'ASC', // sorting, default = DESC
-            // 'since': 1234567890, // UTC start time, default = 0
-            // 'end': 1234567890, // UTC end time, default = ∞
+            // 'order': 'ASC', // sorting, default = DESC (test result: liqui ignores this field, most recent trade always goes last)
+            // 'since': 1234567890, // UTC start time, default = 0 (test result: liqui ignores this field)
+            // 'end': 1234567890, // UTC end time, default = ∞ (test result: liqui ignores this field)
             // 'pair': 'eth_btc', // default = all markets
         };
         if (typeof symbol !== 'undefined') {

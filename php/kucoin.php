@@ -17,6 +17,7 @@ class kucoin extends Exchange {
             'userAgent' => $this->userAgents['chrome'],
             'has' => array (
                 'CORS' => false,
+                'cancelOrders' => true,
                 'createMarketOrder' => false,
                 'fetchTickers' => true,
                 'fetchOHLCV' => true, // see the method implementation below
@@ -44,6 +45,7 @@ class kucoin extends Exchange {
                     'public' => 'https://api.kucoin.com',
                     'private' => 'https://api.kucoin.com',
                     'kitchen' => 'https://kitchen.kucoin.com',
+                    'kitchen-2' => 'https://kitchen-2.kucoin.com',
                 ),
                 'www' => 'https://kucoin.com',
                 'doc' => 'https://kucoinapidocs.docs.apiary.io',
@@ -93,8 +95,10 @@ class kucoin extends Exchange {
                     'post' => array (
                         'account/{coin}/withdraw/apply',
                         'account/{coin}/withdraw/cancel',
+                        'account/promotion/draw',
                         'cancel-order',
                         'order',
+                        'order/cancel-all',
                         'user/change-lang',
                     ),
                 ),
@@ -181,7 +185,7 @@ class kucoin extends Exchange {
                 'price' => 8,
             );
             $active = $market['trading'];
-            $result[] = array_merge ($this->fees['trading'], array (
+            $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
@@ -200,7 +204,7 @@ class kucoin extends Exchange {
                         'max' => null,
                     ),
                 ),
-            ));
+            );
         }
         return $result;
     }
@@ -334,7 +338,9 @@ class kucoin extends Exchange {
         }
         $side = $this->safe_value($order, 'direction');
         if ($side === null)
-            $side = strtolower ($order['type']);
+            $side = $order['type'];
+        if ($side !== null)
+            $side = strtolower ($side);
         $fee = null;
         if (is_array ($order) && array_key_exists ('feeTotal', $order)) {
             $fee = array (
@@ -446,6 +452,24 @@ class kucoin extends Exchange {
         );
     }
 
+    public function cancel_orders ($symbol = null, $params = array ()) {
+        // https://kucoinapidocs.docs.apiary.io/#reference/0/trading/cancel-all-orders
+        // docs say $symbol is required, but it seems to be optional
+        // you can cancel all orders, or filter by $symbol or type or both
+        $request = array ();
+        if ($symbol) {
+            $this->load_markets();
+            $market = $this->market ($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        if (is_array ($params) && array_key_exists ('type', $params)) {
+            $request['type'] = strtoupper ($params['type']);
+            $params = $this->omit ($params, 'type');
+        }
+        $response = $this->privatePostOrderCancelAll (array_merge ($request, $params));
+        return $response;
+    }
+
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         if (!$symbol)
             throw new ExchangeError ($this->id . ' cancelOrder requires a symbol');
@@ -457,6 +481,7 @@ class kucoin extends Exchange {
         );
         if (is_array ($params) && array_key_exists ('type', $params)) {
             $request['type'] = strtoupper ($params['type']);
+            $params = $this->omit ($params, 'type');
         } else {
             throw new ExchangeError ($this->id . ' cancelOrder requires parameter type=["BUY"|"SELL"]');
         }
@@ -581,23 +606,25 @@ class kucoin extends Exchange {
                 $limit = 52; // 52 weeks, 1 year
             $minutes = 10080;
         } else if ($limit === null) {
+            // last 1440 periods, whatever the duration of the period is
+            // for 1m it equals 1 day (24 hours)
+            // for 5m it equals 5 days
+            // ...
             $limit = 1440;
-            $minutes = 1440;
-            $resolution = 'D';
         }
-        $start = $end - $minutes * 60 * $limit;
+        $start = $end - $limit * $minutes * 60;
+        // if 'since' has been supplied by user
         if ($since !== null) {
-            $start = intval ($since / 1000);
-            $end = $this->sum ($start, $minutes * 60 * $limit);
+            $start = intval ($since / 1000); // convert milliseconds to seconds
+            $end = min ($end, $this->sum ($start, $limit * $minutes * 60));
         }
         $request = array (
             'symbol' => $market['id'],
-            'type' => $this->timeframes[$timeframe],
             'resolution' => $resolution,
             'from' => $start,
             'to' => $end,
         );
-        $response = $this->kitchenGetOpenChartHistory (array_merge ($request, $params));
+        $response = $this->publicGetOpenChartHistory (array_merge ($request, $params));
         return $this->parse_trading_view_ohlcvs ($response, $market, $timeframe, $since, $limit);
     }
 
@@ -619,10 +646,7 @@ class kucoin extends Exchange {
         $endpoint = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . $endpoint;
         $query = $this->omit ($params, $this->extract_params($path));
-        if ($api === 'public') {
-            if ($query)
-                $url .= '?' . $this->urlencode ($query);
-        } else {
+        if ($api === 'private') {
             $this->check_required_credentials();
             // their $nonce is always a calibrated synched milliseconds-timestamp
             $nonce = $this->milliseconds ();
@@ -644,15 +668,26 @@ class kucoin extends Exchange {
                 'KC-API-NONCE' => $nonce,
                 'KC-API-SIGNATURE' => $signature,
             );
+        } else {
+            if ($query)
+                $url .= '?' . $this->urlencode ($query);
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function throw_exception_on_error ($response) {
-        // array ( success => false, $code => "ERROR", msg => "Min price:100.0" )
-        // array ( success => true,  $code => "OK",    msg => "Operation succeeded." )
+        //
+        // API endpoints return the following formats
+        //     array ( success => false, $code => "ERROR", msg => "Min price:100.0" )
+        //     array ( success => true,  $code => "OK",    msg => "Operation succeeded." )
+        //
+        // Web OHLCV endpoint returns this:
+        //     array ( s => "ok", o => array (), h => array (), l => array (), c => array (), v => array () )
+        //
+        // This particular method handles API responses only
+        //
         if (!(is_array ($response) && array_key_exists ('success', $response)))
-            throw new ExchangeError ($this->id . ' => malformed $response => ' . $this->json ($response));
+            return;
         if ($response['success'] === true)
             return; // not an error
         if (!(is_array ($response) && array_key_exists ('code', $response)) || !(is_array ($response) && array_key_exists ('msg', $response)))

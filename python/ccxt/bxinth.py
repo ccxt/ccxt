@@ -18,6 +18,7 @@ class bxinth (Exchange):
             'has': {
                 'CORS': False,
                 'fetchTickers': True,
+                'fetchOpenOrders': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766412-567b1eb4-5ed7-11e7-94a8-ff6a3884f6c5.jpg',
@@ -216,6 +217,42 @@ class bxinth (Exchange):
             'order_id': id,
             'pairing': pairing,
         })
+
+    def parse_order(self, order, market=None):
+        side = self.safe_string(order, 'order_type')
+        symbol = None
+        if market is None:
+            marketId = self.safe_string(order, 'pairing_id')
+            if marketId is not None:
+                if marketId in self.markets_by_id:
+                    market = self.markets_by_id[marketId]
+        if market is not None:
+            symbol = market['symbol']
+        timestamp = self.parse8601(order['date'])
+        price = self.safe_float(order, 'rate')
+        amount = self.safe_float(order, 'amount')
+        return {
+            'info': order,
+            'id': order['order_id'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': symbol,
+            'type': 'limit',
+            'side': side,
+            'price': price,
+            'amount': amount,
+        }
+
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        request = {}
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['pairing'] = market['id']
+        response = self.privatePostGetorders(self.extend(request, params))
+        orders = self.parse_orders(response['orders'], market, since, limit)
+        return self.filter_orders_by_symbol(orders, symbol)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/'

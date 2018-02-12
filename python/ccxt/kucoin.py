@@ -10,10 +10,10 @@ import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
-from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import InvalidNonce
 
 
 class kucoin (Exchange):
@@ -28,6 +28,7 @@ class kucoin (Exchange):
             'userAgent': self.userAgents['chrome'],
             'has': {
                 'CORS': False,
+                'cancelOrders': True,
                 'createMarketOrder': False,
                 'fetchTickers': True,
                 'fetchOHLCV': True,  # see the method implementation below
@@ -55,6 +56,7 @@ class kucoin (Exchange):
                     'public': 'https://api.kucoin.com',
                     'private': 'https://api.kucoin.com',
                     'kitchen': 'https://kitchen.kucoin.com',
+                    'kitchen-2': 'https://kitchen-2.kucoin.com',
                 },
                 'www': 'https://kucoin.com',
                 'doc': 'https://kucoinapidocs.docs.apiary.io',
@@ -104,8 +106,10 @@ class kucoin (Exchange):
                     'post': [
                         'account/{coin}/withdraw/apply',
                         'account/{coin}/withdraw/cancel',
+                        'account/promotion/draw',
                         'cancel-order',
                         'order',
+                        'order/cancel-all',
                         'user/change-lang',
                     ],
                 },
@@ -191,7 +195,7 @@ class kucoin (Exchange):
                 'price': 8,
             }
             active = market['trading']
-            result.append(self.extend(self.fees['trading'], {
+            result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -210,7 +214,7 @@ class kucoin (Exchange):
                         'max': None,
                     },
                 },
-            }))
+            })
         return result
 
     def fetch_currencies(self, params={}):
@@ -331,7 +335,9 @@ class kucoin (Exchange):
                 remaining = amount - filled
         side = self.safe_value(order, 'direction')
         if side is None:
-            side = order['type'].lower()
+            side = order['type']
+        if side is not None:
+            side = side.lower()
         fee = None
         if 'feeTotal' in order:
             fee = {
@@ -434,6 +440,21 @@ class kucoin (Exchange):
             'id': self.safe_string(response['data'], 'orderOid'),
         }
 
+    def cancel_orders(self, symbol=None, params={}):
+        # https://kucoinapidocs.docs.apiary.io/#reference/0/trading/cancel-all-orders
+        # docs say symbol is required, but it seems to be optional
+        # you can cancel all orders, or filter by symbol or type or both
+        request = {}
+        if symbol:
+            self.load_markets()
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        if 'type' in params:
+            request['type'] = params['type'].upper()
+            params = self.omit(params, 'type')
+        response = self.privatePostOrderCancelAll(self.extend(request, params))
+        return response
+
     def cancel_order(self, id, symbol=None, params={}):
         if not symbol:
             raise ExchangeError(self.id + ' cancelOrder requires a symbol')
@@ -445,6 +466,7 @@ class kucoin (Exchange):
         }
         if 'type' in params:
             request['type'] = params['type'].upper()
+            params = self.omit(params, 'type')
         else:
             raise ExchangeError(self.id + ' cancelOrder requires parameter type=["BUY"|"SELL"]')
         response = self.privatePostCancelOrder(self.extend(request, params))
@@ -557,21 +579,23 @@ class kucoin (Exchange):
                 limit = 52  # 52 weeks, 1 year
             minutes = 10080
         elif limit is None:
+            # last 1440 periods, whatever the duration of the period is
+            # for 1m it equals 1 day(24 hours)
+            # for 5m it equals 5 days
+            # ...
             limit = 1440
-            minutes = 1440
-            resolution = 'D'
-        start = end - minutes * 60 * limit
+        start = end - limit * minutes * 60
+        # if 'since' has been supplied by user
         if since is not None:
-            start = int(since / 1000)
-            end = self.sum(start, minutes * 60 * limit)
+            start = int(since / 1000)  # convert milliseconds to seconds
+            end = min(end, self.sum(start, limit * minutes * 60))
         request = {
             'symbol': market['id'],
-            'type': self.timeframes[timeframe],
             'resolution': resolution,
             'from': start,
             'to': end,
         }
-        response = self.kitchenGetOpenChartHistory(self.extend(request, params))
+        response = self.publicGetOpenChartHistory(self.extend(request, params))
         return self.parse_trading_view_ohlcvs(response, market, timeframe, since, limit)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
@@ -591,10 +615,7 @@ class kucoin (Exchange):
         endpoint = '/' + self.version + '/' + self.implode_params(path, params)
         url = self.urls['api'][api] + endpoint
         query = self.omit(params, self.extract_params(path))
-        if api == 'public':
-            if query:
-                url += '?' + self.urlencode(query)
-        else:
+        if api == 'private':
             self.check_required_credentials()
             # their nonce is always a calibrated synched milliseconds-timestamp
             nonce = self.milliseconds()
@@ -614,13 +635,24 @@ class kucoin (Exchange):
                 'KC-API-NONCE': nonce,
                 'KC-API-SIGNATURE': signature,
             }
+        else:
+            if query:
+                url += '?' + self.urlencode(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def throw_exception_on_error(self, response):
-        # {success: False, code: "ERROR", msg: "Min price:100.0"}
-        # {success: True,  code: "OK",    msg: "Operation succeeded."}
+        #
+        # API endpoints return the following formats
+        #     {success: False, code: "ERROR", msg: "Min price:100.0"}
+        #     {success: True,  code: "OK",    msg: "Operation succeeded."}
+        #
+        # Web OHLCV endpoint returns self:
+        #     {s: "ok", o: [], h: [], l: [], c: [], v: []}
+        #
+        # This particular method handles API responses only
+        #
         if not('success' in list(response.keys())):
-            raise ExchangeError(self.id + ': malformed response: ' + self.json(response))
+            return
         if response['success'] is True:
             return  # not an error
         if not('code' in list(response.keys())) or not('msg' in list(response.keys())):

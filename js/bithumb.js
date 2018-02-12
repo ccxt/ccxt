@@ -78,7 +78,7 @@ module.exports = class bithumb extends Exchange {
                 let base = id;
                 let quote = 'KRW';
                 let symbol = id + '/' + quote;
-                result.push (this.extend (this.fees['trading'], {
+                result.push ({
                     'id': id,
                     'symbol': symbol,
                     'base': base,
@@ -104,7 +104,7 @@ module.exports = class bithumb extends Exchange {
                             'max': undefined,
                         },
                     },
-                }));
+                });
             }
         }
         return result;

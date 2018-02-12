@@ -23,6 +23,7 @@ class cex (Exchange):
                 'fetchTickers': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
+                'fetchOrders': True,
             },
             'timeframes': {
                 '1m': '1m',

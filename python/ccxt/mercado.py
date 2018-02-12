@@ -20,6 +20,7 @@ class mercado (Exchange):
             'has': {
                 'CORS': True,
                 'createMarketOrder': False,
+                'fetchOrder': True,
                 'withdraw': True,
             },
             'urls': {

@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.10.1006';
+$version = '1.10.1094';
 
 abstract class Exchange {
 
@@ -56,6 +56,7 @@ abstract class Exchange {
         'bitstamp',
         'bitstamp1',
         'bittrex',
+        'bitz',
         'bl3p',
         'bleutrade',
         'braziliex',
@@ -522,6 +523,15 @@ abstract class Exchange {
 
         $this->options     = array (); // exchange-specific options if any
 
+        $this->skipJsonOnStatusCodes = false; // TODO: reserved, rewrite the curl routine to parse JSON body anyway
+
+        $this->name      = null;
+        $this->countries = null;
+        $this->version   = null;
+        $this->urls      = array ();
+        $this->api       = array ();
+        $this->comment   = null;
+
         $this->markets     = null;
         $this->symbols     = null;
         $this->ids         = null;
@@ -583,6 +593,7 @@ abstract class Exchange {
         // API methods metainfo
         $this->has = array (
             'cancelOrder' => $this->hasPrivateAPI,
+            'cancelOrders' => false,
             'createDepositAddress' => false,
             'createOrder' => $this->hasPrivateAPI,
             'createMarketOrder' => $this->hasPrivateAPI,
@@ -592,12 +603,14 @@ abstract class Exchange {
             'fetchClosedOrders' => false,
             'fetchCurrencies' => false,
             'fetchDepositAddress' => false,
+            'fetchL2OrderBook' => true,
             'fetchMarkets' => true,
             'fetchMyTrades' => false,
             'fetchOHLCV' => false,
             'fetchOpenOrders' => false,
             'fethcOrder' => false,
             'fethcOrderBook' => true,
+            'fetchOrderBooks' => false,
             'fetchOrders' => false,
             'fetchTicker' => true,
             'fetchTickers' => false,
@@ -617,7 +630,10 @@ abstract class Exchange {
 
         if ($options)
             foreach ($options as $key => $value)
-                $this->$key = $value;
+                $this->{$key} =
+                    (property_exists ($this, $key) && is_array ($this->{$key}) && is_array ($value)) ?
+                        array_replace_recursive ($this->{$key}, $value) :
+                        $value;
 
         if ($this->api)
             $this->define_rest_api ($this->api, 'request');
@@ -702,7 +718,7 @@ abstract class Exchange {
         $elapsed = $now - $this->lastRestRequestTimestamp;
         if ($elapsed < $this->rateLimit) {
             $delay = $this->rateLimit - $elapsed;
-            usleep ($delay * 1000.0);
+              usleep ((int)($delay * 1000.0));
         }
     }
 

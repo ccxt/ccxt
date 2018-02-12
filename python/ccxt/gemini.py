@@ -19,8 +19,16 @@ class gemini (Exchange):
             'rateLimit': 1500,  # 200 for private API
             'version': 'v1',
             'has': {
+                'fetchDepositAddress': False,
                 'CORS': False,
-                'createMarketOrder': False,
+                'fetchBidsAsks': False,
+                'fetchTickers': False,
+                'fetchOHLCV': False,
+                'fetchMyTrades': True,
+                'fetchOrder': False,
+                'fetchOrders': False,
+                'fetchOpenOrders': False,
+                'fetchClosedOrders': False,
                 'withdraw': True,
             },
             'urls': {
@@ -65,6 +73,11 @@ class gemini (Exchange):
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'taker': 0.0025,
+                },
+            },
         })
 
     def fetch_markets(self):
@@ -83,7 +96,6 @@ class gemini (Exchange):
                 'base': base,
                 'quote': quote,
                 'info': market,
-                'taker': 0.0025,
             })
         return result
 
@@ -126,16 +138,35 @@ class gemini (Exchange):
 
     def parse_trade(self, trade, market):
         timestamp = trade['timestampms']
+        order = None
+        if 'orderId' in trade:
+            order = str(trade['orderId'])
+        fee = self.safe_float(trade, 'fee_amount')
+        if fee is not None:
+            currency = self.safe_string(trade, 'fee_currency')
+            if currency is not None:
+                if currency in self.currencies_by_id:
+                    currency = self.currencies_by_id[currency]['code']
+                currency = self.common_currency_code(currency)
+            fee = {
+                'cost': float(trade['fee_amount']),
+                'currency': currency,
+            }
+        price = float(trade['price'])
+        amount = float(trade['amount'])
         return {
             'id': str(trade['tid']),
+            'order': order,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': market['symbol'],
             'type': None,
             'side': trade['type'],
-            'price': float(trade['price']),
-            'amount': float(trade['amount']),
+            'price': price,
+            'cost': price * amount,
+            'amount': amount,
+            'fee': fee,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):

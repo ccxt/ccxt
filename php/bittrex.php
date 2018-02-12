@@ -162,7 +162,7 @@ class bittrex extends Exchange {
                 'price' => 8,
             );
             $active = $market['IsActive'];
-            $result[] = array_merge ($this->fees['trading'], array (
+            $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
@@ -183,7 +183,7 @@ class bittrex extends Exchange {
                         'max' => null,
                     ),
                 ),
-            ));
+            );
         }
         return $result;
     }
@@ -235,7 +235,7 @@ class bittrex extends Exchange {
     }
 
     public function parse_ticker ($ticker, $market = null) {
-        $timestamp = $this->parse8601 ($ticker['TimeStamp']);
+        $timestamp = $this->parse8601 ($ticker['TimeStamp'] . '+00:00');
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
@@ -347,7 +347,7 @@ class bittrex extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $this->parse8601 ($trade['TimeStamp']);
+        $timestamp = $this->parse8601 ($trade['TimeStamp'] . '+00:00');
         $side = null;
         if ($trade['OrderType'] === 'BUY') {
             $side = 'buy';
@@ -384,7 +384,7 @@ class bittrex extends Exchange {
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1d', $since = null, $limit = null) {
-        $timestamp = $this->parse8601 ($ohlcv['T']);
+        $timestamp = $this->parse8601 ($ohlcv['T'] . '+00:00');
         return [
             $timestamp,
             $ohlcv['O'],
@@ -506,11 +506,11 @@ class bittrex extends Exchange {
             $symbol = $market['symbol'];
         $timestamp = null;
         if (is_array ($order) && array_key_exists ('Opened', $order))
-            $timestamp = $this->parse8601 ($order['Opened']);
+            $timestamp = $this->parse8601 ($order['Opened'] . '+00:00');
         if (is_array ($order) && array_key_exists ('TimeStamp', $order))
-            $timestamp = $this->parse8601 ($order['TimeStamp']);
+            $timestamp = $this->parse8601 ($order['TimeStamp'] . '+00:00');
         if (is_array ($order) && array_key_exists ('Created', $order))
-            $timestamp = $this->parse8601 ($order['Created']);
+            $timestamp = $this->parse8601 ($order['Created'] . '+00:00');
         $fee = null;
         $commission = null;
         if (is_array ($order) && array_key_exists ('Commission', $order)) {

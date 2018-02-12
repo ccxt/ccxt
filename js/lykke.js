@@ -18,6 +18,9 @@ module.exports = class lykke extends Exchange {
                 'CORS': false,
                 'fetchOHLCV': false,
                 'fetchTrades': false,
+                'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
+                'fetchOrders': true,
             },
             'requiredCredentials': {
                 'apiKey': true,
@@ -74,8 +77,8 @@ module.exports = class lykke extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'maker': 0.0010,
-                    'taker': 0.0019,
+                    'maker': 0.0, // as of 7 Feb 2018, see https://github.com/ccxt/ccxt/issues/1863
+                    'taker': 0.0, // https://www.lykke.com/cp/wallet-fees-and-limits
                 },
                 'funding': {
                     'tierBased': false,
@@ -150,7 +153,7 @@ module.exports = class lykke extends Exchange {
                 'amount': market['Accuracy'],
                 'price': market['InvertedAccuracy'],
             };
-            result.push (this.extend (this.fees['trading'], {
+            result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -169,7 +172,7 @@ module.exports = class lykke extends Exchange {
                         'max': Math.pow (10, precision['price']),
                     },
                 },
-            }));
+            });
         }
         return result;
     }

@@ -19,6 +19,7 @@ module.exports = class cex extends Exchange {
                 'fetchTickers': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
+                'fetchOrders': true,
             },
             'timeframes': {
                 '1m': '1m',

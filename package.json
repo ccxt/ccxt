@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.10.1006",
+  "version": "1.10.1094",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 90+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "build/ccxt.browser.js",
@@ -25,19 +25,21 @@
     "lint": "eslint",
     "check-python-syntax": "cd python && tox -e qa && cd ..",
     "check-php-syntax": "php -f php/test/syntax.php",
-    "check-js-syntax": "eslint \"js/[adei-km-uw-z]*.js\" js/bitfinex.js",
+    "check-js-syntax": "eslint \"js/[a-z]*.js\" js/bitfinex.js",
     "browserify": "browserify --debug ./ccxt.browser.js > ./build/ccxt.browser.js",
     "pandoc-python-readme": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=python/README.rst README.md",
     "pandoc-doc-readme": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/README.rst README.md",
     "pandoc-doc-manual": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/manual.rst ccxt.wiki/Manual.md",
     "pandoc-doc-install": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/install.rst ccxt.wiki/Install.md",
     "pandoc-doc-exchanges": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/exchanges.rst ccxt.wiki/Exchange-Markets.md",
-    "pandoc-doc-exchanges-by-country": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/exchanges-by-country.rst ccxt.wiki/Exchange-Markets-By-Country.md"
+    "pandoc-doc-exchanges-by-country": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/exchanges-by-country.rst ccxt.wiki/Exchange-Markets-By-Country.md",
+    "postinstall": "opencollective postinstall"
   },
   "types": "./ccxt.d.ts",
   "dependencies": {
     "crypto-js": "3.1.9-1",
     "fetch-ponyfill": "^4.1.0",
+    "opencollective": "^1.0.3",
     "qs": "6.5.1"
   },
   "devDependencies": {
@@ -282,5 +284,10 @@
     "YUNBI",
     "Zaif",
     "ZB"
-  ]
+  ],
+  "collective": {
+    "type": "opencollective",
+    "url": "https://opencollective.com/ccxt",
+    "logo": "https://opencollective.com/ccxt/logo.txt"
+  }
 }

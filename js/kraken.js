@@ -62,26 +62,26 @@ module.exports = class kraken extends Exchange {
                     'maker': 0.16 / 100,
                     'tiers': {
                         'taker': [
-                            [0, 0.26 / 100],
-                            [50000, 0.24 / 100],
-                            [100000, 0.22 / 100],
-                            [250000, 0.2 / 100],
-                            [500000, 0.18 / 100],
-                            [1000000, 0.16 / 100],
-                            [2500000, 0.14 / 100],
-                            [5000000, 0.12 / 100],
-                            [10000000, 0.1 / 100],
+                            [0, 0.0026],
+                            [50000, 0.0024],
+                            [100000, 0.0022],
+                            [250000, 0.0020],
+                            [500000, 0.0018],
+                            [1000000, 0.0016],
+                            [2500000, 0.0014],
+                            [5000000, 0.0012],
+                            [10000000, 0.0001],
                         ],
                         'maker': [
-                            [0, 0.16 / 100],
-                            [50000, 0.14 / 100],
-                            [100000, 0.12 / 100],
-                            [250000, 0.10 / 100],
-                            [500000, 0.8 / 100],
-                            [1000000, 0.6 / 100],
-                            [2500000, 0.4 / 100],
-                            [5000000, 0.2 / 100],
-                            [10000000, 0.0 / 100],
+                            [0, 0.0016],
+                            [50000, 0.0014],
+                            [100000, 0.0012],
+                            [250000, 0.0010],
+                            [500000, 0.0008],
+                            [1000000, 0.0006],
+                            [2500000, 0.0004],
+                            [5000000, 0.0002],
+                            [10000000, 0.0],
                         ],
                     },
                 },
@@ -372,12 +372,34 @@ module.exports = class kraken extends Exchange {
         return result;
     }
 
+    async fetchTradingFees (params = {}) {
+        await this.loadMarkets ();
+        this.checkRequiredCredentials ();
+        let response = await this.privatePostTradeVolume (params);
+        let tradedVolume = this.safeFloat (response['result'], 'volume');
+        let tiers = this.fees['trading']['tiers'];
+        let taker = tiers['taker'][1];
+        let maker = tiers['maker'][1];
+        for (let i = 0; i < tiers['taker'].length; i++) {
+            if (tradedVolume >= tiers['taker'][i][0])
+                taker = tiers['taker'][i][1];
+        }
+        for (let i = 0; i < tiers['maker'].length; i++) {
+            if (tradedVolume >= tiers['maker'][i][0])
+                maker = tiers['maker'][i][1];
+        }
+        return {
+            'info': response,
+            'maker': maker,
+            'taker': taker,
+        };
+    }
+
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let darkpool = symbol.indexOf ('.d') >= 0;
-        if (darkpool)
-            throw new ExchangeError (this.id + ' does not provide an order book for darkpool symbol ' + symbol);
         let market = this.market (symbol);
+        if (market['darkpool'])
+            throw new ExchangeError (this.id + ' does not provide an order book for darkpool symbol ' + symbol);
         let request = {
             'pair': market['id'],
         };
@@ -517,6 +539,9 @@ module.exports = class kraken extends Exchange {
             type = (trade[4] === 'l') ? 'limit' : 'market';
             price = parseFloat (trade[0]);
             amount = parseFloat (trade[1]);
+            let tradeLength = trade.length;
+            if (tradeLength > 6)
+                id = trade[6]; // artificially added as per #1794
         }
         let symbol = (market) ? market['symbol'] : undefined;
         return {
@@ -541,7 +566,16 @@ module.exports = class kraken extends Exchange {
         let response = await this.publicGetTrades (this.extend ({
             'pair': id,
         }, params));
-        let trades = response['result'][id];
+        // { result: {marketid: [...trades]}, last: "last_trade_id"}
+        let result = response['result'];
+        let trades = result[id];
+        // trades is a sorted array: last (most recent trade) goes last
+        let length = trades.length;
+        if (length <= 0)
+            return [];
+        let lastTrade = trades[length - 1];
+        let lastTradeId = this.safeString (result, 'last');
+        lastTrade.push (lastTradeId);
         return this.parseTrades (trades, market, since, limit);
     }
 

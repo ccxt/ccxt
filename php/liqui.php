@@ -18,6 +18,7 @@ class liqui extends Exchange {
             'has' => array (
                 'CORS' => false,
                 'createMarketOrder' => false,
+                'fetchOrderBooks' => true,
                 'fetchOrder' => true,
                 'fetchOrders' => 'emulated',
                 'fetchOpenOrders' => true,
@@ -158,7 +159,7 @@ class liqui extends Exchange {
             );
             $hidden = $this->safe_integer($market, 'hidden');
             $active = ($hidden === 0);
-            $result[] = array_merge ($this->fees['trading'], array (
+            $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
@@ -169,7 +170,7 @@ class liqui extends Exchange {
                 'precision' => $precision,
                 'limits' => $limits,
                 'info' => $market,
-            ));
+            );
         }
         return $result;
     }
@@ -220,6 +221,37 @@ class liqui extends Exchange {
         return $result;
     }
 
+    public function fetch_order_books ($symbols = null, $params = array ()) {
+        $this->load_markets();
+        $ids = null;
+        if (!$symbols) {
+            $ids = implode ('-', $this->ids);
+            // max URL length is 2083 $symbols, including http schema, hostname, tld, etc...
+            if (strlen ($ids) > 2048) {
+                $numIds = is_array ($this->ids) ? count ($this->ids) : 0;
+                throw new ExchangeError ($this->id . ' has ' . (string) $numIds . ' $symbols exceeding max URL length, you are required to specify a list of $symbols in the first argument to fetchOrderBooks');
+            }
+        } else {
+            $ids = $this->market_ids($symbols);
+            $ids = implode ('-', $ids);
+        }
+        $response = $this->publicGetDepthPair (array_merge (array (
+            'pair' => $ids,
+        ), $params));
+        $result = array ();
+        $ids = is_array ($response) ? array_keys ($response) : array ();
+        for ($i = 0; $i < count ($ids); $i++) {
+            $id = $ids[$i];
+            $symbol = $id;
+            if (is_array ($this->marketsById) && array_key_exists ($id, $this->marketsById)) {
+                $market = $this->marketsById[$id];
+                $symbol = $market['symbol'];
+            }
+            $result[$symbol] = $this->parse_order_book($response[$id]);
+        }
+        return $result;
+    }
+
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = $ticker['updated'] * 1000;
         $symbol = null;
@@ -251,11 +283,9 @@ class liqui extends Exchange {
         $this->load_markets();
         $ids = null;
         if (!$symbols) {
-            // $numIds = is_array ($this->ids) ? count ($this->ids) : 0;
-            // if ($numIds > 256)
-            //     throw new ExchangeError ($this->id . ' fetchTickers() requires $symbols argument');
             $ids = implode ('-', $this->ids);
-            if (strlen ($ids) > 2083) {
+            // max URL length is 2083 $symbols, including http schema, hostname, tld, etc...
+            if (strlen ($ids) > 2048) {
                 $numIds = is_array ($this->ids) ? count ($this->ids) : 0;
                 throw new ExchangeError ($this->id . ' has ' . (string) $numIds . ' $symbols exceeding max URL length, you are required to specify a list of $symbols in the first argument to fetchTickers');
             }
@@ -481,6 +511,44 @@ class liqui extends Exchange {
         return $this->orders[$id];
     }
 
+    public function update_cached_orders ($openOrders, $symbol) {
+        // update local cache with open orders
+        for ($j = 0; $j < count ($openOrders); $j++) {
+            $id = $openOrders[$j]['id'];
+            $this->orders[$id] = $openOrders[$j];
+        }
+        $openOrdersIndexedById = $this->index_by($openOrders, 'id');
+        $cachedOrderIds = is_array ($this->orders) ? array_keys ($this->orders) : array ();
+        for ($k = 0; $k < count ($cachedOrderIds); $k++) {
+            // match each cached $order to an $order in the open orders array
+            // possible reasons why a cached $order may be missing in the open orders array:
+            // - $order was closed or canceled -> update cache
+            // - $symbol mismatch (e.g. cached BTC/USDT, fetched ETH/USDT) -> skip
+            $id = $cachedOrderIds[$k];
+            if (!(is_array ($openOrdersIndexedById) && array_key_exists ($id, $openOrdersIndexedById))) {
+                // cached $order is not in open orders array
+                $order = $this->orders[$id];
+                // if we fetched orders by $symbol and it doesn't match the cached $order -> won't update the cached $order
+                if ($symbol !== null && $symbol !== $order['symbol'])
+                    continue;
+                // $order is cached but not present in the list of open orders -> mark the cached $order as closed
+                if ($order['status'] === 'open') {
+                    $order = array_merge ($order, array (
+                        'status' => 'closed', // likewise it might have been canceled externally (unnoticed by "us")
+                        'cost' => null,
+                        'filled' => $order['amount'],
+                        'remaining' => 0.0,
+                    ));
+                    if ($order['cost'] == null) {
+                        if ($order['filled'] != null)
+                            $order['cost'] = $order['filled'] * $order['price'];
+                    }
+                    $this->orders[$id] = $order;
+                }
+            }
+        }
+    }
+
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         // if (!$symbol)
         //     throw new ExchangeError ($this->id . ' fetchOrders requires a symbol');
@@ -492,38 +560,12 @@ class liqui extends Exchange {
             $request['pair'] = $market['id'];
         }
         $response = $this->privatePostActiveOrders (array_merge ($request, $params));
+        // liqui etc can only return 'open' orders (i.e. no way to fetch 'closed' orders)
         $openOrders = array ();
         if (is_array ($response) && array_key_exists ('return', $response))
             $openOrders = $this->parse_orders($response['return'], $market);
-        for ($j = 0; $j < count ($openOrders); $j++) {
-            $this->orders[$openOrders[$j]['id']] = $openOrders[$j];
-        }
-        $openOrdersIndexedById = $this->index_by($openOrders, 'id');
-        $cachedOrderIds = is_array ($this->orders) ? array_keys ($this->orders) : array ();
-        $result = array ();
-        for ($k = 0; $k < count ($cachedOrderIds); $k++) {
-            $id = $cachedOrderIds[$k];
-            if (is_array ($openOrdersIndexedById) && array_key_exists ($id, $openOrdersIndexedById)) {
-                $this->orders[$id] = array_merge ($this->orders[$id], $openOrdersIndexedById[$id]);
-            } else {
-                $order = $this->orders[$id];
-                if ($order['status'] === 'open') {
-                    $this->orders[$id] = array_merge ($order, array (
-                        'status' => 'closed',
-                        'cost' => $order['amount'] * $order['price'],
-                        'filled' => $order['amount'],
-                        'remaining' => 0.0,
-                    ));
-                }
-            }
-            $order = $this->orders[$id];
-            if ($symbol) {
-                if ($order['symbol'] === $symbol)
-                    $result[] = $order;
-            } else {
-                $result[] = $order;
-            }
-        }
+        $this->update_cached_orders ($openOrders, $symbol);
+        $result = $this->filter_orders_by_symbol($this->orders, $symbol);
         return $this->filter_by_since_limit($result, $since, $limit);
     }
 
@@ -551,13 +593,13 @@ class liqui extends Exchange {
         $this->load_markets();
         $market = null;
         $request = array (
-            // 'from' => 123456789, // trade ID, from which the display starts numerical 0
+            // 'from' => 123456789, // trade ID, from which the display starts numerical 0 (test result => liqui ignores this field)
             // 'count' => 1000, // the number of $trades for display numerical, default = 1000
             // 'from_id' => trade ID, from which the display starts numerical 0
             // 'end_id' => trade ID on which the display ends numerical ∞
-            // 'order' => 'ASC', // sorting, default = DESC
-            // 'since' => 1234567890, // UTC start time, default = 0
-            // 'end' => 1234567890, // UTC end time, default = ∞
+            // 'order' => 'ASC', // sorting, default = DESC (test result => liqui ignores this field, most recent trade always goes last)
+            // 'since' => 1234567890, // UTC start time, default = 0 (test result => liqui ignores this field)
+            // 'end' => 1234567890, // UTC end time, default = ∞ (test result => liqui ignores this field)
             // 'pair' => 'eth_btc', // default = all markets
         );
         if ($symbol !== null) {
