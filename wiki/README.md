@@ -42,6 +42,7 @@ Welcome to the ccxt wiki!
     - [Querying Account Balance](https://github.com/ccxt/ccxt/wiki/Manual#querying-account-balance)
     - [Orders](https://github.com/ccxt/ccxt/wiki/Manual#orders)
       - [Querying Orders](https://github.com/ccxt/ccxt/wiki/Manual#querying-orders)
+        - [`.orders` Cache](https://github.com/ccxt-dev/ccxt/wiki/Manual#orders-cache)
         - [By Order Id](https://github.com/ccxt-dev/ccxt/wiki/Manual#by-order-id)
         - [All Orders](https://github.com/ccxt-dev/ccxt/wiki/Manual#all-orders)
         - [Open Orders](https://github.com/ccxt-dev/ccxt/wiki/Manual#open-orders)
