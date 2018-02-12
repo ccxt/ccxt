@@ -5,6 +5,7 @@
 
 from ccxt.async.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import NotSupported
 
 
 class _1broker (Exchange):
@@ -148,7 +149,7 @@ class _1broker (Exchange):
         }
 
     async def fetch_trades(self, symbol):
-        raise ExchangeError(self.id + ' fetchTrades() method not implemented yet')
+        raise NotSupported(self.id + ' fetchTrades() method not implemented yet')
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()

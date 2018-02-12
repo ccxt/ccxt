@@ -14,6 +14,7 @@ except NameError:
 import math
 import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import AuthenticationError
 
 
@@ -440,7 +441,7 @@ class bitstamp (Exchange):
     async def withdraw(self, code, amount, address, tag=None, params={}):
         isFiat = self.is_fiat(code)
         if isFiat:
-            raise ExchangeError(self.id + ' fiat withdraw() for ' + code + ' is not implemented yet')
+            raise NotSupported(self.id + ' fiat withdraw() for ' + code + ' is not implemented yet')
         name = self.get_currency_name(code)
         request = {
             'amount': amount,

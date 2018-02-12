@@ -137,7 +137,7 @@ class coinspot extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        throw new ExchangeError ($this->id . ' cancelOrder () is not fully implemented yet');
+        throw new NotSupported ($this->id . ' cancelOrder () is not fully implemented yet');
         // $method = 'privatePostMyBuy';
         // return $this->$method (array ( 'id' => $id ));
     }

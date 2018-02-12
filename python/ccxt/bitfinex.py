@@ -293,7 +293,7 @@ class bitfinex (Exchange):
         # fees = self.fetch_funding_fees()
         # funding = self.deep_extend(funding, fees)
         # return funding
-        raise NotImplemented(self.id + ' loadFees() not implemented yet')
+        raise NotSupported(self.id + ' loadFees() not implemented yet')
 
     def fetch_fees(self):
         fundingFees = self.fetch_funding_fees()
