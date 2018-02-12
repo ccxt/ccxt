@@ -374,11 +374,15 @@ module.exports = class btcalpha extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             let payload = this.apiKey + query;
-            headers['Content-Type'] = 'application/x-www-form-urlencoded';
             headers['X-KEY'] = this.apiKey;
             headers['X-SIGN'] = this.hmac (this.encode (payload), this.encode (this.secret));
             headers['X-NONCE'] = this.nonce ();
-            body = query;
+            if (method === 'POST') {
+                headers['Content-Type'] = 'application/x-www-form-urlencoded';
+                body = query;
+            } else if (query.length) {
+                url += '?' + query;
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
