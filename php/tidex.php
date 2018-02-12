@@ -27,10 +27,10 @@ class tidex extends liqui {
                     'private' => 'https://api.tidex.com/tapi',
                 ),
                 'www' => 'https://tidex.com',
-                'doc' => 'https://tidex.com/public-api',
+                'doc' => 'https://tidex.com/exchange/public-api',
                 'fees' => array (
-                    'https://tidex.com/assets-spec',
-                    'https://tidex.com/pairs-spec',
+                    'https://tidex.com/exchange/assets-spec',
+                    'https://tidex.com/exchange/pairs-spec',
                 ),
             ),
             'api' => array (

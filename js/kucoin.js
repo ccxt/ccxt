@@ -18,6 +18,7 @@ module.exports = class kucoin extends Exchange {
             'userAgent': this.userAgents['chrome'],
             'has': {
                 'CORS': false,
+                'cancelOrders': true,
                 'createMarketOrder': false,
                 'fetchTickers': true,
                 'fetchOHLCV': true, // see the method implementation below
@@ -45,6 +46,7 @@ module.exports = class kucoin extends Exchange {
                     'public': 'https://api.kucoin.com',
                     'private': 'https://api.kucoin.com',
                     'kitchen': 'https://kitchen.kucoin.com',
+                    'kitchen-2': 'https://kitchen-2.kucoin.com',
                 },
                 'www': 'https://kucoin.com',
                 'doc': 'https://kucoinapidocs.docs.apiary.io',
@@ -94,8 +96,10 @@ module.exports = class kucoin extends Exchange {
                     'post': [
                         'account/{coin}/withdraw/apply',
                         'account/{coin}/withdraw/cancel',
+                        'account/promotion/draw',
                         'cancel-order',
                         'order',
+                        'order/cancel-all',
                         'user/change-lang',
                     ],
                 },
@@ -182,7 +186,7 @@ module.exports = class kucoin extends Exchange {
                 'price': 8,
             };
             let active = market['trading'];
-            result.push (this.extend (this.fees['trading'], {
+            result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -201,7 +205,7 @@ module.exports = class kucoin extends Exchange {
                         'max': undefined,
                     },
                 },
-            }));
+            });
         }
         return result;
     }
@@ -335,7 +339,9 @@ module.exports = class kucoin extends Exchange {
         }
         let side = this.safeValue (order, 'direction');
         if (typeof side === 'undefined')
-            side = order['type'].toLowerCase ();
+            side = order['type'];
+        if (typeof side !== 'undefined')
+            side = side.toLowerCase ();
         let fee = undefined;
         if ('feeTotal' in order) {
             fee = {
@@ -447,6 +453,24 @@ module.exports = class kucoin extends Exchange {
         };
     }
 
+    async cancelOrders (symbol = undefined, params = {}) {
+        // https://kucoinapidocs.docs.apiary.io/#reference/0/trading/cancel-all-orders
+        // docs say symbol is required, but it seems to be optional
+        // you can cancel all orders, or filter by symbol or type or both
+        let request = {};
+        if (symbol) {
+            await this.loadMarkets ();
+            let market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if ('type' in params) {
+            request['type'] = params['type'].toUpperCase ();
+            params = this.omit (params, 'type');
+        }
+        let response = await this.privatePostOrderCancelAll (this.extend (request, params));
+        return response;
+    }
+
     async cancelOrder (id, symbol = undefined, params = {}) {
         if (!symbol)
             throw new ExchangeError (this.id + ' cancelOrder requires a symbol');
@@ -458,6 +482,7 @@ module.exports = class kucoin extends Exchange {
         };
         if ('type' in params) {
             request['type'] = params['type'].toUpperCase ();
+            params = this.omit (params, 'type');
         } else {
             throw new ExchangeError (this.id + ' cancelOrder requires parameter type=["BUY"|"SELL"]');
         }
@@ -582,23 +607,25 @@ module.exports = class kucoin extends Exchange {
                 limit = 52; // 52 weeks, 1 year
             minutes = 10080;
         } else if (typeof limit === 'undefined') {
+            // last 1440 periods, whatever the duration of the period is
+            // for 1m it equals 1 day (24 hours)
+            // for 5m it equals 5 days
+            // ...
             limit = 1440;
-            minutes = 1440;
-            resolution = 'D';
         }
-        let start = end - minutes * 60 * limit;
+        let start = end - limit * minutes * 60;
+        // if 'since' has been supplied by user
         if (typeof since !== 'undefined') {
-            start = parseInt (since / 1000);
-            end = this.sum (start, minutes * 60 * limit);
+            start = parseInt (since / 1000); // convert milliseconds to seconds
+            end = Math.min (end, this.sum (start, limit * minutes * 60));
         }
         let request = {
             'symbol': market['id'],
-            'type': this.timeframes[timeframe],
             'resolution': resolution,
             'from': start,
             'to': end,
         };
-        let response = await this.kitchenGetOpenChartHistory (this.extend (request, params));
+        let response = await this.publicGetOpenChartHistory (this.extend (request, params));
         return this.parseTradingViewOHLCVs (response, market, timeframe, since, limit);
     }
 
@@ -620,10 +647,7 @@ module.exports = class kucoin extends Exchange {
         let endpoint = '/' + this.version + '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + endpoint;
         let query = this.omit (params, this.extractParams (path));
-        if (api === 'public') {
-            if (Object.keys (query).length)
-                url += '?' + this.urlencode (query);
-        } else {
+        if (api === 'private') {
             this.checkRequiredCredentials ();
             // their nonce is always a calibrated synched milliseconds-timestamp
             let nonce = this.milliseconds ();
@@ -645,15 +669,26 @@ module.exports = class kucoin extends Exchange {
                 'KC-API-NONCE': nonce,
                 'KC-API-SIGNATURE': signature,
             };
+        } else {
+            if (Object.keys (query).length)
+                url += '?' + this.urlencode (query);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
     throwExceptionOnError (response) {
-        // { success: false, code: "ERROR", msg: "Min price:100.0" }
-        // { success: true,  code: "OK",    msg: "Operation succeeded." }
+        //
+        // API endpoints return the following formats
+        //     { success: false, code: "ERROR", msg: "Min price:100.0" }
+        //     { success: true,  code: "OK",    msg: "Operation succeeded." }
+        //
+        // Web OHLCV endpoint returns this:
+        //     { s: "ok", o: [], h: [], l: [], c: [], v: [] }
+        //
+        // This particular method handles API responses only
+        //
         if (!('success' in response))
-            throw new ExchangeError (this.id + ': malformed response: ' + this.json (response));
+            return;
         if (response['success'] === true)
             return; // not an error
         if (!('code' in response) || !('msg' in response))

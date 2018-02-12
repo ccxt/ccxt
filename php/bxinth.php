@@ -16,6 +16,7 @@ class bxinth extends Exchange {
             'has' => array (
                 'CORS' => false,
                 'fetchTickers' => true,
+                'fetchOpenOrders' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766412-567b1eb4-5ed7-11e7-94a8-ff6a3884f6c5.jpg',
@@ -228,6 +229,46 @@ class bxinth extends Exchange {
             'order_id' => $id,
             'pairing' => $pairing,
         ));
+    }
+
+    public function parse_order ($order, $market = null) {
+        $side = $this->safe_string($order, 'order_type');
+        $symbol = null;
+        if ($market === null) {
+            $marketId = $this->safe_string($order, 'pairing_id');
+            if ($marketId !== null)
+                if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
+                    $market = $this->markets_by_id[$marketId];
+        }
+        if ($market !== null)
+            $symbol = $market['symbol'];
+        $timestamp = $this->parse8601 ($order['date']);
+        $price = $this->safe_float($order, 'rate');
+        $amount = $this->safe_float($order, 'amount');
+        return array (
+            'info' => $order,
+            'id' => $order['order_id'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $symbol,
+            'type' => 'limit',
+            'side' => $side,
+            'price' => $price,
+            'amount' => $amount,
+        );
+    }
+
+    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = array ();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market ($symbol);
+            $request['pairing'] = $market['id'];
+        }
+        $response = $this->privatePostGetorders (array_merge ($request, $params));
+        $orders = $this->parse_orders($response['orders'], $market, $since, $limit);
+        return $this->filter_orders_by_symbol($orders, $symbol);
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

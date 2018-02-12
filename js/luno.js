@@ -265,7 +265,7 @@ module.exports = class luno extends Exchange {
             else
                 order['base_volume'] = amount;
         } else {
-            method += 'Order';
+            method += 'Postorder';
             order['volume'] = amount;
             order['price'] = price;
             if (side === 'buy')

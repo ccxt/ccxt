@@ -18,6 +18,7 @@ module.exports = class mercado extends Exchange {
             'has': {
                 'CORS': true,
                 'createMarketOrder': false,
+                'fetchOrder': true,
                 'withdraw': true,
             },
             'urls': {

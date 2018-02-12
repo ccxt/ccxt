@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, NotSupported } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -157,7 +157,7 @@ module.exports = class _1broker extends Exchange {
     }
 
     async fetchTrades (symbol) {
-        throw new ExchangeError (this.id + ' fetchTrades () method not implemented yet');
+        throw new NotSupported (this.id + ' fetchTrades () method not implemented yet');
     }
 
     async fetchTicker (symbol, params = {}) {

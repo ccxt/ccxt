@@ -372,8 +372,9 @@ proxies = [
 ]
 
 # prefer local testing keys to global keys
-keys_global = './keys.json'
-keys_local = './keys.local.json'
+keys_folder = os.path.dirname(root)
+keys_global = os.path.join(keys_folder, 'keys.json')
+keys_local = os.path.join(keys_folder, 'keys.local.json')
 keys_file = keys_local if os.path.exists(keys_local) else keys_global
 
 # load the api keys from config
@@ -435,4 +436,5 @@ async def main():
 # ------------------------------------------------------------------------------
 
 
-asyncio.get_event_loop().run_until_complete(main())
+if __name__ == '__main__':
+    asyncio.get_event_loop().run_until_complete(main())

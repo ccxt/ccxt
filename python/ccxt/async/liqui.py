@@ -34,6 +34,7 @@ class liqui (Exchange):
             'has': {
                 'CORS': False,
                 'createMarketOrder': False,
+                'fetchOrderBooks': True,
                 'fetchOrder': True,
                 'fetchOrders': 'emulated',
                 'fetchOpenOrders': True,
@@ -169,7 +170,7 @@ class liqui (Exchange):
             }
             hidden = self.safe_integer(market, 'hidden')
             active = (hidden == 0)
-            result.append(self.extend(self.fees['trading'], {
+            result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -180,7 +181,7 @@ class liqui (Exchange):
                 'precision': precision,
                 'limits': limits,
                 'info': market,
-            }))
+            })
         return result
 
     async def fetch_balance(self, params={}):
@@ -225,6 +226,32 @@ class liqui (Exchange):
         result['asks'] = self.sort_by(result['asks'], 0)
         return result
 
+    async def fetch_order_books(self, symbols=None, params={}):
+        await self.load_markets()
+        ids = None
+        if not symbols:
+            ids = '-'.join(self.ids)
+            # max URL length is 2083 symbols, including http schema, hostname, tld, etc...
+            if len(ids) > 2048:
+                numIds = len(self.ids)
+                raise ExchangeError(self.id + ' has ' + str(numIds) + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks')
+        else:
+            ids = self.market_ids(symbols)
+            ids = '-'.join(ids)
+        response = await self.publicGetDepthPair(self.extend({
+            'pair': ids,
+        }, params))
+        result = {}
+        ids = list(response.keys())
+        for i in range(0, len(ids)):
+            id = ids[i]
+            symbol = id
+            if id in self.marketsById:
+                market = self.marketsById[id]
+                symbol = market['symbol']
+            result[symbol] = self.parse_order_book(response[id])
+        return result
+
     def parse_ticker(self, ticker, market=None):
         timestamp = ticker['updated'] * 1000
         symbol = None
@@ -255,11 +282,9 @@ class liqui (Exchange):
         await self.load_markets()
         ids = None
         if not symbols:
-            # numIds = len(self.ids)
-            # if numIds > 256:
-            #     raise ExchangeError(self.id + ' fetchTickers() requires symbols argument')
             ids = '-'.join(self.ids)
-            if len(ids) > 2083:
+            # max URL length is 2083 symbols, including http schema, hostname, tld, etc...
+            if len(ids) > 2048:
                 numIds = len(self.ids)
                 raise ExchangeError(self.id + ' has ' + str(numIds) + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchTickers')
         else:
@@ -464,6 +489,38 @@ class liqui (Exchange):
         self.orders[id] = self.extend(oldOrder, newOrder)
         return self.orders[id]
 
+    def update_cached_orders(self, openOrders, symbol):
+        # update local cache with open orders
+        for j in range(0, len(openOrders)):
+            id = openOrders[j]['id']
+            self.orders[id] = openOrders[j]
+        openOrdersIndexedById = self.index_by(openOrders, 'id')
+        cachedOrderIds = list(self.orders.keys())
+        for k in range(0, len(cachedOrderIds)):
+            # match each cached order to an order in the open orders array
+            # possible reasons why a cached order may be missing in the open orders array:
+            # - order was closed or canceled -> update cache
+            # - symbol mismatch(e.g. cached BTC/USDT, fetched ETH/USDT) -> skip
+            id = cachedOrderIds[k]
+            if not(id in list(openOrdersIndexedById.keys())):
+                # cached order is not in open orders array
+                order = self.orders[id]
+                # if we fetched orders by symbol and it doesn't match the cached order -> won't update the cached order
+                if symbol is not None and symbol != order['symbol']:
+                    continue
+                # order is cached but not present in the list of open orders -> mark the cached order as closed
+                if order['status'] == 'open':
+                    order = self.extend(order, {
+                        'status': 'closed',  # likewise it might have been canceled externally(unnoticed by "us")
+                        'cost': None,
+                        'filled': order['amount'],
+                        'remaining': 0.0,
+                    })
+                    if order['cost'] is None:
+                        if order['filled'] is not None:
+                            order['cost'] = order['filled'] * order['price']
+                    self.orders[id] = order
+
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         # if not symbol:
         #     raise ExchangeError(self.id + ' fetchOrders requires a symbol')
@@ -474,33 +531,12 @@ class liqui (Exchange):
             market = self.market(symbol)
             request['pair'] = market['id']
         response = await self.privatePostActiveOrders(self.extend(request, params))
+        # liqui etc can only return 'open' orders(i.e. no way to fetch 'closed' orders)
         openOrders = []
         if 'return' in response:
             openOrders = self.parse_orders(response['return'], market)
-        for j in range(0, len(openOrders)):
-            self.orders[openOrders[j]['id']] = openOrders[j]
-        openOrdersIndexedById = self.index_by(openOrders, 'id')
-        cachedOrderIds = list(self.orders.keys())
-        result = []
-        for k in range(0, len(cachedOrderIds)):
-            id = cachedOrderIds[k]
-            if id in openOrdersIndexedById:
-                self.orders[id] = self.extend(self.orders[id], openOrdersIndexedById[id])
-            else:
-                order = self.orders[id]
-                if order['status'] == 'open':
-                    self.orders[id] = self.extend(order, {
-                        'status': 'closed',
-                        'cost': order['amount'] * order['price'],
-                        'filled': order['amount'],
-                        'remaining': 0.0,
-                    })
-            order = self.orders[id]
-            if symbol:
-                if order['symbol'] == symbol:
-                    result.append(order)
-            else:
-                result.append(order)
+        self.update_cached_orders(openOrders, symbol)
+        result = self.filter_orders_by_symbol(self.orders, symbol)
         return self.filter_by_since_limit(result, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -523,13 +559,13 @@ class liqui (Exchange):
         await self.load_markets()
         market = None
         request = {
-            # 'from': 123456789,  # trade ID, from which the display starts numerical 0
+            # 'from': 123456789,  # trade ID, from which the display starts numerical 0(test result: liqui ignores self field)
             # 'count': 1000,  # the number of trades for display numerical, default = 1000
             # 'from_id': trade ID, from which the display starts numerical 0
             # 'end_id': trade ID on which the display ends numerical ∞
-            # 'order': 'ASC',  # sorting, default = DESC
-            # 'since': 1234567890,  # UTC start time, default = 0
-            # 'end': 1234567890,  # UTC end time, default = ∞
+            # 'order': 'ASC',  # sorting, default = DESC(test result: liqui ignores self field, most recent trade always goes last)
+            # 'since': 1234567890,  # UTC start time, default = 0(test result: liqui ignores self field)
+            # 'end': 1234567890,  # UTC end time, default = ∞(test result: liqui ignores self field)
             # 'pair': 'eth_btc',  # default = all markets
         }
         if symbol is not None:

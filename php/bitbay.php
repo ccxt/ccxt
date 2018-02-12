@@ -215,6 +215,8 @@ class bitbay extends Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        if ($type !== 'limit')
+            throw new ExchangeError ($this->id . ' allows limit orders only');
         $market = $this->market ($symbol);
         return $this->privatePostTrade (array_merge (array (
             'type' => $side,
@@ -298,6 +300,23 @@ class bitbay extends Exchange {
                 //      array ( 'success' => 1, ... )
                 //      array ( 'code' => 502, 'message' => 'Invalid sign' )
                 //      array ( 'code' => 0, 'message' => 'offer funds not exceeding minimums' )
+                //
+                //      400 At least one parameter wasn't set
+                //      401 Invalid order type
+                //      402 No orders with specified currencies
+                //      403 Invalid payment currency name
+                //      404 Error. Wrong transaction type
+                //      405 Order with this id doesn't exist
+                //      406 No enough money or crypto
+                //      408 Invalid currency name
+                //      501 Invalid public key
+                //      502 Invalid sign
+                //      503 Invalid moment parameter. Request time doesn't match current server time
+                //      504 Invalid $method
+                //      505 Key has no permission for this action
+                //      506 Account locked. Please contact with customer service
+                //      509 The BIC/SWIFT is required for this currency
+                //      510 Invalid market name
                 //
                 $code = $response['code']; // always an integer
                 $feedback = $this->id . ' ' . $this->json ($response);

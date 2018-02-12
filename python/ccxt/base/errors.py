@@ -31,7 +31,6 @@ __all__ = [
     'ExchangeError',
     'NotSupported',
     'AuthenticationError',
-    'InvalidNonce',
     'InsufficientFunds',
     'InvalidOrder',
     'OrderNotFound',
@@ -40,6 +39,7 @@ __all__ = [
     'DDoSProtection',
     'RequestTimeout',
     'ExchangeNotAvailable',
+    'InvalidNonce',
 ]
 
 # -----------------------------------------------------------------------------
@@ -62,11 +62,6 @@ class NotSupported(ExchangeError):
 
 class AuthenticationError(ExchangeError):
     """Raised when API credentials are required but missing or wrong"""
-    pass
-
-
-class InvalidNonce(ExchangeError):
-    """Raised in case of a wrong or conflicting nonce number in private requests"""
     pass
 
 
@@ -112,6 +107,11 @@ class RequestTimeout(NetworkError):
 
 class ExchangeNotAvailable(NetworkError):
     """Raised if a reply from an exchange contains keywords related to maintenance or downtime"""
+    pass
+
+
+class InvalidNonce(NetworkError):
+    """Raised in case of a wrong or conflicting nonce number in private requests"""
     pass
 
 # =============================================================================

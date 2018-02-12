@@ -108,17 +108,9 @@ class bitfinex2 extends bitfinex {
                 'AVT/BTC' => array ( 'id' => 'tAVTBTC', 'symbol' => 'AVT/BTC', 'base' => 'AVT', 'quote' => 'BTC', 'baseId' => 'tAVT', 'quoteId' => 'tBTC' ),
                 'AVT/ETH' => array ( 'id' => 'tAVTETH', 'symbol' => 'AVT/ETH', 'base' => 'AVT', 'quote' => 'ETH', 'baseId' => 'tAVT', 'quoteId' => 'tETH' ),
                 'AVT/USD' => array ( 'id' => 'tAVTUSD', 'symbol' => 'AVT/USD', 'base' => 'AVT', 'quote' => 'USD', 'baseId' => 'tAVT', 'quoteId' => 'zUSD' ),
-                'CST_BCC/BTC' => array ( 'id' => 'tBCCBTC', 'symbol' => 'CST_BCC/BTC', 'base' => 'CST_BCC', 'quote' => 'BTC', 'baseId' => 'tBCC', 'quoteId' => 'tBTC' ),
-                'CST_BCC/USD' => array ( 'id' => 'tBCCUSD', 'symbol' => 'CST_BCC/USD', 'base' => 'CST_BCC', 'quote' => 'USD', 'baseId' => 'tBCC', 'quoteId' => 'zUSD' ),
                 'BCH/BTC' => array ( 'id' => 'tBCHBTC', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC', 'baseId' => 'tBCH', 'quoteId' => 'tBTC' ),
                 'BCH/ETH' => array ( 'id' => 'tBCHETH', 'symbol' => 'BCH/ETH', 'base' => 'BCH', 'quote' => 'ETH', 'baseId' => 'tBCH', 'quoteId' => 'tETH' ),
                 'BCH/USD' => array ( 'id' => 'tBCHUSD', 'symbol' => 'BCH/USD', 'base' => 'BCH', 'quote' => 'USD', 'baseId' => 'tBCH', 'quoteId' => 'zUSD' ),
-                'CST_BCU/BTC' => array ( 'id' => 'tBCUBTC', 'symbol' => 'CST_BCU/BTC', 'base' => 'CST_BCU', 'quote' => 'BTC', 'baseId' => 'tBCU', 'quoteId' => 'tBTC' ),
-                'CST_BCU/USD' => array ( 'id' => 'tBCUUSD', 'symbol' => 'CST_BCU/USD', 'base' => 'CST_BCU', 'quote' => 'USD', 'baseId' => 'tBCU', 'quoteId' => 'zUSD' ),
-                'BT1/BTC' => array ( 'id' => 'tBT1BTC', 'symbol' => 'BT1/BTC', 'base' => 'BT1', 'quote' => 'BTC', 'baseId' => 'tBT1', 'quoteId' => 'tBTC' ),
-                'BT1/USD' => array ( 'id' => 'tBT1USD', 'symbol' => 'BT1/USD', 'base' => 'BT1', 'quote' => 'USD', 'baseId' => 'tBT1', 'quoteId' => 'zUSD' ),
-                'BT2/BTC' => array ( 'id' => 'tBT2BTC', 'symbol' => 'BT2/BTC', 'base' => 'BT2', 'quote' => 'BTC', 'baseId' => 'tBT2', 'quoteId' => 'tBTC' ),
-                'BT2/USD' => array ( 'id' => 'tBT2USD', 'symbol' => 'BT2/USD', 'base' => 'BT2', 'quote' => 'USD', 'baseId' => 'tBT2', 'quoteId' => 'zUSD' ),
                 'BTC/USD' => array ( 'id' => 'tBTCUSD', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD', 'baseId' => 'tBTC', 'quoteId' => 'zUSD' ),
                 'BTC/EUR' => array ( 'id' => 'tBTCEUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', 'baseId' => 'tBTC', 'quoteId' => 'zEUR' ),
                 'BTG/BTC' => array ( 'id' => 'tBTGBTC', 'symbol' => 'BTG/BTC', 'base' => 'BTG', 'quote' => 'BTC', 'baseId' => 'tBTG', 'quoteId' => 'tBTC' ),
@@ -276,7 +268,10 @@ class bitfinex2 extends bitfinex {
         $result = array ( 'info' => $response );
         for ($b = 0; $b < count ($response); $b++) {
             $balance = $response[$b];
-            list ($accountType, $currency, $total, $interest, $available) = $balance;
+            $accountType = $balance[0];
+            $currency = $balance[1];
+            $total = $balance[2];
+            $available = $balance[4];
             if ($accountType === $balanceType) {
                 if ($currency[0] === 't')
                     $currency = mb_substr ($currency, 1);

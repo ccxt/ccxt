@@ -446,6 +446,7 @@ class huobipro (Exchange):
             }, query))
             auth = self.urlencode(request)
             # unfortunately, PHP demands double quotes for the escaped newline symbol
+            # eslint-disable-next-line quotes
             payload = "\n".join([method, self.hostname, url, auth])
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
             auth += '&' + self.urlencode({'Signature': signature})

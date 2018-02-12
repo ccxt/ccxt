@@ -75,6 +75,9 @@ const commonRegexes = [
     [ /\.groupBy\s/g, '.group_by'],
     [ /\.marketIds\s/g, '.market_ids'],
     [ /\.marketId\s/g, '.market_id'],
+    [ /\.fetchFundingFees\s/g, '.fetch_funding_fees'],
+    [ /\.fetchTradingFees\s/g, '.fetch_trading_fees'],
+    [ /\.fetchFees\s/g, '.fetch_fees'],
     [ /\.fetchL2OrderBook\s/g, '.fetch_l2_order_book'],
     [ /\.fetchOrderBook\s/g, '.fetch_order_book'],
     [ /\.fetchMyTrades\s/g, '.fetch_my_trades'],
@@ -94,6 +97,7 @@ const commonRegexes = [
     [ /\.feeToPrecision\s/g, '.fee_to_precision'],
     [ /\.costToPrecision\s/g, '.cost_to_precision'],
     [ /\.commonCurrencyCode\s/g, '.common_currency_code'],
+    [ /\.loadFees\s/g, '.load_fees'],
     [ /\.loadMarkets\s/g, '.load_markets'],
     [ /\.fetchMarkets\s/g, '.fetch_markets'],
     [ /\.appendInactiveMarkets\s/g, '.append_inactive_markets'],
@@ -114,6 +118,7 @@ const commonRegexes = [
 const pythonRegexes = [
 
         [ /Array\.isArray\s*\(([^\)]+)\)/g, 'isinstance($1, list)' ],
+        [ /([^\(\s]+)\s+instanceof\s+([^\)\s]+)/g, 'isinstance($1, $2)' ],
         [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2] is None' ],
         [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'undefined\'/g, '$1[$2] is not None' ],
         [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'undefined\'/g, '$1 is None' ],
@@ -214,7 +219,6 @@ const pythonRegexes = [
 
     const phpRegexes = [
         [ /\{([a-zA-Z0-9_]+?)\}/g, '<$1>' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
-
         [ /Array\.isArray\s*\(([^\)]+)\)/g, "gettype ($1) === 'array' && count (array_filter (array_keys ($1), 'is_string')) == 0" ],
         [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2] == null' ],
         [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'undefined\'/g, '$1[$2] != null' ],
@@ -250,7 +254,7 @@ const pythonRegexes = [
         [ /throw new Error \((.*)\)/g, 'throw new \\Exception ($1)' ],
         [ /throw new ([\S]+) \((.*)\)/g, 'throw new $1 ($2)' ],
         [ /throw ([\S]+)\;/g, 'throw $$$1;' ],
-        [ '(' + Object.keys (errors).join ('|') + ')([^\\s])', "'\\\\ccxt\\\\$1'$2" ],
+        [ '([^a-z]+) (' + Object.keys (errors).join ('|') + ')([^\\s])', "$1 '\\\\ccxt\\\\$2'$3" ],
         [ /\}\s+catch \(([\S]+)\) {/g, '} catch (Exception $$$1) {' ],
         [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(\<=|\>=|<|>)\s*(.*)\.length\s*\;([^\)]+)\)\s*{/g, 'for ($1 = $2; $1 $3 count ($4);$5) {' ],
         [ /([^\s]+)\.length\;/g, 'is_array ($1) ? count ($1) : 0;' ],
@@ -503,6 +507,12 @@ const pythonRegexes = [
                 match = match.trim ().split (', ')              // split the destructuring assignment by comma
                 match.forEach (x => variables.push (x.trim ())) // trim each variable name
                 variables.push (localVariablesMatches[1])       // add them to the list of local variables
+            }
+
+            let catchClauseRegex = /catch \(([^)]+)\)/g
+            let catchClauseMatches
+            while (catchClauseMatches = catchClauseRegex.exec (body)) {
+                variables.push (catchClauseMatches[1])
             }
 
             // append $ to all variables in the method (PHP syntax demands $ at the beginning of a variable name)

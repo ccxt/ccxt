@@ -349,6 +349,7 @@ module.exports = class btcmarkets extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
+            // eslint-disable-next-line quotes
             let auth = uri + "\n" + nonce + "\n";
             headers = {
                 'Content-Type': 'application/json',

@@ -6,6 +6,7 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import AuthenticationError
 
 
@@ -133,7 +134,7 @@ class coinspot (Exchange):
         return getattr(self, method)(self.extend(order, params))
 
     def cancel_order(self, id, symbol=None, params={}):
-        raise ExchangeError(self.id + ' cancelOrder() is not fully implemented yet')
+        raise NotSupported(self.id + ' cancelOrder() is not fully implemented yet')
         # method = 'privatePostMyBuy'
         # return getattr(self, method)({'id': id})
 

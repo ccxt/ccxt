@@ -25,6 +25,7 @@ module.exports = class binance extends Exchange {
                 'fetchOrder': true,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -75,6 +76,8 @@ module.exports = class binance extends Exchange {
                         'depositHistory',
                         'withdrawHistory',
                         'depositAddress',
+                        'accountStatus',
+                        'systemStatus',
                     ],
                 },
                 'v3': {
@@ -342,8 +345,9 @@ module.exports = class binance extends Exchange {
                 'price': market['quotePrecision'],
             };
             let active = (market['status'] === 'TRADING');
+            // lot size is deprecated as of 2018.02.06
             let lot = -1 * Math.log10 (precision['amount']);
-            let entry = this.extend (this.fees['trading'], {
+            let entry = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -351,16 +355,16 @@ module.exports = class binance extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
-                'lot': lot,
+                'lot': lot, // lot size is deprecated as of 2018.02.06
                 'active': active,
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': lot,
+                        'min': Math.pow (10, -precision['amount']),
                         'max': undefined,
                     },
                     'price': {
-                        'min': -1 * Math.log10 (precision['price']),
+                        'min': Math.pow (10, -precision['price']),
                         'max': undefined,
                     },
                     'cost': {
@@ -368,7 +372,7 @@ module.exports = class binance extends Exchange {
                         'max': undefined,
                     },
                 },
-            });
+            };
             if ('PRICE_FILTER' in filters) {
                 let filter = filters['PRICE_FILTER'];
                 entry['precision']['price'] = this.precisionFromString (filter['tickSize']);
@@ -380,7 +384,7 @@ module.exports = class binance extends Exchange {
             if ('LOT_SIZE' in filters) {
                 let filter = filters['LOT_SIZE'];
                 entry['precision']['amount'] = this.precisionFromString (filter['stepSize']);
-                entry['lot'] = parseFloat (filter['stepSize']);
+                entry['lot'] = parseFloat (filter['stepSize']); // lot size is deprecated as of 2018.02.06
                 entry['limits']['amount'] = {
                     'min': parseFloat (filter['minQty']),
                     'max': parseFloat (filter['maxQty']),
@@ -471,8 +475,8 @@ module.exports = class binance extends Exchange {
             'close': this.safeFloat (ticker, 'prevClosePrice'),
             'first': undefined,
             'last': this.safeFloat (ticker, 'lastPrice'),
-            'change': this.safeFloat (ticker, 'priceChangePercent'),
-            'percentage': undefined,
+            'change': this.safeFloat (ticker, 'priceChange'),
+            'percentage': this.safeFloat (ticker, 'priceChangePercent'),
             'average': undefined,
             'baseVolume': this.safeFloat (ticker, 'volume'),
             'quoteVolume': this.safeFloat (ticker, 'quoteVolume'),
@@ -735,18 +739,11 @@ module.exports = class binance extends Exchange {
             throw new ExchangeError (this.id + ' cancelOrder requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = undefined;
-        try {
-            response = await this.privateDeleteOrder (this.extend ({
-                'symbol': market['id'],
-                'orderId': parseInt (id),
-                // 'origClientOrderId': id,
-            }, params));
-        } catch (e) {
-            if (this.last_http_response.indexOf ('UNKNOWN_ORDER') >= 0)
-                throw new OrderNotFound (this.id + ' cancelOrder() error: ' + this.last_http_response);
-            throw e;
-        }
+        let response = await this.privateDeleteOrder (this.extend ({
+            'symbol': market['id'],
+            'orderId': parseInt (id),
+            // 'origClientOrderId': id,
+        }, params));
         return response;
     }
 

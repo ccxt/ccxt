@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.1006'
+__version__ = '1.10.1094'
 
 # -----------------------------------------------------------------------------
 
@@ -47,6 +47,7 @@ from ccxt.async.bitso import bitso                              # noqa: F401
 from ccxt.async.bitstamp import bitstamp                        # noqa: F401
 from ccxt.async.bitstamp1 import bitstamp1                      # noqa: F401
 from ccxt.async.bittrex import bittrex                          # noqa: F401
+from ccxt.async.bitz import bitz                                # noqa: F401
 from ccxt.async.bl3p import bl3p                                # noqa: F401
 from ccxt.async.bleutrade import bleutrade                      # noqa: F401
 from ccxt.async.braziliex import braziliex                      # noqa: F401
@@ -147,6 +148,7 @@ exchanges = [
     'bitstamp',
     'bitstamp1',
     'bittrex',
+    'bitz',
     'bl3p',
     'bleutrade',
     'braziliex',

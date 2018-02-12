@@ -256,12 +256,23 @@ class bitcoincoid (Exchange):
             market = self.market(symbol)
             request['pair'] = market['id']
         response = self.privatePostOpenOrders(self.extend(request, params))
-        # {success: 1, return: {orders: null}}
-        raw = response['return']['orders']
-        if not raw:
+        rawOrders = response['return']['orders']
+        # {success: 1, return: {orders: null}} if no orders
+        if not rawOrders:
             return []
-        orders = self.parse_orders(raw, market, since, limit)
-        return self.filter_orders_by_symbol(orders, symbol)
+        # {success: 1, return: {orders: [... objects]}} for orders fetched by symbol
+        if symbol is not None:
+            return self.parse_orders(rawOrders, market, since, limit)
+        # {success: 1, return: {orders: {marketid: [... objects]}}} if all orders are fetched
+        marketIds = list(rawOrders.keys())
+        exchangeOrders = []
+        for i in range(0, len(marketIds)):
+            marketId = marketIds[i]
+            marketOrders = rawOrders[marketId]
+            market = self.marketsById[marketId]
+            parsedOrders = self.parse_orders(marketOrders, market, since, limit)
+            exchangeOrders = self.array_concat(exchangeOrders, parsedOrders)
+        return exchangeOrders
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
