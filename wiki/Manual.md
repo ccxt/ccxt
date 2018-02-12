@@ -1601,7 +1601,7 @@ kraken.create_market_buy_order('BTC/USD', 1, {'trading_agreement': 'agree'})
 $hitbtc->create_order ('BTC/USD', 'limit', 'buy', 1, 3000, array ('clientOrderId' => '123'));
 ```
 
-### Cancelling Orders
+### Canceling Orders
 
 To cancel an existing order pass the order id to `cancelOrder (id, symbol, params) / cancel_order (id, symbol, params)` method. Note, that some exchanges require a second symbol parameter even to cancel a known order by id. The usage is shown in the following examples:
 
@@ -1620,7 +1620,7 @@ exchange.cancel_order ('1234567890') # replace with your order id here (a string
 $exchange->cancel_order ('1234567890'); // replace with your order id here (a string)
 ```
 
-#### Exceptions on order cancelling
+#### Exceptions on order canceling
 
 The `cancelOrder()` is usually used on open orders only. However, it may happen that your order gets executed (filled and closed)
 before your cancel-request comes in, so a cancel-request might hit an already-closed order.
