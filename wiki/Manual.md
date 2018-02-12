@@ -1281,6 +1281,8 @@ Authentication with all exchanges is handled automatically if provided with prop
 
 This process may differ from exchange to exchange. Some exchanges may want the signature in a different encoding, some of them vary in header and body param names and formats, but the general pattern is the same for all of them.
 
+**You should not share the same API keypair across multiple instances of an exchange running simultaneously, in separate scripts or in multiple threads. Using the same keypair from different instances simultaneously may cause all sorts of unexpected behaviour.**
+
 The authentication is already handled for you, so you don't need to perform any of those steps manually unless you are implementing a new exchange class. The only thing you need for trading is the actual API key pair.
 
 ## API Keys Setup
@@ -1483,19 +1485,24 @@ exchange.has = {
 
 The meanings of boolean `true` and `false` are obvious. A string value of `emulated` means that particular method is missing in the exchange API and ccxt will workaround that where possible by adding a caching layer, the `.orders` cache. The next section describes the inner workings of the `.orders` cache, one has to understand it to do order management with ccxt effectively.
 
-### .orders cache
+#### .orders cache
 
-Some exchanges do not have a method for fetching closed orders or all orders. They will  offer just the `fetchOpenOrders` method, sometimes they will are generous to offer a `fetchOrder` method. This means that they don't have any means of fetching the order history.
+Some exchanges do not have a method for fetching closed orders or all orders. They will offer just the `fetchOpenOrders` endpoint, sometimes they are also generous to offer a `fetchOrder` endpoint as well. This means that they don't have any methods for fetching the order history. The ccxt library will try to emulate the order history for the user by keeping the cached .orders property containing all orders issued within a particular exchange class instance.
 
-which means you can't query `closed` and `canceled` orders direct. For these exchanges, ccxt emulates `fetchOrder` and `fetchClosedOrders` methods.
+Whenever a user creates a new order or cancels an existing open order or does some other action that would alter the order status, the ccxt library will remember the entire order info in its cache. Upon a subsequent call to an emulated `fetchOrder`, `fetchOrders` or `fetchClosedOrders` method, the exchange instance will send a single request to fetchOpenOrders and will compare current fetched open orders with the orders stored in cache previously. The ccxt library will check each cached order and will try to match it with a correponding fetched open order. When the cached order isn't present in the open orders fetched from the exchange anymore, the library marks the cached order as `closed` (filled). The call to a `fetchOrder`, `fetchOrders`, `fetchClosedOrders` will then return the updated orders from `.orders` cache to the user.
 
-For the emulation to work `ccxt` tracks orders' statuses in its own order cache accessible through the `.orders` property. When you call order manipulation methods such as `create/cancel/editOrder` then order's status gets recorded into the cache.
+The same logic can be put shortly: *if a cached order is not found in fetched open orders it isn't open anymore, therefore, closed*. This makes the library capable of tracking the order status and order history even with exchanges that don't have that functionality in their API natively. This is true for all methods that query orders or manipulate (place, cancel or edit) orders in any way.
 
-When you then call `fetchOpenOrders` ccxt checks if it can find cached open orders in the exchange's response and if it can't it then marks this order in cache as 'closed' (i.e. fulfilled).
+In most cases the `.orders` cache will work transparently for the user. Most often the exchanges themselves have a sufficient set of methods. However, with some exchanges not having a complete API, the `.orders` cache has the following known limitations:
 
-It will work transparently for you in most cases, still if you access the same exchange's account through separate ccxt instances or do not pay [extra care](#error-handling) when handling order management exceptions the order cache may fall out of sync, in particular:
-- if an order's cancelation request bypass ccxt then on subsequent call to `fetchOpenOrders` it will erroneously mark the order as 'closed'
-- if `fetchOrder (id)` is emulated and you query an order id which is not currently 'open' (i.e. won't be returned by an exchange) and not in ccxt's cache then `OrderNotFound` will be thrown
+- If the user does not save the `.orders` cache between program runs and does not restore it upon launching a new run, the `.orders` cache will be lost, for obvious reasons. Therefore upon a call to fetchClosedOrders later on a different run, the exchange instance will return an empty list of orders. Without a properly restored cache a fresh new instance of the exchange won't be able to know anything about the orders that were closed and canceled (no history of orders).
+- If the API keypair is shared across multiple exchange instances (e.g. when the user accesses the same exchange account in a multithreaded environment or in simultaneously launched separate scripts). Each particular instance would not be able to know anything about the orders created or canceled by other instances. This means that the order cache is not shared, and, in general, the same API keypair should not be shared across multiple instances accessing the private API. Otherwise it will cause side-effects with nonces and cached data falling out of sync.
+- If the order was placed or canceled from outside of ccxt (on the exchange's website or by other means), the new order status won't arrive to the cache and ccxt won't be able to return it properly later.
+- If an order's cancelation request bypasses ccxt then the library will not be able to find the order in the list of open orders returned from a subsequent call to `fetchOpenOrders()`. Thus the library will mark the cached order with a `'closed'` status.
+- When `fetchOrder(id)` is emulated, the library will not be able to return a specific order, if it was not cached previously or if a change of the order' status was done bypassing ccxt. In that case the library will throw an `OrderNotFound` exception.
+- If an unhandled error leads to a crash of the application and the `.orders` cache isn't saved and restored upon restart, the cache will be lost. Handling the exceptions properly is the responsibility of the user. One has to pay **extra care** when implementing proper [**error handling](#error-handling), otherwise the `.orders` cache may fall out of sync.
+
+*Note: the order cache functionality is to be reworked soon to obtain the order statuses from private trades history, where available. This is a work in progress, aimed at adding full-features support for order fees. More about it here: https://github.com/ccxt/ccxt/issues/569*.
 
 #### By Order Id
 
@@ -1504,11 +1511,17 @@ To get the details of a particular order by its id, use the fetchOrder / fetch_o
 The signature of the fetchOrder/fetch_order method is as follows:
 
 ```JavaScript
-//  you can use the params argument for custom overrides
-exchange.fetchOrder (id, symbol = undefined, params = {})
+if (exchange.has['fetchOrder']) {
+    //  you can use the params argument for custom overrides
+    let order = await exchange.fetchOrder (id, symbol = undefined, params = {})
+}
 ```
 
-You can pass custom overrided key-values in additional params if needed. Below are examples of using the fetchOrder method to get order info from an authenticated exchange instance:
+**Some exchanges don't have an endpoint for fetching an order by id, ccxt will emulate it where possible.** For now it may still be missing here and there, as this is a work in progress.
+
+You can pass custom overrided key-values in the additional params argument to supply a specific order type, or some other setting if needed.
+
+Below are examples of using the fetchOrder method to get order info from an authenticated exchange instance:
 
 ```JavaScript
 // JavaScript
@@ -1520,40 +1533,51 @@ You can pass custom overrided key-values in additional params if needed. Below a
 
 ```Python
 # Python 2/3 (synchronous)
-order = exchange.fetch_order(id)
-print(order)
+if exchange.has['fetchOrder']:
+    order = exchange.fetch_order(id)
+    print(order)
 
 # Python 3.5+ asyncio (asynchronous)
 import asyncio
 import ccxt.async as ccxt
-order = asyncio.get_event_loop().run_until_complete(exchange.fetch_order(id))
-print(order)
+if exchange.has['fetchOrder']:
+    order = asyncio.get_event_loop().run_until_complete(exchange.fetch_order(id))
+    print(order)
 ```
 
 ```PHP
 // PHP
-$order = $exchange->fetch_order ($id);
-var_dump ($order);
+if ($exchange->has['fetchOrder']) {
+    $order = $exchange->fetch_order ($id);
+    var_dump ($order);
+}
 ```
 
 #### All Orders
 
 ```JavaScript
-exchange.fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {})
+if (exchange.has['fetchOrders'])
+    exchange.fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {})
 ```
+
+**Some exchanges don't have an endpoint for fetching all orders, ccxt will emulate it where possible.** For now it may still be missing here and there, as this is a work in progress.
 
 #### Open Orders
 
 ```JavaScript
-exchange.fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {})
+if (exchange.has['fetchOpenOrders'])
+    exchange.fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {})
 ```
 
 #### Closed Orders
 
 Do not confuse *closed orders* with *trades* aka *fills* ! An order can be closed (filled) with multiple opposing trades! So, a *closed order* is not the same as a *trade*. In general, the order does not have a `fee` at all, but each particular user trade does have `fee`, `cost` and other properties. However, many exchanges propagate those properties to the orders as well.
 
+**Some exchanges don't have an endpoint for fetching closed orders, ccxt will emulate it where possible.** For now it may still be missing here and there, as this is a work in progress.
+
 ```JavaScript
-exchange.fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {})
+if (exchange.has['fetchClosedOrders'])
+    exchange.fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {})
 ```
 
 ### Order Structure
