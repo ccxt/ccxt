@@ -701,7 +701,7 @@ var_dump ($bitfinex->markets['XRP/BTC']);
 
 Each exchange offers a set of API methods. Each method of the API is called an *endpoint*. Endpoints are HTTP URLs for querying various types of information. All endpoints return JSON in response to client requests.
 
-Usually, there is an endpoint for getting a list of markets from an exchange, an endpoint for retrieving an order book for a particular market, an endpoint for retrieving trade history, endpoints for placing and cancelling orders, for money deposit and withdrawal, etc... Basically every kind of action you could perform within a particular exchange has a separate endpoint URL offered by the API.
+Usually, there is an endpoint for getting a list of markets from an exchange, an endpoint for retrieving an order book for a particular market, an endpoint for retrieving trade history, endpoints for placing and canceling orders, for money deposit and withdrawal, etc... Basically every kind of action you could perform within a particular exchange has a separate endpoint URL offered by the API.
 
 Because the set of methods differs from exchange to exchange, the ccxt library implements the following:
 - a public and private API for all possible URLs and methods
@@ -1641,7 +1641,7 @@ For the emulation to work `ccxt` tracks orders' statuses in its own order cache 
 When you then call `fetchOpenOrders` ccxt checks if it can find cached open orders in the exchange's response and if it can't it then marks this order in cache as 'closed' (i.e. fulfilled).
 
 It will work transparently for you in most cases, still if you access the same exchange's account through separate ccxt instances or do not pay [extra care](#error-handling) when handling order management exceptions the order cache may fall out of sync, in particular:
-- if an order's cancellation request bypass ccxt then on subsequent call to `fetchOpenOrders` it will erroneously mark the order as 'closed'
+- if an order's cancelation request bypass ccxt then on subsequent call to `fetchOpenOrders` it will erroneously mark the order as 'closed'
 - if `fetchOrder (id)` is emulated and you query an order id which is not currently 'open' (i.e. won't be returned by an exchange) and not in ccxt's cache then `OrderNotFound` will be thrown
 
 
@@ -1886,7 +1886,7 @@ Below is an outline of exception inheritance hierarchy:
       - `incapsula`
     - `RequestTimeout`: The name literally says it all. This exception is raised when connection with the exchange fails or data is not fully received in a specified amount of time. This is controlled by the `timeout` option. When you receive this exception you actually don't know if it's request or response part failed (i.e. it might have been accepted by the server). Thus it's advised to handle this exception in the following manner:
       - for read-only requests: retry
-      - for `cancelOrder (id, symbol)` request: retry. If you order has been cancelled on the first try you'll get `OrderNotFound` exception this time. Do not call `fetch*Order(s)` at this stage, it may cause [order cache](#orders-cache) to fall out of sync.
+      - for `cancelOrder (id, symbol)` request: retry. If you order has been canceled on the first try you'll get `OrderNotFound` exception this time. Do not call `fetch*Order(s)` at this stage, it may cause [order cache](#orders-cache) to fall out of sync.
       - for `createOrder ()` requests: refresh state with `fetchOpenOrders` to check if you order has been created.
     - `ExchangeNotAvailable`: The ccxt library throws this error if it detects any of the following keywords in response:
       - `offline`
