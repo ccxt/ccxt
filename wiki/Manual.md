@@ -1949,10 +1949,10 @@ Below is an outline of exception inheritance hierarchy:
     - `DDoSProtection`: This exception is thrown whenever Cloudflare or Incapsula rate limiter restrictions are enforced per user or region/location. The ccxt library does a case-insensitive search in the response received from the exchange for one of the following keywords:
       - `cloudflare`
       - `incapsula`
-    - `RequestTimeout`: The name literally says it all. This exception is raised when connection with the exchange fails or data is not fully received in a specified amount of time. This is controlled by the `timeout` option. When you receive this exception you actually don't know if it's request or response part failed (i.e. it might have been accepted by the server). Thus it's advised to handle this exception in the following manner:
-      - for read-only requests: retry
-      - for `cancelOrder (id, symbol)` request: retry. If you order has been canceled on the first try you'll get `OrderNotFound` exception this time. Do not call `fetch*Order(s)` at this stage, it may cause [.orders cache](#orders-cache) to fall out of sync.
-      - for `createOrder ()` requests: refresh state with `fetchOpenOrders` to check if you order has been created.
+    - `RequestTimeout`: The name literally says it all. This exception is raised when the connection with the exchange fails or data is not fully received in a specified amount of time. This is controlled by the `timeout` option. When a `RequestTimeout` is raised, the user doesn't know the outcome a a request (whether it was accepted by the exchange server or not). Thus it's advised to handle this type of exception in the following manner:
+      - for fetching requests it is safe to retry the call
+      - for a request to `cancelOrder(id, symbol)` the user is required to retry the same call the second time. If the order in question has been canceled on the first try you'll get `OrderNotFound` exception upon the second attempt. If instead of a retry a user calls a `fetchOrder()`, `fetchOrders()`, `fetchOpenOrders()` or `fetchClosedOrders()` right away without a retry to call `cancelOrder()`, this may cause the [`.orders` cache](#orders-cache) to fall out of sync.
+      - if a request to `createOrder()` fails with a `RequestTimeout` the user should update the `.orders` cache with a call to `fetchOrder()`, `fetchOrders()`, `fetchOpenOrders()`, `fetchClosedOrders()` to check if the request to place the order has succeded (the order was placed) or failed completely. Note that the order could fail to reach the exchange or could have been rejected or filled and closed by the time of the second check.
     - `ExchangeNotAvailable`: The ccxt library throws this error if it detects any of the following keywords in response:
       - `offline`
       - `unavailable`
