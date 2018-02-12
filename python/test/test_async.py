@@ -13,7 +13,7 @@ from traceback import format_tb
 
 root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(root)
-os.chdir(os.path.dirname(root))
+global_root = os.path.dirname(root)
 
 # ------------------------------------------------------------------------------
 
@@ -373,8 +373,8 @@ proxies = [
 ]
 
 # prefer local testing keys to global keys
-keys_global = './keys.json'
-keys_local = './keys.local.json'
+keys_global = os.path.join(global_root, 'keys.json')
+keys_local = os.path.join(global_root, 'keys.local.json')
 keys_file = keys_local if os.path.exists(keys_local) else keys_global
 
 # load the api keys from config
