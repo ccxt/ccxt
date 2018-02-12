@@ -289,7 +289,7 @@ module.exports = class btcalpha extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.privatePostOrders (this.extend ({
+        let response = await this.privatePostOrder (this.extend ({
             'pair': market['id'],
             'type': side,
             'amount': amount,
@@ -352,7 +352,7 @@ module.exports = class btcalpha extends Exchange {
         }
         if (limit)
             request['limit'] = limit;
-        let trades = await this.privateGetTrades (this.extend (request, params));
+        let trades = await this.privateGetExchangesOwn (this.extend (request, params));
         return this.parseTrades (trades, undefined, since, limit);
     }
 
