@@ -279,7 +279,7 @@ module.exports = class xbtce extends Exchange {
         throw new NotSupported (this.id + ' fetchOHLCV is disabled by the exchange');
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}, timeInForce = undefined) {
         await this.loadMarkets ();
         if (type === 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');

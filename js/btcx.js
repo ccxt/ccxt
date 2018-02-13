@@ -130,7 +130,7 @@ module.exports = class btcx extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}, timeInForce = undefined) {
         let response = await this.privatePostTrade (this.extend ({
             'type': side.toUpperCase (),
             'market': this.marketId (symbol),

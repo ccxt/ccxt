@@ -413,7 +413,7 @@ module.exports = class bitfinex2 extends bitfinex {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}, timeInForce = undefined) {
         throw new NotSupported (this.id + ' createOrder not implemented yet');
     }
 

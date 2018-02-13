@@ -117,7 +117,7 @@ module.exports = class lykke extends Exchange {
         return await this.privatePostOrdersIdCancel ({ 'id': id });
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}, timeInForce = undefined) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let query = {

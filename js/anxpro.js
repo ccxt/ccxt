@@ -141,7 +141,7 @@ module.exports = class anxpro extends Exchange {
         throw new ExchangeError (this.id + ' switched off the trades endpoint, see their docs at http://docs.anxv2.apiary.io/reference/market-data/currencypairmoneytradefetch-disabled');
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}, timeInForce = undefined) {
         let market = this.market (symbol);
         let order = {
             'currency_pair': market['id'],

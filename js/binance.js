@@ -672,7 +672,7 @@ module.exports = class binance extends Exchange {
         return result;
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}, timeInForce = undefined) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let order = {
@@ -684,7 +684,7 @@ module.exports = class binance extends Exchange {
         if (type === 'limit') {
             order = this.extend (order, {
                 'price': this.priceToPrecision (symbol, price),
-                'timeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+                'timeInForce': (timeInForce === 'ioc') ? 'IOC' : 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
             });
         }
         let response = await this.privatePostOrder (this.extend (order, params));

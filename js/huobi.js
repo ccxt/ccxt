@@ -194,7 +194,7 @@ module.exports = class huobi extends Exchange {
         // return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}, timeInForce = undefined) {
         let market = this.market (symbol);
         let method = 'tradePost' + this.capitalize (side);
         let order = {

@@ -215,7 +215,7 @@ module.exports = class bitbay extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}, timeInForce = undefined) {
         if (type !== 'limit')
             throw new ExchangeError (this.id + ' allows limit orders only');
         let market = this.market (symbol);

@@ -172,7 +172,7 @@ module.exports = class bitstamp1 extends Exchange {
         return this.parseBalance (result);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}, timeInForce = undefined) {
         if (type !== 'limit')
             throw new ExchangeError (this.id + ' ' + this.version + ' accepts limit orders only');
         if (symbol !== 'BTC/USD')

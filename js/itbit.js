@@ -163,7 +163,7 @@ module.exports = class itbit extends Exchange {
         return this.milliseconds ();
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}, timeInForce = undefined) {
         if (type === 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
         let walletIdInParams = ('walletId' in params);
