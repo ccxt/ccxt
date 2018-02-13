@@ -12,6 +12,7 @@ const ccxt        = require ('../../ccxt.js')
     let total = 0
     let missing = 0
     let implemented = 0
+    let emulated = 0
 
     log (asTable (ccxt.exchanges.map (id => new ccxt[id]()).map (exchange => {
 
@@ -47,6 +48,9 @@ const ccxt        = require ('../../ccxt.js')
             if (!exchange.has[key]) {
                 capability = exchange.id.red.dim
                 missing += 1
+            } else if (exchange.has[key] === 'emulated') {
+                capability = exchange.id.yellow
+                emulated += 1
             } else {
                 capability = exchange.id.green
                 implemented += 1
@@ -58,6 +62,10 @@ const ccxt        = require ('../../ccxt.js')
         return result
     })))
 
-    log (implemented.toString ().green, 'implemented and', missing.toString ().red, 'missing methods of', total.toString ().yellow, 'methods it total')
+    log ('Methods:',
+        implemented.toString ().green, 'implemented,',
+        emulated.toString ().yellow, 'emulated,',
+        missing.toString ().red, 'missing,',
+        total.toString (), 'total')
 
 }) ()
