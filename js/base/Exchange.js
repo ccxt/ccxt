@@ -93,6 +93,9 @@ module.exports = class Exchange {
                 'fetchTickers': false,
                 'fetchTrades': true,
                 'withdraw': false,
+                'createTimeInForceOrder': {
+                    'gtc': false, 'ioc': false, 'fok': false,
+                },
             },
             'urls': {
                 'logo': undefined,
@@ -819,6 +822,10 @@ module.exports = class Exchange {
 
     createLimitOrder (symbol, ...args) {
         return this.createOrder (symbol, 'limit', ...args)
+    }
+
+    createTimeInForceOrder (symbol, ...args) {
+        throw new NotSupported (this.id + ' createTimeInForceOrder not supported yet');
     }
 
     createMarketOrder (symbol, ...args) {
