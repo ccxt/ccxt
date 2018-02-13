@@ -248,7 +248,6 @@ module.exports = class gdax extends Exchange {
         let iso8601 = undefined;
         if (typeof timestamp !== 'undefined')
             iso8601 = this.iso8601 (timestamp);
-        let side = (trade['side'] === 'buy') ? 'sell' : 'buy';
         let symbol = undefined;
         if (!market) {
             if ('product_id' in trade) {
@@ -278,7 +277,11 @@ module.exports = class gdax extends Exchange {
         };
         let type = undefined;
         let id = this.safeString (trade, 'trade_id');
+        let side = (trade['side'] === 'buy') ? 'sell' : 'buy';
         let orderId = this.safeString (trade, 'order_id');
+        // GDAX returns inverted side to fetchMyTrades vs fetchTrades
+        if (typeof orderId !== 'undefined')
+            side = (trade['side'] === 'buy') ? 'buy' : 'sell';
         return {
             'id': id,
             'order': orderId,
