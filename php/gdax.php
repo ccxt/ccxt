@@ -247,7 +247,7 @@ class gdax extends Exchange {
         $iso8601 = null;
         if ($timestamp !== null)
             $iso8601 = $this->iso8601 ($timestamp);
-        $side = ($trade['side'] === 'buy') ? 'sell' : 'buy';
+        $side = $trade['side'] === 'buy' ? 'buy' : 'sell';
         $symbol = null;
         if (!$market) {
             if (is_array ($trade) && array_key_exists ('product_id', $trade)) {
