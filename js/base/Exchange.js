@@ -460,20 +460,19 @@ module.exports = class Exchange {
             let jsonRequired = this.parseJsonResponse && !this.skipJsonOnStatusCodes.includes (response.status)
             let json = jsonRequired ? this.parseJson (response, responseBody, url, method) : undefined
 
-            let responseHeaders = undefined
-            if (typeof response.headers.raw === 'function') {
-                const rawHeaders = response.headers.raw ()
-                responseHeaders = Object.assign (... Object.keys (rawHeaders).map (k => ({ [k]: rawHeaders[k].join ('; ') })))
-                this.last_response_headers = responseHeaders
-            }
+            let responseHeaders = {}
+            response.headers.forEach ((value, key) => {
+                responseHeaders[key] = value;
+            })
 
+            this.last_response_headers = responseHeaders
             this.last_http_response = responseBody // FIXME: for those classes that haven't switched to handleErrors yet
             this.last_json_response = json         // FIXME: for those classes that haven't switched to handleErrors yet
 
             if (this.verbose)
                 console.log ("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, "\nResponse:\n", responseHeaders, "\n", responseBody, "\n")
 
-            const args = [ response.status, response.statusText, url, method, requestHeaders, responseBody, json ]
+            const args = [ response.status, response.statusText, url, method, responseHeaders, responseBody, json ]
             this.handleErrors (...args)
             this.defaultErrorHandler (response, responseBody, url, method)
 
