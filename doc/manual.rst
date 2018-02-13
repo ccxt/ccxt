@@ -1759,8 +1759,9 @@ Most of methods returning orders within ccxt unified API will usually yield an o
         'side':      'buy',          // 'buy', 'sell'
         'price':      0.06917684,    // float price in quote currency
         'amount':     1.5,           // ordered amount of base currency
-        'filled':     1.0,           // filled amount of base currency
-        'remaining':  0.5,           // remaining amount to fill
+        'filled':     1.1,           // filled amount of base currency
+        'remaining':  0.4,           // remaining amount to fill
+        'cost':       0.076094524,   // 'filled' * 'price'
         'trades':   [ ... ],         // a list of order trades/executions
         'fee':      {                // fee info, if available
             'currency': 'BTC',       // which currency the fee is (usually quote)
