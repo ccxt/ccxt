@@ -151,7 +151,7 @@ module.exports = class coinfloor extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}, timeInForce = undefined) {
         let order = { 'id': this.marketId (symbol) };
         let method = 'privatePostId' + this.capitalize (side);
         if (type === 'market') {

@@ -158,7 +158,7 @@ module.exports = class bl3p extends Exchange {
         return result;
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}, timeInForce = undefined) {
         let market = this.market (symbol);
         let order = {
             'market': market['id'],

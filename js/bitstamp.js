@@ -320,7 +320,7 @@ module.exports = class bitstamp extends Exchange {
         return this.parseBalance (result);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}, timeInForce = undefined) {
         await this.loadMarkets ();
         let method = 'privatePost' + this.capitalize (side);
         let order = {

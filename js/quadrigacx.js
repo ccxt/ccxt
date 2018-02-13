@@ -155,7 +155,7 @@ module.exports = class quadrigacx extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}, timeInForce = undefined) {
         let method = 'privatePost' + this.capitalize (side);
         let order = {
             'amount': amount,

@@ -294,7 +294,7 @@ module.exports = class bitlish extends Exchange {
         });
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}, timeInForce = undefined) {
         await this.loadMarkets ();
         let order = {
             'pair_id': this.marketId (symbol),

@@ -193,7 +193,7 @@ module.exports = class independentreserve extends Exchange {
         return this.parseTrades (response['Trades'], market, since, limit);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}, timeInForce = undefined) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let capitalizedOrderType = this.capitalize (type);

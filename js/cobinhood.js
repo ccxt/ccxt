@@ -403,7 +403,7 @@ module.exports = class cobinhood extends Exchange {
         };
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}, timeInForce = undefined) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         side = (side === 'sell' ? 'ask' : 'bid');

@@ -351,7 +351,7 @@ module.exports = class gatecoin extends Exchange {
         return this.parseOHLCVs (response['tickers'], market, timeframe, since, limit);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}, timeInForce = undefined) {
         await this.loadMarkets ();
         let order = {
             'Code': this.marketId (symbol),

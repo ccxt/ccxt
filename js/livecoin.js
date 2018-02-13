@@ -446,7 +446,7 @@ module.exports = class livecoin extends Exchange {
         return result;
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}, timeInForce = undefined) {
         await this.loadMarkets ();
         let method = 'privatePostExchange' + this.capitalize (side) + type;
         let market = this.market (symbol);

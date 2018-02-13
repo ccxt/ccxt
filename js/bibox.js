@@ -342,7 +342,7 @@ module.exports = class bibox extends Exchange {
         return this.parseBalance (result);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}, timeInForce = undefined) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let orderType = (type === 'limit') ? 2 : 1;

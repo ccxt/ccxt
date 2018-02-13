@@ -703,7 +703,7 @@ module.exports = class hitbtc extends Exchange {
         return this.parseTrades (response['trades'], market, since, limit);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}, timeInForce = undefined) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         // check if amount can be evenly divided into lots

@@ -265,7 +265,7 @@ module.exports = class exmo extends Exchange {
         return this.parseTrades (response[market['id']], market, since, limit);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}, timeInForce = undefined) {
         await this.loadMarkets ();
         let prefix = '';
         if (type === 'market')

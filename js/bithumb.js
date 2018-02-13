@@ -234,7 +234,7 @@ module.exports = class bithumb extends Exchange {
         return this.parseTrades (response['data'], market, since, limit);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}, timeInForce = undefined) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = undefined;

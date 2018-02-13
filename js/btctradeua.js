@@ -269,7 +269,7 @@ module.exports = class btctradeua extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}, timeInForce = undefined) {
         if (type === 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
         let market = this.market (symbol);

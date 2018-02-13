@@ -177,7 +177,7 @@ module.exports = class coincheck extends Exchange {
         throw new ExchangeError (this.id + ' ' + this.json (response));
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}, timeInForce = undefined) {
         let order = {
             'pair': this.marketId (symbol),
         };

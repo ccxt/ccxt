@@ -286,7 +286,7 @@ module.exports = class bitmarket extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}, timeInForce = undefined) {
         let response = await this.privatePostTrade (this.extend ({
             'market': this.marketId (symbol),
             'type': side,

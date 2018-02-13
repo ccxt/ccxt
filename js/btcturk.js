@@ -186,7 +186,7 @@ module.exports = class btcturk extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}, timeInForce = undefined) {
         let method = 'privatePost' + this.capitalize (side);
         let order = {
             'Type': (side === 'buy') ? 'BuyBtc' : 'SelBtc',

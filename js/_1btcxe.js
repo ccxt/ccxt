@@ -186,7 +186,7 @@ module.exports = class _1btcxe extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}, timeInForce = undefined) {
         let order = {
             'side': side,
             'type': type,

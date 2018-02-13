@@ -131,7 +131,7 @@ module.exports = class mixcoins extends Exchange {
         return this.parseTrades (response['result'], market, since, limit);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}, timeInForce = undefined) {
         let order = {
             'market': this.marketId (symbol),
             'op': side,

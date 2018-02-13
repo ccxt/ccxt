@@ -424,7 +424,7 @@ module.exports = class bittrex extends Exchange {
         return this.filterOrdersBySymbol (orders, symbol);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}, timeInForce = undefined) {
         if (type !== 'limit')
             throw new ExchangeError (this.id + ' allows limit orders only');
         await this.loadMarkets ();

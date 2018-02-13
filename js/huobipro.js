@@ -420,7 +420,7 @@ module.exports = class huobipro extends Exchange {
         return result;
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}, timeInForce = undefined) {
         await this.loadMarkets ();
         await this.loadAccounts ();
         let market = this.market (symbol);

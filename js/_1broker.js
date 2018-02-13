@@ -218,7 +218,7 @@ module.exports = class _1broker extends Exchange {
         return this.parseOHLCVs (result['response'], market, timeframe, since, limit);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}, timeInForce = undefined) {
         await this.loadMarkets ();
         let order = {
             'symbol': this.marketId (symbol),
