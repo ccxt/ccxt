@@ -338,7 +338,6 @@ async def test_exchange(exchange):
 async def try_all_proxies(exchange, proxies=['']):
     current_proxy = 0
     max_retries = len(proxies)
-    successes = [False] * max_retries
     # a special case for ccex
     if exchange.id == 'ccex' and max_retries > 1:
         current_proxy = 1
@@ -362,12 +361,10 @@ async def try_all_proxies(exchange, proxies=['']):
         except ccxt.ExchangeError as e:
             dump_error(yellow('[' + type(e).__name__ + ']'), str(e.args)[0:200])
         else:
-            successes[current_proxy] = True
-        succeeded = any(successes)
-        if succeeded:
-            return succeeded
-    return succeeded
-
+            # no exception
+            return True
+    # exception
+    return False
 # ------------------------------------------------------------------------------
 
 
