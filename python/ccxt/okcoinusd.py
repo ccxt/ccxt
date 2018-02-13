@@ -154,10 +154,11 @@ class okcoinusd (Exchange):
         result = []
         for i in range(0, len(markets)):
             id = markets[i]['symbol']
-            uppercase = id.upper()
-            baseId, quoteId = uppercase.split('_')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            baseId, quoteId = id.split('_')
+            baseIdUppercase = baseId.upper()
+            quoteIdUppercase = quoteId.upper()
+            base = self.common_currency_code(baseIdUppercase)
+            quote = self.common_currency_code(quoteIdUppercase)
             symbol = base + '/' + quote
             precision = {
                 'amount': markets[i]['maxSizeDigit'],
@@ -333,15 +334,15 @@ class okcoinusd (Exchange):
         response = self.privatePostUserinfo()
         balances = response['info']['funds']
         result = {'info': response}
-        currencies = list(self.currencies.keys())
-        for i in range(0, len(currencies)):
-            currency = currencies[i]
-            lowercase = currency.lower()
+        ids = list(self.currencies_by_id.keys())
+        for i in range(0, len(ids)):
+            id = ids[i]
+            code = self.currencies_by_id[id]['code']
             account = self.account()
-            account['free'] = self.safe_float(balances['free'], lowercase, 0.0)
-            account['used'] = self.safe_float(balances['freezed'], lowercase, 0.0)
+            account['free'] = self.safe_float(balances['free'], id, 0.0)
+            account['used'] = self.safe_float(balances['freezed'], id, 0.0)
             account['total'] = self.sum(account['free'], account['used'])
-            result[currency] = account
+            result[code] = account
         return self.parse_balance(result)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -545,13 +546,13 @@ class okcoinusd (Exchange):
         }, params))
         return self.filter_by(orders, 'status', 'closed')
 
-    def withdraw(self, currency, amount, address, tag=None, params={}):
+    def withdraw(self, code, amount, address, tag=None, params={}):
         self.load_markets()
-        lowercase = currency.lower() + '_usd'
+        currency = self.currency(code)
         # if amount < 0.01:
         #     raise ExchangeError(self.id + ' withdraw() requires amount > 0.01')
         request = {
-            'symbol': lowercase,
+            'symbol': currency['id'],
             'withdraw_address': address,
             'withdraw_amount': amount,
             'target': 'address',  # or okcn, okcom, okex

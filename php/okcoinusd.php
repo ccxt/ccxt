@@ -147,10 +147,11 @@ class okcoinusd extends Exchange {
         $result = array ();
         for ($i = 0; $i < count ($markets); $i++) {
             $id = $markets[$i]['symbol'];
-            $uppercase = strtoupper ($id);
-            list ($baseId, $quoteId) = explode ('_', $uppercase);
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            list ($baseId, $quoteId) = explode ('_', $id);
+            $baseIdUppercase = strtoupper ($baseId);
+            $quoteIdUppercase = strtoupper ($quoteId);
+            $base = $this->common_currency_code($baseIdUppercase);
+            $quote = $this->common_currency_code($quoteIdUppercase);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => $markets[$i]['maxSizeDigit'],
@@ -341,15 +342,15 @@ class okcoinusd extends Exchange {
         $response = $this->privatePostUserinfo ();
         $balances = $response['info']['funds'];
         $result = array ( 'info' => $response );
-        $currencies = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
-        for ($i = 0; $i < count ($currencies); $i++) {
-            $currency = $currencies[$i];
-            $lowercase = strtolower ($currency);
+        $ids = is_array ($this->currencies_by_id) ? array_keys ($this->currencies_by_id) : array ();
+        for ($i = 0; $i < count ($ids); $i++) {
+            $id = $ids[$i];
+            $code = $this->currencies_by_id[$id]['code'];
             $account = $this->account ();
-            $account['free'] = $this->safe_float($balances['free'], $lowercase, 0.0);
-            $account['used'] = $this->safe_float($balances['freezed'], $lowercase, 0.0);
+            $account['free'] = $this->safe_float($balances['free'], $id, 0.0);
+            $account['used'] = $this->safe_float($balances['freezed'], $id, 0.0);
             $account['total'] = $this->sum ($account['free'], $account['used']);
-            $result[$currency] = $account;
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
@@ -576,13 +577,13 @@ class okcoinusd extends Exchange {
         return $this->filter_by($orders, 'status', 'closed');
     }
 
-    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->load_markets();
-        $lowercase = strtolower ($currency) . '_usd';
+        $currency = $this->currency ($code);
         // if ($amount < 0.01)
         //     throw new ExchangeError ($this->id . ' withdraw() requires $amount > 0.01');
         $request = array (
-            'symbol' => $lowercase,
+            'symbol' => $currency['id'],
             'withdraw_address' => $address,
             'withdraw_amount' => $amount,
             'target' => 'address', // or okcn, okcom, okex
