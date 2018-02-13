@@ -764,29 +764,26 @@ module.exports = class binance extends Exchange {
     }
 
     commonCurrencyCode (currency) {
-        if (currency === 'YOYO')
-            return 'YOYOW';
-        if (currency === 'BCC')
-            return 'BCH';
+        const currencies = {
+            'YOYO': 'YOYOW',
+            'BCC': 'BCH',
+        };
+        if (currency in currencies)
+            return currencies[currency];
         return currency;
     }
 
-    currencyId (currency) {
-        if (currency === 'BCH')
-            return 'BCC';
-        return currency;
-    }
-
-    async fetchDepositAddress (currency, params = {}) {
+    async fetchDepositAddress (code, params = {}) {
+        let currency = this.currency (code);
         let response = await this.wapiGetDepositAddress (this.extend ({
-            'asset': this.currencyId (currency),
+            'asset': currency['id'],
         }, params));
         if ('success' in response) {
             if (response['success']) {
                 let address = this.safeString (response, 'address');
                 let tag = this.safeString (response, 'addressTag');
                 return {
-                    'currency': currency,
+                    'currency': code,
                     'address': address,
                     'tag': tag,
                     'status': 'ok',
@@ -797,10 +794,11 @@ module.exports = class binance extends Exchange {
         throw new ExchangeError (this.id + ' fetchDepositAddress failed: ' + this.last_http_response);
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        let currency = this.currency (code);
         let name = address.slice (0, 20);
         let request = {
-            'asset': this.currencyId (currency),
+            'asset': currency['id'],
             'address': address,
             'amount': parseFloat (amount),
             'name': name,
