@@ -254,7 +254,7 @@ class cobinhood (Exchange):
         if limit is not None:
             request['limit'] = limit  # 100
         response = self.publicGetMarketOrderbooksTradingPairId(self.extend(request, params))
-        return self.parse_order_book(response['result']['orderbook'])
+        return self.parse_order_book(response['result']['orderbook'], None, 'bids', 'asks', 0, 2)
 
     def parse_trade(self, trade, market=None):
         symbol = None
