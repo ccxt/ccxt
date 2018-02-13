@@ -247,7 +247,6 @@ class gdax extends Exchange {
         $iso8601 = null;
         if ($timestamp !== null)
             $iso8601 = $this->iso8601 ($timestamp);
-        $side = $trade['side'] === 'buy' ? 'buy' : 'sell';
         $symbol = null;
         if (!$market) {
             if (is_array ($trade) && array_key_exists ('product_id', $trade)) {
@@ -277,7 +276,11 @@ class gdax extends Exchange {
         );
         $type = null;
         $id = $this->safe_string($trade, 'trade_id');
+        $side = ($trade['side'] === 'buy') ? 'sell' : 'buy';
         $orderId = $this->safe_string($trade, 'order_id');
+        // GDAX returns inverted $side to fetchMyTrades vs fetchTrades
+        if ($orderId !== null)
+            $side = ($trade['side'] === 'buy') ? 'buy' : 'sell';
         return array (
             'id' => $id,
             'order' => $orderId,

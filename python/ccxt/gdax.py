@@ -247,7 +247,6 @@ class gdax (Exchange):
         iso8601 = None
         if timestamp is not None:
             iso8601 = self.iso8601(timestamp)
-        side = 'sell' if (trade['side'] == 'buy') else 'buy'
         symbol = None
         if not market:
             if 'product_id' in trade:
@@ -273,7 +272,11 @@ class gdax (Exchange):
         }
         type = None
         id = self.safe_string(trade, 'trade_id')
+        side = 'sell' if (trade['side'] == 'buy') else 'buy'
         orderId = self.safe_string(trade, 'order_id')
+        # GDAX returns inverted side to fetchMyTrades vs fetchTrades
+        if orderId is not None:
+            side = 'buy' if (trade['side'] == 'buy') else 'sell'
         return {
             'id': id,
             'order': orderId,

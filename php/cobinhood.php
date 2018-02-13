@@ -262,7 +262,7 @@ class cobinhood extends Exchange {
         if ($limit !== null)
             $request['limit'] = $limit; // 100
         $response = $this->publicGetMarketOrderbooksTradingPairId (array_merge ($request, $params));
-        return $this->parse_order_book($response['result']['orderbook']);
+        return $this->parse_order_book($response['result']['orderbook'], null, 'bids', 'asks', 0, 2);
     }
 
     public function parse_trade ($trade, $market = null) {
