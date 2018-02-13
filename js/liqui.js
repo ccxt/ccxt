@@ -508,7 +508,6 @@ module.exports = class liqui extends Exchange {
         return this.orders[id];
     }
 
-    // update cache and return array of all orders
     updateCachedOrders (openOrders, symbol) {
         // update local cache with open orders
         for (let j = 0; j < openOrders.length; j++) {
