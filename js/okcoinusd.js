@@ -148,10 +148,11 @@ module.exports = class okcoinusd extends Exchange {
         let result = [];
         for (let i = 0; i < markets.length; i++) {
             let id = markets[i]['symbol'];
-            let uppercase = id.toUpperCase ();
-            let [ baseId, quoteId ] = uppercase.split ('_');
-            let base = this.commonCurrencyCode (baseId);
-            let quote = this.commonCurrencyCode (quoteId);
+            let [ baseId, quoteId ] = id.split ('_');
+            let baseIdUppercase = baseId.toUpperCase ();
+            let quoteIdUppercase = quoteId.toUpperCase ();
+            let base = this.commonCurrencyCode (baseIdUppercase);
+            let quote = this.commonCurrencyCode (quoteIdUppercase);
             let symbol = base + '/' + quote;
             let precision = {
                 'amount': markets[i]['maxSizeDigit'],
@@ -342,15 +343,15 @@ module.exports = class okcoinusd extends Exchange {
         let response = await this.privatePostUserinfo ();
         let balances = response['info']['funds'];
         let result = { 'info': response };
-        let currencies = Object.keys (this.currencies);
-        for (let i = 0; i < currencies.length; i++) {
-            let currency = currencies[i];
-            let lowercase = currency.toLowerCase ();
+        let ids = Object.keys (this.currencies_by_id);
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
+            let code = this.currencies_by_id[id]['code'];
             let account = this.account ();
-            account['free'] = this.safeFloat (balances['free'], lowercase, 0.0);
-            account['used'] = this.safeFloat (balances['freezed'], lowercase, 0.0);
+            account['free'] = this.safeFloat (balances['free'], id, 0.0);
+            account['used'] = this.safeFloat (balances['freezed'], id, 0.0);
             account['total'] = this.sum (account['free'], account['used']);
-            result[currency] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
@@ -577,13 +578,13 @@ module.exports = class okcoinusd extends Exchange {
         return this.filterBy (orders, 'status', 'closed');
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
-        let lowercase = currency.toLowerCase () + '_usd';
+        let currency = this.currency (code);
         // if (amount < 0.01)
         //     throw new ExchangeError (this.id + ' withdraw() requires amount > 0.01');
         let request = {
-            'symbol': lowercase,
+            'symbol': currency['id'],
             'withdraw_address': address,
             'withdraw_amount': amount,
             'target': 'address', // or okcn, okcom, okex
