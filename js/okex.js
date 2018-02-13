@@ -36,6 +36,7 @@ module.exports = class okex extends okcoinusd {
         const currencies = {
             'FAIR': 'FairGame',
             'YOYO': 'YOYOW',
+            'NANO': 'XRB',
         };
         if (currency in currencies)
             return currencies[currency];
