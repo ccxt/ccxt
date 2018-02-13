@@ -36,6 +36,7 @@ import io
 import json
 import math
 from numbers import Number
+from pprint import pprint
 import re
 from requests import Session
 from requests.utils import default_user_agent
@@ -191,6 +192,7 @@ class Exchange(object):
     rateLimitUpdateTime = 0
     last_http_response = None
     last_json_response = None
+    last_response_headers = None
 
     def __init__(self, config={}):
 
@@ -337,11 +339,11 @@ class Exchange(object):
 
     def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
-        headers = self.prepare_request_headers(headers)
+        request_headers = self.prepare_request_headers(headers)
         url = self.proxy + url
 
         if self.verbose:
-            print(method, url, "\nRequest:", headers, "\n", body)
+            print(method, url, "\nRequest:", request_headers, "\n", body)
 
         if body:
             body = body.encode()
@@ -354,11 +356,12 @@ class Exchange(object):
                 method,
                 url,
                 data=body,
-                headers=headers,
+                headers=request_headers,
                 timeout=int(self.timeout / 1000),
                 proxies=self.proxies
             )
             self.last_http_response = response.text
+            self.last_response_headers = response.headers
             response.raise_for_status()
 
         except Timeout as e:
@@ -371,7 +374,7 @@ class Exchange(object):
             self.raise_error(ExchangeError, url, method, e)
 
         except HTTPError as e:
-            self.handle_errors(response.status_code, response.reason, url, method, None, self.last_http_response)
+            self.handle_errors(response.status_code, response.reason, url, method, self.last_response_headers, self.last_http_response)
             self.handle_rest_errors(e, response.status_code, self.last_http_response, url, method)
             self.raise_error(ExchangeError, url, method, e, self.last_http_response)
 
