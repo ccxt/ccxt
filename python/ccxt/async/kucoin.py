@@ -307,6 +307,8 @@ class kucoin (Exchange):
             price = self.safe_float(order, 'dealPrice')
         if price is None:
             price = self.safe_float(order, 'dealPriceAverage')
+        if price is None:
+            price = self.safe_float(order, 'orderPrice')
         remaining = self.safe_float(order, 'pendingAmount')
         status = self.safe_value(order, 'status')
         filled = self.safe_float(order, 'dealAmount')
@@ -333,6 +335,8 @@ class kucoin (Exchange):
                     amount = self.sum(filled, remaining)
             elif remaining is None:
                 remaining = amount - filled
+        if (status == 'open') and(cost is None):
+            cost = price * amount
         side = self.safe_value(order, 'direction')
         if side is None:
             side = order['type']
