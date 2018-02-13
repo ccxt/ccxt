@@ -767,6 +767,7 @@ module.exports = class binance extends Exchange {
         const currencies = {
             'YOYO': 'YOYOW',
             'BCC': 'BCH',
+            'NANO': 'XRB',
         };
         if (currency in currencies)
             return currencies[currency];
