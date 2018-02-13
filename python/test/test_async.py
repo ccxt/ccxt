@@ -335,11 +335,12 @@ async def test_exchange(exchange):
 # ------------------------------------------------------------------------------
 
 
-async def try_all_proxies(exchange, proxies):
+async def try_all_proxies(exchange, proxies=['']):
     current_proxy = 0
     max_retries = len(proxies)
+    successes = [False] * max_retries
     # a special case for ccex
-    if exchange.id == 'ccex':
+    if exchange.id == 'ccex' and max_retries > 1:
         current_proxy = 1
     for num_retries in range(0, max_retries):
         try:
@@ -348,7 +349,6 @@ async def try_all_proxies(exchange, proxies):
             current_proxy = (current_proxy + 1) % len(proxies)
             await load_exchange(exchange)
             await test_exchange(exchange)
-            break
         except ccxt.RequestTimeout as e:
             dump_error(yellow('[' + type(e).__name__ + ']'), str(e)[0:200])
         except ccxt.NotSupported as e:
@@ -361,6 +361,12 @@ async def try_all_proxies(exchange, proxies):
             dump_error(yellow('[' + type(e).__name__ + ']'), str(e)[0:200])
         except ccxt.ExchangeError as e:
             dump_error(yellow('[' + type(e).__name__ + ']'), str(e.args)[0:200])
+        else:
+            successes[current_proxy] = True
+        succeeded = any(successes)
+        if succeeded:
+            return succeeded
+    return succeeded
 
 # ------------------------------------------------------------------------------
 
