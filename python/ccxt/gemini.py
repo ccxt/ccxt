@@ -214,7 +214,7 @@ class gemini (Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        return self.privatePostCancelOrder({'order_id': id})
+        return self.privatePostOrderCancel({'order_id': id})
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:

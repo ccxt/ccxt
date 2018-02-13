@@ -222,7 +222,7 @@ class gemini extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->privatePostCancelOrder (array ( 'order_id' => $id ));
+        return $this->privatePostOrderCancel (array ( 'order_id' => $id ));
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
