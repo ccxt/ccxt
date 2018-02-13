@@ -445,6 +445,17 @@ module.exports = class bitfinex extends Exchange {
         let price = parseFloat (trade['price']);
         let amount = parseFloat (trade['amount']);
         let cost = price * amount;
+        let fee = undefined;
+        if ('fee_amount' in trade) {
+            let feeCost = this.safeFloat (trade, 'fee_amount');
+            let feeCurrency = this.safeString (trade, 'fee_currency');
+            if (feeCurrency in this.currencies_by_id)
+                feeCurrency = this.currencies_by_id[feeCurrency]['code'];
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            };
+        }
         return {
             'id': trade['tid'].toString (),
             'info': trade,
@@ -457,7 +468,7 @@ module.exports = class bitfinex extends Exchange {
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 
