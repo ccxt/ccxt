@@ -1087,6 +1087,9 @@ class Exchange(object):
     def create_limit_order(self, symbol, *args):
         return self.create_order(symbol, 'limit', *args)
 
+    def create_ioc_limit_order(self, symbol, *args):
+        raise NotSupported(self.id + ' create_ioc_limit_order() is not implemented yet')
+
     def create_market_order(self, symbol, *args):
         return self.create_order(symbol, 'market', *args)
 
@@ -1095,6 +1098,12 @@ class Exchange(object):
 
     def create_limit_sell_order(self, symbol, *args):
         return self.create_order(symbol, 'limit', 'sell', *args)
+
+    def create_ioc_limit_buy_order(self, symbol, *args):
+        return self.create_ioc_limit_order(symbol, 'buy', *args)
+
+    def create_ioc_limit_sell_order(self, symbol, *args):
+        return self.create_ioc_limit_order(symbol, 'sell', *args)
 
     def create_market_buy_order(self, symbol, amount, params={}):
         return self.create_order(symbol, 'market', 'buy', amount, None, params)

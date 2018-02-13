@@ -691,6 +691,12 @@ module.exports = class binance extends Exchange {
         return this.parseOrder (response);
     }
 
+    async createIOCLimitOrder (symbol, side, amount, price = undefined, params = {}) {
+        params['timeInForce'] = 'IOC';
+        let order = await this.createOrder (symbol, 'limit', side, amount, price, params);
+        return order;
+    }
+
     async fetchOrder (id, symbol = undefined, params = {}) {
         if (!symbol)
             throw new ExchangeError (this.id + ' fetchOrder requires a symbol param');
