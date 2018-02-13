@@ -496,15 +496,17 @@ class liqui (Exchange):
             self.orders[id] = openOrders[j]
         openOrdersIndexedById = self.index_by(openOrders, 'id')
         cachedOrderIds = list(self.orders.keys())
+        result = []
         for k in range(0, len(cachedOrderIds)):
             # match each cached order to an order in the open orders array
             # possible reasons why a cached order may be missing in the open orders array:
             # - order was closed or canceled -> update cache
             # - symbol mismatch(e.g. cached BTC/USDT, fetched ETH/USDT) -> skip
             id = cachedOrderIds[k]
+            order = self.orders[id]
+            result.append(order)
             if not(id in list(openOrdersIndexedById.keys())):
                 # cached order is not in open orders array
-                order = self.orders[id]
                 # if we fetched orders by symbol and it doesn't match the cached order -> won't update the cached order
                 if symbol is not None and symbol != order['symbol']:
                     continue
@@ -520,6 +522,7 @@ class liqui (Exchange):
                         if order['filled'] is not None:
                             order['cost'] = order['filled'] * order['price']
                     self.orders[id] = order
+        return result
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         # if not symbol:
@@ -535,8 +538,8 @@ class liqui (Exchange):
         openOrders = []
         if 'return' in response:
             openOrders = self.parse_orders(response['return'], market)
-        self.update_cached_orders(openOrders, symbol)
-        result = self.filter_orders_by_symbol(self.orders, symbol)
+        allOrders = self.update_cached_orders(openOrders, symbol)
+        result = self.filter_orders_by_symbol(allOrders, symbol)
         return self.filter_by_since_limit(result, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
