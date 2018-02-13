@@ -91,6 +91,9 @@ class coinmarketcap (Exchange):
             'Catcoin': 'Catcoin',
             'iCoin': 'iCoin',
             'NetCoin': 'NetCoin',
+            # a special case, most exchanges list it as IOTA, therefore
+            # we change just the Coinmarketcap instead of changing them all
+            'MIOTA': 'IOTA',
         }
         if name in currencies:
             return currencies[name]
