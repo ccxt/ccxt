@@ -625,6 +625,7 @@ abstract class Exchange {
         $this->enableRateLimit          = false;
         $this->last_http_response = null;
         $this->last_json_response = null;
+        $this->last_response_headers = null;
 
         $options = array_replace_recursive ($this->describe(), $options);
 
@@ -840,24 +841,24 @@ abstract class Exchange {
         // this function is called by curl for each header received
         curl_setopt ($this->curl, CURLOPT_HEADERFUNCTION,
             function ($curl, $header) use (&$response_headers) {
-                $len = strlen ($header);
+                $length = strlen ($header);
                 $header = explode (':', $header, 2);
-                if (count($header) < 2) // ignore invalid headers
-                    return $len;
+                if (count ($header) < 2) // ignore invalid headers
+                    return $length;
                 $name = strtolower (trim ($header[0]));
                 if (!array_key_exists ($name, $response_headers))
                     $response_headers[$name] = [trim ($header[1])];
                 else
                     $response_headers[$name][] = trim ($header[1]);
-                return $len;
+                return $length;
             }
         );
 
         $result = curl_exec ($this->curl);
 
         $this->lastRestRequestTimestamp = $this->milliseconds ();
-
         $this->last_http_response = $result;
+        $this->last_response_headers = $response_headers;
 
         $curl_errno = curl_errno ($this->curl);
         $curl_error = curl_error ($this->curl);

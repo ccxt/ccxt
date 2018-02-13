@@ -191,6 +191,7 @@ class Exchange(object):
     rateLimitUpdateTime = 0
     last_http_response = None
     last_json_response = None
+    last_response_headers = None
 
     def __init__(self, config={}):
 
@@ -359,6 +360,7 @@ class Exchange(object):
                 proxies=self.proxies
             )
             self.last_http_response = response.text
+            self.last_response_headers = response.headers
             response.raise_for_status()
 
         except Timeout as e:

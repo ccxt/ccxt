@@ -105,6 +105,7 @@ class Exchange(BaseExchange):
                 http_status_code = response.status
                 text = await response.text()
                 self.last_http_response = text
+                self.last_response_headers = response.headers
                 self.handle_errors(http_status_code, text, url, method, None, text)
                 self.handle_rest_errors(None, http_status_code, text, url, method)
 
