@@ -519,15 +519,17 @@ class liqui extends Exchange {
         }
         $openOrdersIndexedById = $this->index_by($openOrders, 'id');
         $cachedOrderIds = is_array ($this->orders) ? array_keys ($this->orders) : array ();
+        $result = array ();
         for ($k = 0; $k < count ($cachedOrderIds); $k++) {
             // match each cached $order to an $order in the open orders array
             // possible reasons why a cached $order may be missing in the open orders array:
             // - $order was closed or canceled -> update cache
             // - $symbol mismatch (e.g. cached BTC/USDT, fetched ETH/USDT) -> skip
             $id = $cachedOrderIds[$k];
+            $order = $this->orders[$id];
+            $result[] = $order;
             if (!(is_array ($openOrdersIndexedById) && array_key_exists ($id, $openOrdersIndexedById))) {
                 // cached $order is not in open orders array
-                $order = $this->orders[$id];
                 // if we fetched orders by $symbol and it doesn't match the cached $order -> won't update the cached $order
                 if ($symbol !== null && $symbol !== $order['symbol'])
                     continue;
@@ -547,6 +549,7 @@ class liqui extends Exchange {
                 }
             }
         }
+        return $result;
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -564,8 +567,8 @@ class liqui extends Exchange {
         $openOrders = array ();
         if (is_array ($response) && array_key_exists ('return', $response))
             $openOrders = $this->parse_orders($response['return'], $market);
-        $this->update_cached_orders ($openOrders, $symbol);
-        $result = $this->filter_orders_by_symbol($this->orders, $symbol);
+        $allOrders = $this->update_cached_orders ($openOrders, $symbol);
+        $result = $this->filter_orders_by_symbol($allOrders, $symbol);
         return $this->filter_by_since_limit($result, $since, $limit);
     }
 
