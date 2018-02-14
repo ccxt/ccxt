@@ -580,18 +580,28 @@ module.exports = class kucoin extends Exchange {
             price = this.safeFloat (trade, 'dealPrice');
             amount = this.safeFloat (trade, 'amount');
             cost = this.safeFloat (trade, 'dealValue');
+            let feeCurrency = undefined;
+            if ('coinType' in trade) {
+                feeCurrency = this.safeString (trade, 'coinType');
+                if (typeof feeCurrency !== 'undefined')
+                    if (feeCurrency in this.currencies_by_id)
+                        feeCurrency = this.currencies_by_id[feeCurrency]['code'];
+            }
             fee = {
                 'cost': this.safeFloat (trade, 'fee'),
-                'currency': this.commonCurrencyCode (trade['coinType']),
+                'currency': feeCurrency,
             };
         }
+        let symbol = undefined;
+        if (typeof market !== 'undefined')
+            symbol = market['symbol'];
         return {
             'id': id,
             'order': order,
             'info': info,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': type,
             'side': side,
             'price': price,
