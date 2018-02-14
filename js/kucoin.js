@@ -346,31 +346,23 @@ module.exports = class kucoin extends Exchange {
             side = order['type'];
         if (typeof side !== 'undefined')
             side = side.toLowerCase ();
-        let fee = undefined;
-        if ('feeTotal' in order) {
-            fee = {
-                'cost': this.safeFloat (order, 'feeTotal'),
-                'rate': this.safeFloat (order, 'feeRate'),
-                'currency': undefined,
-            };
-            if (market) {
-                fee['currency'] = (side == 'sell') ? market['quote']: market['base'];
-            } else {
-                fee['currency'] = (side == 'sell') ? order['coinTypePair']: order['coinType'];
-            };
-        }
-        if ('fee' in order) {
-            fee = {
-                'cost': this.safeFloat (order, 'fee'),
-                'rate': this.safeFloat (order, 'feeRate'),
-                'currency': undefined,
-            };
-            if (market) {
-                fee['currency'] = (side == 'sell') ? market['quote']: market['base'];
-            } else {
-                fee['currency'] = (side == 'sell') ? order['coinTypePair']: order['coinType'];
-            };
-        }
+        let feeCurrency = undefined;
+        if (market) {
+            feeCurrency = (side === 'sell') ? market['quote'] : market['base'];
+        } else {
+            let feeCurrencyField = (side === 'sell') ? 'coinTypePair' : 'coinType';
+            let feeCurrency = this.safeString (order, feeCurrencyField);
+            if (typeof feeCurrency !== 'undefined') {
+                if (feeCurrency in this.currencies_by_id)
+                    feeCurrency = this.currencies_by_id[feeCurrency]['code'];
+            }
+        };
+        let feeCost = this.safeFloat (order, 'fee');
+        let fee = {
+            'cost': this.safeFloat (order, 'feeTotal', feeCost),
+            'rate': this.safeFloat (order, 'feeRate'),
+            'currency': feeCurrency,
+        };
         // todo: parse order trades and fill fees from 'datas'
         // do not confuse trades with orders
         let orderId = this.safeString (order, 'orderOid');
