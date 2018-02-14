@@ -356,7 +356,7 @@ module.exports = class kucoin extends Exchange {
                 if (feeCurrency in this.currencies_by_id)
                     feeCurrency = this.currencies_by_id[feeCurrency]['code'];
             }
-        };
+        }
         let feeCost = this.safeFloat (order, 'fee');
         let fee = {
             'cost': this.safeFloat (order, 'feeTotal', feeCost),
