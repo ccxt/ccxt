@@ -121,8 +121,8 @@ module.exports = class Exchange {
                 'funding': {
                     'tierBased': undefined,
                     'percentage': undefined,
-                    'withdraw': undefined,
-                    'deposit': undefined,
+                    'withdraw': {},
+                    'deposit': {},
                 },
             },
             'parseJsonResponse': true, // whether a reply is required to be in JSON or not
