@@ -17,6 +17,13 @@ sys.path.append(root)
 
 import ccxt  # noqa: E402
 
+
+# dirty, dirty hack (should probably be inside the code that generates this file)
+class asyncio:
+    def sleep(self, seconds):
+        time.sleep(seconds)
+
+
 # ------------------------------------------------------------------------------
 
 

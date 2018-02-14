@@ -5,7 +5,6 @@ import asyncio
 import os
 import sys
 import json
-import time
 from os import _exit
 from traceback import format_tb
 
@@ -113,7 +112,7 @@ sys.excepthook = handle_all_unhandled_exceptions
 async def test_order_book(exchange, symbol):
     if exchange.has['fetchOrderBook']:
         delay = int(exchange.rateLimit / 1000)
-        time.sleep(delay)
+        await asyncio.sleep(delay)
         # dump(green(exchange.id), green(symbol), 'fetching order book...')
         orderbook = await exchange.fetch_order_book(symbol)
         dump(
@@ -134,7 +133,7 @@ async def test_order_book(exchange, symbol):
 async def test_ohlcv(exchange, symbol):
     if exchange.has['fetchOHLCV']:
         delay = int(exchange.rateLimit / 1000)
-        time.sleep(delay)
+        await asyncio.sleep(delay)
         ohlcvs = await exchange.fetch_ohlcv(symbol)
         dump(green(exchange.id), 'fetched', green(len(ohlcvs)), 'OHLCVs')
     else:
@@ -146,7 +145,7 @@ async def test_ohlcv(exchange, symbol):
 async def test_tickers(exchange, symbol):
     if exchange.has['fetchTickers']:
         delay = int(exchange.rateLimit / 1000)
-        time.sleep(delay)
+        await asyncio.sleep(delay)
         tickers = None
         try:
             # dump(green(exchange.id), 'fetching all tickers at once...')
@@ -202,7 +201,7 @@ async def test_l2_order_books_async(exchange):
 async def test_ticker(exchange, symbol):
     if exchange.has['fetchTicker']:
         delay = int(exchange.rateLimit / 1000)
-        time.sleep(delay)
+        await asyncio.sleep(delay)
         # dump(green(exchange.id), green(symbol), 'fetching ticker...')
         ticker = await exchange.fetch_ticker(symbol)
         dump(
@@ -224,7 +223,7 @@ async def test_ticker(exchange, symbol):
 async def test_trades(exchange, symbol):
     if exchange.has['fetchTrades']:
         delay = int(exchange.rateLimit / 1000)
-        time.sleep(delay)
+        await asyncio.sleep(delay)
         # dump(green(exchange.id), green(symbol), 'fetching trades...')
         trades = await exchange.fetch_trades(symbol)
         dump(green(exchange.id), green(symbol), 'fetched', green(len(list(trades))), 'trades')
@@ -299,7 +298,7 @@ async def test_exchange(exchange):
     await exchange.fetch_balance()
     dump(green(exchange.id), 'fetched balance')
 
-    time.sleep(exchange.rateLimit / 1000)
+    await asyncio.sleep(exchange.rateLimit / 1000)
 
     if exchange.has['fetchOrders']:
         try:
