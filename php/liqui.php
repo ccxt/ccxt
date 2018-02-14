@@ -69,8 +69,8 @@ class liqui extends Exchange {
                 'funding' => array (
                     'tierBased' => false,
                     'percentage' => false,
-                    'withdraw' => null,
-                    'deposit' => null,
+                    'withdraw' => array (),
+                    'deposit' => array (),
                 ),
             ),
             'exceptions' => array (

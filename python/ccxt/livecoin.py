@@ -237,7 +237,7 @@ class livecoin (Exchange):
     def fetch_fees(self, params={}):
         tradingFees = self.fetch_trading_fees(params)
         return self.extend(tradingFees, {
-            'withdraw': 0.0,
+            'withdraw': {},
         })
 
     def fetch_trading_fees(self, params={}):

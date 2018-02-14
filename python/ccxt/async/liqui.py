@@ -85,8 +85,8 @@ class liqui (Exchange):
                 'funding': {
                     'tierBased': False,
                     'percentage': False,
-                    'withdraw': None,
-                    'deposit': None,
+                    'withdraw': {},
+                    'deposit': {},
                 },
             },
             'exceptions': {

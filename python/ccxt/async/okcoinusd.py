@@ -136,7 +136,8 @@ class okcoinusd (Exchange):
                 },
             },
             'exceptions': {
-                '1009': OrderNotFound,  # for spot markets
+                '1009': OrderNotFound,  # for spot markets, cancelling closed order
+                '1051': OrderNotFound,  # for spot markets, cancelling "just closed" order
                 '20015': OrderNotFound,  # for future markets
                 '1013': InvalidOrder,  # no contract type(PR-1101)
                 '1027': InvalidOrder,  # createLimitBuyOrder(symbol, 0, 0): Incorrect parameter may exceeded limits

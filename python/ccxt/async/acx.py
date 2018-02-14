@@ -89,7 +89,7 @@ class acx (Exchange):
                 'funding': {
                     'tierBased': False,
                     'percentage': True,
-                    'withdraw': 0.0,  # There is only 1% fee on withdrawals to your bank account.
+                    'withdraw': {},  # There is only 1% fee on withdrawals to your bank account.
                 },
             },
             'exceptions': {

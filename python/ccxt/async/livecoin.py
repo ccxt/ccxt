@@ -237,7 +237,7 @@ class livecoin (Exchange):
     async def fetch_fees(self, params={}):
         tradingFees = await self.fetch_trading_fees(params)
         return self.extend(tradingFees, {
-            'withdraw': 0.0,
+            'withdraw': {},
         })
 
     async def fetch_trading_fees(self, params={}):

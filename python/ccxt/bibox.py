@@ -83,9 +83,8 @@ class bibox (Exchange):
                 'funding': {
                     'tierBased': False,
                     'percentage': False,
-                    'withdraw': {
-                    },
-                    'deposit': 0.0,
+                    'withdraw': {},
+                    'deposit': {},
                 },
             },
         })

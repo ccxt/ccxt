@@ -94,7 +94,6 @@ class cex extends Exchange {
                         'BTG' => 0.001,
                         'ZEC' => 0.001,
                         'XRP' => 0.02,
-                        'XLM' => null,
                     ),
                     'deposit' => array (
                         // 'USD' => amount => amount * 0.035 . 0.25,

@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import argparse
+import json
 import os
 import sys
-import json
-import time
+import time  # noqa: F401
 from os import _exit
 from traceback import format_tb
 
@@ -16,14 +16,6 @@ sys.path.append(root)
 # ------------------------------------------------------------------------------
 
 import ccxt  # noqa: E402
-
-
-# dirty, dirty hack (should probably be inside the code that generates this file)
-class asyncio:
-    @classmethod
-    def sleep(cls, seconds):
-        time.sleep(seconds)
-
 
 # ------------------------------------------------------------------------------
 
