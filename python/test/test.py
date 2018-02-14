@@ -20,7 +20,8 @@ import ccxt  # noqa: E402
 
 # dirty, dirty hack (should probably be inside the code that generates this file)
 class asyncio:
-    def sleep(self, seconds):
+    @classmethod
+    def sleep(cls, seconds):
         time.sleep(seconds)
 
 
