@@ -75,9 +75,8 @@ module.exports = class bibox extends Exchange {
                 'funding': {
                     'tierBased': false,
                     'percentage': false,
-                    'withdraw': {
-                    },
-                    'deposit': 0.0,
+                    'withdraw': {},
+                    'deposit': {},
                 },
             },
         });
