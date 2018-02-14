@@ -342,15 +342,21 @@ class kucoin (Exchange):
             side = order['type']
         if side is not None:
             side = side.lower()
-        fee = None
-        if 'feeTotal' in order:
-            fee = {
-                'cost': self.safe_float(order, 'feeTotal'),
-                'rate': None,
-                'currency': None,
-            }
-            if market:
-                fee['currency'] = market['base']
+        feeCurrency = None
+        if market:
+            feeCurrency = market['quote'] if (side == 'sell') else market['base']
+        else:
+            feeCurrencyField = 'coinTypePair' if (side == 'sell') else 'coinType'
+            feeCurrency = self.safe_string(order, feeCurrencyField)
+            if feeCurrency is not None:
+                if feeCurrency in self.currencies_by_id:
+                    feeCurrency = self.currencies_by_id[feeCurrency]['code']
+        feeCost = self.safe_float(order, 'fee')
+        fee = {
+            'cost': self.safe_float(order, 'feeTotal', feeCost),
+            'rate': self.safe_float(order, 'feeRate'),
+            'currency': feeCurrency,
+        }
         # todo: parse order trades and fill fees from 'datas'
         # do not confuse trades with orders
         orderId = self.safe_string(order, 'orderOid')
