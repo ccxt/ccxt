@@ -105,7 +105,7 @@ class ccex extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $response = $this->privateGetBalances ();
+        $response = $this->privateGetbalances ();
         $balances = $response['result'];
         $result = array ( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {

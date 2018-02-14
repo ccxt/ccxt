@@ -104,7 +104,7 @@ class ccex (Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        response = await self.privateGetBalances()
+        response = await self.privateGetbalances()
         balances = response['result']
         result = {'info': balances}
         for b in range(0, len(balances)):
