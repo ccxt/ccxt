@@ -66,8 +66,8 @@ module.exports = class liqui extends Exchange {
                 'funding': {
                     'tierBased': false,
                     'percentage': false,
-                    'withdraw': undefined,
-                    'deposit': undefined,
+                    'withdraw': {},
+                    'deposit': {},
                 },
             },
             'exceptions': {

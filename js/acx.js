@@ -86,7 +86,7 @@ module.exports = class acx extends Exchange {
                 'funding': {
                     'tierBased': false,
                     'percentage': true,
-                    'withdraw': 0.0, // There is only 1% fee on withdrawals to your bank account.
+                    'withdraw': {}, // There is only 1% fee on withdrawals to your bank account.
                 },
             },
             'exceptions': {

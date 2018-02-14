@@ -58,8 +58,9 @@ module.exports = class yobit extends liqui {
                     'maker': 0.002,
                     'taker': 0.002,
                 },
-                'funding': 0.0,
-                'withdraw': 0.0005,
+                'funding': {
+                    'withdraw': {},
+                },
             },
         });
     }

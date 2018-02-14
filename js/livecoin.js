@@ -239,7 +239,7 @@ module.exports = class livecoin extends Exchange {
     async fetchFees (params = {}) {
         let tradingFees = await this.fetchTradingFees (params);
         return this.extend (tradingFees, {
-            'withdraw': 0.0,
+            'withdraw': {},
         });
     }
 
