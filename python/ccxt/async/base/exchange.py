@@ -15,6 +15,7 @@ import random
 import certifi
 import aiohttp
 import ssl
+import yarl
 
 # -----------------------------------------------------------------------------
 
@@ -101,7 +102,11 @@ class Exchange(BaseExchange):
         http_status_code = None
 
         try:
-            async with session_method(url, data=encoded_body, headers=headers, timeout=(self.timeout / 1000), proxy=self.aiohttp_proxy) as response:
+            async with session_method(yarl.URL(url, encoded=True),
+                                      data=encoded_body,
+                                      headers=headers,
+                                      timeout=(self.timeout / 1000),
+                                      proxy=self.aiohttp_proxy) as response:
                 http_status_code = response.status
                 text = await response.text()
                 self.last_http_response = text

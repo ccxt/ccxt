@@ -75,6 +75,7 @@ setup(
             'cchardet',
             'aiodns',
             'requests',
+            'yarl'
         ],
         'qa': [
             'flake8'
