@@ -2,9 +2,10 @@
 
 import argparse
 import asyncio
+import json
 import os
 import sys
-import json
+import time  # noqa: F401
 from os import _exit
 from traceback import format_tb
 
