@@ -356,19 +356,19 @@ class Exchange(object):
             self.last_response_headers = response.headers
             response.raise_for_status()
 
-        except (Timeout, ConnectionError) as e:
+        except Timeout as e:
+            self.raise_error(RequestTimeout, method, url, e)
+
+        except ConnectionError as e:
             self.raise_error(ExchangeNotAvailable, url, method, e)
 
-        except TooManyRedirects as e:
+        except (TooManyRedirects, RequestException) as e:
             self.raise_error(ExchangeError, url, method, e)
 
         except HTTPError as e:
             self.handle_errors(response.status_code, response.reason, url, method, self.last_response_headers, self.last_http_response)
             self.handle_rest_errors(e, response.status_code, self.last_http_response, url, method)
             self.raise_error(ExchangeError, url, method, e, self.last_http_response)
-
-        except RequestException as e:
-            self.raise_error(ExchangeError, url, method, e)
 
         if self.verbose:
             print(method, url, str(response.status_code), "\nResponse:", str(response.headers), "\n", self.last_http_response)
