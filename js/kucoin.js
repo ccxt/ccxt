@@ -346,16 +346,23 @@ module.exports = class kucoin extends Exchange {
             side = order['type'];
         if (typeof side !== 'undefined')
             side = side.toLowerCase ();
-        let fee = undefined;
-        if ('feeTotal' in order) {
-            fee = {
-                'cost': this.safeFloat (order, 'feeTotal'),
-                'rate': undefined,
-                'currency': undefined,
-            };
-            if (market)
-                fee['currency'] = market['base'];
-        }
+        let feeCurrency = undefined;
+        if (market) {
+            feeCurrency = (side === 'sell') ? market['quote'] : market['base'];
+        } else {
+            let feeCurrencyField = (side === 'sell') ? 'coinTypePair' : 'coinType';
+            let feeCurrency = this.safeString (order, feeCurrencyField);
+            if (typeof feeCurrency !== 'undefined') {
+                if (feeCurrency in this.currencies_by_id)
+                    feeCurrency = this.currencies_by_id[feeCurrency]['code'];
+            }
+        };
+        let feeCost = this.safeFloat (order, 'fee');
+        let fee = {
+            'cost': this.safeFloat (order, 'feeTotal', feeCost),
+            'rate': this.safeFloat (order, 'feeRate'),
+            'currency': feeCurrency,
+        };
         // todo: parse order trades and fill fees from 'datas'
         // do not confuse trades with orders
         let orderId = this.safeString (order, 'orderOid');
