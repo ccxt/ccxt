@@ -26,7 +26,7 @@ module.exports = class kucoin extends Exchange {
                 'fetchOrders': false,
                 'fetchClosedOrders': true,
                 'fetchOpenOrders': true,
-                'fetchMyTrades': false,
+                'fetchMyTrades': true,
                 'fetchCurrencies': true,
                 'withdraw': true,
             },
@@ -551,23 +551,63 @@ module.exports = class kucoin extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = trade[0];
+        let id = undefined;
+        let order = undefined;
+        let info = trade;
+        let timestamp = undefined;
+        let type = undefined;
         let side = undefined;
-        if (trade[1] === 'BUY') {
-            side = 'buy';
-        } else if (trade[1] === 'SELL') {
-            side = 'sell';
+        let price = undefined;
+        let cost = undefined;
+        let amount = undefined;
+        let fee = undefined;
+        if (Array.isArray (trade)) {
+            timestamp = trade[0];
+            type = 'limit';
+            if (trade[1] === 'BUY') {
+                side = 'buy';
+            } else if (trade[1] === 'SELL') {
+                side = 'sell';
+            }
+            price = trade[2];
+            amount = trade[3];
+        } else {
+            timestamp = this.safeValue (trade, 'createdAt');
+            order = this.safeString (trade, 'orderOid');
+            if (typeof order === 'undefined')
+                order = this.safeString (trade, 'oid');
+            side = trade['dealDirection'].toLowerCase ();
+            price = this.safeFloat (trade, 'dealPrice');
+            amount = this.safeFloat (trade, 'amount');
+            cost = this.safeFloat (trade, 'dealValue');
+            let feeCurrency = undefined;
+            if ('coinType' in trade) {
+                feeCurrency = this.safeString (trade, 'coinType');
+                if (typeof feeCurrency !== 'undefined')
+                    if (feeCurrency in this.currencies_by_id)
+                        feeCurrency = this.currencies_by_id[feeCurrency]['code'];
+            }
+            fee = {
+                'cost': this.safeFloat (trade, 'fee'),
+                'currency': feeCurrency,
+            };
         }
+        let symbol = undefined;
+        if (typeof market !== 'undefined')
+            symbol = market['symbol'];
         return {
-            'id': undefined,
-            'info': trade,
+            'id': id,
+            'order': order,
+            'info': info,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'type': 'limit',
+            'symbol': symbol,
+            'type': type,
             'side': side,
-            'price': trade[2],
-            'amount': trade[3],
+            'price': price,
+            'cost': cost,
+            'amount': amount,
+            'fee': fee,
         };
     }
 
@@ -578,6 +618,20 @@ module.exports = class kucoin extends Exchange {
             'symbol': market['id'],
         }, params));
         return this.parseTrades (response['data'], market, since, limit);
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (!symbol)
+            throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol argument');
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'symbol': market['id'],
+        };
+        if (limit)
+            request['limit'] = limit;
+        let response = await this.privateGetDealOrders (this.extend (request, params));
+        return this.parseTrades (response['data']['datas'], market, since, limit);
     }
 
     parseTradingViewOHLCVs (ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
