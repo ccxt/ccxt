@@ -345,16 +345,23 @@ class kucoin extends Exchange {
             $side = $order['type'];
         if ($side !== null)
             $side = strtolower ($side);
-        $fee = null;
-        if (is_array ($order) && array_key_exists ('feeTotal', $order)) {
-            $fee = array (
-                'cost' => $this->safe_float($order, 'feeTotal'),
-                'rate' => null,
-                'currency' => null,
-            );
-            if ($market)
-                $fee['currency'] = $market['base'];
+        $feeCurrency = null;
+        if ($market) {
+            $feeCurrency = ($side === 'sell') ? $market['quote'] : $market['base'];
+        } else {
+            $feeCurrencyField = ($side === 'sell') ? 'coinTypePair' : 'coinType';
+            $feeCurrency = $this->safe_string($order, $feeCurrencyField);
+            if ($feeCurrency !== null) {
+                if (is_array ($this->currencies_by_id) && array_key_exists ($feeCurrency, $this->currencies_by_id))
+                    $feeCurrency = $this->currencies_by_id[$feeCurrency]['code'];
+            }
         }
+        $feeCost = $this->safe_float($order, 'fee');
+        $fee = array (
+            'cost' => $this->safe_float($order, 'feeTotal', $feeCost),
+            'rate' => $this->safe_float($order, 'feeRate'),
+            'currency' => $feeCurrency,
+        );
         // todo => parse $order trades and fill fees from 'datas'
         // do not confuse trades with orders
         $orderId = $this->safe_string($order, 'orderOid');
