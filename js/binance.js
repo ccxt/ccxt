@@ -775,6 +775,7 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
         let currency = this.currency (code);
         let response = await this.wapiGetDepositAddress (this.extend ({
             'asset': currency['id'],
