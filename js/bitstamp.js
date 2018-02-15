@@ -235,14 +235,15 @@ module.exports = class bitstamp extends Exchange {
     }
 
     getMarketFromTrade (trade) {
-        let currencyIds = Object.keys (this.omit (trade, [
+        trade = this.omit (trade, [
             'fee',
             'price',
             'datetime',
             'tid',
             'type',
             'order_id',
-        ]));
+        ]);
+        let currencyIds = Object.keys (trade);
         let numCurrencyIds = currencyIds.length;
         if (numCurrencyIds === 2) {
             let marketId = currencyIds[0] + currencyIds[1];
