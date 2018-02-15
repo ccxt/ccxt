@@ -29,6 +29,7 @@ class bitstamp (Exchange):
             'version': 'v2',
             'has': {
                 'CORS': True,
+                'fetchOrder': True,
                 'fetchOpenOrders': True,
                 'fetchMyTrades': True,
                 'withdraw': True,
@@ -352,11 +353,19 @@ class bitstamp (Exchange):
         response = self.privatePostOrderStatus({'id': id})
         return self.parse_order_status(response)
 
-    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
         market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        response = self.privatePostOrderStatus({'id': id})
+        return self.parse_order(response, market)
+
+    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
         request = {}
         method = 'privatePostUserTransactions'
+        market = None
         if symbol is not None:
             market = self.market(symbol)
             request['pair'] = market['id']
@@ -392,15 +401,18 @@ class bitstamp (Exchange):
                     trade = self.parse_trade(transactions[i], market)
                     filled += trade['amount']
                     trades.append(trade)
-        remaining = amount - filled
+        remaining = None
+        if amount is not None:
+            remaining = amount - filled
         price = self.safe_float(order, 'price')
         side = self.safe_string(order, 'type')
         if side is not None:
             side = 'sell' if (side == '1') else 'buy'
         fee = None
         cost = None
+        id = self.safe_string(order, 'id')
         return {
-            'id': order['id'],
+            'id': id,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'status': status,
