@@ -431,10 +431,14 @@ module.exports = class bitstamp extends Exchange {
         };
     }
 
-    async fetchOpenOrders (id, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        let market = undefined;
+        if (typeof symbol !== 'undefined') {
+            await this.loadMarkets ();
+            market = this.market (symbol);
+        }
         let orders = await this.privatePostOpenOrdersAll ();
-        return this.parseOrders (orders);
+        return this.parseOrders (orders, market, since, limit);
     }
 
     getCurrencyName (code) {
