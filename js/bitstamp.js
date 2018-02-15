@@ -17,7 +17,7 @@ module.exports = class bitstamp extends Exchange {
             'version': 'v2',
             'has': {
                 'CORS': true,
-                'fetchOrder': true,
+                'fetchOpenOrders': true,
                 'fetchMyTrades': true,
                 'withdraw': true,
             },
@@ -431,14 +431,10 @@ module.exports = class bitstamp extends Exchange {
         };
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOpenOrders (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostOrderStatus (this.extend ({
-            'id': id.toString (),
-        }, params));
         let orders = await this.privatePostOpenOrdersAll ();
-        let order = this.filterBy (orders, 'id', id.toString ());
-        return this.parseOrder (this.extend (response, order['0']));
+        return this.parseOrders (orders);
     }
 
     getCurrencyName (code) {
