@@ -73,6 +73,7 @@ module.exports = class Exchange {
                 'createDepositAddress': false,
                 'createOrder': true,
                 'deposit': false,
+                'editOrder': 'emulated',
                 'fetchBalance': true,
                 'fetchBidsAsks': false,
                 'fetchClosedOrders': false,
