@@ -16,6 +16,7 @@ class bitstamp extends Exchange {
             'version' => 'v2',
             'has' => array (
                 'CORS' => true,
+                'fetchOrder' => true,
                 'fetchOpenOrders' => true,
                 'fetchMyTrades' => true,
                 'withdraw' => true,
@@ -357,11 +358,20 @@ class bitstamp extends Exchange {
         return $this->parse_order_status($response);
     }
 
-    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $market = null;
+        if ($symbol !== null)
+            $market = $this->market ($symbol);
+        $response = $this->privatePostOrderStatus (array ( 'id' => $id ));
+        return $this->parse_order($response, $market);
+    }
+
+    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
         $request = array ();
         $method = 'privatePostUserTransactions';
+        $market = null;
         if ($symbol !== null) {
             $market = $this->market ($symbol);
             $request['pair'] = $market['id'];
@@ -404,15 +414,18 @@ class bitstamp extends Exchange {
                 }
             }
         }
-        $remaining = $amount - $filled;
+        $remaining = null;
+        if ($amount !== null)
+            $remaining = $amount - $filled;
         $price = $this->safe_float($order, 'price');
         $side = $this->safe_string($order, 'type');
         if ($side !== null)
             $side = ($side === '1') ? 'sell' : 'buy';
         $fee = null;
         $cost = null;
+        $id = $this->safe_string($order, 'id');
         return array (
-            'id' => $order['id'],
+            'id' => $id,
             'datetime' => $this->iso8601 ($timestamp),
             'timestamp' => $timestamp,
             'status' => $status,
