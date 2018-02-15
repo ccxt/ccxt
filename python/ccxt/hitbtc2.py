@@ -26,9 +26,7 @@ class hitbtc2 (hitbtc):
                 'createDepositAddress': True,
                 'fetchDepositAddress': True,
                 'CORS': True,
-                # editOrder not implemented yet
-                # they have a privatePatchOrderClientOrderId endpoint for that
-                'editOrder': 'emulated',
+                'editOrder': True,
                 'fetchCurrencies': True,
                 'fetchOHLCV': True,
                 'fetchTickers': True,
@@ -833,6 +831,26 @@ class hitbtc2 (hitbtc):
         order = self.parse_order(response)
         id = order['id']
         self.orders[id] = order
+        return order
+
+    def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
+        self.load_markets()
+        # their max accepted length is 32 characters
+        uuid = self.uuid()
+        parts = uuid.split('-')
+        requestClientId = ''.join(parts)
+        requestClientId = requestClientId[0:32]
+        request = {
+            'clientOrderId': id,
+            'requestClientId': requestClientId,
+        }
+        if amount is not None:
+            request['quantity'] = self.amount_to_precision(symbol, float(amount))
+        if price is not None:
+            request['price'] = self.price_to_precision(symbol, price)
+        response = self.privatePatchOrderClientOrderId(self.extend(request, params))
+        order = self.parse_order(response)
+        self.orders[order['id']] = order
         return order
 
     def cancel_order(self, id, symbol=None, params={}):

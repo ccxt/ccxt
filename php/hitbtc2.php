@@ -18,9 +18,7 @@ class hitbtc2 extends hitbtc {
                 'createDepositAddress' => true,
                 'fetchDepositAddress' => true,
                 'CORS' => true,
-                // editOrder not implemented yet
-                // they have a privatePatchOrderClientOrderId endpoint for that
-                'editOrder' => 'emulated',
+                'editOrder' => true,
                 'fetchCurrencies' => true,
                 'fetchOHLCV' => true,
                 'fetchTickers' => true,
@@ -847,6 +845,27 @@ class hitbtc2 extends hitbtc {
         $order = $this->parse_order($response);
         $id = $order['id'];
         $this->orders[$id] = $order;
+        return $order;
+    }
+
+    public function edit_order ($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+        $this->load_markets();
+        // their max accepted length is 32 characters
+        $uuid = $this->uuid ();
+        $parts = explode ('-', $uuid);
+        $requestClientId = implode ('', $parts);
+        $requestClientId = mb_substr ($requestClientId, 0, 32);
+        $request = array (
+            'clientOrderId' => $id,
+            'requestClientId' => $requestClientId,
+        );
+        if ($amount !== null)
+            $request['quantity'] = $this->amount_to_precision($symbol, floatval ($amount));
+        if ($price !== null)
+            $request['price'] = $this->price_to_precision($symbol, $price);
+        $response = $this->privatePatchOrderClientOrderId (array_merge ($request, $params));
+        $order = $this->parse_order($response);
+        $this->orders[$order['id']] = $order;
         return $order;
     }
 

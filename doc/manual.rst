@@ -777,6 +777,14 @@ It depends on which exchange you are using, but some of them have a reversed (in
 
 For those exchanges the ccxt will do a correction, switching and normalizing sides of base and quote currencies when parsing exchange replies. This logic is financially and terminologically correct. If you want less confusion, remember the following rule: **base is always before the slash, quote is always after the slash in any symbol and with any market**.
 
+::
+
+    base currency ↓
+                 BTC / USDT
+                 ETH / BTC
+                DASH / ETH
+                        ↑ quote currency
+
 Market Cache Force Reload
 -------------------------
 
