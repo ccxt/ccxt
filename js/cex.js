@@ -1,24 +1,26 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError, AuthenticationError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError, InvalidOrder } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class cex extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'cex',
             'name': 'CEX.IO',
             'countries': [ 'GB', 'EU', 'CY', 'RU' ],
             'rateLimit': 1500,
-            'hasCORS': true,
-            'hasFetchTickers': true,
-            'hasFetchOHLCV': true,
-            'hasFetchOpenOrders': true,
+            'has': {
+                'CORS': true,
+                'fetchTickers': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrders': true,
+            },
             'timeframes': {
                 '1m': '1m',
             },
@@ -27,6 +29,10 @@ module.exports = class cex extends Exchange {
                 'api': 'https://cex.io/api',
                 'www': 'https://cex.io',
                 'doc': 'https://cex.io/cex-api',
+                'fees': [
+                    'https://cex.io/fee-schedule',
+                    'https://cex.io/limits-commissions',
+                ],
             },
             'requiredCredentials': {
                 'apiKey': true,
@@ -73,8 +79,37 @@ module.exports = class cex extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': 0,
-                    'taker': 0.2 / 100,
+                    'maker': 0.16 / 100,
+                    'taker': 0.25 / 100,
+                },
+                'funding': {
+                    'withdraw': {
+                        // 'USD': undefined,
+                        // 'EUR': undefined,
+                        // 'RUB': undefined,
+                        // 'GBP': undefined,
+                        'BTC': 0.001,
+                        'ETH': 0.01,
+                        'BCH': 0.001,
+                        'DASH': 0.01,
+                        'BTG': 0.001,
+                        'ZEC': 0.001,
+                        'XRP': 0.02,
+                    },
+                    'deposit': {
+                        // 'USD': amount => amount * 0.035 + 0.25,
+                        // 'EUR': amount => amount * 0.035 + 0.24,
+                        // 'RUB': amount => amount * 0.05 + 15.57,
+                        // 'GBP': amount => amount * 0.035 + 0.2,
+                        'BTC': 0.0,
+                        'ETH': 0.0,
+                        'BCH': 0.0,
+                        'DASH': 0.0,
+                        'BTG': 0.0,
+                        'ZEC': 0.0,
+                        'XRP': 0.0,
+                        'XLM': 0.0,
+                    },
                 },
             },
         });
@@ -94,6 +129,7 @@ module.exports = class cex extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'lot': market['minLotSize'],
                 'precision': {
                     'price': this.precisionFromString (market['minPrice']),
                     'amount': -1 * Math.log10 (market['minLotSize']),
@@ -139,7 +175,7 @@ module.exports = class cex extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetOrderBookPair (this.extend ({
             'pair': this.marketId (symbol),
@@ -164,7 +200,7 @@ module.exports = class cex extends Exchange {
         let market = this.market (symbol);
         if (!since)
             since = this.milliseconds () - 86400000; // yesterday
-        let ymd = this.Ymd (since);
+        let ymd = this.ymd (since);
         ymd = ymd.split ('-');
         ymd = ymd.join ('');
         let request = {
@@ -272,11 +308,11 @@ module.exports = class cex extends Exchange {
             'type': side,
             'amount': amount,
         };
-        if (type == 'limit') {
+        if (type === 'limit') {
             order['price'] = price;
         } else {
             // for market buy CEX.io requires the amount of quote currency to spend
-            if (side == 'buy') {
+            if (side === 'buy') {
                 if (!price) {
                     throw new InvalidOrder ('For market buy orders ' + this.id + " requires the amount of quote currency to spend, to calculate proper costs call createOrder (symbol, 'market', 'buy', amount, price)");
                 }
@@ -305,13 +341,13 @@ module.exports = class cex extends Exchange {
                 market = this.market (symbol);
         }
         let status = order['status'];
-        if (status == 'a') {
+        if (status === 'a') {
             status = 'open'; // the unified status
-        } else if (status == 'cd') {
+        } else if (status === 'cd') {
             status = 'canceled';
-        } else if (status == 'c') {
+        } else if (status === 'c') {
             status = 'canceled';
-        } else if (status == 'd') {
+        } else if (status === 'd') {
             status = 'closed';
         }
         let price = this.safeFloat (order, 'price');
@@ -325,24 +361,34 @@ module.exports = class cex extends Exchange {
         if (market) {
             symbol = market['symbol'];
             cost = this.safeFloat (order, 'ta:' + market['quote']);
+            if (typeof cost === 'undefined')
+                cost = this.safeFloat (order, 'tta:' + market['quote']);
             let baseFee = 'fa:' + market['base'];
+            let baseTakerFee = 'tfa:' + market['base'];
             let quoteFee = 'fa:' + market['quote'];
+            let quoteTakerFee = 'tfa:' + market['quote'];
             let feeRate = this.safeFloat (order, 'tradingFeeMaker');
             if (!feeRate)
                 feeRate = this.safeFloat (order, 'tradingFeeTaker', feeRate);
             if (feeRate)
                 feeRate /= 100.0; // convert to mathematically-correct percentage coefficients: 1.0 = 100%
-            if (baseFee in order) {
+            if ((baseFee in order) || (baseTakerFee in order)) {
+                let baseFeeCost = this.safeFloat (order, baseFee);
+                if (typeof baseFeeCost === 'undefined')
+                    baseFeeCost = this.safeFloat (order, baseTakerFee);
                 fee = {
                     'currency': market['base'],
                     'rate': feeRate,
-                    'cost': this.safeFloat (order, baseFee),
+                    'cost': baseFeeCost,
                 };
-            } else if (quoteFee in order) {
+            } else if ((quoteFee in order) || (quoteTakerFee in order)) {
+                let quoteFeeCost = this.safeFloat (order, quoteFee);
+                if (typeof quoteFeeCost === 'undefined')
+                    quoteFeeCost = this.safeFloat (order, quoteTakerFee);
                 fee = {
                     'currency': market['quote'],
                     'rate': feeRate,
-                    'cost': this.safeFloat (order, quoteFee),
+                    'cost': quoteFeeCost,
                 };
             }
         }
@@ -399,7 +445,7 @@ module.exports = class cex extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
@@ -423,11 +469,11 @@ module.exports = class cex extends Exchange {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         if (!response) {
             throw new ExchangeError (this.id + ' returned ' + this.json (response));
-        } else if (response == true) {
+        } else if (response === true) {
             return response;
         } else if ('e' in response) {
             if ('ok' in response)
-                if (response['ok'] == 'ok')
+                if (response['ok'] === 'ok')
                     return response;
             throw new ExchangeError (this.id + ' ' + this.json (response));
         } else if ('error' in response) {
@@ -436,4 +482,4 @@ module.exports = class cex extends Exchange {
         }
         return response;
     }
-}
+};

@@ -1,15 +1,13 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError, OrderNotFound } = require ('./base/errors')
-
+const Exchange = require ('./base/Exchange');
+const { InsufficientFunds, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class acx extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'acx',
@@ -17,10 +15,12 @@ module.exports = class acx extends Exchange {
             'countries': 'AU',
             'rateLimit': 1000,
             'version': 'v2',
-            'hasCORS': true,
-            'hasFetchTickers': true,
-            'hasFetchOHLCV': true,
-            'hasWithdraw': true,
+            'has': {
+                'CORS': true,
+                'fetchTickers': true,
+                'fetchOHLCV': true,
+                'withdraw': true,
+            },
             'timeframes': {
                 '1m': '1',
                 '5m': '5',
@@ -80,14 +80,18 @@ module.exports = class acx extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'maker': 0.0,
-                    'taker': 0.0,
+                    'maker': 0.2 / 100,
+                    'taker': 0.2 / 100,
                 },
                 'funding': {
                     'tierBased': false,
                     'percentage': true,
-                    'withdraw': 0.0, // There is only 1% fee on withdrawals to your bank account.
+                    'withdraw': {}, // There is only 1% fee on withdrawals to your bank account.
                 },
+            },
+            'exceptions': {
+                2002: InsufficientFunds,
+                2003: OrderNotFound,
             },
         });
     }
@@ -133,13 +137,15 @@ module.exports = class acx extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let orderbook = await this.publicGetDepth (this.extend ({
+        let request = {
             'market': market['id'],
-            'limit': 300,
-        }, params));
+        };
+        if (typeof limit === 'undefined')
+            request['limit'] = limit; // default = 300
+        let orderbook = await this.publicGetDepth (this.extend (request, params));
         let timestamp = orderbook['timestamp'] * 1000;
         let result = this.parseOrderBook (orderbook, timestamp);
         result['bids'] = this.sortBy (result['bids'], 0, true);
@@ -194,7 +200,7 @@ module.exports = class acx extends Exchange {
                 quote = quote.toUpperCase ();
                 base = this.commonCurrencyCode (base);
                 quote = this.commonCurrencyCode (quote);
-                let symbol = base + '/' + quote;
+                symbol = base + '/' + quote;
             }
             let ticker = tickers[id];
             result[symbol] = this.parseTicker (ticker, market);
@@ -257,7 +263,7 @@ module.exports = class acx extends Exchange {
             'period': this.timeframes[timeframe],
             'limit': limit,
         };
-        if (since)
+        if (typeof since !== 'undefined')
             request['timestamp'] = since;
         let response = await this.publicGetK (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
@@ -274,15 +280,15 @@ module.exports = class acx extends Exchange {
         let timestamp = this.parse8601 (order['created_at']);
         let state = order['state'];
         let status = undefined;
-        if (state == 'done') {
+        if (state === 'done') {
             status = 'closed';
-        } else if (state == 'wait') {
+        } else if (state === 'wait') {
             status = 'open';
-        } else if (state == 'cancel') {
+        } else if (state === 'cancel') {
             status = 'canceled';
         }
         return {
-            'id': order['id'],
+            'id': order['id'].toString (),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'status': status,
@@ -307,7 +313,7 @@ module.exports = class acx extends Exchange {
             'volume': amount.toString (),
             'ord_type': type,
         };
-        if (type == 'limit') {
+        if (type === 'limit') {
             order['price'] = price.toString ();
         }
         let response = await this.privatePostOrders (this.extend (order, params));
@@ -318,14 +324,15 @@ module.exports = class acx extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let result = await this.privatePostOrderDelete ({ 'id': id });
-        let order = this.parseOrder(result);
-        if (order['status'] == 'closed') {
-            throw new OrderNotFound (this.id + ' ' + result);
+        let order = this.parseOrder (result);
+        let status = order['status'];
+        if (status === 'closed' || status === 'canceled') {
+            throw new OrderNotFound (this.id + ' ' + this.json (order));
         }
         return order;
     }
 
-    async withdraw (currency, amount, address, params = {}) {
+    async withdraw (currency, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
         let result = await this.privatePostWithdraw (this.extend ({
             'currency': currency.toLowerCase (),
@@ -366,7 +373,7 @@ module.exports = class acx extends Exchange {
             request += this.urls['extension'];
         let query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'] + request;
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
@@ -380,7 +387,7 @@ module.exports = class acx extends Exchange {
             let auth = method + '|' + request + '|' + query;
             let signature = this.hmac (this.encode (auth), this.encode (this.secret));
             let suffix = query + '&signature=' + signature;
-            if (method == 'GET') {
+            if (method === 'GET') {
                 url += '?' + suffix;
             } else {
                 body = suffix;
@@ -390,10 +397,17 @@ module.exports = class acx extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('error' in response)
-            throw new ExchangeError (this.id + ' ' + this.json (response));
-        return response;
+    handleErrors (code, reason, url, method, headers, body) {
+        if (code === 400) {
+            const response = JSON.parse (body);
+            const error = this.safeValue (response, 'error');
+            const errorCode = this.safeString (error, 'code');
+            const feedback = this.id + ' ' + this.json (response);
+            const exceptions = this.exceptions;
+            if (errorCode in exceptions) {
+                throw new exceptions[errorCode] (feedback);
+            }
+            // fallback to default error handler
+        }
     }
-}
+};

@@ -37,7 +37,8 @@ def throttle(config=None):
                     if not cfg['queue'].empty():
                         cost, future = cfg['queue'].get_nowait()
                         cfg['numTokens'] -= (cost if cost else cfg['defaultCost'])
-                        future.set_result(None)
+                        if not future.done():
+                            future.set_result(None)
                 await sleep(cfg['delay'])
             cfg['running'] = False
 

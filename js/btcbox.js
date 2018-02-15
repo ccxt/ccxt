@@ -1,14 +1,13 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class btcbox extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'btcbox',
@@ -16,8 +15,10 @@ module.exports = class btcbox extends Exchange {
             'countries': 'JP',
             'rateLimit': 1000,
             'version': 'v1',
-            'hasCORS': false,
-            'hasFetchOHLCV': false,
+            'has': {
+                'CORS': false,
+                'fetchOHLCV': false,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/31275803-4df755a8-aaa1-11e7-9abb-11ec2fad9f2d.jpg',
                 'api': 'https://www.btcbox.co.jp/api',
@@ -58,7 +59,7 @@ module.exports = class btcbox extends Exchange {
         for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];
             let lowercase = currency.toLowerCase ();
-            if (lowercase == 'dash')
+            if (lowercase === 'dash')
                 lowercase = 'drk';
             let account = this.account ();
             let free = lowercase + '_balance';
@@ -73,7 +74,7 @@ module.exports = class btcbox extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {};
@@ -193,7 +194,7 @@ module.exports = class btcbox extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
@@ -221,4 +222,4 @@ module.exports = class btcbox extends Exchange {
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
     }
-}
+};

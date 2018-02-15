@@ -45,7 +45,7 @@ module.exports = (logFileName, object, methodNames) => {
                     exception,
                 }
 
-                const fileName = (typeof logFileName == 'string') ? logFileName : logFileName ()
+                const fileName = (typeof logFileName === 'string') ? logFileName : logFileName ()
                 const line = JSON.stringify (log) + '\n'
 
                 fs.appendFileSync (fileName, line)

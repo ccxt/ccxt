@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.10.561",
+  "version": "1.10.1110",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 90+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "build/ccxt.browser.js",
@@ -12,42 +12,49 @@
     "url": "https://github.com/ccxt/ccxt.git"
   },
   "scripts": {
-    "build": "npm run export-exchanges && npm run vss && npm run pandoc-python-readme && npm run pandoc-doc-readme && npm run pandoc-doc-manual && npm run pandoc-doc-install && npm run pandoc-doc-exchanges && npm run pandoc-doc-exchanges-by-country && npm run transpile && npm run update-badges && npm run browserify",
+    "build": "npm run export-exchanges && npm run vss && npm run pandoc-python-readme && npm run pandoc-doc-readme && npm run pandoc-doc-manual && npm run pandoc-doc-install && npm run pandoc-doc-exchanges && npm run pandoc-doc-exchanges-by-country && npm run check-js-syntax && npm run transpile && npm run qa && npm run update-badges && npm run browserify",
     "test": "npm run build && node run-tests",
     "fast-test": "node run-tests --js",
-    "test-base": "mocha --reporter spec js/test/test_base.js",
+    "test-base": "mocha --reporter spec js/test/test_base.js --reporter ololog/reporter",
     "export-exchanges": "node export-exchanges",
     "update-badges": "node update-badges",
     "convert-md-2-rst": "bash ./convert-md-2-rst",
     "transpile": "node transpile",
     "vss": "node vss",
-    "qa": "cd python && tox -e qa && cd ..",
+    "qa": "cp package.json LICENSE.txt keys.json python && npm run check-python-syntax && npm run check-php-syntax",
+    "lint": "eslint",
+    "check-python-syntax": "cd python && tox -e qa && cd ..",
+    "check-php-syntax": "php -f php/test/syntax.php",
+    "check-js-syntax": "eslint \"js/[a-z]*.js\" js/bitfinex.js",
     "browserify": "browserify --debug ./ccxt.browser.js > ./build/ccxt.browser.js",
     "pandoc-python-readme": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=python/README.rst README.md",
     "pandoc-doc-readme": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/README.rst README.md",
     "pandoc-doc-manual": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/manual.rst ccxt.wiki/Manual.md",
     "pandoc-doc-install": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/install.rst ccxt.wiki/Install.md",
     "pandoc-doc-exchanges": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/exchanges.rst ccxt.wiki/Exchange-Markets.md",
-    "pandoc-doc-exchanges-by-country": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/exchanges-by-country.rst ccxt.wiki/Exchange-Markets-By-Country.md"
+    "pandoc-doc-exchanges-by-country": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/exchanges-by-country.rst ccxt.wiki/Exchange-Markets-By-Country.md",
+    "postinstall": "opencollective postinstall"
   },
   "types": "./ccxt.d.ts",
   "dependencies": {
     "crypto-js": "3.1.9-1",
     "fetch-ponyfill": "^4.1.0",
+    "opencollective": "^1.0.3",
     "qs": "6.5.1"
   },
   "devDependencies": {
     "ansicolor": "^1.1.71",
     "as-table": "^1.0.31",
-    "asciichart": "^1.5.1",
+    "asciichart": "^1.5.7",
     "browserify": "^14.5.0",
     "chai": "^4.1.2",
     "chai-as-promised": "^7.1.1",
     "coveralls": "^2.13.1",
+    "eslint": "^4.15.0",
     "istanbul": "^0.4.5",
     "mocha": "^3.5.3",
-    "nyc": "^11.0.3",
-    "ololog": "^1.1.82"
+    "nyc": "^11.4.1",
+    "ololog": "^1.1.84"
   },
   "author": {
     "name": "Igor Kroitor",
@@ -58,7 +65,6 @@
   "bugs": {
     "url": "https://github.com/ccxt-dev/ccxt/issues"
   },
-  "runkitExampleFilename": "example.js",
   "homepage": "https://ccxt.trade",
   "keywords": [
     "algorithmic",
@@ -139,6 +145,8 @@
     "allcoin.com",
     "ANX",
     "ANXPro",
+    "bibox",
+    "bibox.com",
     "Binance",
     "binance.com",
     "bit2c.co.il",
@@ -162,6 +170,8 @@
     "Bleutrade",
     "bleutrade.com",
     "BlinkTrade",
+    "braziliex",
+    "braziliex.com",
     "BtcBox",
     "btcbox.co.jp",
     "BTCC",
@@ -192,6 +202,8 @@
     "ChileBit",
     "chilebit.net",
     "coincheck",
+    "CoinExchange",
+    "coinexchange.io",
     "coingi",
     "coingi.com",
     "CoinMarketCap",
@@ -249,7 +261,7 @@
     "Poloniex",
     "QuadrigaCX",
     "Qryptos",
-    "QUOINE",
+    "QUOINEX",
     "Southxchange",
     "SurBitcoin",
     "surbitcoin.com",
@@ -272,5 +284,10 @@
     "YUNBI",
     "Zaif",
     "ZB"
-  ]
+  ],
+  "collective": {
+    "type": "opencollective",
+    "url": "https://opencollective.com/ccxt",
+    "logo": "https://opencollective.com/ccxt/logo.txt"
+  }
 }

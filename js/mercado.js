@@ -1,14 +1,13 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class mercado extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'mercado',
@@ -16,8 +15,12 @@ module.exports = class mercado extends Exchange {
             'countries': 'BR', // Brazil
             'rateLimit': 1000,
             'version': 'v3',
-            'hasCORS': true,
-            'hasWithdraw': true,
+            'has': {
+                'CORS': true,
+                'createMarketOrder': false,
+                'fetchOrder': true,
+                'withdraw': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27837060-e7c58714-60ea-11e7-9192-f05e86adb83f.jpg',
                 'api': {
@@ -70,7 +73,7 @@ module.exports = class mercado extends Exchange {
         });
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let market = this.market (symbol);
         let orderbook = await this.publicGetCoinOrderbook (this.extend ({
             'coin': market['base'],
@@ -151,7 +154,7 @@ module.exports = class mercado extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (type == 'market')
+        if (type === 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
         let method = 'privatePostPlace' + this.capitalize (side) + 'Order';
         let order = {
@@ -180,7 +183,7 @@ module.exports = class mercado extends Exchange {
     parseOrder (order, market = undefined) {
         let side = undefined;
         if ('order_type' in order)
-            side = (order['order_type'] == 1) ? 'buy' : 'sell';
+            side = (order['order_type'] === 1) ? 'buy' : 'sell';
         let status = order['status'];
         let symbol = undefined;
         if (!market) {
@@ -239,18 +242,18 @@ module.exports = class mercado extends Exchange {
         return this.parseOrder (response['response_data']['order']);
     }
 
-    async withdraw (currency, amount, address, params = {}) {
+    async withdraw (currency, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {
             'coin': currency,
             'quantity': amount.toFixed (10),
             'address': address,
         };
-        if (currency == 'BRL') {
+        if (currency === 'BRL') {
             let account_ref = ('account_ref' in params);
             if (!account_ref)
                 throw new ExchangeError (this.id + ' requires account_ref parameter to withdraw ' + currency);
-        } else if (currency != 'LTC') {
+        } else if (currency !== 'LTC') {
             let tx_fee = ('tx_fee' in params);
             if (!tx_fee)
                 throw new ExchangeError (this.id + ' requires tx_fee parameter to withdraw ' + currency);
@@ -264,7 +267,7 @@ module.exports = class mercado extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/';
-        if (api == 'public') {
+        if (api === 'public') {
             url += this.implodeParams (path, params);
         } else {
             this.checkRequiredCredentials ();
@@ -290,4 +293,4 @@ module.exports = class mercado extends Exchange {
             throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
     }
-}
+};

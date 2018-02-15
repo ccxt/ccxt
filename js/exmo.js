@@ -1,14 +1,13 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class exmo extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'exmo',
@@ -16,9 +15,12 @@ module.exports = class exmo extends Exchange {
             'countries': [ 'ES', 'RU' ], // Spain, Russia
             'rateLimit': 1000, // once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
             'version': 'v1',
-            'hasCORS': false,
-            'hasFetchTickers': true,
-            'hasWithdraw': true,
+            'has': {
+                'CORS': false,
+                'fetchOrderBooks': true,
+                'fetchTickers': true,
+                'withdraw': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg',
                 'api': 'https://api.exmo.com',
@@ -27,6 +29,7 @@ module.exports = class exmo extends Exchange {
                     'https://exmo.me/en/api_doc',
                     'https://github.com/exmo-dev/exmo_api_lib/tree/master/nodejs',
                 ],
+                'fees': 'https://exmo.com/en/docs/fees',
             },
             'api': {
                 'public': {
@@ -61,6 +64,27 @@ module.exports = class exmo extends Exchange {
                 'trading': {
                     'maker': 0.2 / 100,
                     'taker': 0.2 / 100,
+                },
+                'funding': {
+                    'withdraw': {
+                        'BTC': 0.001,
+                        'LTC': 0.01,
+                        'DOGE': 1,
+                        'DASH': 0.01,
+                        'ETH': 0.01,
+                        'WAVES': 0.001,
+                        'ZEC': 0.001,
+                        'USDT': 25,
+                        'XMR': 0.05,
+                        'XRP': 0.02,
+                        'KICK': 350,
+                        'ETC': 0.01,
+                        'BCH': 0.001,
+                    },
+                    'deposit': {
+                        'USDT': 15,
+                        'KICK': 50,
+                    },
                 },
             },
         });
@@ -122,7 +146,7 @@ module.exports = class exmo extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetOrderBook (this.extend ({
@@ -134,6 +158,37 @@ module.exports = class exmo extends Exchange {
             'bids': this.sortBy (orderbook['bids'], 0, true),
             'asks': this.sortBy (orderbook['asks'], 0),
         });
+    }
+
+    async fetchOrderBooks (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        let ids = undefined;
+        if (!symbols) {
+            ids = this.ids.join (',');
+            // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
+            if (ids.length > 2048) {
+                let numIds = this.ids.length;
+                throw new ExchangeError (this.id + ' has ' + numIds.toString () + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks');
+            }
+        } else {
+            ids = this.marketIds (symbols);
+            ids = ids.join (',');
+        }
+        let response = await this.publicGetOrderBook (this.extend ({
+            'pair': ids,
+        }, params));
+        let result = {};
+        ids = Object.keys (response);
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
+            let symbol = id;
+            if (id in this.marketsById) {
+                let market = this.marketsById[id];
+                symbol = market['symbol'];
+            }
+            result[symbol] = this.parseOrderBook (response[id], undefined, 'bid', 'ask');
+        }
+        return result;
     }
 
     parseTicker (ticker, market = undefined) {
@@ -213,9 +268,9 @@ module.exports = class exmo extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let prefix = '';
-        if (type == 'market')
+        if (type === 'market')
             prefix = 'market_';
-        if (typeof price == 'undefined')
+        if (typeof price === 'undefined')
             price = 0;
         let order = {
             'pair': this.marketId (symbol),
@@ -235,13 +290,16 @@ module.exports = class exmo extends Exchange {
         return await this.privatePostOrderCancel ({ 'order_id': id });
     }
 
-    async withdraw (currency, amount, address, params = {}) {
+    async withdraw (currency, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
-        let result = await this.privatePostWithdrawCrypt (this.extend ({
+        let request = {
             'amount': amount,
             'currency': currency,
             'address': address,
-        }, params));
+        };
+        if (typeof tag !== 'undefined')
+            request['invoice'] = tag;
+        let result = await this.privatePostWithdrawCrypt (this.extend (request, params));
         return {
             'info': result,
             'id': result['task_id'],
@@ -250,7 +308,7 @@ module.exports = class exmo extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
@@ -275,4 +333,4 @@ module.exports = class exmo extends Exchange {
         }
         return response;
     }
-}
+};

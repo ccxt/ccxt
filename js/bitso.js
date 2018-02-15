@@ -1,14 +1,13 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class bitso extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitso',
@@ -16,7 +15,9 @@ module.exports = class bitso extends Exchange {
             'countries': 'MX', // Mexico
             'rateLimit': 2000, // 30 requests per minute
             'version': 'v3',
-            'hasCORS': true,
+            'has': {
+                'CORS': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766335-715ce7aa-5ed5-11e7-88a8-173a27bb30fe.jpg',
                 'api': 'https://api.bitso.com',
@@ -133,7 +134,7 @@ module.exports = class bitso extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.publicGetOrderBook (this.extend ({
             'book': this.marketId (symbol),
@@ -215,7 +216,7 @@ module.exports = class bitso extends Exchange {
             'type': type,
             'major': this.amountToPrecision (symbol, amount),
         };
-        if (type == 'limit')
+        if (type === 'limit')
             order['price'] = this.priceToPrecision (symbol, price);
         let response = await this.privatePostOrders (this.extend (order, params));
         return {
@@ -226,27 +227,28 @@ module.exports = class bitso extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        return await this.privateDeleteOrders ({ 'oid': id });
+        return await this.privateDeleteOrdersOid ({ 'oid': id });
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let query = '/' + this.version + '/' + this.implodeParams (path, params);
-        let url = this.urls['api'] + query;
-        if (api == 'public') {
-            if (Object.keys (params).length)
-                url += '?' + this.urlencode (params);
+        let endpoint = '/' + this.version + '/' + this.implodeParams (path, params);
+        let query = this.omit (params, this.extractParams (path));
+        let url = this.urls['api'] + endpoint;
+        if (api === 'public') {
+            if (Object.keys (query).length)
+                url += '?' + this.urlencode (query);
         } else {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
-            let request = [ nonce, method, query ].join ('');
-            if (Object.keys (params).length) {
-                body = this.json (params);
+            let request = [ nonce, method, endpoint ].join ('');
+            if (Object.keys (query).length) {
+                body = this.json (query);
                 request += body;
             }
             let signature = this.hmac (this.encode (request), this.encode (this.secret));
             let auth = this.apiKey + ':' + nonce + ':' + signature;
             headers = {
-                'Authorization': "Bitso " + auth,
+                'Authorization': 'Bitso ' + auth,
                 'Content-Type': 'application/json',
             };
         }
@@ -260,4 +262,4 @@ module.exports = class bitso extends Exchange {
                 return response;
         throw new ExchangeError (this.id + ' ' + this.json (response));
     }
-}
+};

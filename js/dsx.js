@@ -1,26 +1,27 @@
-"use strict";
+'use strict';
 
 // ---------------------------------------------------------------------------
 
-const liqui = require ('./liqui.js')
+const liqui = require ('./liqui.js');
 
 // ---------------------------------------------------------------------------
 
 module.exports = class dsx extends liqui {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'dsx',
             'name': 'DSX',
             'countries': 'UK',
             'rateLimit': 1500,
-            'hasCORS': false,
-            'hasFetchOrder': true,
-            'hasFetchOrders': true,
-            'hasFetchOpenOrders': true,
-            'hasFetchClosedOrders': true,
-            'hasFetchTickers': true,
-            'hasFetchMyTrades': true,
+            'has': {
+                'CORS': false,
+                'fetchOrder': true,
+                'fetchOrders': true,
+                'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
+                'fetchTickers': true,
+                'fetchMyTrades': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27990275-1413158a-645a-11e7-931c-94717f7510e3.jpg',
                 'api': {
@@ -111,6 +112,10 @@ module.exports = class dsx extends liqui {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        let average = this.safeFloat (ticker, 'avg');
+        if (typeof average !== 'undefined')
+            if (average > 0)
+                average = 1 / average;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -126,7 +131,7 @@ module.exports = class dsx extends liqui {
             'last': this.safeFloat (ticker, 'last'),
             'change': undefined,
             'percentage': undefined,
-            'average': 1 / this.safeFloat (ticker, 'avg'),
+            'average': average,
             'baseVolume': this.safeFloat (ticker, 'vol'),
             'quoteVolume': this.safeFloat (ticker, 'vol_cur'),
             'info': ticker,
@@ -144,4 +149,4 @@ module.exports = class dsx extends liqui {
     getVersionString () {
         return ''; // they don't prepend version number to public URLs as other BTC-e clones do
     }
-}
+};

@@ -1,14 +1,13 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { InvalidNonce, OrderNotFound, InvalidOrder, InsufficientFunds, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class qryptos extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'qryptos',
@@ -16,9 +15,9 @@ module.exports = class qryptos extends Exchange {
             'countries': [ 'CN', 'TW' ],
             'version': '2',
             'rateLimit': 1000,
-            'hasFetchTickers': true,
-            'hasCORS': false,
             'has': {
+                'CORS': false,
+                'fetchTickers': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
@@ -28,7 +27,11 @@ module.exports = class qryptos extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30953915-b1611dc0-a436-11e7-8947-c95bd5a42086.jpg',
                 'api': 'https://api.qryptos.com',
                 'www': 'https://www.qryptos.com',
-                'doc': 'https://developers.quoine.com',
+                'doc': [
+                    'https://developers.quoine.com',
+                    'https://developers.quoine.com/v2',
+                ],
+                'fees': 'https://qryptos.zendesk.com/hc/en-us/articles/115007858167-Fees',
             },
             'api': {
                 'public': {
@@ -43,6 +46,7 @@ module.exports = class qryptos extends Exchange {
                 'private': {
                     'get': [
                         'accounts/balance',
+                        'accounts/main_asset',
                         'crypto_accounts',
                         'executions/me',
                         'fiat_accounts',
@@ -51,6 +55,7 @@ module.exports = class qryptos extends Exchange {
                         'orders',
                         'orders/{id}',
                         'orders/{id}/trades',
+                        'orders/{id}/executions',
                         'trades',
                         'trades/{id}/loans',
                         'trading_accounts',
@@ -73,6 +78,20 @@ module.exports = class qryptos extends Exchange {
                     ],
                 },
             },
+            'skipJsonOnStatusCodes': [401],
+            'exceptions': {
+                'messages': {
+                    'API Authentication failed': AuthenticationError,
+                    'Nonce is too small': InvalidNonce,
+                    'Order not found': OrderNotFound,
+                    'user': {
+                        'not_enough_free_balance': InsufficientFunds,
+                    },
+                    'quantity': {
+                        'less_than_order_size': InvalidOrder,
+                    },
+                },
+            },
         });
     }
 
@@ -81,13 +100,41 @@ module.exports = class qryptos extends Exchange {
         let result = [];
         for (let p = 0; p < markets.length; p++) {
             let market = markets[p];
-            let id = market['id'];
+            let id = market['id'].toString ();
             let base = market['base_currency'];
             let quote = market['quoted_currency'];
             let symbol = base + '/' + quote;
             let maker = this.safeFloat (market, 'maker_fee');
             let taker = this.safeFloat (market, 'taker_fee');
             let active = !market['disabled'];
+            let minAmount = undefined;
+            let minPrice = undefined;
+            if (base === 'BTC') {
+                minAmount = 0.001;
+            } else if (base === 'ETH') {
+                minAmount = 0.01;
+            }
+            if (quote === 'BTC') {
+                minPrice = 0.00000001;
+            } else if (quote === 'ETH' || quote === 'USD' || quote === 'JPY') {
+                minPrice = 0.00001;
+            }
+            let limits = {
+                'amount': { 'min': minAmount },
+                'price': { 'min': minPrice },
+                'cost': { 'min': undefined },
+            };
+            if (typeof minPrice !== 'undefined')
+                if (typeof minAmount !== 'undefined')
+                    limits['cost']['min'] = minPrice * minAmount;
+            let precision = {
+                'amount': undefined,
+                'price': undefined,
+            };
+            if (typeof minAmount !== 'undefined')
+                precision['amount'] = -Math.log10 (minAmount);
+            if (typeof minPrice !== 'undefined')
+                precision['price'] = -Math.log10 (minPrice);
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -95,6 +142,8 @@ module.exports = class qryptos extends Exchange {
                 'quote': quote,
                 'maker': maker,
                 'taker': taker,
+                'limits': limits,
+                'precision': precision,
                 'active': active,
                 'info': market,
             });
@@ -104,7 +153,7 @@ module.exports = class qryptos extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let balances = await this.privateGetAccountsBalance ();
+        let balances = await this.privateGetAccountsBalance (params);
         let result = { 'info': balances };
         for (let b = 0; b < balances.length; b++) {
             let balance = balances[b];
@@ -120,7 +169,7 @@ module.exports = class qryptos extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetProductsIdPriceLevels (this.extend ({
             'id': this.marketId (symbol),
@@ -209,7 +258,7 @@ module.exports = class qryptos extends Exchange {
         let request = {
             'product_id': market['id'],
         };
-        if (limit)
+        if (typeof limit !== 'undefined')
             request['limit'] = limit;
         let response = await this.publicGetExecutions (this.extend (request, params));
         return this.parseTrades (response['models'], market, since, limit);
@@ -223,12 +272,10 @@ module.exports = class qryptos extends Exchange {
             'side': side,
             'quantity': amount,
         };
-        if (type == 'limit')
+        if (type === 'limit')
             order['price'] = price;
-        let response = await this.privatePostOrders (this.extend ({
-            'order': order,
-        }, params));
-        return this.parseOrder(response);
+        let response = await this.privatePostOrders (this.extend (order, params));
+        return this.parseOrder (response);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -237,40 +284,44 @@ module.exports = class qryptos extends Exchange {
             'id': id,
         }, params));
         let order = this.parseOrder (result);
-        if (order['status'] == 'closed')
+        if (order['status'] === 'closed')
             throw new OrderNotFound (this.id + ' ' + this.json (order));
         return order;
     }
 
-    parseOrder (order) {
+    parseOrder (order, market = undefined) {
         let timestamp = order['created_at'] * 1000;
-        let marketId = order['product_id'];
-        let market = this.marketsById[marketId];
+        let marketId = this.safeString (order, 'product_id');
+        if (typeof marketId !== 'undefined') {
+            if (marketId in this.markets_by_id)
+                market = this.markets_by_id[marketId];
+        }
         let status = undefined;
         if ('status' in order) {
-            if (order['status'] == 'live') {
+            if (order['status'] === 'live') {
                 status = 'open';
-            } else if (order['status'] == 'filled') {
+            } else if (order['status'] === 'filled') {
                 status = 'closed';
-            } else if (order['status'] == 'cancelled') { // 'll' intended
+            } else if (order['status'] === 'cancelled') { // 'll' intended
                 status = 'canceled';
             }
         }
         let amount = parseFloat (order['quantity']);
         let filled = parseFloat (order['filled_quantity']);
+        let price = parseFloat (order['price']);
         let symbol = undefined;
         if (market) {
             symbol = market['symbol'];
         }
         return {
-            'id': order['id'],
+            'id': order['id'].toString (),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'type': order['order_type'],
             'status': status,
             'symbol': symbol,
             'side': order['side'],
-            'price': order['price'],
+            'price': price,
             'amount': amount,
             'filled': filled,
             'remaining': amount - filled,
@@ -291,7 +342,7 @@ module.exports = class qryptos extends Exchange {
         return this.parseOrder (order);
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params={}) {
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         let request = {};
@@ -299,15 +350,18 @@ module.exports = class qryptos extends Exchange {
             market = this.market (symbol);
             request['product_id'] = market['id'];
         }
-        let status = params['status'];
-        if (status == 'open') {
-            request['status'] = 'live';
-        } else if (status == 'closed') {
-            request['status'] = 'filled';
-        } else if (status == 'canceled') {
-            request['status'] = 'cancelled';
+        let status = this.safeValue (params, 'status');
+        if (status) {
+            params = this.omit (params, 'status');
+            if (status === 'open') {
+                request['status'] = 'live';
+            } else if (status === 'closed') {
+                request['status'] = 'filled';
+            } else if (status === 'canceled') {
+                request['status'] = 'cancelled';
+            }
         }
-        let result = await this.privateGetOrders (request);
+        let result = await this.privateGetOrders (this.extend (request, params));
         let orders = result['models'];
         return this.parseOrders (orders, market, since, limit);
     }
@@ -318,40 +372,6 @@ module.exports = class qryptos extends Exchange {
 
     fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         return this.fetchOrders (symbol, since, limit, this.extend ({ 'status': 'closed' }, params));
-    }
-
-    handleErrors (code, reason, url, method, headers, body) {
-        let response = undefined;
-        if (code == 200 || code == 404 || code == 422) {
-            if ((body[0] == '{') || (body[0] == '[')) {
-                response = JSON.parse (body);
-            } else {
-                // if not a JSON response
-                throw new ExchangeError (this.id + ' returned a non-JSON reply: ' + body);
-            }
-        }
-        if (code == 404) {
-            if ('message' in response) {
-                if (response['message'] == 'Order not found') {
-                    throw new OrderNotFound (this.id + ' ' + body);
-                }
-            }
-        } else if (code == 422) {
-            if ('errors' in response) {
-                let errors = response['errors'];
-                if ('user' in errors) {
-                    let messages = errors['user'];
-                    if (messages.indexOf ('not_enough_free_balance') >= 0) {
-                        throw new InsufficientFunds (this.id + ' ' + body);
-                    }
-                } else if ('quantity' in errors) {
-                    let messages = errors['quantity'];
-                    if (messages.indexOf ('less_than_order_size') >= 0) {
-                        throw new InvalidOrder (this.id + ' ' + body);
-                    }
-                }
-            }
-        }
     }
 
     nonce () {
@@ -365,12 +385,12 @@ module.exports = class qryptos extends Exchange {
             'X-Quoine-API-Version': this.version,
             'Content-Type': 'application/json',
         };
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
             this.checkRequiredCredentials ();
-            if (method == 'GET') {
+            if (method === 'GET') {
                 if (Object.keys (query).length)
                     url += '?' + this.urlencode (query);
             } else if (Object.keys (query).length) {
@@ -388,4 +408,48 @@ module.exports = class qryptos extends Exchange {
         url = this.urls['api'] + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-}
+
+    handleErrors (code, reason, url, method, headers, body, response = undefined) {
+        if (code >= 200 && code <= 299)
+            return;
+        const messages = this.exceptions['messages'];
+        if (code === 401) {
+            // expected non-json response
+            if (body in messages)
+                throw new messages[body] (this.id + ' ' + body);
+            else
+                return;
+        }
+        if (typeof response === 'undefined')
+            if ((body[0] === '{') || (body[0] === '['))
+                response = JSON.parse (body);
+            else
+                return;
+        const feedback = this.id + ' ' + this.json (response);
+        if (code === 404) {
+            // { "message": "Order not found" }
+            const message = this.safeString (response, 'message');
+            if (message in messages)
+                throw new messages[message] (feedback);
+        } else if (code === 422) {
+            // array of error messages is returned in 'user' or 'quantity' property of 'errors' object, e.g.:
+            // { "errors": { "user": ["not_enough_free_balance"] }}
+            // { "errors": { "quantity": ["less_than_order_size"] }}
+            if ('errors' in response) {
+                const errors = response['errors'];
+                const errorTypes = ['user', 'quantity'];
+                for (let i = 0; i < errorTypes.length; i++) {
+                    const errorType = errorTypes[i];
+                    if (errorType in errors) {
+                        const errorMessages = errors[errorType];
+                        for (let j = 0; j < errorMessages.length; j++) {
+                            const message = errorMessages[j];
+                            if (message in messages[errorType])
+                                throw new messages[errorType][message] (feedback);
+                        }
+                    }
+                }
+            }
+        }
+    }
+};

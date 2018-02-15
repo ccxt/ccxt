@@ -1,23 +1,24 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class btcturk extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'btcturk',
             'name': 'BTCTurk',
             'countries': 'TR', // Turkey
             'rateLimit': 1000,
-            'hasCORS': true,
-            'hasFetchTickers': true,
-            'hasFetchOHLCV': true,
+            'has': {
+                'CORS': true,
+                'fetchTickers': true,
+                'fetchOHLCV': true,
+            },
             'timeframes': {
                 '1d': '1d',
             },
@@ -77,7 +78,7 @@ module.exports = class btcturk extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let market = this.market (symbol);
         let orderbook = await this.publicGetOrderbook (this.extend ({
             'pairSymbol': market['id'],
@@ -179,7 +180,7 @@ module.exports = class btcturk extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {};
-        if (limit)
+        if (typeof limit !== 'undefined')
             request['last'] = limit;
         let response = await this.publicGetOhlcdata (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
@@ -188,11 +189,11 @@ module.exports = class btcturk extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         let method = 'privatePost' + this.capitalize (side);
         let order = {
-            'Type': (side == 'buy') ? 'BuyBtc' : 'SelBtc',
-            'IsMarketOrder': (type == 'market') ? 1 : 0,
+            'Type': (side === 'buy') ? 'BuyBtc' : 'SelBtc',
+            'IsMarketOrder': (type === 'market') ? 1 : 0,
         };
-        if (type == 'market') {
-            if (side == 'buy')
+        if (type === 'market') {
+            if (side === 'buy')
                 order['Total'] = amount;
             else
                 order['Amount'] = amount;
@@ -216,10 +217,10 @@ module.exports = class btcturk extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        if (this.id == 'btctrader')
+        if (this.id === 'btctrader')
             throw new ExchangeError (this.id + ' is an abstract base API for BTCExchange, BTCTurk');
         let url = this.urls['api'] + '/' + path;
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
@@ -231,10 +232,10 @@ module.exports = class btcturk extends Exchange {
             headers = {
                 'X-PCK': this.apiKey,
                 'X-Stamp': nonce,
-                'X-Signature': this.stringToBase64(this.hmac (this.encode (auth), secret, 'sha256', 'binary')),
+                'X-Signature': this.stringToBase64 (this.hmac (this.encode (auth), secret, 'sha256', 'binary')),
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-}
+};

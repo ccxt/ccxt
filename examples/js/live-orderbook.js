@@ -81,7 +81,7 @@ let printOrderBook = async (id, symbol, depth) => {
     }
 }
 
-(async function main () {
+;(async function main () {
 
     if (process.argv.length > 4) {
 

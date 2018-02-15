@@ -1,13 +1,12 @@
-"use strict";
+'use strict';
 
 // ---------------------------------------------------------------------------
 
-const btcbox = require ('./btcbox.js')
+const btcbox = require ('./btcbox.js');
 
 // ---------------------------------------------------------------------------
 
 module.exports = class jubi extends btcbox {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'jubi',
@@ -15,8 +14,10 @@ module.exports = class jubi extends btcbox {
             'countries': 'CN',
             'rateLimit': 1500,
             'version': 'v1',
-            'hasCORS': false,
-            'hasFetchTickers': true,
+            'has': {
+                'CORS': false,
+                'fetchTickers': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766581-9d397d9a-5edd-11e7-8fb9-5d8236c0e692.jpg',
                 'api': 'https://www.jubi.com/api',
@@ -47,4 +48,4 @@ module.exports = class jubi extends btcbox {
         }
         return result;
     }
-}
+};

@@ -8,7 +8,7 @@ To run the ccxt examples from any folder type one of the following commands in c
 
 ## JavaScript
 
-[JavaScript Examples](https://github.com/kroitor/ccxt/tree/master/examples/js)
+[JavaScript Examples](https://github.com/ccxt/ccxt/tree/master/examples/js)
 
 ```shell
 node path/to/example.js # substitute for actual filename here
@@ -19,7 +19,7 @@ node path/to/example.js # substitute for actual filename here
 
 ## Python
 
-[Python Examples](https://github.com/kroitor/ccxt/tree/master/examples/py)
+[Python Examples](https://github.com/ccxt/ccxt/tree/master/examples/py)
 
 ![basic-chart](https://user-images.githubusercontent.com/1294454/29979754-6d62354c-8f4f-11e7-9e0a-22e87b4a093b.jpg)
 
@@ -29,7 +29,7 @@ python path/to/example.py # substitute for actual filename here
 
 ## PHP
 
-[PHP Examples](https://github.com/kroitor/ccxt/tree/master/examples/php)
+[PHP Examples](https://github.com/ccxt/ccxt/tree/master/examples/php)
 
 ```shell
 php -f path/to/example.php # substitute for actual filename here
@@ -48,6 +48,8 @@ php -f path/to/example.php # substitute for actual filename here
 [A n00bs Guide To Deep Cryptocurrency Trading](https://medium.com/@LeonFedden/deep-cryptocurrency-trading-1e64af6d280a) – An article @ Medium on deep neural trading using ccxt for backend tasks.
 
 [Let’s write a cryptocurrency bot](https://medium.com/@joeldg/an-advanced-tutorial-a-new-crypto-currency-trading-bot-boilerplate-framework-e777733607ae) – A multi-part advanced tutorial on a new cryptocurrency trading framework also integrating ccxt.
+
+[Using ccxt and technicalindicators to calculate MACD for BTC/USDT with Node.js](https://runkit.com/dhilipb/macd-for-btc-usdt) – A runkit sample showing how to fetch data and run statistical calculations.
 
 [Which Bitcoin crypto currency bot project? Gekko vs ccxt vs Tribeca vs Blackbird](https://www.youtube.com/watch?v=Bn2p-nkbVdE) – A video comparison of opensource cryptocurrency trading platforms.
 

@@ -1,14 +1,13 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class btcx extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'btcx',
@@ -16,7 +15,9 @@ module.exports = class btcx extends Exchange {
             'countries': [ 'IS', 'US', 'EU' ],
             'rateLimit': 1500, // support in english is very poor, unable to tell rate limits
             'version': 'v1',
-            'hasCORS': false,
+            'has': {
+                'CORS': false,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766385-9fdcc98c-5ed6-11e7-8f14-66d5e5cd47e6.jpg',
                 'api': 'https://btc-x.is/api',
@@ -67,11 +68,13 @@ module.exports = class btcx extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
-        let orderbook = await this.publicGetDepthIdLimit (this.extend ({
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        let request = {
             'id': this.marketId (symbol),
-            'limit': 1000,
-        }, params));
+        };
+        if (typeof limit !== 'undefined')
+            request['limit'] = limit; // 1000
+        let orderbook = await this.publicGetDepthIdLimit (this.extend (request, params));
         return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'amount');
     }
 
@@ -104,7 +107,7 @@ module.exports = class btcx extends Exchange {
 
     parseTrade (trade, market) {
         let timestamp = parseInt (trade['date']) * 1000;
-        let side = (trade['type'] == 'ask') ? 'sell' : 'buy';
+        let side = (trade['type'] === 'ask') ? 'sell' : 'buy';
         return {
             'id': trade['id'],
             'info': trade,
@@ -146,7 +149,7 @@ module.exports = class btcx extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/';
-        if (api == 'public') {
+        if (api === 'public') {
             url += this.implodeParams (path, params);
         } else {
             this.checkRequiredCredentials ();
@@ -171,4 +174,4 @@ module.exports = class btcx extends Exchange {
             throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
     }
-}
+};
