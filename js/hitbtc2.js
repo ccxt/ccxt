@@ -19,9 +19,7 @@ module.exports = class hitbtc2 extends hitbtc {
                 'createDepositAddress': true,
                 'fetchDepositAddress': true,
                 'CORS': true,
-                // editOrder not implemented yet
-                // they have a privatePatchOrderClientOrderId endpoint for that
-                'editOrder': 'emulated',
+                'editOrder': true,
                 'fetchCurrencies': true,
                 'fetchOHLCV': true,
                 'fetchTickers': true,
@@ -848,6 +846,27 @@ module.exports = class hitbtc2 extends hitbtc {
         let order = this.parseOrder (response);
         let id = order['id'];
         this.orders[id] = order;
+        return order;
+    }
+
+    async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        // their max accepted length is 32 characters
+        let uuid = this.uuid ();
+        let parts = uuid.split ('-');
+        let requestClientId = parts.join ('');
+        requestClientId = requestClientId.slice (0, 32);
+        let request = {
+            'clientOrderId': id,
+            'requestClientId': requestClientId,
+        };
+        if (typeof amount !== 'undefined')
+            request['quantity'] = this.amountToPrecision (symbol, parseFloat (amount));
+        if (typeof price !== 'undefined')
+            request['price'] = this.priceToPrecision (symbol, price);
+        let response = await this.privatePatchOrderClientOrderId (this.extend (request, params));
+        let order = this.parseOrder (response);
+        this.orders[order['id']] = order;
         return order;
     }
 
