@@ -19,6 +19,7 @@ class kucoin extends Exchange {
                 'CORS' => false,
                 'cancelOrders' => true,
                 'createMarketOrder' => false,
+                'fetchDepositAddress' => true,
                 'fetchTickers' => true,
                 'fetchOHLCV' => true, // see the method implementation below
                 'fetchOrder' => true,
@@ -207,6 +208,24 @@ class kucoin extends Exchange {
             );
         }
         return $result;
+    }
+
+    public function fetch_deposit_address ($code, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency ($code);
+        $response = $this->privateGetAccountCoinWalletAddress (array_merge (array (
+            'coin' => $currency['id'],
+        ), $params));
+        $data = $response['data'];
+        $address = $this->safe_string($data, 'address');
+        $tag = $this->safe_string($data, 'userOid');
+        return array (
+            'currency' => $code,
+            'address' => $address,
+            'tag' => $tag,
+            'status' => 'ok',
+            'info' => $response,
+        );
     }
 
     public function fetch_currencies ($params = array ()) {
