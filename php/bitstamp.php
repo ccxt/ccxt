@@ -233,6 +233,37 @@ class bitstamp extends Exchange {
         );
     }
 
+    public function get_market_from_trade ($trade) {
+        $trade = $this->omit ($trade, array (
+            'fee',
+            'price',
+            'datetime',
+            'tid',
+            'type',
+            'order_id',
+        ));
+        $currencyIds = is_array ($trade) ? array_keys ($trade) : array ();
+        $numCurrencyIds = is_array ($currencyIds) ? count ($currencyIds) : 0;
+        if ($numCurrencyIds === 2) {
+            $marketId = $currencyIds[0] . $currencyIds[1];
+            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
+                return $this->markets_by_id[$marketId];
+            $marketId = $currencyIds[1] . $currencyIds[0];
+            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
+                return $this->markets_by_id[$marketId];
+        }
+        return null;
+    }
+
+    public function get_market_from_trades ($trades) {
+        $tradesBySymbol = $this->index_by($trades, 'symbol');
+        $symbols = is_array ($tradesBySymbol) ? array_keys ($tradesBySymbol) : array ();
+        $numSymbols = is_array ($symbols) ? count ($symbols) : 0;
+        if ($numSymbols === 1)
+            return $this->markets[$symbols[0]];
+        return null;
+    }
+
     public function parse_trade ($trade, $market = null) {
         $timestamp = null;
         $symbol = null;
@@ -241,11 +272,8 @@ class bitstamp extends Exchange {
         } else if (is_array ($trade) && array_key_exists ('datetime', $trade)) {
             $timestamp = $this->parse8601 ($trade['datetime']);
         }
-        // if overrided externally
+        // only if overrided externally
         $side = $this->safe_string($trade, 'side');
-        // only if not overrided externally
-        if ($side === null)
-            $side = ($trade['type'] === '0') ? 'buy' : 'sell';
         $orderId = $this->safe_string($trade, 'order_id');
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
@@ -260,6 +288,10 @@ class bitstamp extends Exchange {
                         $market = $this->markets_by_id[$marketId];
                 }
             }
+            // if the $market is still not defined
+            // try to deduce it from used $keys
+            if ($market === null)
+                $market = $this->get_market_from_trade ($trade);
         }
         $feeCost = $this->safe_float($trade, 'fee');
         $feeCurrency = null;
@@ -352,9 +384,9 @@ class bitstamp extends Exchange {
         return $order['status'];
     }
 
-    public function fetch_order_status ($id, $symbol = null) {
+    public function fetch_order_status ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostOrderStatus (array ( 'id' => $id ));
+        $response = $this->privatePostOrderStatus (array_merge (array ( 'id' => $id ), $params));
         return $this->parse_order_status($response);
     }
 
@@ -363,7 +395,7 @@ class bitstamp extends Exchange {
         $market = null;
         if ($symbol !== null)
             $market = $this->market ($symbol);
-        $response = $this->privatePostOrderStatus (array ( 'id' => $id ));
+        $response = $this->privatePostOrderStatus (array_merge (array ( 'id' => $id ), $params));
         return $this->parse_order($response, $market);
     }
 
@@ -382,10 +414,14 @@ class bitstamp extends Exchange {
     }
 
     public function parse_order ($order, $market = null) {
+        $id = $this->safe_string($order, 'id');
         $timestamp = null;
+        $iso8601 = null;
         $datetimeString = $this->safe_string($order, 'datetime');
-        if ($datetimeString !== null)
+        if ($datetimeString !== null) {
             $timestamp = $this->parse8601 ($datetimeString);
+            $iso8601 = $this->iso8601 ($timestamp);
+        }
         $symbol = null;
         if ($market === null) {
             if (is_array ($order) && array_key_exists ('currency_pair', $order)) {
@@ -394,13 +430,6 @@ class bitstamp extends Exchange {
                     $market = $this->markets_by_id[$marketId];
             }
         }
-        if ($market !== null)
-            $symbol = $market['symbol'];
-        $status = $this->safe_string($order, 'status');
-        if (($status === 'In Queue') || ($status === 'Open'))
-            $status = 'open';
-        else if ($status === 'Finished')
-            $status = 'closed';
         $amount = $this->safe_float($order, 'amount');
         $filled = 0;
         $trades = array ();
@@ -408,11 +437,19 @@ class bitstamp extends Exchange {
         if ($transactions !== null) {
             if (gettype ($transactions) === 'array' && count (array_filter (array_keys ($transactions), 'is_string')) == 0) {
                 for ($i = 0; $i < count ($transactions); $i++) {
-                    $trade = $this->parse_trade($transactions[$i], $market);
+                    $trade = $this->parse_trade(array_merge (array ( 'order_id' => $id ), $transactions[$i]), $market);
                     $filled .= $trade['amount'];
                     $trades[] = $trade;
                 }
             }
+        }
+        $status = $this->safe_string($order, 'status');
+        if (($status === 'In Queue') || ($status === 'Open'))
+            $status = 'open';
+        else if ($status === 'Finished') {
+            $status = 'closed';
+            if ($amount === null)
+                $amount = $filled;
         }
         $remaining = null;
         if ($amount !== null)
@@ -423,10 +460,13 @@ class bitstamp extends Exchange {
             $side = ($side === '1') ? 'sell' : 'buy';
         $fee = null;
         $cost = null;
-        $id = $this->safe_string($order, 'id');
+        if ($market === null)
+            $market = $this->get_market_from_trades ($trades);
+        if ($market !== null)
+            $symbol = $market['symbol'];
         return array (
             'id' => $id,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $iso8601,
             'timestamp' => $timestamp,
             'status' => $status,
             'symbol' => $symbol,
