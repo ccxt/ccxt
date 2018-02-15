@@ -251,7 +251,7 @@ module.exports = class cryptopia extends Exchange {
             let id = ticker['TradePairId'];
             let recognized = (id in this.markets_by_id);
             if (!recognized)
-                throw new ExchangeError (this.id + ' fetchTickers() returned unrecognized pair id ' + id);
+                throw new ExchangeError (this.id + ' fetchTickers() returned unrecognized pair id ' + id.toString ());
             let market = this.markets_by_id[id];
             let symbol = market['symbol'];
             result[symbol] = this.parseTicker (ticker, market);
