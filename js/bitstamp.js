@@ -17,6 +17,7 @@ module.exports = class bitstamp extends Exchange {
             'version': 'v2',
             'has': {
                 'CORS': true,
+                'fetchOrder': true,
                 'fetchOpenOrders': true,
                 'fetchMyTrades': true,
                 'withdraw': true,
@@ -414,15 +415,18 @@ module.exports = class bitstamp extends Exchange {
                 }
             }
         }
-        let remaining = amount - filled;
+        let remaining = undefined;
+        if (typeof amount !== 'undefined')
+            remaining = amount - filled;
         let price = this.safeFloat (order, 'price');
         let side = this.safeString (order, 'type');
         if (typeof side !== 'undefined')
             side = (side === '1') ? 'sell' : 'buy';
         let fee = undefined;
         let cost = undefined;
+        let id = this.safeString (order, 'id');
         return {
-            'id': order['id'],
+            'id': id,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'status': status,
