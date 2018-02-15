@@ -241,6 +241,34 @@ class bitstamp (Exchange):
             'info': ticker,
         }
 
+    def get_market_from_trade(self, trade):
+        trade = self.omit(trade, [
+            'fee',
+            'price',
+            'datetime',
+            'tid',
+            'type',
+            'order_id',
+        ])
+        currencyIds = list(trade.keys())
+        numCurrencyIds = len(currencyIds)
+        if numCurrencyIds == 2:
+            marketId = currencyIds[0] + currencyIds[1]
+            if marketId in self.markets_by_id:
+                return self.markets_by_id[marketId]
+            marketId = currencyIds[1] + currencyIds[0]
+            if marketId in self.markets_by_id:
+                return self.markets_by_id[marketId]
+        return None
+
+    def get_market_from_trades(self, trades):
+        tradesBySymbol = self.index_by(trades, 'symbol')
+        symbols = list(tradesBySymbol.keys())
+        numSymbols = len(symbols)
+        if numSymbols == 1:
+            return self.markets[symbols[0]]
+        return None
+
     def parse_trade(self, trade, market=None):
         timestamp = None
         symbol = None
@@ -248,11 +276,8 @@ class bitstamp (Exchange):
             timestamp = int(trade['date']) * 1000
         elif 'datetime' in trade:
             timestamp = self.parse8601(trade['datetime'])
-        # if overrided externally
+        # only if overrided externally
         side = self.safe_string(trade, 'side')
-        # only if not overrided externally
-        if side is None:
-            side = 'buy' if (trade['type'] == '0') else 'sell'
         orderId = self.safe_string(trade, 'order_id')
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
@@ -265,6 +290,10 @@ class bitstamp (Exchange):
                     marketId = keys[i].replace('_', '')
                     if marketId in self.markets_by_id:
                         market = self.markets_by_id[marketId]
+            # if the market is still not defined
+            # try to deduce it from used keys
+            if market is None:
+                market = self.get_market_from_trade(trade)
         feeCost = self.safe_float(trade, 'fee')
         feeCurrency = None
         if market is not None:
@@ -348,9 +377,9 @@ class bitstamp (Exchange):
             return 'closed'
         return order['status']
 
-    def fetch_order_status(self, id, symbol=None):
+    def fetch_order_status(self, id, symbol=None, params={}):
         self.load_markets()
-        response = self.privatePostOrderStatus({'id': id})
+        response = self.privatePostOrderStatus(self.extend({'id': id}, params))
         return self.parse_order_status(response)
 
     def fetch_order(self, id, symbol=None, params={}):
@@ -358,7 +387,7 @@ class bitstamp (Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        response = self.privatePostOrderStatus({'id': id})
+        response = self.privatePostOrderStatus(self.extend({'id': id}, params))
         return self.parse_order(response, market)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
@@ -374,23 +403,19 @@ class bitstamp (Exchange):
         return self.parse_trades(response, market, since, limit)
 
     def parse_order(self, order, market=None):
+        id = self.safe_string(order, 'id')
         timestamp = None
+        iso8601 = None
         datetimeString = self.safe_string(order, 'datetime')
         if datetimeString is not None:
             timestamp = self.parse8601(datetimeString)
+            iso8601 = self.iso8601(timestamp)
         symbol = None
         if market is None:
             if 'currency_pair' in order:
                 marketId = order['currency_pair']
                 if marketId in self.markets_by_id:
                     market = self.markets_by_id[marketId]
-        if market is not None:
-            symbol = market['symbol']
-        status = self.safe_string(order, 'status')
-        if (status == 'In Queue') or (status == 'Open'):
-            status = 'open'
-        elif status == 'Finished':
-            status = 'closed'
         amount = self.safe_float(order, 'amount')
         filled = 0
         trades = []
@@ -398,9 +423,16 @@ class bitstamp (Exchange):
         if transactions is not None:
             if isinstance(transactions, list):
                 for i in range(0, len(transactions)):
-                    trade = self.parse_trade(transactions[i], market)
+                    trade = self.parse_trade(self.extend({'order_id': id}, transactions[i]), market)
                     filled += trade['amount']
                     trades.append(trade)
+        status = self.safe_string(order, 'status')
+        if (status == 'In Queue') or (status == 'Open'):
+            status = 'open'
+        elif status == 'Finished':
+            status = 'closed'
+            if amount is None:
+                amount = filled
         remaining = None
         if amount is not None:
             remaining = amount - filled
@@ -410,10 +442,13 @@ class bitstamp (Exchange):
             side = 'sell' if (side == '1') else 'buy'
         fee = None
         cost = None
-        id = self.safe_string(order, 'id')
+        if market is None:
+            market = self.get_market_from_trades(trades)
+        if market is not None:
+            symbol = market['symbol']
         return {
             'id': id,
-            'datetime': self.iso8601(timestamp),
+            'datetime': iso8601,
             'timestamp': timestamp,
             'status': status,
             'symbol': symbol,
