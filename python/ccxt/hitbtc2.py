@@ -26,6 +26,9 @@ class hitbtc2 (hitbtc):
                 'createDepositAddress': True,
                 'fetchDepositAddress': True,
                 'CORS': True,
+                # editOrder not implemented yet
+                # they have a privatePatchOrderClientOrderId endpoint for that
+                'editOrder': 'emulated',
                 'fetchCurrencies': True,
                 'fetchOHLCV': True,
                 'fetchTickers': True,
