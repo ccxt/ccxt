@@ -301,6 +301,10 @@ class bitstamp extends Exchange {
             $feeCurrency = $market['quote'];
             $symbol = $market['symbol'];
         }
+        $cost = null;
+        if ($price !== null)
+            if ($amount !== null)
+                $cost = $price * $amount;
         return array (
             'id' => $id,
             'info' => $trade,
@@ -312,6 +316,7 @@ class bitstamp extends Exchange {
             'side' => $side,
             'price' => $price,
             'amount' => $amount,
+            'cost' => $cost,
             'fee' => array (
                 'cost' => $feeCost,
                 'currency' => $feeCurrency,
@@ -431,14 +436,22 @@ class bitstamp extends Exchange {
             }
         }
         $amount = $this->safe_float($order, 'amount');
-        $filled = 0;
+        $filled = 0.0;
         $trades = array ();
         $transactions = $this->safe_value($order, 'transactions');
+        $feeCost = null;
+        $cost = null;
         if ($transactions !== null) {
             if (gettype ($transactions) === 'array' && count (array_filter (array_keys ($transactions), 'is_string')) == 0) {
                 for ($i = 0; $i < count ($transactions); $i++) {
                     $trade = $this->parse_trade(array_merge (array ( 'order_id' => $id ), $transactions[$i]), $market);
                     $filled .= $trade['amount'];
+                    if ($feeCost === null)
+                        $feeCost = 0.0;
+                    $feeCost .= $trade['fee']['cost'];
+                    if ($cost === null)
+                        $cost = 0.0;
+                    $cost .= $trade['cost'];
                     $trades[] = $trade;
                 }
             }
@@ -458,12 +471,24 @@ class bitstamp extends Exchange {
         $side = $this->safe_string($order, 'type');
         if ($side !== null)
             $side = ($side === '1') ? 'sell' : 'buy';
-        $fee = null;
-        $cost = null;
         if ($market === null)
             $market = $this->get_market_from_trades ($trades);
-        if ($market !== null)
+        $feeCurrency = null;
+        if ($market !== null) {
             $symbol = $market['symbol'];
+            $feeCurrency = $market['quote'];
+        }
+        if ($cost === null) {
+            if ($price !== null)
+                $cost = $price * $filled;
+        } else if ($price === null) {
+            if ($filled > 0)
+                $price = $cost / $filled;
+        }
+        $fee = array (
+            'cost' => $feeCost,
+            'currency' => $feeCurrency,
+        );
         return array (
             'id' => $id,
             'datetime' => $iso8601,

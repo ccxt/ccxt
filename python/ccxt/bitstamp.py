@@ -301,6 +301,10 @@ class bitstamp (Exchange):
             amount = self.safe_float(trade, market['baseId'], amount)
             feeCurrency = market['quote']
             symbol = market['symbol']
+        cost = None
+        if price is not None:
+            if amount is not None:
+                cost = price * amount
         return {
             'id': id,
             'info': trade,
@@ -312,6 +316,7 @@ class bitstamp (Exchange):
             'side': side,
             'price': price,
             'amount': amount,
+            'cost': cost,
             'fee': {
                 'cost': feeCost,
                 'currency': feeCurrency,
@@ -417,14 +422,22 @@ class bitstamp (Exchange):
                 if marketId in self.markets_by_id:
                     market = self.markets_by_id[marketId]
         amount = self.safe_float(order, 'amount')
-        filled = 0
+        filled = 0.0
         trades = []
         transactions = self.safe_value(order, 'transactions')
+        feeCost = None
+        cost = None
         if transactions is not None:
             if isinstance(transactions, list):
                 for i in range(0, len(transactions)):
                     trade = self.parse_trade(self.extend({'order_id': id}, transactions[i]), market)
                     filled += trade['amount']
+                    if feeCost is None:
+                        feeCost = 0.0
+                    feeCost += trade['fee']['cost']
+                    if cost is None:
+                        cost = 0.0
+                    cost += trade['cost']
                     trades.append(trade)
         status = self.safe_string(order, 'status')
         if (status == 'In Queue') or (status == 'Open'):
@@ -440,12 +453,22 @@ class bitstamp (Exchange):
         side = self.safe_string(order, 'type')
         if side is not None:
             side = 'sell' if (side == '1') else 'buy'
-        fee = None
-        cost = None
         if market is None:
             market = self.get_market_from_trades(trades)
+        feeCurrency = None
         if market is not None:
             symbol = market['symbol']
+            feeCurrency = market['quote']
+        if cost is None:
+            if price is not None:
+                cost = price * filled
+        elif price is None:
+            if filled > 0:
+                price = cost / filled
+        fee = {
+            'cost': feeCost,
+            'currency': feeCurrency,
+        }
         return {
             'id': id,
             'datetime': iso8601,
