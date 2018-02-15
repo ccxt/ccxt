@@ -250,7 +250,7 @@ class cryptopia extends Exchange {
             $id = $ticker['TradePairId'];
             $recognized = (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id));
             if (!$recognized)
-                throw new ExchangeError ($this->id . ' fetchTickers() returned unrecognized pair $id ' . $id);
+                throw new ExchangeError ($this->id . ' fetchTickers() returned unrecognized pair $id ' . (string) $id);
             $market = $this->markets_by_id[$id];
             $symbol = $market['symbol'];
             $result[$symbol] = $this->parse_ticker($ticker, $market);

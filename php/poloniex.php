@@ -17,6 +17,7 @@ class poloniex extends Exchange {
                 'createDepositAddress' => true,
                 'fetchDepositAddress' => true,
                 'CORS' => false,
+                'editOrder' => true,
                 'createMarketOrder' => false,
                 'fetchOHLCV' => true,
                 'fetchMyTrades' => true,
