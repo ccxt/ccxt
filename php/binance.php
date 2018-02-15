@@ -774,6 +774,7 @@ class binance extends Exchange {
     }
 
     public function fetch_deposit_address ($code, $params = array ()) {
+        $this->load_markets();
         $currency = $this->currency ($code);
         $response = $this->wapiGetDepositAddress (array_merge (array (
             'asset' => $currency['id'],
