@@ -1437,7 +1437,7 @@ The list of methods for querying orders consists of the following:
 - `fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {})`
 - `fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {})`
 
-Note that the naming of those methods indicates if the method returns a single order or multiple orders (an array/list of orders). Note, that `fetchOrder()` requires a mandatory order id argument (a string). Some exchanges also require a symbol to fetch an order by id, where order ids can intersect with various trading pairs. Also note that all other methods above return an array (a list) of orders. Most of them will also require a symbol, however, some exchanges allow querying with a symbol unspecified (all symbols).
+Note that the naming of those methods indicates if the method returns a single order or multiple orders (an array/list of orders). The `fetchOrder()` method requires a mandatory order id argument (a string). Some exchanges also require a symbol to fetch an order by id, where order ids can intersect with various trading pairs. Also, note that all other methods above return an array (a list) of orders. Most of them will require a symbol argument as well, however, some exchanges allow querying with a symbol unspecified (meaning *all symbols*).
 
 The library will throw a NotSupported exception if a user calls a method that is not available from the exchange or is not implemented in ccxt.
 
