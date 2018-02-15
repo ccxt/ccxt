@@ -688,7 +688,7 @@ class hitbtc2 (hitbtc):
             float(ohlcv['max']),
             float(ohlcv['min']),
             float(ohlcv['close']),
-            float(ohlcv['volumeQuote']),
+            float(ohlcv['volume']),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):

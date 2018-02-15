@@ -689,7 +689,7 @@ class hitbtc2 extends hitbtc {
             floatval ($ohlcv['max']),
             floatval ($ohlcv['min']),
             floatval ($ohlcv['close']),
-            floatval ($ohlcv['volumeQuote']),
+            floatval ($ohlcv['volume']),
         ];
     }
 

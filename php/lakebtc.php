@@ -16,6 +16,7 @@ class lakebtc extends Exchange {
             'has' => array (
                 'CORS' => true,
                 'createMarketOrder' => false,
+                'fetchTickers' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28074120-72b7c38a-6660-11e7-92d9-d9027502281d.jpg',
@@ -113,14 +114,11 @@ class lakebtc extends Exchange {
         return $this->parse_order_book($orderbook);
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
-        $this->load_markets();
-        $market = $this->market ($symbol);
-        $tickers = $this->publicGetTicker (array_merge (array (
-            'symbol' => $market['id'],
-        ), $params));
-        $ticker = $tickers[$market['id']];
+    public function parse_ticker ($ticker, $market = null) {
         $timestamp = $this->milliseconds ();
+        $symbol = null;
+        if ($market !== null)
+            $symbol = $market['symbol'];
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -141,6 +139,31 @@ class lakebtc extends Exchange {
             'quoteVolume' => null,
             'info' => $ticker,
         );
+    }
+
+    public function fetch_tickers ($symbols = null, $params = array ()) {
+        $this->load_markets();
+        $tickers = $this->publicGetTicker ($params);
+        $ids = is_array ($tickers) ? array_keys ($tickers) : array ();
+        $result = array ();
+        for ($i = 0; $i < count ($ids); $i++) {
+            $symbol = $ids[$i];
+            $ticker = $tickers[$symbol];
+            $market = null;
+            if (is_array ($this->markets_by_id) && array_key_exists ($symbol, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$symbol];
+                $symbol = $market['symbol'];
+            }
+            $result[$symbol] = $this->parse_ticker($ticker, $market);
+        }
+        return $result;
+    }
+
+    public function fetch_ticker ($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $tickers = $this->publicGetTicker ($params);
+        return $this->parse_ticker($tickers[$market['id']], $market);
     }
 
     public function parse_trade ($trade, $market) {
