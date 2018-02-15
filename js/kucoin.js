@@ -214,23 +214,19 @@ module.exports = class kucoin extends Exchange {
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
         let currency = this.currency (code);
-        let response = await this.privateGetAccountCoinWalletAddress ({
+        let response = await this.privateGetAccountCoinWalletAddress (this.extend ({
             'coin': currency['id'],
-        });
-        if ('success' in response) {
-            if (response['success'] && typeof response.data != 'undefined') {
-                let address = this.safeString (response.data, 'address');
-                let tag = this.safeString (response.data, 'userOid');
-                return {
-                    'currency': code,
-                    'address': address,
-                    'tag': tag,
-                    'status': 'ok',
-                    'info': response,
-                };
-            }
-        }
-        throw new ExchangeError (this.id + ' fetchDepositAddress failed: ' + this.last_http_response);
+        }, params));
+        let data = response['data'];
+        let address = this.safeString (data, 'address');
+        let tag = this.safeString (data, 'userOid');
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'status': 'ok',
+            'info': response,
+        };
     }
 
     async fetchCurrencies (params = {}) {
