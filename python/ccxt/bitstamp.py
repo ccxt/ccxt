@@ -29,7 +29,7 @@ class bitstamp (Exchange):
             'version': 'v2',
             'has': {
                 'CORS': True,
-                'fetchOrder': True,
+                'fetchOpenOrders': True,
                 'fetchMyTrades': True,
                 'withdraw': True,
             },
@@ -417,14 +417,13 @@ class bitstamp (Exchange):
             'info': order,
         }
 
-    def fetch_order(self, id, symbol=None, params={}):
-        self.load_markets()
-        response = self.privatePostOrderStatus(self.extend({
-            'id': str(id),
-        }, params))
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        market = None
+        if symbol is not None:
+            self.load_markets()
+            market = self.market(symbol)
         orders = self.privatePostOpenOrdersAll()
-        order = self.filter_by(orders, 'id', str(id))
-        return self.parse_order(self.extend(response, order['0']))
+        return self.parse_orders(orders, market, since, limit)
 
     def get_currency_name(self, code):
         if code == 'BTC':
