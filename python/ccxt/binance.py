@@ -746,6 +746,7 @@ class binance (Exchange):
         return currency
 
     def fetch_deposit_address(self, code, params={}):
+        self.load_markets()
         currency = self.currency(code)
         response = self.wapiGetDepositAddress(self.extend({
             'asset': currency['id'],
