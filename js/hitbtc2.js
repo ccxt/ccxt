@@ -19,6 +19,9 @@ module.exports = class hitbtc2 extends hitbtc {
                 'createDepositAddress': true,
                 'fetchDepositAddress': true,
                 'CORS': true,
+                // editOrder not implemented yet
+                // they have a privatePatchOrderClientOrderId endpoint for that
+                'editOrder': 'emulated',
                 'fetchCurrencies': true,
                 'fetchOHLCV': true,
                 'fetchTickers': true,
