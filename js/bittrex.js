@@ -23,7 +23,7 @@ module.exports = class bittrex extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchClosedOrders': 'emulated',
                 'fetchCurrencies': true,
-                'fetchMyTrades': false,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
@@ -358,12 +358,13 @@ module.exports = class bittrex extends Exchange {
         let id = undefined;
         if ('Id' in trade)
             id = trade['Id'].toString ();
+        let symbol = (market) ? market['symbol'] : undefined;
         return {
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': 'limit',
             'side': side,
             'price': parseFloat (trade['Price']),
@@ -383,6 +384,18 @@ module.exports = class bittrex extends Exchange {
         }
         throw new ExchangeError (this.id + ' fetchTrades() returned undefined response');
     }
+    
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let request = {};
+        let market = undefined;
+        if (symbol) {
+            market = this.market (symbol);
+            request['market'] = market['id'];
+        }
+        let response = await this.accountGetOrderhistory (this.extend (request, params));
+        return this.parseTrades (response['result'], market);
+  }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {
         let timestamp = this.parse8601 (ohlcv['T'] + '+00:00');
