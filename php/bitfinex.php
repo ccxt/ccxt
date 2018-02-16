@@ -22,11 +22,13 @@ class bitfinex extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchDepositAddress' => true,
                 'fetchFees' => true,
+                'fetchFundingFees' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchTickers' => true,
+                'fetchTradingFees' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array (
