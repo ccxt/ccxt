@@ -164,7 +164,6 @@ class btcmarkets (Exchange):
         await self.load_markets()
         market = self.market(symbol)
         multiplier = 100000000  # for price and volume
-        # does BTC Markets support market orders at all?
         orderSide = 'Bid' if (side == 'buy') else 'Ask'
         order = self.ordered({
             'currency': market['quote'],

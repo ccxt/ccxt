@@ -123,8 +123,8 @@ class zb extends Exchange {
             $id = $keys[$i];
             $market = $markets[$id];
             list ($baseId, $quoteId) = explode ('_', $id);
-            $base = strtoupper ($this->common_currency_code($baseId));
-            $quote = strtoupper ($this->common_currency_code($quoteId));
+            $base = $this->common_currency_code(strtoupper ($baseId));
+            $quote = $this->common_currency_code(strtoupper ($quoteId));
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => $market['amountScale'],

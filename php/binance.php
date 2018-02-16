@@ -451,20 +451,18 @@ class binance extends Exchange {
 
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = $this->safe_integer($ticker, 'closeTime');
-        if ($timestamp === null)
-            $timestamp = $this->milliseconds ();
+        $iso8601 = ($timestamp === null) ? null : $this->iso8601 ($timestamp);
         $symbol = $ticker['symbol'];
-        if (!$market) {
-            if (is_array ($this->markets_by_id) && array_key_exists ($symbol, $this->markets_by_id)) {
+        if ($market === null) {
+            if (is_array ($this->markets_by_id) && array_key_exists ($symbol, $this->markets_by_id))
                 $market = $this->markets_by_id[$symbol];
-            }
         }
-        if ($market)
+        if ($market !== null)
             $symbol = $market['symbol'];
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $iso8601,
             'high' => $this->safe_float($ticker, 'highPrice'),
             'low' => $this->safe_float($ticker, 'lowPrice'),
             'bid' => $this->safe_float($ticker, 'bidPrice'),
@@ -612,15 +610,13 @@ class binance extends Exchange {
     }
 
     public function parse_order_status ($status) {
-        if ($status === 'NEW')
-            return 'open';
-        if ($status === 'PARTIALLY_FILLED')
-            return 'open';
-        if ($status === 'FILLED')
-            return 'closed';
-        if ($status === 'CANCELED')
-            return 'canceled';
-        return strtolower ($status);
+        $statuses = array (
+            'NEW' => 'open',
+            'PARTIALLY_FILLED' => 'open',
+            'FILLED' => 'closed',
+            'CANCELED' => 'canceled',
+        );
+        return (is_array ($statuses) && array_key_exists ($status, $statuses)) ? $statuses[$status] : strtolower ($status);
     }
 
     public function parse_order ($order, $market = null) {

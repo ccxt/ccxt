@@ -265,7 +265,7 @@ class kraken (Exchange):
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
             darkpool = id.find('.d') >= 0
-            symbol = market['altname'] if darkpool else(base + '/' + quote)
+            symbol = market['altname'] if darkpool else (base + '/' + quote)
             maker = None
             if 'fees_maker' in market:
                 maker = float(market['fees_maker'][0][1]) / 100
