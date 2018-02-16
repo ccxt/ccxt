@@ -121,7 +121,7 @@ module.exports = class negociecoins extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetPAROrderbook (this.extend ({
             'PAR': this.marketId (symbol),
