@@ -29,6 +29,7 @@ class bitstamp (Exchange):
             'version': 'v2',
             'has': {
                 'CORS': True,
+                'fetchDepositAddress': True,
                 'fetchOrder': True,
                 'fetchOpenOrders': True,
                 'fetchMyTrades': True,
@@ -507,9 +508,26 @@ class bitstamp (Exchange):
             return True
         return False
 
+    async def fetch_deposit_address(self, code, params={}):
+        if self.is_fiat(code):
+            raise NotSupported(self.id + ' fiat fetchDepositAddress() for ' + code + ' is not implemented yet')
+        name = self.get_currency_name(code)
+        v1 = (code == 'BTC')
+        method = 'v1' if v1 else 'private'  # v1 or v2
+        method += 'Post' + self.capitalize(name)
+        method += 'Deposit' if v1 else ''
+        method += 'Address'
+        response = await getattr(self, method)(params)
+        return {
+            'currency': code,
+            'status': 'ok',
+            'address': self.safe_string(response, 'address'),
+            'tag': self.safe_string(response, 'destination_tag'),
+            'info': response,
+        }
+
     async def withdraw(self, code, amount, address, tag=None, params={}):
-        isFiat = self.is_fiat(code)
-        if isFiat:
+        if self.is_fiat(code):
             raise NotSupported(self.id + ' fiat withdraw() for ' + code + ' is not implemented yet')
         name = self.get_currency_name(code)
         request = {
