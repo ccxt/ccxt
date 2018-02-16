@@ -453,18 +453,17 @@ class binance (Exchange):
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.safe_integer(ticker, 'closeTime')
-        if timestamp is None:
-            timestamp = self.milliseconds()
+        iso8601 = None if (timestamp is None) else self.iso8601(timestamp)
         symbol = ticker['symbol']
-        if not market:
+        if market is None:
             if symbol in self.markets_by_id:
                 market = self.markets_by_id[symbol]
-        if market:
+        if market is not None:
             symbol = market['symbol']
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'datetime': iso8601,
             'high': self.safe_float(ticker, 'highPrice'),
             'low': self.safe_float(ticker, 'lowPrice'),
             'bid': self.safe_float(ticker, 'bidPrice'),
@@ -598,15 +597,13 @@ class binance (Exchange):
         return self.parse_trades(response, market, since, limit)
 
     def parse_order_status(self, status):
-        if status == 'NEW':
-            return 'open'
-        if status == 'PARTIALLY_FILLED':
-            return 'open'
-        if status == 'FILLED':
-            return 'closed'
-        if status == 'CANCELED':
-            return 'canceled'
-        return status.lower()
+        statuses = {
+            'NEW': 'open',
+            'PARTIALLY_FILLED': 'open',
+            'FILLED': 'closed',
+            'CANCELED': 'canceled',
+        }
+        return statuses[status] if (status in list(statuses.keys())) else status.lower()
 
     def parse_order(self, order, market=None):
         status = self.safe_value(order, 'status')

@@ -166,7 +166,6 @@ class btcmarkets extends Exchange {
         $this->load_markets();
         $market = $this->market ($symbol);
         $multiplier = 100000000; // for $price and volume
-        // does BTC Markets support $market orders at all?
         $orderSide = ($side === 'buy') ? 'Bid' : 'Ask';
         $order = $this->ordered (array (
             'currency' => $market['quote'],
