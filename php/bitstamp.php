@@ -16,6 +16,7 @@ class bitstamp extends Exchange {
             'version' => 'v2',
             'has' => array (
                 'CORS' => true,
+                'fetchDepositAddress' => true,
                 'fetchOrder' => true,
                 'fetchOpenOrders' => true,
                 'fetchMyTrades' => true,
@@ -532,9 +533,27 @@ class bitstamp extends Exchange {
         return false;
     }
 
+    public function fetch_deposit_address ($code, $params = array ()) {
+        if ($this->is_fiat ($code))
+            throw new NotSupported ($this->id . ' fiat fetchDepositAddress() for ' . $code . ' is not implemented yet');
+        $name = $this->get_currency_name ($code);
+        $v1 = ($code === 'BTC');
+        $method = $v1 ? 'v1' : 'private'; // $v1 or v2
+        $method .= 'Post' . $this->capitalize ($name);
+        $method .= $v1 ? 'Deposit' : '';
+        $method .= 'Address';
+        $response = $this->$method ($params);
+        return array (
+            'currency' => $code,
+            'status' => 'ok',
+            'address' => $this->safe_string($response, 'address'),
+            'tag' => $this->safe_string($response, 'destination_tag'),
+            'info' => $response,
+        );
+    }
+
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
-        $isFiat = $this->is_fiat ($code);
-        if ($isFiat)
+        if ($this->is_fiat ($code))
             throw new NotSupported ($this->id . ' fiat withdraw() for ' . $code . ' is not implemented yet');
         $name = $this->get_currency_name ($code);
         $request = array (
