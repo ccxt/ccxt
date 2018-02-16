@@ -243,7 +243,7 @@ module.exports = class _1broker extends Exchange {
         return await this.privatePostOrderCancel ({ 'order_id': id });
     }
 
-    sign (path, api, method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         this.checkRequiredCredentials ();
         let url = this.urls['api'] + '/' + this.version + '/' + path + '.php';
         let query = this.extend ({ 'token': this.apiKey }, params);
