@@ -723,7 +723,7 @@ abstract class Exchange {
         }
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         throw new NotSupported ($this->id . ' sign() not implemented yet');
     }
 
