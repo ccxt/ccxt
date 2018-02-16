@@ -43,14 +43,14 @@ module.exports = class negociecoins extends Exchange {
                 'private': {
                     'get': [
                         'user/balance',
-                        'user/order/{id}',
+                        'user/order/{orderId}',
                     ],
                     'post': [
                         'user/order',
                         'user/orders',
                     ],
                     'delete': [
-                        'user/order/{id}',
+                        'user/order/{orderId}',
                     ],
                 },
             },
@@ -249,51 +249,52 @@ module.exports = class negociecoins extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.markets[symbol];
-        let response = await this.privateDeleteUserOrderId (this.extend ({
-            'id': id,
+        let response = await this.privateDeleteUserOrderOrderId (this.extend ({
+            'orderId': id,
         }, params));
         return this.parseOrder (response[0], market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let order = await this.privateGetUserOrderId (this.extend ({
-            'id': id,
+        let order = await this.privateGetUserOrderOrderId (this.extend ({
+            'orderId': id,
         }, params));
         return this.parseOrder (order[0]);
     }
-    //
-    // async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-    //     await this.loadMarkets ();
-    //     let market = this.market (symbol);
-    //     let request = {
-    //         'pair': market['id'],
-    //         // type: buy, sell
-    //         // status: cancelled, filled, partially filled, pending, rejected
-    //         // startId
-    //         // endId
-    //         // startDate yyyy-MM-dd
-    //         // endDate: yyyy-MM-dd
-    //     };
-    //     if (since)
-    //         request['startDate'] = since;
-    //     let orders = await this.privatePostUserOrders (this.extend (request, params));
-    //     return this.parseOrders (orders, market);
-    // }
-    //
-    // async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-    //     params = this.extend(params, {
-    //         'status': 'partially filled',
-    //     });
-    //     return await this.fetchOrders (symbol, since, limit, params);
-    // }
-    //
-    // async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-    //     params = this.extend(params, {
-    //         'status': 'filled',
-    //     });
-    //     return await this.fetchOrders (symbol, since, limit, params);
-    // }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'pair': market['id'],
+            // type: buy, sell
+            // status: cancelled, filled, partially filled, pending, rejected
+            // startId
+            // endId
+            // startDate yyyy-MM-dd
+            // endDate: yyyy-MM-dd
+        };
+        if (since)
+            request['startDate'] = this.ymd (since);
+        if (limit)
+            request['pageSize'] = limit;
+        let orders = await this.privatePostUserOrders (this.extend (request, params));
+        return this.parseOrders (orders, market);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new Error ('fetchOpenOrders is not implemented');
+        return await this.fetchOrders (symbol, since, limit, this.extend (params, {
+            'status': 'partially filled',
+        }));
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchOrders (symbol, since, limit, this.extend (params, {
+            'status': 'filled',
+        }));
+    }
 
     nonce () {
         return this.milliseconds ();
