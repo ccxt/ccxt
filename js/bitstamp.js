@@ -17,6 +17,7 @@ module.exports = class bitstamp extends Exchange {
             'version': 'v2',
             'has': {
                 'CORS': true,
+                'fetchDepositAddress': true,
                 'fetchOrder': true,
                 'fetchOpenOrders': true,
                 'fetchMyTrades': true,
@@ -533,9 +534,27 @@ module.exports = class bitstamp extends Exchange {
         return false;
     }
 
+    async fetchDepositAddress (code, params = {}) {
+        if (this.isFiat (code))
+            throw new NotSupported (this.id + ' fiat fetchDepositAddress() for ' + code + ' is not implemented yet');
+        let name = this.getCurrencyName (code);
+        let v1 = (code === 'BTC');
+        let method = v1 ? 'v1' : 'private'; // v1 or v2
+        method += 'Post' + this.capitalize (name);
+        method += v1 ? 'Deposit' : '';
+        method += 'Address';
+        let response = await this[method] (params);
+        return {
+            'currency': code,
+            'status': 'ok',
+            'address': this.safeString (response, 'address'),
+            'tag': this.safeString (response, 'destination_tag'),
+            'info': response,
+        };
+    }
+
     async withdraw (code, amount, address, tag = undefined, params = {}) {
-        let isFiat = this.isFiat (code);
-        if (isFiat)
+        if (this.isFiat (code))
             throw new NotSupported (this.id + ' fiat withdraw() for ' + code + ' is not implemented yet');
         let name = this.getCurrencyName (code);
         let request = {
