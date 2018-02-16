@@ -451,8 +451,7 @@ module.exports = class bitmex extends Exchange {
         if (order_status !== 'Canceled') {
             let failure_reason = response[0]['error'];
             throw new OrderNotFound (failure_reason);
-        }
-        else {
+        } else {
             return response;
         }
     }
