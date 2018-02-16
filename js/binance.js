@@ -452,20 +452,18 @@ module.exports = class binance extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         let timestamp = this.safeInteger (ticker, 'closeTime');
-        if (typeof timestamp === 'undefined')
-            timestamp = this.milliseconds ();
+        let iso8601 = (typeof timestamp === 'undefined') ? undefined : this.iso8601 (timestamp);
         let symbol = ticker['symbol'];
-        if (!market) {
-            if (symbol in this.markets_by_id) {
+        if (typeof market === 'undefined') {
+            if (symbol in this.markets_by_id)
                 market = this.markets_by_id[symbol];
-            }
         }
-        if (market)
+        if (typeof market !== 'undefined')
             symbol = market['symbol'];
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': iso8601,
             'high': this.safeFloat (ticker, 'highPrice'),
             'low': this.safeFloat (ticker, 'lowPrice'),
             'bid': this.safeFloat (ticker, 'bidPrice'),
@@ -613,15 +611,13 @@ module.exports = class binance extends Exchange {
     }
 
     parseOrderStatus (status) {
-        if (status === 'NEW')
-            return 'open';
-        if (status === 'PARTIALLY_FILLED')
-            return 'open';
-        if (status === 'FILLED')
-            return 'closed';
-        if (status === 'CANCELED')
-            return 'canceled';
-        return status.toLowerCase ();
+        let statuses = {
+            'NEW': 'open',
+            'PARTIALLY_FILLED': 'open',
+            'FILLED': 'closed',
+            'CANCELED': 'canceled',
+        };
+        return (status in statuses) ? statuses[status] : status.toLowerCase ();
     }
 
     parseOrder (order, market = undefined) {

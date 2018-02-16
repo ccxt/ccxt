@@ -167,7 +167,6 @@ module.exports = class btcmarkets extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let multiplier = 100000000; // for price and volume
-        // does BTC Markets support market orders at all?
         let orderSide = (side === 'buy') ? 'Bid' : 'Ask';
         let order = this.ordered ({
             'currency': market['quote'],
