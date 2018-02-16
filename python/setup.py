@@ -1,10 +1,69 @@
 # prefer setuptools over distutils
 from setuptools import setup, find_packages
+from setuptools.command.develop import develop
+from setuptools.command.install import install
 
 # use a consistent encoding
 from codecs import open
 from os import path
 import json
+
+
+def postinstall():
+    print("                                                                 ")
+    print("              ---------------------------------------------------")
+    print("                                                                 ")
+    print("                        :Siiiiiiiiiiir    rSiiiiiiiiiiS:         ")
+    print("                        r&9hh&&&&&&&A5    SG99h&&&&&&GHr         ")
+    print("                        ;hX32;::::::;,    i9X9S:;:::::;,         ")
+    print("                        ;hX9S             ihXhr                  ")
+    print("                        ;hX32::::::,:,    i9X9i::::::,:.         ")
+    print("                        rG999GGGGGGGAS    iG99hGGGGGGGAr         ")
+    print("                        ;2S55SSSSSSS2r    r2555SSSSSSS2;         ")
+    print("                        ;2S5s    ;2S2r    r2SS555555SS2;         ")
+    print("                        rAh&2    sAhAS    SAGGh9999GGGAr         ")
+    print("                        .:,::rrrs::::,    ,:,,;9X3X:,,:.         ")
+    print("                             &A&H,            ,hX33              ")
+    print("                        ,;:;;;;;r;;:;,        ,hX3X.             ")
+    print("                        rHGAX    sAGA5        :&9h9.             ")
+    print("                        :Ssir    ;isir        ,Siii              ")
+    print("                                                                 ")
+    print("                       Thanks for installing ccxt 🙏             ")
+    print("                Please consider donating to our open collective  ")
+    print("                       to help us maintain this package.         ")
+    print("                                                                 ")
+    print("            👉  Donate: https://opencollective.com/ccxt/donate   ")
+    print("                                                                 ")
+    print("              ---------------------------------------------------")
+    print("                                                                 ")
+    print("                     You can contribute in crypto directly:      ")
+    print("                                                                 ")
+    print("                 ETH 0xa7c2b18b7c8b86984560cad3b1bc3224b388ded0  ")
+    print("                 BTC 33RmVRfhK2WZVQR1R83h2e9yXoqRNDvJva          ")
+    print("                 BCH 1GN9p233TvNcNQFthCgfiHUnj5JRKEc2Ze          ")
+    print("                 LTC LbT8mkAqQBphc4yxLXEDgYDfEax74et3bP          ")
+    print("                                                                 ")
+    print("              ---------------------------------------------------")
+    print("                                                                 ")
+    print("                                   Thank you!                    ")
+    print("                                                                 ")
+
+
+class PostDevelopCommand(develop):
+    """Post-installation for development mode."""
+    def run(self):
+        # PUT YOUR POST-INSTALL SCRIPT HERE or CALL A FUNCTION
+        postinstall()
+        develop.run(self)
+
+
+class PostInstallCommand(install):
+    """Post-installation for installation mode."""
+    def run(self):
+        # PUT YOUR POST-INSTALL SCRIPT HERE or CALL A FUNCTION
+        postinstall()
+        install.run(self)
+
 
 here = path.abspath(path.dirname(__file__))
 root = path.dirname(here)
@@ -25,6 +84,11 @@ with open(package_json, encoding='utf-8') as f:
     package = json.load(f)
 
 setup(
+
+    cmdclass={
+        'develop': PostDevelopCommand,
+        'install': PostInstallCommand,
+    },
 
     name=package['name'],
     version=package['version'],
