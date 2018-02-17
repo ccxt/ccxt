@@ -693,10 +693,10 @@ Most of the time users will be working with market symbols. You will get a stand
         await bitfinex.loadMarkets ()
 
         bitfinex.markets['BTC/USD']                   // symbol → market (get market by symbol)
-        bitfinex.marketsById['XRPBTC']                // id → market (get market by id)
+        bitfinex.markets_by_id['XRPBTC']              // id → market (get market by id)
 
         bitfinex.markets['BTC/USD']['id']             // symbol → id (get id by symbol)
-        bitfinex.marketsById['XRPBTC']['symbol']      // id → symbol (get symbol by id)
+        bitfinex.markets_by_id['XRPBTC']['symbol']    // id → symbol (get symbol by id)
 
     })
 

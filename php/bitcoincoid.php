@@ -275,7 +275,7 @@ class bitcoincoid extends Exchange {
         for ($i = 0; $i < count ($marketIds); $i++) {
             $marketId = $marketIds[$i];
             $marketOrders = $rawOrders[$marketId];
-            $market = $this->marketsById[$marketId];
+            $market = $this->markets_by_id[$marketId];
             $parsedOrders = $this->parse_orders($marketOrders, $market, $since, $limit);
             $exchangeOrders = $this->array_concat($exchangeOrders, $parsedOrders);
         }

@@ -246,8 +246,8 @@ class liqui (Exchange):
         for i in range(0, len(ids)):
             id = ids[i]
             symbol = id
-            if id in self.marketsById:
-                market = self.marketsById[id]
+            if id in self.markets_by_id:
+                market = self.markets_by_id[id]
                 symbol = market['symbol']
             result[symbol] = self.parse_order_book(response[id])
         return result

@@ -194,8 +194,8 @@ class cryptopia (Exchange):
             orderbook = orderbooks[i]
             id = self.safe_string(orderbook, 'TradePairId')
             symbol = id
-            if id in self.marketsById:
-                market = self.marketsById[id]
+            if id in self.markets_by_id:
+                market = self.markets_by_id[id]
                 symbol = market['symbol']
             result[symbol] = self.parse_order_book(orderbook, None, 'Buy', 'Sell', 'Price', 'Volume')
         return result
