@@ -442,7 +442,7 @@ Below is a detailed description of each of the base exchange properties:
 
 -  ``has``: An assoc-array containing flags for exchange capabilities, including the following:
 
-   ::
+   .. code:: javascript
 
        'has': {
 
@@ -1081,7 +1081,7 @@ The structure of a returned order book is as follows:
 
     {
         'bids': [
-            [ price, amount ],
+            [ price, amount ], // [ float, float ]
             [ price, amount ],
             ...
         ],
@@ -1183,7 +1183,7 @@ Price Tickers
 
 A price ticker contains statistics for a particular market/symbol for some period of time in recent past, usually last 24 hours. The structure of a ticker is as follows:
 
-::
+.. code:: javascript
 
     {
         'symbol':      string symbol of the market ('BTC/USD', 'ETH/BTC', ...)
@@ -1339,16 +1339,16 @@ To get the list of available timeframes for your exchange see the ``timeframes``
 
 The fetchOHLCV method shown above returns a list (a flat array) of OHLCV candles represented by the following structure:
 
-::
+.. code:: javascript
 
     [
         [
-            1504541580000, // UTC timestamp in milliseconds
-            4235.4,        // (O)pen price
-            4240.6,        // (H)ighest price
-            4230.0,        // (L)owest price
-            4230.7,        // (C)losing price
-            37.72941911    // (V)olume (in terms of the base currency)
+            1504541580000, // UTC timestamp in milliseconds, integer
+            4235.4,        // (O)pen price, float
+            4240.6,        // (H)ighest price, float
+            4230.0,        // (L)owest price, float
+            4230.7,        // (C)losing price, float
+            37.72941911    // (V)olume (in terms of the base currency), float
         ],
         ...
     ]
@@ -1397,7 +1397,7 @@ For example, if you want to print recent trades for all symbols one by one seque
 
 The fetchTrades method shown above returns an ordered list of trades (a flat array, most recent trade first) represented by the following structure:
 
-::
+.. code:: javascript
 
     [
         {
@@ -1928,13 +1928,13 @@ Deposit
 
 ::
 
-    fetchDepositAddress (code, params={})
-    createDepositAddress (code, params={})
+    fetchDepositAddress (code, params = {})
+    createDepositAddress (code, params = {})
 
--  code is the currency code
--  params contains optional extra overrides
+-  ``code`` is the currency code (uppercase string)
+-  ``params`` contains optional extra overrides
 
-::
+.. code:: javascript
 
     {
         'currency': currency, // currency code
@@ -1952,7 +1952,7 @@ Withdraw
 
 The withdraw method returns a dictionary containing the withdrawal id, which is usually the txid of the onchain transaction itself, or an internal *withdrawal request id* registered within the exchange. The returned value looks as follows:
 
-::
+.. code:: javascript
 
     {
         'info' { ... },      // unparsed reply from the exchange, as is
