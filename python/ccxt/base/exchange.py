@@ -922,6 +922,9 @@ class Exchange(object):
             self.markets[k] = self.extend(self.markets[k], self.fees['trading'])
             self.markets[k]['info'] = fetch_markets_info
             self.markets[k]['fee_loaded'] = True
+            if 'active' in self.markets[k] and not self.markets[k]['active']:
+                self.markets[k]['fee_loaded'] = False  # sometimes exchanges send strange fees for unlisted markets
+
         for k in self.currencies.keys():
             if k in self.fees['funding']['withdraw']:
                 self.currencies[k]['fee'] = self.fees['funding']['withdraw'][k]

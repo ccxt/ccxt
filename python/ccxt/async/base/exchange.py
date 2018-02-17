@@ -140,7 +140,13 @@ class Exchange(BaseExchange):
 
         if private:
             self.check_required_credentials()
-            self.load_private(reload=reload)  # cannot make this asynchronous yet...
+            await self.load_private(reload=reload)
+
+    async def load_private(self, fees=True, reload=False):
+        if fees:
+            await self.load_fees(reload=reload)
+
+        #  load other private info
 
     async def load_public(self, markets=True, currencies=True, reload=False):
         if markets:
@@ -177,6 +183,37 @@ class Exchange(BaseExchange):
 
     async def fetch_markets(self):
         return self.markets
+
+    async def load_fees(self, reload=False):
+        if not reload:
+            if self.fees['trading']['fee_loaded'] and self.fees['funding']['fee_loaded']:  # already loaded
+                return self.fees
+
+        if not self.has['fetchFees']:
+            return self.fees
+
+        fetched_fees = await self.fetch_fees()
+        if fetched_fees['funding']:
+            fetched_fees['funding']['fee_loaded'] = True
+        if fetched_fees['trading']:
+            fetched_fees['trading']['fee_loaded'] = True
+        return self.set_fees(fetched_fees)
+
+    async def fetch_fees(self):
+        trading = {}
+        funding = {}
+        try:
+            trading = await self.fetch_trading_fees()
+        except AttributeError:
+            pass
+
+        try:
+            funding = await self.fetch_funding_fees()
+        except AttributeError:
+            pass
+
+        return {'trading': trading,
+                'funding': funding}
 
     async def fetch_order_status(self, id, market=None):
         order = await self.fetch_order(id)
