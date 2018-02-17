@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection } = require ('./base/errors');
+const { ExchangeError, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -305,6 +305,13 @@ module.exports = class binance extends Exchange {
                 'recvWindow': 5 * 1000, // 5 sec, binance default
                 'timeDifference': 0, // the difference between system clock and Binance clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
+            },
+            'exceptions': {
+                '-2010': InsufficientFunds, // createOrder -> 'Account has insufficient balance for requested action.'
+                '-2011': OrderNotFound, // cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
+                '-1013': InvalidOrder, // createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
+                '-1100': InvalidOrder, // createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
+                '-1021': InvalidNonce, // 'your time is ahead of server'
             },
         });
     }
@@ -847,32 +854,40 @@ module.exports = class binance extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body) {
-        if (code >= 400) {
-            if ((code === 418) || (code === 429))
-                throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
-            if (body.indexOf ('Price * QTY is zero or less') >= 0)
-                throw new InvalidOrder (this.id + ' order cost = amount * price is zero or less ' + body);
-            if (body.indexOf ('MIN_NOTIONAL') >= 0)
-                throw new InvalidOrder (this.id + ' order cost = amount * price is too small ' + body);
-            if (body.indexOf ('LOT_SIZE') >= 0)
-                throw new InvalidOrder (this.id + ' order amount should be evenly divisible by lot size, use this.amountToLots (symbol, amount) ' + body);
-            if (body.indexOf ('PRICE_FILTER') >= 0)
-                throw new InvalidOrder (this.id + ' order price exceeds allowed price precision or invalid, use this.priceToPrecision (symbol, amount) ' + body);
-            if (body.indexOf ('Order does not exist') >= 0)
-                throw new OrderNotFound (this.id + ' ' + body);
-        }
+        // in case of error binance sets http status code >= 400
+        if (code < 300)
+            // status code ok, proceed with request
+            return;
+        if (code < 400)
+            // should not normally happen, reserve for redirects in case
+            // we'll want to scrape some info from web pages
+            return;
+        // code >= 400
+        if ((code === 418) || (code === 429))
+            throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
+        // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
+        // following block cointains legacy checks against message patterns in "msg" property
+        // will switch "code" checks eventually, when we know all of them
+        if (body.indexOf ('Price * QTY is zero or less') >= 0)
+            throw new InvalidOrder (this.id + ' order cost = amount * price is zero or less ' + body);
+        if (body.indexOf ('LOT_SIZE') >= 0)
+            throw new InvalidOrder (this.id + ' order amount should be evenly divisible by lot size, use this.amountToLots (symbol, amount) ' + body);
+        if (body.indexOf ('PRICE_FILTER') >= 0)
+            throw new InvalidOrder (this.id + ' order price exceeds allowed price precision or invalid, use this.priceToPrecision (symbol, amount) ' + body);
+        if (body.indexOf ('Order does not exist') >= 0)
+            throw new OrderNotFound (this.id + ' ' + body);
+        // checks against error codes
         if (typeof body === 'string') {
             if (body.length > 0) {
                 if (body[0] === '{') {
                     let response = JSON.parse (body);
                     let error = this.safeValue (response, 'code');
                     if (typeof error !== 'undefined') {
-                        if (error === -2010) {
-                            throw new InsufficientFunds (this.id + ' ' + this.json (response));
-                        } else if (error === -2011) {
-                            throw new OrderNotFound (this.id + ' ' + this.json (response));
-                        } else if (error === -1013) { // Invalid quantity
-                            throw new InvalidOrder (this.id + ' ' + this.json (response));
+                        const exceptions = this.exceptions;
+                        if (error in exceptions) {
+                            throw new exceptions[error] (this.id + ' ' + this.json (response));
+                        } else {
+                            throw new ExchangeError (this.id + ': unknown error code: ' + this.json (response));
                         }
                     }
                 }
