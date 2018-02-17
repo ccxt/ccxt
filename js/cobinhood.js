@@ -503,6 +503,8 @@ module.exports = class cobinhood extends Exchange {
             headers['device_id'] = this.apiKey;
             headers['nonce'] = this.nonce ();
             headers['Authorization'] = this.jwt (query, this.secret);
+            // convert it to string after computing JWT
+            headers['nonce'] = headers['nonce'].toString ();
         }
         if (method === 'GET') {
             query = this.urlencode (query);
