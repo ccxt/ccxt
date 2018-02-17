@@ -477,6 +477,8 @@ class cobinhood (Exchange):
             headers['device_id'] = self.apiKey
             headers['nonce'] = self.nonce()
             headers['Authorization'] = self.jwt(query, self.secret)
+            # convert it to string after computing JWT
+            headers['nonce'] = str(headers['nonce'])
         if method == 'GET':
             query = self.urlencode(query)
             if len(query):
