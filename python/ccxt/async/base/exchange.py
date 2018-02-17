@@ -134,6 +134,24 @@ class Exchange(BaseExchange):
         self.handle_errors(http_status_code, text, url, method, self.last_response_headers, text)
         return self.handle_rest_response(text, url, method, headers, body)
 
+    async def load(self, public=True, private=False, reload=False):
+        if public:
+            await self.load_public(reload=reload)
+
+        if private:
+            self.check_required_credentials()
+            self.load_private(reload=reload)  # cannot make this asynchronous yet...
+
+    async def load_public(self, markets=True, currencies=True, reload=False):
+        if markets:
+            await self.load_markets(reload=reload)
+
+        if currencies:
+            await self.load_currencies(reload=reload)
+
+        if markets and currencies:
+            self.populate_fees()
+
     async def load_markets(self, reload=False):
         if not reload:
             if self.markets:
@@ -141,10 +159,21 @@ class Exchange(BaseExchange):
                     return self.set_markets(self.markets)
                 return self.markets
         markets = await self.fetch_markets()
-        currencies = None
+        return self.set_markets(markets)
+
+    async def load_currencies(self, reload=False):
+        if not reload:
+            if self.currencies:
+                if not self.currencies_by_id:
+                    return self.set_currencies(self.currencies)
+                return self.currencies
+
         if self.has['fetchCurrencies']:
             currencies = await self.fetch_currencies()
-        return self.set_markets(markets, currencies)
+            return self.set_currencies(currencies)
+        else:
+            # generate from markets
+            return self.set_currencies()
 
     async def fetch_markets(self):
         return self.markets

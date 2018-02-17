@@ -254,7 +254,7 @@ async def test_symbol(exchange, symbol):
 
 
 async def load_exchange(exchange):
-    await exchange.load_markets()
+    await exchange.load()
 
 
 async def test_exchange(exchange):
