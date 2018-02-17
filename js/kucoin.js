@@ -193,6 +193,8 @@ module.exports = class kucoin extends Exchange {
                 'base': base,
                 'quote': quote,
                 'active': active,
+                'taker': this.asFloat (market['feeRate']),
+                'maker': this.asFloat (market['feeRate']),
                 'info': market,
                 'lot': Math.pow (10, -precision['amount']),
                 'precision': precision,
