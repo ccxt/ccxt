@@ -3098,7 +3098,7 @@ var bitcoincoid = {
     },
 
     nonce () {
-        return this.milliseconds ();
+        return this.microseconds ();
     },
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
