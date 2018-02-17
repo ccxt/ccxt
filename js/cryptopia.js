@@ -172,19 +172,25 @@ module.exports = class cryptopia extends Exchange {
         return this.parseOrderBook (orderbook, undefined, 'Buy', 'Sell', 'Price', 'Volume');
     }
 
+    joinMarketIds (ids, glue = '-') {
+        let result = ids[0].toString ();
+        for (let i = 1; i < ids.length; i++) {
+            result += glue + ids[i].toString ();
+        }
+        return result;
+    }
+
     async fetchOrderBooks (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         let ids = undefined;
         if (!symbols) {
-            ids = this.ids.join ('-');
-            // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
-            if (ids.length > 2048) {
-                let numIds = this.ids.length;
+            let numIds = this.ids.length;
+            // max URL length is 2083 characters, including http schema, hostname, tld, etc...
+            if (numIds > 2048)
                 throw new ExchangeError (this.id + ' has ' + numIds.toString () + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks');
-            }
+            ids = this.joinMarketIds (this.ids);
         } else {
-            ids = this.marketIds (symbols);
-            ids = ids.join ('-');
+            ids = this.joinMarketIds (this.marketIds (symbols));
         }
         let response = await this.publicGetGetMarketOrderGroupsIds (this.extend ({
             'ids': ids,
@@ -193,7 +199,7 @@ module.exports = class cryptopia extends Exchange {
         let result = {};
         for (let i = 0; i < orderbooks.length; i++) {
             let orderbook = orderbooks[i];
-            let id = this.safeString (orderbook, 'TradePairId');
+            let id = this.safeInteger (orderbook, 'TradePairId');
             let symbol = id;
             if (id in this.markets_by_id) {
                 let market = this.markets_by_id[id];
