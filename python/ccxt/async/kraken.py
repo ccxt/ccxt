@@ -603,8 +603,11 @@ class kraken (Exchange):
         if type == 'limit':
             order['price'] = self.price_to_precision(symbol, price)
         response = await self.privatePostAddOrder(self.extend(order, params))
-        length = len(response['result']['txid'])
-        id = response['result']['txid'] if (length > 1) else response['result']['txid'][0]
+        id = self.safe_value(response['result'], 'txid')
+        if id is not None:
+            if isinstance(id, list):
+                length = len(id)
+                id = id if (length > 1) else id[0]
         return {
             'info': response,
             'id': id,

@@ -617,8 +617,13 @@ class kraken extends Exchange {
         if ($type === 'limit')
             $order['price'] = $this->price_to_precision($symbol, $price);
         $response = $this->privatePostAddOrder (array_merge ($order, $params));
-        $length = is_array ($response['result']['txid']) ? count ($response['result']['txid']) : 0;
-        $id = ($length > 1) ? $response['result']['txid'] : $response['result']['txid'][0];
+        $id = $this->safe_value($response['result'], 'txid');
+        if ($id !== null) {
+            if (gettype ($id) === 'array' && count (array_filter (array_keys ($id), 'is_string')) == 0) {
+                $length = is_array ($id) ? count ($id) : 0;
+                $id = ($length > 1) ? $id : $id[0];
+            }
+        }
         return array (
             'info' => $response,
             'id' => $id,

@@ -385,10 +385,16 @@ class bitmex extends Exchange {
             }
         }
         $datetime_value = null;
+        $timestamp = null;
+        $iso8601 = null;
         if (is_array ($order) && array_key_exists ('timestamp', $order))
             $datetime_value = $order['timestamp'];
         else if (is_array ($order) && array_key_exists ('transactTime', $order))
             $datetime_value = $order['transactTime'];
+        if ($datetime_value !== null) {
+            $timestamp = $this->parse8601 ($datetime_value);
+            $iso8601 = $this->iso8601 ($timestamp);
+        }
         $price = floatval ($order['price']);
         $amount = floatval ($order['orderQty']);
         $filled = $this->safe_float($order, 'cumQty', 0.0);
@@ -397,12 +403,11 @@ class bitmex extends Exchange {
         if ($price !== null)
             if ($filled !== null)
                 $cost = $price * $filled;
-        $timestamp = $this->parse8601 ($datetime_value);
         $result = array (
             'info' => $order,
             'id' => (string) $order['orderID'],
             'timestamp' => $timestamp,
-            'datetime' => $datetime_value,
+            'datetime' => $iso8601,
             'symbol' => $symbol,
             'type' => strtolower ($order['ordType']),
             'side' => strtolower ($order['side']),
@@ -445,7 +450,13 @@ class bitmex extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->privateDeleteOrder (array ( 'orderID' => $id ));
+        $response = $this->privateDeleteOrder (array ( 'orderID' => $id ));
+        $order = $response[0];
+        $error = $this->safe_string($order, 'error');
+        if ($error !== null)
+            if (mb_strpos ($error, 'Unable to cancel $order due to existing state') !== false)
+                throw new OrderNotFound ($this->id . ' cancelOrder() failed => ' . $error);
+        return $this->parse_order($order);
     }
 
     public function is_fiat ($currency) {
