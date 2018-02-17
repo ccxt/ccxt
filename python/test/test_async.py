@@ -362,6 +362,7 @@ async def try_all_proxies(exchange, proxies=['']):
     # exception
     return False
 
+
 # ------------------------------------------------------------------------------
 
 proxies = [
