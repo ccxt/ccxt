@@ -117,8 +117,8 @@ class kucoin (Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.0010,
-                    'taker': 0.0010,
+                    'maker': 0.001,
+                    'taker': 0.001,
                 },
                 'funding': {
                     'tierBased': False,
@@ -202,6 +202,8 @@ class kucoin (Exchange):
                 'base': base,
                 'quote': quote,
                 'active': active,
+                'taker': self.safe_float(market, 'feeRate'),
+                'maker': self.safe_float(market, 'feeRate'),
                 'info': market,
                 'lot': math.pow(10, -precision['amount']),
                 'precision': precision,

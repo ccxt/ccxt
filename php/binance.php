@@ -305,6 +305,13 @@ class binance extends Exchange {
                 'timeDifference' => 0, // the difference between system clock and Binance clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
             ),
+            'exceptions' => array (
+                '-2010' => '\\ccxt\\InsufficientFunds', // createOrder -> 'Account has insufficient balance for requested action.'
+                '-2011' => '\\ccxt\\OrderNotFound', // cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
+                '-1013' => '\\ccxt\\InvalidOrder', // createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
+                '-1100' => '\\ccxt\\InvalidOrder', // createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
+                '-1021' => '\\ccxt\\InvalidNonce', // 'your time is ahead of server'
+            ),
         ));
     }
 
@@ -846,32 +853,40 @@ class binance extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
-        if ($code >= 400) {
-            if (($code === 418) || ($code === 429))
-                throw new DDoSProtection ($this->id . ' ' . (string) $code . ' ' . $reason . ' ' . $body);
-            if (mb_strpos ($body, 'Price * QTY is zero or less') !== false)
-                throw new InvalidOrder ($this->id . ' order cost = amount * price is zero or less ' . $body);
-            if (mb_strpos ($body, 'MIN_NOTIONAL') !== false)
-                throw new InvalidOrder ($this->id . ' order cost = amount * price is too small ' . $body);
-            if (mb_strpos ($body, 'LOT_SIZE') !== false)
-                throw new InvalidOrder ($this->id . ' order amount should be evenly divisible by lot size, use $this->amount_to_lots(symbol, amount) ' . $body);
-            if (mb_strpos ($body, 'PRICE_FILTER') !== false)
-                throw new InvalidOrder ($this->id . ' order price exceeds allowed price precision or invalid, use $this->price_to_precision(symbol, amount) ' . $body);
-            if (mb_strpos ($body, 'Order does not exist') !== false)
-                throw new OrderNotFound ($this->id . ' ' . $body);
-        }
+        // in case of $error binance sets http status $code >= 400
+        if ($code < 300)
+            // status $code ok, proceed with request
+            return;
+        if ($code < 400)
+            // should not normally happen, reserve for redirects in case
+            // we'll want to scrape some info from web pages
+            return;
+        // $code >= 400
+        if (($code === 418) || ($code === 429))
+            throw new DDoSProtection ($this->id . ' ' . (string) $code . ' ' . $reason . ' ' . $body);
+        // $error $response in a form => array ( "$code" => -1013, "msg" => "Invalid quantity." )
+        // following block cointains legacy checks against message patterns in "msg" property
+        // will switch "$code" checks eventually, when we know all of them
+        if (mb_strpos ($body, 'Price * QTY is zero or less') !== false)
+            throw new InvalidOrder ($this->id . ' order cost = amount * price is zero or less ' . $body);
+        if (mb_strpos ($body, 'LOT_SIZE') !== false)
+            throw new InvalidOrder ($this->id . ' order amount should be evenly divisible by lot size, use $this->amount_to_lots(symbol, amount) ' . $body);
+        if (mb_strpos ($body, 'PRICE_FILTER') !== false)
+            throw new InvalidOrder ($this->id . ' order price exceeds allowed price precision or invalid, use $this->price_to_precision(symbol, amount) ' . $body);
+        if (mb_strpos ($body, 'Order does not exist') !== false)
+            throw new OrderNotFound ($this->id . ' ' . $body);
+        // checks against $error codes
         if (gettype ($body) == 'string') {
             if (strlen ($body) > 0) {
                 if ($body[0] === '{') {
                     $response = json_decode ($body, $as_associative_array = true);
                     $error = $this->safe_value($response, 'code');
                     if ($error !== null) {
-                        if ($error === -2010) {
-                            throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
-                        } else if ($error === -2011) {
-                            throw new OrderNotFound ($this->id . ' ' . $this->json ($response));
-                        } else if ($error === -1013) { // Invalid quantity
-                            throw new InvalidOrder ($this->id . ' ' . $this->json ($response));
+                        $exceptions = $this->exceptions;
+                        if (is_array ($exceptions) && array_key_exists ($error, $exceptions)) {
+                            throw new $exceptions[$error] ($this->id . ' ' . $this->json ($response));
+                        } else {
+                            throw new ExchangeError ($this->id . ' => unknown $error $code => ' . $this->json ($response));
                         }
                     }
                 }
