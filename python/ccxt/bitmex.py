@@ -6,6 +6,7 @@
 from ccxt.base.exchange import Exchange
 import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 
 
@@ -367,10 +368,15 @@ class bitmex (Exchange):
                 market = self.markets_by_id[id]
                 symbol = market['symbol']
         datetime_value = None
+        timestamp = None
+        iso8601 = None
         if 'timestamp' in order:
             datetime_value = order['timestamp']
         elif 'transactTime' in order:
             datetime_value = order['transactTime']
+        if datetime_value is not None:
+            timestamp = self.parse8601(datetime_value)
+            iso8601 = self.iso8601(timestamp)
         price = float(order['price'])
         amount = float(order['orderQty'])
         filled = self.safe_float(order, 'cumQty', 0.0)
@@ -379,12 +385,11 @@ class bitmex (Exchange):
         if price is not None:
             if filled is not None:
                 cost = price * filled
-        timestamp = self.parse8601(datetime_value)
         result = {
             'info': order,
             'id': str(order['orderID']),
             'timestamp': timestamp,
-            'datetime': datetime_value,
+            'datetime': iso8601,
             'symbol': symbol,
             'type': order['ordType'].lower(),
             'side': order['side'].lower(),
@@ -424,7 +429,13 @@ class bitmex (Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        return self.privateDeleteOrder({'orderID': id})
+        response = self.privateDeleteOrder({'orderID': id})
+        order = response[0]
+        error = self.safe_string(order, 'error')
+        if error is not None:
+            if error.find('Unable to cancel order due to existing state') >= 0:
+                raise OrderNotFound(self.id + ' cancelOrder() failed: ' + error)
+        return self.parse_order(order)
 
     def is_fiat(self, currency):
         if currency == 'EUR':

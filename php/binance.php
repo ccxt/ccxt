@@ -534,14 +534,14 @@ class binance extends Exchange {
         ];
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = 500, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
             'symbol' => $market['id'],
             'interval' => $this->timeframes[$timeframe],
+            'limit' => $limit, // default == max == 500
         );
-        $request['limit'] = ($limit) ? $limit : 500; // default == max == 500
         if ($since !== null)
             $request['startTime'] = $since;
         $response = $this->publicGetKlines (array_merge ($request, $params));
