@@ -337,7 +337,7 @@ Below is a detailed description of each of the base exchange properties:
 
 - `has`: An assoc-array containing flags for exchange capabilities, including the following:
 
-    ```
+    ```JavaScript
     'has': {
 
         'CORS': false,  // has Cross-Origin Resource Sharing enabled (works from browser) or not
@@ -938,7 +938,7 @@ The structure of a returned order book is as follows:
 ```JavaScript
 {
     'bids': [
-        [ price, amount ],
+        [ price, amount ], // [ float, float ]
         [ price, amount ],
         ...
     ],
@@ -1038,7 +1038,7 @@ var_dump ($exchange->id, 'market price', $result);
 
 A price ticker contains statistics for a particular market/symbol for some period of time in recent past, usually last 24 hours. The structure of a ticker is as follows:
 
-```
+```JavaScript
 {
     'symbol':      string symbol of the market ('BTC/USD', 'ETH/BTC', ...)
     'info':      { the original non-modified unparsed reply from exchange API },
@@ -1190,15 +1190,15 @@ To get the list of available timeframes for your exchange see the `timeframes` p
 
 The fetchOHLCV method shown above returns a list (a flat array) of OHLCV candles represented by the following structure:
 
-```
+```JavaScript
 [
     [
-        1504541580000, // UTC timestamp in milliseconds
-        4235.4,        // (O)pen price
-        4240.6,        // (H)ighest price
-        4230.0,        // (L)owest price
-        4230.7,        // (C)losing price
-        37.72941911    // (V)olume (in terms of the base currency)
+        1504541580000, // UTC timestamp in milliseconds, integer
+        4235.4,        // (O)pen price, float
+        4240.6,        // (H)ighest price, float
+        4230.0,        // (L)owest price, float
+        4230.7,        // (C)losing price, float
+        37.72941911    // (V)olume (in terms of the base currency), float
     ],
     ...
 ]
@@ -1247,7 +1247,7 @@ foreach ($exchange->markets as $symbol => $market) {
 
 The fetchTrades method shown above returns an ordered list of trades (a flat array, most recent trade first) represented by the following structure:
 
-```
+```JavaScript
 [
     {
         'info':       { ... },                  // the original decoded JSON as is
@@ -1755,14 +1755,14 @@ Returns ordered array of trades (most recent trade first).
 ### Deposit
 
 ```
-fetchDepositAddress (code, params={})
-createDepositAddress (code, params={})
+fetchDepositAddress (code, params = {})
+createDepositAddress (code, params = {})
 ```
 
-- code is the currency code
-- params contains optional extra overrides
+- `code` is the currency code (uppercase string)
+- `params` contains optional extra overrides
 
-```
+```JavaScript
 {
     'currency': currency, // currency code
     'address': address,   // address in terms of requested currency
@@ -1779,7 +1779,7 @@ exchange.withdraw (currency, amount, address, tag = undefined, params = {})
 
 The withdraw method returns a dictionary containing the withdrawal id, which is usually the txid of the onchain transaction itself, or an internal *withdrawal request id* registered within the exchange. The returned value looks as follows:
 
-```
+```JavaScript
 {
     'info' { ... },      // unparsed reply from the exchange, as is
     'id': '12345567890', // string withdrawal id, if any
