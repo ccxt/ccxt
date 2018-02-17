@@ -410,7 +410,7 @@ async def main():
                 await try_all_proxies(exchange, proxies)
 
     else:
-        for _, exchange in sorted(exchanges.items(), key=lambda x: x[0]):
+        for exchange in sorted(exchanges.values(), key=lambda x: x.id):
             if hasattr(exchange, 'skip') and exchange.skip:
                 dump(green(exchange.id), 'skipped')
             else:
