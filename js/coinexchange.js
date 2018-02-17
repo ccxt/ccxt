@@ -620,7 +620,7 @@ module.exports = class coinexchange extends Exchange {
         if (!market) {
             let marketId = ticker['MarketID'];
             if (marketId in this.markets_by_id)
-                market = this.marketsById[marketId];
+                market = this.markets_by_id[marketId];
             else
                 symbol = marketId;
         }

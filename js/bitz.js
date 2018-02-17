@@ -189,7 +189,7 @@ module.exports = class bitz extends Exchange {
         let ids = Object.keys (tickers);
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
-            let market = this.marketsById[id];
+            let market = this.markets_by_id[id];
             let symbol = market['symbol'];
             result[symbol] = this.parseTicker (tickers[id], market);
         }

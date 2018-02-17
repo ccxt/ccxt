@@ -195,8 +195,8 @@ module.exports = class cryptopia extends Exchange {
             let orderbook = orderbooks[i];
             let id = this.safeString (orderbook, 'TradePairId');
             let symbol = id;
-            if (id in this.marketsById) {
-                let market = this.marketsById[id];
+            if (id in this.markets_by_id) {
+                let market = this.markets_by_id[id];
                 symbol = market['symbol'];
             }
             result[symbol] = this.parseOrderBook (orderbook, undefined, 'Buy', 'Sell', 'Price', 'Volume');

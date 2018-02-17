@@ -275,7 +275,7 @@ module.exports = class acx extends Exchange {
             symbol = market['symbol'];
         } else {
             let marketId = order['market'];
-            symbol = this.marketsById[marketId]['symbol'];
+            symbol = this.markets_by_id[marketId]['symbol'];
         }
         let timestamp = this.parse8601 (order['created_at']);
         let state = order['state'];
@@ -317,7 +317,7 @@ module.exports = class acx extends Exchange {
             order['price'] = price.toString ();
         }
         let response = await this.privatePostOrders (this.extend (order, params));
-        let market = this.marketsById[response['market']];
+        let market = this.markets_by_id[response['market']];
         return this.parseOrder (response, market);
     }
 

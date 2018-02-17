@@ -276,7 +276,7 @@ module.exports = class bitcoincoid extends Exchange {
         for (let i = 0; i < marketIds.length; i++) {
             let marketId = marketIds[i];
             let marketOrders = rawOrders[marketId];
-            market = this.marketsById[marketId];
+            market = this.markets_by_id[marketId];
             let parsedOrders = this.parseOrders (marketOrders, market, since, limit);
             exchangeOrders = this.arrayConcat (exchangeOrders, parsedOrders);
         }
