@@ -171,19 +171,25 @@ class cryptopia extends Exchange {
         return $this->parse_order_book($orderbook, null, 'Buy', 'Sell', 'Price', 'Volume');
     }
 
+    public function join_market_ids ($ids, $glue = '-') {
+        $result = (string) $ids[0];
+        for ($i = 1; $i < count ($ids); $i++) {
+            $result .= $glue . (string) $ids[$i];
+        }
+        return $result;
+    }
+
     public function fetch_order_books ($symbols = null, $params = array ()) {
         $this->load_markets();
         $ids = null;
         if (!$symbols) {
-            $ids = implode ('-', $this->ids);
-            // max URL length is 2083 $symbols, including http schema, hostname, tld, etc...
-            if (strlen ($ids) > 2048) {
-                $numIds = is_array ($this->ids) ? count ($this->ids) : 0;
+            $numIds = is_array ($this->ids) ? count ($this->ids) : 0;
+            // max URL length is 2083 characters, including http schema, hostname, tld, etc...
+            if ($numIds > 2048)
                 throw new ExchangeError ($this->id . ' has ' . (string) $numIds . ' $symbols exceeding max URL length, you are required to specify a list of $symbols in the first argument to fetchOrderBooks');
-            }
+            $ids = $this->join_market_ids ($this->ids);
         } else {
-            $ids = $this->market_ids($symbols);
-            $ids = implode ('-', $ids);
+            $ids = $this->join_market_ids ($this->market_ids($symbols));
         }
         $response = $this->publicGetGetMarketOrderGroupsIds (array_merge (array (
             'ids' => $ids,
@@ -192,7 +198,7 @@ class cryptopia extends Exchange {
         $result = array ();
         for ($i = 0; $i < count ($orderbooks); $i++) {
             $orderbook = $orderbooks[$i];
-            $id = $this->safe_string($orderbook, 'TradePairId');
+            $id = $this->safe_integer($orderbook, 'TradePairId');
             $symbol = $id;
             if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$id];

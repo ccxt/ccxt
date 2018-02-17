@@ -173,18 +173,23 @@ class cryptopia (Exchange):
         orderbook = response['Data']
         return self.parse_order_book(orderbook, None, 'Buy', 'Sell', 'Price', 'Volume')
 
+    def join_market_ids(self, ids, glue='-'):
+        result = str(ids[0])
+        for i in range(1, len(ids)):
+            result += glue + str(ids[i])
+        return result
+
     def fetch_order_books(self, symbols=None, params={}):
         self.load_markets()
         ids = None
         if not symbols:
-            ids = '-'.join(self.ids)
-            # max URL length is 2083 symbols, including http schema, hostname, tld, etc...
-            if len(ids) > 2048:
-                numIds = len(self.ids)
+            numIds = len(self.ids)
+            # max URL length is 2083 characters, including http schema, hostname, tld, etc...
+            if numIds > 2048:
                 raise ExchangeError(self.id + ' has ' + str(numIds) + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks')
+            ids = self.join_market_ids(self.ids)
         else:
-            ids = self.market_ids(symbols)
-            ids = '-'.join(ids)
+            ids = self.join_market_ids(self.market_ids(symbols))
         response = self.publicGetGetMarketOrderGroupsIds(self.extend({
             'ids': ids,
         }, params))
@@ -192,7 +197,7 @@ class cryptopia (Exchange):
         result = {}
         for i in range(0, len(orderbooks)):
             orderbook = orderbooks[i]
-            id = self.safe_string(orderbook, 'TradePairId')
+            id = self.safe_integer(orderbook, 'TradePairId')
             symbol = id
             if id in self.markets_by_id:
                 market = self.markets_by_id[id]
