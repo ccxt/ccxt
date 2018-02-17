@@ -900,7 +900,6 @@ class Exchange(object):
             return self.set_currencies()
 
     def populate_fees(self):
-
         for currency, data in self.currencies.items():  # try load withdrawal fees from currencies
             if data['fee_loaded']:
                 self.fees['funding']['withdraw'][currency] = data['fee']

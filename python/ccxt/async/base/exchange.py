@@ -142,12 +142,6 @@ class Exchange(BaseExchange):
             self.check_required_credentials()
             await self.load_private(reload=reload)
 
-    async def load_private(self, fees=True, reload=False):
-        if fees:
-            await self.load_fees(reload=reload)
-
-        #  load other private info
-
     async def load_public(self, markets=True, currencies=True, reload=False):
         if markets:
             await self.load_markets(reload=reload)
@@ -157,6 +151,12 @@ class Exchange(BaseExchange):
 
         if markets and currencies:
             self.populate_fees()
+
+    async def load_private(self, fees=True, reload=False):
+        if fees:
+            await self.load_fees(reload=reload)
+
+        #  load other private info
 
     async def load_markets(self, reload=False):
         if not reload:
