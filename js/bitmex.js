@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, DDoSProtection } = require ('./base/errors');
+const { ExchangeError, DDoSProtection, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -386,10 +386,16 @@ module.exports = class bitmex extends Exchange {
             }
         }
         let datetime_value = undefined;
+        let timestamp = undefined;
+        let iso8601 = undefined;
         if ('timestamp' in order)
             datetime_value = order['timestamp'];
         else if ('transactTime' in order)
             datetime_value = order['transactTime'];
+        if (typeof datetime_value !== 'undefined') {
+            timestamp = this.parse8601 (datetime_value);
+            iso8601 = this.iso8601 (timestamp);
+        }
         let price = parseFloat (order['price']);
         let amount = parseFloat (order['orderQty']);
         let filled = this.safeFloat (order, 'cumQty', 0.0);
@@ -398,12 +404,11 @@ module.exports = class bitmex extends Exchange {
         if (typeof price !== 'undefined')
             if (typeof filled !== 'undefined')
                 cost = price * filled;
-        let timestamp = this.parse8601 (datetime_value);
         let result = {
             'info': order,
             'id': order['orderID'].toString (),
             'timestamp': timestamp,
-            'datetime': datetime_value,
+            'datetime': iso8601,
             'symbol': symbol,
             'type': order['ordType'].toLowerCase (),
             'side': order['side'].toLowerCase (),
@@ -446,7 +451,13 @@ module.exports = class bitmex extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        return await this.privateDeleteOrder ({ 'orderID': id });
+        let response = await this.privateDeleteOrder ({ 'orderID': id });
+        let order = response[0];
+        let error = this.safeString (order, 'error');
+        if (typeof error !== 'undefined')
+            if (error.indexOf ('Unable to cancel order due to existing state') >= 0)
+                throw new OrderNotFound (this.id + ' cancelOrder() failed: ' + error);
+        return this.parseOrder (order);
     }
 
     isFiat (currency) {
