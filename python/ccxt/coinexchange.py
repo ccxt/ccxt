@@ -616,7 +616,7 @@ class coinexchange (Exchange):
         if not market:
             marketId = ticker['MarketID']
             if marketId in self.markets_by_id:
-                market = self.marketsById[marketId]
+                market = self.markets_by_id[marketId]
             else:
                 symbol = marketId
         if market:

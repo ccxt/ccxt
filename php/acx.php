@@ -274,7 +274,7 @@ class acx extends Exchange {
             $symbol = $market['symbol'];
         } else {
             $marketId = $order['market'];
-            $symbol = $this->marketsById[$marketId]['symbol'];
+            $symbol = $this->markets_by_id[$marketId]['symbol'];
         }
         $timestamp = $this->parse8601 ($order['created_at']);
         $state = $order['state'];
@@ -316,7 +316,7 @@ class acx extends Exchange {
             $order['price'] = (string) $price;
         }
         $response = $this->privatePostOrders (array_merge ($order, $params));
-        $market = $this->marketsById[$response['market']];
+        $market = $this->markets_by_id[$response['market']];
         return $this->parse_order($response, $market);
     }
 

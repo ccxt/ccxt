@@ -188,7 +188,7 @@ class bitz extends Exchange {
         $ids = is_array ($tickers) ? array_keys ($tickers) : array ();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
-            $market = $this->marketsById[$id];
+            $market = $this->markets_by_id[$id];
             $symbol = $market['symbol'];
             $result[$symbol] = $this->parse_ticker($tickers[$id], $market);
         }
