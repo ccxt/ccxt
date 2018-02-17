@@ -19,12 +19,11 @@ exchange = getattr(ccxt, id)({
 # load all markets from the exchange
 markets = exchange.load_markets()
 
-
-# this will work
+# this will work (a limited number of symbols)
 result = exchange.fetch_order_books(['ETH/BTC', 'LTC/BTC'])
 pprint(result)
 
-# this will also work
+# this will also work (a limited number of symbols)
 result = exchange.fetch_order_books(exchange.symbols[0:10])
 pprint(result)
 
