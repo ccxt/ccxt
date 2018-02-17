@@ -3089,9 +3089,11 @@ var bitcoincoid = {
     },
 
     async cancelOrder (id, side, symbol = undefined, params = {}) {
+        let market = this.market (symbol);
         return await this.privatePostCancelOrder (this.extend ({
             'order_id': id,
             'type': side,
+            'pair': market['id'],
         }, params));
     },
 
