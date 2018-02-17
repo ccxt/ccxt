@@ -24,6 +24,7 @@ __all__ = [
 # -----------------------------------------------------------------------------
 
 # Python 2 & 3
+import logging
 import base64
 import calendar
 import collections
@@ -232,6 +233,7 @@ class Exchange(object):
         }, getattr(self, 'tokenBucket') if hasattr(self, 'tokenBucket') else {})
 
         self.session = self.session if self.session else Session()
+        self._logger = logging.getLogger(__name__)
 
     def __del__(self):
         if self.session:
@@ -334,8 +336,7 @@ class Exchange(object):
         request_headers = self.prepare_request_headers(headers)
         url = self.proxy + url
 
-        if self.verbose:
-            print(method, url, "\nRequest:", request_headers, "\n", body)
+        self._logger.debug("%s %s, Request: %s %s", method, url, request_headers, body)
 
         if body:
             body = body.encode()
@@ -370,8 +371,7 @@ class Exchange(object):
             self.handle_rest_errors(e, response.status_code, self.last_http_response, url, method)
             self.raise_error(ExchangeError, url, method, e, self.last_http_response)
 
-        if self.verbose:
-            print(method, url, str(response.status_code), "\nResponse:", str(response.headers), "\n", self.last_http_response)
+        self._logger.debug("%s %s, Response: %s %s %s", method, url, response.status_code, response.headers, self.last_http_response)
 
         self.handle_errors(response.status_code, response.reason, url, method, None, self.last_http_response)
         return self.handle_rest_response(self.last_http_response, url, method, headers, body)

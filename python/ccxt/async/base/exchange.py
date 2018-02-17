@@ -6,6 +6,7 @@ __version__ = '1.10.1138'
 
 # -----------------------------------------------------------------------------
 
+import logging
 import asyncio
 import concurrent
 import socket
@@ -54,6 +55,7 @@ class Exchange(BaseExchange):
             self.session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=connector)
         super(Exchange, self).__init__(config)
         self.init_rest_rate_limiter()
+        self._logger = logging.getLogger(__name__)
 
     def init_rest_rate_limiter(self):
         self.throttle = throttle(self.extend({
@@ -94,8 +96,7 @@ class Exchange(BaseExchange):
 
         url = self.proxy + url
 
-        if self.verbose:
-            print(url, method, url, "\nRequest:", headers, body)
+        self._logger.debug("%s %s, Request: %s %s", method, url, headers, body)
 
         encoded_body = body.encode() if body else None
         session_method = getattr(self.session, method.lower())
@@ -113,6 +114,7 @@ class Exchange(BaseExchange):
                 self.last_response_headers = response.headers
                 self.handle_errors(http_status_code, text, url, method, self.last_response_headers, text)
                 self.handle_rest_errors(None, http_status_code, text, url, method)
+                self._logger.debug("%s %s, Response: %s %s %s", method, url, response.status, response.headers, self.last_http_response)
 
         except socket.gaierror as e:
             self.raise_error(ExchangeError, url, method, e, None)
@@ -122,9 +124,6 @@ class Exchange(BaseExchange):
 
         except aiohttp.client_exceptions.ClientError as e:
             self.raise_error(ExchangeError, url, method, e, None)
-
-        if self.verbose:
-            print(method, url, "\nResponse:", headers, text)
 
         self.handle_errors(http_status_code, text, url, method, self.last_response_headers, text)
         return self.handle_rest_response(text, url, method, headers, body)
