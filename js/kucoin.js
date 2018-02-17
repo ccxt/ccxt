@@ -107,8 +107,8 @@ module.exports = class kucoin extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': 0.0010,
-                    'taker': 0.0010,
+                    'maker': 0.001,
+                    'taker': 0.001,
                 },
                 'funding': {
                     'tierBased': false,
@@ -193,6 +193,8 @@ module.exports = class kucoin extends Exchange {
                 'base': base,
                 'quote': quote,
                 'active': active,
+                'taker': this.safeFloat (market, 'feeRate'),
+                'maker': this.safeFloat (market, 'feeRate'),
                 'info': market,
                 'lot': Math.pow (10, -precision['amount']),
                 'precision': precision,
