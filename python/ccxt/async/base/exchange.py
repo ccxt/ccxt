@@ -12,6 +12,7 @@ import socket
 import time
 import math
 import random
+import string
 import certifi
 import aiohttp
 import ssl
@@ -25,6 +26,7 @@ from ccxt.async.base.throttle import throttle
 
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import RequestTimeout
+from ccxt.base.errors import DDoSProtection
 
 # -----------------------------------------------------------------------------
 
@@ -88,11 +90,11 @@ class Exchange(BaseExchange):
         request = self.sign(path, api, method, params, headers, body)
         return await self.fetch(request['url'], request['method'], request['headers'], request['body'])
 
-    async def fetch(self, url, method='GET', headers=None, body=None):
+    async def fetch(self, url, method='GET', headers=None, body=None, proxy=''):
         """Perform a HTTP request and return decoded JSON data"""
         headers = self.prepare_request_headers(headers)
 
-        url = self.proxy + url
+        url = proxy + url
 
         if self.verbose:
             print(url, method, url, "\nRequest:", headers, body)

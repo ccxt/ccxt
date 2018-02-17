@@ -45,8 +45,8 @@ class chbtc (zb):
     def get_market_field_name(self):
         return 'currency'
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = await self.fetch2(path, api, method, params, headers, body)
+    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None, proxy=''):
+        response = await self.fetch2(path, api, method, params, headers, body, proxy)
         if api == 'private':
             if 'code' in response:
                 raise ExchangeError(self.id + ' ' + self.json(response))

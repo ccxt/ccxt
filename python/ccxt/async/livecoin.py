@@ -536,8 +536,8 @@ class livecoin (Exchange):
                         raise ExchangeError(self.id + ' ' + self.json(response))
             raise ExchangeError(self.id + ' ' + body)
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = await self.fetch2(path, api, method, params, headers, body)
+    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None, proxy=''):
+        response = await self.fetch2(path, api, method, params, headers, body, proxy)
         if 'success' in response:
             if not response['success']:
                 raise ExchangeError(self.id + ' error: ' + self.json(response))

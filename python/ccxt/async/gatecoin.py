@@ -387,8 +387,8 @@ class gatecoin (Exchange):
                 body = self.json(self.extend({'nonce': nonce}, params))
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = await self.fetch2(path, api, method, params, headers, body)
+    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None, proxy=''):
+        response = await self.fetch2(path, api, method, params, headers, body, proxy)
         if 'responseStatus' in response:
             if 'message' in response['responseStatus']:
                 if response['responseStatus']['message'] == 'OK':

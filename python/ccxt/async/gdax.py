@@ -554,8 +554,8 @@ class gdax (Exchange):
                 raise ExchangeError(self.id + ' ' + message)
             raise ExchangeError(self.id + ' ' + body)
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = await self.fetch2(path, api, method, params, headers, body)
+    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None, proxy=''):
+        response = await self.fetch2(path, api, method, params, headers, body, proxy)
         if 'message' in response:
             raise ExchangeError(self.id + ' ' + self.json(response))
         return response

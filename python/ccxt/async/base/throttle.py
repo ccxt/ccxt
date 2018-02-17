@@ -26,6 +26,7 @@ def throttle(config=None):
     cfg.update(config)
 
     async def run():
+        # print('Refill Rate: {0}'.format(cfg['refillRate'] * 1000))
         if not cfg['running']:
             cfg['running'] = True
             while not cfg['queue'].empty():

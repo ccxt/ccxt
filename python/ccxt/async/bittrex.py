@@ -419,7 +419,7 @@ class bittrex (Exchange):
             raise ExchangeError(self.id + ' allows limit orders only')
         await self.load_markets()
         market = self.market(symbol)
-        method = 'marketGet' + self.capitalize(side) + type
+        method = 'marketGet' + self.capitalize(side.lower()) + type
         order = {
             'market': market['id'],
             'quantity': self.amount_to_precision(symbol, amount),
@@ -679,8 +679,8 @@ class bittrex (Exchange):
                         self.throw_exception_on_error(response)
                         raise ExchangeError(self.id + ' ' + self.json(response))
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = await self.fetch2(path, api, method, params, headers, body)
+    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None, proxy=''):
+        response = await self.fetch2(path, api, method, params, headers, body, proxy)
         if 'success' in response:
             success = response['success']
             if isinstance(success, basestring):

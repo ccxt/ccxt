@@ -64,7 +64,7 @@ except ImportError:
 try:
     basestring  # Python 3
 except NameError:
-    basestring = str  # Python 2
+    basestring = str  # Python 2 .
 
 # -----------------------------------------------------------------------------
 
@@ -133,7 +133,7 @@ class Exchange(object):
     hasFetchOrderBook = True
     hasFetchTrades = True
     hasFetchTickers = False
-    hasFetchOHLCV = False
+    hasFetchOHLCV = True
     hasDeposit = False
     hasWithdraw = False
     hasFetchBalance = True
@@ -169,7 +169,7 @@ class Exchange(object):
         'fetchL2OrderBook': True,
         'fetchMarkets': True,
         'fetchMyTrades': False,
-        'fetchOHLCV': False,
+        'fetchOHLCV': True,
         'fetchOpenOrders': False,
         'fetchOrder': False,
         'fetchOrderBook': True,
@@ -300,8 +300,8 @@ class Exchange(object):
         request = self.sign(path, api, method, params, headers, body)
         return self.fetch(request['url'], request['method'], request['headers'], request['body'])
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        return self.fetch2(path, api, method, params, headers, body)
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None, proxy=''):
+        return self.fetch2(path, api, method, params, headers, body, proxy)
 
     @staticmethod
     def gzip_deflate(response, text):
@@ -994,7 +994,9 @@ class Exchange(object):
         return self.fetch_partial_balance('total', params)
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        raise NotSupported(self.id + ' API does not allow to fetch OHLCV series for now')
+        self.load_markets()
+        trades = self.fetch_trades(symbol, since, limit, params)
+        return self.build_ohlcv(trades, since, limits, timeframe)
 
     def parse_trades(self, trades, market=None, since=None, limit=None):
         array = self.to_array(trades)
@@ -1088,3 +1090,42 @@ class Exchange(object):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         raise NotImplemented(self.id + ' sign() pure method must be redefined in derived classes')
+
+
+    def build_ohlcv(self, since = -math.inf, limits = math.inf, timeframe = '1m'):
+        ms = self.parse_timeframe(timeframe) * 1000
+        ohlcvs = []
+        (timestamp, open, high, low, close, volume) = (0, 1, 2, 3, 4, 5)
+
+        for i in range(0, min(len(trades), limits + 1), -1):
+            trade = trades[i]
+            if trade['timestamp'] < since:
+                continue
+            opening_time = math.floor(trade['timestamp'] / ms) * ms # Shift the edge of the m/h/d (but not M)
+            j = len(ohlcvs)
+            if (j == 0) or opening_time >= ohlcvs[j-1][0] + ms:
+                # moved to a new timeframe -> create a new candle from opening trade
+                ohlcvs.append([opening_time, trade['price'], trade['price'], trade['price'], trade['price'], trade['amount']])
+            else:
+                # still processing the same timeframe -> update opening trade
+                ohlcvs[j - 1][high] = max(ohlcvs[j - 1][high], trade['price'])
+                ohlcvs[j - 1][low] = min(ohlcvs[j - 1][low], trade['price'])
+                ohlcvs[j - 1][close] = trade['price']
+                ohlcvs[j - 1][volume] += trade['amount']
+        return ohlcvs
+
+    def parse_timeframe(timeframe):
+        amount = timeframe[0:-1]
+        unit = timeframe[-1]
+        if 'm' in unit:
+            scale = 60
+        elif 'h' in unit:
+            scale = 60 * 60
+        elif 'd' in unit:
+            scale = 60 * 60 * 24
+        elif 'M' in unit:
+            scale = 60 * 60 * 24 * 30
+        else:
+            raise ValueError('Unknown timeframe unit: ' + unit)
+        return amount * scale
+

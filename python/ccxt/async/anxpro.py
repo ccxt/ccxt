@@ -205,8 +205,8 @@ class anxpro (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = await self.fetch2(path, api, method, params, headers, body)
+    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None, proxy=''):
+        response = await self.fetch2(path, api, method, params, headers, body, proxy)
         if 'result' in response:
             if response['result'] == 'success':
                 return response

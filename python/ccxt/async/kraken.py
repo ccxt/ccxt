@@ -820,8 +820,8 @@ class kraken (Exchange):
     def nonce(self):
         return self.milliseconds()
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = await self.fetch2(path, api, method, params, headers, body)
+    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None, proxy=''):
+        response = await self.fetch2(path, api, method, params, headers, body, proxy)
         if not isinstance(response, basestring):
             if 'error' in response:
                 numErrors = len(response['error'])

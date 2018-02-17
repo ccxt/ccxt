@@ -249,6 +249,14 @@ class virwox (Exchange):
             })
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
+# <<<<<<< HEAD
+#     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None, proxy=''):
+#         response = await self.fetch2(path, api, method, params, headers, body, proxy)
+#         if 'error' in response:
+#             if response['error']:
+#                 raise ExchangeError(self.id + ' ' + self.json(response))
+#         return response
+# =======
     def handle_errors(self, code, reason, url, method, headers, body):
         if code == 200:
             if (body[0] == '{') or (body[0] == '['):

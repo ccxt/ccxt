@@ -247,8 +247,8 @@ class quadrigacx (Exchange):
         if statusCode == 200 and body.find('Invalid API Code or Invalid Signature') >= 0:
             raise AuthenticationError(self.id + ' ' + body)
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = await self.fetch2(path, api, method, params, headers, body)
+    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None, proxy=''):
+        response = await self.fetch2(path, api, method, params, headers, body, proxy)
         if isinstance(response, basestring):
             return response
         if 'error' in response:

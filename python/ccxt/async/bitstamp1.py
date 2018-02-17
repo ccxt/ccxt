@@ -231,8 +231,8 @@ class bitstamp1 (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = await self.fetch2(path, api, method, params, headers, body)
+    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None, proxy=''):
+        response = await self.fetch2(path, api, method, params, headers, body, proxy)
         if 'status' in response:
             if response['status'] == 'error':
                 raise ExchangeError(self.id + ' ' + self.json(response))
