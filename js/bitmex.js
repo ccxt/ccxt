@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, DDoSProtection } = require ('./base/errors');
+const { ExchangeError, DDoSProtection, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -446,7 +446,14 @@ module.exports = class bitmex extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        return await this.privateDeleteOrder ({ 'orderID': id });
+        let response = await this.privateDeleteOrder ({ 'orderID': id });
+        let order_status = response[0]['ordStatus'];
+        if (order_status !== 'Canceled') {
+            let failure_reason = response[0]['error'];
+            throw new OrderNotFound (failure_reason);
+        } else {
+            return response;
+        }
     }
 
     isFiat (currency) {
