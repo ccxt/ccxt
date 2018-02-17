@@ -502,6 +502,8 @@ class cobinhood extends Exchange {
             $headers['device_id'] = $this->apiKey;
             $headers['nonce'] = $this->nonce ();
             $headers['Authorization'] = $this->jwt ($query, $this->secret);
+            // convert it to string after computing JWT
+            $headers['nonce'] = (string) $headers['nonce'];
         }
         if ($method === 'GET') {
             $query = $this->urlencode ($query);
