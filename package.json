@@ -37,9 +37,10 @@
   },
   "types": "./ccxt.d.ts",
   "dependencies": {
+    "cloudscraper": "1.4.1",
     "crypto-js": "3.1.9-1",
-    "fetch-ponyfill": "^4.1.0",
-    "opencollective": "^1.0.3",
+    "fetch-ponyfill": "4.1.0",
+    "opencollective": "1.0.3",
     "qs": "6.5.1"
   },
   "devDependencies": {
