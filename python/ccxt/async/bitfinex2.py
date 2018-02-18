@@ -375,17 +375,18 @@ class bitfinex2 (bitfinex):
             'amount': amount,
         }
 
-    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    async def fetch_trades(self, symbol, since=None, limit=120, params={}):
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
+            'sort': 1,
+            'limit': limit,  # default = max = 120
         }
         if since is not None:
             request['start'] = since
-        if limit is not None:
-            request['limit'] = limit
         response = await self.publicGetTradesSymbolHist(self.extend(request, params))
-        return self.parse_trades(response, market, since, limit)
+        trades = self.sort_by(response, 1)
+        return self.parse_trades(trades, market, None, limit)
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         market = self.market(symbol)
