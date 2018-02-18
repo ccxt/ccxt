@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.1137'
+__version__ = '1.10.1139'
 
 # -----------------------------------------------------------------------------
 
@@ -59,6 +59,9 @@ class Exchange(BaseExchange):
         self.throttle = throttle(self.extend({
             'loop': self.asyncio_loop,
         }, self.tokenBucket))
+
+    def __del__(self):
+        self.asyncio_loop.run_until_complete(self.session.close())
 
     async def wait_for_token(self):
         while self.rateLimitTokens <= 1:
