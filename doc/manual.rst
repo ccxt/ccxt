@@ -420,7 +420,8 @@ Below is a detailed description of each of the base exchange properties:
 
 -  ``userAgent``: An object to set HTTP User-Agent header to. The ccxt library will set its User-Agent by default. Some exchanges may not like it. If you are having difficulties getting a reply from an exchange and want to turn User-Agent off or use the default one, set this value to false, undefined, or an empty string.
 
--  ``verbose``: A boolean flag indicating whether to log HTTP requests to stdout (verbose flag is false by default).
+-  ``verbose``: A boolean flag indicating whether to log HTTP requests to stdout (verbose flag is false by default). Python people have an alternative way of DEBUG logging with a standard pythonic logger, which is enabled by adding these two lines to the beginning of their code:
+   ``Python   import logging   logging.basicConfig(level=logging.DEBUG)``
 
 -  ``markets``: An associative array of markets indexed by common trading pairs or symbols. Markets should be loaded prior to accessing this property. Markets are unavailable until you call the ``loadMarkets() / load_markets()`` method on exchange instance.
 
@@ -809,14 +810,14 @@ When exchange markets are loaded, you can then access market information any tim
 .. code:: python
 
     # Python
-    poloniex = ccxt.poloniex ({ 'verbose': True }) # log HTTP requests
-    poloniex.load_markets () # request markets
-    print (poloniex.id, poloniex.markets)   # output a full list of all loaded markets
-    print (list (poloniex.markets.keys ())) # output a short list of market symbols
-    print (poloniex.markets['BTC/ETH'])     # output single market details
-    poloniex.load_markets () # return a locally cached version, no reload
-    reloadedMarkets = poloniex.load_markets (True) # force HTTP reload = True
-    print (reloadedMarkets['ETH/ZEC'])
+    poloniex = ccxt.poloniex({'verbose': True}) # log HTTP requests
+    poloniex.load_markets() # request markets
+    print(poloniex.id, poloniex.markets)   # output a full list of all loaded markets
+    print(list(poloniex.markets.keys())) # output a short list of market symbols
+    print(poloniex.markets['BTC/ETH'])     # output single market details
+    poloniex.load_markets() # return a locally cached version, no reload
+    reloadedMarkets = poloniex.load_markets(True) # force HTTP reload = True
+    print(reloadedMarkets['ETH/ZEC'])
 
 .. code:: php
 
@@ -2171,6 +2172,8 @@ In case you experience any difficulty connecting to a particular exchange, do th
 
 -  Check the `CHANGELOG <https://github.com/ccxt/ccxt/blob/master/CHANGELOG.md>`__ for recent updates.
 -  Turn ``verbose = true`` to get more detail about it.
+-  Python people can turn on DEBUG logging level with a standard pythonic logger, by adding these two lines to the beginning of their code:
+   ``Python   import logging   logging.basicConfig(level=logging.DEBUG)``
 -  Check your API credentials. Try a fresh new keypair if possible.
 -  If it is a Cloudflare protection error, try these examples:
 -  https://github.com/ccxt/ccxt/blob/master/examples/js/bypass-cloudflare.js
@@ -2187,6 +2190,7 @@ Notes
 -----
 
 -  Use the ``verbose = true`` option or instantiate your troublesome exchange with ``new ccxt.exchange ({ 'verbose': true })`` to see the HTTP requests and responses in details. The verbose output will also be of use for us to debug it if you submit an issue on GitHub.
+-  Use DEBUG logging in Python!
 -  As written above, some exchanges are not available in certain countries. You should use a proxy or get a server somewhere closer to the exchange.
 -  If you are getting authentication errors or *'invalid keys'* errors, those are most likely due to a nonce issue.
 -  Some exchanges do not state it clearly if they fail to authenticate your request. In those circumstances they might respond with an exotic error code, like HTTP 502 Bad Gateway Error or something that's even less related to the actual cause of the error.
