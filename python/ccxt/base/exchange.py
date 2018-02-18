@@ -265,14 +265,10 @@ class Exchange(object):
                     setattr(self, underscore, partial)
 
     def raise_error(self, exception_type, url=None, method=None, error=None, details=None):
-        details = details if details else ''
-        url = url if url else ''
-        method = method if method else ''
         if error:
             error = str(error)
-        else:
-            error = ''
-        raise exception_type(' '.join([self.id, method, url, error, details]))
+        output = ' '.join([var for var in (url, method, error, details) if var is not None])
+        raise exception_type(output)
 
     def throttle(self):
         now = float(self.milliseconds())
