@@ -594,7 +594,7 @@ class bitfinex (Exchange):
         request = {
             'symbol': v2id,
             'timeframe': self.timeframes[timeframe],
-            'sort': 1,
+            'sort': 0,
         }
         if limit is not None:
             request['limit'] = limit
