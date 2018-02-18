@@ -389,11 +389,11 @@ class bitfinex2 extends bitfinex {
             'symbol' => $market['id'],
         );
         if ($since !== null)
-            $request['start'] = $since;
+            $request['end'] = $since;
         if ($limit !== null)
             $request['limit'] = $limit;
         $response = $this->publicGetTradesSymbolHist (array_merge ($request, $params));
-        return $this->parse_trades($response, $market, $since, $limit);
+        return $this->parse_trades($response, $market, null, $limit);
     }
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
