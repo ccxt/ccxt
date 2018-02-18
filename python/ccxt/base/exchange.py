@@ -267,7 +267,7 @@ class Exchange(object):
     def raise_error(self, exception_type, url=None, method=None, error=None, details=None):
         if error:
             error = str(error)
-        output = ' '.join([var for var in (url, method, error, details) if var is not None])
+        output = ' '.join([self.id] + [var for var in (url, method, error, details) if var is not None])
         raise exception_type(output)
 
     def throttle(self):
@@ -350,10 +350,10 @@ class Exchange(object):
         except HTTPError as e:
             self.handle_errors(response.status_code, response.reason, url, method, self.last_response_headers, self.last_http_response)
             self.handle_rest_errors(e, response.status_code, self.last_http_response, url, method)
-            self.raise_error(ExchangeNotAvailable, url, method, e, self.last_http_response)
+            self.raise_error(ExchangeError, url, method, e, self.last_http_response)
 
         except RequestException as e:  # base exception class
-            self.raise_error(ExchangeNotAvailable, url, method, e, self.last_http_response)
+            self.raise_error(ExchangeError, url, method, e, self.last_http_response)
 
         if self.verbose:
             print(method, url, str(response.status_code), "\nResponse:", str(response.headers), "\n", self.last_http_response)
