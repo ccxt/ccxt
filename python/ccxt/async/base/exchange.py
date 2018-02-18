@@ -165,6 +165,6 @@ class Exchange(BaseExchange):
 
     async def update_order(self, id, symbol, *args):
         if not self.enableRateLimit:
-            raise ExchangeError(self.id + ' updateOrder() requires enableRateLimit = true')
+            self.raise_error(ExchangeError, details='updateOrder() requires enableRateLimit = true')
         await self.cancel_order(id, symbol)
         return await self.create_order(symbol, *args)
