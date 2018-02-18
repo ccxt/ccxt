@@ -166,8 +166,8 @@ class Exchange(BaseExchange):
         tickers = await self.fetch_tickers(symbols, params)
         return tickers
 
-    async def update_order(self, id, symbol, *args):
+    async def edit_order(self, id, symbol, *args):
         if not self.enableRateLimit:
-            raise ExchangeError(self.id + ' updateOrder() requires enableRateLimit = true')
+            self.raise_error(ExchangeError, details='updateOrder() requires enableRateLimit = true')
         await self.cancel_order(id, symbol)
         return await self.create_order(symbol, *args)
