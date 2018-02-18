@@ -129,7 +129,7 @@ module.exports = class coinfalcon extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.publicGetMarketsMarketOrders (this.extend ({
             'market': this.marketId (symbol),
