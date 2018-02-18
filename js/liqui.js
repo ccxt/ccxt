@@ -550,8 +550,10 @@ module.exports = class liqui extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        // if (!symbol)
-        //     throw new ExchangeError (this.id + ' fetchOrders requires a symbol');
+        if ('fetchOrdersRequiresSymbol' in this.options)
+            if (this.options['fetchOrdersRequiresSymbol'])
+                if (typeof symbol === 'undefined')
+                    throw new ExchangeError (this.id + ' fetchOrders requires a symbol argument');
         await this.loadMarkets ();
         let request = {};
         let market = undefined;

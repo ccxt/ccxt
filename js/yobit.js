@@ -62,6 +62,9 @@ module.exports = class yobit extends liqui {
                     'withdraw': {},
                 },
             },
+            'options': {
+                'fetchOrdersRequiresSymbol': true,
+            },
         });
     }
 
