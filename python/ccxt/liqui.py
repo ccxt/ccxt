@@ -525,8 +525,10 @@ class liqui (Exchange):
         return result
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
-        # if not symbol:
-        #     raise ExchangeError(self.id + ' fetchOrders requires a symbol')
+        if 'fetchOrdersRequiresSymbol' in self.options:
+            if self.options['fetchOrdersRequiresSymbol']:
+                if symbol is None:
+                    raise ExchangeError(self.id + ' fetchOrders requires a symbol argument')
         self.load_markets()
         request = {}
         market = None

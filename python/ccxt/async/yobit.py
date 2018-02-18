@@ -65,6 +65,9 @@ class yobit (liqui):
                     'withdraw': {},
                 },
             },
+            'options': {
+                'fetchOrdersRequiresSymbol': True,
+            },
         })
 
     def common_currency_code(self, currency):
