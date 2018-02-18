@@ -398,15 +398,14 @@ module.exports = class bitfinex2 extends bitfinex {
         return this.parseTrades (trades, market, undefined, limit);
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 100, params = {}) {
         let market = this.market (symbol);
         let request = {
             'symbol': market['id'],
             'timeframe': this.timeframes[timeframe],
             'sort': 1,
+            'limit': limit,
         };
-        if (typeof limit !== 'undefined')
-            request['limit'] = limit;
         if (typeof since !== 'undefined')
             request['start'] = since;
         request = this.extend (request, params);
