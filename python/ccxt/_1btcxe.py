@@ -114,11 +114,10 @@ class _1btcxe (Exchange):
             'currency': self.market_id(symbol),
         }, params))
         ticker = response['stats']
-        timestamp = self.milliseconds()
         return {
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'high': float(ticker['max']),
             'low': float(ticker['min']),
             'bid': float(ticker['bid']),
