@@ -61,7 +61,7 @@ class Exchange(BaseExchange):
         }, self.tokenBucket))
 
     def __del__(self):
-        self.asyncio_loop.run_until_complete(self.session.close())
+        self.asyncio_loop.ensure_future(self.session.close())
 
     async def wait_for_token(self):
         while self.rateLimitTokens <= 1:
