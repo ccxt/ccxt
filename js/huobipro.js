@@ -162,13 +162,19 @@ module.exports = class huobipro extends Exchange {
             timestamp = ticker['ts'];
         let bid = undefined;
         let ask = undefined;
+        let bidVolume = undefined;
+        let askVolume = undefined;
         if ('bid' in ticker) {
-            if (ticker['bid'])
+            if (Array.isArray (ticker['bid'])) {
                 bid = this.safeFloat (ticker['bid'], 0);
+                bidVolume = this.safeFloat (ticker['bid'], 1);
+            }
         }
         if ('ask' in ticker) {
-            if (ticker['ask'])
+            if (Array.isArray (ticker['ask'])) {
                 ask = this.safeFloat (ticker['ask'], 0);
+                askVolume = this.safeFloat (ticker['ask'], 1);
+            }
         }
         return {
             'symbol': symbol,
@@ -177,7 +183,9 @@ module.exports = class huobipro extends Exchange {
             'high': ticker['high'],
             'low': ticker['low'],
             'bid': bid,
+            'bidVolume': bidVolume,
             'ask': ask,
+            'askVolume': askVolume,
             'vwap': undefined,
             'open': ticker['open'],
             'close': ticker['close'],
