@@ -167,6 +167,7 @@ module.exports = class Exchange {
 
         this.iso8601          = timestamp => ((typeof timestamp === 'undefined') ? timestamp : new Date (timestamp).toISOString ())
         this.parse8601        = x => Date.parse (((x.indexOf ('+') >= 0) || (x.slice (-1) === 'Z')) ? x : (x + 'Z'))
+        this.parseDate        = x => ((x.indexOf ('GMT') >= 0) ? Date.parse (x) : this.parse8601 (x))
         this.microseconds     = () => now () * 1000 // TODO: utilize performance.now for that purpose
         this.seconds          = () => Math.floor (now () / 1000)
 
@@ -463,6 +464,7 @@ module.exports = class Exchange {
 
             let responseHeaders = {}
             response.headers.forEach ((value, key) => {
+                key = key.split ('-').map (word => capitalize (word)).join ('-')
                 responseHeaders[key] = value;
             })
 
