@@ -162,12 +162,16 @@ class huobipro (Exchange):
             timestamp = ticker['ts']
         bid = None
         ask = None
+        bidVolume = None
+        askVolume = None
         if 'bid' in ticker:
-            if ticker['bid']:
+            if isinstance(ticker['bid'], list):
                 bid = self.safe_float(ticker['bid'], 0)
+                bidVolume = self.safe_float(ticker['bid'], 1)
         if 'ask' in ticker:
-            if ticker['ask']:
+            if isinstance(ticker['ask'], list):
                 ask = self.safe_float(ticker['ask'], 0)
+                askVolume = self.safe_float(ticker['ask'], 1)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -175,7 +179,9 @@ class huobipro (Exchange):
             'high': ticker['high'],
             'low': ticker['low'],
             'bid': bid,
+            'bidVolume': bidVolume,
             'ask': ask,
+            'askVolume': askVolume,
             'vwap': None,
             'open': ticker['open'],
             'close': ticker['close'],
