@@ -118,11 +118,10 @@ module.exports = class _1btcxe extends Exchange {
             'currency': this.marketId (symbol),
         }, params));
         let ticker = response['stats'];
-        let timestamp = this.milliseconds ();
         return {
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'high': parseFloat (ticker['max']),
             'low': parseFloat (ticker['min']),
             'bid': parseFloat (ticker['bid']),
