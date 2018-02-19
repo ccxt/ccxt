@@ -199,7 +199,7 @@ module.exports = class independentreserve extends Exchange {
         let capitalizedOrderType = this.capitalize (type);
         let method = 'privatePostPlace' + capitalizedOrderType + 'Order';
         let orderType = capitalizedOrderType;
-        orderType += (side === 'sell') ?  'Offer' : 'Bid';
+        orderType += (side === 'sell') ? 'Offer' : 'Bid';
         let order = this.ordered ({
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
