@@ -42,7 +42,7 @@ from requests import Session
 from requests.utils import default_user_agent
 from requests.exceptions import HTTPError, Timeout, TooManyRedirects, RequestException
 # import socket
-# import ssl
+from ssl import SSLError
 # import sys
 import time
 import uuid
@@ -353,6 +353,9 @@ class Exchange(object):
             self.raise_error(RequestTimeout, method, url, e)
 
         except TooManyRedirects as e:
+            self.raise_error(ExchangeError, url, method, e)
+
+        except SSLError as e:
             self.raise_error(ExchangeError, url, method, e)
 
         except HTTPError as e:
