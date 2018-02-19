@@ -30,7 +30,7 @@
     "cex":           { },
     "chbtc":         { "skip": true, "apiKey": "aa149b74-f022-45b8-9794-332620f671a1", "secret": "d7aa3120-df98-4594-8511-4e75413b8d42" },
     "chilebit":      { "skip": true },
-    "cobinhood":     { },
+    "cobinhood":     { "skip": true },
     "coincheck":     { },
     "coingi":        { "skip": true, "apiKey": "6ZUYcF0BAABlKbb4oD5rNoOvnfhSzpls/zj4g+DstYCYm85aGuFh1LpsYug339PT", "secret": "6TLLWAqYkCSA68U+0oJ2GFCvNxZJgQntZnRbnN2b" },
     "coinmate":      { "apiKey": "RK3tVw8CEmHfvx5qryeNa2lvvQovU4W31qXqBuQDObY", "secret": "UmS7PMgzAgTwbEO8ylSpAuKqkz2ShEG9ZW429OiUVws", "uid": "12092" },
