@@ -792,24 +792,28 @@ module.exports = class poloniex extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body) {
-        if (body[0] === '{') {
-            const response = JSON.parse (body);
-            if ('error' in response) {
-                const error = response['error'];
-                const feedback = this.id + ' ' + this.json (response);
-                if (error === 'Invalid order number, or you are not the person who placed the order.') {
-                    throw new OrderNotFound (feedback);
-                } else if (error.indexOf ('Total must be at least') >= 0) {
-                    throw new InvalidOrder (feedback);
-                } else if (error.indexOf ('Not enough') >= 0) {
-                    throw new InsufficientFunds (feedback);
-                } else if (error.indexOf ('Nonce must be greater') >= 0) {
-                    throw new ExchangeNotAvailable (feedback);
-                } else if (error.indexOf ('You have already called cancelOrder or moveOrder on this order.') >= 0) {
-                    throw new CancelPending (feedback);
-                } else {
-                    throw new ExchangeError (this.id + ': unknown error: ' + this.json (response));
-                }
+        let response = undefined;
+        try {
+            response = JSON.parse (body);
+        } catch (e) {
+            // syntax error, resort to default error handler
+            return;
+        }
+        if ('error' in response) {
+            const error = response['error'];
+            const feedback = this.id + ' ' + this.json (response);
+            if (error === 'Invalid order number, or you are not the person who placed the order.') {
+                throw new OrderNotFound (feedback);
+            } else if (error.indexOf ('Total must be at least') >= 0) {
+                throw new InvalidOrder (feedback);
+            } else if (error.indexOf ('Not enough') >= 0) {
+                throw new InsufficientFunds (feedback);
+            } else if (error.indexOf ('Nonce must be greater') >= 0) {
+                throw new ExchangeNotAvailable (feedback);
+            } else if (error.indexOf ('You have already called cancelOrder or moveOrder on this order.') >= 0) {
+                throw new CancelPending (feedback);
+            } else {
+                throw new ExchangeError (this.id + ': unknown error: ' + this.json (response));
             }
         }
     }

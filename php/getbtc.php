@@ -19,6 +19,9 @@ class getbtc extends _1btcxe {
                 'www' => 'https://getbtc.org',
                 'doc' => 'https://getbtc.org/api-docs.php',
             ),
+            'has' => array (
+                'fetchTrades' => false,
+            ),
             'fees' => array (
                 'trading' => array (
                     'taker' => 0.20 / 100,

@@ -15,6 +15,7 @@
     "comma-dangle": ["error", "always-multiline"],
     "brace-style": ["error", "1tbs"],
     "multiline-comment-style": ["error", "separate-lines"],
+    "quote-props": "error",
     "no-whitespace-before-property": "error",
     "space-before-blocks": ["error", "always"],
     "space-before-function-paren": ["error", "always"],

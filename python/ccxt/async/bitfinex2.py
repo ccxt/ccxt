@@ -388,15 +388,14 @@ class bitfinex2 (bitfinex):
         trades = self.sort_by(response, 1)
         return self.parse_trades(trades, market, None, limit)
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=100, params={}):
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
             'timeframe': self.timeframes[timeframe],
             'sort': 1,
+            'limit': limit,
         }
-        if limit is not None:
-            request['limit'] = limit
         if since is not None:
             request['start'] = since
         request = self.extend(request, params)
