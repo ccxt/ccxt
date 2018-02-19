@@ -175,6 +175,15 @@ class huobipro extends Exchange {
                 $askVolume = $this->safe_float($ticker['ask'], 1);
             }
         }
+        $open = $this->safe_float($ticker, 'open');
+        $close = $this->safe_float($ticker, 'close');
+        $change = null;
+        $percentage = null;
+        if (($open !== null) && ($close !== null)) {
+            $change = $close - $open;
+            if (($last !== null) && ($last > 0))
+                $percentage = ($change / $last) * 100;
+        }
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -190,8 +199,8 @@ class huobipro extends Exchange {
             'close' => $ticker['close'],
             'first' => null,
             'last' => $last,
-            'change' => null,
-            'percentage' => null,
+            'change' => $change,
+            'percentage' => $percentage,
             'average' => null,
             'baseVolume' => floatval ($ticker['amount']),
             'quoteVolume' => $ticker['vol'],
