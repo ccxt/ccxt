@@ -165,7 +165,7 @@ module.exports = class Exchange {
         this.proxy = ''
         this.origin = '*' // CORS origin
 
-        this.iso8601          = timestamp => new Date (timestamp).toISOString ()
+        this.iso8601          = timestamp => ((typeof timestamp === 'undefined') ? timestamp : new Date (timestamp).toISOString ())
         this.parse8601        = x => Date.parse (((x.indexOf ('+') >= 0) || (x.slice (-1) === 'Z')) ? x : (x + 'Z'))
         this.microseconds     = () => now () * 1000 // TODO: utilize performance.now for that purpose
         this.seconds          = () => Math.floor (now () / 1000)
@@ -619,7 +619,8 @@ module.exports = class Exchange {
     }
 
     marketId (symbol) {
-        return this.market (symbol).id || symbol
+        let market = this.market (symbol)
+        return (typeof market !== 'undefined' ? market['id'] : symbol)
     }
 
     marketIds (symbols) {
