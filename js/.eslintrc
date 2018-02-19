@@ -43,6 +43,8 @@
       {"blankLine": "never", "prev":"*", "next": "*" },
       {"blankLine": "always", "prev":"directive", "next": "*" },
       {"blankLine": "always", "prev":"*", "next": "cjs-export" }
-    ]
+    ],
+    "eol-last": "error",
+    "no-tabs": "error"
   }
 }
