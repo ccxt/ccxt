@@ -29,6 +29,7 @@ import base64
 import calendar
 import collections
 import datetime
+from email.utils import parsedate
 import functools
 import gzip
 import hashlib
@@ -658,6 +659,15 @@ class Exchange(object):
     def ymdhms(timestamp, infix=' '):
         utc_datetime = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
         return utc_datetime.strftime('%Y-%m-%d' + infix + '%H:%M:%S')
+
+    @staticmethod
+    def parse_date(timestamp):
+        if 'GMT' in timestamp:
+            string = ''.join ([str(value) for value in parsedate(timestamp)[:6]]) + '.000Z'
+            dt = datetime.datetime.strptime(string, "%Y%m%d%H%M%S.%fZ")
+            return calendar.timegm(dt.utctimetuple()) * 1000
+        else:
+            return Exchange.parse8601(timestamp)
 
     @staticmethod
     def parse8601(timestamp):
