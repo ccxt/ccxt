@@ -423,7 +423,7 @@ class okcoinusd extends Exchange {
         if ($status === 0)
             return 'open';
         if ($status === 1)
-            return 'partial';
+            return 'open';
         if ($status === 2)
             return 'closed';
         if ($status === 4)
