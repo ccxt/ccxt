@@ -1051,12 +1051,15 @@ A price ticker contains statistics for a particular market/symbol for some perio
     'high':        float (highest price)
     'low':         float (lowest price)
     'bid':         float (current bid (buy) price)
+    'bidVolume':   float (current bid (buy) amount)
     'ask':         float (current ask (sell) price)
+    'askVolume':   float (current ask (sell) amount)
     'vwap':        float (volume weighed average price)
     'open':        float (open price),
     'first':       float (price of first trade),
     'last':        float (price of last trade),
-    'change':      float (percentage change),
+    'change':      float (absolute change, `close - open`),
+    'ratio':       float (relative change, `change/open`),
     'average':     float (average),
     'baseVolume':  float (volume of base currency),
     'quoteVolume': float (volume of quote currency),
