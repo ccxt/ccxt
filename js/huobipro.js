@@ -176,6 +176,15 @@ module.exports = class huobipro extends Exchange {
                 askVolume = this.safeFloat (ticker['ask'], 1);
             }
         }
+        let open = this.safeFloat (ticker, 'open');
+        let close = this.safeFloat (ticker, 'close');
+        let change = undefined;
+        let percentage = undefined;
+        if ((typeof open !== 'undefined') && (typeof close !== 'undefined')) {
+            change = close - open;
+            if ((typeof last !== 'undefined') && (last > 0))
+                percentage = (change / lastprice) * 100;
+        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -191,8 +200,8 @@ module.exports = class huobipro extends Exchange {
             'close': ticker['close'],
             'first': undefined,
             'last': last,
-            'change': undefined,
-            'percentage': undefined,
+            'change': change,
+            'percentage': percentage,
             'average': undefined,
             'baseVolume': parseFloat (ticker['amount']),
             'quoteVolume': ticker['vol'],
