@@ -117,11 +117,10 @@ class _1btcxe extends Exchange {
             'currency' => $this->market_id($symbol),
         ), $params));
         $ticker = $response['stats'];
-        $timestamp = $this->milliseconds ();
         return array (
             'symbol' => $symbol,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'high' => floatval ($ticker['max']),
             'low' => floatval ($ticker['min']),
             'bid' => floatval ($ticker['bid']),

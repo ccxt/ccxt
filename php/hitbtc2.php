@@ -985,11 +985,11 @@ class hitbtc2 extends hitbtc {
         $this->load_markets();
         $request = array (
             // 'symbol' => 'BTC/USD', // optional
-            // 'sort' => 'DESC', // or 'ASC'
-            // 'by' => 'timestamp', // or 'id'	String	timestamp by default, or id
-            // 'from':	'Datetime or Number', // ISO 8601
-            // 'till':	'Datetime or Number',
-            // 'limit' => 100,
+            // 'sort' =>   'DESC', // or 'ASC'
+            // 'by' =>     'timestamp', // or 'id' String timestamp by default, or id
+            // 'from' =>   'Datetime or Number', // ISO 8601
+            // 'till' =>   'Datetime or Number',
+            // 'limit' =>  100,
             // 'offset' => 0,
         );
         $market = null;
