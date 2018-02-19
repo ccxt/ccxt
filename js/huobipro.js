@@ -183,7 +183,7 @@ module.exports = class huobipro extends Exchange {
         if ((typeof open !== 'undefined') && (typeof close !== 'undefined')) {
             change = close - open;
             if ((typeof last !== 'undefined') && (last > 0))
-                percentage = (change / lastprice) * 100;
+                percentage = (change / last) * 100;
         }
         return {
             'symbol': symbol,
