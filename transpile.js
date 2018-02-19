@@ -56,6 +56,7 @@ const commonRegexes = [
     [ /\.parseBalance\s/g, '.parse_balance'],
     [ /\.parseOHLCVs\s/g, '.parse_ohlcvs'],
     [ /\.parseOHLCV\s/g, '.parse_ohlcv'],
+    [ /\.parseDate\s/g, '.parse_date'],
     [ /\.parseTicker\s/g, '.parse_ticker'],
     [ /\.parseTradesData\s/g, '.parse_trades_data'],
     [ /\.parseTrades\s/g, '.parse_trades'],
