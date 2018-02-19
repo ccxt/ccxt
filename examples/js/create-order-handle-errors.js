@@ -28,7 +28,7 @@ const ccxt = require ('../../ccxt.js')
         } catch (e) {
 
             if (e instanceof ccxt.RequestTimeout)
-                console.log (Date.now (), e.constructor.name, e.message)
+                console.log (exchange.iso8601 (Date.now ()), e.constructor.name, e.message)
         }
     }
 
@@ -48,7 +48,7 @@ const ccxt = require ('../../ccxt.js')
 
     } catch (e) {
 
-        console.log (Date.now(), e.constructor.name, e.message)
+        console.log (exchange.iso8601 (Date.now ()), e.constructor.name, e.message)
         console.log ('Failed');
 
     }
