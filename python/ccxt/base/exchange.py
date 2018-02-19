@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.1150'
+__version__ = '1.10.1147'
 
 # -----------------------------------------------------------------------------
 
@@ -409,8 +409,11 @@ class Exchange(object):
     def safe_float(dictionary, key, default_value=None):
         value = default_value
         try:
-            value = float(dictionary[key]) if (key is not None) and (key in dictionary) and (dictionary[key] is not None) else default_value
-        except ValueError:
+            if isinstance(dictionary, list) and isinstance(key, int) and len(dictionary) > key:
+                value = float(dictionary[key])
+            else:
+                value = float(dictionary[key]) if (key is not None) and (key in dictionary) and (dictionary[key] is not None) else default_value
+        except ValueError as e:
             value = default_value
         return value
 
