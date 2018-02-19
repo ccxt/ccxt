@@ -179,11 +179,11 @@ module.exports = class huobipro extends Exchange {
         let open = this.safeFloat (ticker, 'open');
         let close = this.safeFloat (ticker, 'close');
         let change = undefined;
-        let ratio = undefined;
+        let percentage = undefined;
         if ((typeof open !== 'undefined') && (typeof close !== 'undefined')) {
             change = close - open;
             if ((typeof last !== 'undefined') && (last > 0))
-                ratio = (change / open) * 100;
+                percentage = (change / open) * 100;
         }
         return {
             'symbol': symbol,
@@ -201,7 +201,7 @@ module.exports = class huobipro extends Exchange {
             'first': undefined,
             'last': last,
             'change': change,
-            'ratio': ratio,
+            'percentage': percentage,
             'average': undefined,
             'baseVolume': parseFloat (ticker['amount']),
             'quoteVolume': ticker['vol'],
