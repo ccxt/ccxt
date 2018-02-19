@@ -182,7 +182,7 @@ class huobipro extends Exchange {
         if (($open !== null) && ($close !== null)) {
             $change = $close - $open;
             if (($last !== null) && ($last > 0))
-                $percentage = ($change / $last) * 100;
+                $percentage = ($change / $open) * 100;
         }
         return array (
             'symbol' => $symbol,

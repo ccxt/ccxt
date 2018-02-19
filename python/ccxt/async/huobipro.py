@@ -179,7 +179,7 @@ class huobipro (Exchange):
         if (open is not None) and(close is not None):
             change = close - open
             if (last is not None) and(last > 0):
-                percentage = (change / last) * 100
+                percentage = (change / open) * 100
         return {
             'symbol': symbol,
             'timestamp': timestamp,
