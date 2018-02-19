@@ -791,24 +791,28 @@ class poloniex extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
-        if ($body[0] === '{') {
+        $response = null;
+        try {
             $response = json_decode ($body, $as_associative_array = true);
-            if (is_array ($response) && array_key_exists ('error', $response)) {
-                $error = $response['error'];
-                $feedback = $this->id . ' ' . $this->json ($response);
-                if ($error === 'Invalid order number, or you are not the person who placed the order.') {
-                    throw new OrderNotFound ($feedback);
-                } else if (mb_strpos ($error, 'Total must be at least') !== false) {
-                    throw new InvalidOrder ($feedback);
-                } else if (mb_strpos ($error, 'Not enough') !== false) {
-                    throw new InsufficientFunds ($feedback);
-                } else if (mb_strpos ($error, 'Nonce must be greater') !== false) {
-                    throw new ExchangeNotAvailable ($feedback);
-                } else if (mb_strpos ($error, 'You have already called cancelOrder or moveOrder on this order.') !== false) {
-                    throw new CancelPending ($feedback);
-                } else {
-                    throw new ExchangeError ($this->id . ' => unknown $error => ' . $this->json ($response));
-                }
+        } catch (Exception $e) {
+            // syntax $error, resort to default $error handler
+            return;
+        }
+        if (is_array ($response) && array_key_exists ('error', $response)) {
+            $error = $response['error'];
+            $feedback = $this->id . ' ' . $this->json ($response);
+            if ($error === 'Invalid order number, or you are not the person who placed the order.') {
+                throw new OrderNotFound ($feedback);
+            } else if (mb_strpos ($error, 'Total must be at least') !== false) {
+                throw new InvalidOrder ($feedback);
+            } else if (mb_strpos ($error, 'Not enough') !== false) {
+                throw new InsufficientFunds ($feedback);
+            } else if (mb_strpos ($error, 'Nonce must be greater') !== false) {
+                throw new ExchangeNotAvailable ($feedback);
+            } else if (mb_strpos ($error, 'You have already called cancelOrder or moveOrder on this order.') !== false) {
+                throw new CancelPending ($feedback);
+            } else {
+                throw new ExchangeError ($this->id . ' => unknown $error => ' . $this->json ($response));
             }
         }
     }

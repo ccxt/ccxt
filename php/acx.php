@@ -89,8 +89,8 @@ class acx extends Exchange {
                 ),
             ),
             'exceptions' => array (
-                2002 => '\\ccxt\\InsufficientFunds',
-                2003 => '\\ccxt\\OrderNotFound',
+                '2002' => '\\ccxt\\InsufficientFunds',
+                '2003' => '\\ccxt\\OrderNotFound',
             ),
         ));
     }

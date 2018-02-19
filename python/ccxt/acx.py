@@ -93,8 +93,8 @@ class acx (Exchange):
                 },
             },
             'exceptions': {
-                2002: InsufficientFunds,
-                2003: OrderNotFound,
+                '2002': InsufficientFunds,
+                '2003': OrderNotFound,
             },
         })
 
