@@ -222,7 +222,7 @@ abstract class Exchange {
 
     // given a sorted arrays of trades (recent first) and a timeframe builds an array of OHLCV candles
     public static function build_ohlcv ($trades, $since = PHP_INT_MIN, $limits = PHP_INT_MAX, $timeframe = '1m') {
-        $ms = static::parseTimeframe ($timeframe) * 1000;
+        $ms = static::parse_timeframe ($timeframe) * 1000;
         $ohlcvs = [];
         list(/* $timestamp */, /* $open */, $high, $low, $close, $volume) = [0, 1, 2, 3, 4, 5];
 
