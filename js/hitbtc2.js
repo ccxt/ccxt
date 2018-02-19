@@ -986,11 +986,11 @@ module.exports = class hitbtc2 extends hitbtc {
         await this.loadMarkets ();
         let request = {
             // 'symbol': 'BTC/USD', // optional
-            // 'sort': 'DESC', // or 'ASC'
-            // 'by': 'timestamp', // or 'id'	String	timestamp by default, or id
-            // 'from':	'Datetime or Number', // ISO 8601
-            // 'till':	'Datetime or Number',
-            // 'limit': 100,
+            // 'sort':   'DESC', // or 'ASC'
+            // 'by':     'timestamp', // or 'id' String timestamp by default, or id
+            // 'from':   'Datetime or Number', // ISO 8601
+            // 'till':   'Datetime or Number',
+            // 'limit':  100,
             // 'offset': 0,
         };
         let market = undefined;
