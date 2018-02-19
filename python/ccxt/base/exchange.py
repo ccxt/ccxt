@@ -644,6 +644,8 @@ class Exchange(object):
 
     @staticmethod
     def iso8601(timestamp):
+        if timestamp is None:
+            return timestamp
         utc = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
         return utc.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-6] + "{:<03d}".format(int(timestamp) % 1000) + 'Z'
 
