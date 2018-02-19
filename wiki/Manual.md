@@ -1059,7 +1059,7 @@ A price ticker contains statistics for a particular market/symbol for some perio
     'first':       float (price of first trade),
     'last':        float (price of last trade),
     'change':      float (absolute change, `close - open`),
-    'ratio':       float (relative change, `change/open`),
+    'percentage':  float (relative change, `change/open`),
     'average':     float (average),
     'baseVolume':  float (volume of base currency),
     'quoteVolume': float (volume of quote currency),
