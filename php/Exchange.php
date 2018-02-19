@@ -435,6 +435,8 @@ abstract class Exchange {
     }
 
     public static function iso8601 ($timestamp) {
+        if (!isset ($timestamp))
+            return $timestamp;
         $result = date ('c', (int) round ($timestamp / 1000));
         $msec = (int) $timestamp % 1000;
         return str_replace ('+', sprintf (".%03d+", $msec), $result);
