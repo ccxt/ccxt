@@ -20,7 +20,7 @@ module.exports = class getbtc extends _1btcxe {
                 'doc': 'https://getbtc.org/api-docs.php',
             },
             'has': {
-                fetchTrades: false,
+                'fetchTrades': false,
             },
             'fees': {
                 'trading': {
