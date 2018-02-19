@@ -318,7 +318,7 @@ class kraken extends Exchange {
             'limits' => $limits,
         );
         $markets = array (
-            array ( 'id' => 'XXLMZEUR', 'symbol' => 'XLM/EUR', 'base' => 'XLM', 'quote' => 'EUR', 'altname' => 'XLMEUR' ),
+            // array ( 'id' => 'XXLMZEUR', 'symbol' => 'XLM/EUR', 'base' => 'XLM', 'quote' => 'EUR', 'altname' => 'XLMEUR' ),
         );
         for ($i = 0; $i < count ($markets); $i++) {
             $result[] = array_merge ($defaults, $markets[$i]);
