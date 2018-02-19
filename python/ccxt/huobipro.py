@@ -172,6 +172,14 @@ class huobipro (Exchange):
             if isinstance(ticker['ask'], list):
                 ask = self.safe_float(ticker['ask'], 0)
                 askVolume = self.safe_float(ticker['ask'], 1)
+        open = self.safe_float(ticker, 'open')
+        close = self.safe_float(ticker, 'close')
+        change = None
+        percentage = None
+        if (open is not None) and(close is not None):
+            change = close - open
+            if (last is not None) and(last > 0):
+                percentage = (change / last) * 100
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -187,8 +195,8 @@ class huobipro (Exchange):
             'close': ticker['close'],
             'first': None,
             'last': last,
-            'change': None,
-            'percentage': None,
+            'change': change,
+            'percentage': percentage,
             'average': None,
             'baseVolume': float(ticker['amount']),
             'quoteVolume': ticker['vol'],
