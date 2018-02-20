@@ -74,7 +74,7 @@ The following is a set of rules for contributing to the ccxt library codebase.
 ### What You Need To Have
 
 - Node.js 8+
-- Python 3.5+ and Python 2.7+
+- Python 3.5.3+ and Python 2.7+
 - PHP 5.3+ with the following extensions installed and enabled:
   - cURL
   - iconv
@@ -108,7 +108,7 @@ The contents of the repository are structured as follows:
 /php/                      # PHP ccxt module/package folder
 /python/                   # Python ccxt module/package folder for PyPI
 /python/__init__.py        # entry point for the Python version of the ccxt.library
-/python/async/__init__.py  # asynchronous version of the ccxt.library for Python 3.5+ asyncio
+/python/async/__init__.py  # asynchronous version of the ccxt.library for Python 3.5.3+ asyncio
 /python/base/              # base code for the Python version of the ccxt library
 /python/MANIFEST.in        # a PyPI-package file listing extra package files (license, configs, etc...)
 /python/README.rst         # generated reStructuredText for PyPI
@@ -137,7 +137,7 @@ At first, all language-specific versions were developed in parallel, but separat
 
 The module entry points are:
 - `./python/__init__.py` for the Python pip package
-- `./python/async/__init__.py` for the Python 3.5+ ccxt.async subpackage
+- `./python/async/__init__.py` for the Python 3.5.3+ ccxt.async subpackage
 - `./ccxt.js` for the Node.js npm package
 - `./build/ccxt.browser.js` for the browser bundle
 - `./ccxt.php` for PHP
