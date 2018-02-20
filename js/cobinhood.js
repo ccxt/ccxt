@@ -412,10 +412,10 @@ module.exports = class cobinhood extends Exchange {
             // market, limit, stop, stop_limit
             'type': type,
             'side': side,
-            'size': this.amountToPrecision (symbol, amount),
+            'size': this.amountToPrecision (symbol, amount).toString(),
         };
         if (type !== 'market')
-            request['price'] = this.priceToPrecision (symbol, price);
+            request['price'] = this.priceToPrecision (symbol, price).toString();
         let response = await this.privatePostTradingOrders (this.extend (request, params));
         let order = this.parseOrder (response['result']['order'], market);
         let id = order['id'];
@@ -438,12 +438,13 @@ module.exports = class cobinhood extends Exchange {
         return this.parseOrder (response['result']['order']);
     }
 
-    async fetchOrderTrades (id, symbol = undefined, params = {}) {
+    async fetchOrderTrades (id, symbol, params = {}) {
         await this.loadMarkets ();
+        const market = this.exchange.market (symbol);
         let response = await this.privateGetTradingOrdersOrderIdTrades (this.extend ({
             'order_id': id,
         }, params));
-        return this.parseTrades (response['result']);
+        return this.parseTrades (response['result'], market);
     }
 
     async createDepositAddress (code, params = {}) {
