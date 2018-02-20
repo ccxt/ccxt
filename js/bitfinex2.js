@@ -170,7 +170,8 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     getCurrencyId (code) {
-        let prefix = this.isFiat (code) ? 'f' : 't';
+        let isFiat = this.isFiat (code);
+        let prefix = isFiat ? 'f' : 't';
         return prefix + code;
     }
 
