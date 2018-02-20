@@ -219,7 +219,8 @@ class gatecoin extends Exchange {
                 'used' => $this->sum (
                     $balance['pendingIncoming'],
                     $balance['pendingOutgoing'],
-                    $balance['openOrder']),
+                    $balance['openOrder']
+                ),
                 'total' => $balance['balance'],
             );
             $result[$currency] = $account;
