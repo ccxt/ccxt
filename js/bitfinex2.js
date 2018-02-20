@@ -315,7 +315,7 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     fetchMarkets () {
-        return this.load_markets();
+        return this.loadMarkets ();
     }
     
     parseTicker (ticker, market = undefined) {
