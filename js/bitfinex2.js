@@ -314,6 +314,10 @@ module.exports = class bitfinex2 extends bitfinex {
         return result;
     }
 
+    fetchMarkets () {
+        return this.load_markets();
+    }
+    
     parseTicker (ticker, market = undefined) {
         let timestamp = this.milliseconds ();
         let symbol = undefined;
