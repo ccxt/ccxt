@@ -412,10 +412,10 @@ module.exports = class cobinhood extends Exchange {
             // market, limit, stop, stop_limit
             'type': type,
             'side': side,
-            'size': this.amountToPrecision (symbol, amount).toString(),
+            'size': this.amountToPrecision (symbol, amount).toString (),
         };
         if (type !== 'market')
-            request['price'] = this.priceToPrecision (symbol, price).toString();
+            request['price'] = this.priceToPrecision (symbol, price).toString ();
         let response = await this.privatePostTradingOrders (this.extend (request, params));
         let order = this.parseOrder (response['result']['order'], market);
         let id = order['id'];
