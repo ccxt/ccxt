@@ -6,16 +6,22 @@
     "ecmaVersion": 2017,
     "sourceType": "script"
   },
-  "extends": "eslint:recommended",
+  "extends": ["eslint:recommended"],
   "rules": {
     "strict": "error",
     "semi": "error",
-    "indent": "error",
+    "indent": ["error", 4],
     "init-declarations": "error",
-    "comma-dangle": ["error", "always-multiline"],
+    "comma-dangle": ["error", {
+        "arrays": "always-multiline",
+        "objects": "always-multiline",
+        "imports": "always-multiline",
+        "exports": "always-multiline",
+        "functions": "never"
+    }],
     "brace-style": ["error", "1tbs"],
     "multiline-comment-style": ["error", "separate-lines"],
-    "quote-props": "error",
+    "quote-props": ["error", "always"],
     "no-multi-spaces": ["error", { ignoreEOLComments: true }],
     "no-whitespace-before-property": "error",
     "space-before-blocks": ["error", "always"],
@@ -24,6 +30,7 @@
     "block-spacing": ["error", "always"],
     "keyword-spacing": ["error", { "before": true, "after": true }],
     "object-curly-spacing": ["error", "always", { "objectsInObjects": false }],
+    "object-curly-newline": ["error", { "consistent": true }],
     "space-infix-ops": "error",
     "space-unary-ops": "error",
     "space-in-parens": "error",
@@ -40,11 +47,12 @@
     "lines-between-class-members": "error",
     "no-multiple-empty-lines": ["error", { "max": 1 }],
     "padding-line-between-statements": ["error",
-      {"blankLine": "never", "prev":"*", "next": "*" },
-      {"blankLine": "always", "prev":"directive", "next": "*" },
-      {"blankLine": "always", "prev":"*", "next": "cjs-export" }
+      { "blankLine": "never", "prev":"*", "next": "*" },
+      { "blankLine": "always", "prev":"directive", "next": "*" },
+      { "blankLine": "always", "prev":"*", "next": "cjs-export" }
     ],
     "eol-last": "error",
-    "no-tabs": "error"
+    "no-tabs": "error",
+    "function-paren-newline": "error"
   }
 }

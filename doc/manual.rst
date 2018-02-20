@@ -1038,7 +1038,7 @@ Market Data
 -  `Individually By Symbol <https://github.com/ccxt/ccxt/wiki/Manual#individually-by-symbol>`__
 -  `All At Once <https://github.com/ccxt/ccxt/wiki/Manual#all-at-once>`__
 -  `OHLCV Candlestick Charts <https://github.com/ccxt/ccxt/wiki/Manual#ohlcv-candlestick-charts>`__
--  `Public Trades And Closed Orders <https://github.com/ccxt/ccxt/wiki/Manual#trades-executions-transactions>`__
+-  `Public Trades <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`__
 
 Order Book
 ----------
@@ -1893,8 +1893,8 @@ As such, ``cancelOrder()`` can throw an ``OrderNotFound`` exception in these cas
 - canceling an already-closed order
 - canceling an already-canceled order
 
-Trades / Transactions / Fills / Executions
-------------------------------------------
+Personal Trades
+---------------
 
 ::
 
@@ -1902,7 +1902,77 @@ Trades / Transactions / Fills / Executions
     - there may be some issues and missing implementations here and there
     - contributions, pull requests and feedback appreciated
 
-A trade is a result of order execution. Note, that orders and trades have a one-to-many relationship: an execution of one order may result in several trades. However, when one order matches another opposing order, the pair of two matching orders yields one trade. Thus, when an order matches multiple opposing orders, this yields multiple trades, one trade per each pair of matched orders.
+Orders And Trades Relationship
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A trade is also often called ``a fill``. Each trade is a result of order execution. Note, that orders and trades have a one-to-many relationship: an execution of one order may result in several trades. However, when one order matches another opposing order, the pair of two matching orders yields one trade. Thus, when an order matches multiple opposing orders, this yields multiple trades, one trade per each pair of matched orders.
+
+To put it shortly, an order can contain *one or more* trades. Or, in other words, an order can be *filled* with one or more trades.
+
+For example, an orderbook can have the following orders (whatever trading symbol or pair it is):
+
+::
+
+        | price | amount
+    ----|----------------
+      a |  1.200 | 200
+      s |  1.100 | 300
+      k |  0.900 | 100
+    ----|----------------
+      b |  0.800 | 100
+      i |  0.700 | 200
+      d |  0.500 | 100
+
+All specific numbers above aren't real, this is just to illustrate the way orders and trades are related in general.
+
+A seller decides to place a sell limit order on the ask side for a price of 0.700 and an amount of 150.
+
+::
+
+        | price | amount
+    ----|----------------  ↓
+      a |  1.200 | 200     ↓
+      s |  1.100 | 300     ↓
+      k |  0.900 | 100     ↓
+    ----|----------------  ↓
+      b |  0.800 | 100     ↓ sell 150 for 0.700
+      i |  0.700 | 200     --------------------
+      d |  0.500 | 100
+
+As the price and amount of the incoming sell (ask) order cover more than one bid order (orders ``b`` and ``i``), the following sequence of events usually happens within an exchange engine very quickly, but not immediately:
+
+1. Order ``b`` is matched against the incoming sell because their prices intersect. Their volumes *"mutually annihilate"* each other, so, the bidder gets 100 for a price of 0.700. Which is even better than he was going to pay initially (0.800). The seller (asker) will have his sell order partially filled by bid volume of 100.
+
+2. A trade is generated for the order ``b`` against the incoming sell order. That trade *"fills"* the entire order ``b`` and most of the sell order. One trade is generated pear each pair of matched orders, whether the amount was filled completely or partially. In this cases the amount of 100 fills order ``b`` completely (closed the order ``b``), and also fills the selling order partially (leaves it open in the orderbook).
+
+3a. Order ``b`` now has a status of ``closed`` and a filled volume of 100. It contains one trade against the selling order.
+3b. The selling order has ``open`` status and a filled volume of 100. It contains one trade against order ``b``.
+3c. Thus each order has just one fill-trade so far.
+
+3. The incoming sell order has a filled amount of 100 and has yet to fill the reamining amount of 50 from its initial amount of 150 in total.
+
+4. Order ``i`` is matched against the remaining part of incoming sell, because their prices intersect. The amount of buying order ``i`` which is 200 completely annihilates the reamining sell amount of 50. The order ``i`` is filled partially by 50, but the rest of its volume, namely the remaining amount of 150 will stay in the orderbook. The selling order, however, is filled completely by this second match.
+
+5. A trade is generated for the order ``i`` against the incoming sell order. That trade partially fills order ``i``. And completes the filling of the sell order. Again, this is just one trade for a pair of matched orders.
+
+6a. Order ``i`` now has a status of ``open``, a filled amount of 50, and a remaining amount of 150. It contains one filling trade against the selling order.
+6b. The selling order has a ``closed`` status now, as it was completely filled its total initial amount of 150. However, it contains two trades, the first against order ``b`` and the second against order ``i``.
+6c. Thus each order can have one or more filling trades, depending on how their volumes were matched by the exchange engine.
+
+After the above sequence takes place, the updated orderbook will look like this.
+
+::
+
+        | price | amount
+    ----|----------------
+      a |  1.200 | 200
+      s |  1.100 | 300
+      k |  0.900 | 100
+    ----|----------------
+      i |  0.700 | 150
+      d |  0.500 | 100
+
+Notice that the order ``b`` has disappeared, the selling order also isn't there. All closed and fully-filled orders disappear from the orderbook. The order ``i`` which was filled partially and still has a remaining volume and an ``open`` status, is still there.
 
 Recent Trades
 ~~~~~~~~~~~~~
