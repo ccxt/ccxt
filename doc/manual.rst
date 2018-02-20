@@ -1038,7 +1038,7 @@ Market Data
 -  `Individually By Symbol <https://github.com/ccxt/ccxt/wiki/Manual#individually-by-symbol>`__
 -  `All At Once <https://github.com/ccxt/ccxt/wiki/Manual#all-at-once>`__
 -  `OHLCV Candlestick Charts <https://github.com/ccxt/ccxt/wiki/Manual#ohlcv-candlestick-charts>`__
--  `Public Trades And Closed Orders <https://github.com/ccxt/ccxt/wiki/Manual#trades-orders-executions-transactions>`__
+-  `Public Trades And Closed Orders <https://github.com/ccxt/ccxt/wiki/Manual#trades-executions-transactions>`__
 
 Order Book
 ----------
