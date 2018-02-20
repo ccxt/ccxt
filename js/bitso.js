@@ -197,7 +197,7 @@ module.exports = class bitso extends Exchange {
             'side': trade['maker_side'] || trade['side'],
             'price': parseFloat (trade['price']),
             'amount': trade['amount'] ? parseFloat (trade['amount']) : parseFloat (trade['major']), //should be Math.abs?
-            'fee': trade['fees_amount']
+            'fee': trade['fees_amount'],
         };
     }
 
@@ -247,8 +247,8 @@ module.exports = class bitso extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let endpoint = '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if(method == 'GET'){
-          endpoint += '?' + this.urlencode (query);
+        if (method === 'GET') {
+            endpoint += '?' + this.urlencode (query);
         }
         let url = this.urls['api'] + endpoint;
         if (api === 'public') {
@@ -258,7 +258,7 @@ module.exports = class bitso extends Exchange {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             let request = [ nonce, method, endpoint ].join ('');
-            if (Object.keys (query).length  && !method == 'GET') {
+            if (Object.keys (query).length && !method === 'GET') {
                 body = this.json (query);
                 request += body;
             }
