@@ -666,7 +666,7 @@ The ccxt library abstracts uncommon market ids to symbols, standardized to a com
 
 A symbol is an uppercase string literal name for a pair of traded currencies with a slash in between. A currency is a code of three or four uppercase letters, like ``BTC``, ``ETH``, ``USD``, ``GBP``, ``CNY``, ``LTC``, ``JPY``, ``DOGE``, ``RUB``, ``ZEC``, ``XRP``, ``XMR``, etc. Some exchanges have exotic currencies with longer names. The first currency before the slash is usually called *base currency*, and the one after the slash is called *quote currency*. Examples of a symbol are: ``BTC/USD``, ``DOGE/LTC``, ``ETH/EUR``, ``DASH/XRP``, ``BTC/CNY``, ``ZEC/XMR``, ``ETH/JPY``.
 
-Market structures are indexed by symbols and ids. The base exchange class also has builtin methods for accessing markets by symbols. Most API methods require a symbol to be passed in their first parameter. You are often required to specify a symbol when querying current prices, making orders, etc.
+Market structures are indexed by symbols and ids. The base exchange class also has builtin methods for accessing markets by symbols. Most API methods require a symbol to be passed in their first argument. You are often required to specify a symbol when querying current prices, making orders, etc.
 
 Most of the time users will be working with market symbols. You will get a standard userland exception if you access non-existent keys in these dicts.
 
