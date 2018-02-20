@@ -900,7 +900,7 @@ Note, that most of methods of the unified API accept an optional `params` parame
   - [Individually By Symbol](https://github.com/ccxt/ccxt/wiki/Manual#individually-by-symbol)
   - [All At Once](https://github.com/ccxt/ccxt/wiki/Manual#all-at-once)
 - [OHLCV Candlestick Charts](https://github.com/ccxt/ccxt/wiki/Manual#ohlcv-candlestick-charts)
-- [Public Trades And Closed Orders](https://github.com/ccxt/ccxt/wiki/Manual#trades-orders-executions-transactions)
+- [Public Trades And Closed Orders](https://github.com/ccxt/ccxt/wiki/Manual#trades-executions-transactions)
 
 ## Order Book
 
