@@ -15,7 +15,6 @@ module.exports = class okex extends okcoinusd {
             'has': {
                 'CORS': false,
                 'futures': true,
-                'hasFetchTickers': true,
                 'fetchTickers': true,
             },
             'urls': {

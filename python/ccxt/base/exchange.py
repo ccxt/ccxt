@@ -127,21 +127,6 @@ class Exchange(object):
 
     hasPublicAPI = True
     hasPrivateAPI = True
-    hasCORS = False
-    hasFetchTicker = True
-    hasFetchOrderBook = True
-    hasFetchTrades = True
-    hasFetchTickers = False
-    hasFetchOHLCV = False
-    hasDeposit = False
-    hasWithdraw = False
-    hasFetchBalance = True
-    hasFetchOrder = False
-    hasFetchOrders = False
-    hasFetchOpenOrders = False
-    hasFetchClosedOrders = False
-    hasFetchMyTrades = False
-    hasFetchCurrencies = False
     hasCreateOrder = hasPrivateAPI
     hasCancelOrder = hasPrivateAPI
 
