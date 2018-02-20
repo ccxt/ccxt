@@ -1059,7 +1059,7 @@ A price ticker contains statistics for a particular market/symbol for some perio
     'first':       float (price of first trade),
     'last':        float (price of last trade),
     'change':      float (absolute change, `close - open`),
-    'percentage':  float (relative change, `change/open`),
+    'percentage':  float (relative change, `(change/open) * 100`),
     'average':     float (average),
     'baseVolume':  float (volume of base currency),
     'quoteVolume': float (volume of quote currency),
@@ -1252,7 +1252,7 @@ foreach ($exchange->markets as $symbol => $market) {
 }
 ```
 
-The fetchTrades method shown above returns an ordered list of trades (a flat array, most recent trade first) represented by the following structure:
+The fetchTrades method shown above returns an ordered list of trades (a flat array, sorted by timestamp in ascending order, most recent trade last) represented by the following structure:
 
 ```JavaScript
 [
