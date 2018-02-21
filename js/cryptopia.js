@@ -220,6 +220,11 @@ module.exports = class cryptopia extends Exchange {
         let change = last - open;
         let baseVolume = this.safeFloat (ticker, 'Volume');
         let quoteVolume = this.safeFloat (ticker, 'BaseVolume');
+        let vwap = undefined;
+        if (typeof quoteVolume !== 'undefined')
+            if (typeof baseVolume !== 'undefined')
+                if (typeof baseVolume > 0)
+                    vwap = quoteVolume / baseVolume;
         return {
             'symbol': symbol,
             'info': ticker,
@@ -229,7 +234,7 @@ module.exports = class cryptopia extends Exchange {
             'low': parseFloat (ticker['Low']),
             'bid': parseFloat (ticker['BidPrice']),
             'ask': parseFloat (ticker['AskPrice']),
-            'vwap': quoteVolume / baseVolume,
+            'vwap': vwap,
             'open': open,
             'last': last,
             'change': change,
