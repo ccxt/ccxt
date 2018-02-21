@@ -223,7 +223,7 @@ module.exports = class cryptopia extends Exchange {
         let vwap = undefined;
         if (typeof quoteVolume !== 'undefined')
             if (typeof baseVolume !== 'undefined')
-                if (typeof baseVolume > 0)
+                if (baseVolume > 0)
                     vwap = quoteVolume / baseVolume;
         return {
             'symbol': symbol,

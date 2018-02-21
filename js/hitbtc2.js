@@ -729,7 +729,7 @@ module.exports = class hitbtc2 extends hitbtc {
         let vwap = undefined;
         if (typeof quoteVolume !== 'undefined')
             if (typeof baseVolume !== 'undefined')
-                if (typeof baseVolume > 0)
+                if (baseVolume > 0)
                     vwap = quoteVolume / baseVolume;
         return {
             'symbol': symbol,
