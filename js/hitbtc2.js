@@ -725,7 +725,13 @@ module.exports = class hitbtc2 extends hitbtc {
         let quoteVolume = this.safeFloat (ticker, 'volumeQuote');
         let open = this.safeFloat (ticker, 'open');
         let last = this.safeFloat (ticker, 'last');
-        let change = last - open;
+        let change = undefined;
+        let percentage = undefined;
+        if (typeof last !== 'undefined' && typeof open !== 'undefined') {
+            change = last - open;
+            if (open > 0)
+                percentage = change / open * 100;
+        }
         let vwap = undefined;
         if (typeof quoteVolume !== 'undefined')
             if (typeof baseVolume !== 'undefined')
@@ -743,7 +749,7 @@ module.exports = class hitbtc2 extends hitbtc {
             'open': open,
             'last': last,
             'change': change,
-            'percentage': change / open * 100,
+            'percentage': percentage,
             'average': (last + open) / 2,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
