@@ -389,6 +389,21 @@ class bitfinex2 extends bitfinex {
         throw new NotSupported ($this->id . ' withdraw not implemented yet');
     }
 
+    public function fetch_my_trades ($symbol = null, $since = null, $limit = 25, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array (
+            'symbol' => $market['id'],
+            'limit' => $limit,
+            'end' => $this->seconds (),
+        );
+        if ($since !== null)
+            $request['start'] = intval ($since / 1000);
+        $response = $this->privatePostAuthRTradesSymbolHist (array_merge ($request, $params));
+        // return $this->parse_trades($response, $market, $since, $limit); // not implemented yet for bitfinex v2
+        return $response;
+    }
+
     public function nonce () {
         return $this->milliseconds ();
     }

@@ -372,6 +372,20 @@ class bitfinex2 (bitfinex):
     async def withdraw(self, currency, amount, address, tag=None, params={}):
         raise NotSupported(self.id + ' withdraw not implemented yet')
 
+    async def fetch_my_trades(self, symbol=None, since=None, limit=25, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            'limit': limit,
+            'end': self.seconds(),
+        }
+        if since is not None:
+            request['start'] = int(since / 1000)
+        response = await self.privatePostAuthRTradesSymbolHist(self.extend(request, params))
+        # return self.parse_trades(response, market, since, limit)  # not implemented yet for bitfinex v2
+        return response
+
     def nonce(self):
         return self.milliseconds()
 

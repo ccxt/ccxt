@@ -153,9 +153,6 @@ class huobipro extends Exchange {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
-        $last = null;
-        if (is_array ($ticker) && array_key_exists ('last', $ticker))
-            $last = $ticker['last'];
         $timestamp = $this->milliseconds ();
         if (is_array ($ticker) && array_key_exists ('ts', $ticker))
             $timestamp = $ticker['ts'];
@@ -176,14 +173,19 @@ class huobipro extends Exchange {
             }
         }
         $open = $this->safe_float($ticker, 'open');
-        $close = $this->safe_float($ticker, 'close');
+        $last = $this->safe_float($ticker, 'close');
         $change = null;
         $percentage = null;
-        if (($open !== null) && ($close !== null)) {
-            $change = $close - $open;
+        if (($open !== null) && ($last !== null)) {
+            $change = $last - $open;
             if (($last !== null) && ($last > 0))
                 $percentage = ($change / $open) * 100;
         }
+        $baseVolume = $this->safe_float($ticker, 'amount');
+        $quoteVolume = $this->safe_float($ticker, 'vol');
+        $vwap = null;
+        if ($baseVolume !== null && $quoteVolume !== null && $baseVolume > 0)
+            $vwap = $quoteVolume / $baseVolume;
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -194,16 +196,14 @@ class huobipro extends Exchange {
             'bidVolume' => $bidVolume,
             'ask' => $ask,
             'askVolume' => $askVolume,
-            'vwap' => null,
-            'open' => $ticker['open'],
-            'close' => $ticker['close'],
-            'first' => null,
+            'vwap' => $vwap,
+            'open' => $open,
             'last' => $last,
             'change' => $change,
             'percentage' => $percentage,
-            'average' => null,
-            'baseVolume' => floatval ($ticker['amount']),
-            'quoteVolume' => $ticker['vol'],
+            'average' => ($open . $last) / 2,
+            'baseVolume' => $baseVolume,
+            'quoteVolume' => $quoteVolume,
             'info' => $ticker,
         );
     }

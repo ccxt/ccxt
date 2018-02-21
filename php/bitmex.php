@@ -271,6 +271,9 @@ class bitmex extends Exchange {
         $tickers = $this->publicGetTradeBucketed ($request);
         $ticker = $tickers[0];
         $timestamp = $this->milliseconds ();
+        $open = $this->safe_float($ticker, 'open');
+        $last = $this->safe_float($ticker, 'close');
+        $change = $last - $open;
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -280,13 +283,11 @@ class bitmex extends Exchange {
             'bid' => floatval ($quote['bidPrice']),
             'ask' => floatval ($quote['askPrice']),
             'vwap' => floatval ($ticker['vwap']),
-            'open' => null,
-            'close' => floatval ($ticker['close']),
-            'first' => null,
-            'last' => null,
-            'change' => null,
-            'percentage' => null,
-            'average' => null,
+            'open' => $open,
+            'last' => $last,
+            'change' => $change,
+            'percentage' => $change / $open * 100,
+            'average' => ($last . $open) / 2,
             'baseVolume' => floatval ($ticker['homeNotional']),
             'quoteVolume' => floatval ($ticker['foreignNotional']),
             'info' => $ticker,

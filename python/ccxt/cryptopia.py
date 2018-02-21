@@ -210,6 +210,16 @@ class cryptopia (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
+        open = self.safe_float(ticker, 'Open')
+        last = self.safe_float(ticker, 'LastPrice')
+        change = last - open
+        baseVolume = self.safe_float(ticker, 'Volume')
+        quoteVolume = self.safe_float(ticker, 'BaseVolume')
+        vwap = None
+        if quoteVolume is not None:
+            if baseVolume is not None:
+                if baseVolume > 0:
+                    vwap = quoteVolume / baseVolume
         return {
             'symbol': symbol,
             'info': ticker,
@@ -219,16 +229,14 @@ class cryptopia (Exchange):
             'low': float(ticker['Low']),
             'bid': float(ticker['BidPrice']),
             'ask': float(ticker['AskPrice']),
-            'vwap': None,
-            'open': float(ticker['Open']),
-            'close': float(ticker['Close']),
-            'first': None,
-            'last': float(ticker['LastPrice']),
-            'change': float(ticker['Change']),
-            'percentage': None,
-            'average': None,
-            'baseVolume': float(ticker['Volume']),
-            'quoteVolume': float(ticker['BaseVolume']),
+            'vwap': vwap,
+            'open': open,
+            'last': last,
+            'change': change,
+            'percentage': float(ticker['Change']),
+            'average': (last + open) / 2,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
         }
 
     def fetch_ticker(self, symbol, params={}):

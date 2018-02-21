@@ -263,6 +263,9 @@ class bitmex (Exchange):
         tickers = self.publicGetTradeBucketed(request)
         ticker = tickers[0]
         timestamp = self.milliseconds()
+        open = self.safe_float(ticker, 'open')
+        last = self.safe_float(ticker, 'close')
+        change = last - open
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -272,13 +275,11 @@ class bitmex (Exchange):
             'bid': float(quote['bidPrice']),
             'ask': float(quote['askPrice']),
             'vwap': float(ticker['vwap']),
-            'open': None,
-            'close': float(ticker['close']),
-            'first': None,
-            'last': None,
-            'change': None,
-            'percentage': None,
-            'average': None,
+            'open': open,
+            'last': last,
+            'change': change,
+            'percentage': change / open * 100,
+            'average': (last + open) / 2,
             'baseVolume': float(ticker['homeNotional']),
             'quoteVolume': float(ticker['foreignNotional']),
             'info': ticker,
