@@ -145,6 +145,7 @@ class Exchange(object):
         'createDepositAddress': False,
         'createOrder': hasPrivateAPI,
         'deposit': False,
+        'edit_order': 'emulated',
         'fetchBalance': True,
         'fetchClosedOrders': False,
         'fetchCurrencies': False,
