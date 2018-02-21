@@ -272,6 +272,9 @@ module.exports = class bitmex extends Exchange {
         let tickers = await this.publicGetTradeBucketed (request);
         let ticker = tickers[0];
         let timestamp = this.milliseconds ();
+        let open = this.safeFloat (ticker, 'open');
+        let last = this.safeFloat (ticker, 'close');
+        let change = last - open;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -281,13 +284,11 @@ module.exports = class bitmex extends Exchange {
             'bid': parseFloat (quote['bidPrice']),
             'ask': parseFloat (quote['askPrice']),
             'vwap': parseFloat (ticker['vwap']),
-            'open': undefined,
-            'close': parseFloat (ticker['close']),
-            'first': undefined,
-            'last': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
+            'open': open,
+            'last': last,
+            'change': change,
+            'percentage': change / open * 100,
+            'average': (last + open) / 2,
             'baseVolume': parseFloat (ticker['homeNotional']),
             'quoteVolume': parseFloat (ticker['foreignNotional']),
             'info': ticker,
