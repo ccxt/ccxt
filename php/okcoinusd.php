@@ -146,6 +146,13 @@ class okcoinusd extends Exchange {
         $response = $this->webGetMarketsProducts ();
         $markets = $response['data'];
         $result = array ();
+        $futureMarkets = array (
+            'BCH/USD' => true,
+            'BTC/USD' => true,
+            'ETC/USD' => true,
+            'ETH/USD' => true,
+            'LTC/USD' => true,
+        );
         for ($i = 0; $i < count ($markets); $i++) {
             $id = $markets[$i]['symbol'];
             list ($baseId, $quoteId) = explode ('_', $id);
@@ -191,11 +198,14 @@ class okcoinusd extends Exchange {
                 ),
             ));
             $result[] = $market;
-            if (($this->has['futures']) && ($market['quote'] === 'USDT')) {
+            $futureQuote = ($market['quote'] === 'USDT') ? 'USD' : $market['quote'];
+            $futureSymbol = $market['base'] . '/' . $futureQuote;
+            if (($this->has['futures']) && (is_array ($futureMarkets) && array_key_exists ($futureSymbol, $futureMarkets))) {
                 $result[] = array_merge ($market, array (
                     'quote' => 'USD',
                     'symbol' => $market['base'] . '/USD',
                     'id' => str_replace ('usdt', 'usd', $market['id']),
+                    'quoteId' => str_replace ('usdt', 'usd', $market['quoteId']),
                     'type' => 'future',
                     'spot' => false,
                     'future' => true,

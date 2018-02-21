@@ -153,6 +153,13 @@ class okcoinusd (Exchange):
         response = await self.webGetMarketsProducts()
         markets = response['data']
         result = []
+        futureMarkets = {
+            'BCH/USD': True,
+            'BTC/USD': True,
+            'ETC/USD': True,
+            'ETH/USD': True,
+            'LTC/USD': True,
+        }
         for i in range(0, len(markets)):
             id = markets[i]['symbol']
             baseId, quoteId = id.split('_')
@@ -198,11 +205,14 @@ class okcoinusd (Exchange):
                 },
             })
             result.append(market)
-            if (self.has['futures']) and(market['quote'] == 'USDT'):
+            futureQuote = 'USD' if (market['quote'] == 'USDT') else market['quote']
+            futureSymbol = market['base'] + '/' + futureQuote
+            if (self.has['futures']) and(futureSymbol in list(futureMarkets.keys())):
                 result.append(self.extend(market, {
                     'quote': 'USD',
                     'symbol': market['base'] + '/USD',
                     'id': market['id'].replace('usdt', 'usd'),
+                    'quoteId': market['quoteId'].replace('usdt', 'usd'),
                     'type': 'future',
                     'spot': False,
                     'future': True,
