@@ -189,8 +189,6 @@ module.exports = class btcchina extends Exchange {
             'ask': parseFloat (ticker['AskPrice']),
             'vwap': undefined,
             'open': parseFloat (ticker['Open']),
-            'close': parseFloat (ticker['PrevCls']),
-            'first': undefined,
             'last': parseFloat (ticker['Last']),
             'change': undefined,
             'percentage': undefined,
