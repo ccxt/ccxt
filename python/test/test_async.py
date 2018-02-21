@@ -3,7 +3,7 @@
 import argparse
 import asyncio
 import json
-import logging
+# import logging
 import os
 import sys
 import time  # noqa: F401
