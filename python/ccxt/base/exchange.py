@@ -93,6 +93,7 @@ class Exchange(object):
     fees = {
         'trading': {
             'fee_loaded': False,
+            'percentage': True,  # subclasses should rarely have to redefine this
         },
         'funding': {
             'fee_loaded': False,
