@@ -167,24 +167,24 @@ module.exports = class _1broker extends Exchange {
             'resolution': 60,
             'limit': 1,
         }, params));
-        let orderbook = await this.fetchOrderBook (symbol);
         let ticker = result['response'][0];
         let timestamp = this.parse8601 (ticker['date']);
+        let open = parseFloat (ticker['o']);
+        let last = parseFloat (ticker['c']);
+        let change = last - open;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': parseFloat (ticker['h']),
             'low': parseFloat (ticker['l']),
-            'bid': orderbook['bids'][0][0],
-            'ask': orderbook['asks'][0][0],
+            'bid': undefined,
+            'ask': undefined,
             'vwap': undefined,
-            'open': parseFloat (ticker['o']),
-            'close': parseFloat (ticker['c']),
-            'first': undefined,
-            'last': undefined,
-            'change': undefined,
-            'percentage': undefined,
+            'open': open,
+            'last': last,
+            'change': change,
+            'percentage': change / open * 100,
             'average': undefined,
             'baseVolume': undefined,
             'quoteVolume': undefined,
