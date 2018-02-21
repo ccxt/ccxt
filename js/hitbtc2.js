@@ -727,8 +727,10 @@ module.exports = class hitbtc2 extends hitbtc {
         let last = this.safeFloat (ticker, 'last');
         let change = undefined;
         let percentage = undefined;
+        let average = undefined;
         if (typeof last !== 'undefined' && typeof open !== 'undefined') {
             change = last - open;
+            average = (last + open) / 2;
             if (open > 0)
                 percentage = change / open * 100;
         }
@@ -750,7 +752,7 @@ module.exports = class hitbtc2 extends hitbtc {
             'last': last,
             'change': change,
             'percentage': percentage,
-            'average': (last + open) / 2,
+            'average': average,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
