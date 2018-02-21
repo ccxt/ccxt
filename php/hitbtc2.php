@@ -720,6 +720,24 @@ class hitbtc2 extends hitbtc {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
+        $baseVolume = $this->safe_float($ticker, 'volume');
+        $quoteVolume = $this->safe_float($ticker, 'volumeQuote');
+        $open = $this->safe_float($ticker, 'open');
+        $last = $this->safe_float($ticker, 'last');
+        $change = null;
+        $percentage = null;
+        $average = null;
+        if ($last !== null && $open !== null) {
+            $change = $last - $open;
+            $average = ($last . $open) / 2;
+            if ($open > 0)
+                $percentage = $change / $open * 100;
+        }
+        $vwap = null;
+        if ($quoteVolume !== null)
+            if ($baseVolume !== null)
+                if ($baseVolume > 0)
+                    $vwap = $quoteVolume / $baseVolume;
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -728,16 +746,14 @@ class hitbtc2 extends hitbtc {
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => $this->safe_float($ticker, 'bid'),
             'ask' => $this->safe_float($ticker, 'ask'),
-            'vwap' => null,
-            'open' => $this->safe_float($ticker, 'open'),
-            'close' => $this->safe_float($ticker, 'close'),
-            'first' => null,
-            'last' => $this->safe_float($ticker, 'last'),
-            'change' => null,
-            'percentage' => null,
-            'average' => null,
-            'baseVolume' => $this->safe_float($ticker, 'volume'),
-            'quoteVolume' => $this->safe_float($ticker, 'volumeQuote'),
+            'vwap' => $vwap,
+            'open' => $open,
+            'last' => $last,
+            'change' => $change,
+            'percentage' => $percentage,
+            'average' => $average,
+            'baseVolume' => $baseVolume,
+            'quoteVolume' => $quoteVolume,
             'info' => $ticker,
         );
     }

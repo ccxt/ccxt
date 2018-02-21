@@ -716,6 +716,23 @@ class hitbtc2 (hitbtc):
         symbol = None
         if market:
             symbol = market['symbol']
+        baseVolume = self.safe_float(ticker, 'volume')
+        quoteVolume = self.safe_float(ticker, 'volumeQuote')
+        open = self.safe_float(ticker, 'open')
+        last = self.safe_float(ticker, 'last')
+        change = None
+        percentage = None
+        average = None
+        if last is not None and open is not None:
+            change = last - open
+            average = (last + open) / 2
+            if open > 0:
+                percentage = change / open * 100
+        vwap = None
+        if quoteVolume is not None:
+            if baseVolume is not None:
+                if baseVolume > 0:
+                    vwap = quoteVolume / baseVolume
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -724,16 +741,14 @@ class hitbtc2 (hitbtc):
             'low': self.safe_float(ticker, 'low'),
             'bid': self.safe_float(ticker, 'bid'),
             'ask': self.safe_float(ticker, 'ask'),
-            'vwap': None,
-            'open': self.safe_float(ticker, 'open'),
-            'close': self.safe_float(ticker, 'close'),
-            'first': None,
-            'last': self.safe_float(ticker, 'last'),
-            'change': None,
-            'percentage': None,
-            'average': None,
-            'baseVolume': self.safe_float(ticker, 'volume'),
-            'quoteVolume': self.safe_float(ticker, 'volumeQuote'),
+            'vwap': vwap,
+            'open': open,
+            'last': last,
+            'change': change,
+            'percentage': percentage,
+            'average': average,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         }
 

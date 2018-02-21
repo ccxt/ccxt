@@ -1193,17 +1193,16 @@ A price ticker contains statistics for a particular market/symbol for some perio
         'datetime':    ISO8601 datetime string with milliseconds
         'high':        float (highest price)
         'low':         float (lowest price)
-        'bid':         float (current bid (buy) price)
-        'bidVolume':   float (current bid (buy) amount)
-        'ask':         float (current ask (sell) price)
-        'askVolume':   float (current ask (sell) amount)
+        'bid':         float (orderbook's current best bid (buy) price)
+        'bidVolume':   float (orderbook's current best bid (buy) amount)
+        'ask':         float (orderbook's current best ask (sell) price)
+        'askVolume':   float (orderbook's current best ask (sell) amount)
         'vwap':        float (volume weighed average price)
         'open':        float (open price),
-        'first':       float (price of first trade),
         'last':        float (price of last trade),
-        'change':      float (absolute change, `close - open`),
+        'change':      float (absolute change, `last - open`),
         'percentage':  float (relative change, `(change/open) * 100`),
-        'average':     float (average),
+        'average':     float (average price, `(last + open) / 2`),
         'baseVolume':  float (volume of base currency),
         'quoteVolume': float (volume of quote currency),
     }

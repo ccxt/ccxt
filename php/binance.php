@@ -478,8 +478,6 @@ class binance extends Exchange {
             'askVolume' => $this->safe_float($ticker, 'askQty'),
             'vwap' => $this->safe_float($ticker, 'weightedAvgPrice'),
             'open' => $this->safe_float($ticker, 'openPrice'),
-            'close' => $this->safe_float($ticker, 'prevClosePrice'),
-            'first' => null,
             'last' => $this->safe_float($ticker, 'lastPrice'),
             'change' => $this->safe_float($ticker, 'priceChange'),
             'percentage' => $this->safe_float($ticker, 'priceChangePercent'),
