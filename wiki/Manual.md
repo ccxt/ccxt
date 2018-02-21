@@ -1055,7 +1055,6 @@ A price ticker contains statistics for a particular market/symbol for some perio
     'ask':         float (orderbook's current best ask (sell) price)
     'askVolume':   float (orderbook's current best ask (sell) amount)
     'vwap':        float (volume weighed average price)
-    'prevClose':   float (close price of the previous period, if available)
     'open':        float (open price),
     'last':        float (price of last trade),
     'change':      float (absolute change, `last - open`),
