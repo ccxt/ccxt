@@ -244,10 +244,52 @@ module.exports = class bitso extends Exchange {
         return await this.privateDeleteOrdersOid ({ 'oid': id });
     }
 
+    parseOrder (order, market = undefined) {
+        let side = order['side'];
+        let status = order['status'];
+        let symbol = undefined;
+        if (!market) {
+            let exchange = order['book'].toUpperCase ();
+            if (exchange in this.markets_by_id) {
+                market = this.markets_by_id[exchange];
+            }
+        }
+        if (market)
+            symbol = market['symbol'];
+        let orderType = order['type'];
+        let timestamp = this.parse8601 (order['created_at'])
+        let result = {
+            'info': order,
+            'id': order['oid'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': orderType,
+            'side': side,
+            'price': this.safeFloat (order, 'price'),
+            'average': undefined,
+            'amount': parseFloat (order['original_amount']),
+            'remaining': parseFloat (order['unfilled_amount']),
+            'filled': parseFloat (order['original_amount']) - parseFloat (order['unfilled_amount']),
+            'status': status,
+            'fee': undefined,
+        };
+        return result;
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = { 'book': market['id'] };
+        let response = await this.privateGetOpenOrders (this.extend (request, params));
+        let orders = this.parseOrders (response['payload'], market, since, limit);
+        return orders;
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let endpoint = '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (method === 'GET') {
+        if (method === 'GET' && this.urlencode (query)) {
             endpoint += '?' + this.urlencode (query);
         }
         let url = this.urls['api'] + endpoint;
