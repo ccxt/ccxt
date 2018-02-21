@@ -22,6 +22,10 @@ class cobinhood (Exchange):
                 'fetchClosedOrders': True,
                 'fetchOrder': True,
             },
+            'requiredCredentials': {
+                'apiKey': True,
+                'secret': False,
+            },
             'timeframes': {
                 # the first two don't seem to work at all
                 '1m': '1m',
@@ -355,7 +359,7 @@ class cobinhood (Exchange):
         price = float(order['price'])
         amount = float(order['size'])
         filled = float(order['filled'])
-        remaining = self.amount_to_precision(symbol, amount - filled)
+        remaining = amount - filled
         # new, queued, open, partially_filled, filled, cancelled
         status = order['state']
         if status == 'filled':
@@ -371,8 +375,7 @@ class cobinhood (Exchange):
             'timestamp': timestamp,
             'status': status,
             'symbol': symbol,
-            # market, limit, stop, stop_limit, trailing_stop, fill_or_kill
-            'type': order['type'],
+            'type': order['type'],  # market, limit, stop, stop_limit, trailing_stop, fill_or_kill
             'side': side,
             'price': price,
             'cost': price * amount,
@@ -393,7 +396,7 @@ class cobinhood (Exchange):
             # market, limit, stop, stop_limit
             'type': type,
             'side': side,
-            'size': self.amount_to_precision(symbol, amount),
+            'size': self.amount_to_string(symbol, amount),
         }
         if type != 'market':
             request['price'] = self.price_to_precision(symbol, price)
@@ -421,7 +424,8 @@ class cobinhood (Exchange):
         response = await self.privateGetTradingOrdersOrderIdTrades(self.extend({
             'order_id': id,
         }, params))
-        return self.parse_trades(response['result'])
+        market = None if (symbol is None) else self.market(symbol)
+        return self.parse_trades(response['result'], market)
 
     async def create_deposit_address(self, code, params={}):
         await self.load_markets()
@@ -474,11 +478,9 @@ class cobinhood (Exchange):
         headers = {}
         if api == 'private':
             self.check_required_credentials()
-            headers['device_id'] = self.apiKey
-            headers['nonce'] = self.nonce()
-            headers['Authorization'] = self.jwt(query, self.secret)
-            # convert it to string after computing JWT
-            headers['nonce'] = str(headers['nonce'])
+            # headers['device_id'] = self.apiKey
+            headers['nonce'] = str(self.nonce())
+            headers['Authorization'] = self.apiKey
         if method == 'GET':
             query = self.urlencode(query)
             if len(query):
