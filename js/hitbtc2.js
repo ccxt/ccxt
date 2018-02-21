@@ -726,6 +726,11 @@ module.exports = class hitbtc2 extends hitbtc {
         let open = this.safeFloat (ticker, 'open');
         let last = this.safeFloat (ticker, 'last');
         let change = last - open;
+        let vwap = undefined;
+        if (typeof quoteVolume !== 'undefined')
+            if (typeof baseVolume !== 'undefined')
+                if (typeof baseVolume > 0)
+                    vwap = quoteVolume / baseVolume;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -734,7 +739,7 @@ module.exports = class hitbtc2 extends hitbtc {
             'low': this.safeFloat (ticker, 'low'),
             'bid': this.safeFloat (ticker, 'bid'),
             'ask': this.safeFloat (ticker, 'ask'),
-            'vwap': quoteVolume / baseVolume,
+            'vwap': vwap,
             'open': open,
             'last': last,
             'change': change,
