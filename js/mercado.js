@@ -128,17 +128,18 @@ module.exports = class mercado extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         let market = this.market (symbol);
-        let apiMethod = undefined;
-        if (params.from && params.to) {
-            apiMethod = this.publicGetCoinTradesFromTo;
-        } else if (params.from) {
-            apiMethod = this.publicGetCoinTradesFrom;
-        } else {
-            apiMethod = this.publicGetCoinTrades;
-        }
-        let response = await apiMethod (this.extend ({
+        let method = 'publicGetCoinTrades';
+        let request = {
             'coin': market['base'],
-        }, params));
+        };
+        if (typeof since !== 'undefined') {
+            method += 'From';
+            request['from'] = parseInt (since / 1000);
+        }
+        let to = this.safeInteger (params, 'to');
+        if (typeof to !== 'undefined')
+            method += 'To';
+        let response = await this[method] (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
