@@ -14372,7 +14372,9 @@ var independentreserve = {
         };
     },
 
-    async fetchTrades (symbol, params = {}) {
+
+
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetRecentTrades (this.extend ({
@@ -14380,14 +14382,15 @@ var independentreserve = {
             'secondaryCurrencyCode': market['quoteId'],
             'numberOfRecentTradesToRetrieve': 50, // max = 50
         }, params));
-        return this.parseTrades (response['Trades'], market);
+        return this.parseTrades (response['Trades'], market, since, limit);
     },
+
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let capitalizedOrderType = this.capitalize (type);
-        let method = 'Place' + capitalizedOrderType + 'Order';
+        let method = 'privatePostPlace' + capitalizedOrderType + 'Order';
         let orderType = capitalizedOrderType;
         orderType += (side == 'sell') ?  'Offer' : 'Bid';
         let order = this.ordered ({
@@ -14405,10 +14408,17 @@ var independentreserve = {
         };
     },
 
+
+
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privatePostCancelOrder ({ 'orderGuid': id });
     },
+
+    nonce () {
+        return this.microseconds ();
+    },
+
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + path;
