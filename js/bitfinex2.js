@@ -390,6 +390,22 @@ module.exports = class bitfinex2 extends bitfinex {
         throw new NotSupported (this.id + ' withdraw not implemented yet');
     }
 
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = 25, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'symbol': market['id'],
+            // 'limit': limit,
+            // 'end': this.milliseconds (),
+        };
+        // if (typeof since !== 'undefined')
+            // request['start'] = since; // parseInt (since / 1000);
+        let response = await this.privatePostAuthRTradesSymbolHist (this.extend (request, params));
+        const log = require ('ololog');
+        log (response);
+        return this.parseTrades (response, market, since, limit);
+    }
+
     nonce () {
         return this.milliseconds ();
     }
