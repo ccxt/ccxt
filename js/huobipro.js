@@ -154,9 +154,6 @@ module.exports = class huobipro extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
-        let last = undefined;
-        if ('last' in ticker)
-            last = ticker['last'];
         let timestamp = this.milliseconds ();
         if ('ts' in ticker)
             timestamp = ticker['ts'];
@@ -177,14 +174,19 @@ module.exports = class huobipro extends Exchange {
             }
         }
         let open = this.safeFloat (ticker, 'open');
-        let close = this.safeFloat (ticker, 'close');
+        let last = this.safeFloat (ticker, 'close');
         let change = undefined;
         let percentage = undefined;
-        if ((typeof open !== 'undefined') && (typeof close !== 'undefined')) {
-            change = close - open;
+        if ((typeof open !== 'undefined') && (typeof last !== 'undefined')) {
+            change = last - open;
             if ((typeof last !== 'undefined') && (last > 0))
                 percentage = (change / open) * 100;
         }
+        let baseVolume = this.safeFloat (ticker, 'amount');
+        let quoteVolume = this.safeFloat (ticker, 'vol');
+        let vwap = undefined;
+        if (typeof baseVolume !== 'undefined' && typeof quoteVolume !== 'undefined' && baseVolume > 0)
+            vwap = quoteVolume / baseVolume;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -195,16 +197,14 @@ module.exports = class huobipro extends Exchange {
             'bidVolume': bidVolume,
             'ask': ask,
             'askVolume': askVolume,
-            'vwap': undefined,
-            'open': ticker['open'],
-            'close': ticker['close'],
-            'first': undefined,
+            'vwap': vwap,
+            'open': open,
             'last': last,
             'change': change,
             'percentage': percentage,
-            'average': undefined,
-            'baseVolume': parseFloat (ticker['amount']),
-            'quoteVolume': ticker['vol'],
+            'average': (open + last) / 2,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         };
     }
