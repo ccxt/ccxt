@@ -21,6 +21,10 @@ module.exports = class cobinhood extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchOrder': true,
             },
+            'requiredCredentials': {
+                'apiKey': true,
+                'secret': false,
+            },
             'timeframes': {
                 // the first two don't seem to work at all
                 '1m': '1m',
@@ -372,7 +376,7 @@ module.exports = class cobinhood extends Exchange {
         let price = parseFloat (order['price']);
         let amount = parseFloat (order['size']);
         let filled = parseFloat (order['filled']);
-        let remaining = this.amountToPrecision (symbol, amount - filled);
+        let remaining = amount - filled;
         // new, queued, open, partially_filled, filled, cancelled
         let status = order['state'];
         if (status === 'filled') {
@@ -389,8 +393,7 @@ module.exports = class cobinhood extends Exchange {
             'timestamp': timestamp,
             'status': status,
             'symbol': symbol,
-            // market, limit, stop, stop_limit, trailing_stop, fill_or_kill
-            'type': order['type'],
+            'type': order['type'], // market, limit, stop, stop_limit, trailing_stop, fill_or_kill
             'side': side,
             'price': price,
             'cost': price * amount,
@@ -412,7 +415,7 @@ module.exports = class cobinhood extends Exchange {
             // market, limit, stop, stop_limit
             'type': type,
             'side': side,
-            'size': this.amountToPrecision (symbol, amount),
+            'size': this.amountToString (symbol, amount),
         };
         if (type !== 'market')
             request['price'] = this.priceToPrecision (symbol, price);
@@ -443,7 +446,8 @@ module.exports = class cobinhood extends Exchange {
         let response = await this.privateGetTradingOrdersOrderIdTrades (this.extend ({
             'order_id': id,
         }, params));
-        return this.parseTrades (response['result']);
+        let market = (typeof symbol === 'undefined') ? undefined : this.market (symbol);
+        return this.parseTrades (response['result'], market);
     }
 
     async createDepositAddress (code, params = {}) {
@@ -500,11 +504,9 @@ module.exports = class cobinhood extends Exchange {
         headers = {};
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            headers['device_id'] = this.apiKey;
-            headers['nonce'] = this.nonce ();
-            headers['Authorization'] = this.jwt (query, this.secret);
-            // convert it to string after computing JWT
-            headers['nonce'] = headers['nonce'].toString ();
+            // headers['device_id'] = this.apiKey;
+            headers['nonce'] = this.nonce ().toString ();
+            headers['Authorization'] = this.apiKey;
         }
         if (method === 'GET') {
             query = this.urlencode (query);

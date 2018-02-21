@@ -1248,6 +1248,14 @@ abstract class Exchange {
         return $this->fetch_order ($id, $symbol, $params);
     }
 
+    public function fetch_order_trades ($id, $symbol = null, $params = array ()) {
+        throw new NotSupported ($this->id . ' fetch_order_trades() not implemented yet');
+    }
+
+    public function fetchOrderTrades ($id, $symbol = null, $params = array ()) {
+        return $this->fetch_order_trades ($id, $symbol, $params);
+    }
+
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         throw new NotSupported ($this->id . ' fetch_orders() not implemented yet');
     }
