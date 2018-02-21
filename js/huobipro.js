@@ -185,7 +185,7 @@ module.exports = class huobipro extends Exchange {
         let baseVolume = this.safeFloat (ticker, 'amount');
         let quoteVolume = this.safeFloat (ticker, 'vol');
         let vwap = undefined;
-        if (typeof baseVolume !== 'undefined' && typeof quoteVolume !== undefined && baseVolume > 0)
+        if (typeof baseVolume !== 'undefined' && typeof quoteVolume !== 'undefined' && baseVolume > 0)
             vwap = quoteVolume / baseVolume;
         return {
             'symbol': symbol,
