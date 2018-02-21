@@ -395,15 +395,14 @@ module.exports = class bitfinex2 extends bitfinex {
         let market = this.market (symbol);
         let request = {
             'symbol': market['id'],
-            // 'limit': limit,
-            // 'end': this.milliseconds (),
+            'limit': limit,
+            'end': this.seconds (),
         };
-        // if (typeof since !== 'undefined')
-            // request['start'] = since; // parseInt (since / 1000);
+        if (typeof since !== 'undefined')
+            request['start'] = parseInt (since / 1000);
         let response = await this.privatePostAuthRTradesSymbolHist (this.extend (request, params));
-        const log = require ('ololog');
-        log (response);
-        return this.parseTrades (response, market, since, limit);
+        // return this.parseTrades (response, market, since, limit); // not implemented yet for bitfinex v2
+        return response;
     }
 
     nonce () {
