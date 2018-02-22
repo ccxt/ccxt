@@ -158,8 +158,7 @@ class therock (Exchange):
             'ask': float(ticker['ask']),
             'vwap': None,
             'open': float(ticker['open']),
-            'close': float(ticker['close']),
-            'first': None,
+            'close': float(ticker['close']),  # previous day close, if any
             'last': float(ticker['last']),
             'change': None,
             'percentage': None,

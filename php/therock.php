@@ -161,8 +161,7 @@ class therock extends Exchange {
             'ask' => floatval ($ticker['ask']),
             'vwap' => null,
             'open' => floatval ($ticker['open']),
-            'close' => floatval ($ticker['close']),
-            'first' => null,
+            'close' => floatval ($ticker['close']), // previous day close, if any
             'last' => floatval ($ticker['last']),
             'change' => null,
             'percentage' => null,
