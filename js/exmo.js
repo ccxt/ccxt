@@ -254,12 +254,12 @@ module.exports = class exmo extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
-            'order': trade['order_id'].toString (),
+            'order': this.safeString (trade, 'order_id'),
             'type': undefined,
             'side': trade['type'],
             'price': parseFloat (trade['price']),
             'amount': parseFloat (trade['quantity']),
-            'cost': parseFloat (trade['amount']),
+            'cost': this.safeFloat (trade, 'amount'),
         };
     }
 
@@ -365,7 +365,7 @@ module.exports = class exmo extends Exchange {
                         id = trade['order'];
                     if (typeof timestamp === 'undefined')
                         timestamp = 0;
-                    if (timestamp < trade['timestamp'])
+                    if (timestamp > trade['timestamp'])
                         timestamp = trade['timestamp'];
                     filled += trade['amount'];
                     if (typeof feeCost === 'undefined')
@@ -384,12 +384,10 @@ module.exports = class exmo extends Exchange {
         if (typeof amount !== 'undefined')
             remaining = amount - filled;
         let status = undefined;
-        if (filled === 0)
-            status = 'open';
-        else if (remaining === 0)
+        if (filled <= amount)
             status = 'closed';
         else
-            status = 'partial';
+            status = 'open';
         if (typeof market === 'undefined')
             market = this.getMarketFromTrades (trades);
         let feeCurrency = undefined;
