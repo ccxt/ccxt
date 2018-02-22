@@ -181,7 +181,7 @@ module.exports = class huobipro extends Exchange {
         if ((typeof open !== 'undefined') && (typeof close !== 'undefined')) {
             change = close - open;
             average = (open + close) / 2;
-            if ((typeof last !== 'undefined') && (close > 0))
+            if ((typeof close !== 'undefined') && (close > 0))
                 percentage = (change / open) * 100;
         }
         let baseVolume = this.safeFloat (ticker, 'amount');
