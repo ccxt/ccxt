@@ -162,8 +162,7 @@ module.exports = class therock extends Exchange {
             'ask': parseFloat (ticker['ask']),
             'vwap': undefined,
             'open': parseFloat (ticker['open']),
-            'close': parseFloat (ticker['close']),
-            'first': undefined,
+            'close': parseFloat (ticker['close']), // previous day close, if any
             'last': parseFloat (ticker['last']),
             'change': undefined,
             'percentage': undefined,
