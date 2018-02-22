@@ -281,21 +281,22 @@ module.exports = class bitz extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.privatePostTradeAdd (this.extend ({
+        let request = {
             'coin': market['id'],
             'type': side,
             'price': this.priceToPrecision (symbol, price),
-            'number': this.amountToPrecision (symbol, amount),
+            'number': this.amountToString (symbol, amount),
             'tradepwd': this.password,
-        }, params));
-        let order = {
-            'id': response['data'],
+        };
+        let response = await this.privatePostTradeAdd (this.extend (request, params));
+        let id = response['data']['id'];
+        let order = this.parseOrder ({
+            'id': id,
             'price': price,
             'number': amount,
             'type': side,
-        };
-        let id = order['id'];
-        this.orders[id] = this.parseOrder (order, market);
+        }, market);
+        this.orders[id] = order;
         return order;
     }
 
