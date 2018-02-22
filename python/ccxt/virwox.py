@@ -151,26 +151,26 @@ class virwox (Exchange):
             'startDate': self.ymdhms(start),
             'HLOC': 1,
         }, params))
-        marketPrice = self.fetch_market_price(symbol, params)
         tickers = response['result']['priceVolumeList']
         keys = list(tickers.keys())
         length = len(keys)
         lastKey = keys[length - 1]
         ticker = tickers[lastKey]
         timestamp = self.milliseconds()
+        close = float(ticker['close'])
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': float(ticker['high']),
             'low': float(ticker['low']),
-            'bid': marketPrice['bid'],
-            'ask': marketPrice['ask'],
+            'bid': None,
+            'ask': None,
             'vwap': None,
             'open': float(ticker['open']),
-            'close': float(ticker['close']),
-            'first': None,
-            'last': None,
+            'close': close,
+            'last': close,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,

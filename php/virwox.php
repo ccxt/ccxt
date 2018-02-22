@@ -156,26 +156,26 @@ class virwox extends Exchange {
             'startDate' => $this->ymdhms ($start),
             'HLOC' => 1,
         ), $params));
-        $marketPrice = $this->fetch_market_price ($symbol, $params);
         $tickers = $response['result']['priceVolumeList'];
         $keys = is_array ($tickers) ? array_keys ($tickers) : array ();
         $length = is_array ($keys) ? count ($keys) : 0;
         $lastKey = $keys[$length - 1];
         $ticker = $tickers[$lastKey];
         $timestamp = $this->milliseconds ();
+        $close = floatval ($ticker['close']);
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => floatval ($ticker['high']),
             'low' => floatval ($ticker['low']),
-            'bid' => $marketPrice['bid'],
-            'ask' => $marketPrice['ask'],
+            'bid' => null,
+            'ask' => null,
             'vwap' => null,
             'open' => floatval ($ticker['open']),
-            'close' => floatval ($ticker['close']),
-            'first' => null,
-            'last' => null,
+            'close' => $close,
+            'last' => $close,
+            'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,

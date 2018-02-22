@@ -149,6 +149,7 @@ class btcchina (Exchange):
 
     def parse_ticker(self, ticker, market):
         timestamp = ticker['date'] * 1000
+        last = float(ticker['last'])
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -158,7 +159,9 @@ class btcchina (Exchange):
             'ask': float(ticker['sell']),
             'vwap': float(ticker['vwap']),
             'open': float(ticker['open']),
-            'last': float(ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
