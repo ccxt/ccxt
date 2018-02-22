@@ -152,9 +152,12 @@ module.exports = class exmo extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetOrderBook (this.extend ({
+        let request = this.extend ({
             'pair': market['id'],
-        }, params));
+        }, params);
+        if (typeof limit !== 'undefined')
+            request['limit'] = limit;
+        let response = await this.publicGetOrderBook (request);
         let result = response[market['id']];
         let orderbook = this.parseOrderBook (result, undefined, 'bid', 'ask');
         return this.extend (orderbook, {
@@ -251,7 +254,7 @@ module.exports = class exmo extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
-            'order': undefined,
+            'order': trade['order_id'],
             'type': undefined,
             'side': trade['type'],
             'price': parseFloat (trade['price']),
@@ -311,7 +314,7 @@ module.exports = class exmo extends Exchange {
         let market = undefined;
         if (typeof symbol !== 'undefined')
             market = this.market (symbol);
-        let response = await this.privatePostOrderTrades (this.extend ({ 'id': id }, params));
+        let response = await this.privatePostOrderTrades (this.extend ({ 'order_id': id }, params));
         return this.parseOrder (response, market);
     }
 
@@ -326,7 +329,7 @@ module.exports = class exmo extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        let id = this.safeString (order, 'id');
+        let id = undefined;
         let timestamp = undefined;
         let iso8601 = undefined;
         let symbol = undefined;
@@ -349,6 +352,8 @@ module.exports = class exmo extends Exchange {
             if (Array.isArray (transactions)) {
                 for (let i = 0; i < transactions.length; i++) {
                     let trade = this.parseTrade (transactions[i], market);
+                    if (typeof id === 'undefined')
+                        id = trade['order'];
                     if (typeof timestamp === 'undefined')
                         timestamp = 0;
                     if (timestamp < trade['timestamp'])
