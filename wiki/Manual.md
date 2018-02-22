@@ -1055,10 +1055,10 @@ A price ticker contains statistics for a particular market/symbol for some perio
     'ask':           float, // current best ask (sell) price
     'askVolume':     float, // current best ask (sell) amount
     'vwap':          float, // volume weighed average price
-    'open':          float, // open price)
-    'close':         float, // price of last trade (closing price so far for today)
+    'open':          float, // opening price
+    'close':         float, // price of last trade (closing price for current period)
     'last':          float, // same as `close`, duplicated for convenience
-    'previousClose': float, // previous day close
+    'previousClose': float, // closing price for the previous period
     'change':        float, // absolute change, `last - open`
     'percentage':    float, // relative change, `(change/open) * 100`
     'average':       float, // average price, `(last + open) / 2`
