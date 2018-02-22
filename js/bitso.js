@@ -23,6 +23,7 @@ module.exports = class bitso extends Exchange {
                 'api': 'https://api.bitso.com',
                 'www': 'https://bitso.com',
                 'doc': 'https://bitso.com/api_info',
+                'fees': 'https://bitso.com/fees?l=es',
             },
             'api': {
                 'public': {
@@ -193,9 +194,10 @@ module.exports = class bitso extends Exchange {
             'symbol': symbol,
             'order': undefined,
             'type': undefined,
-            'side': trade['maker_side'],
+            'side': trade['maker_side'] || trade['side'],
             'price': parseFloat (trade['price']),
-            'amount': parseFloat (trade['amount']),
+            'amount': trade['amount'] ? parseFloat (trade['amount']) : parseFloat (trade['major']), //should be Math.abs?
+            'fee': trade['fees_amount'],
         };
     }
 
@@ -205,6 +207,18 @@ module.exports = class bitso extends Exchange {
         let response = await this.publicGetTrades (this.extend ({
             'book': market['id'],
         }, params));
+        return this.parseTrades (response['payload'], market, since, limit);
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = { 'book': market['id'] };
+        if (typeof limit !== 'undefined')
+            request['limit'] = limit;
+        if (typeof since !== 'undefined')
+            request['marker'] = since; //this sould be an ID
+        let response = await this.privateGetUserTrades (this.extend (request, params));
         return this.parseTrades (response['payload'], market, since, limit);
     }
 
@@ -230,9 +244,54 @@ module.exports = class bitso extends Exchange {
         return await this.privateDeleteOrdersOid ({ 'oid': id });
     }
 
+    parseOrder (order, market = undefined) {
+        let side = order['side'];
+        let status = order['status'];
+        let symbol = undefined;
+        if (!market) {
+            let exchange = order['book'].toUpperCase ();
+            if (exchange in this.markets_by_id) {
+                market = this.markets_by_id[exchange];
+            }
+        }
+        if (market)
+            symbol = market['symbol'];
+        let orderType = order['type'];
+        let timestamp = this.parse8601 (order['created_at'])
+        let result = {
+            'info': order,
+            'id': order['oid'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': orderType,
+            'side': side,
+            'price': this.safeFloat (order, 'price'),
+            'average': undefined,
+            'amount': parseFloat (order['original_amount']),
+            'remaining': parseFloat (order['unfilled_amount']),
+            'filled': parseFloat (order['original_amount']) - parseFloat (order['unfilled_amount']),
+            'status': status,
+            'fee': undefined,
+        };
+        return result;
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = { 'book': market['id'] };
+        let response = await this.privateGetOpenOrders (this.extend (request, params));
+        let orders = this.parseOrders (response['payload'], market, since, limit);
+        return orders;
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let endpoint = '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
+        if (method === 'GET' && this.urlencode (query)) {
+            endpoint += '?' + this.urlencode (query);
+        }
         let url = this.urls['api'] + endpoint;
         if (api === 'public') {
             if (Object.keys (query).length)
@@ -241,7 +300,7 @@ module.exports = class bitso extends Exchange {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             let request = [ nonce, method, endpoint ].join ('');
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length && !method === 'GET') {
                 body = this.json (query);
                 request += body;
             }
