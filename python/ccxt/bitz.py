@@ -275,21 +275,22 @@ class bitz (Exchange):
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.privatePostTradeAdd(self.extend({
+        request = {
             'coin': market['id'],
             'type': side,
             'price': self.price_to_precision(symbol, price),
-            'number': self.amount_to_precision(symbol, amount),
+            'number': self.amount_to_string(symbol, amount),
             'tradepwd': self.password,
-        }, params))
-        order = {
-            'id': response['data'],
+        }
+        response = self.privatePostTradeAdd(self.extend(request, params))
+        id = response['data']['id']
+        order = self.parse_order({
+            'id': id,
             'price': price,
             'number': amount,
             'type': side,
-        }
-        id = order['id']
-        self.orders[id] = self.parse_order(order, market)
+        }, market)
+        self.orders[id] = order
         return order
 
     def cancel_order(self, id, symbol=None, params={}):
