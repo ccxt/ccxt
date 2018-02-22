@@ -173,6 +173,7 @@ module.exports = class virwox extends Exchange {
             'ask': undefined,
             'vwap': undefined,
             'open': parseFloat (ticker['open']),
+            'close': undefined, // previous day close, if any
             'last': parseFloat (ticker['close']),
             'change': undefined,
             'percentage': undefined,
