@@ -221,10 +221,12 @@ module.exports = class bitso extends Exchange {
         // warn the user with an exception if the user wants to filter
         // starting from since timestamp, but does not set the trade id with an extra 'marker' param
         if ((typeof since !== 'undefined') && !markerInParams)
-            throw ExchangeError (this.id + ' does not support fetching trades starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id');
+            throw ExchangeError (this.id + ' fetchMyTrades does not support fetching trades starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id');
         // convert it to an integer unconditionally
         if (markerInParams)
-            params['marker'] = parseInt (params['marker']);
+            params = this.extend (params, {
+                'marker': parseInt (params['marker'])
+            });
         let request = {
             'book': market['id'],
             'limit': limit, // default = 25, max = 100
@@ -271,6 +273,9 @@ module.exports = class bitso extends Exchange {
             symbol = market['symbol'];
         let orderType = order['type'];
         let timestamp = this.parse8601 (order['created_at']);
+        let amount = parseFloat (order['original_amount']);
+        let remaining = parseFloat (order['unfilled_amount']);
+        let filled = amount - remaining;
         let result = {
             'info': order,
             'id': order['oid'],
@@ -281,19 +286,37 @@ module.exports = class bitso extends Exchange {
             'side': side,
             'price': this.safeFloat (order, 'price'),
             'average': undefined,
-            'amount': parseFloat (order['original_amount']),
-            'remaining': parseFloat (order['unfilled_amount']),
-            'filled': parseFloat (order['original_amount']) - parseFloat (order['unfilled_amount']),
+            'amount': amount,
+            'remaining': remaining,
+            'filled': filled,
             'status': status,
             'fee': undefined,
         };
         return result;
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = 25, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let request = { 'book': market['id'] };
+        // the don't support fetching trades starting from a date yet
+        // use the `marker` extra param for that
+        // this is not a typo, the variable name is 'marker' (don't confuse with 'market')
+        let markerInParams = 'marker' in params;
+        // warn the user with an exception if the user wants to filter
+        // starting from since timestamp, but does not set the trade id with an extra 'marker' param
+        if ((typeof since !== 'undefined') && !markerInParams)
+            throw ExchangeError (this.id + ' fetchOpenOrders does not support fetching orders starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id');
+        // convert it to an integer unconditionally
+        if (markerInParams)
+            params = this.extend (params, {
+                'marker': parseInt (params['marker'])
+            });
+        let request = {
+            'book': market['id'],
+            'limit': limit, // default = 25, max = 100
+            // 'sort': 'desc', // default = desc
+            // 'marker': id, // integer id to start from
+        };
         let response = await this.privateGetOpenOrders (this.extend (request, params));
         let orders = this.parseOrders (response['payload'], market, since, limit);
         return orders;
