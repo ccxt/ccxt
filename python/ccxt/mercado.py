@@ -158,7 +158,7 @@ class mercado (Exchange):
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
-        method = 'privatePostPlace' + self.capitalize(side) + 'Order'
+        method = 'privatePostPlace' + side.capitalize() + 'Order'
         order = {
             'coin_pair': self.market_id(symbol),
             'quantity': amount,

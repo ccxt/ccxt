@@ -245,7 +245,7 @@ class bithumb (Exchange):
                 'currency': market['id'],
                 'units': amount,
             }
-            method += 'Market' + self.capitalize(side)
+            method += 'Market' + side.capitalize()
         response = getattr(self, method)(self.extend(request, params))
         id = None
         if 'order_id' in response:

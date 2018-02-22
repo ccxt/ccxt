@@ -662,7 +662,7 @@ class hitbtc2 (hitbtc):
     def fetch_balance(self, params={}):
         self.load_markets()
         type = self.safe_string(params, 'type', 'trading')
-        method = 'privateGet' + self.capitalize(type) + 'Balance'
+        method = 'privateGet' + type.capitalize() + 'Balance'
         balances = getattr(self, method)()
         result = {'info': balances}
         for b in range(0, len(balances)):

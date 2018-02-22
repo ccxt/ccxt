@@ -419,7 +419,7 @@ class bittrex (Exchange):
             raise ExchangeError(self.id + ' allows limit orders only')
         self.load_markets()
         market = self.market(symbol)
-        method = 'marketGet' + self.capitalize(side) + type
+        method = 'marketGet' + side.capitalize() + type
         order = {
             'market': market['id'],
             'quantity': self.amount_to_precision(symbol, amount),

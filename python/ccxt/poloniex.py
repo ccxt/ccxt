@@ -575,7 +575,7 @@ class poloniex (Exchange):
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
         self.load_markets()
-        method = 'privatePost' + self.capitalize(side)
+        method = 'privatePost' + side.capitalize()
         market = self.market(symbol)
         price = float(price)
         amount = float(amount)

@@ -244,7 +244,7 @@ class btctradeua (Exchange):
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
         market = self.market(symbol)
-        method = 'privatePost' + self.capitalize(side) + 'Id'
+        method = 'privatePost' + side.capitalize() + 'Id'
         order = {
             'count': amount,
             'currency1': market['quote'],

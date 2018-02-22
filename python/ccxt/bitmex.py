@@ -416,9 +416,9 @@ class bitmex (Exchange):
         self.load_markets()
         order = {
             'symbol': self.market_id(symbol),
-            'side': self.capitalize(side),
+            'side': side.capitalize(),
             'orderQty': amount,
-            'ordType': self.capitalize(type),
+            'ordType': type.capitalize(),
         }
         if type == 'limit':
             order['price'] = price

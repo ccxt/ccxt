@@ -248,7 +248,7 @@ class ccex (Exchange):
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
-        method = 'privateGet' + self.capitalize(side) + type
+        method = 'privateGet' + side.capitalize() + type
         response = getattr(self, method)(self.extend({
             'market': self.market_id(symbol),
             'quantity': amount,

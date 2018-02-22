@@ -255,7 +255,7 @@ class btcchina (Exchange):
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        method = 'privatePost' + self.capitalize(side) + 'Order2'
+        method = 'privatePost' + side.capitalize() + 'Order2'
         order = {}
         id = market['id'].upper()
         if type == 'market':

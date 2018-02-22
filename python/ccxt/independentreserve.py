@@ -186,7 +186,7 @@ class independentreserve (Exchange):
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        capitalizedOrderType = self.capitalize(type)
+        capitalizedOrderType = type.capitalize()
         method = 'privatePostPlace' + capitalizedOrderType + 'Order'
         orderType = capitalizedOrderType
         orderType += 'Offer' if (side == 'sell') else 'Bid'

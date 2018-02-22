@@ -219,7 +219,7 @@ class Exchange(object):
         for attr in dir(self):
             if attr[0] != '_'and attr[-1] != '_' and '_' in attr:
                 conv = attr.split('_')
-                camel_case = conv[0] + ''.join(i[0].upper() + i[1:] for i in conv[1:])
+                camel_case = conv[0] + ''.join(i.capitalize() for i in conv[1:])
                 setattr(self, camel_case, getattr(self, attr))
 
         self.tokenBucket = self.extend({
@@ -251,11 +251,11 @@ class Exchange(object):
                     uppercase_method = http_method.upper()
                     lowercase_method = http_method.lower()
                     camelcase_method = lowercase_method.capitalize()
-                    camelcase_suffix = ''.join([Exchange.capitalize(x) for x in split_path])
+                    camelcase_suffix = ''.join([x.capitalize() for x in split_path])
                     lowercase_path = [x.strip().lower() for x in split_path]
                     underscore_suffix = '_'.join([k for k in lowercase_path if len(k)])
 
-                    camelcase = api_type + camelcase_method + Exchange.capitalize(camelcase_suffix)
+                    camelcase = api_type + camelcase_method + camelcase_suffix.capitalize()
                     underscore = api_type + '_' + lowercase_method + '_' + underscore_suffix.lower()
 
                     if 'suffixes' in options:
@@ -457,12 +457,6 @@ class Exchange(object):
     @staticmethod
     def uuid():
         return str(uuid.uuid4())
-
-    @staticmethod
-    def capitalize(string):  # first character only, rest characters unchanged
-        if len(string) > 1:
-            return "%s%s" % (string[0].upper(), string[1:])
-        return string.upper()
 
     @staticmethod
     def keysort(dictionary):

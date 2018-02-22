@@ -161,7 +161,7 @@ class vaultoro (Exchange):
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        method = 'privatePost' + self.capitalize(side) + 'SymbolType'
+        method = 'privatePost' + side.capitalize() + 'SymbolType'
         response = getattr(self, method)(self.extend({
             'symbol': market['quoteId'].lower(),
             'type': type,

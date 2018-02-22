@@ -178,7 +178,7 @@ class btcturk (Exchange):
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
-        method = 'privatePost' + self.capitalize(side)
+        method = 'privatePost' + side.capitalize()
         order = {
             'Type': 'BuyBtc' if (side == 'buy') else 'SelBtc',
             'IsMarketOrder': 1 if (type == 'market') else 0,

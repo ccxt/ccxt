@@ -402,7 +402,7 @@ class cryptopia (Exchange):
         # amount = float(amount)
         request = {
             'TradePairId': market['id'],
-            'Type': self.capitalize(side),
+            'Type': side.capitalize(),
             # 'Rate': self.price_to_precision(symbol, price),
             # 'Amount': self.amount_to_precision(symbol, amount),
             'Rate': price,
