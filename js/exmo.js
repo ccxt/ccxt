@@ -342,28 +342,33 @@ module.exports = class exmo extends Exchange {
         let symbol = undefined;
         let side = this.safeString (order, 'type');
         if (typeof market === 'undefined') {
-            if ('in_currency' in order) {
-                if ('out_currency' in order) {
-                    let marketId = undefined;
+            let marketId = undefined;
+            if ('pair' in order)
+                marketId = order['pair'];
+            else if ('in_currency' in order)
+                if ('out_currency' in order)
                     if (side === 'buy')
                         marketId = order['in_currency'] + '_' + order['out_currency'];
                     else
                         marketId = order['out_currency'] + '_' + order['in_currency'];
-                    if (marketId in this.markets_by_id)
-                        market = this.markets_by_id[marketId];
-                }
-            }
+            if (marketId in this.markets_by_id)
+                market = this.markets_by_id[marketId];
         }
-        let amount = undefined;
-        if (side === 'buy')
-            amount = this.safeFloat (order, 'in_amount');
+        let amount = this.safeFloat (order, 'quantity');
+        if (typeof amount === 'undefined')
+            if (side === 'buy')
+                amount = this.safeFloat (order, 'in_amount');
+            else
+                amount = this.safeFloat (order, 'out_amount');
+        let cost = this.safeFloat (order, 'amount');
+        let filled = undefined;
+        if (typeof cost !== 'undefined')
+            filled = amount;
         else
-            amount = this.safeFloat (order, 'out_amount');
-        let filled = 0.0;
+            filled = 0.0;
         let trades = [];
         let transactions = this.safeValue (order, 'trades');
         let feeCost = undefined;
-        let cost = undefined;
         if (typeof transactions !== 'undefined') {
             if (Array.isArray (transactions)) {
                 for (let i = 0; i < transactions.length; i++) {
