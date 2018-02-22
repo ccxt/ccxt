@@ -374,7 +374,7 @@ module.exports = class huobipro extends Exchange {
             'status': open,
         }, params));
     }
-    
+
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privateGetOrderOrdersId (this.extend ({
@@ -428,7 +428,7 @@ module.exports = class huobipro extends Exchange {
             average = parseFloat (cost / filled);
         let result = {
             'info': order,
-            'id': order['id'].toString(),
+            'id': order['id'].toString (),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
