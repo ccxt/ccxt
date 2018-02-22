@@ -174,12 +174,14 @@ module.exports = class huobipro extends Exchange {
             }
         }
         let open = this.safeFloat (ticker, 'open');
-        let last = this.safeFloat (ticker, 'close');
+        let close = this.safeFloat (ticker, 'close');
         let change = undefined;
         let percentage = undefined;
-        if ((typeof open !== 'undefined') && (typeof last !== 'undefined')) {
-            change = last - open;
-            if ((typeof last !== 'undefined') && (last > 0))
+        let average = undefined;
+        if ((typeof open !== 'undefined') && (typeof close !== 'undefined')) {
+            change = close - open;
+            average = (open + close) / 2;
+            if ((typeof last !== 'undefined') && (close > 0))
                 percentage = (change / open) * 100;
         }
         let baseVolume = this.safeFloat (ticker, 'amount');
@@ -199,10 +201,11 @@ module.exports = class huobipro extends Exchange {
             'askVolume': askVolume,
             'vwap': vwap,
             'open': open,
-            'last': last,
+            'close': close,
+            'last': close,
             'change': change,
             'percentage': percentage,
-            'average': (open + last) / 2,
+            'average': average,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
