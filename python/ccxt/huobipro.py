@@ -26,6 +26,7 @@ class huobipro (Exchange):
                 'CORS': False,
                 'fetchOHCLV': True,
                 'fetchOrders': True,
+                'fetchOrder': True,
                 'fetchOpenOrders': True,
                 'withdraw': True,
             },
@@ -350,6 +351,13 @@ class huobipro (Exchange):
             'status': open,
         }, params))
 
+    def fetch_order(self, id, symbol=None, params={}):
+        self.load_markets()
+        response = self.privateGetOrderOrdersId(self.extend({
+            'id': id,
+        }, params))
+        return self.parse_order(response)
+
     def parse_order_status(self, status):
         if status == 'partial-filled':
             return 'open'
@@ -389,7 +397,7 @@ class huobipro (Exchange):
             average = float(cost / filled)
         result = {
             'info': order,
-            'id': order['id'],
+            'id': str(order['id']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,

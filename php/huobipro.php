@@ -22,6 +22,7 @@ class huobipro extends Exchange {
                 'CORS' => false,
                 'fetchOHCLV' => true,
                 'fetchOrders' => true,
+                'fetchOrder' => true,
                 'fetchOpenOrders' => true,
                 'withdraw' => true,
             ),
@@ -376,6 +377,14 @@ class huobipro extends Exchange {
         ), $params));
     }
 
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
+        $response = $this->privateGetOrderOrdersId (array_merge (array (
+            'id' => $id,
+        ), $params));
+        return $this->parse_order($response);
+    }
+
     public function parse_order_status ($status) {
         if ($status === 'partial-filled') {
             return 'open';
@@ -421,7 +430,7 @@ class huobipro extends Exchange {
             $average = floatval ($cost / $filled);
         $result = array (
             'info' => $order,
-            'id' => $order['id'],
+            'id' => (string) $order['id'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
