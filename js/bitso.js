@@ -244,7 +244,7 @@ module.exports = class bitso extends Exchange {
         // the don't support fetching trades starting from a date yet
         // use the `marker` extra param for that
         // this is not a typo, the variable name is 'marker' (don't confuse with 'market')
-        let markerInParams = 'marker' in params;
+        let markerInParams = ('marker' in params);
         // warn the user with an exception if the user wants to filter
         // starting from since timestamp, but does not set the trade id with an extra 'marker' param
         if ((typeof since !== 'undefined') && !markerInParams)
@@ -336,7 +336,7 @@ module.exports = class bitso extends Exchange {
         // the don't support fetching trades starting from a date yet
         // use the `marker` extra param for that
         // this is not a typo, the variable name is 'marker' (don't confuse with 'market')
-        let markerInParams = 'marker' in params;
+        let markerInParams = ('marker' in params);
         // warn the user with an exception if the user wants to filter
         // starting from since timestamp, but does not set the trade id with an extra 'marker' param
         if ((typeof since !== 'undefined') && !markerInParams)
