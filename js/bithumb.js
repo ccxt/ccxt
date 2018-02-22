@@ -164,6 +164,7 @@ module.exports = class bithumb extends Exchange {
             'ask': this.safeFloat (ticker, 'sell_price'),
             'vwap': vwap,
             'open': open,
+            'close': undefined,
             'last': last,
             'change': change,
             'percentage': change / open * 100,
