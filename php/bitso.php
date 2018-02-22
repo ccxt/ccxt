@@ -22,6 +22,7 @@ class bitso extends Exchange {
                 'api' => 'https://api.bitso.com',
                 'www' => 'https://bitso.com',
                 'doc' => 'https://bitso.com/api_info',
+                'fees' => 'https://bitso.com/fees?l=es',
             ),
             'api' => array (
                 'public' => array (
@@ -178,23 +179,52 @@ class bitso extends Exchange {
     public function parse_trade ($trade, $market = null) {
         $timestamp = $this->parse8601 ($trade['created_at']);
         $symbol = null;
-        if (!$market) {
-            if (is_array ($trade) && array_key_exists ('book', $trade))
-                $market = $this->markets_by_id[$trade['book']];
+        if ($market === null) {
+            $marketId = $this->safe_string($trade, 'book');
+            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
+                $market = $this->markets_by_id[$marketId];
         }
-        if ($market)
+        if ($market !== null)
             $symbol = $market['symbol'];
+        $side = $this->safe_string($trade, 'side');
+        if ($side === null)
+            $side = $this->safe_string($trade, 'maker_side');
+        $amount = $this->safe_float($trade, 'amount');
+        if ($amount === null)
+            $amount = $this->safe_float($trade, 'major');
+        if ($amount !== null)
+            $amount = abs ($amount);
+        $fee = null;
+        $feeCost = $this->safe_float($trade, 'fees_amount');
+        if ($feeCost !== null) {
+            $feeCurrency = $this->safe_string($trade, 'fees_currency');
+            if ($feeCurrency !== null) {
+                if (is_array ($this->currencies_by_id) && array_key_exists ($feeCurrency, $this->currencies_by_id))
+                    $feeCurrency = $this->currencies_by_id[$feeCurrency]['code'];
+            }
+            $fee = array (
+                'cost' => $feeCost,
+                'currency' => $feeCurrency,
+            );
+        }
+        $cost = $this->safe_float($trade, 'minor');
+        if ($cost !== null)
+            $cost = abs ($cost);
+        $price = $this->safe_float($trade, 'price');
+        $orderId = $this->safe_string($trade, 'oid');
         return array (
             'id' => (string) $trade['tid'],
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
-            'order' => null,
+            'order' => $orderId,
             'type' => null,
-            'side' => $trade['maker_side'],
-            'price' => floatval ($trade['price']),
-            'amount' => floatval ($trade['amount']),
+            'side' => $side,
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
+            'fee' => $fee,
         );
     }
 
@@ -204,6 +234,32 @@ class bitso extends Exchange {
         $response = $this->publicGetTrades (array_merge (array (
             'book' => $market['id'],
         ), $params));
+        return $this->parse_trades($response['payload'], $market, $since, $limit);
+    }
+
+    public function fetch_my_trades ($symbol = null, $since = null, $limit = 25, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        // the don't support fetching trades starting from a date yet
+        // use the `marker` extra param for that
+        // this is not a typo, the variable name is 'marker' (don't confuse with 'market')
+        $markerInParams = (is_array ($params) && array_key_exists ('marker', $params));
+        // warn the user with an exception if the user wants to filter
+        // starting from $since timestamp, but does not set the trade id with an extra 'marker' param
+        if (($since !== null) && !$markerInParams)
+            throw ExchangeError ($this->id . ' fetchMyTrades does not support fetching trades starting from a timestamp with the `$since` argument, use the `marker` extra param to filter starting from an integer trade id');
+        // convert it to an integer unconditionally
+        if ($markerInParams)
+            $params = array_merge ($params, array (
+                'marker' => intval ($params['marker']),
+            ));
+        $request = array (
+            'book' => $market['id'],
+            'limit' => $limit, // default = 25, max = 100
+            // 'sort' => 'desc', // default = desc
+            // 'marker' => id, // integer id to start from
+        );
+        $response = $this->privateGetUserTrades (array_merge ($request, $params));
         return $this->parse_trades($response['payload'], $market, $since, $limit);
     }
 
@@ -229,20 +285,94 @@ class bitso extends Exchange {
         return $this->privateDeleteOrdersOid (array ( 'oid' => $id ));
     }
 
+    public function parse_order_status ($status) {
+        $statuses = array (
+            'partial-fill' => 'open', // this is a common substitution in ccxt
+        );
+        if (is_array ($statuses) && array_key_exists ($status, $statuses))
+            return $statuses['status'];
+        return $status;
+    }
+
+    public function parse_order ($order, $market = null) {
+        $side = $order['side'];
+        $status = $this->parse_order_status($order['status']);
+        $symbol = null;
+        if ($market === null) {
+            $marketId = $order['book'];
+            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
+                $market = $this->markets_by_id[$marketId];
+        }
+        if ($market)
+            $symbol = $market['symbol'];
+        $orderType = $order['type'];
+        $timestamp = $this->parse8601 ($order['created_at']);
+        $amount = floatval ($order['original_amount']);
+        $remaining = floatval ($order['unfilled_amount']);
+        $filled = $amount - $remaining;
+        $result = array (
+            'info' => $order,
+            'id' => $order['oid'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $symbol,
+            'type' => $orderType,
+            'side' => $side,
+            'price' => $this->safe_float($order, 'price'),
+            'amount' => $amount,
+            'cost' => null,
+            'remaining' => $remaining,
+            'filled' => $filled,
+            'status' => $status,
+            'fee' => null,
+        );
+        return $result;
+    }
+
+    public function fetch_open_orders ($symbol = null, $since = null, $limit = 25, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        // the don't support fetching trades starting from a date yet
+        // use the `marker` extra param for that
+        // this is not a typo, the variable name is 'marker' (don't confuse with 'market')
+        $markerInParams = (is_array ($params) && array_key_exists ('marker', $params));
+        // warn the user with an exception if the user wants to filter
+        // starting from $since timestamp, but does not set the trade id with an extra 'marker' param
+        if (($since !== null) && !$markerInParams)
+            throw ExchangeError ($this->id . ' fetchOpenOrders does not support fetching $orders starting from a timestamp with the `$since` argument, use the `marker` extra param to filter starting from an integer trade id');
+        // convert it to an integer unconditionally
+        if ($markerInParams)
+            $params = array_merge ($params, array (
+                'marker' => intval ($params['marker']),
+            ));
+        $request = array (
+            'book' => $market['id'],
+            'limit' => $limit, // default = 25, max = 100
+            // 'sort' => 'desc', // default = desc
+            // 'marker' => id, // integer id to start from
+        );
+        $response = $this->privateGetOpenOrders (array_merge ($request, $params));
+        $orders = $this->parse_orders($response['payload'], $market, $since, $limit);
+        return $orders;
+    }
+
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $endpoint = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
-        $url = $this->urls['api'] . $endpoint;
-        if ($api === 'public') {
+        if ($method === 'GET') {
             if ($query)
-                $url .= '?' . $this->urlencode ($query);
-        } else {
+                $endpoint .= '?' . $this->urlencode ($query);
+        }
+        $url = $this->urls['api'] . $endpoint;
+        if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             $request = implode ('', array ($nonce, $method, $endpoint));
-            if ($query) {
-                $body = $this->json ($query);
-                $request .= $body;
+            if ($method !== 'GET') {
+                if ($query) {
+                    $body = $this->json ($query);
+                    $request .= $body;
+                }
             }
             $signature = $this->hmac ($this->encode ($request), $this->encode ($this->secret));
             $auth = $this->apiKey . ':' . $nonce . ':' . $signature;
