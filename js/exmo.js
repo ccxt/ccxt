@@ -18,6 +18,7 @@ module.exports = class exmo extends Exchange {
             'has': {
                 'CORS': false,
                 'fetchOrder': true,
+                'fetchOpenOrders': true,
                 'fetchOrderBooks': true,
                 'fetchTickers': true,
                 'withdraw': true,
@@ -299,6 +300,16 @@ module.exports = class exmo extends Exchange {
             market = this.market (symbol);
         let response = await this.privatePostOrderTrades (this.extend ({ 'id': id }, params));
         return this.parseOrder (response, market);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        let market = undefined;
+        if (typeof symbol !== 'undefined') {
+            await this.loadMarkets ();
+            market = this.market (symbol);
+        }
+        let orders = await this.privatePostUserOpenOrders ();
+        return this.parseOrders (orders, market, since, limit);
     }
 
     parseOrder (order, market = undefined) {
