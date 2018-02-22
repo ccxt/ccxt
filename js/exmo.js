@@ -378,9 +378,6 @@ module.exports = class exmo extends Exchange {
                 }
             }
         }
-        console.log ('\n\ntrades', trades, '\n\n');
-        console.log ('\n\nfilled', filled, filled === 0.0, '\n\n');
-        console.log ('\n\namount', amount, amount - filled, amount - filled === 0, '\n\n');
         if (typeof timestamp !== 'undefined')
             iso8601 = this.iso8601 (timestamp);
         let remaining = undefined;
