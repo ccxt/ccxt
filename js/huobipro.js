@@ -23,6 +23,7 @@ module.exports = class huobipro extends Exchange {
                 'CORS': false,
                 'fetchOHCLV': true,
                 'fetchOrders': true,
+                'fetchOrder': true,
                 'fetchOpenOrders': true,
                 'withdraw': true,
             },
@@ -373,6 +374,14 @@ module.exports = class huobipro extends Exchange {
             'status': open,
         }, params));
     }
+    
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privateGetOrderOrdersId (this.extend ({
+            'id': id,
+        }, params));
+        return this.parseOrder (response);
+    }
 
     parseOrderStatus (status) {
         if (status === 'partial-filled') {
@@ -419,7 +428,7 @@ module.exports = class huobipro extends Exchange {
             average = parseFloat (cost / filled);
         let result = {
             'info': order,
-            'id': order['id'],
+            'id': order['id'].toString(),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
