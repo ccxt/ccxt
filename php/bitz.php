@@ -13,7 +13,9 @@ class bitz extends Exchange {
             'name' => 'Bit-Z',
             'countries' => 'HK',
             'rateLimit' => 1000,
+            'version' => 'v1',
             'has' => array (
+                'fetchBalance' => false, // so far the only exchange that has createOrder but not fetchBalance %)
                 'fetchTickers' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
@@ -29,7 +31,7 @@ class bitz extends Exchange {
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/35862606-4f554f14-0b5d-11e8-957d-35058c504b6f.jpg',
                 'api' => 'https://www.bit-z.com/api_v1',
-                'www' => 'https://www.bit-z.com/',
+                'www' => 'https://www.bit-z.com',
                 'doc' => 'https://www.bit-z.com/api.html',
                 'fees' => 'https://www.bit-z.com/about/fee',
             ),
