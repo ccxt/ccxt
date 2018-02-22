@@ -356,7 +356,7 @@ class bitstamp (Exchange):
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
-        method = 'privatePost' + self.capitalize(side)
+        method = 'privatePost' + side.capitalize()
         order = {
             'pair': self.market_id(symbol),
             'amount': amount,
@@ -514,7 +514,7 @@ class bitstamp (Exchange):
         name = self.get_currency_name(code)
         v1 = (code == 'BTC')
         method = 'v1' if v1 else 'private'  # v1 or v2
-        method += 'Post' + self.capitalize(name)
+        method += 'Post' + name.capitalize()
         method += 'Deposit' if v1 else ''
         method += 'Address'
         response = getattr(self, method)(params)
@@ -536,7 +536,7 @@ class bitstamp (Exchange):
         }
         v1 = (code == 'BTC')
         method = 'v1' if v1 else 'private'  # v1 or v2
-        method += 'Post' + self.capitalize(name) + 'Withdrawal'
+        method += 'Post' + name.capitalize() + 'Withdrawal'
         query = params
         if code == 'XRP':
             if tag is not None:

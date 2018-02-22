@@ -158,7 +158,7 @@ class quadrigacx (Exchange):
         return self.parse_trades(response, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
-        method = 'privatePost' + self.capitalize(side)
+        method = 'privatePost' + side.capitalize()
         order = {
             'amount': amount,
             'book': self.market_id(symbol),

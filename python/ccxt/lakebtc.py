@@ -185,7 +185,7 @@ class lakebtc (Exchange):
         self.load_markets()
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
-        method = 'privatePost' + self.capitalize(side) + 'Order'
+        method = 'privatePost' + side.capitalize() + 'Order'
         marketId = self.market_id(market)
         order = {
             'params': [price, amount, marketId],

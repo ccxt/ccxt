@@ -123,7 +123,7 @@ class coinspot (Exchange):
         }, params))
 
     def create_order(self, market, type, side, amount, price=None, params={}):
-        method = 'privatePostMy' + self.capitalize(side)
+        method = 'privatePostMy' + side.capitalize()
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
         order = {

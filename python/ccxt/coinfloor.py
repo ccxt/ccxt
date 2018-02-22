@@ -147,7 +147,7 @@ class coinfloor (Exchange):
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         order = {'id': self.market_id(symbol)}
-        method = 'privatePostId' + self.capitalize(side)
+        method = 'privatePostId' + side.capitalize()
         if type == 'market':
             order['quantity'] = amount
             method += 'Market'

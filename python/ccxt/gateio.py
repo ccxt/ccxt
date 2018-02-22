@@ -225,7 +225,7 @@ class gateio (Exchange):
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
         self.load_markets()
-        method = 'privatePost' + self.capitalize(side)
+        method = 'privatePost' + side.capitalize()
         order = {
             'currencyPair': self.market_id(symbol),
             'rate': price,

@@ -147,7 +147,7 @@ class coinmate (Exchange):
         return self.parse_trades(response['data'], market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
-        method = 'privatePost' + self.capitalize(side)
+        method = 'privatePost' + side.capitalize()
         order = {
             'currencyPair': self.market_id(symbol),
         }
@@ -160,7 +160,7 @@ class coinmate (Exchange):
         else:
             order['amount'] = amount  # amount in crypto
             order['price'] = price
-            method += self.capitalize(type)
+            method += type.capitalize()
         response = getattr(self, method)(self.extend(order, params))
         return {
             'info': response,

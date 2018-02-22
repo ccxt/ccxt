@@ -120,14 +120,14 @@ class lykke (Exchange):
         market = self.market(symbol)
         query = {
             'AssetPairId': market['id'],
-            'OrderAction': self.capitalize(side),
+            'OrderAction': side.capitalize(),
             'Volume': amount,
         }
         if type == 'market':
             query['Asset'] = market['base'] if (side == 'buy') else market['quote']
         elif type == 'limit':
             query['Price'] = price
-        method = 'privatePostOrders' + self.capitalize(type)
+        method = 'privatePostOrders' + type.capitalize()
         result = getattr(self, method)(self.extend(query, params))
         return {
             'id': None,

@@ -333,7 +333,7 @@ class braziliex (Exchange):
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        method = 'privatePost' + self.capitalize(side)
+        method = 'privatePost' + side.capitalize()
         response = getattr(self, method)(self.extend({
             'market': market['id'],
             # 'price': self.price_to_precision(symbol, price),

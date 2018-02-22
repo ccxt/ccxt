@@ -188,7 +188,7 @@ class huobi (Exchange):
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         market = self.market(symbol)
-        method = 'tradePost' + self.capitalize(side)
+        method = 'tradePost' + side.capitalize()
         order = {
             'coin_type': market['coinType'],
             'amount': amount,
@@ -197,7 +197,7 @@ class huobi (Exchange):
         if type == 'limit':
             order['price'] = price
         else:
-            method += self.capitalize(type)
+            method += type.capitalize()
         response = getattr(self, method)(self.extend(order, params))
         return {
             'info': response,

@@ -149,7 +149,7 @@ class bit2c (Exchange):
             'Pair': self.market_id(symbol),
         }
         if type == 'market':
-            method += 'MarketPrice' + self.capitalize(side)
+            method += 'MarketPrice' + side.capitalize()
         else:
             order['Price'] = price
             order['Total'] = amount * price

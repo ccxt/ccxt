@@ -170,7 +170,7 @@ class bitstamp1 (Exchange):
             raise ExchangeError(self.id + ' ' + self.version + ' accepts limit orders only')
         if symbol != 'BTC/USD':
             raise ExchangeError(self.id + ' v1 supports BTC/USD orders only')
-        method = 'privatePost' + self.capitalize(side)
+        method = 'privatePost' + side.capitalize()
         order = {
             'amount': amount,
             'price': price,

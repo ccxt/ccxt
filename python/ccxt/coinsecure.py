@@ -260,7 +260,7 @@ class coinsecure (Exchange):
         method = 'privatePutUserExchange'
         order = {}
         if type == 'market':
-            method += 'Instant' + self.capitalize(side)
+            method += 'Instant' + side.capitalize()
             if side == 'buy':
                 order['maxFiat'] = amount
             else:

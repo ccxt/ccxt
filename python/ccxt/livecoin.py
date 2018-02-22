@@ -430,7 +430,7 @@ class livecoin (Exchange):
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
-        method = 'privatePostExchange' + self.capitalize(side) + type
+        method = 'privatePostExchange' + side.capitalize() + type
         market = self.market(symbol)
         order = {
             'quantity': self.amount_to_precision(symbol, amount),

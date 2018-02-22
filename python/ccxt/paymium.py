@@ -153,7 +153,7 @@ class paymium (Exchange):
 
     def create_order(self, market, type, side, amount, price=None, params={}):
         order = {
-            'type': self.capitalize(type) + 'Order',
+            'type': type.capitalize() + 'Order',
             'currency': self.market_id(market),
             'direction': side,
             'amount': amount,

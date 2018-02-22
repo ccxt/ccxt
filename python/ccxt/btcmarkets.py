@@ -173,7 +173,7 @@ class btcmarkets (Exchange):
         order['price'] = int(price * multiplier)
         order['volume'] = int(amount * multiplier)
         order['orderSide'] = orderSide
-        order['ordertype'] = self.capitalize(type)
+        order['ordertype'] = type.capitalize()
         order['clientRequestId'] = str(self.nonce())
         response = self.privatePostOrderCreate(order)
         return {
