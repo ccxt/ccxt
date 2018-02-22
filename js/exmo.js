@@ -328,7 +328,10 @@ module.exports = class exmo extends Exchange {
         }
         let orders = await this.privatePostUserOpenOrders ();
         if (typeof market !== 'undefined')
-            orders = orders[market['id']];
+            if (typeof orders[market['id']] !== 'undefined')
+                orders = orders[market['id']];
+            else
+                orders = [];
         return this.parseOrders (orders, market, since, limit);
     }
 
