@@ -319,7 +319,7 @@ module.exports = class kraken extends Exchange {
             'limits': limits,
         };
         let markets = [
-            { 'id': 'XXLMZEUR', 'symbol': 'XLM/EUR', 'base': 'XLM', 'quote': 'EUR', 'altname': 'XLMEUR' },
+            // { 'id': 'XXLMZEUR', 'symbol': 'XLM/EUR', 'base': 'XLM', 'quote': 'EUR', 'altname': 'XLMEUR' },
         ];
         for (let i = 0; i < markets.length; i++) {
             result.push (this.extend (defaults, markets[i]));
@@ -618,8 +618,13 @@ module.exports = class kraken extends Exchange {
         if (type === 'limit')
             order['price'] = this.priceToPrecision (symbol, price);
         let response = await this.privatePostAddOrder (this.extend (order, params));
-        let length = response['result']['txid'].length;
-        let id = (length > 1) ? response['result']['txid'] : response['result']['txid'][0];
+        let id = this.safeValue (response['result'], 'txid');
+        if (typeof id !== 'undefined') {
+            if (Array.isArray (id)) {
+                let length = id.length;
+                id = (length > 1) ? id : id[0];
+            }
+        }
         return {
             'info': response,
             'id': id,

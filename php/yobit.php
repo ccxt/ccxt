@@ -61,6 +61,9 @@ class yobit extends liqui {
                     'withdraw' => array (),
                 ),
             ),
+            'options' => array (
+                'fetchOrdersRequiresSymbol' => true,
+            ),
         ));
     }
 

@@ -128,9 +128,18 @@ module.exports = class mercado extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         let market = this.market (symbol);
-        let response = await this.publicGetCoinTrades (this.extend ({
+        let method = 'publicGetCoinTrades';
+        let request = {
             'coin': market['base'],
-        }, params));
+        };
+        if (typeof since !== 'undefined') {
+            method += 'From';
+            request['from'] = parseInt (since / 1000);
+        }
+        let to = this.safeInteger (params, 'to');
+        if (typeof to !== 'undefined')
+            method += 'To';
+        let response = await this[method] (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -267,8 +276,11 @@ module.exports = class mercado extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/';
+        let query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
             url += this.implodeParams (path, params);
+            if (Object.keys (query).length)
+                url += '?' + this.urlencode (query);
         } else {
             this.checkRequiredCredentials ();
             url += this.version + '/';

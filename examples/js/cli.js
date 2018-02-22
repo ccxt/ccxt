@@ -13,7 +13,6 @@ const ccxt         = require ('../../ccxt.js')
     , path         = require ('path')
     , asTable      = require ('as-table')
     , util         = require ('util')
-    , cloudscraper = require ('cloudscraper')
     , log          = require ('ololog').configure ({ locate: false })
     , { ExchangeError, NetworkError } = ccxt
 
@@ -31,9 +30,10 @@ process.on ('unhandledRejection', e => { log.bright.red.error (e); process.exit 
 
 const scrapeCloudflareHttpHeaderCookie = (url) =>
 
-	(new Promise ((resolve, reject) =>
+	(new Promise ((resolve, reject) => {
 
-		(cloudscraper.get (url, function (error, response, body) {
+        const cloudscraper = require ('cloudscraper')
+		return cloudscraper.get (url, function (error, response, body) {
 
 			if (error) {
 
@@ -43,8 +43,8 @@ const scrapeCloudflareHttpHeaderCookie = (url) =>
 
 				resolve (response.request.headers)
 			}
-		}))
-    ))
+        })
+    }))
 
 //-----------------------------------------------------------------------------
 

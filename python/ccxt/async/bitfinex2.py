@@ -5,6 +5,7 @@
 
 from ccxt.async.bitfinex import bitfinex
 import hashlib
+import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import InsufficientFunds
@@ -57,6 +58,12 @@ class bitfinex2 (bitfinex):
                 'fees': 'https://www.bitfinex.com/fees',
             },
             'api': {
+                'v1': {
+                    'get': [
+                        'symbols',
+                        'symbols_details',
+                    ],
+                },
                 'public': {
                     'get': [
                         'platform/status',
@@ -109,112 +116,6 @@ class bitfinex2 (bitfinex):
                     ],
                 },
             },
-            'markets': {
-                'AVT/BTC': {'id': 'tAVTBTC', 'symbol': 'AVT/BTC', 'base': 'AVT', 'quote': 'BTC', 'baseId': 'tAVT', 'quoteId': 'tBTC'},
-                'AVT/ETH': {'id': 'tAVTETH', 'symbol': 'AVT/ETH', 'base': 'AVT', 'quote': 'ETH', 'baseId': 'tAVT', 'quoteId': 'tETH'},
-                'AVT/USD': {'id': 'tAVTUSD', 'symbol': 'AVT/USD', 'base': 'AVT', 'quote': 'USD', 'baseId': 'tAVT', 'quoteId': 'zUSD'},
-                'BCH/BTC': {'id': 'tBCHBTC', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'baseId': 'tBCH', 'quoteId': 'tBTC'},
-                'BCH/ETH': {'id': 'tBCHETH', 'symbol': 'BCH/ETH', 'base': 'BCH', 'quote': 'ETH', 'baseId': 'tBCH', 'quoteId': 'tETH'},
-                'BCH/USD': {'id': 'tBCHUSD', 'symbol': 'BCH/USD', 'base': 'BCH', 'quote': 'USD', 'baseId': 'tBCH', 'quoteId': 'zUSD'},
-                'BTC/USD': {'id': 'tBTCUSD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'baseId': 'tBTC', 'quoteId': 'zUSD'},
-                'BTC/EUR': {'id': 'tBTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'tBTC', 'quoteId': 'zEUR'},
-                'BTG/BTC': {'id': 'tBTGBTC', 'symbol': 'BTG/BTC', 'base': 'BTG', 'quote': 'BTC', 'baseId': 'tBTG', 'quoteId': 'tBTC'},
-                'BTG/USD': {'id': 'tBTGUSD', 'symbol': 'BTG/USD', 'base': 'BTG', 'quote': 'USD', 'baseId': 'tBTG', 'quoteId': 'zUSD'},
-                'DASH/BTC': {'id': 'tDSHBTC', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC', 'baseId': 'tDASH', 'quoteId': 'tBTC'},
-                'DASH/USD': {'id': 'tDSHUSD', 'symbol': 'DASH/USD', 'base': 'DASH', 'quote': 'USD', 'baseId': 'tDASH', 'quoteId': 'zUSD'},
-                'DAT/BTC': {'id': 'tDATBTC', 'symbol': 'DAT/BTC', 'base': 'DAT', 'quote': 'BTC', 'baseId': 'tDAT', 'quoteId': 'tBTC'},
-                'DAT/ETH': {'id': 'tDATETH', 'symbol': 'DAT/ETH', 'base': 'DAT', 'quote': 'ETH', 'baseId': 'tDAT', 'quoteId': 'tETH'},
-                'DAT/USD': {'id': 'tDATUSD', 'symbol': 'DAT/USD', 'base': 'DAT', 'quote': 'USD', 'baseId': 'tDAT', 'quoteId': 'zUSD'},
-                'EDO/BTC': {'id': 'tEDOBTC', 'symbol': 'EDO/BTC', 'base': 'EDO', 'quote': 'BTC', 'baseId': 'tEDO', 'quoteId': 'tBTC'},
-                'EDO/ETH': {'id': 'tEDOETH', 'symbol': 'EDO/ETH', 'base': 'EDO', 'quote': 'ETH', 'baseId': 'tEDO', 'quoteId': 'tETH'},
-                'EDO/USD': {'id': 'tEDOUSD', 'symbol': 'EDO/USD', 'base': 'EDO', 'quote': 'USD', 'baseId': 'tEDO', 'quoteId': 'zUSD'},
-                'EOS/BTC': {'id': 'tEOSBTC', 'symbol': 'EOS/BTC', 'base': 'EOS', 'quote': 'BTC', 'baseId': 'tEOS', 'quoteId': 'tBTC'},
-                'EOS/ETH': {'id': 'tEOSETH', 'symbol': 'EOS/ETH', 'base': 'EOS', 'quote': 'ETH', 'baseId': 'tEOS', 'quoteId': 'tETH'},
-                'EOS/USD': {'id': 'tEOSUSD', 'symbol': 'EOS/USD', 'base': 'EOS', 'quote': 'USD', 'baseId': 'tEOS', 'quoteId': 'zUSD'},
-                'ETC/BTC': {'id': 'tETCBTC', 'symbol': 'ETC/BTC', 'base': 'ETC', 'quote': 'BTC', 'baseId': 'tETC', 'quoteId': 'tBTC'},
-                'ETC/USD': {'id': 'tETCUSD', 'symbol': 'ETC/USD', 'base': 'ETC', 'quote': 'USD', 'baseId': 'tETC', 'quoteId': 'zUSD'},
-                'ETH/BTC': {'id': 'tETHBTC', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'baseId': 'tETH', 'quoteId': 'tBTC'},
-                'ETH/USD': {'id': 'tETHUSD', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD', 'baseId': 'tETH', 'quoteId': 'zUSD'},
-                'ETP/BTC': {'id': 'tETPBTC', 'symbol': 'ETP/BTC', 'base': 'ETP', 'quote': 'BTC', 'baseId': 'tETP', 'quoteId': 'tBTC'},
-                'ETP/ETH': {'id': 'tETPETH', 'symbol': 'ETP/ETH', 'base': 'ETP', 'quote': 'ETH', 'baseId': 'tETP', 'quoteId': 'tETH'},
-                'ETP/USD': {'id': 'tETPUSD', 'symbol': 'ETP/USD', 'base': 'ETP', 'quote': 'USD', 'baseId': 'tETP', 'quoteId': 'zUSD'},
-                'IOTA/BTC': {'id': 'tIOTBTC', 'symbol': 'IOTA/BTC', 'base': 'IOTA', 'quote': 'BTC', 'baseId': 'tIOTA', 'quoteId': 'tBTC'},
-                'IOTA/ETH': {'id': 'tIOTETH', 'symbol': 'IOTA/ETH', 'base': 'IOTA', 'quote': 'ETH', 'baseId': 'tIOTA', 'quoteId': 'tETH'},
-                'IOTA/USD': {'id': 'tIOTUSD', 'symbol': 'IOTA/USD', 'base': 'IOTA', 'quote': 'USD', 'baseId': 'tIOTA', 'quoteId': 'zUSD'},
-                'LTC/BTC': {'id': 'tLTCBTC', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'baseId': 'tLTC', 'quoteId': 'tBTC'},
-                'LTC/USD': {'id': 'tLTCUSD', 'symbol': 'LTC/USD', 'base': 'LTC', 'quote': 'USD', 'baseId': 'tLTC', 'quoteId': 'zUSD'},
-                'NEO/BTC': {'id': 'tNEOBTC', 'symbol': 'NEO/BTC', 'base': 'NEO', 'quote': 'BTC', 'baseId': 'tNEO', 'quoteId': 'tBTC'},
-                'NEO/ETH': {'id': 'tNEOETH', 'symbol': 'NEO/ETH', 'base': 'NEO', 'quote': 'ETH', 'baseId': 'tNEO', 'quoteId': 'tETH'},
-                'NEO/USD': {'id': 'tNEOUSD', 'symbol': 'NEO/USD', 'base': 'NEO', 'quote': 'USD', 'baseId': 'tNEO', 'quoteId': 'zUSD'},
-                'OMG/BTC': {'id': 'tOMGBTC', 'symbol': 'OMG/BTC', 'base': 'OMG', 'quote': 'BTC', 'baseId': 'tOMG', 'quoteId': 'tBTC'},
-                'OMG/ETH': {'id': 'tOMGETH', 'symbol': 'OMG/ETH', 'base': 'OMG', 'quote': 'ETH', 'baseId': 'tOMG', 'quoteId': 'tETH'},
-                'OMG/USD': {'id': 'tOMGUSD', 'symbol': 'OMG/USD', 'base': 'OMG', 'quote': 'USD', 'baseId': 'tOMG', 'quoteId': 'zUSD'},
-                'QTUM/BTC': {'id': 'tQTMBTC', 'symbol': 'QTUM/BTC', 'base': 'QTUM', 'quote': 'BTC', 'baseId': 'tQTUM', 'quoteId': 'tBTC'},
-                'QTUM/ETH': {'id': 'tQTMETH', 'symbol': 'QTUM/ETH', 'base': 'QTUM', 'quote': 'ETH', 'baseId': 'tQTUM', 'quoteId': 'tETH'},
-                'QTUM/USD': {'id': 'tQTMUSD', 'symbol': 'QTUM/USD', 'base': 'QTUM', 'quote': 'USD', 'baseId': 'tQTUM', 'quoteId': 'zUSD'},
-                'RRT/BTC': {'id': 'tRRTBTC', 'symbol': 'RRT/BTC', 'base': 'RRT', 'quote': 'BTC', 'baseId': 'tRRT', 'quoteId': 'tBTC'},
-                'RRT/USD': {'id': 'tRRTUSD', 'symbol': 'RRT/USD', 'base': 'RRT', 'quote': 'USD', 'baseId': 'tRRT', 'quoteId': 'zUSD'},
-                'SAN/BTC': {'id': 'tSANBTC', 'symbol': 'SAN/BTC', 'base': 'SAN', 'quote': 'BTC', 'baseId': 'tSAN', 'quoteId': 'tBTC'},
-                'SAN/ETH': {'id': 'tSANETH', 'symbol': 'SAN/ETH', 'base': 'SAN', 'quote': 'ETH', 'baseId': 'tSAN', 'quoteId': 'tETH'},
-                'SAN/USD': {'id': 'tSANUSD', 'symbol': 'SAN/USD', 'base': 'SAN', 'quote': 'USD', 'baseId': 'tSAN', 'quoteId': 'zUSD'},
-                'XMR/BTC': {'id': 'tXMRBTC', 'symbol': 'XMR/BTC', 'base': 'XMR', 'quote': 'BTC', 'baseId': 'tXMR', 'quoteId': 'tBTC'},
-                'XMR/USD': {'id': 'tXMRUSD', 'symbol': 'XMR/USD', 'base': 'XMR', 'quote': 'USD', 'baseId': 'tXMR', 'quoteId': 'zUSD'},
-                'XRP/BTC': {'id': 'tXRPBTC', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC', 'baseId': 'tXRP', 'quoteId': 'tBTC'},
-                'XRP/USD': {'id': 'tXRPUSD', 'symbol': 'XRP/USD', 'base': 'XRP', 'quote': 'USD', 'baseId': 'tXRP', 'quoteId': 'zUSD'},
-                'ZEC/BTC': {'id': 'tZECBTC', 'symbol': 'ZEC/BTC', 'base': 'ZEC', 'quote': 'BTC', 'baseId': 'tZEC', 'quoteId': 'tBTC'},
-                'ZEC/USD': {'id': 'tZECUSD', 'symbol': 'ZEC/USD', 'base': 'ZEC', 'quote': 'USD', 'baseId': 'tZEC', 'quoteId': 'zUSD'},
-                'YYW/USD': {'id': 'tYYWUSD', 'symbol': 'YYW/USD', 'base': 'YYW', 'quote': 'USD', 'baseId': 'tYYW', 'quoteId': 'zUSD'},
-                'YYW/BTC': {'id': 'tYYWBTC', 'symbol': 'YYW/BTC', 'base': 'YYW', 'quote': 'BTC', 'baseId': 'tYYW', 'quoteId': 'zBTC'},
-                'YYW/ETH': {'id': 'tYYWETH', 'symbol': 'YYW/ETH', 'base': 'YYW', 'quote': 'ETH', 'baseId': 'tYYW', 'quoteId': 'zETH'},
-                'SNT/USD': {'id': 'tSNTUSD', 'symbol': 'SNT/USD', 'base': 'SNT', 'quote': 'USD', 'baseId': 'tSNT', 'quoteId': 'zUSD'},
-                'SNT/BTC': {'id': 'tSNTBTC', 'symbol': 'SNT/BTC', 'base': 'SNT', 'quote': 'BTC', 'baseId': 'tSNT', 'quoteId': 'zBTC'},
-                'SNT/ETH': {'id': 'tSNTETH', 'symbol': 'SNT/ETH', 'base': 'SNT', 'quote': 'ETH', 'baseId': 'tSNT', 'quoteId': 'zETH'},
-                'QASH/USD': {'id': 'tQASHUSD', 'symbol': 'QASH/USD', 'base': 'QASH', 'quote': 'USD', 'baseId': 'tQASH', 'quoteId': 'zUSD'},
-                'QASH/BTC': {'id': 'tQASHBTC', 'symbol': 'QASH/BTC', 'base': 'QASH', 'quote': 'BTC', 'baseId': 'tQASH', 'quoteId': 'zBTC'},
-                'QASH/ETH': {'id': 'tQASHETH', 'symbol': 'QASH/ETH', 'base': 'QASH', 'quote': 'ETH', 'baseId': 'tQASH', 'quoteId': 'zETH'},
-                'GNT/USD': {'id': 'tGNTUSD', 'symbol': 'GNT/USD', 'base': 'GNT', 'quote': 'USD', 'baseId': 'tGNT', 'quoteId': 'zUSD'},
-                'GNT/BTC': {'id': 'tGNTBTC', 'symbol': 'GNT/BTC', 'base': 'GNT', 'quote': 'BTC', 'baseId': 'tGNT', 'quoteId': 'zBTC'},
-                'GNT/ETH': {'id': 'tGNTETH', 'symbol': 'GNT/ETH', 'base': 'GNT', 'quote': 'ETH', 'baseId': 'tGNT', 'quoteId': 'zETH'},
-                'BAT/USD': {'id': 'tBATUSD', 'symbol': 'BAT/USD', 'base': 'BAT', 'quote': 'USD', 'baseId': 'tBAT', 'quoteId': 'zUSD'},
-                'BAT/BTC': {'id': 'tBATBTC', 'symbol': 'BAT/BTC', 'base': 'BAT', 'quote': 'BTC', 'baseId': 'tBAT', 'quoteId': 'zBTC'},
-                'BAT/ETH': {'id': 'tBATETH', 'symbol': 'BAT/ETH', 'base': 'BAT', 'quote': 'ETH', 'baseId': 'tBAT', 'quoteId': 'zETH'},
-                'SPK/USD': {'id': 'tSPKUSD', 'symbol': 'SPK/USD', 'base': 'SPK', 'quote': 'USD', 'baseId': 'tSPK', 'quoteId': 'zUSD'},
-                'SPK/BTC': {'id': 'tSPKBTC', 'symbol': 'SPK/BTC', 'base': 'SPK', 'quote': 'BTC', 'baseId': 'tSPK', 'quoteId': 'zBTC'},
-                'SPK/ETH': {'id': 'tSPKETH', 'symbol': 'SPK/ETH', 'base': 'SPK', 'quote': 'ETH', 'baseId': 'tSPK', 'quoteId': 'zETH'},
-                'TRX/USD': {'id': 'tTRXUSD', 'symbol': 'TRX/USD', 'base': 'TRX', 'quote': 'USD', 'baseId': 'tTRX', 'quoteId': 'zUSD'},
-                'TRX/BTC': {'id': 'tTRXBTC', 'symbol': 'TRX/BTC', 'base': 'TRX', 'quote': 'BTC', 'baseId': 'tTRX', 'quoteId': 'zBTC'},
-                'TRX/ETH': {'id': 'tTRXETH', 'symbol': 'TRX/ETH', 'base': 'TRX', 'quote': 'ETH', 'baseId': 'tTRX', 'quoteId': 'zETH'},
-                'ELF/USD': {'id': 'tELFUSD', 'symbol': 'ELF/USD', 'base': 'ELF', 'quote': 'USD', 'baseId': 'tELF', 'quoteId': 'zUSD'},
-                'ELF/BTC': {'id': 'tELFBTC', 'symbol': 'ELF/BTC', 'base': 'ELF', 'quote': 'BTC', 'baseId': 'tELF', 'quoteId': 'zBTC'},
-                'ELF/ETH': {'id': 'tELFETH', 'symbol': 'ELF/ETH', 'base': 'ELF', 'quote': 'ETH', 'baseId': 'tELF', 'quoteId': 'zETH'},
-                'RCN/USD': {'id': 'tRCNUSD', 'symbol': 'RCN/USD', 'base': 'RCN', 'quote': 'USD', 'baseId': 'tRCN', 'quoteId': 'zUSD'},
-                'RCN/BTC': {'id': 'tRCNBTC', 'symbol': 'RCN/BTC', 'base': 'RCN', 'quote': 'BTC', 'baseId': 'tRCN', 'quoteId': 'zBTC'},
-                'RCN/ETH': {'id': 'tRCNETH', 'symbol': 'RCN/ETH', 'base': 'RCN', 'quote': 'ETH', 'baseId': 'tRCN', 'quoteId': 'zETH'},
-                'FUN/USD': {'id': 'tFUNUSD', 'symbol': 'FUN/USD', 'base': 'FUN', 'quote': 'USD', 'baseId': 'tFUN', 'quoteId': 'zUSD'},
-                'FUN/BTC': {'id': 'tFUNBTC', 'symbol': 'FUN/BTC', 'base': 'FUN', 'quote': 'BTC', 'baseId': 'tFUN', 'quoteId': 'zBTC'},
-                'FUN/ETH': {'id': 'tFUNETH', 'symbol': 'FUN/ETH', 'base': 'FUN', 'quote': 'ETH', 'baseId': 'tFUN', 'quoteId': 'zETH'},
-                'MNA/USD': {'id': 'tMNAUSD', 'symbol': 'MNA/USD', 'base': 'MNA', 'quote': 'USD', 'baseId': 'tMNA', 'quoteId': 'zUSD'},
-                'MNA/BTC': {'id': 'tMNABTC', 'symbol': 'MNA/BTC', 'base': 'MNA', 'quote': 'BTC', 'baseId': 'tMNA', 'quoteId': 'zBTC'},
-                'MNA/ETH': {'id': 'tMNAETH', 'symbol': 'MNA/ETH', 'base': 'MNA', 'quote': 'ETH', 'baseId': 'tMNA', 'quoteId': 'zETH'},
-                'AID/USD': {'id': 'tAIDUSD', 'symbol': 'AID/USD', 'base': 'AID', 'quote': 'USD', 'baseId': 'tAID', 'quoteId': 'zUSD'},
-                'AID/BTC': {'id': 'tAIDBTC', 'symbol': 'AID/BTC', 'base': 'AID', 'quote': 'BTC', 'baseId': 'tAID', 'quoteId': 'zBTC'},
-                'AID/ETH': {'id': 'tAIDETH', 'symbol': 'AID/ETH', 'base': 'AID', 'quote': 'ETH', 'baseId': 'tAID', 'quoteId': 'zETH'},
-                'REP/USD': {'id': 'tREPUSD', 'symbol': 'REP/USD', 'base': 'REP', 'quote': 'USD', 'baseId': 'tREP', 'quoteId': 'zUSD'},
-                'REP/BTC': {'id': 'tREPBTC', 'symbol': 'REP/BTC', 'base': 'REP', 'quote': 'BTC', 'baseId': 'tREP', 'quoteId': 'zBTC'},
-                'REP/ETH': {'id': 'tREPETH', 'symbol': 'REP/ETH', 'base': 'REP', 'quote': 'ETH', 'baseId': 'tREP', 'quoteId': 'zETH'},
-                'SNG/USD': {'id': 'tSNGUSD', 'symbol': 'SNG/USD', 'base': 'SNG', 'quote': 'USD', 'baseId': 'tSNG', 'quoteId': 'zUSD'},
-                'SNG/BTC': {'id': 'tSNGBTC', 'symbol': 'SNG/BTC', 'base': 'SNG', 'quote': 'BTC', 'baseId': 'tSNG', 'quoteId': 'zBTC'},
-                'SNG/ETH': {'id': 'tSNGETH', 'symbol': 'SNG/ETH', 'base': 'SNG', 'quote': 'ETH', 'baseId': 'tSNG', 'quoteId': 'zETH'},
-                'RLC/USD': {'id': 'tRLCUSD', 'symbol': 'RLC/USD', 'base': 'RLC', 'quote': 'USD', 'baseId': 'tRLC', 'quoteId': 'zUSD'},
-                'RLC/BTC': {'id': 'tRLCBTC', 'symbol': 'RLC/BTC', 'base': 'RLC', 'quote': 'BTC', 'baseId': 'tRLC', 'quoteId': 'zBTC'},
-                'RLC/ETH': {'id': 'tRLCETH', 'symbol': 'RLC/ETH', 'base': 'RLC', 'quote': 'ETH', 'baseId': 'tRLC', 'quoteId': 'zETH'},
-                'TNB/USD': {'id': 'tTNBUSD', 'symbol': 'TNB/USD', 'base': 'TNB', 'quote': 'USD', 'baseId': 'tTNB', 'quoteId': 'zUSD'},
-                'TNB/BTC': {'id': 'tTNBBTC', 'symbol': 'TNB/BTC', 'base': 'TNB', 'quote': 'BTC', 'baseId': 'tTNB', 'quoteId': 'zBTC'},
-                'TNB/ETH': {'id': 'tTNBETH', 'symbol': 'TNB/ETH', 'base': 'TNB', 'quote': 'ETH', 'baseId': 'tTNB', 'quoteId': 'zETH'},
-                'ZRX/USD': {'id': 'tZRXUSD', 'symbol': 'ZRX/USD', 'base': 'ZRX', 'quote': 'USD', 'baseId': 'tZRX', 'quoteId': 'zUSD'},
-                'ZRX/BTC': {'id': 'tZRXBTC', 'symbol': 'ZRX/BTC', 'base': 'ZRX', 'quote': 'BTC', 'baseId': 'tZRX', 'quoteId': 'zBTC'},
-                'ZRX/ETH': {'id': 'tZRXETH', 'symbol': 'ZRX/ETH', 'base': 'ZRX', 'quote': 'ETH', 'baseId': 'tZRX', 'quoteId': 'zETH'},
-            },
             'fees': {
                 'trading': {
                     'maker': 0.1 / 100,
@@ -258,12 +159,69 @@ class bitfinex2 (bitfinex):
         currencies = {
             'DSH': 'DASH',  # Bitfinex names Dash as DSH, instead of DASH
             'QTM': 'QTUM',
-            'BCC': 'CST_BCC',
-            'BCU': 'CST_BCU',
             'IOT': 'IOTA',
             'DAT': 'DATA',
         }
         return currencies[currency] if (currency in list(currencies.keys())) else currency
+
+    def is_fiat(self, code):
+        fiat = {
+            'USD': 'USD',
+            'EUR': 'EUR',
+        }
+        return(code in list(fiat.keys()))
+
+    def get_currency_id(self, code):
+        isFiat = self.is_fiat(code)
+        prefix = 'f' if isFiat else 't'
+        return prefix + code
+
+    async def fetch_markets(self):
+        markets = await self.v1GetSymbolsDetails()
+        result = []
+        for p in range(0, len(markets)):
+            market = markets[p]
+            id = market['pair'].upper()
+            baseId = id[0:3]
+            quoteId = id[3:6]
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
+            symbol = base + '/' + quote
+            id = 't' + id
+            baseId = self.get_currency_id(baseId)
+            quoteId = self.get_currency_id(quoteId)
+            precision = {
+                'price': market['price_precision'],
+                'amount': market['price_precision'],
+            }
+            limits = {
+                'amount': {
+                    'min': float(market['minimum_order_size']),
+                    'max': float(market['maximum_order_size']),
+                },
+                'price': {
+                    'min': math.pow(10, -precision['price']),
+                    'max': math.pow(10, precision['price']),
+                },
+            }
+            limits['cost'] = {
+                'min': limits['amount']['min'] * limits['price']['min'],
+                'max': None,
+            }
+            result.append({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': True,
+                'precision': precision,
+                'limits': limits,
+                'lot': math.pow(10, -precision['amount']),
+                'info': market,
+            })
+        return result
 
     async def fetch_balance(self, params={}):
         response = await self.privatePostAuthRWallets()
@@ -375,27 +333,27 @@ class bitfinex2 (bitfinex):
             'amount': amount,
         }
 
-    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    async def fetch_trades(self, symbol, since=None, limit=120, params={}):
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
+            'sort': 1,
+            'limit': limit,  # default = max = 120
         }
         if since is not None:
             request['start'] = since
-        if limit is not None:
-            request['limit'] = limit
         response = await self.publicGetTradesSymbolHist(self.extend(request, params))
-        return self.parse_trades(response, market, since, limit)
+        trades = self.sort_by(response, 1)
+        return self.parse_trades(trades, market, None, limit)
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=100, params={}):
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
             'timeframe': self.timeframes[timeframe],
             'sort': 1,
+            'limit': limit,
         }
-        if limit is not None:
-            request['limit'] = limit
         if since is not None:
             request['start'] = since
         request = self.extend(request, params)
@@ -414,17 +372,35 @@ class bitfinex2 (bitfinex):
     async def withdraw(self, currency, amount, address, tag=None, params={}):
         raise NotSupported(self.id + ' withdraw not implemented yet')
 
+    async def fetch_my_trades(self, symbol=None, since=None, limit=25, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            'limit': limit,
+            'end': self.seconds(),
+        }
+        if since is not None:
+            request['start'] = int(since / 1000)
+        response = await self.privatePostAuthRTradesSymbolHist(self.extend(request, params))
+        # return self.parse_trades(response, market, since, limit)  # not implemented yet for bitfinex v2
+        return response
+
     def nonce(self):
         return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        request = self.version + '/' + self.implode_params(path, params)
+        request = '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
+        if api == 'v1':
+            request = api + request
+        else:
+            request = self.version + request
         url = self.urls['api'] + '/' + request
         if api == 'public':
             if query:
                 url += '?' + self.urlencode(query)
-        else:
+        if api == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())
             body = self.json(query)

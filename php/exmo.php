@@ -181,8 +181,8 @@ class exmo extends Exchange {
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $symbol = $id;
-            if (is_array ($this->marketsById) && array_key_exists ($id, $this->marketsById)) {
-                $market = $this->marketsById[$id];
+            if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$id];
                 $symbol = $market['symbol'];
             }
             $result[$symbol] = $this->parse_order_book($response[$id], null, 'bid', 'ask');

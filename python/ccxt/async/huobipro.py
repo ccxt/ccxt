@@ -154,20 +154,34 @@ class huobipro (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
-        last = None
-        if 'last' in ticker:
-            last = ticker['last']
         timestamp = self.milliseconds()
         if 'ts' in ticker:
             timestamp = ticker['ts']
         bid = None
         ask = None
+        bidVolume = None
+        askVolume = None
         if 'bid' in ticker:
-            if ticker['bid']:
+            if isinstance(ticker['bid'], list):
                 bid = self.safe_float(ticker['bid'], 0)
+                bidVolume = self.safe_float(ticker['bid'], 1)
         if 'ask' in ticker:
-            if ticker['ask']:
+            if isinstance(ticker['ask'], list):
                 ask = self.safe_float(ticker['ask'], 0)
+                askVolume = self.safe_float(ticker['ask'], 1)
+        open = self.safe_float(ticker, 'open')
+        last = self.safe_float(ticker, 'close')
+        change = None
+        percentage = None
+        if (open is not None) and(last is not None):
+            change = last - open
+            if (last is not None) and(last > 0):
+                percentage = (change / open) * 100
+        baseVolume = self.safe_float(ticker, 'amount')
+        quoteVolume = self.safe_float(ticker, 'vol')
+        vwap = None
+        if baseVolume is not None and quoteVolume is not None and baseVolume > 0:
+            vwap = quoteVolume / baseVolume
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -175,17 +189,17 @@ class huobipro (Exchange):
             'high': ticker['high'],
             'low': ticker['low'],
             'bid': bid,
+            'bidVolume': bidVolume,
             'ask': ask,
-            'vwap': None,
-            'open': ticker['open'],
-            'close': ticker['close'],
-            'first': None,
+            'askVolume': askVolume,
+            'vwap': vwap,
+            'open': open,
             'last': last,
-            'change': None,
-            'percentage': None,
-            'average': None,
-            'baseVolume': float(ticker['amount']),
-            'quoteVolume': ticker['vol'],
+            'change': change,
+            'percentage': percentage,
+            'average': (open + last) / 2,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         }
 

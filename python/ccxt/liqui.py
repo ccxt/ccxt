@@ -246,8 +246,8 @@ class liqui (Exchange):
         for i in range(0, len(ids)):
             id = ids[i]
             symbol = id
-            if id in self.marketsById:
-                market = self.marketsById[id]
+            if id in self.markets_by_id:
+                market = self.markets_by_id[id]
                 symbol = market['symbol']
             result[symbol] = self.parse_order_book(response[id])
         return result
@@ -525,8 +525,10 @@ class liqui (Exchange):
         return result
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
-        # if not symbol:
-        #     raise ExchangeError(self.id + ' fetchOrders requires a symbol')
+        if 'fetchOrdersRequiresSymbol' in self.options:
+            if self.options['fetchOrdersRequiresSymbol']:
+                if symbol is None:
+                    raise ExchangeError(self.id + ' fetchOrders requires a symbol argument')
         self.load_markets()
         request = {}
         market = None

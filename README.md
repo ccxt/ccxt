@@ -134,7 +134,7 @@ The library is under [MIT license](https://github.com/ccxt/ccxt/blob/master/LICE
 The easiest way to install the ccxt library is to use builtin package managers:
 
 - [ccxt in **NPM**](http://npmjs.com/package/ccxt) (JavaScript / Node v7.6+)
-- [ccxt in **PyPI**](https://pypi.python.org/pypi/ccxt) (Python 2 and 3)
+- [ccxt in **PyPI**](https://pypi.python.org/pypi/ccxt) (Python 2 and 3.5.3+)
 - [ccxt in **Packagist/Composer**](https://packagist.org/packages/ccxt/ccxt) (PHP 5.3+)
 
 This library is shipped as an all-in-one module implementation with minimalistic dependencies and requirements:
@@ -194,7 +194,7 @@ import ccxt
 print(ccxt.exchanges) # print a list of all available exchange classes
 ```
 
-The library supports concurrent asynchronous mode with asyncio and async/await in Python 3.5+
+The library supports concurrent asynchronous mode with asyncio and async/await in Python 3.5.3+
 
 ```Python
 import ccxt.async as ccxt # link against the asynchronous version of ccxt

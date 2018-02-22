@@ -29,6 +29,7 @@ const ccxt        = require ('../../ccxt.js')
             'fetchOHLCV',
             'fetchBalance',
             'createOrder',
+            'editOrder',
             'cancelOrder',
             'fetchOrder',
             'fetchOrders',

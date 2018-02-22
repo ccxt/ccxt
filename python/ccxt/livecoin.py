@@ -12,6 +12,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 
 
@@ -532,6 +533,8 @@ class livecoin (Exchange):
                         raise InvalidOrder(self.id + ': Unable to block funds ' + self.json(response))
                     elif error == 503:
                         raise ExchangeNotAvailable(self.id + ': Exchange is not available ' + self.json(response))
+                    elif error == 429:
+                        raise DDoSProtection(self.id + ': Too many requests' + self.json(response))
                     else:
                         raise ExchangeError(self.id + ' ' + self.json(response))
             raise ExchangeError(self.id + ' ' + body)

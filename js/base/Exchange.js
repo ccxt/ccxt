@@ -73,6 +73,7 @@ module.exports = class Exchange {
                 'createDepositAddress': false,
                 'createOrder': true,
                 'deposit': false,
+                'editOrder': 'emulated',
                 'fetchBalance': true,
                 'fetchBidsAsks': false,
                 'fetchClosedOrders': false,
@@ -164,8 +165,9 @@ module.exports = class Exchange {
         this.proxy = ''
         this.origin = '*' // CORS origin
 
-        this.iso8601          = timestamp => new Date (timestamp).toISOString ()
+        this.iso8601          = timestamp => ((typeof timestamp === 'undefined') ? timestamp : new Date (timestamp).toISOString ())
         this.parse8601        = x => Date.parse (((x.indexOf ('+') >= 0) || (x.slice (-1) === 'Z')) ? x : (x + 'Z'))
+        this.parseDate        = x => ((x.indexOf ('GMT') >= 0) ? Date.parse (x) : this.parse8601 (x))
         this.microseconds     = () => now () * 1000 // TODO: utilize performance.now for that purpose
         this.seconds          = () => Math.floor (now () / 1000)
 
@@ -462,6 +464,7 @@ module.exports = class Exchange {
 
             let responseHeaders = {}
             response.headers.forEach ((value, key) => {
+                key = key.split ('-').map (word => capitalize (word)).join ('-')
                 responseHeaders[key] = value;
             })
 
@@ -521,7 +524,7 @@ module.exports = class Exchange {
 
     async loadMarkets (reload = false) {
         if (!reload && this.markets) {
-            if (!this.marketsById) {
+            if (!this.markets_by_id) {
                 return this.setMarkets (this.markets)
             }
             return this.markets
@@ -618,7 +621,8 @@ module.exports = class Exchange {
     }
 
     marketId (symbol) {
-        return this.market (symbol).id || symbol
+        let market = this.market (symbol)
+        return (typeof market !== 'undefined' ? market['id'] : symbol)
     }
 
     marketIds (symbols) {

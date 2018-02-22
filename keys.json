@@ -1,6 +1,6 @@
 {
     "_1broker":      { "apiKey": "A0f79063a5e91e6d62fbcbbbbdd63258" },
-    "_1btcxe":       { "skip": true, "apiKey": "7SuUd4B6zfGAojPn", "secret": "392WCRKmGpcXdiVzsyQqwengLTOHkhDa" },
+    "_1btcxe":       { "apiKey": "7SuUd4B6zfGAojPn", "secret": "392WCRKmGpcXdiVzsyQqwengLTOHkhDa" },
     "allcoin":       { "skip": true },
     "anxpro":        { "apiKey": "960da1a0-95be-4b89-ad4a-9ab82ed8b5b9", "secret": "LrYWKKMdewwtjXWJYxBz8aOHdSb7CWZmRA7BdQ58P06ixd98K2wYz08VY+kR8sPnCaOsiF/ochWuJSKHOfYeIQ==" },
     "bibox":         { "skip": true, "apiKey": "bdc062773f5718a8ad03a8d3a4d9d3f0c9005b5f", "secret": "1e98b6fdc6d0d67cce818f871d79952810d40bf1" },

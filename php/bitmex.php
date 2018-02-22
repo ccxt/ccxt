@@ -271,6 +271,9 @@ class bitmex extends Exchange {
         $tickers = $this->publicGetTradeBucketed ($request);
         $ticker = $tickers[0];
         $timestamp = $this->milliseconds ();
+        $open = $this->safe_float($ticker, 'open');
+        $last = $this->safe_float($ticker, 'close');
+        $change = $last - $open;
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -280,13 +283,11 @@ class bitmex extends Exchange {
             'bid' => floatval ($quote['bidPrice']),
             'ask' => floatval ($quote['askPrice']),
             'vwap' => floatval ($ticker['vwap']),
-            'open' => null,
-            'close' => floatval ($ticker['close']),
-            'first' => null,
-            'last' => null,
-            'change' => null,
-            'percentage' => null,
-            'average' => null,
+            'open' => $open,
+            'last' => $last,
+            'change' => $change,
+            'percentage' => $change / $open * 100,
+            'average' => ($last . $open) / 2,
             'baseVolume' => floatval ($ticker['homeNotional']),
             'quoteVolume' => floatval ($ticker['foreignNotional']),
             'info' => $ticker,
@@ -385,10 +386,16 @@ class bitmex extends Exchange {
             }
         }
         $datetime_value = null;
+        $timestamp = null;
+        $iso8601 = null;
         if (is_array ($order) && array_key_exists ('timestamp', $order))
             $datetime_value = $order['timestamp'];
         else if (is_array ($order) && array_key_exists ('transactTime', $order))
             $datetime_value = $order['transactTime'];
+        if ($datetime_value !== null) {
+            $timestamp = $this->parse8601 ($datetime_value);
+            $iso8601 = $this->iso8601 ($timestamp);
+        }
         $price = floatval ($order['price']);
         $amount = floatval ($order['orderQty']);
         $filled = $this->safe_float($order, 'cumQty', 0.0);
@@ -397,12 +404,11 @@ class bitmex extends Exchange {
         if ($price !== null)
             if ($filled !== null)
                 $cost = $price * $filled;
-        $timestamp = $this->parse8601 ($datetime_value);
         $result = array (
             'info' => $order,
             'id' => (string) $order['orderID'],
             'timestamp' => $timestamp,
-            'datetime' => $datetime_value,
+            'datetime' => $iso8601,
             'symbol' => $symbol,
             'type' => strtolower ($order['ordType']),
             'side' => strtolower ($order['side']),
@@ -445,7 +451,13 @@ class bitmex extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->privateDeleteOrder (array ( 'orderID' => $id ));
+        $response = $this->privateDeleteOrder (array ( 'orderID' => $id ));
+        $order = $response[0];
+        $error = $this->safe_string($order, 'error');
+        if ($error !== null)
+            if (mb_strpos ($error, 'Unable to cancel $order due to existing state') !== false)
+                throw new OrderNotFound ($this->id . ' cancelOrder() failed => ' . $error);
+        return $this->parse_order($order);
     }
 
     public function is_fiat ($currency) {

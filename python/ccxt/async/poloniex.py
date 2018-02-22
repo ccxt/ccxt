@@ -28,6 +28,7 @@ class poloniex (Exchange):
                 'createDepositAddress': True,
                 'fetchDepositAddress': True,
                 'CORS': False,
+                'editOrder': True,
                 'createMarketOrder': False,
                 'fetchOHLCV': True,
                 'fetchMyTrades': True,
@@ -169,7 +170,7 @@ class poloniex (Exchange):
             ohlcv['high'],
             ohlcv['low'],
             ohlcv['close'],
-            ohlcv['volume'],
+            ohlcv['quoteVolume'],
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=None, params={}):
@@ -731,20 +732,24 @@ class poloniex (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body):
-        if body[0] == '{':
+        response = None
+        try:
             response = json.loads(body)
-            if 'error' in response:
-                error = response['error']
-                feedback = self.id + ' ' + self.json(response)
-                if error == 'Invalid order number, or you are not the person who placed the order.':
-                    raise OrderNotFound(feedback)
-                elif error.find('Total must be at least') >= 0:
-                    raise InvalidOrder(feedback)
-                elif error.find('Not enough') >= 0:
-                    raise InsufficientFunds(feedback)
-                elif error.find('Nonce must be greater') >= 0:
-                    raise ExchangeNotAvailable(feedback)
-                elif error.find('You have already called cancelOrder or moveOrder on self order.') >= 0:
-                    raise CancelPending(feedback)
-                else:
-                    raise ExchangeError(self.id + ': unknown error: ' + self.json(response))
+        except Exception as e:
+            # syntax error, resort to default error handler
+            return
+        if 'error' in response:
+            error = response['error']
+            feedback = self.id + ' ' + self.json(response)
+            if error == 'Invalid order number, or you are not the person who placed the order.':
+                raise OrderNotFound(feedback)
+            elif error.find('Total must be at least') >= 0:
+                raise InvalidOrder(feedback)
+            elif error.find('Not enough') >= 0:
+                raise InsufficientFunds(feedback)
+            elif error.find('Nonce must be greater') >= 0:
+                raise ExchangeNotAvailable(feedback)
+            elif error.find('You have already called cancelOrder or moveOrder on self order.') >= 0:
+                raise CancelPending(feedback)
+            else:
+                raise ExchangeError(self.id + ': unknown error: ' + self.json(response))

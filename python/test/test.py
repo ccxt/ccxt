@@ -2,12 +2,15 @@
 
 import argparse
 import json
+# import logging
 import os
 import sys
 import time  # noqa: F401
 from os import _exit
 from traceback import format_tb
 
+# ------------------------------------------------------------------------------
+# logging.basicConfig(level=logging.INFO)
 # ------------------------------------------------------------------------------
 
 root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -174,7 +177,6 @@ def test_ticker(exchange, symbol):
     if exchange.has['fetchTicker']:
         delay = int(exchange.rateLimit / 1000)
         time.sleep(delay)
-        # dump(green(exchange.id), green(symbol), 'fetching ticker...')
         ticker = exchange.fetch_ticker(symbol)
         dump(
             green(exchange.id),
@@ -265,8 +267,6 @@ def test_exchange(exchange):
     if 'test' in exchange.urls:
         exchange.urls['api'] = exchange.urls['test']
 
-    # dump(green(exchange.id), 'fetching balance...')
-    # balance = exchange.fetch_balance()
     exchange.fetch_balance()
     dump(green(exchange.id), 'fetched balance')
 
@@ -274,7 +274,6 @@ def test_exchange(exchange):
 
     if exchange.has['fetchOrders']:
         try:
-            # dump(green(exchange.id), 'fetching orders...')
             orders = exchange.fetch_orders(symbol)
             dump(green(exchange.id), 'fetched', green(str(len(orders))), 'orders')
         except (ccxt.ExchangeError, ccxt.NotSupported) as e:
@@ -336,8 +335,9 @@ def try_all_proxies(exchange, proxies=['']):
             return True
     # exception
     return False
-# ------------------------------------------------------------------------------
 
+
+# ------------------------------------------------------------------------------
 
 proxies = [
     '',
@@ -361,15 +361,9 @@ for id in ccxt.exchanges:
     exchange_config = {'verbose': argv.verbose}
     if sys.version_info[0] < 3:
         exchange_config.update({'enableRateLimit': True})
+    if id in config:
+        exchange_config.update(config[id])
     exchanges[id] = exchange(exchange_config)
-
-# set up api keys appropriately
-tuples = list(ccxt.Exchange.keysort(config).items())
-for (id, params) in tuples:
-    if id in exchanges:
-        options = list(params.items())
-        for key in params:
-            setattr(exchanges[id], key, params[key])
 
 # ------------------------------------------------------------------------------
 
@@ -381,12 +375,6 @@ def main():
         exchange = exchanges[argv.exchange]
         symbol = argv.symbol
 
-        if exchange.id in config:
-            if 'skip' in config[exchange.id]:
-                if config[exchange.id]['skip']:
-                    print('skipped.')
-                    sys.exit()
-
         if hasattr(exchange, 'skip') and exchange.skip:
             dump(green(exchange.id), 'skipped')
         else:
@@ -397,15 +385,11 @@ def main():
                 try_all_proxies(exchange, proxies)
 
     else:
-
-        tuples = list(ccxt.Exchange.keysort(exchanges).items())
-        for (id, params) in tuples:
-            if id in exchanges:
-                exchange = exchanges[id]
-                if hasattr(exchange, 'skip') and exchange.skip:
-                    dump(green(exchange.id), 'skipped')
-                else:
-                    try_all_proxies(exchange, proxies)
+        for exchange in sorted(exchanges.values(), key=lambda x: x.id):
+            if hasattr(exchange, 'skip') and exchange.skip:
+                dump(green(exchange.id), 'skipped')
+            else:
+                try_all_proxies(exchange, proxies)
 
 # ------------------------------------------------------------------------------
 

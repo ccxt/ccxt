@@ -154,22 +154,39 @@ module.exports = class huobipro extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
-        let last = undefined;
-        if ('last' in ticker)
-            last = ticker['last'];
         let timestamp = this.milliseconds ();
         if ('ts' in ticker)
             timestamp = ticker['ts'];
         let bid = undefined;
         let ask = undefined;
+        let bidVolume = undefined;
+        let askVolume = undefined;
         if ('bid' in ticker) {
-            if (ticker['bid'])
+            if (Array.isArray (ticker['bid'])) {
                 bid = this.safeFloat (ticker['bid'], 0);
+                bidVolume = this.safeFloat (ticker['bid'], 1);
+            }
         }
         if ('ask' in ticker) {
-            if (ticker['ask'])
+            if (Array.isArray (ticker['ask'])) {
                 ask = this.safeFloat (ticker['ask'], 0);
+                askVolume = this.safeFloat (ticker['ask'], 1);
+            }
         }
+        let open = this.safeFloat (ticker, 'open');
+        let last = this.safeFloat (ticker, 'close');
+        let change = undefined;
+        let percentage = undefined;
+        if ((typeof open !== 'undefined') && (typeof last !== 'undefined')) {
+            change = last - open;
+            if ((typeof last !== 'undefined') && (last > 0))
+                percentage = (change / open) * 100;
+        }
+        let baseVolume = this.safeFloat (ticker, 'amount');
+        let quoteVolume = this.safeFloat (ticker, 'vol');
+        let vwap = undefined;
+        if (typeof baseVolume !== 'undefined' && typeof quoteVolume !== 'undefined' && baseVolume > 0)
+            vwap = quoteVolume / baseVolume;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -177,17 +194,17 @@ module.exports = class huobipro extends Exchange {
             'high': ticker['high'],
             'low': ticker['low'],
             'bid': bid,
+            'bidVolume': bidVolume,
             'ask': ask,
-            'vwap': undefined,
-            'open': ticker['open'],
-            'close': ticker['close'],
-            'first': undefined,
+            'askVolume': askVolume,
+            'vwap': vwap,
+            'open': open,
             'last': last,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': parseFloat (ticker['amount']),
-            'quoteVolume': ticker['vol'],
+            'change': change,
+            'percentage': percentage,
+            'average': (open + last) / 2,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         };
     }

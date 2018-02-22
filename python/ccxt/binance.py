@@ -18,6 +18,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import InvalidNonce
 
 
 class binance (Exchange):
@@ -320,6 +321,13 @@ class binance (Exchange):
                 'timeDifference': 0,  # the difference between system clock and Binance clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
             },
+            'exceptions': {
+                '-2010': InsufficientFunds,  # createOrder -> 'Account has insufficient balance for requested action.'
+                '-2011': OrderNotFound,  # cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
+                '-1013': InvalidOrder,  # createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
+                '-1100': InvalidOrder,  # createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
+                '-1021': InvalidNonce,  # 'your time is ahead of server'
+            },
         })
 
     def milliseconds(self):
@@ -453,18 +461,17 @@ class binance (Exchange):
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.safe_integer(ticker, 'closeTime')
-        if timestamp is None:
-            timestamp = self.milliseconds()
+        iso8601 = None if (timestamp is None) else self.iso8601(timestamp)
         symbol = ticker['symbol']
-        if not market:
+        if market is None:
             if symbol in self.markets_by_id:
                 market = self.markets_by_id[symbol]
-        if market:
+        if market is not None:
             symbol = market['symbol']
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'datetime': iso8601,
             'high': self.safe_float(ticker, 'highPrice'),
             'low': self.safe_float(ticker, 'lowPrice'),
             'bid': self.safe_float(ticker, 'bidPrice'),
@@ -473,8 +480,6 @@ class binance (Exchange):
             'askVolume': self.safe_float(ticker, 'askQty'),
             'vwap': self.safe_float(ticker, 'weightedAvgPrice'),
             'open': self.safe_float(ticker, 'openPrice'),
-            'close': self.safe_float(ticker, 'prevClosePrice'),
-            'first': None,
             'last': self.safe_float(ticker, 'lastPrice'),
             'change': self.safe_float(ticker, 'priceChange'),
             'percentage': self.safe_float(ticker, 'priceChangePercent'),
@@ -528,14 +533,14 @@ class binance (Exchange):
             float(ohlcv[5]),
         ]
 
-    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=500, params={}):
         self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
             'interval': self.timeframes[timeframe],
+            'limit': limit,  # default == max == 500
         }
-        request['limit'] = limit if (limit) else 500  # default == max == 500
         if since is not None:
             request['startTime'] = since
         response = self.publicGetKlines(self.extend(request, params))
@@ -598,15 +603,13 @@ class binance (Exchange):
         return self.parse_trades(response, market, since, limit)
 
     def parse_order_status(self, status):
-        if status == 'NEW':
-            return 'open'
-        if status == 'PARTIALLY_FILLED':
-            return 'open'
-        if status == 'FILLED':
-            return 'closed'
-        if status == 'CANCELED':
-            return 'canceled'
-        return status.lower()
+        statuses = {
+            'NEW': 'open',
+            'PARTIALLY_FILLED': 'open',
+            'FILLED': 'closed',
+            'CANCELED': 'canceled',
+        }
+        return statuses[status] if (status in list(statuses.keys())) else status.lower()
 
     def parse_order(self, order, market=None):
         status = self.safe_value(order, 'status')
@@ -815,28 +818,37 @@ class binance (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body):
-        if code >= 400:
-            if (code == 418) or (code == 429):
-                raise DDoSProtection(self.id + ' ' + str(code) + ' ' + reason + ' ' + body)
-            if body.find('Price * QTY is zero or less') >= 0:
-                raise InvalidOrder(self.id + ' order cost = amount * price is zero or less ' + body)
-            if body.find('MIN_NOTIONAL') >= 0:
-                raise InvalidOrder(self.id + ' order cost = amount * price is too small ' + body)
-            if body.find('LOT_SIZE') >= 0:
-                raise InvalidOrder(self.id + ' order amount should be evenly divisible by lot size, use self.amount_to_lots(symbol, amount) ' + body)
-            if body.find('PRICE_FILTER') >= 0:
-                raise InvalidOrder(self.id + ' order price exceeds allowed price precision or invalid, use self.price_to_precision(symbol, amount) ' + body)
-            if body.find('Order does not exist') >= 0:
-                raise OrderNotFound(self.id + ' ' + body)
+        # in case of error binance sets http status code >= 400
+        if code < 300:
+            # status code ok, proceed with request
+            return
+        if code < 400:
+            # should not normally happen, reserve for redirects in case
+            # we'll want to scrape some info from web pages
+            return
+        # code >= 400
+        if (code == 418) or (code == 429):
+            raise DDoSProtection(self.id + ' ' + str(code) + ' ' + reason + ' ' + body)
+        # error response in a form: {"code": -1013, "msg": "Invalid quantity."}
+        # following block cointains legacy checks against message patterns in "msg" property
+        # will switch "code" checks eventually, when we know all of them
+        if body.find('Price * QTY is zero or less') >= 0:
+            raise InvalidOrder(self.id + ' order cost = amount * price is zero or less ' + body)
+        if body.find('LOT_SIZE') >= 0:
+            raise InvalidOrder(self.id + ' order amount should be evenly divisible by lot size, use self.amount_to_lots(symbol, amount) ' + body)
+        if body.find('PRICE_FILTER') >= 0:
+            raise InvalidOrder(self.id + ' order price exceeds allowed price precision or invalid, use self.price_to_precision(symbol, amount) ' + body)
+        if body.find('Order does not exist') >= 0:
+            raise OrderNotFound(self.id + ' ' + body)
+        # checks against error codes
         if isinstance(body, basestring):
             if len(body) > 0:
                 if body[0] == '{':
                     response = json.loads(body)
                     error = self.safe_value(response, 'code')
                     if error is not None:
-                        if error == -2010:
-                            raise InsufficientFunds(self.id + ' ' + self.json(response))
-                        elif error == -2011:
-                            raise OrderNotFound(self.id + ' ' + self.json(response))
-                        elif error == -1013:  # Invalid quantity
-                            raise InvalidOrder(self.id + ' ' + self.json(response))
+                        exceptions = self.exceptions
+                        if error in exceptions:
+                            raise exceptions[error](self.id + ' ' + self.json(response))
+                        else:
+                            raise ExchangeError(self.id + ': unknown error code: ' + self.json(response))

@@ -153,22 +153,39 @@ class huobipro extends Exchange {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
-        $last = null;
-        if (is_array ($ticker) && array_key_exists ('last', $ticker))
-            $last = $ticker['last'];
         $timestamp = $this->milliseconds ();
         if (is_array ($ticker) && array_key_exists ('ts', $ticker))
             $timestamp = $ticker['ts'];
         $bid = null;
         $ask = null;
+        $bidVolume = null;
+        $askVolume = null;
         if (is_array ($ticker) && array_key_exists ('bid', $ticker)) {
-            if ($ticker['bid'])
+            if (gettype ($ticker['bid']) === 'array' && count (array_filter (array_keys ($ticker['bid']), 'is_string')) == 0) {
                 $bid = $this->safe_float($ticker['bid'], 0);
+                $bidVolume = $this->safe_float($ticker['bid'], 1);
+            }
         }
         if (is_array ($ticker) && array_key_exists ('ask', $ticker)) {
-            if ($ticker['ask'])
+            if (gettype ($ticker['ask']) === 'array' && count (array_filter (array_keys ($ticker['ask']), 'is_string')) == 0) {
                 $ask = $this->safe_float($ticker['ask'], 0);
+                $askVolume = $this->safe_float($ticker['ask'], 1);
+            }
         }
+        $open = $this->safe_float($ticker, 'open');
+        $last = $this->safe_float($ticker, 'close');
+        $change = null;
+        $percentage = null;
+        if (($open !== null) && ($last !== null)) {
+            $change = $last - $open;
+            if (($last !== null) && ($last > 0))
+                $percentage = ($change / $open) * 100;
+        }
+        $baseVolume = $this->safe_float($ticker, 'amount');
+        $quoteVolume = $this->safe_float($ticker, 'vol');
+        $vwap = null;
+        if ($baseVolume !== null && $quoteVolume !== null && $baseVolume > 0)
+            $vwap = $quoteVolume / $baseVolume;
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -176,17 +193,17 @@ class huobipro extends Exchange {
             'high' => $ticker['high'],
             'low' => $ticker['low'],
             'bid' => $bid,
+            'bidVolume' => $bidVolume,
             'ask' => $ask,
-            'vwap' => null,
-            'open' => $ticker['open'],
-            'close' => $ticker['close'],
-            'first' => null,
+            'askVolume' => $askVolume,
+            'vwap' => $vwap,
+            'open' => $open,
             'last' => $last,
-            'change' => null,
-            'percentage' => null,
-            'average' => null,
-            'baseVolume' => floatval ($ticker['amount']),
-            'quoteVolume' => $ticker['vol'],
+            'change' => $change,
+            'percentage' => $percentage,
+            'average' => ($open . $last) / 2,
+            'baseVolume' => $baseVolume,
+            'quoteVolume' => $quoteVolume,
             'info' => $ticker,
         );
     }

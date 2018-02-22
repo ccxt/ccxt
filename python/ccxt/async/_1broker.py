@@ -158,24 +158,24 @@ class _1broker (Exchange):
             'resolution': 60,
             'limit': 1,
         }, params))
-        orderbook = await self.fetch_order_book(symbol)
         ticker = result['response'][0]
         timestamp = self.parse8601(ticker['date'])
+        open = float(ticker['o'])
+        last = float(ticker['c'])
+        change = last - open
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': float(ticker['h']),
             'low': float(ticker['l']),
-            'bid': orderbook['bids'][0][0],
-            'ask': orderbook['asks'][0][0],
+            'bid': None,
+            'ask': None,
             'vwap': None,
-            'open': float(ticker['o']),
-            'close': float(ticker['c']),
-            'first': None,
-            'last': None,
-            'change': None,
-            'percentage': None,
+            'open': open,
+            'last': last,
+            'change': change,
+            'percentage': change / open * 100,
             'average': None,
             'baseVolume': None,
             'quoteVolume': None,

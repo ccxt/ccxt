@@ -24,6 +24,7 @@ class bitso (Exchange):
                 'api': 'https://api.bitso.com',
                 'www': 'https://bitso.com',
                 'doc': 'https://bitso.com/api_info',
+                'fees': 'https://bitso.com/fees?l=es',
             },
             'api': {
                 'public': {
@@ -173,22 +174,49 @@ class bitso (Exchange):
     def parse_trade(self, trade, market=None):
         timestamp = self.parse8601(trade['created_at'])
         symbol = None
-        if not market:
-            if 'book' in trade:
-                market = self.markets_by_id[trade['book']]
-        if market:
+        if market is None:
+            marketId = self.safe_string(trade, 'book')
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+        if market is not None:
             symbol = market['symbol']
+        side = self.safe_string(trade, 'side')
+        if side is None:
+            side = self.safe_string(trade, 'maker_side')
+        amount = self.safe_float(trade, 'amount')
+        if amount is None:
+            amount = self.safe_float(trade, 'major')
+        if amount is not None:
+            amount = abs(amount)
+        fee = None
+        feeCost = self.safe_float(trade, 'fees_amount')
+        if feeCost is not None:
+            feeCurrency = self.safe_string(trade, 'fees_currency')
+            if feeCurrency is not None:
+                if feeCurrency in self.currencies_by_id:
+                    feeCurrency = self.currencies_by_id[feeCurrency]['code']
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            }
+        cost = self.safe_float(trade, 'minor')
+        if cost is not None:
+            cost = abs(cost)
+        price = self.safe_float(trade, 'price')
+        orderId = self.safe_string(trade, 'oid')
         return {
             'id': str(trade['tid']),
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'order': None,
+            'order': orderId,
             'type': None,
-            'side': trade['maker_side'],
-            'price': float(trade['price']),
-            'amount': float(trade['amount']),
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -197,6 +225,31 @@ class bitso (Exchange):
         response = await self.publicGetTrades(self.extend({
             'book': market['id'],
         }, params))
+        return self.parse_trades(response['payload'], market, since, limit)
+
+    async def fetch_my_trades(self, symbol=None, since=None, limit=25, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        # the don't support fetching trades starting from a date yet
+        # use the `marker` extra param for that
+        # self is not a typo, the variable name is 'marker'(don't confuse with 'market')
+        markerInParams = ('marker' in list(params.keys()))
+        # warn the user with an exception if the user wants to filter
+        # starting from since timestamp, but does not set the trade id with an extra 'marker' param
+        if (since is not None) and not markerInParams:
+            raise ExchangeError(self.id + ' fetchMyTrades does not support fetching trades starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id')
+        # convert it to an integer unconditionally
+        if markerInParams:
+            params = self.extend(params, {
+                'marker': int(params['marker']),
+            })
+        request = {
+            'book': market['id'],
+            'limit': limit,  # default = 25, max = 100
+            # 'sort': 'desc',  # default = desc
+            # 'marker': id,  # integer id to start from
+        }
+        response = await self.privateGetUserTrades(self.extend(request, params))
         return self.parse_trades(response['payload'], market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -219,20 +272,88 @@ class bitso (Exchange):
         await self.load_markets()
         return await self.privateDeleteOrdersOid({'oid': id})
 
+    def parse_order_status(self, status):
+        statuses = {
+            'partial-fill': 'open',  # self is a common substitution in ccxt
+        }
+        if status in statuses:
+            return statuses['status']
+        return status
+
+    def parse_order(self, order, market=None):
+        side = order['side']
+        status = self.parse_order_status(order['status'])
+        symbol = None
+        if market is None:
+            marketId = order['book']
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+        if market:
+            symbol = market['symbol']
+        orderType = order['type']
+        timestamp = self.parse8601(order['created_at'])
+        amount = float(order['original_amount'])
+        remaining = float(order['unfilled_amount'])
+        filled = amount - remaining
+        result = {
+            'info': order,
+            'id': order['oid'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': symbol,
+            'type': orderType,
+            'side': side,
+            'price': self.safe_float(order, 'price'),
+            'amount': amount,
+            'cost': None,
+            'remaining': remaining,
+            'filled': filled,
+            'status': status,
+            'fee': None,
+        }
+        return result
+
+    async def fetch_open_orders(self, symbol=None, since=None, limit=25, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        # the don't support fetching trades starting from a date yet
+        # use the `marker` extra param for that
+        # self is not a typo, the variable name is 'marker'(don't confuse with 'market')
+        markerInParams = ('marker' in list(params.keys()))
+        # warn the user with an exception if the user wants to filter
+        # starting from since timestamp, but does not set the trade id with an extra 'marker' param
+        if (since is not None) and not markerInParams:
+            raise ExchangeError(self.id + ' fetchOpenOrders does not support fetching orders starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id')
+        # convert it to an integer unconditionally
+        if markerInParams:
+            params = self.extend(params, {
+                'marker': int(params['marker']),
+            })
+        request = {
+            'book': market['id'],
+            'limit': limit,  # default = 25, max = 100
+            # 'sort': 'desc',  # default = desc
+            # 'marker': id,  # integer id to start from
+        }
+        response = await self.privateGetOpenOrders(self.extend(request, params))
+        orders = self.parse_orders(response['payload'], market, since, limit)
+        return orders
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         endpoint = '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        url = self.urls['api'] + endpoint
-        if api == 'public':
+        if method == 'GET':
             if query:
-                url += '?' + self.urlencode(query)
-        else:
+                endpoint += '?' + self.urlencode(query)
+        url = self.urls['api'] + endpoint
+        if api == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())
             request = ''.join([nonce, method, endpoint])
-            if query:
-                body = self.json(query)
-                request += body
+            if method != 'GET':
+                if query:
+                    body = self.json(query)
+                    request += body
             signature = self.hmac(self.encode(request), self.encode(self.secret))
             auth = self.apiKey + ':' + nonce + ':' + signature
             headers = {

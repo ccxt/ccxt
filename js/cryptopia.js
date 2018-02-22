@@ -172,19 +172,25 @@ module.exports = class cryptopia extends Exchange {
         return this.parseOrderBook (orderbook, undefined, 'Buy', 'Sell', 'Price', 'Volume');
     }
 
+    joinMarketIds (ids, glue = '-') {
+        let result = ids[0].toString ();
+        for (let i = 1; i < ids.length; i++) {
+            result += glue + ids[i].toString ();
+        }
+        return result;
+    }
+
     async fetchOrderBooks (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         let ids = undefined;
         if (!symbols) {
-            ids = this.ids.join ('-');
-            // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
-            if (ids.length > 2048) {
-                let numIds = this.ids.length;
+            let numIds = this.ids.length;
+            // max URL length is 2083 characters, including http schema, hostname, tld, etc...
+            if (numIds > 2048)
                 throw new ExchangeError (this.id + ' has ' + numIds.toString () + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks');
-            }
+            ids = this.joinMarketIds (this.ids);
         } else {
-            ids = this.marketIds (symbols);
-            ids = ids.join ('-');
+            ids = this.joinMarketIds (this.marketIds (symbols));
         }
         let response = await this.publicGetGetMarketOrderGroupsIds (this.extend ({
             'ids': ids,
@@ -193,10 +199,10 @@ module.exports = class cryptopia extends Exchange {
         let result = {};
         for (let i = 0; i < orderbooks.length; i++) {
             let orderbook = orderbooks[i];
-            let id = this.safeString (orderbook, 'TradePairId');
+            let id = this.safeInteger (orderbook, 'TradePairId');
             let symbol = id;
-            if (id in this.marketsById) {
-                let market = this.marketsById[id];
+            if (id in this.markets_by_id) {
+                let market = this.markets_by_id[id];
                 symbol = market['symbol'];
             }
             result[symbol] = this.parseOrderBook (orderbook, undefined, 'Buy', 'Sell', 'Price', 'Volume');
@@ -209,6 +215,16 @@ module.exports = class cryptopia extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        let open = this.safeFloat (ticker, 'Open');
+        let last = this.safeFloat (ticker, 'LastPrice');
+        let change = last - open;
+        let baseVolume = this.safeFloat (ticker, 'Volume');
+        let quoteVolume = this.safeFloat (ticker, 'BaseVolume');
+        let vwap = undefined;
+        if (typeof quoteVolume !== 'undefined')
+            if (typeof baseVolume !== 'undefined')
+                if (baseVolume > 0)
+                    vwap = quoteVolume / baseVolume;
         return {
             'symbol': symbol,
             'info': ticker,
@@ -218,16 +234,14 @@ module.exports = class cryptopia extends Exchange {
             'low': parseFloat (ticker['Low']),
             'bid': parseFloat (ticker['BidPrice']),
             'ask': parseFloat (ticker['AskPrice']),
-            'vwap': undefined,
-            'open': parseFloat (ticker['Open']),
-            'close': parseFloat (ticker['Close']),
-            'first': undefined,
-            'last': parseFloat (ticker['LastPrice']),
-            'change': parseFloat (ticker['Change']),
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': parseFloat (ticker['Volume']),
-            'quoteVolume': parseFloat (ticker['BaseVolume']),
+            'vwap': vwap,
+            'open': open,
+            'last': last,
+            'change': change,
+            'percentage': parseFloat (ticker['Change']),
+            'average': (last + open) / 2,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
         };
     }
 
@@ -251,7 +265,7 @@ module.exports = class cryptopia extends Exchange {
             let id = ticker['TradePairId'];
             let recognized = (id in this.markets_by_id);
             if (!recognized)
-                throw new ExchangeError (this.id + ' fetchTickers() returned unrecognized pair id ' + id);
+                throw new ExchangeError (this.id + ' fetchTickers() returned unrecognized pair id ' + id.toString ());
             let market = this.markets_by_id[id];
             let symbol = market['symbol'];
             result[symbol] = this.parseTicker (ticker, market);

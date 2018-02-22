@@ -240,8 +240,8 @@ module.exports = class liqui extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
             let symbol = id;
-            if (id in this.marketsById) {
-                let market = this.marketsById[id];
+            if (id in this.markets_by_id) {
+                let market = this.markets_by_id[id];
                 symbol = market['symbol'];
             }
             result[symbol] = this.parseOrderBook (response[id]);
@@ -550,8 +550,10 @@ module.exports = class liqui extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        // if (!symbol)
-        //     throw new ExchangeError (this.id + ' fetchOrders requires a symbol');
+        if ('fetchOrdersRequiresSymbol' in this.options)
+            if (this.options['fetchOrdersRequiresSymbol'])
+                if (typeof symbol === 'undefined')
+                    throw new ExchangeError (this.id + ' fetchOrders requires a symbol argument');
         await this.loadMarkets ();
         let request = {};
         let market = undefined;

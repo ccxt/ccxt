@@ -190,7 +190,7 @@ class bitz (Exchange):
         ids = list(tickers.keys())
         for i in range(0, len(ids)):
             id = ids[i]
-            market = self.marketsById[id]
+            market = self.markets_by_id[id]
             symbol = market['symbol']
             result[symbol] = self.parse_ticker(tickers[id], market)
         return result

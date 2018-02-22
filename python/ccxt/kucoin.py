@@ -30,6 +30,7 @@ class kucoin (Exchange):
                 'CORS': False,
                 'cancelOrders': True,
                 'createMarketOrder': False,
+                'fetchDepositAddress': True,
                 'fetchTickers': True,
                 'fetchOHLCV': True,  # see the method implementation below
                 'fetchOrder': True,
@@ -116,8 +117,8 @@ class kucoin (Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.0010,
-                    'taker': 0.0010,
+                    'maker': 0.001,
+                    'taker': 0.001,
                 },
                 'funding': {
                     'tierBased': False,
@@ -201,6 +202,8 @@ class kucoin (Exchange):
                 'base': base,
                 'quote': quote,
                 'active': active,
+                'taker': self.safe_float(market, 'feeRate'),
+                'maker': self.safe_float(market, 'feeRate'),
                 'info': market,
                 'lot': math.pow(10, -precision['amount']),
                 'precision': precision,
@@ -216,6 +219,23 @@ class kucoin (Exchange):
                 },
             })
         return result
+
+    def fetch_deposit_address(self, code, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        response = self.privateGetAccountCoinWalletAddress(self.extend({
+            'coin': currency['id'],
+        }, params))
+        data = response['data']
+        address = self.safe_string(data, 'address')
+        tag = self.safe_string(data, 'userOid')
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'status': 'ok',
+            'info': response,
+        }
 
     def fetch_currencies(self, params={}):
         response = self.publicGetMarketOpenCoins(params)

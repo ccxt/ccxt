@@ -19,6 +19,7 @@ module.exports = class hitbtc2 extends hitbtc {
                 'createDepositAddress': true,
                 'fetchDepositAddress': true,
                 'CORS': true,
+                'editOrder': true,
                 'fetchCurrencies': true,
                 'fetchOHLCV': true,
                 'fetchTickers': true,
@@ -687,7 +688,7 @@ module.exports = class hitbtc2 extends hitbtc {
             parseFloat (ohlcv['max']),
             parseFloat (ohlcv['min']),
             parseFloat (ohlcv['close']),
-            parseFloat (ohlcv['volumeQuote']),
+            parseFloat (ohlcv['volume']),
         ];
     }
 
@@ -720,6 +721,24 @@ module.exports = class hitbtc2 extends hitbtc {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        let baseVolume = this.safeFloat (ticker, 'volume');
+        let quoteVolume = this.safeFloat (ticker, 'volumeQuote');
+        let open = this.safeFloat (ticker, 'open');
+        let last = this.safeFloat (ticker, 'last');
+        let change = undefined;
+        let percentage = undefined;
+        let average = undefined;
+        if (typeof last !== 'undefined' && typeof open !== 'undefined') {
+            change = last - open;
+            average = (last + open) / 2;
+            if (open > 0)
+                percentage = change / open * 100;
+        }
+        let vwap = undefined;
+        if (typeof quoteVolume !== 'undefined')
+            if (typeof baseVolume !== 'undefined')
+                if (baseVolume > 0)
+                    vwap = quoteVolume / baseVolume;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -728,16 +747,14 @@ module.exports = class hitbtc2 extends hitbtc {
             'low': this.safeFloat (ticker, 'low'),
             'bid': this.safeFloat (ticker, 'bid'),
             'ask': this.safeFloat (ticker, 'ask'),
-            'vwap': undefined,
-            'open': this.safeFloat (ticker, 'open'),
-            'close': this.safeFloat (ticker, 'close'),
-            'first': undefined,
-            'last': this.safeFloat (ticker, 'last'),
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'volume'),
-            'quoteVolume': this.safeFloat (ticker, 'volumeQuote'),
+            'vwap': vwap,
+            'open': open,
+            'last': last,
+            'change': change,
+            'percentage': percentage,
+            'average': average,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         };
     }
@@ -845,6 +862,27 @@ module.exports = class hitbtc2 extends hitbtc {
         let order = this.parseOrder (response);
         let id = order['id'];
         this.orders[id] = order;
+        return order;
+    }
+
+    async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        // their max accepted length is 32 characters
+        let uuid = this.uuid ();
+        let parts = uuid.split ('-');
+        let requestClientId = parts.join ('');
+        requestClientId = requestClientId.slice (0, 32);
+        let request = {
+            'clientOrderId': id,
+            'requestClientId': requestClientId,
+        };
+        if (typeof amount !== 'undefined')
+            request['quantity'] = this.amountToPrecision (symbol, parseFloat (amount));
+        if (typeof price !== 'undefined')
+            request['price'] = this.priceToPrecision (symbol, price);
+        let response = await this.privatePatchOrderClientOrderId (this.extend (request, params));
+        let order = this.parseOrder (response);
+        this.orders[order['id']] = order;
         return order;
     }
 
@@ -964,11 +1002,11 @@ module.exports = class hitbtc2 extends hitbtc {
         await this.loadMarkets ();
         let request = {
             // 'symbol': 'BTC/USD', // optional
-            // 'sort': 'DESC', // or 'ASC'
-            // 'by': 'timestamp', // or 'id'	String	timestamp by default, or id
-            // 'from':	'Datetime or Number', // ISO 8601
-            // 'till':	'Datetime or Number',
-            // 'limit': 100,
+            // 'sort':   'DESC', // or 'ASC'
+            // 'by':     'timestamp', // or 'id' String timestamp by default, or id
+            // 'from':   'Datetime or Number', // ISO 8601
+            // 'till':   'Datetime or Number',
+            // 'limit':  100,
             // 'offset': 0,
         };
         let market = undefined;

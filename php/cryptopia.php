@@ -171,19 +171,25 @@ class cryptopia extends Exchange {
         return $this->parse_order_book($orderbook, null, 'Buy', 'Sell', 'Price', 'Volume');
     }
 
+    public function join_market_ids ($ids, $glue = '-') {
+        $result = (string) $ids[0];
+        for ($i = 1; $i < count ($ids); $i++) {
+            $result .= $glue . (string) $ids[$i];
+        }
+        return $result;
+    }
+
     public function fetch_order_books ($symbols = null, $params = array ()) {
         $this->load_markets();
         $ids = null;
         if (!$symbols) {
-            $ids = implode ('-', $this->ids);
-            // max URL length is 2083 $symbols, including http schema, hostname, tld, etc...
-            if (strlen ($ids) > 2048) {
-                $numIds = is_array ($this->ids) ? count ($this->ids) : 0;
+            $numIds = is_array ($this->ids) ? count ($this->ids) : 0;
+            // max URL length is 2083 characters, including http schema, hostname, tld, etc...
+            if ($numIds > 2048)
                 throw new ExchangeError ($this->id . ' has ' . (string) $numIds . ' $symbols exceeding max URL length, you are required to specify a list of $symbols in the first argument to fetchOrderBooks');
-            }
+            $ids = $this->join_market_ids ($this->ids);
         } else {
-            $ids = $this->market_ids($symbols);
-            $ids = implode ('-', $ids);
+            $ids = $this->join_market_ids ($this->market_ids($symbols));
         }
         $response = $this->publicGetGetMarketOrderGroupsIds (array_merge (array (
             'ids' => $ids,
@@ -192,10 +198,10 @@ class cryptopia extends Exchange {
         $result = array ();
         for ($i = 0; $i < count ($orderbooks); $i++) {
             $orderbook = $orderbooks[$i];
-            $id = $this->safe_string($orderbook, 'TradePairId');
+            $id = $this->safe_integer($orderbook, 'TradePairId');
             $symbol = $id;
-            if (is_array ($this->marketsById) && array_key_exists ($id, $this->marketsById)) {
-                $market = $this->marketsById[$id];
+            if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$id];
                 $symbol = $market['symbol'];
             }
             $result[$symbol] = $this->parse_order_book($orderbook, null, 'Buy', 'Sell', 'Price', 'Volume');
@@ -208,6 +214,16 @@ class cryptopia extends Exchange {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
+        $open = $this->safe_float($ticker, 'Open');
+        $last = $this->safe_float($ticker, 'LastPrice');
+        $change = $last - $open;
+        $baseVolume = $this->safe_float($ticker, 'Volume');
+        $quoteVolume = $this->safe_float($ticker, 'BaseVolume');
+        $vwap = null;
+        if ($quoteVolume !== null)
+            if ($baseVolume !== null)
+                if ($baseVolume > 0)
+                    $vwap = $quoteVolume / $baseVolume;
         return array (
             'symbol' => $symbol,
             'info' => $ticker,
@@ -217,16 +233,14 @@ class cryptopia extends Exchange {
             'low' => floatval ($ticker['Low']),
             'bid' => floatval ($ticker['BidPrice']),
             'ask' => floatval ($ticker['AskPrice']),
-            'vwap' => null,
-            'open' => floatval ($ticker['Open']),
-            'close' => floatval ($ticker['Close']),
-            'first' => null,
-            'last' => floatval ($ticker['LastPrice']),
-            'change' => floatval ($ticker['Change']),
-            'percentage' => null,
-            'average' => null,
-            'baseVolume' => floatval ($ticker['Volume']),
-            'quoteVolume' => floatval ($ticker['BaseVolume']),
+            'vwap' => $vwap,
+            'open' => $open,
+            'last' => $last,
+            'change' => $change,
+            'percentage' => floatval ($ticker['Change']),
+            'average' => ($last . $open) / 2,
+            'baseVolume' => $baseVolume,
+            'quoteVolume' => $quoteVolume,
         );
     }
 
@@ -250,7 +264,7 @@ class cryptopia extends Exchange {
             $id = $ticker['TradePairId'];
             $recognized = (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id));
             if (!$recognized)
-                throw new ExchangeError ($this->id . ' fetchTickers() returned unrecognized pair $id ' . $id);
+                throw new ExchangeError ($this->id . ' fetchTickers() returned unrecognized pair $id ' . (string) $id);
             $market = $this->markets_by_id[$id];
             $symbol = $market['symbol'];
             $result[$symbol] = $this->parse_ticker($ticker, $market);

@@ -35,11 +35,13 @@ class bitfinex (Exchange):
                 'fetchClosedOrders': True,
                 'fetchDepositAddress': True,
                 'fetchFees': True,
+                'fetchFundingFees': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchTickers': True,
+                'fetchTradingFees': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -460,12 +462,16 @@ class bitfinex (Exchange):
             'fee': fee,
         }
 
-    def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    def fetch_trades(self, symbol, since=None, limit=50, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetTradesSymbol(self.extend({
+        request = {
             'symbol': market['id'],
-        }, params))
+            'limit_trades': limit,
+        }
+        if since is not None:
+            request['timestamp'] = int(since / 1000)
+        response = self.publicGetTradesSymbol(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
@@ -585,7 +591,7 @@ class bitfinex (Exchange):
             ohlcv[5],
         ]
 
-    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=100, params={}):
         self.load_markets()
         market = self.market(symbol)
         v2id = 't' + market['id']
@@ -593,9 +599,8 @@ class bitfinex (Exchange):
             'symbol': v2id,
             'timeframe': self.timeframes[timeframe],
             'sort': 1,
+            'limit': limit,
         }
-        if limit is not None:
-            request['limit'] = limit
         if since is not None:
             request['start'] = since
         request = self.extend(request, params)

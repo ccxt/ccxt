@@ -166,24 +166,24 @@ class _1broker extends Exchange {
             'resolution' => 60,
             'limit' => 1,
         ), $params));
-        $orderbook = $this->fetch_order_book($symbol);
         $ticker = $result['response'][0];
         $timestamp = $this->parse8601 ($ticker['date']);
+        $open = floatval ($ticker['o']);
+        $last = floatval ($ticker['c']);
+        $change = $last - $open;
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => floatval ($ticker['h']),
             'low' => floatval ($ticker['l']),
-            'bid' => $orderbook['bids'][0][0],
-            'ask' => $orderbook['asks'][0][0],
+            'bid' => null,
+            'ask' => null,
             'vwap' => null,
-            'open' => floatval ($ticker['o']),
-            'close' => floatval ($ticker['c']),
-            'first' => null,
-            'last' => null,
-            'change' => null,
-            'percentage' => null,
+            'open' => $open,
+            'last' => $last,
+            'change' => $change,
+            'percentage' => $change / $open * 100,
             'average' => null,
             'baseVolume' => null,
             'quoteVolume' => null,

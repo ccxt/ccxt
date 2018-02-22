@@ -17,6 +17,7 @@ module.exports = class lakebtc extends Exchange {
             'has': {
                 'CORS': true,
                 'createMarketOrder': false,
+                'fetchTickers': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28074120-72b7c38a-6660-11e7-92d9-d9027502281d.jpg',
@@ -114,14 +115,11 @@ module.exports = class lakebtc extends Exchange {
         return this.parseOrderBook (orderbook);
     }
 
-    async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let tickers = await this.publicGetTicker (this.extend ({
-            'symbol': market['id'],
-        }, params));
-        let ticker = tickers[market['id']];
+    parseTicker (ticker, market = undefined) {
         let timestamp = this.milliseconds ();
+        let symbol = undefined;
+        if (typeof market !== 'undefined')
+            symbol = market['symbol'];
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -142,6 +140,31 @@ module.exports = class lakebtc extends Exchange {
             'quoteVolume': undefined,
             'info': ticker,
         };
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        let tickers = await this.publicGetTicker (params);
+        let ids = Object.keys (tickers);
+        let result = {};
+        for (let i = 0; i < ids.length; i++) {
+            let symbol = ids[i];
+            let ticker = tickers[symbol];
+            let market = undefined;
+            if (symbol in this.markets_by_id) {
+                market = this.markets_by_id[symbol];
+                symbol = market['symbol'];
+            }
+            result[symbol] = this.parseTicker (ticker, market);
+        }
+        return result;
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let tickers = await this.publicGetTicker (params);
+        return this.parseTicker (tickers[market['id']], market);
     }
 
     parseTrade (trade, market) {

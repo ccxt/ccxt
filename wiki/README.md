@@ -35,7 +35,7 @@ Welcome to the ccxt wiki!
       - [Market Depth](https://github.com/ccxt/ccxt/wiki/Manual#market-depth)
     - [Price Tickers](https://github.com/ccxt/ccxt/wiki/Manual#price-tickers)
     - [OHLCV Candlestick Charts](https://github.com/ccxt/ccxt/wiki/Manual#ohlcv-candlestick-charts)
-    - [Public Trades And Closed Orders](https://github.com/ccxt/ccxt/wiki/Manual#trades-orders-executions-transactions)
+    - [Public Trades](https://github.com/ccxt/ccxt/wiki/Manual#trades-executions-transactions)
   - [Trading](https://github.com/ccxt/ccxt/wiki/Manual#trading)
     - [Authentication](https://github.com/ccxt/ccxt/wiki/Manual#authentication)
     - [API Keys Setup](https://github.com/ccxt/ccxt/wiki/Manual#api-keys-setup)
@@ -53,7 +53,7 @@ Welcome to the ccxt wiki!
         - [Limit Orders](https://github.com/ccxt/ccxt/wiki/Manual#limit-orders)
         - [Custom Params](https://github.com/ccxt/ccxt/wiki/Manual#custom-order-params)
       - [Canceling Orders](https://github.com/ccxt/ccxt/wiki/Manual#canceling-orders)
-    - [Trades / Transactions / Fills / Executions](https://github.com/ccxt-dev/ccxt/wiki/Manual#trades--transactions--fills--executions)
+    - [Personal Trades](https://github.com/ccxt-dev/ccxt/wiki/Manual#personal-trades)
     - [Funding Your Account](https://github.com/ccxt/ccxt/wiki/Manual#funding-your-account)
       - [Deposit](https://github.com/ccxt/ccxt/wiki/Manual#deposit)
       - [Withdraw](https://github.com/ccxt/ccxt/wiki/Manual#withdraw)
@@ -67,6 +67,7 @@ Welcome to the ccxt wiki!
 - [Overriding The Nonce](https://github.com/ccxt/ccxt/wiki/Manual#overriding-the-nonce)
 - [Error Handling](https://github.com/ccxt/ccxt/wiki/Manual#error-handling)
 - [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting)
+- [How To Submit An Issue](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-submit-an-issue)
 
 ## Examples
 

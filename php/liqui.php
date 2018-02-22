@@ -243,8 +243,8 @@ class liqui extends Exchange {
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $symbol = $id;
-            if (is_array ($this->marketsById) && array_key_exists ($id, $this->marketsById)) {
-                $market = $this->marketsById[$id];
+            if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$id];
                 $symbol = $market['symbol'];
             }
             $result[$symbol] = $this->parse_order_book($response[$id]);
@@ -553,8 +553,10 @@ class liqui extends Exchange {
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        // if (!$symbol)
-        //     throw new ExchangeError ($this->id . ' fetchOrders requires a symbol');
+        if (is_array ($this->options) && array_key_exists ('fetchOrdersRequiresSymbol', $this->options))
+            if ($this->options['fetchOrdersRequiresSymbol'])
+                if ($symbol === null)
+                    throw new ExchangeError ($this->id . ' fetchOrders requires a $symbol argument');
         $this->load_markets();
         $request = array ();
         $market = null;
