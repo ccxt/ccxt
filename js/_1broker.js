@@ -182,6 +182,7 @@ module.exports = class _1broker extends Exchange {
             'ask': undefined,
             'vwap': undefined,
             'open': open,
+            'close': undefined,
             'last': last,
             'change': change,
             'percentage': change / open * 100,
