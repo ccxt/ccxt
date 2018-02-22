@@ -281,6 +281,8 @@ module.exports = class exmo extends Exchange {
             request['pair'] = market['id'];
         }
         let response = await this.privatePostUserTrades (this.extend (request, params));
+        if (typeof market !== 'undefined')
+            response = response[market['id']];
         return this.parseTrades (response, market, since, limit);
     }
 
