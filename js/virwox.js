@@ -163,6 +163,7 @@ module.exports = class virwox extends Exchange {
         let lastKey = keys[length - 1];
         let ticker = tickers[lastKey];
         let timestamp = this.milliseconds ();
+        let close = parseFloat (ticker['close']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -173,8 +174,9 @@ module.exports = class virwox extends Exchange {
             'ask': undefined,
             'vwap': undefined,
             'open': parseFloat (ticker['open']),
-            'close': undefined, // previous day close, if any
-            'last': parseFloat (ticker['close']),
+            'close': close,
+            'last': close,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
