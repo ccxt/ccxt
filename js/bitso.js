@@ -259,15 +259,23 @@ module.exports = class bitso extends Exchange {
         return await this.privateDeleteOrdersOid ({ 'oid': id });
     }
 
+    parseOrderStatus (status) {
+        let statuses = {
+            'partial-fill': 'open', // this is a common substitution in ccxt
+        };
+        if (status in statuses)
+            return statuses['status'];
+        return status;
+    }
+
     parseOrder (order, market = undefined) {
         let side = order['side'];
-        let status = order['status'];
+        let status = this.parseOrderStatus (order['status']);
         let symbol = undefined;
-        if (!market) {
-            let exchange = order['book'].toUpperCase ();
-            if (exchange in this.markets_by_id) {
-                market = this.markets_by_id[exchange];
-            }
+        if (typeof market === 'undefined') {
+            let marketId = order['book'];
+            if (marketId in this.markets_by_id)
+                market = this.markets_by_id[marketId];
         }
         if (market)
             symbol = market['symbol'];
@@ -285,8 +293,8 @@ module.exports = class bitso extends Exchange {
             'type': orderType,
             'side': side,
             'price': this.safeFloat (order, 'price'),
-            'average': undefined,
             'amount': amount,
+            'cost': undefined,
             'remaining': remaining,
             'filled': filled,
             'status': status,
