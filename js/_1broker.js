@@ -170,8 +170,8 @@ module.exports = class _1broker extends Exchange {
         let ticker = result['response'][0];
         let timestamp = this.parse8601 (ticker['date']);
         let open = parseFloat (ticker['o']);
-        let last = parseFloat (ticker['c']);
-        let change = last - open;
+        let close = parseFloat (ticker['c']);
+        let change = close - open;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -182,7 +182,9 @@ module.exports = class _1broker extends Exchange {
             'ask': undefined,
             'vwap': undefined,
             'open': open,
-            'last': last,
+            'close': close,
+            'last': close,
+            'previousClose': undefined,
             'change': change,
             'percentage': change / open * 100,
             'average': undefined,

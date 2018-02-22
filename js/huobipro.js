@@ -23,6 +23,7 @@ module.exports = class huobipro extends Exchange {
                 'CORS': false,
                 'fetchOHCLV': true,
                 'fetchOrders': true,
+                'fetchOrder': true,
                 'fetchOpenOrders': true,
                 'withdraw': true,
             },
@@ -174,12 +175,14 @@ module.exports = class huobipro extends Exchange {
             }
         }
         let open = this.safeFloat (ticker, 'open');
-        let last = this.safeFloat (ticker, 'close');
+        let close = this.safeFloat (ticker, 'close');
         let change = undefined;
         let percentage = undefined;
-        if ((typeof open !== 'undefined') && (typeof last !== 'undefined')) {
-            change = last - open;
-            if ((typeof last !== 'undefined') && (last > 0))
+        let average = undefined;
+        if ((typeof open !== 'undefined') && (typeof close !== 'undefined')) {
+            change = close - open;
+            average = (open + close) / 2;
+            if ((typeof close !== 'undefined') && (close > 0))
                 percentage = (change / open) * 100;
         }
         let baseVolume = this.safeFloat (ticker, 'amount');
@@ -199,10 +202,11 @@ module.exports = class huobipro extends Exchange {
             'askVolume': askVolume,
             'vwap': vwap,
             'open': open,
-            'last': last,
+            'close': close,
+            'last': close,
             'change': change,
             'percentage': percentage,
-            'average': (open + last) / 2,
+            'average': average,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
@@ -374,6 +378,14 @@ module.exports = class huobipro extends Exchange {
         }, params));
     }
 
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privateGetOrderOrdersId (this.extend ({
+            'id': id,
+        }, params));
+        return this.parseOrder (response);
+    }
+
     parseOrderStatus (status) {
         if (status === 'partial-filled') {
             return 'open';
@@ -419,7 +431,7 @@ module.exports = class huobipro extends Exchange {
             average = parseFloat (cost / filled);
         let result = {
             'info': order,
-            'id': order['id'],
+            'id': order['id'].toString (),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,

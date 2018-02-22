@@ -468,6 +468,7 @@ class binance (Exchange):
                 market = self.markets_by_id[symbol]
         if market is not None:
             symbol = market['symbol']
+        last = self.safe_float(ticker, 'lastPrice')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -480,7 +481,9 @@ class binance (Exchange):
             'askVolume': self.safe_float(ticker, 'askQty'),
             'vwap': self.safe_float(ticker, 'weightedAvgPrice'),
             'open': self.safe_float(ticker, 'openPrice'),
-            'last': self.safe_float(ticker, 'lastPrice'),
+            'close': last,
+            'last': last,
+            'previousClose': self.safe_float(ticker, 'prevClosePrice'),  # previous day close
             'change': self.safe_float(ticker, 'priceChange'),
             'percentage': self.safe_float(ticker, 'priceChangePercent'),
             'average': None,

@@ -150,8 +150,8 @@ module.exports = class bithumb extends Exchange {
         if (market)
             symbol = market['symbol'];
         let open = this.safeFloat (ticker, 'opening_price');
-        let last = this.safeFloat (ticker, 'closing_price');
-        let change = last - open;
+        let close = this.safeFloat (ticker, 'closing_price');
+        let change = close - open;
         let vwap = this.safeFloat (ticker, 'average_price');
         let baseVolume = this.safeFloat (ticker, 'volume_1day');
         return {
@@ -164,10 +164,12 @@ module.exports = class bithumb extends Exchange {
             'ask': this.safeFloat (ticker, 'sell_price'),
             'vwap': vwap,
             'open': open,
-            'last': last,
+            'close': close,
+            'last': close,
+            'previousClose': undefined,
             'change': change,
             'percentage': change / open * 100,
-            'average': (open + last) / 2,
+            'average': (open + close) / 2,
             'baseVolume': baseVolume,
             'quoteVolume': baseVolume * vwap,
             'info': ticker,

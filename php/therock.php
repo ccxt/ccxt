@@ -151,6 +151,7 @@ class therock extends Exchange {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
+        $last = floatval ($ticker['last']);
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -161,9 +162,9 @@ class therock extends Exchange {
             'ask' => floatval ($ticker['ask']),
             'vwap' => null,
             'open' => floatval ($ticker['open']),
-            'close' => floatval ($ticker['close']),
-            'first' => null,
-            'last' => floatval ($ticker['last']),
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => floatval ($ticker['close']), // previous day close, if any
             'change' => null,
             'percentage' => null,
             'average' => null,

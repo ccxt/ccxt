@@ -26,6 +26,7 @@ class huobipro (Exchange):
                 'CORS': False,
                 'fetchOHCLV': True,
                 'fetchOrders': True,
+                'fetchOrder': True,
                 'fetchOpenOrders': True,
                 'withdraw': True,
             },
@@ -170,12 +171,14 @@ class huobipro (Exchange):
                 ask = self.safe_float(ticker['ask'], 0)
                 askVolume = self.safe_float(ticker['ask'], 1)
         open = self.safe_float(ticker, 'open')
-        last = self.safe_float(ticker, 'close')
+        close = self.safe_float(ticker, 'close')
         change = None
         percentage = None
-        if (open is not None) and(last is not None):
-            change = last - open
-            if (last is not None) and(last > 0):
+        average = None
+        if (open is not None) and(close is not None):
+            change = close - open
+            average = (open + close) / 2
+            if (close is not None) and(close > 0):
                 percentage = (change / open) * 100
         baseVolume = self.safe_float(ticker, 'amount')
         quoteVolume = self.safe_float(ticker, 'vol')
@@ -194,10 +197,11 @@ class huobipro (Exchange):
             'askVolume': askVolume,
             'vwap': vwap,
             'open': open,
-            'last': last,
+            'close': close,
+            'last': close,
             'change': change,
             'percentage': percentage,
-            'average': (open + last) / 2,
+            'average': average,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
@@ -347,6 +351,13 @@ class huobipro (Exchange):
             'status': open,
         }, params))
 
+    def fetch_order(self, id, symbol=None, params={}):
+        self.load_markets()
+        response = self.privateGetOrderOrdersId(self.extend({
+            'id': id,
+        }, params))
+        return self.parse_order(response)
+
     def parse_order_status(self, status):
         if status == 'partial-filled':
             return 'open'
@@ -386,7 +397,7 @@ class huobipro (Exchange):
             average = float(cost / filled)
         result = {
             'info': order,
-            'id': order['id'],
+            'id': str(order['id']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,

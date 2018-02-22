@@ -153,6 +153,7 @@ module.exports = class btcchina extends Exchange {
 
     parseTicker (ticker, market) {
         let timestamp = ticker['date'] * 1000;
+        let last = parseFloat (ticker['last']);
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -162,7 +163,9 @@ module.exports = class btcchina extends Exchange {
             'ask': parseFloat (ticker['sell']),
             'vwap': parseFloat (ticker['vwap']),
             'open': parseFloat (ticker['open']),
-            'last': parseFloat (ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,

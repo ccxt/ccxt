@@ -1044,24 +1044,26 @@ A price ticker contains statistics for a particular market/symbol for some perio
 
 ```JavaScript
 {
-    'symbol':      string symbol of the market ('BTC/USD', 'ETH/BTC', ...)
-    'info':      { the original non-modified unparsed reply from exchange API },
-    'timestamp':   int (64-bit Unix Timestamp in milliseconds since Epoch 1 Jan 1970)
-    'datetime':    ISO8601 datetime string with milliseconds
-    'high':        float, // highest price
-    'low':         float, // lowest price
-    'bid':         float, // orderbook's current best bid (buy) price
-    'bidVolume':   float, // orderbook's current best bid (buy) amount
-    'ask':         float, // orderbook's current best ask (sell) price
-    'askVolume':   float, // orderbook's current best ask (sell) amount
-    'vwap':        float, // volume weighed average price
-    'open':        float, // open price)
-    'last':        float, // price of last trade
-    'change':      float, // absolute change, `last - open`
-    'percentage':  float, // relative change, `(change/open) * 100`
-    'average':     float, // average price, `(last + open) / 2`
-    'baseVolume':  float, // volume of base currency
-    'quoteVolume': float, // volume of quote currency
+    'symbol':        string symbol of the market ('BTC/USD', 'ETH/BTC', ...)
+    'info':        { the original non-modified unparsed reply from exchange API },
+    'timestamp':     int (64-bit Unix Timestamp in milliseconds since Epoch 1 Jan 1970)
+    'datetime':      ISO8601 datetime string with milliseconds
+    'high':          float, // highest price
+    'low':           float, // lowest price
+    'bid':           float, // current best bid (buy) price
+    'bidVolume':     float, // current best bid (buy) amount
+    'ask':           float, // current best ask (sell) price
+    'askVolume':     float, // current best ask (sell) amount
+    'vwap':          float, // volume weighed average price
+    'open':          float, // opening price
+    'close':         float, // price of last trade (closing price for current period)
+    'last':          float, // same as `close`, duplicated for convenience
+    'previousClose': float, // closing price for the previous period
+    'change':        float, // absolute change, `last - open`
+    'percentage':    float, // relative change, `(change/open) * 100`
+    'average':       float, // average price, `(last + open) / 2`
+    'baseVolume':    float, // volume of base currency
+    'quoteVolume':   float, // volume of quote currency
 }
 ```
 

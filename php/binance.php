@@ -466,6 +466,7 @@ class binance extends Exchange {
         }
         if ($market !== null)
             $symbol = $market['symbol'];
+        $last = $this->safe_float($ticker, 'lastPrice');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -478,7 +479,9 @@ class binance extends Exchange {
             'askVolume' => $this->safe_float($ticker, 'askQty'),
             'vwap' => $this->safe_float($ticker, 'weightedAvgPrice'),
             'open' => $this->safe_float($ticker, 'openPrice'),
-            'last' => $this->safe_float($ticker, 'lastPrice'),
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => $this->safe_float($ticker, 'prevClosePrice'), // previous day close
             'change' => $this->safe_float($ticker, 'priceChange'),
             'percentage' => $this->safe_float($ticker, 'priceChangePercent'),
             'average' => null,

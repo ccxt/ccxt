@@ -264,8 +264,8 @@ class bitmex (Exchange):
         ticker = tickers[0]
         timestamp = self.milliseconds()
         open = self.safe_float(ticker, 'open')
-        last = self.safe_float(ticker, 'close')
-        change = last - open
+        close = self.safe_float(ticker, 'close')
+        change = close - open
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -276,10 +276,12 @@ class bitmex (Exchange):
             'ask': float(quote['askPrice']),
             'vwap': float(ticker['vwap']),
             'open': open,
-            'last': last,
+            'close': close,
+            'last': close,
+            'previousClose': None,
             'change': change,
             'percentage': change / open * 100,
-            'average': (last + open) / 2,
+            'average': (open + close) / 2,
             'baseVolume': float(ticker['homeNotional']),
             'quoteVolume': float(ticker['foreignNotional']),
             'info': ticker,

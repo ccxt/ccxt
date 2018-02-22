@@ -169,8 +169,8 @@ class _1broker extends Exchange {
         $ticker = $result['response'][0];
         $timestamp = $this->parse8601 ($ticker['date']);
         $open = floatval ($ticker['o']);
-        $last = floatval ($ticker['c']);
-        $change = $last - $open;
+        $close = floatval ($ticker['c']);
+        $change = $close - $open;
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -181,7 +181,9 @@ class _1broker extends Exchange {
             'ask' => null,
             'vwap' => null,
             'open' => $open,
-            'last' => $last,
+            'close' => $close,
+            'last' => $close,
+            'previousClose' => null,
             'change' => $change,
             'percentage' => $change / $open * 100,
             'average' => null,
