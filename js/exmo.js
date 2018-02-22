@@ -333,16 +333,25 @@ module.exports = class exmo extends Exchange {
         let timestamp = undefined;
         let iso8601 = undefined;
         let symbol = undefined;
+        let side = this.safeString (order, 'type');
         if (typeof market === 'undefined') {
             if ('in_currency' in order) {
                 if ('out_currency' in order) {
-                    let marketId = order['in_currency'] + '_' + order['out_currency'];
+                    let marketId = undefined;
+                    if (side === 'buy')
+                        marketId = order['in_currency'] + '_' + order['out_currency'];
+                    else
+                        marketId = order['out_currency'] + '_' + order['in_currency'];
                     if (marketId in this.markets_by_id)
                         market = this.markets_by_id[marketId];
                 }
             }
         }
-        let amount = this.safeFloat (order, 'in_amount');
+        let amount = undefined;
+        if (side === 'buy')
+            amount = this.safeFloat (order, 'in_amount');
+        else
+            amount = this.safeFloat (order, 'out_amount');
         let filled = 0.0;
         let trades = [];
         let transactions = this.safeValue (order, 'trades');
@@ -369,19 +378,21 @@ module.exports = class exmo extends Exchange {
                 }
             }
         }
+        console.log ('\n\ntrades', trades, '\n\n');
+        console.log ('\n\nfilled', filled, filled === 0.0, '\n\n');
+        console.log ('\n\namount', amount, amount - filled, amount - filled === 0, '\n\n');
         if (typeof timestamp !== 'undefined')
             iso8601 = this.iso8601 (timestamp);
         let remaining = undefined;
         if (typeof amount !== 'undefined')
             remaining = amount - filled;
         let status = undefined;
-        if (filled === 0.0)
+        if (filled === 0)
             status = 'open';
-        else if (filled === amount)
+        else if (remaining === 0)
             status = 'closed';
         else
             status = 'partial';
-        let side = this.safeString (order, 'type');
         if (typeof market === 'undefined')
             market = this.getMarketFromTrades (trades);
         let feeCurrency = undefined;
@@ -427,6 +438,24 @@ module.exports = class exmo extends Exchange {
         if (numSymbols === 1)
             return this.markets[symbols[0]];
         return undefined;
+    }
+
+    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+        let market = this.markets[symbol];
+        let rate = market[takerOrMaker];
+        let cost = parseFloat (this.costToPrecision (symbol, amount * rate));
+        let key = 'quote';
+        if (side === 'sell') {
+            cost *= price;
+        } else {
+            key = 'base';
+        }
+        return {
+            'type': takerOrMaker,
+            'currency': market[key],
+            'rate': rate,
+            'cost': parseFloat (this.feeToPrecision (symbol, cost)),
+        };
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
