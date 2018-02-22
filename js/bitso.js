@@ -180,25 +180,52 @@ module.exports = class bitso extends Exchange {
     parseTrade (trade, market = undefined) {
         let timestamp = this.parse8601 (trade['created_at']);
         let symbol = undefined;
-        if (typeof market !== 'undefined') {
-            if ('book' in trade)
-                market = this.markets_by_id[trade['book']];
+        if (typeof market === 'undefined') {
+            let marketId = this.safeString (trade, 'book');
+            if (marketId in this.markets_by_id)
+                market = this.markets_by_id[marketId];
         }
-        if (market)
+        if (typeof market !== 'undefined')
             symbol = market['symbol'];
-        let side = trade['maker_side'] || trade['side'];
+        let side = this.safeString (trade, 'side');
+        if (typeof side === 'undefined')
+            side = this.safeString (trade, 'maker_side');
+        let amount = this.safeFloat (trade, 'amount');
+        if (typeof amount === 'undefined')
+            amount = this.safeFloat (trade, 'major');
+        if (typeof amount !== 'undefined')
+            amount = Math.abs (amount);
+        let fee = undefined;
+        let feeCost = this.safeFloat (trade, 'fees_amount');
+        if (typeof feeCost !== 'undefined') {
+            let feeCurrency = this.safeString (trade, 'fees_currency');
+            if (typeof feeCurrency !== 'undefined') {
+                if (feeCurrency in this.currencies_by_id)
+                    feeCurrency = this.currencies_by_id[feeCurrency]['code'];
+            }
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            };
+        }
+        let cost = this.safeFloat (trade, 'minor');
+        if (typeof cost !== 'undefined')
+            cost = Math.abs (cost);
+        let price = this.safeFloat (trade, 'price');
+        let orderId = this.safeString (trade, 'oid');
         return {
             'id': trade['tid'].toString (),
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'order': undefined,
+            'order': orderId,
             'type': undefined,
             'side': side,
-            'price': parseFloat (trade['price']),
-            'amount': trade['amount'] ? parseFloat (trade['amount']) : parseFloat (trade['major']), // ?
-            'fee': trade['fees_amount'],
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
         };
     }
 
