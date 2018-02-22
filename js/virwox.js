@@ -157,7 +157,6 @@ module.exports = class virwox extends Exchange {
             'startDate': this.ymdhms (start),
             'HLOC': 1,
         }, params));
-        let marketPrice = await this.fetchMarketPrice (symbol, params);
         let tickers = response['result']['priceVolumeList'];
         let keys = Object.keys (tickers);
         let length = keys.length;
@@ -170,13 +169,12 @@ module.exports = class virwox extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'high': parseFloat (ticker['high']),
             'low': parseFloat (ticker['low']),
-            'bid': marketPrice['bid'],
-            'ask': marketPrice['ask'],
+            'bid': undefined,
+            'ask': undefined,
             'vwap': undefined,
             'open': parseFloat (ticker['open']),
-            'close': parseFloat (ticker['close']),
-            'first': undefined,
-            'last': undefined,
+            'close': undefined, // previous day close, if any
+            'last': parseFloat (ticker['close']),
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
