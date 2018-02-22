@@ -20,6 +20,7 @@ module.exports = class exmo extends Exchange {
                 'fetchOrder': true,
                 'fetchOpenOrders': true,
                 'fetchOrderBooks': true,
+                'fetchMyTrades': true,
                 'fetchTickers': true,
                 'withdraw': true,
             },
@@ -266,6 +267,18 @@ module.exports = class exmo extends Exchange {
             'pair': market['id'],
         }, params));
         return this.parseTrades (response[market['id']], market, since, limit);
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let request = {};
+        let market = undefined;
+        if (typeof symbol !== 'undefined') {
+            market = this.market (symbol);
+            request['pair'] = market['id'];
+        }
+        let response = await this.privatePostUserTrades (this.extend (request, params));
+        return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
