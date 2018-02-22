@@ -327,12 +327,14 @@ module.exports = class exmo extends Exchange {
             market = this.market (symbol);
         }
         let orders = await this.privatePostUserOpenOrders ();
+        if (typeof market !== 'undefined')
+            orders = orders[market['id']];
         return this.parseOrders (orders, market, since, limit);
     }
 
     parseOrder (order, market = undefined) {
-        let id = undefined;
-        let timestamp = undefined;
+        let id = this.safeString (order, 'order_id');
+        let timestamp = this.safeInteger (order, 'created');
         let iso8601 = undefined;
         let symbol = undefined;
         let side = this.safeString (order, 'type');
