@@ -180,12 +180,13 @@ module.exports = class bitso extends Exchange {
     parseTrade (trade, market = undefined) {
         let timestamp = this.parse8601 (trade['created_at']);
         let symbol = undefined;
-        if (!market) {
+        if (typeof market !== 'undefined') {
             if ('book' in trade)
                 market = this.markets_by_id[trade['book']];
         }
         if (market)
             symbol = market['symbol'];
+        let side = trade['maker_side'] || trade['side'];
         return {
             'id': trade['tid'].toString (),
             'info': trade,
@@ -194,9 +195,9 @@ module.exports = class bitso extends Exchange {
             'symbol': symbol,
             'order': undefined,
             'type': undefined,
-            'side': trade['maker_side'] || trade['side'],
+            'side': side,
             'price': parseFloat (trade['price']),
-            'amount': trade['amount'] ? parseFloat (trade['amount']) : parseFloat (trade['major']), //should be Math.abs?
+            'amount': trade['amount'] ? parseFloat (trade['amount']) : parseFloat (trade['major']), // ?
             'fee': trade['fees_amount'],
         };
     }
@@ -210,14 +211,26 @@ module.exports = class bitso extends Exchange {
         return this.parseTrades (response['payload'], market, since, limit);
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = 25, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let request = { 'book': market['id'] };
-        if (typeof limit !== 'undefined')
-            request['limit'] = limit;
-        if (typeof since !== 'undefined')
-            request['marker'] = since; //this sould be an ID
+        // the don't support fetching trades starting from a date yet
+        // use the `marker` extra param for that
+        // this is not a typo, the variable name is 'marker' (don't confuse with 'market')
+        let markerInParams = 'marker' in params;
+        // warn the user with an exception if the user wants to filter
+        // starting from since timestamp, but does not set the trade id with an extra 'marker' param
+        if ((typeof since !== 'undefined') && !markerInParams)
+            throw ExchangeError (this.id + ' does not support fetching trades starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id');
+        // convert it to an integer unconditionally
+        if (markerInParams)
+            params['marker'] = parseInt (params['marker']);
+        let request = {
+            'book': market['id'],
+            'limit': limit, // default = 25, max = 100
+            // 'sort': 'desc', // default = desc
+            // 'marker': id, // integer id to start from
+        };
         let response = await this.privateGetUserTrades (this.extend (request, params));
         return this.parseTrades (response['payload'], market, since, limit);
     }
@@ -257,7 +270,7 @@ module.exports = class bitso extends Exchange {
         if (market)
             symbol = market['symbol'];
         let orderType = order['type'];
-        let timestamp = this.parse8601 (order['created_at'])
+        let timestamp = this.parse8601 (order['created_at']);
         let result = {
             'info': order,
             'id': order['oid'],
@@ -289,20 +302,20 @@ module.exports = class bitso extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let endpoint = '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (method === 'GET' && this.urlencode (query)) {
-            endpoint += '?' + this.urlencode (query);
+        if (method === 'GET') {
+            if (Object.keys (query).length)
+                endpoint += '?' + this.urlencode (query);
         }
         let url = this.urls['api'] + endpoint;
-        if (api === 'public') {
-            if (Object.keys (query).length)
-                url += '?' + this.urlencode (query);
-        } else {
+        if (api === 'private') {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             let request = [ nonce, method, endpoint ].join ('');
-            if (Object.keys (query).length && !method === 'GET') {
-                body = this.json (query);
-                request += body;
+            if (method !== 'GET') {
+                if (Object.keys (query).length) {
+                    body = this.json (query);
+                    request += body;
+                }
             }
             let signature = this.hmac (this.encode (request), this.encode (this.secret));
             let auth = this.apiKey + ':' + nonce + ':' + signature;
