@@ -254,7 +254,7 @@ module.exports = class exmo extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
-            'order': trade['order_id'],
+            'order': trade['order_id'].toString (),
             'type': undefined,
             'side': trade['type'],
             'price': parseFloat (trade['price']),
