@@ -225,7 +225,7 @@ module.exports = class bitso extends Exchange {
         // convert it to an integer unconditionally
         if (markerInParams)
             params = this.extend (params, {
-                'marker': parseInt (params['marker'])
+                'marker': parseInt (params['marker']),
             });
         let request = {
             'book': market['id'],
@@ -309,7 +309,7 @@ module.exports = class bitso extends Exchange {
         // convert it to an integer unconditionally
         if (markerInParams)
             params = this.extend (params, {
-                'marker': parseInt (params['marker'])
+                'marker': parseInt (params['marker']),
             });
         let request = {
             'book': market['id'],
