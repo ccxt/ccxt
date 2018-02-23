@@ -597,7 +597,7 @@ module.exports = class okcoinusd extends Exchange {
          // for some reason they require to supply a pair of currencies for withdrawing one currency
         let currencyId = currency['id'] + '_usd';
         let request = {
-            'symbol': ,
+            'symbol': currencyId,
             'withdraw_address': address,
             'withdraw_amount': amount,
             'target': 'address', // or okcn, okcom, okex
