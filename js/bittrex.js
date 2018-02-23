@@ -248,7 +248,7 @@ module.exports = class bittrex extends Exchange {
             if (typeof previous !== 'undefined') {
                 change = last - previous;
                 if (previous > 0)
-                    percentage = change / previous;
+                    percentage = (change / previous) * 100;
             }
         return {
             'symbol': symbol,
