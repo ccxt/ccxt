@@ -280,21 +280,22 @@ class bitz extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->privatePostTradeAdd (array_merge (array (
+        $request = array (
             'coin' => $market['id'],
             'type' => $side,
             'price' => $this->price_to_precision($symbol, $price),
-            'number' => $this->amount_to_precision($symbol, $amount),
+            'number' => $this->amount_to_string($symbol, $amount),
             'tradepwd' => $this->password,
-        ), $params));
-        $order = array (
-            'id' => $response['data'],
+        );
+        $response = $this->privatePostTradeAdd (array_merge ($request, $params));
+        $id = $response['data']['id'];
+        $order = $this->parse_order(array (
+            'id' => $id,
             'price' => $price,
             'number' => $amount,
             'type' => $side,
-        );
-        $id = $order['id'];
-        $this->orders[$id] = $this->parse_order($order, $market);
+        ), $market);
+        $this->orders[$id] = $order;
         return $order;
     }
 
