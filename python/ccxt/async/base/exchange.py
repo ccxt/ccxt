@@ -61,7 +61,14 @@ class Exchange(BaseExchange):
         }, self.tokenBucket))
 
     def __del__(self):
-        asyncio.ensure_future(self.session.close(), loop=self.asyncio_loop)
+        if self.session is not None:
+            self.logger.warning("CCXT Exchange object was not closed before destruction. To close an exchange object "
+                                "and release the resources used by it you need to explicitly run the .close() coroutine.")
+
+    async def close(self):
+        if self.session is not None:
+            await self.session.close()
+            self.session = None
 
     async def wait_for_token(self):
         while self.rateLimitTokens <= 1:
