@@ -593,8 +593,10 @@ class okcoinusd extends Exchange {
         $currency = $this->currency ($code);
         // if ($amount < 0.01)
         //     throw new ExchangeError ($this->id . ' withdraw() requires $amount > 0.01');
+        // for some reason they require to supply a pair of currencies for withdrawing one $currency
+        $currencyId = $currency['id'] . '_usd';
         $request = array (
-            'symbol' => $currency['id'],
+            'symbol' => $currencyId,
             'withdraw_address' => $address,
             'withdraw_amount' => $amount,
             'target' => 'address', // or okcn, okcom, okex
