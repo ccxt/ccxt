@@ -13,7 +13,7 @@ module.exports = class exmo extends Exchange {
             'id': 'exmo',
             'name': 'EXMO',
             'countries': [ 'ES', 'RU' ], // Spain, Russia
-            'rateLimit': 1000, // once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
+            'rateLimit': 350, // once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
             'version': 'v1',
             'has': {
                 'CORS': false,
@@ -202,6 +202,7 @@ module.exports = class exmo extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        const last = parseFloat (ticker['last_trade']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -212,9 +213,9 @@ module.exports = class exmo extends Exchange {
             'ask': parseFloat (ticker['sell_price']),
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last_trade']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': parseFloat (ticker['avg']),
@@ -288,11 +289,7 @@ module.exports = class exmo extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let prefix = '';
-        if (type === 'market')
-            prefix = 'market_';
-        if (typeof price === 'undefined')
-            price = 0;
+        let prefix = (type === 'market') ? 'market_' : '';
         let order = {
             'pair': this.marketId (symbol),
             'quantity': amount,
@@ -343,23 +340,22 @@ module.exports = class exmo extends Exchange {
         let side = this.safeString (order, 'type');
         if (typeof market === 'undefined') {
             let marketId = undefined;
-            if ('pair' in order)
+            if ('pair' in order) {
                 marketId = order['pair'];
-            else if ('in_currency' in order)
-                if ('out_currency' in order)
-                    if (side === 'buy')
-                        marketId = order['in_currency'] + '_' + order['out_currency'];
-                    else
-                        marketId = order['out_currency'] + '_' + order['in_currency'];
+            } else if (('in_currency' in order) && ('out_currency' in order)) {
+                if (side === 'buy')
+                    marketId = order['in_currency'] + '_' + order['out_currency'];
+                else
+                    marketId = order['out_currency'] + '_' + order['in_currency'];
+            }
             if (marketId in this.markets_by_id)
                 market = this.markets_by_id[marketId];
         }
         let amount = this.safeFloat (order, 'quantity');
-        if (typeof amount === 'undefined')
-            if (side === 'buy')
-                amount = this.safeFloat (order, 'in_amount');
-            else
-                amount = this.safeFloat (order, 'out_amount');
+        if (typeof amount === 'undefined') {
+            let amountField = (side === 'buy') ? 'in_amount' : 'out_amount';
+            amount = this.safeFloat (order, amountField);
+        }
         let cost = this.safeFloat (order, 'amount');
         let filled = undefined;
         if (typeof cost !== 'undefined')
@@ -395,7 +391,7 @@ module.exports = class exmo extends Exchange {
         let remaining = undefined;
         if (typeof amount !== 'undefined')
             remaining = amount - filled;
-        let status = undefined;
+        let status = this.safeString (order, 'status'); // in case we need to redefine it for canceled orders
         if (filled <= amount)
             status = 'closed';
         else
