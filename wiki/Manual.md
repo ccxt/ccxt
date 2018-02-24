@@ -78,7 +78,7 @@ The ccxt library currently supports the following 99 cryptocurrency exchange mar
 |![bitstamp](https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg)           | bitstamp           | [Bitstamp](https://www.bitstamp.net)                      | 2   | [API](https://www.bitstamp.net/api)                                                          | UK                                      |
 |![bitstamp1](https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg)          | bitstamp1          | [Bitstamp v1](https://www.bitstamp.net)                   | 1   | [API](https://www.bitstamp.net/api)                                                          | UK                                      |
 |![bittrex](https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg)            | bittrex            | [Bittrex](https://bittrex.com)                            | 1.1 | [API](https://bittrex.com/Home/Api)                                                          | US                                      |
-|![bitz](https://user-images.githubusercontent.com/1294454/35862606-4f554f14-0b5d-11e8-957d-35058c504b6f.jpg)               | bitz               | [Bit-Z](https://www.bit-z.com/)                           | *   | [API](https://www.bit-z.com/api.html)                                                        | Hong Kong                               |
+|![bitz](https://user-images.githubusercontent.com/1294454/35862606-4f554f14-0b5d-11e8-957d-35058c504b6f.jpg)               | bitz               | [Bit-Z](https://www.bit-z.com)                            | 1   | [API](https://www.bit-z.com/api.html)                                                        | Hong Kong                               |
 |![bl3p](https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg)               | bl3p               | [BL3P](https://bl3p.eu)                                   | 1   | [API](https://github.com/BitonicNL/bl3p-api/tree/master/docs)                                | Netherlands, EU                         |
 |![bleutrade](https://user-images.githubusercontent.com/1294454/30303000-b602dbe6-976d-11e7-956d-36c5049c01e7.jpg)          | bleutrade          | [Bleutrade](https://bleutrade.com)                        | 2   | [API](https://bleutrade.com/help/API)                                                        | Brazil                                  |
 |![braziliex](https://user-images.githubusercontent.com/1294454/34703593-c4498674-f504-11e7-8d14-ff8e44fb78c1.jpg)          | braziliex          | [Braziliex](https://braziliex.com/)                       | *   | [API](https://braziliex.com/exchange/api.php)                                                | Brazil                                  |
@@ -1044,24 +1044,26 @@ A price ticker contains statistics for a particular market/symbol for some perio
 
 ```JavaScript
 {
-    'symbol':      string symbol of the market ('BTC/USD', 'ETH/BTC', ...)
-    'info':      { the original non-modified unparsed reply from exchange API },
-    'timestamp':   int (64-bit Unix Timestamp in milliseconds since Epoch 1 Jan 1970)
-    'datetime':    ISO8601 datetime string with milliseconds
-    'high':        float, // highest price
-    'low':         float, // lowest price
-    'bid':         float, // orderbook's current best bid (buy) price
-    'bidVolume':   float, // orderbook's current best bid (buy) amount
-    'ask':         float, // orderbook's current best ask (sell) price
-    'askVolume':   float, // orderbook's current best ask (sell) amount
-    'vwap':        float, // volume weighed average price
-    'open':        float, // open price)
-    'last':        float, // price of last trade
-    'change':      float, // absolute change, `last - open`
-    'percentage':  float, // relative change, `(change/open) * 100`
-    'average':     float, // average price, `(last + open) / 2`
-    'baseVolume':  float, // volume of base currency
-    'quoteVolume': float, // volume of quote currency
+    'symbol':        string symbol of the market ('BTC/USD', 'ETH/BTC', ...)
+    'info':        { the original non-modified unparsed reply from exchange API },
+    'timestamp':     int (64-bit Unix Timestamp in milliseconds since Epoch 1 Jan 1970)
+    'datetime':      ISO8601 datetime string with milliseconds
+    'high':          float, // highest price
+    'low':           float, // lowest price
+    'bid':           float, // current best bid (buy) price
+    'bidVolume':     float, // current best bid (buy) amount
+    'ask':           float, // current best ask (sell) price
+    'askVolume':     float, // current best ask (sell) amount
+    'vwap':          float, // volume weighed average price
+    'open':          float, // opening price
+    'close':         float, // price of last trade (closing price for current period)
+    'last':          float, // same as `close`, duplicated for convenience
+    'previousClose': float, // closing price for the previous period
+    'change':        float, // absolute change, `last - open`
+    'percentage':    float, // relative change, `(change/open) * 100`
+    'average':       float, // average price, `(last + open) / 2`
+    'baseVolume':    float, // volume of base currency
+    'quoteVolume':   float, // volume of quote currency
 }
 ```
 

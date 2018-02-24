@@ -161,8 +161,8 @@ class _1broker (Exchange):
         ticker = result['response'][0]
         timestamp = self.parse8601(ticker['date'])
         open = float(ticker['o'])
-        last = float(ticker['c'])
-        change = last - open
+        close = float(ticker['c'])
+        change = close - open
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -173,7 +173,9 @@ class _1broker (Exchange):
             'ask': None,
             'vwap': None,
             'open': open,
-            'last': last,
+            'close': close,
+            'last': close,
+            'previousClose': None,
             'change': change,
             'percentage': change / open * 100,
             'average': None,

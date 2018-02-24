@@ -692,6 +692,8 @@ module.exports = class bittrex extends Exchange {
                 throw new AuthenticationError (this.id + ' ' + this.json (response));
             if (response['message'] === 'INSUFFICIENT_FUNDS')
                 throw new InsufficientFunds (this.id + ' ' + this.json (response));
+            if (response['message'] === 'QUANTITY_NOT_PROVIDED')
+                throw new InvalidOrder (this.id + ' ' + this.json (response));
             if (response['message'] === 'MIN_TRADE_REQUIREMENT_NOT_MET')
                 throw new InvalidOrder (this.id + ' ' + this.json (response));
             if (response['message'] === 'APIKEY_INVALID') {

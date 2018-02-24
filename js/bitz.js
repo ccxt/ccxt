@@ -14,7 +14,9 @@ module.exports = class bitz extends Exchange {
             'name': 'Bit-Z',
             'countries': 'HK',
             'rateLimit': 1000,
+            'version': 'v1',
             'has': {
+                'fetchBalance': false, // so far the only exchange that has createOrder but not fetchBalance %)
                 'fetchTickers': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
@@ -30,7 +32,7 @@ module.exports = class bitz extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/35862606-4f554f14-0b5d-11e8-957d-35058c504b6f.jpg',
                 'api': 'https://www.bit-z.com/api_v1',
-                'www': 'https://www.bit-z.com/',
+                'www': 'https://www.bit-z.com',
                 'doc': 'https://www.bit-z.com/api.html',
                 'fees': 'https://www.bit-z.com/about/fee',
             },
@@ -279,21 +281,22 @@ module.exports = class bitz extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.privatePostTradeAdd (this.extend ({
+        let request = {
             'coin': market['id'],
             'type': side,
             'price': this.priceToPrecision (symbol, price),
-            'number': this.amountToPrecision (symbol, amount),
+            'number': this.amountToString (symbol, amount),
             'tradepwd': this.password,
-        }, params));
-        let order = {
-            'id': response['data'],
+        };
+        let response = await this.privatePostTradeAdd (this.extend (request, params));
+        let id = response['data']['id'];
+        let order = this.parseOrder ({
+            'id': id,
             'price': price,
             'number': amount,
             'type': side,
-        };
-        let id = order['id'];
-        this.orders[id] = this.parseOrder (order, market);
+        }, market);
+        this.orders[id] = order;
         return order;
     }
 

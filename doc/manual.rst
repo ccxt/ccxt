@@ -102,7 +102,7 @@ The ccxt library currently supports the following 99 cryptocurrency exchange mar
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |bittrex|              | bittrex              | `Bittrex <https://bittrex.com>`__                              | 1.1   | `API <https://bittrex.com/Home/Api>`__                                                            | US                                         |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
-| |bitz|                 | bitz                 | `Bit-Z <https://www.bit-z.com/>`__                             | \*    | `API <https://www.bit-z.com/api.html>`__                                                          | Hong Kong                                  |
+| |bitz|                 | bitz                 | `Bit-Z <https://www.bit-z.com>`__                              | 1     | `API <https://www.bit-z.com/api.html>`__                                                          | Hong Kong                                  |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |bl3p|                 | bl3p                 | `BL3P <https://bl3p.eu>`__                                     | 1     | `API <https://github.com/BitonicNL/bl3p-api/tree/master/docs>`__                                  | Netherlands, EU                            |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -1187,24 +1187,26 @@ A price ticker contains statistics for a particular market/symbol for some perio
 .. code:: javascript
 
     {
-        'symbol':      string symbol of the market ('BTC/USD', 'ETH/BTC', ...)
-        'info':      { the original non-modified unparsed reply from exchange API },
-        'timestamp':   int (64-bit Unix Timestamp in milliseconds since Epoch 1 Jan 1970)
-        'datetime':    ISO8601 datetime string with milliseconds
-        'high':        float, // highest price
-        'low':         float, // lowest price
-        'bid':         float, // orderbook's current best bid (buy) price
-        'bidVolume':   float, // orderbook's current best bid (buy) amount
-        'ask':         float, // orderbook's current best ask (sell) price
-        'askVolume':   float, // orderbook's current best ask (sell) amount
-        'vwap':        float, // volume weighed average price
-        'open':        float, // open price)
-        'last':        float, // price of last trade
-        'change':      float, // absolute change, `last - open`
-        'percentage':  float, // relative change, `(change/open) * 100`
-        'average':     float, // average price, `(last + open) / 2`
-        'baseVolume':  float, // volume of base currency
-        'quoteVolume': float, // volume of quote currency
+        'symbol':        string symbol of the market ('BTC/USD', 'ETH/BTC', ...)
+        'info':        { the original non-modified unparsed reply from exchange API },
+        'timestamp':     int (64-bit Unix Timestamp in milliseconds since Epoch 1 Jan 1970)
+        'datetime':      ISO8601 datetime string with milliseconds
+        'high':          float, // highest price
+        'low':           float, // lowest price
+        'bid':           float, // current best bid (buy) price
+        'bidVolume':     float, // current best bid (buy) amount
+        'ask':           float, // current best ask (sell) price
+        'askVolume':     float, // current best ask (sell) amount
+        'vwap':          float, // volume weighed average price
+        'open':          float, // opening price
+        'close':         float, // price of last trade (closing price for current period)
+        'last':          float, // same as `close`, duplicated for convenience
+        'previousClose': float, // closing price for the previous period
+        'change':        float, // absolute change, `last - open`
+        'percentage':    float, // relative change, `(change/open) * 100`
+        'average':       float, // average price, `(last + open) / 2`
+        'baseVolume':    float, // volume of base currency
+        'quoteVolume':   float, // volume of quote currency
     }
 
 Timestamp and datetime are both Universal Time Coordinated (UTC).

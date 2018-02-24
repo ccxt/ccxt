@@ -20,7 +20,9 @@ class bitz (Exchange):
             'name': 'Bit-Z',
             'countries': 'HK',
             'rateLimit': 1000,
+            'version': 'v1',
             'has': {
+                'fetchBalance': False,  # so far the only exchange that has createOrder but not fetchBalance %)
                 'fetchTickers': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
@@ -36,7 +38,7 @@ class bitz (Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/35862606-4f554f14-0b5d-11e8-957d-35058c504b6f.jpg',
                 'api': 'https://www.bit-z.com/api_v1',
-                'www': 'https://www.bit-z.com/',
+                'www': 'https://www.bit-z.com',
                 'doc': 'https://www.bit-z.com/api.html',
                 'fees': 'https://www.bit-z.com/about/fee',
             },
@@ -273,21 +275,22 @@ class bitz (Exchange):
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.privatePostTradeAdd(self.extend({
+        request = {
             'coin': market['id'],
             'type': side,
             'price': self.price_to_precision(symbol, price),
-            'number': self.amount_to_precision(symbol, amount),
+            'number': self.amount_to_string(symbol, amount),
             'tradepwd': self.password,
-        }, params))
-        order = {
-            'id': response['data'],
+        }
+        response = await self.privatePostTradeAdd(self.extend(request, params))
+        id = response['data']['id']
+        order = self.parse_order({
+            'id': id,
             'price': price,
             'number': amount,
             'type': side,
-        }
-        id = order['id']
-        self.orders[id] = self.parse_order(order, market)
+        }, market)
+        self.orders[id] = order
         return order
 
     async def cancel_order(self, id, symbol=None, params={}):

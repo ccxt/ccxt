@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.1178'
+__version__ = '1.10.1189'
 
 # -----------------------------------------------------------------------------
 
@@ -460,6 +460,9 @@ class Exchange(object):
 
     @staticmethod
     def capitalize(string):  # first character only, rest characters unchanged
+        # the native pythonic .capitalize() method lowercases all other characters
+        # which is an unwanted behaviour, therefore we use this custom implementation
+        # check it yourself: print('foobar'.capitalize(), 'fooBar'.capitalize())
         if len(string) > 1:
             return "%s%s" % (string[0].upper(), string[1:])
         return string.upper()

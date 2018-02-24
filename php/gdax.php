@@ -82,6 +82,7 @@ class gdax extends Exchange {
                     'post' => array (
                         'deposits/coinbase-account',
                         'deposits/payment-method',
+                        'coinbase-accounts/{id}/addresses',
                         'funding/repay',
                         'orders',
                         'position/close',

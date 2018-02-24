@@ -13,7 +13,9 @@ class bitz extends Exchange {
             'name' => 'Bit-Z',
             'countries' => 'HK',
             'rateLimit' => 1000,
+            'version' => 'v1',
             'has' => array (
+                'fetchBalance' => false, // so far the only exchange that has createOrder but not fetchBalance %)
                 'fetchTickers' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
@@ -29,7 +31,7 @@ class bitz extends Exchange {
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/35862606-4f554f14-0b5d-11e8-957d-35058c504b6f.jpg',
                 'api' => 'https://www.bit-z.com/api_v1',
-                'www' => 'https://www.bit-z.com/',
+                'www' => 'https://www.bit-z.com',
                 'doc' => 'https://www.bit-z.com/api.html',
                 'fees' => 'https://www.bit-z.com/about/fee',
             ),
@@ -278,21 +280,22 @@ class bitz extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->privatePostTradeAdd (array_merge (array (
+        $request = array (
             'coin' => $market['id'],
             'type' => $side,
             'price' => $this->price_to_precision($symbol, $price),
-            'number' => $this->amount_to_precision($symbol, $amount),
+            'number' => $this->amount_to_string($symbol, $amount),
             'tradepwd' => $this->password,
-        ), $params));
-        $order = array (
-            'id' => $response['data'],
+        );
+        $response = $this->privatePostTradeAdd (array_merge ($request, $params));
+        $id = $response['data']['id'];
+        $order = $this->parse_order(array (
+            'id' => $id,
             'price' => $price,
             'number' => $amount,
             'type' => $side,
-        );
-        $id = $order['id'];
-        $this->orders[$id] = $this->parse_order($order, $market);
+        ), $market);
+        $this->orders[$id] = $order;
         return $order;
     }
 

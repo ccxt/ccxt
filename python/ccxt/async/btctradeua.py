@@ -139,7 +139,9 @@ class btctradeua (Exchange):
             'ask': None,
             'vwap': None,
             'open': None,
+            'close': None,
             'last': None,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
@@ -164,6 +166,7 @@ class btctradeua (Exchange):
                     result['baseVolume'] -= candle[5]
             last = tickerLength - 1
             result['last'] = ticker[last][4]
+            result['close'] = result['last']
             result['baseVolume'] = -1 * result['baseVolume']
         return result
 

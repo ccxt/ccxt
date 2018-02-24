@@ -467,6 +467,7 @@ module.exports = class binance extends Exchange {
         }
         if (typeof market !== 'undefined')
             symbol = market['symbol'];
+        let last = this.safeFloat (ticker, 'lastPrice');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -479,7 +480,9 @@ module.exports = class binance extends Exchange {
             'askVolume': this.safeFloat (ticker, 'askQty'),
             'vwap': this.safeFloat (ticker, 'weightedAvgPrice'),
             'open': this.safeFloat (ticker, 'openPrice'),
-            'last': this.safeFloat (ticker, 'lastPrice'),
+            'close': last,
+            'last': last,
+            'previousClose': this.safeFloat (ticker, 'prevClosePrice'), // previous day close
             'change': this.safeFloat (ticker, 'priceChange'),
             'percentage': this.safeFloat (ticker, 'priceChangePercent'),
             'average': undefined,
