@@ -10,7 +10,7 @@ install:
   - pip install tox
   - cinst -y curl
   - SET PATH=C:\Program Files\curl;%PATH%
-  - cinst php --version 7.2.2 --allow-empty-checksums
+  - cinst php --version 7.0.27 --allow-empty-checksums
   - cd c:\tools\php
   - copy php.ini-production php.ini
   - echo date.timezone="UTC" >> php.ini
