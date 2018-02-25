@@ -67,6 +67,10 @@ module.exports = class btcmarkets extends Exchange {
                 'XRP/BTC': { 'id': 'XRP/BTC', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC', 'maker': 0.0022, 'taker': 0.0022, 'limits': { 'amount': { 'min': 0.001, 'max': undefined }}},
                 'BCH/BTC': { 'id': 'BCH/BTC', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'maker': 0.0022, 'taker': 0.0022, 'limits': { 'amount': { 'min': 0.001, 'max': undefined }}},
             },
+            'exceptions': {
+                '3': InvalidOrder,
+                '6': DDoSProtection,
+            },
         });
     }
 
@@ -366,19 +370,28 @@ module.exports = class btcmarkets extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
+    handleErrors (code, reason, url, method, headers, body) {
+        if (body.length < 2)
+            return; // fallback to default error handler
+        if (body[0] === '{') {
+            let response = JSON.parse (body);
+            if ('success' in response) {
+                if (!response['success']) {
+                    let error = this.safeString (response, 'errorCode');
+                    let message = this.id + ' ' + this.json (response);
+                    if (error in this.exceptions) {
+                        let ExceptionClass = this.exceptions[error];
+                        throw new ExceptionClass (message);
+                    } else {
+                        throw new ExchangeError (message);
+                    }
+                }
+            }
+        }
+    }
+
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
-        if (api === 'private') {
-            if ('success' in response)
-                if (!response['success'])
-                    if (response['errorCode'] === 3)
-                        throw new InvalidOrder (this.id + ' ' + this.json (response));
-                    else if (response['errorCode'] === 6)
-                        throw new DDoSProtection (this.id + ' ' + this.json (response));
-                    else
-                        throw new ExchangeError (this.id + ' ' + this.json (response));
-            return response;
-        }
         return response;
     }
 };
