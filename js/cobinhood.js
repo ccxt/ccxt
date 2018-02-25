@@ -447,7 +447,7 @@ module.exports = class cobinhood extends Exchange {
         if (typeof symbol !== 'undefined')
             market = this.market (symbol);
         let result = await this.privateGetTradingOrders (params);
-        let orders = this.parseOrders (result['result']['orders'], market, since, limit);
+        let orders = this.parseOrders (result['result']['orders'], undefined, since, limit);
         if (typeof symbol !== 'undefined')
             return this.filterOrdersBySymbol (orders, symbol);
         return orders;
