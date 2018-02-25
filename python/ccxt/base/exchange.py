@@ -826,7 +826,7 @@ class Exchange(object):
             self.load_currencies(reload=reload)
 
         if markets and currencies:
-            self.populate_fees()
+            self.populate_fees()  # markets + currencies -> fees
 
     def load_private(self, fees=True, reload=False):
         if fees:
@@ -839,7 +839,6 @@ class Exchange(object):
         for i in range(0, len(values)):
             values[i]['fee_loaded'] = 'maker' in values[i] and 'taker' in values[i]
             values[i] = self.extend(
-                self.fees['trading'],
                 {'precision': self.precision, 'limits': self.limits},
                 values[i]
             )
@@ -848,6 +847,7 @@ class Exchange(object):
         self.marketsById = self.markets_by_id
         self.symbols = sorted(list(self.markets.keys()))
         self.ids = sorted(list(self.markets_by_id.keys()))
+        self.set_fees()
         return self.markets
 
     def load_markets(self, reload=False):
@@ -863,6 +863,7 @@ class Exchange(object):
         if currencies:
             self.currencies = self.deep_extend(currencies, self.currencies)
         else:
+            # generate from markets
             if not self.markets:
                 self.load_markets()
             values = list(self.markets.values())
@@ -879,10 +880,9 @@ class Exchange(object):
 
         for k in self.currencies.keys():
             self.currencies[k]['fee_loaded'] = 'fee' in self.currencies[k] and self.currencies[k]['fee'] is not None
-            if k in self.fees['funding']['withdraw']:
-                self.currencies[k]['fee'] = self.fees['funding']['withdraw'][k]
 
         self.currencies_by_id = self.index_by(list(self.currencies.values()), 'id')
+        self.set_fees()
         return self.currencies
 
     def load_currencies(self, reload=False):
@@ -905,29 +905,35 @@ class Exchange(object):
                 self.fees['funding']['withdraw'][currency] = data['fee']
                 self.fees['funding']['fee_loaded'] = True
 
-        values = list(self.markets.values())
         trading_fees = ('taker', 'maker')
-        # try load fees from markets (takers and makers must be the same for all markets)
-        if all(v['fee_loaded'] for v in values):
-            for f in trading_fees:
-                if all(values[0][f] == v[f] for v in values):
-                    self.fees['trading'][f] = values[0][f]
-                    self.fees['trading']['fee_loaded'] = True
+        for market, data in self.markets.items():  # try load fees from markets
+            if data['fee_loaded']:
+                for f in trading_fees:
+                    if f in data:
+                        self.fees['trading'].setdefault(market, {})[f] = data[f]
+                        self.fees['trading']['fee_loaded'] = True
 
-    def set_fees(self, fees):
-        self.fees = self.deep_extend(self.fees, fees)
-        for k in self.markets.keys():
-            fetch_markets_info = self.markets[k]['info'] if 'info' in self.markets[k] else None
-            self.markets[k] = self.extend(self.markets[k], self.fees['trading'])
-            self.markets[k]['info'] = fetch_markets_info
-            self.markets[k]['fee_loaded'] = True
-            if 'active' in self.markets[k] and not self.markets[k]['active']:
-                self.markets[k]['fee_loaded'] = False  # sometimes exchanges send strange fees for unlisted markets
+    def set_fees(self, fees=None):
+        if fees:
+            self.fees = self.deep_extend(self.fees, fees)
 
-        for k in self.currencies.keys():
-            if k in self.fees['funding']['withdraw']:
-                self.currencies[k]['fee'] = self.fees['funding']['withdraw'][k]
-                self.currencies[k]['fee_loaded'] = True
+        if self.markets is not None:
+            for k in self.markets.keys():
+                if 'info' in self.fees['trading']:
+                    fetch_markets_info = self.markets[k]['info']
+                    self.markets[k] = self.extend(self.markets[k], self.fees['trading'])
+                    self.markets[k]['info'] = fetch_markets_info
+                elif not self.markets[k]['fee_loaded']:
+                    if 'maker' in self.fees['trading']:
+                        self.markets[k]['maker'] = self.fees['trading']['maker']
+                    if 'taker' in self.fees['trading']:
+                        self.markets[k]['taker'] = self.fees['trading']['taker']
+
+        if self.currencies is not None:
+            for k in self.currencies.keys():
+                if k in self.fees['funding']['withdraw'] and not self.currencies[k]['fee_loaded']:
+                    self.currencies[k]['fee'] = self.fees['funding']['withdraw'][k]
+
         return self.fees
 
     def load_fees(self, reload=False):
