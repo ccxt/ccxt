@@ -16,6 +16,7 @@ module.exports = class southxchange extends Exchange {
             'rateLimit': 1000,
             'has': {
                 'CORS': true,
+                'fetchOpenOrders': true,
                 'fetchTickers': true,
                 'withdraw': true,
             },
@@ -190,6 +191,49 @@ module.exports = class southxchange extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
+    parseOrder (order, market = undefined) {
+        let status = 'open';
+        let symbol = order['ListingCurrency'] + '/' + order['ReferenceCurrency'];
+        let timestamp = undefined;
+        let price = parseFloat (order['LimitPrice']);
+        let amount = this.safeFloat (order, 'OriginalAmount');
+        let remaining = this.safeFloat (order, 'Amount');
+        let filled = undefined;
+        let cost = undefined;
+        if (typeof amount !== 'undefined') {
+            cost = price * amount;
+            if (typeof remaining !== 'undefined')
+                filled = amount - remaining;
+        }
+        let orderType = order['Type'].toLowerCase ();
+        let result = {
+            'info': order,
+            'id': order['Code'].toString (),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': orderType,
+            'side': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': undefined,
+        };
+        return result;
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (typeof symbol !== 'undefined')
+            market = this.market (symbol);
+        let response = await this.privatePostListOrders ();
+        return this.parseOrders (response, market, since, limit);
+    }
+
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -244,10 +288,5 @@ module.exports = class southxchange extends Exchange {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    }
-
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        return response;
     }
 };
