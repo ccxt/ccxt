@@ -324,6 +324,8 @@ class exmo (Exchange):
     def parse_order(self, order, market=None):
         id = self.safe_string(order, 'order_id')
         timestamp = self.safe_integer(order, 'created')
+        if timestamp is not None:
+            timestamp *= 1000
         iso8601 = None
         symbol = None
         side = self.safe_string(order, 'type')

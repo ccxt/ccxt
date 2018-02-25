@@ -347,6 +347,8 @@ class exmo extends Exchange {
     public function parse_order ($order, $market = null) {
         $id = $this->safe_string($order, 'order_id');
         $timestamp = $this->safe_integer($order, 'created');
+        if ($timestamp !== null)
+            $timestamp *= 1000;
         $iso8601 = null;
         $symbol = null;
         $side = $this->safe_string($order, 'type');
