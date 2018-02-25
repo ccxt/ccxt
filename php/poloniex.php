@@ -318,7 +318,7 @@ class poloniex extends Exchange {
                 'name' => $currency['name'],
                 'active' => $active,
                 'status' => $status,
-                'fee' => $currency['txFee'], // todo => redesign
+                'fee' => $this->safe_float($currency, 'txFee'), // todo => redesign
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
