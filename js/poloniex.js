@@ -319,7 +319,7 @@ module.exports = class poloniex extends Exchange {
                 'name': currency['name'],
                 'active': active,
                 'status': status,
-                'fee': currency['txFee'], // todo: redesign
+                'fee': this.safeFloat (currency, 'txFee'), // todo: redesign
                 'precision': precision,
                 'limits': {
                     'amount': {

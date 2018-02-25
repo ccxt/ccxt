@@ -517,6 +517,8 @@ class hitbtc extends Exchange {
                 'lot' => $lot,
                 'step' => $step,
                 'info' => $market,
+                'maker' => $this->safe_float($market, 'provideLiquidityRate'),
+                'taker' => $this->safe_float($market, 'takeLiquidityRate'),
                 'precision' => array (
                     'amount' => $this->precision_from_string($market['lot']),
                     'price' => $this->precision_from_string($market['step']),

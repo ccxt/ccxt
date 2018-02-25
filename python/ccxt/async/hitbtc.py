@@ -520,6 +520,8 @@ class hitbtc (Exchange):
                 'lot': lot,
                 'step': step,
                 'info': market,
+                'maker': self.safe_float(market, 'provideLiquidityRate'),
+                'taker': self.safe_float(market, 'takeLiquidityRate'),
                 'precision': {
                     'amount': self.precision_from_string(market['lot']),
                     'price': self.precision_from_string(market['step']),

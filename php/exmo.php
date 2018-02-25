@@ -347,6 +347,8 @@ class exmo extends Exchange {
     public function parse_order ($order, $market = null) {
         $id = $this->safe_string($order, 'order_id');
         $timestamp = $this->safe_integer($order, 'created');
+        if ($timestamp !== null)
+            $timestamp *= 1000;
         $iso8601 = null;
         $symbol = null;
         $side = $this->safe_string($order, 'type');
@@ -368,12 +370,9 @@ class exmo extends Exchange {
             $amountField = ($side === 'buy') ? 'in_amount' : 'out_amount';
             $amount = $this->safe_float($order, $amountField);
         }
+        $price = $this->safe_float($order, 'price');
         $cost = $this->safe_float($order, 'amount');
-        $filled = null;
-        if ($cost !== null)
-            $filled = $amount;
-        else
-            $filled = 0.0;
+        $filled = 0.0;
         $trades = array ();
         $transactions = $this->safe_value($order, 'trades');
         $feeCost = null;
@@ -384,7 +383,7 @@ class exmo extends Exchange {
                     if ($id === null)
                         $id = $trade['order'];
                     if ($timestamp === null)
-                        $timestamp = 0;
+                        $timestamp = $trade['timestamp'];
                     if ($timestamp > $trade['timestamp'])
                         $timestamp = $trade['timestamp'];
                     $filled .= $trade['amount'];
@@ -404,7 +403,7 @@ class exmo extends Exchange {
         if ($amount !== null)
             $remaining = $amount - $filled;
         $status = $this->safe_string($order, 'status'); // in case we need to redefine it for canceled orders
-        if ($filled <= $amount)
+        if ($filled >= $amount)
             $status = 'closed';
         else
             $status = 'open';
@@ -415,7 +414,6 @@ class exmo extends Exchange {
             $symbol = $market['symbol'];
             $feeCurrency = $market['quote'];
         }
-        $price = null;
         if ($cost === null) {
             if ($price !== null)
                 $cost = $price * $filled;

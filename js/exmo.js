@@ -348,6 +348,8 @@ module.exports = class exmo extends Exchange {
     parseOrder (order, market = undefined) {
         let id = this.safeString (order, 'order_id');
         let timestamp = this.safeInteger (order, 'created');
+        if (typeof timestamp !== 'undefined')
+            timestamp *= 1000;
         let iso8601 = undefined;
         let symbol = undefined;
         let side = this.safeString (order, 'type');
@@ -369,12 +371,9 @@ module.exports = class exmo extends Exchange {
             let amountField = (side === 'buy') ? 'in_amount' : 'out_amount';
             amount = this.safeFloat (order, amountField);
         }
+        let price = this.safeFloat (order, 'price');
         let cost = this.safeFloat (order, 'amount');
-        let filled = undefined;
-        if (typeof cost !== 'undefined')
-            filled = amount;
-        else
-            filled = 0.0;
+        let filled = 0.0;
         let trades = [];
         let transactions = this.safeValue (order, 'trades');
         let feeCost = undefined;
@@ -385,7 +384,7 @@ module.exports = class exmo extends Exchange {
                     if (typeof id === 'undefined')
                         id = trade['order'];
                     if (typeof timestamp === 'undefined')
-                        timestamp = 0;
+                        timestamp = trade['timestamp'];
                     if (timestamp > trade['timestamp'])
                         timestamp = trade['timestamp'];
                     filled += trade['amount'];
@@ -405,7 +404,7 @@ module.exports = class exmo extends Exchange {
         if (typeof amount !== 'undefined')
             remaining = amount - filled;
         let status = this.safeString (order, 'status'); // in case we need to redefine it for canceled orders
-        if (filled <= amount)
+        if (filled >= amount)
             status = 'closed';
         else
             status = 'open';
@@ -416,7 +415,6 @@ module.exports = class exmo extends Exchange {
             symbol = market['symbol'];
             feeCurrency = market['quote'];
         }
-        let price = undefined;
         if (typeof cost === 'undefined') {
             if (typeof price !== 'undefined')
                 cost = price * filled;
