@@ -243,10 +243,13 @@ module.exports = class bittrex extends Exchange {
         let previous = this.safeFloat (ticker, 'PrevDay');
         let last = this.safeFloat (ticker, 'Last');
         let change = undefined;
+        let percentage = undefined;
         if (typeof last !== 'undefined')
-            if (typeof previous !== 'undefined')
+            if (typeof previous !== 'undefined') {
+                change = last - previous;
                 if (previous > 0)
-                    change = (last - previous) / previous;
+                    percentage = (change / previous) * 100;
+            }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -261,7 +264,7 @@ module.exports = class bittrex extends Exchange {
             'first': undefined,
             'last': last,
             'change': change,
-            'percentage': undefined,
+            'percentage': percentage,
             'average': undefined,
             'baseVolume': this.safeFloat (ticker, 'Volume'),
             'quoteVolume': this.safeFloat (ticker, 'BaseVolume'),
