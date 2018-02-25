@@ -16,6 +16,7 @@ module.exports = class southxchange extends Exchange {
             'rateLimit': 1000,
             'has': {
                 'CORS': true,
+                'fetchOpenOrders': true,
                 'fetchTickers': true,
                 'withdraw': true,
             },
