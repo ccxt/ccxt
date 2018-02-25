@@ -409,10 +409,10 @@ class kucoin extends Exchange {
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         if ($symbol === null)
-            throw new ExchangeError ($this->id . ' fetchOrder requires a symbol');
+            throw new ExchangeError ($this->id . ' fetchOrder requires a $symbol argument');
         $orderType = $this->safe_value($params, 'type');
         if ($orderType === null)
-            throw new ExchangeError ($this->id . ' fetchOrder requires parameter type=["BUY"|"SELL"]');
+            throw new ExchangeError ($this->id . ' fetchOrder requires a type parameter ("BUY" or "SELL")');
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (

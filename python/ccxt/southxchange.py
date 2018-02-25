@@ -18,6 +18,7 @@ class southxchange (Exchange):
             'rateLimit': 1000,
             'has': {
                 'CORS': True,
+                'fetchOpenOrders': True,
                 'fetchTickers': True,
                 'withdraw': True,
             },
@@ -179,6 +180,46 @@ class southxchange (Exchange):
         }, params))
         return self.parse_trades(response, market, since, limit)
 
+    def parse_order(self, order, market=None):
+        status = 'open'
+        symbol = order['ListingCurrency'] + '/' + order['ReferenceCurrency']
+        timestamp = None
+        price = float(order['LimitPrice'])
+        amount = self.safe_float(order, 'OriginalAmount')
+        remaining = self.safe_float(order, 'Amount')
+        filled = None
+        cost = None
+        if amount is not None:
+            cost = price * amount
+            if remaining is not None:
+                filled = amount - remaining
+        orderType = order['Type'].lower()
+        result = {
+            'info': order,
+            'id': str(order['Code']),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': symbol,
+            'type': orderType,
+            'side': None,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': None,
+        }
+        return result
+
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        response = self.privatePostListOrders()
+        return self.parse_orders(response, market, since, limit)
+
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         market = self.market(symbol)
@@ -229,7 +270,3 @@ class southxchange (Exchange):
                 'Hash': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512),
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
-
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
-        return response

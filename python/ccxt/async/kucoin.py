@@ -402,10 +402,10 @@ class kucoin (Exchange):
 
     async def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchOrder requires a symbol')
+            raise ExchangeError(self.id + ' fetchOrder requires a symbol argument')
         orderType = self.safe_value(params, 'type')
         if orderType is None:
-            raise ExchangeError(self.id + ' fetchOrder requires parameter type=["BUY"|"SELL"]')
+            raise ExchangeError(self.id + ' fetchOrder requires a type parameter("BUY" or "SELL")')
         await self.load_markets()
         market = self.market(symbol)
         request = {
