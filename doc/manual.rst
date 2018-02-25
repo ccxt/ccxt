@@ -1211,6 +1211,8 @@ A price ticker contains statistics for a particular market/symbol for some perio
 
 Timestamp and datetime are both Universal Time Coordinated (UTC).
 
+Although some exchanges do mix-in orderbook's top bid/ask prices into their tickers (and some even top bid/asks volumes) you should not treat ticker as a ``fetchOrderBook`` replacement. The main purpose of a ticker is to serve statistical data, as such, treat it as "live 24h OHLCV". It is known that exchanges discourage frequent ``fetchTicker`` requests by imposing stricter rate limits on these queries. If you need a unified way to access bid/asks you should use ``fetchL[123]OrderBook`` family instead.
+
 Individually By Symbol
 ~~~~~~~~~~~~~~~~~~~~~~
 
