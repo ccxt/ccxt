@@ -419,6 +419,17 @@ class cobinhood (Exchange):
         }, params))
         return self.parse_order(response['result']['order'])
 
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        result = self.privateGetTradingOrders(params)
+        orders = self.parse_orders(result['result']['orders'], market, since, limit)
+        if symbol is not None:
+            return self.filter_orders_by_symbol(orders, symbol)
+        return orders
+
     def fetch_order_trades(self, id, symbol=None, params={}):
         self.load_markets()
         response = self.privateGetTradingOrdersOrderIdTrades(self.extend({
