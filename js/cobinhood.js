@@ -409,7 +409,7 @@ module.exports = class cobinhood extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        side = (side === 'sell' ? 'ask' : 'bid');
+        side = (side === 'sell') ? 'ask' : 'bid';
         let request = {
             'trading_pair_id': market['id'],
             // market, limit, stop, stop_limit
