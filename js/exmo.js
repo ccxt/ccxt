@@ -370,11 +370,7 @@ module.exports = class exmo extends Exchange {
             amount = this.safeFloat (order, amountField);
         }
         let cost = this.safeFloat (order, 'amount');
-        let filled = undefined;
-        if (typeof cost !== 'undefined')
-            filled = amount;
-        else
-            filled = 0.0;
+        let filled = 0.0;
         let trades = [];
         let transactions = this.safeValue (order, 'trades');
         let feeCost = undefined;
@@ -405,7 +401,7 @@ module.exports = class exmo extends Exchange {
         if (typeof amount !== 'undefined')
             remaining = amount - filled;
         let status = this.safeString (order, 'status'); // in case we need to redefine it for canceled orders
-        if (filled <= amount)
+        if (filled >= amount)
             status = 'closed';
         else
             status = 'open';
