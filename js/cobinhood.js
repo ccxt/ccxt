@@ -360,18 +360,6 @@ module.exports = class cobinhood extends Exchange {
             account['free'] = parseFloat (account['total'] - account['used']);
             result[currency] = account;
         }
-        let currencies = Object.keys (this.currencies);
-        for (let i = 0; i < currencies.length; i++) {
-            let currency = currencies[i];
-            if (result[currency] === undefined) {
-                let account = {
-                    'free': 0,
-                    'used': 0,
-                    'total': 0,
-                };
-                result[currency] = account;
-            }
-        }
         return this.parseBalance (result);
     }
 
