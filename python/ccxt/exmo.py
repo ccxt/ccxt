@@ -21,6 +21,7 @@ class exmo (Exchange):
                 'CORS': False,
                 'fetchOrder': True,
                 'fetchOpenOrders': True,
+                'fetchOrderTrades': True,
                 'fetchOrderBooks': True,
                 'fetchMyTrades': True,
                 'fetchTickers': True,
@@ -296,6 +297,16 @@ class exmo (Exchange):
             market = self.market(symbol)
         response = self.privatePostOrderTrades(self.extend({'order_id': id}, params))
         return self.parse_order(response, market)
+
+    def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+        market = None
+        if symbol is not None:
+            self.load_markets()
+            market = self.market(symbol)
+        response = self.privatePostOrderTrades(self.extend({
+            'order_id': id,
+        }, params))
+        return self.parse_trades(response['trades'], market, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         market = None

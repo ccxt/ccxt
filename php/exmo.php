@@ -18,6 +18,7 @@ class exmo extends Exchange {
                 'CORS' => false,
                 'fetchOrder' => true,
                 'fetchOpenOrders' => true,
+                'fetchOrderTrades' => true,
                 'fetchOrderBooks' => true,
                 'fetchMyTrades' => true,
                 'fetchTickers' => true,
@@ -314,6 +315,18 @@ class exmo extends Exchange {
             $market = $this->market ($symbol);
         $response = $this->privatePostOrderTrades (array_merge (array ( 'order_id' => $id ), $params));
         return $this->parse_order($response, $market);
+    }
+
+    public function fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        $market = null;
+        if ($symbol !== null) {
+            $this->load_markets();
+            $market = $this->market ($symbol);
+        }
+        $response = $this->privatePostOrderTrades (array_merge (array (
+            'order_id' => $id,
+        ), $params));
+        return $this->parse_trades($response['trades'], $market, $since, $limit);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
