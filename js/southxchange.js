@@ -196,20 +196,27 @@ module.exports = class southxchange extends Exchange {
         let symbol = order['ListingCurrency'] + '/' + order['ReferenceCurrency'];
         let timestamp = undefined;
         let price = parseFloat (order['LimitPrice']);
-        let amount = parseFloat (order['OriginalAmount']);
-        let remaining = this.safeFloat (order, 'Amount', 0.0);
-        let filled = Math.max (amount - remaining, 0.0);
+        let amount = this.safeFloat (order, 'OriginalAmount');
+        let remaining = this.safeFloat (order, 'Amount');
+        let filled = undefined;
+        let cost = undefined;
+        if (typeof amount !== 'undefined') {
+            cost = price * amount;
+            if (typeof remaining !== 'undefined')
+                filled = amount - remaining;
+        }
+        let orderType = order['Type'].toLowerCase ();
         let result = {
             'info': order,
             'id': order['Code'].toString (),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'type': order['Type'].toLowerCase (),
+            'type': orderType,
             'side': undefined,
             'price': price,
             'amount': amount,
-            'cost': price * amount,
+            'cost': cost,
             'filled': filled,
             'remaining': remaining,
             'status': status,
