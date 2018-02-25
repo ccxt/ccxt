@@ -190,6 +190,45 @@ module.exports = class southxchange extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
+    parseOrder (order, market = undefined) {
+        let status = 'open';
+        let symbol = order['ListingCurrency'] + '/' + order['ReferenceCurrency'];
+        let timestamp = undefined;
+        let price = parseFloat (order['LimitPrice']);
+        let amount = parseFloat (order['OriginalAmount']);
+        let remaining = this.safeFloat (order, 'Amount', 0.0);
+        let filled = Math.max (amount - remaining, 0.0);
+        let result = {
+            'info': order,
+            'id': order['Code'].toString (),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': order['Type'].toLowerCase (),
+            'side': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': price * amount,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': undefined,
+        };
+        return result;
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol) {
+            market = this.market (symbol);
+        }
+        let response = await this.privatePostListOrders ();
+        if (!response)
+            throw new ExchangeError (this.id + ' fetchOpenOrders got an unrecognized response');
+        return this.parseOrders (response, market, since, limit);
+    }
+
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
