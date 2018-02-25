@@ -62,8 +62,7 @@ class Exchange(BaseExchange):
 
     def __del__(self):
         if self.session is not None:
-            self.logger.warning("CCXT Exchange object was not closed before destruction. To close an exchange object "
-                                "and release the resources used by it you need to explicitly run the .close() coroutine.")
+            self.logger.warning(self.id + ' requires to release all resources with an explicit call to the .close() coroutine.')
 
     async def close(self):
         if self.session is not None:
