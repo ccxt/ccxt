@@ -382,7 +382,7 @@ module.exports = class exmo extends Exchange {
                     if (typeof id === 'undefined')
                         id = trade['order'];
                     if (typeof timestamp === 'undefined')
-                        timestamp = 0;
+                        timestamp = trade['timestamp'];
                     if (timestamp > trade['timestamp'])
                         timestamp = trade['timestamp'];
                     filled += trade['amount'];
