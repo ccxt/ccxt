@@ -518,6 +518,8 @@ module.exports = class hitbtc extends Exchange {
                 'lot': lot,
                 'step': step,
                 'info': market,
+                'maker': this.safeFloat (market, 'provideLiquidityRate'),
+                'taker': this.safeFloat (market, 'takeLiquidityRate'),
                 'precision': {
                     'amount': this.precisionFromString (market['lot']),
                     'price': this.precisionFromString (market['step']),
