@@ -687,6 +687,8 @@ class liqui (Exchange):
                         raise DDoSProtection(feedback)
                     elif message == 'not available':
                         raise DDoSProtection(feedback)
+                    elif message == 'data unavailable':
+                        raise DDoSProtection(feedback)
                     elif message == 'external service unavailable':
                         raise DDoSProtection(feedback)
                     else:

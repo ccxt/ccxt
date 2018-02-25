@@ -730,6 +730,8 @@ class liqui extends Exchange {
                         throw new DDoSProtection ($feedback);
                     } else if ($message === 'not available') {
                         throw new DDoSProtection ($feedback);
+                    } else if ($message === 'data unavailable') {
+                        throw new DDoSProtection ($feedback);
                     } else if ($message === 'external service unavailable') {
                         throw new DDoSProtection ($feedback);
                     } else {
