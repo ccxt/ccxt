@@ -390,7 +390,7 @@ class cobinhood (Exchange):
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        side = (side == 'ask' if 'sell' else 'bid')
+        side = 'ask' if (side == 'sell') else 'bid'
         request = {
             'trading_pair_id': market['id'],
             # market, limit, stop, stop_limit
