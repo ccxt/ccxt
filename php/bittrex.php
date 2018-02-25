@@ -242,10 +242,13 @@ class bittrex extends Exchange {
         $previous = $this->safe_float($ticker, 'PrevDay');
         $last = $this->safe_float($ticker, 'Last');
         $change = null;
+        $percentage = null;
         if ($last !== null)
-            if ($previous !== null)
+            if ($previous !== null) {
+                $change = $last - $previous;
                 if ($previous > 0)
-                    $change = ($last - $previous) / $previous;
+                    $percentage = ($change / $previous) * 100;
+            }
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -260,7 +263,7 @@ class bittrex extends Exchange {
             'first' => null,
             'last' => $last,
             'change' => $change,
-            'percentage' => null,
+            'percentage' => $percentage,
             'average' => null,
             'baseVolume' => $this->safe_float($ticker, 'Volume'),
             'quoteVolume' => $this->safe_float($ticker, 'BaseVolume'),
