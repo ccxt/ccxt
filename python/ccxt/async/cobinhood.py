@@ -368,7 +368,7 @@ class cobinhood (Exchange):
             status = 'canceled'
         else:
             status = 'open'
-        side = order['side'] == 'buy' if 'bid' else 'sell'
+        side = 'buy' if (order['side'] == 'bid') else 'sell'
         return {
             'id': order['id'],
             'datetime': self.iso8601(timestamp),
