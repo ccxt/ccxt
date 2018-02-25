@@ -440,6 +440,18 @@ class cobinhood extends Exchange {
         return $this->parse_order($response['result']['order']);
     }
 
+    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = null;
+        if ($symbol !== null)
+            $market = $this->market ($symbol);
+        $result = $this->privateGetTradingOrders ($params);
+        $orders = $this->parse_orders($result['result']['orders'], $market, $since, $limit);
+        if ($symbol !== null)
+            return $this->filter_orders_by_symbol($orders, $symbol);
+        return $orders;
+    }
+
     public function fetch_order_trades ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privateGetTradingOrdersOrderIdTrades (array_merge (array (
