@@ -259,6 +259,16 @@ module.exports = class poloniex extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        let open = undefined;
+        let change = undefined;
+        let average = undefined;
+        let last = parseFloat (ticker['last']);
+        let relativeChange = parseFloat (ticker['percentChange']);
+        if (relativeChange !== -1) {
+            open = last / (1 + relativeChange);
+            change = last - open;
+            average = (last + open) / 2;
+        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -268,13 +278,13 @@ module.exports = class poloniex extends Exchange {
             'bid': parseFloat (ticker['highestBid']),
             'ask': parseFloat (ticker['lowestAsk']),
             'vwap': undefined,
-            'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last']),
-            'change': parseFloat (ticker['percentChange']),
-            'percentage': undefined,
-            'average': undefined,
+            'open': open,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': change,
+            'percentage': relativeChange * 100,
+            'average': average,
             'baseVolume': parseFloat (ticker['quoteVolume']),
             'quoteVolume': parseFloat (ticker['baseVolume']),
             'info': ticker,
