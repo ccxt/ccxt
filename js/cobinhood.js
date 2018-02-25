@@ -386,7 +386,7 @@ module.exports = class cobinhood extends Exchange {
         } else {
             status = 'open';
         }
-        let side = order['side'] === 'bid' ? 'buy' : 'sell';
+        let side = (order['side'] === 'bid') ? 'buy' : 'sell';
         return {
             'id': order['id'],
             'datetime': this.iso8601 (timestamp),
