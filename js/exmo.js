@@ -369,6 +369,7 @@ module.exports = class exmo extends Exchange {
             let amountField = (side === 'buy') ? 'in_amount' : 'out_amount';
             amount = this.safeFloat (order, amountField);
         }
+        let price = this.safeFloat (order, 'price');
         let cost = this.safeFloat (order, 'amount');
         let filled = 0.0;
         let trades = [];
@@ -412,7 +413,6 @@ module.exports = class exmo extends Exchange {
             symbol = market['symbol'];
             feeCurrency = market['quote'];
         }
-        let price = undefined;
         if (typeof cost === 'undefined') {
             if (typeof price !== 'undefined')
                 cost = price * filled;
