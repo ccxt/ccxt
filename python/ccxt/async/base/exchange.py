@@ -61,7 +61,13 @@ class Exchange(BaseExchange):
         }, self.tokenBucket))
 
     def __del__(self):
-        asyncio.ensure_future(self.session.close(), loop=self.asyncio_loop)
+        if self.session is not None:
+            self.logger.warning(self.id + ' requires to release all resources with an explicit call to the .close() coroutine.')
+
+    async def close(self):
+        if self.session is not None:
+            await self.session.close()
+            self.session = None
 
     async def wait_for_token(self):
         while self.rateLimitTokens <= 1:
