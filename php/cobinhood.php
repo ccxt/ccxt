@@ -408,7 +408,7 @@ class cobinhood extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $side = ($side === 'sell' ? 'ask' : 'bid');
+        $side = ($side === 'sell') ? 'ask' : 'bid';
         $request = array (
             'trading_pair_id' => $market['id'],
             // $market, limit, stop, stop_limit
