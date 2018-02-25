@@ -410,10 +410,10 @@ module.exports = class kucoin extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         if (typeof symbol === 'undefined')
-            throw new ExchangeError (this.id + ' fetchOrder requires a symbol');
+            throw new ExchangeError (this.id + ' fetchOrder requires a symbol argument');
         let orderType = this.safeValue (params, 'type');
         if (typeof orderType === 'undefined')
-            throw new ExchangeError (this.id + ' fetchOrder requires parameter type=["BUY"|"SELL"]');
+            throw new ExchangeError (this.id + ' fetchOrder requires a type parameter ("BUY" or "SELL")');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
