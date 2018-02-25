@@ -443,9 +443,6 @@ module.exports = class cobinhood extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = undefined;
-        if (typeof symbol !== 'undefined')
-            market = this.market (symbol);
         let result = await this.privateGetTradingOrders (params);
         let orders = this.parseOrders (result['result']['orders'], undefined, since, limit);
         if (typeof symbol !== 'undefined')
