@@ -337,14 +337,14 @@ class cobinhood (Exchange):
         balances = response['result']['balances']
         for i in range(0, len(balances)):
             balance = balances[i]
-            id = balance['currency']
-            currency = self.common_currency_code(id)
+            currency = balance['currency']
+            if currency in self.currencies_by_id:
+                currency = self.currencies_by_id[currency]['code']
             account = {
-                'free': float(balance['total']),
                 'used': float(balance['on_order']),
-                'total': 0.0,
+                'total': float(balance['total']),
             }
-            account['total'] = self.sum(account['free'], account['used'])
+            account['free'] = float(account['total'] - account['used'])
             result[currency] = account
         return self.parse_balance(result)
 

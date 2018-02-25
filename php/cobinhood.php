@@ -350,14 +350,14 @@ class cobinhood extends Exchange {
         $balances = $response['result']['balances'];
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
-            $id = $balance['currency'];
-            $currency = $this->common_currency_code($id);
+            $currency = $balance['currency'];
+            if (is_array ($this->currencies_by_id) && array_key_exists ($currency, $this->currencies_by_id))
+                $currency = $this->currencies_by_id[$currency]['code'];
             $account = array (
-                'free' => floatval ($balance['total']),
                 'used' => floatval ($balance['on_order']),
-                'total' => 0.0,
+                'total' => floatval ($balance['total']),
             );
-            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $account['free'] = floatval ($account['total'] - $account['used']);
             $result[$currency] = $account;
         }
         return $this->parse_balance($result);
