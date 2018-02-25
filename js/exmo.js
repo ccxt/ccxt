@@ -324,7 +324,7 @@ module.exports = class exmo extends Exchange {
             await this.loadMarkets ();
             market = this.market (symbol);
         }
-        let response = await this.tradingGetTradesByOrder (this.extend ({
+        let response = await this.privatePostOrderTrades (this.extend ({
             'order_id': id,
         }, params));
         return this.parseTrades (response['trades'], market, since, limit);
