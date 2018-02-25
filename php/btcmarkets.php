@@ -54,17 +54,21 @@ class btcmarkets extends Exchange {
                 ),
             ),
             'markets' => array (
-                'BTC/AUD' => array ( 'id' => 'BTC/AUD', 'symbol' => 'BTC/AUD', 'base' => 'BTC', 'quote' => 'AUD', 'maker' => 0.0085, 'taker' => 0.0085 ),
-                'LTC/AUD' => array ( 'id' => 'LTC/AUD', 'symbol' => 'LTC/AUD', 'base' => 'LTC', 'quote' => 'AUD', 'maker' => 0.0085, 'taker' => 0.0085 ),
-                'ETH/AUD' => array ( 'id' => 'ETH/AUD', 'symbol' => 'ETH/AUD', 'base' => 'ETH', 'quote' => 'AUD', 'maker' => 0.0085, 'taker' => 0.0085 ),
-                'ETC/AUD' => array ( 'id' => 'ETC/AUD', 'symbol' => 'ETC/AUD', 'base' => 'ETC', 'quote' => 'AUD', 'maker' => 0.0085, 'taker' => 0.0085 ),
-                'XRP/AUD' => array ( 'id' => 'XRP/AUD', 'symbol' => 'XRP/AUD', 'base' => 'XRP', 'quote' => 'AUD', 'maker' => 0.0085, 'taker' => 0.0085 ),
-                'BCH/AUD' => array ( 'id' => 'BCH/AUD', 'symbol' => 'BCH/AUD', 'base' => 'BCH', 'quote' => 'AUD', 'maker' => 0.0085, 'taker' => 0.0085 ),
-                'LTC/BTC' => array ( 'id' => 'LTC/BTC', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'maker' => 0.0022, 'taker' => 0.0022 ),
-                'ETH/BTC' => array ( 'id' => 'ETH/BTC', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'maker' => 0.0022, 'taker' => 0.0022 ),
-                'ETC/BTC' => array ( 'id' => 'ETC/BTC', 'symbol' => 'ETC/BTC', 'base' => 'ETC', 'quote' => 'BTC', 'maker' => 0.0022, 'taker' => 0.0022 ),
-                'XRP/BTC' => array ( 'id' => 'XRP/BTC', 'symbol' => 'XRP/BTC', 'base' => 'XRP', 'quote' => 'BTC', 'maker' => 0.0022, 'taker' => 0.0022 ),
-                'BCH/BTC' => array ( 'id' => 'BCH/BTC', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC', 'maker' => 0.0022, 'taker' => 0.0022 ),
+                'BTC/AUD' => array ( 'id' => 'BTC/AUD', 'symbol' => 'BTC/AUD', 'base' => 'BTC', 'quote' => 'AUD', 'maker' => 0.0085, 'taker' => 0.0085, 'limits' => array ( 'amount' => array ( 'min' => 0.001, 'max' => null )), 'precision' => array ( 'price' => 2 )),
+                'LTC/AUD' => array ( 'id' => 'LTC/AUD', 'symbol' => 'LTC/AUD', 'base' => 'LTC', 'quote' => 'AUD', 'maker' => 0.0085, 'taker' => 0.0085, 'limits' => array ( 'amount' => array ( 'min' => 0.001, 'max' => null )), 'precision' => array ( 'price' => 2 )),
+                'ETH/AUD' => array ( 'id' => 'ETH/AUD', 'symbol' => 'ETH/AUD', 'base' => 'ETH', 'quote' => 'AUD', 'maker' => 0.0085, 'taker' => 0.0085, 'limits' => array ( 'amount' => array ( 'min' => 0.001, 'max' => null )), 'precision' => array ( 'price' => 2 )),
+                'ETC/AUD' => array ( 'id' => 'ETC/AUD', 'symbol' => 'ETC/AUD', 'base' => 'ETC', 'quote' => 'AUD', 'maker' => 0.0085, 'taker' => 0.0085, 'limits' => array ( 'amount' => array ( 'min' => 0.001, 'max' => null )), 'precision' => array ( 'price' => 2 )),
+                'XRP/AUD' => array ( 'id' => 'XRP/AUD', 'symbol' => 'XRP/AUD', 'base' => 'XRP', 'quote' => 'AUD', 'maker' => 0.0085, 'taker' => 0.0085, 'limits' => array ( 'amount' => array ( 'min' => 0.001, 'max' => null )), 'precision' => array ( 'price' => 2 )),
+                'BCH/AUD' => array ( 'id' => 'BCH/AUD', 'symbol' => 'BCH/AUD', 'base' => 'BCH', 'quote' => 'AUD', 'maker' => 0.0085, 'taker' => 0.0085, 'limits' => array ( 'amount' => array ( 'min' => 0.001, 'max' => null )), 'precision' => array ( 'price' => 2 )),
+                'LTC/BTC' => array ( 'id' => 'LTC/BTC', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'maker' => 0.0022, 'taker' => 0.0022, 'limits' => array ( 'amount' => array ( 'min' => 0.001, 'max' => null ))),
+                'ETH/BTC' => array ( 'id' => 'ETH/BTC', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'maker' => 0.0022, 'taker' => 0.0022, 'limits' => array ( 'amount' => array ( 'min' => 0.001, 'max' => null ))),
+                'ETC/BTC' => array ( 'id' => 'ETC/BTC', 'symbol' => 'ETC/BTC', 'base' => 'ETC', 'quote' => 'BTC', 'maker' => 0.0022, 'taker' => 0.0022, 'limits' => array ( 'amount' => array ( 'min' => 0.001, 'max' => null ))),
+                'XRP/BTC' => array ( 'id' => 'XRP/BTC', 'symbol' => 'XRP/BTC', 'base' => 'XRP', 'quote' => 'BTC', 'maker' => 0.0022, 'taker' => 0.0022, 'limits' => array ( 'amount' => array ( 'min' => 0.001, 'max' => null ))),
+                'BCH/BTC' => array ( 'id' => 'BCH/BTC', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC', 'maker' => 0.0022, 'taker' => 0.0022, 'limits' => array ( 'amount' => array ( 'min' => 0.001, 'max' => null ))),
+            ),
+            'exceptions' => array (
+                '3' => '\\ccxt\\InvalidOrder',
+                '6' => '\\ccxt\\DDoSProtection',
             ),
         ));
     }
@@ -365,14 +369,28 @@ class btcmarkets extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+        if (strlen ($body) < 2)
+            return; // fallback to default $error handler
+        if ($body[0] === '{') {
+            $response = json_decode ($body, $as_associative_array = true);
+            if (is_array ($response) && array_key_exists ('success', $response)) {
+                if (!$response['success']) {
+                    $error = $this->safe_string($response, 'errorCode');
+                    $message = $this->id . ' ' . $this->json ($response);
+                    if (is_array ($this->exceptions) && array_key_exists ($error, $this->exceptions)) {
+                        $ExceptionClass = $this->exceptions[$error];
+                        throw new $ExceptionClass ($message);
+                    } else {
+                        throw new ExchangeError ($message);
+                    }
+                }
+            }
+        }
+    }
+
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if ($api === 'private') {
-            if (is_array ($response) && array_key_exists ('success', $response))
-                if (!$response['success'])
-                    throw new ExchangeError ($this->id . ' ' . $this->json ($response));
-            return $response;
-        }
         return $response;
     }
 }
