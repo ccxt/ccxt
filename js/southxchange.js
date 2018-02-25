@@ -221,12 +221,9 @@ module.exports = class southxchange extends Exchange {
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
-        if (symbol) {
+        if (typeof symbol !== 'undefined')
             market = this.market (symbol);
-        }
         let response = await this.privatePostListOrders ();
-        if (!response)
-            throw new ExchangeError (this.id + ' fetchOpenOrders got an unrecognized response');
         return this.parseOrders (response, market, since, limit);
     }
 
