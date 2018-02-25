@@ -342,12 +342,9 @@ class exmo (Exchange):
         if amount is None:
             amountField = 'in_amount' if (side == 'buy') else 'out_amount'
             amount = self.safe_float(order, amountField)
+        price = self.safe_float(order, 'price')
         cost = self.safe_float(order, 'amount')
-        filled = None
-        if cost is not None:
-            filled = amount
-        else:
-            filled = 0.0
+        filled = 0.0
         trades = []
         transactions = self.safe_value(order, 'trades')
         feeCost = None
@@ -358,7 +355,7 @@ class exmo (Exchange):
                     if id is None:
                         id = trade['order']
                     if timestamp is None:
-                        timestamp = 0
+                        timestamp = trade['timestamp']
                     if timestamp > trade['timestamp']:
                         timestamp = trade['timestamp']
                     filled += trade['amount']
@@ -375,7 +372,7 @@ class exmo (Exchange):
         if amount is not None:
             remaining = amount - filled
         status = self.safe_string(order, 'status')  # in case we need to redefine it for canceled orders
-        if filled <= amount:
+        if filled >= amount:
             status = 'closed'
         else:
             status = 'open'
@@ -385,7 +382,6 @@ class exmo (Exchange):
         if market is not None:
             symbol = market['symbol']
             feeCurrency = market['quote']
-        price = None
         if cost is None:
             if price is not None:
                 cost = price * filled
