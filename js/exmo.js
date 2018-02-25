@@ -348,6 +348,8 @@ module.exports = class exmo extends Exchange {
     parseOrder (order, market = undefined) {
         let id = this.safeString (order, 'order_id');
         let timestamp = this.safeInteger (order, 'created');
+        if (typeof timestamp !== 'undefined')
+            timestamp *= 1000;
         let iso8601 = undefined;
         let symbol = undefined;
         let side = this.safeString (order, 'type');
