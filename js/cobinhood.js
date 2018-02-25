@@ -351,14 +351,14 @@ module.exports = class cobinhood extends Exchange {
         let balances = response['result']['balances'];
         for (let i = 0; i < balances.length; i++) {
             let balance = balances[i];
-            let id = balance['currency'];
-            let currency = this.commonCurrencyCode (id);
+            let currency = balance['currency'];
+            if (currency in this.currencies_by_id)
+                currency = this.currencies_by_id[currency]['code'];
             let account = {
-                'free': parseFloat (balance['total']),
                 'used': parseFloat (balance['on_order']),
-                'total': 0.0,
+                'total': parseFloat (balance['total']),
             };
-            account['total'] = this.sum (account['free'], account['used']);
+            account['free'] = parseFloat (account['total'] - account['used']);
             result[currency] = account;
         }
         return this.parseBalance (result);
