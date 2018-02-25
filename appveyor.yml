@@ -10,6 +10,7 @@ install:
   - pip install tox
   - cinst -y curl
   - SET PATH=C:\Program Files\curl;%PATH%
+  - ps: Set-Service wuauserv -StartupType Manual
   - cinst -y php --allow-empty-checksums
   - cd c:\tools\php
   - copy php.ini-production php.ini
