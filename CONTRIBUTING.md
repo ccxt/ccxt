@@ -18,7 +18,7 @@ If you want to submit an issue and you want your issue to be resolved quickly, h
 - Read the [API docs](https://github.com/ccxt-dev/ccxt/wiki/Exchange-Markets) for your exchange.
 - Search for similar issues first to avoid duplicates.
 - If your issue is unique, along with a basic description of the failure, the following **IS REQUIRED**:
-  - **set `.verbose = true` property on the exchange instance before calling its methods**
+  - **set `exchange.verbose = true` property on the exchange instance before calling its functions or methods**
   - **surround code and output with triple backticks: &#096;&#096;&#096;YOUR\_CODE&#096;&#096;&#096;**
   - paste a complete code snippet you're having difficulties with, avoid one-liners
   - paste the **full verbose output** of the failing method without your keys
