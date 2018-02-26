@@ -14,7 +14,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import OrderNotCached
 from ccxt.base.errors import CancelPending
-from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import InvalidNonce
 
 
 class poloniex (Exchange):
@@ -760,7 +760,7 @@ class poloniex (Exchange):
             elif error.find('Not enough') >= 0:
                 raise InsufficientFunds(feedback)
             elif error.find('Nonce must be greater') >= 0:
-                raise ExchangeNotAvailable(feedback)
+                raise InvalidNonce(feedback)
             elif error.find('You have already called cancelOrder or moveOrder on self order.') >= 0:
                 raise CancelPending(feedback)
             else:
