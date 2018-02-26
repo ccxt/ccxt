@@ -1318,6 +1318,8 @@ abstract class Exchange {
     }
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        if (!$this->has['fetchTrades'])
+            throw new NotSupported ($this->$id . ' fetch_ohlcv() not implemented yet');
         $this->load_markets ();
         $trades = $this->fetch_trades ($symbol, $since, $limit, $params);
         return $this->build_ohlcv ($trades, $timeframe, $since, $limit);
@@ -1340,7 +1342,7 @@ abstract class Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        throw new NotSupported ($this->id . ' cancel_order() not suported or not implemented yet');
+        throw new NotSupported ($this->id . ' cancel_order() not supported or not implemented yet');
     }
 
     public function edit_order ($id, $symbol, $type, $side, $amount, $price, $params = array ()) {

@@ -1013,6 +1013,8 @@ class Exchange(object):
         return self.fetch_partial_balance('total', params)
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        if not self.has['fetchTrades']:
+            self.raise_error(NotSupported, details='fetch_ohlcv() not implemented yet')
         self.load_markets()
         trades = self.fetch_trades(symbol, since, limit, params)
         return self.build_ohlcv(trades, timeframe, since, limit)
