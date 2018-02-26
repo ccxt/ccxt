@@ -459,22 +459,10 @@ module.exports = class bittrex extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = undefined;
-        try {
-            let orderIdField = this.getOrderIdField ();
-            let request = {};
-            request[orderIdField] = id;
-            response = await this.marketGetCancel (this.extend (request, params));
-        } catch (e) {
-            if (this.last_json_response) {
-                let message = this.safeString (this.last_json_response, 'message');
-                if (message === 'ORDER_NOT_OPEN')
-                    throw new InvalidOrder (this.id + ' cancelOrder() error: ' + this.last_http_response);
-                if (message === 'UUID_INVALID')
-                    throw new OrderNotFound (this.id + ' cancelOrder() error: ' + this.last_http_response);
-            }
-            throw e;
-        }
+        let orderIdField = this.getOrderIdField ();
+        let request = {};
+        request[orderIdField] = id;
+        let response = await this.marketGetCancel (this.extend (request, params));
         return response;
     }
 
@@ -687,27 +675,32 @@ module.exports = class bittrex extends Exchange {
 
     throwExceptionOnError (response) {
         if ('message' in response) {
-            if (response['message'] === 'APISIGN_NOT_PROVIDED')
+            let message = this.safeString (response, 'message');
+            if (message === 'APISIGN_NOT_PROVIDED')
                 throw new AuthenticationError (this.id + ' ' + this.json (response));
-            if (response['message'] === 'INVALID_SIGNATURE')
+            if (message === 'INVALID_SIGNATURE')
                 throw new AuthenticationError (this.id + ' ' + this.json (response));
-            if (response['message'] === 'INVALID_PERMISSION')
+            if (message === 'INVALID_PERMISSION')
                 throw new AuthenticationError (this.id + ' ' + this.json (response));
-            if (response['message'] === 'INSUFFICIENT_FUNDS')
+            if (message === 'INSUFFICIENT_FUNDS')
                 throw new InsufficientFunds (this.id + ' ' + this.json (response));
-            if (response['message'] === 'QUANTITY_NOT_PROVIDED')
+            if (message === 'QUANTITY_NOT_PROVIDED')
                 throw new InvalidOrder (this.id + ' ' + this.json (response));
-            if (response['message'] === 'MIN_TRADE_REQUIREMENT_NOT_MET')
+            if (message === 'MIN_TRADE_REQUIREMENT_NOT_MET')
                 throw new InvalidOrder (this.id + ' ' + this.json (response));
-            if (response['message'] === 'APIKEY_INVALID') {
+            if (message === 'APIKEY_INVALID') {
                 if (this.hasAlreadyAuthenticatedSuccessfully) {
                     throw new DDoSProtection (this.id + ' ' + this.json (response));
                 } else {
                     throw new AuthenticationError (this.id + ' ' + this.json (response));
                 }
             }
-            if (response['message'] === 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT')
+            if (message === 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT')
                 throw new InvalidOrder (this.id + ' order cost should be over 50k satoshi ' + this.json (response));
+            if (message === 'ORDER_NOT_OPEN')
+                throw new InvalidOrder (this.id + ' ' + this.json (response));
+            if (message === 'UUID_INVALID')
+                throw new OrderNotFound (this.id + ' ' + this.json (response));
         }
     }
 
