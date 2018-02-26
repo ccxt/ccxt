@@ -16,6 +16,7 @@ module.exports = class btcmarkets extends Exchange {
             'rateLimit': 1000, // market data cached for 1 second (trades cached for 2 seconds)
             'has': {
                 'CORS': false,
+                'fetchOHLCV': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
                 'fetchClosedOrders': 'emulated',
@@ -24,7 +25,11 @@ module.exports = class btcmarkets extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/29142911-0e1acfc2-7d5c-11e7-98c4-07d9532b29d7.jpg',
-                'api': 'https://api.btcmarkets.net',
+                'api': {
+                    'public': 'https://api.btcmarkets.net',
+                    'private': 'https://api.btcmarkets.net',
+                    'web': 'https://btcmarkets.net/data',
+                },
                 'www': 'https://btcmarkets.net/',
                 'doc': 'https://github.com/BTCMarkets/API',
             },
@@ -53,6 +58,11 @@ module.exports = class btcmarkets extends Exchange {
                         'order/detail',
                     ],
                 },
+                'web': {
+                    'get': [
+                        'market/BTCMarkets/{id}/tickByTime',
+                    ],
+                },
             },
             'markets': {
                 'BTC/AUD': { 'id': 'BTC/AUD', 'symbol': 'BTC/AUD', 'base': 'BTC', 'quote': 'AUD', 'maker': 0.0085, 'taker': 0.0085, 'limits': { 'amount': { 'min': 0.001, 'max': undefined }}, 'precision': { 'price': 2 }},
@@ -66,6 +76,11 @@ module.exports = class btcmarkets extends Exchange {
                 'ETC/BTC': { 'id': 'ETC/BTC', 'symbol': 'ETC/BTC', 'base': 'ETC', 'quote': 'BTC', 'maker': 0.0022, 'taker': 0.0022, 'limits': { 'amount': { 'min': 0.001, 'max': undefined }}},
                 'XRP/BTC': { 'id': 'XRP/BTC', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC', 'maker': 0.0022, 'taker': 0.0022, 'limits': { 'amount': { 'min': 0.001, 'max': undefined }}},
                 'BCH/BTC': { 'id': 'BCH/BTC', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'maker': 0.0022, 'taker': 0.0022, 'limits': { 'amount': { 'min': 0.001, 'max': undefined }}},
+            },
+            'timeframes': {
+                '1m': 'minute',
+                '1h': 'hour',
+                '1d': 'day',
             },
             'exceptions': {
                 '3': InvalidOrder,
@@ -93,6 +108,31 @@ module.exports = class btcmarkets extends Exchange {
             result[currency] = account;
         }
         return this.parseBalance (result);
+    }
+
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        let multiplier = 100000000; // for price and volume
+        return [
+            ohlcv[0],
+            parseFloat (ohlcv[1]) / multiplier,
+            parseFloat (ohlcv[2]) / multiplier,
+            parseFloat (ohlcv[3]) / multiplier,
+            parseFloat (ohlcv[4]) / multiplier,
+            parseFloat (ohlcv[5]) / multiplier,
+        ];
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.load_markets ();
+        let market = this.market (symbol);
+        let request = {
+            'id': market['id'],
+            'timeWindow': this.timeframes[timeframe],
+        };
+        if (typeof limit !== 'undefined')
+            request['since'] = since;
+        let response = await this.webGetMarketBTCMarketsIdTickByTime (this.extend (request, params));
+        return this.parseOHLCVs (response['ticks'], market, timeframe, since, limit);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -345,8 +385,11 @@ module.exports = class btcmarkets extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let uri = '/' + this.implodeParams (path, params);
-        let url = this.urls['api'] + uri;
+        let url = this.urls['api'][api] + uri;
         if (api === 'public') {
+            if (Object.keys (params).length)
+                url += '?' + this.urlencode (params);
+        } else if (api === 'web') {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
