@@ -386,13 +386,7 @@ module.exports = class btcmarkets extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let uri = '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + uri;
-        if (api === 'public') {
-            if (Object.keys (params).length)
-                url += '?' + this.urlencode (params);
-        } else if (api === 'web') {
-            if (Object.keys (params).length)
-                url += '?' + this.urlencode (params);
-        } else {
+        if (api === 'private') {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             // eslint-disable-next-line quotes
@@ -409,6 +403,9 @@ module.exports = class btcmarkets extends Exchange {
             let secret = this.base64ToBinary (this.secret);
             let signature = this.hmac (this.encode (auth), secret, 'sha512', 'base64');
             headers['signature'] = this.decode (signature);
+        } else {
+            if (Object.keys (params).length)
+                url += '?' + this.urlencode (params);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
