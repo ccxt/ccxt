@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { InsufficientFunds, ExchangeError, InvalidOrder, AuthenticationError, NotSupported } = require ('./base/errors');
+const { InsufficientFunds, ExchangeError, InvalidOrder, AuthenticationError, NotSupported, OrderNotFound } = require ('./base/errors');
 
 // ----------------------------------------------------------------------------
 
@@ -575,7 +575,7 @@ module.exports = class gdax extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body) {
-        if (code === 400) {
+        if (code >= 400) {
             if (body[0] === '{') {
                 let response = JSON.parse (body);
                 let message = response['message'];
@@ -586,6 +586,8 @@ module.exports = class gdax extends Exchange {
                     throw new InvalidOrder (error);
                 } else if (message === 'Insufficient funds') {
                     throw new InsufficientFunds (error);
+                } else if (message === 'NotFound') {
+                    throw new OrderNotFound (error);
                 } else if (message === 'Invalid API Key') {
                     throw new AuthenticationError (error);
                 }
