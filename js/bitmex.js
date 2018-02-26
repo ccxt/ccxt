@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, DDoSProtection, OrderNotFound } = require ('./base/errors');
+const { ExchangeError, DDoSProtection, OrderNotFound, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -498,6 +498,11 @@ module.exports = class bitmex extends Exchange {
                     let response = JSON.parse (body);
                     if ('error' in response) {
                         if ('message' in response['error']) {
+                            let message = this.safeValue (response['error'], 'message');
+                            if (typeof message !== 'undefined') {
+                                if (message === 'Invalid API Key.')
+                                    throw new AuthenticationError (this.id + ' ' + this.json (response));
+                            }
                             // stub code, need proper handling
                             throw new ExchangeError (this.id + ' ' + this.json (response));
                         }
