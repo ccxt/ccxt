@@ -24,6 +24,7 @@ class btcmarkets (Exchange):
             'rateLimit': 1000,  # market data cached for 1 second(trades cached for 2 seconds)
             'has': {
                 'CORS': False,
+                'fetchOHLCV': True,
                 'fetchOrder': True,
                 'fetchOrders': True,
                 'fetchClosedOrders': 'emulated',
@@ -32,7 +33,11 @@ class btcmarkets (Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/29142911-0e1acfc2-7d5c-11e7-98c4-07d9532b29d7.jpg',
-                'api': 'https://api.btcmarkets.net',
+                'api': {
+                    'public': 'https://api.btcmarkets.net',
+                    'private': 'https://api.btcmarkets.net',
+                    'web': 'https://btcmarkets.net/data',
+                },
                 'www': 'https://btcmarkets.net/',
                 'doc': 'https://github.com/BTCMarkets/API',
             },
@@ -61,6 +66,11 @@ class btcmarkets (Exchange):
                         'order/detail',
                     ],
                 },
+                'web': {
+                    'get': [
+                        'market/BTCMarkets/{id}/tickByTime',
+                    ],
+                },
             },
             'markets': {
                 'BTC/AUD': {'id': 'BTC/AUD', 'symbol': 'BTC/AUD', 'base': 'BTC', 'quote': 'AUD', 'maker': 0.0085, 'taker': 0.0085, 'limits': {'amount': {'min': 0.001, 'max': None}}, 'precision': {'price': 2}},
@@ -74,6 +84,11 @@ class btcmarkets (Exchange):
                 'ETC/BTC': {'id': 'ETC/BTC', 'symbol': 'ETC/BTC', 'base': 'ETC', 'quote': 'BTC', 'maker': 0.0022, 'taker': 0.0022, 'limits': {'amount': {'min': 0.001, 'max': None}}},
                 'XRP/BTC': {'id': 'XRP/BTC', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC', 'maker': 0.0022, 'taker': 0.0022, 'limits': {'amount': {'min': 0.001, 'max': None}}},
                 'BCH/BTC': {'id': 'BCH/BTC', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'maker': 0.0022, 'taker': 0.0022, 'limits': {'amount': {'min': 0.001, 'max': None}}},
+            },
+            'timeframes': {
+                '1m': 'minute',
+                '1h': 'hour',
+                '1d': 'day',
             },
             'exceptions': {
                 '3': InvalidOrder,
@@ -99,6 +114,29 @@ class btcmarkets (Exchange):
             }
             result[currency] = account
         return self.parse_balance(result)
+
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+        multiplier = 100000000  # for price and volume
+        return [
+            ohlcv[0],
+            float(ohlcv[1]) / multiplier,
+            float(ohlcv[2]) / multiplier,
+            float(ohlcv[3]) / multiplier,
+            float(ohlcv[4]) / multiplier,
+            float(ohlcv[5]) / multiplier,
+        ]
+
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'id': market['id'],
+            'timeWindow': self.timeframes[timeframe],
+        }
+        if since is not None:
+            request['since'] = since
+        response = self.webGetMarketBTCMarketsIdTickByTime(self.extend(request, params))
+        return self.parse_ohlcvs(response['ticks'], market, timeframe, since, limit)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -328,11 +366,8 @@ class btcmarkets (Exchange):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         uri = '/' + self.implode_params(path, params)
-        url = self.urls['api'] + uri
-        if api == 'public':
-            if params:
-                url += '?' + self.urlencode(params)
-        else:
+        url = self.urls['api'][api] + uri
+        if api == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())
             # eslint-disable-next-line quotes
@@ -348,6 +383,9 @@ class btcmarkets (Exchange):
             secret = base64.b64decode(self.secret)
             signature = self.hmac(self.encode(auth), secret, hashlib.sha512, 'base64')
             headers['signature'] = self.decode(signature)
+        else:
+            if params:
+                url += '?' + self.urlencode(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body):
