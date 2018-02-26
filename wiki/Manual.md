@@ -1216,7 +1216,9 @@ The fetchOHLCV method shown above returns a list (a flat array) of OHLCV candles
 
 ### OHLCV Emulation
 
-Somee exchanges don't offer any OHLCV method, and for those, the ccxt library will emulate OHLCV candles from [Public Trades](https://github.com/ccxt/ccxt/wiki/Manual#trades-executions-transactions). In that case you will see `exchange.has['fetchOHLCV'] = 'emulated'`. However, because the trade history is usually very limited, the emulated method covers most recent info only and should only be used as a fallback, when no other option is available.
+Some exchanges don't offer any OHLCV method, and for those, the ccxt library will emulate OHLCV candles from [Public Trades](https://github.com/ccxt/ccxt/wiki/Manual#trades-executions-transactions). In that case you will see `exchange.has['fetchOHLCV'] = 'emulated'`. However, because the trade history is usually very limited, the emulated fetchOHLCV methods cover most recent info only and should only be used as a fallback, when no other option is available.
+
+**WARNING: the fetchOHLCV emulations is experimental!**
 
 ## Trades, Executions, Transactions
 
