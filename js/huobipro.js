@@ -383,7 +383,7 @@ module.exports = class huobipro extends Exchange {
         let response = await this.privateGetOrderOrdersId (this.extend ({
             'id': id,
         }, params));
-        return this.parseOrder (response);
+        return this.parseOrder (response['data']);
     }
 
     parseOrderStatus (status) {
