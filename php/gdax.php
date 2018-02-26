@@ -574,7 +574,7 @@ class gdax extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
-        if ($code >= 400) {
+        if (($code === 400) || ($code === 404)) {
             if ($body[0] === '{') {
                 $response = json_decode ($body, $as_associative_array = true);
                 $message = $response['message'];
