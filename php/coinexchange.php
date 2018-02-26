@@ -17,6 +17,7 @@ class coinexchange extends Exchange {
             'has' => array (
                 'privateAPI' => false,
                 'fetchTrades' => false,
+                'fetchOHLCV' => false,
                 'fetchCurrencies' => true,
                 'fetchTickers' => true,
             ),

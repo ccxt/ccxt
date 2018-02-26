@@ -497,6 +497,11 @@ class bitmex extends Exchange {
                     $response = json_decode ($body, $as_associative_array = true);
                     if (is_array ($response) && array_key_exists ('error', $response)) {
                         if (is_array ($response['error']) && array_key_exists ('message', $response['error'])) {
+                            $message = $this->safe_value($response['error'], 'message');
+                            if ($message !== null) {
+                                if ($message === 'Invalid API Key.')
+                                    throw new AuthenticationError ($this->id . ' ' . $this->json ($response));
+                            }
                             // stub $code, need proper handling
                             throw new ExchangeError ($this->id . ' ' . $this->json ($response));
                         }

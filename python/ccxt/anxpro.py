@@ -20,6 +20,7 @@ class anxpro (Exchange):
             'rateLimit': 1500,
             'has': {
                 'CORS': False,
+                'fetchOHLCV': False,
                 'fetchTrades': False,
                 'withdraw': True,
             },
