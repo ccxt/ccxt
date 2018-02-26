@@ -47,9 +47,8 @@ class btcturk (Exchange):
                         'userTransactions',  # ?offset=0&limit=25&sort=asc
                     ],
                     'post': [
-                        'buy',
+                        'exchange',
                         'cancelOrder',
-                        'sell',
                     ],
                 },
             },
@@ -178,20 +177,19 @@ class btcturk (Exchange):
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
-        method = 'privatePost' + self.capitalize(side)
+        await self.load_markets()
         order = {
-            'Type': 'BuyBtc' if (side == 'buy') else 'SelBtc',
-            'IsMarketOrder': 1 if (type == 'market') else 0,
+            'PairSymbol': self.market_id(symbol),
+            'OrderType': 0 if (side == 'buy') else 1,
+            'OrderMethod': 1 if (type == 'market') else 0,
         }
         if type == 'market':
-            if side == 'buy':
-                order['Total'] = amount
-            else:
-                order['Amount'] = amount
+            if not('Total' in list(params.keys())):
+                raise ExchangeError(self.id + ' createOrder requires the "Total" extra parameter for market orders(amount and price are both ignored)')
         else:
             order['Price'] = price
             order['Amount'] = amount
-        response = await getattr(self, method)(self.extend(order, params))
+        response = await self.privatePostExchange(self.extend(order, params))
         return {
             'info': response,
             'id': response['id'],
