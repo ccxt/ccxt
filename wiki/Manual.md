@@ -1179,7 +1179,7 @@ if (exchange.has.fetchOHLCV) {
 ```Python
 # Python
 import time
-if exchange.hasFetchOHLCV:
+if exchange.has['fetchOHLCV']:
     for symbol in exchange.markets:
         time.sleep (exchange.rateLimit / 1000) # time.sleep wants seconds
         print (symbol, exchange.fetch_ohlcv (symbol, '1d')) # one day
@@ -1187,7 +1187,7 @@ if exchange.hasFetchOHLCV:
 
 ```PHP
 // PHP
-if ($exchange->hasFetchOHLCV)
+if ($exchange->has['fetchOHLCV'])
     foreach ($exchange->markets as $symbol => $market) {
         usleep ($exchange.rateLimit * 1000); // usleep wants microseconds
         var_dump ($exchange->fetch_ohlcv ($symbol, '1M')); // one month
@@ -1213,6 +1213,10 @@ The fetchOHLCV method shown above returns a list (a flat array) of OHLCV candles
     ...
 ]
 ```
+
+### OHLCV Emulation
+
+Somee exchanges don't offer any OHLCV method, and for those, the ccxt library will emulate OHLCV candles from [Public Trades](https://github.com/ccxt/ccxt/wiki/Manual#trades-executions-transactions). In that case you will see `exchange.has['fetchOHLCV'] = 'emulated'`. However, because the trade history is usually very limited, the emulated method covers most recent info only and should only be used as a fallback, when no other option is available.
 
 ## Trades, Executions, Transactions
 
