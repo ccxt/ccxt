@@ -256,6 +256,15 @@ class poloniex (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
+        open = None
+        change = None
+        average = None
+        last = float(ticker['last'])
+        relativeChange = float(ticker['percentChange'])
+        if relativeChange != -1:
+            open = last / (1 + relativeChange)
+            change = last - open
+            average = (last + open) / 2
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -265,13 +274,13 @@ class poloniex (Exchange):
             'bid': float(ticker['highestBid']),
             'ask': float(ticker['lowestAsk']),
             'vwap': None,
-            'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['last']),
-            'change': float(ticker['percentChange']),
-            'percentage': None,
-            'average': None,
+            'open': open,
+            'close': last,
+            'last': last,
+            'previousClose': None,
+            'change': change,
+            'percentage': relativeChange * 100,
+            'average': average,
             'baseVolume': float(ticker['quoteVolume']),
             'quoteVolume': float(ticker['baseVolume']),
             'info': ticker,

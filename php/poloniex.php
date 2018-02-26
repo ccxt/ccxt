@@ -258,6 +258,16 @@ class poloniex extends Exchange {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
+        $open = null;
+        $change = null;
+        $average = null;
+        $last = floatval ($ticker['last']);
+        $relativeChange = floatval ($ticker['percentChange']);
+        if ($relativeChange !== -1) {
+            $open = $last / (1 . $relativeChange);
+            $change = $last - $open;
+            $average = ($last . $open) / 2;
+        }
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -267,13 +277,13 @@ class poloniex extends Exchange {
             'bid' => floatval ($ticker['highestBid']),
             'ask' => floatval ($ticker['lowestAsk']),
             'vwap' => null,
-            'open' => null,
-            'close' => null,
-            'first' => null,
-            'last' => floatval ($ticker['last']),
-            'change' => floatval ($ticker['percentChange']),
-            'percentage' => null,
-            'average' => null,
+            'open' => $open,
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
+            'change' => $change,
+            'percentage' => $relativeChange * 100,
+            'average' => $average,
             'baseVolume' => floatval ($ticker['quoteVolume']),
             'quoteVolume' => floatval ($ticker['baseVolume']),
             'info' => $ticker,

@@ -308,7 +308,7 @@ class bitmex extends Exchange {
         ];
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = 100, $params = array ()) {
         $this->load_markets();
         // send JSON key/value pairs, such as array ("key" => "value")
         // $filter by individual fields and do advanced queries on timestamps
@@ -321,19 +321,19 @@ class bitmex extends Exchange {
             'symbol' => $market['id'],
             'binSize' => $this->timeframes[$timeframe],
             'partial' => true,     // true == include yet-incomplete current bins
+            'count' => $limit,      // default 100, max 500
             // 'filter' => $filter, // $filter by individual fields and do advanced queries
             // 'columns' => array (),    // will return all columns if omitted
             // 'start' => 0,       // starting point for results (wtf?)
             // 'reverse' => false, // true == newest first
             // 'endTime' => '',    // ending date $filter for results
         );
+        // if $since is not set, they will return candles starting from 2017-01-01
         if ($since !== null) {
             $ymdhms = $this->ymdhms ($since);
             $ymdhm = mb_substr ($ymdhms, 0, 16);
             $request['startTime'] = $ymdhm; // starting date $filter for results
         }
-        if ($limit !== null)
-            $request['count'] = $limit; // default 100
         $response = $this->publicGetTradeBucketed (array_merge ($request, $params));
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }

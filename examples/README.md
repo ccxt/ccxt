@@ -61,8 +61,6 @@ php -f path/to/example.php # substitute for actual filename here
 
 [ZenBot](https://github.com/carlos8f/zenbot) - a command-line cryptocurrency trading bot using Node.js and MongoDB.
 
-[co3k-crypto-currency-note](https://github.com/co3k/co3k-crypto-currency-note/blob/master/Untitled.ipynb) – an Python example of using ccxt to fetch OHLCV candles from Kraken and charting them with matplotlib in a Jupyter Notebook, made by [co3k](https://github.com/co3k).
-
 [bitcoin-chart-cli](https://github.com/madnight/bitcoin-chart-cli) by [madnight](https://github.com/madnight) – a command-line console util that draws Bitcoin, Ether, Litecoin and many altcoin charts right in the terminal!
 
 ![bitcoin-chart-cli](https://camo.githubusercontent.com/494806efd925c4cd56d8370c1d4e8b751812030a/68747470733a2f2f692e696d6775722e636f6d2f635474467879362e706e67)
