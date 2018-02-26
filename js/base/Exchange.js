@@ -555,6 +555,13 @@ module.exports = class Exchange {
         throw new NotSupported (this.id + ' fetchTickers not supported yet')
     }
 
+    purgeCachedOrders (before) {
+        this.orders = indexBy (Object.values (this.orders)
+            .filter (order =>
+                (order.status === 'open') ||
+                (order.timestamp >= before)), 'id')
+    }
+
     fetchOrder (id, symbol = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchOrder not supported yet');
     }
