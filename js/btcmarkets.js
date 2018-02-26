@@ -129,7 +129,7 @@ module.exports = class btcmarkets extends Exchange {
             'id': market['id'],
             'timeWindow': this.timeframes[timeframe],
         };
-        if (typeof limit !== 'undefined')
+        if (typeof since !== 'undefined')
             request['since'] = since;
         let response = await this.webGetMarketBTCMarketsIdTickByTime (this.extend (request, params));
         return this.parseOHLCVs (response['ticks'], market, timeframe, since, limit);
