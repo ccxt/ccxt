@@ -458,22 +458,10 @@ class bittrex extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $response = null;
-        try {
-            $orderIdField = $this->get_order_id_field ();
-            $request = array ();
-            $request[$orderIdField] = $id;
-            $response = $this->marketGetCancel (array_merge ($request, $params));
-        } catch (Exception $e) {
-            if ($this->last_json_response) {
-                $message = $this->safe_string($this->last_json_response, 'message');
-                if ($message === 'ORDER_NOT_OPEN')
-                    throw new InvalidOrder ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
-                if ($message === 'UUID_INVALID')
-                    throw new OrderNotFound ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
-            }
-            throw $e;
-        }
+        $orderIdField = $this->get_order_id_field ();
+        $request = array ();
+        $request[$orderIdField] = $id;
+        $response = $this->marketGetCancel (array_merge ($request, $params));
         return $response;
     }
 
@@ -686,27 +674,32 @@ class bittrex extends Exchange {
 
     public function throw_exception_on_error ($response) {
         if (is_array ($response) && array_key_exists ('message', $response)) {
-            if ($response['message'] === 'APISIGN_NOT_PROVIDED')
+            $message = $this->safe_string($response, 'message');
+            if ($message === 'APISIGN_NOT_PROVIDED')
                 throw new AuthenticationError ($this->id . ' ' . $this->json ($response));
-            if ($response['message'] === 'INVALID_SIGNATURE')
+            if ($message === 'INVALID_SIGNATURE')
                 throw new AuthenticationError ($this->id . ' ' . $this->json ($response));
-            if ($response['message'] === 'INVALID_PERMISSION')
+            if ($message === 'INVALID_PERMISSION')
                 throw new AuthenticationError ($this->id . ' ' . $this->json ($response));
-            if ($response['message'] === 'INSUFFICIENT_FUNDS')
+            if ($message === 'INSUFFICIENT_FUNDS')
                 throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
-            if ($response['message'] === 'QUANTITY_NOT_PROVIDED')
+            if ($message === 'QUANTITY_NOT_PROVIDED')
                 throw new InvalidOrder ($this->id . ' ' . $this->json ($response));
-            if ($response['message'] === 'MIN_TRADE_REQUIREMENT_NOT_MET')
+            if ($message === 'MIN_TRADE_REQUIREMENT_NOT_MET')
                 throw new InvalidOrder ($this->id . ' ' . $this->json ($response));
-            if ($response['message'] === 'APIKEY_INVALID') {
+            if ($message === 'APIKEY_INVALID') {
                 if ($this->hasAlreadyAuthenticatedSuccessfully) {
                     throw new DDoSProtection ($this->id . ' ' . $this->json ($response));
                 } else {
                     throw new AuthenticationError ($this->id . ' ' . $this->json ($response));
                 }
             }
-            if ($response['message'] === 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT')
+            if ($message === 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT')
                 throw new InvalidOrder ($this->id . ' order cost should be over 50k satoshi ' . $this->json ($response));
+            if ($message === 'ORDER_NOT_OPEN')
+                throw new InvalidOrder ($this->id . ' ' . $this->json ($response));
+            if ($message === 'UUID_INVALID')
+                throw new OrderNotFound ($this->id . ' ' . $this->json ($response));
         }
     }
 
