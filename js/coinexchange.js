@@ -18,6 +18,7 @@ module.exports = class coinexchange extends Exchange {
             'has': {
                 'privateAPI': false,
                 'fetchTrades': false,
+                'fetchOHLCV': false,
                 'fetchCurrencies': true,
                 'fetchTickers': true,
             },
