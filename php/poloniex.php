@@ -820,7 +820,7 @@ class poloniex extends Exchange {
             } else if (mb_strpos ($error, 'Not enough') !== false) {
                 throw new InsufficientFunds ($feedback);
             } else if (mb_strpos ($error, 'Nonce must be greater') !== false) {
-                throw new ExchangeNotAvailable ($feedback);
+                throw new InvalidNonce ($feedback);
             } else if (mb_strpos ($error, 'You have already called cancelOrder or moveOrder on this order.') !== false) {
                 throw new CancelPending ($feedback);
             } else {
