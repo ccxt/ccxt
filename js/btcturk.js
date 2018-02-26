@@ -44,9 +44,8 @@ module.exports = class btcturk extends Exchange {
                         'userTransactions', // ?offset=0&limit=25&sort=asc
                     ],
                     'post': [
-                        'buy',
+                        'exchange',
                         'cancelOrder',
-                        'sell',
                     ],
                 },
             },
@@ -187,21 +186,20 @@ module.exports = class btcturk extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        let method = 'privatePost' + this.capitalize (side);
+        await this.loadMarkets ();
         let order = {
-            'Type': (side === 'buy') ? 'BuyBtc' : 'SelBtc',
-            'IsMarketOrder': (type === 'market') ? 1 : 0,
+            'PairSymbol': this.marketId (symbol),
+            'OrderType': (side === 'buy') ? 0 : 1,
+            'OrderMethod': (type === 'market') ? 1 : 0,
         };
         if (type === 'market') {
-            if (side === 'buy')
-                order['Total'] = amount;
-            else
-                order['Amount'] = amount;
+            if (!('Total' in params))
+                throw new ExchangeError (this.id + ' createOrder requires the "Total" extra parameter for market orders (amount and price are both ignored)');
         } else {
             order['Price'] = price;
             order['Amount'] = amount;
         }
-        let response = await this[method] (this.extend (order, params));
+        let response = await this.privatePostExchange (this.extend (order, params));
         return {
             'info': response,
             'id': response['id'],
