@@ -43,9 +43,8 @@ class btcturk extends Exchange {
                         'userTransactions', // ?offset=0&limit=25&sort=asc
                     ),
                     'post' => array (
-                        'buy',
+                        'exchange',
                         'cancelOrder',
-                        'sell',
                     ),
                 ),
             ),
@@ -186,21 +185,20 @@ class btcturk extends Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        $method = 'privatePost' . $this->capitalize ($side);
+        $this->load_markets();
         $order = array (
-            'Type' => ($side === 'buy') ? 'BuyBtc' : 'SelBtc',
-            'IsMarketOrder' => ($type === 'market') ? 1 : 0,
+            'PairSymbol' => $this->market_id($symbol),
+            'OrderType' => ($side === 'buy') ? 0 : 1,
+            'OrderMethod' => ($type === 'market') ? 1 : 0,
         );
         if ($type === 'market') {
-            if ($side === 'buy')
-                $order['Total'] = $amount;
-            else
-                $order['Amount'] = $amount;
+            if (!(is_array ($params) && array_key_exists ('Total', $params)))
+                throw new ExchangeError ($this->id . ' createOrder requires the "Total" extra parameter for market orders ($amount and $price are both ignored)');
         } else {
             $order['Price'] = $price;
             $order['Amount'] = $amount;
         }
-        $response = $this->$method (array_merge ($order, $params));
+        $response = $this->privatePostExchange (array_merge ($order, $params));
         return array (
             'info' => $response,
             'id' => $response['id'],
