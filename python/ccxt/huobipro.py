@@ -370,6 +370,8 @@ class huobipro (Exchange):
         return status
 
     def parse_order(self, order, market=None):
+        assert order['status'] == 'ok'
+        order = order['data']
         side = None
         type = None
         status = None
