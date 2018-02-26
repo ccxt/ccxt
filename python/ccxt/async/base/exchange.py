@@ -170,6 +170,11 @@ class Exchange(BaseExchange):
             'asks': self.sort_by(self.aggregate(orderbook['asks']), 0),
         })
 
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        await self.load_markets()
+        trades = await self.fetch_trades(symbol, since, limit, params)
+        return self.build_ohlcv(trades, timeframe, since, limit)
+
     async def fetch_full_tickers(self, symbols=None, params={}):
         tickers = await self.fetch_tickers(symbols, params)
         return tickers
