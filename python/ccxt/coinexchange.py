@@ -20,6 +20,7 @@ class coinexchange (Exchange):
             'has': {
                 'privateAPI': False,
                 'fetchTrades': False,
+                'fetchOHLCV': False,
                 'fetchCurrencies': True,
                 'fetchTickers': True,
             },

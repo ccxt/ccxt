@@ -8,6 +8,7 @@ import hashlib
 import math
 import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -752,6 +753,8 @@ class poloniex (Exchange):
             feedback = self.id + ' ' + self.json(response)
             if error == 'Invalid order number, or you are not the person who placed the order.':
                 raise OrderNotFound(feedback)
+            elif error == 'Invalid API key/secret pair.':
+                raise AuthenticationError(feedback)
             elif error.find('Total must be at least') >= 0:
                 raise InvalidOrder(feedback)
             elif error.find('Not enough') >= 0:
