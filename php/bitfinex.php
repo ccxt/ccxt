@@ -368,6 +368,8 @@ class bitfinex extends Exchange {
         $this->load_markets();
         $orderbook = $this->publicGetBookSymbol (array_merge (array (
             'symbol' => $this->market_id($symbol),
+            'limit_bids' => $limit,
+            'limit_asks' => $limit,
         ), $params));
         return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'price', 'amount');
     }

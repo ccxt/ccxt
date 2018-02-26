@@ -368,6 +368,8 @@ class bitfinex (Exchange):
         self.load_markets()
         orderbook = self.publicGetBookSymbol(self.extend({
             'symbol': self.market_id(symbol),
+            'limit_bids': limit,
+            'limit_asks': limit,
         }, params))
         return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'amount')
 
