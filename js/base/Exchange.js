@@ -542,15 +542,15 @@ module.exports = class Exchange {
         throw new NotSupported (this.id + ' fetchBidsAsks not supported yet')
     }
 
-    async fetchOHLCVC (symbol, timeframe = '1m', since = undefined, limits = undefined, params = {}) {
-        await this.loadMarkets ();
-        let trades = await this.fetchTrades (symbol, since, limits, params)
-        return buildOHLCVC (trades, timeframe, since, limits)
-    }
-
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limits = undefined, params = {}) {
-        let ohlcvc = await this.fetchOHLCVC (symbol, timeframe, since, limits, params)
-        return ohlcvc.map (c => c.slice (0, -1))
+        if (this.has['fetchTrades']) {
+            await this.loadMarkets ();
+            let trades = await this.fetchTrades (symbol, since, limits, params)
+            let ohlcvc = buildOHLCVC (trades, timeframe, since, limits)
+            return ohlcvc.map (c => c.slice (0, -1))
+        } else {
+            throw new NotSupported (this.id + ' fetchOHLCV not supported yet');
+        }
     }
 
     fetchTickers (symbols = undefined, params = {}) {
