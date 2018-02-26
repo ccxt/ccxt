@@ -1531,7 +1531,7 @@ In most cases the `.orders` cache will work transparently for the user. Most oft
 
 #### Purging Cached Orders
 
-With some long-running instances it might be critical to free up used resources when they aren't needed anymore. Because in active trading the `.orders` cache can grow pretty big, the ccxt library offers the `purgeCachedOrders/purge_cached_orders` method for clearing old non-open orders (`(order['timestamp'] < before) && (order['status'] != 'open')`) from cache and free used memory for other purposes. The purging method accepts one single argument named `before`:
+With some long-running instances it might be critical to free up used resources when they aren't needed anymore. Because in active trading the `.orders` cache can grow pretty big, the ccxt library offers the `purgeCachedOrders/purge_cached_orders` method for clearing old non-open orders from cache where `(order['timestamp'] < before) && (order['status'] != 'open')` and freeing used memory for other purposes. The purging method accepts one single argument named `before`:
 
 ```JavaScript
 // JavaScript
@@ -1547,7 +1547,7 @@ exchange.purgeCachedOrders (before)
 # Python
 
 # keep last hour of history in cache
-before = exchange.milliseconds () - 1 * 60 * 60 * 1000;
+before = exchange.milliseconds () - 1 * 60 * 60 * 1000
 
 # purge all closed and canceled orders "older" or issued "before" that time
 exchange.purge_cached_orders (before)
