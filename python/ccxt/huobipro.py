@@ -356,7 +356,7 @@ class huobipro (Exchange):
         response = self.privateGetOrderOrdersId(self.extend({
             'id': id,
         }, params))
-        return self.parse_order(response)
+        return self.parse_order(response['data'])
 
     def parse_order_status(self, status):
         if status == 'partial-filled':
@@ -370,8 +370,6 @@ class huobipro (Exchange):
         return status
 
     def parse_order(self, order, market=None):
-        assert order['status'] == 'ok'
-        order = order['data']
         side = None
         type = None
         status = None
