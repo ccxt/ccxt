@@ -382,7 +382,7 @@ class huobipro extends Exchange {
         $response = $this->privateGetOrderOrdersId (array_merge (array (
             'id' => $id,
         ), $params));
-        return $this->parse_order($response);
+        return $this->parse_order($response['data']);
     }
 
     public function parse_order_status ($status) {
