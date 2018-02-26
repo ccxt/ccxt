@@ -219,6 +219,7 @@ And structurally:
 - if you need another base method you will have to implement it in all three languages
 - try to reduce syntax to basic one-liner expressions
 - multiple lines are ok, but you should avoid deep nesting with lots of brackets
+- avoid changing the contents of the arguments and params passed by reference into function calls
 - do not use conditional statements that are too complex (heavy if-bracketing)
 - do not use heavy ternary conditionals
 - avoid operators clutter (**don't do this**: `a && b || c ? d + 80 : e ** f`)
