@@ -1241,6 +1241,17 @@ abstract class Exchange {
         return $this->fetch_order_status ($id);
     }
 
+    public function purge_cached_orders ($before) {
+        $this->orders = $this->index_by (array_filter ($this->orders, function ($orders) use ($before) {
+            return ($order['status'] === 'open') || ($order['timestamp'] >= $before);
+        }), 'id');
+        return $this->orders;
+    }
+
+    public function purgeCachesOrders ($before) {
+        return $this->purge_cached_orders ($before);
+    }
+
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         throw new NotSupported ($this->id . ' fetch_order() not implemented yet');
     }
