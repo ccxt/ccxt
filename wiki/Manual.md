@@ -1529,6 +1529,41 @@ In most cases the `.orders` cache will work transparently for the user. Most oft
 
 *Note: the order cache functionality is to be reworked soon to obtain the order statuses from private trades history, where available. This is a work in progress, aimed at adding full-featured support for order fees, costs and other info. More about it here: https://github.com/ccxt/ccxt/issues/569*.
 
+#### Purging Cached Orders
+
+With some long-running instances it might be critical to free up used resources when they aren't needed anymore. Because in active trading the `.orders` cache can grow pretty big, the ccxt library offers the `purgeCachedOrders/purge_cached_orders` method for clearing old non-open orders (orders with status `'closed'` or `'canceled'`) from cache and free used memory for other purposes. The purging method accepts one single argument named `before`:
+
+```JavaScript
+// JavaScript
+
+// keep last 24 hours of history in cache
+before = exchange.milliseconds () - 24 * 60 * 60 * 1000
+
+// purge all closed and canceled orders "older" or issued "before" that time
+exchange.purgeCachedOrders (before)
+```
+
+```Python
+# Python
+
+# keep last hour of history in cache
+before = exchange.milliseconds () - 1 * 60 * 60 * 1000;
+
+# purge all closed and canceled orders "older" or issued "before" that time
+exchange.purge_cached_orders (before)
+```
+
+```PHP
+// PHP
+
+// keep last 24 hours of history in cache
+$before = $exchange->milliseconds () - 24 * 60 * 60 * 1000;
+
+// purge all closed and canceled orders "older" or issued "before" that time
+$exchange->purge_cached_orders ($before);
+
+```
+
 #### By Order Id
 
 To get the details of a particular order by its id, use the fetchOrder / fetch_order method. Some exchanges also require a symbol even when fetching a particular order by id.
