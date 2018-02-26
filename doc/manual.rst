@@ -1687,7 +1687,7 @@ In most cases the ``.orders`` cache will work transparently for the user. Most o
 Purging Cached Orders
 ^^^^^^^^^^^^^^^^^^^^^
 
-With some long-running instances it might be critical to free up used resources when they aren't needed anymore. Because in active trading the ``.orders`` cache can grow pretty big, the ccxt library offers the ``purgeCachedOrders/purge_cached_orders`` method for clearing old non-open orders (``(order['timestamp'] <= before) && (order['status'] != 'open')``) from cache and free used memory for other purposes. The purging method accepts one single argument named ``before``:
+With some long-running instances it might be critical to free up used resources when they aren't needed anymore. Because in active trading the ``.orders`` cache can grow pretty big, the ccxt library offers the ``purgeCachedOrders/purge_cached_orders`` method for clearing old non-open orders (``(order['timestamp'] < before) && (order['status'] != 'open')``) from cache and free used memory for other purposes. The purging method accepts one single argument named ``before``:
 
 .. code:: javascript
 
