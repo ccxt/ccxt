@@ -1019,20 +1019,20 @@ class Exchange(object):
         trades = self.fetch_trades(symbol, since, limit, params)
         return self.build_ohlcv(trades, timeframe, since, limit)
 
-    def build_ohlcv(self, trades, timeframe = '1m', since = None, limit = None):
+    def build_ohlcv(self, trades, timeframe='1m', since=None, limit=None):
         ms = self.parse_timeframe(timeframe) * 1000
         print(type(ms), ms)
         ohlcvs = []
-        (timestamp, open, high, low, close, volume) = (0, 1, 2, 3, 4, 5)
+        (high, low, close, volume) = (2, 3, 4, 5)
         num_trades = len(trades)
         oldest = (num_trades - 1) if limit is None else min(num_trades - 1, limit)
         for i in range(oldest, 0, -1):
             trade = trades[i]
             if (since is not None) and (trade['timestamp'] < since):
                 continue
-            opening_time = int(math.floor(trade['timestamp'] / ms) * ms) # Shift the edge of the m/h/d (but not M)
+            opening_time = int(math.floor(trade['timestamp'] / ms) * ms)  # Shift the edge of the m/h/d (but not M)
             j = len(ohlcvs)
-            if (j == 0) or opening_time >= ohlcvs[j-1][0] + ms:
+            if (j == 0) or opening_time >= ohlcvs[j - 1][0] + ms:
                 # moved to a new timeframe -> create a new candle from opening trade
                 ohlcvs.append([
                     opening_time,
@@ -1060,7 +1060,7 @@ class Exchange(object):
         elif 'h' in unit:
             scale = 60 * 60
         else:
-            scale = 60 # 1m by default
+            scale = 60  # 1m by default
         return amount * scale
 
     def parse_trades(self, trades, market=None, since=None, limit=None):
