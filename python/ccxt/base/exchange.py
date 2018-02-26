@@ -168,7 +168,7 @@ class Exchange(object):
         'fetchL2OrderBook': True,
         'fetchMarkets': True,
         'fetchMyTrades': False,
-        'fetchOHLCV': False,
+        'fetchOHLCV': 'emulated',
         'fetchOpenOrders': False,
         'fetchOrder': False,
         'fetchOrderBook': True,
@@ -676,12 +676,12 @@ class Exchange(object):
     def parse8601(timestamp):
         yyyy = '([0-9]{4})-?'
         mm = '([0-9]{2})-?'
-        dd = '([0-9]{2})(?:T|[\s])?'
+        dd = '([0-9]{2})(?:T|[\\s])?'
         h = '([0-9]{2}):?'
         m = '([0-9]{2}):?'
         s = '([0-9]{2})'
-        ms = '(\.[0-9]{1,3})?'
-        tz = '(?:(\+|\-)([0-9]{2})\:?([0-9]{2})|Z)?'
+        ms = '(\\.[0-9]{1,3})?'
+        tz = '(?:(\\+|\\-)([0-9]{2})\\:?([0-9]{2})|Z)?'
         regex = r'' + yyyy + mm + dd + h + m + s + ms + tz
         match = re.search(regex, timestamp, re.IGNORECASE)
         yyyy, mm, dd, h, m, s, ms, sign, hours, minutes = match.groups()
@@ -900,8 +900,16 @@ class Exchange(object):
         except AttributeError:
             pass
 
-        return {'trading': trading,
-                'funding': funding}
+        return {
+            'trading': trading,
+            'funding': funding,
+        }
+
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
+        self.raise_error(NotSupported, details='create_order() not implemented yet')
+
+    def cancel_order(self, id, symbol=None, params={}):
+        self.raise_error(NotSupported, details='cancel_order() not implemented yet')
 
     def fetch_bids_asks(self, symbols=None, params={}):
         self.raise_error(NotSupported, details='API does not allow to fetch all prices at once with a single call to fetch_bid_asks() for now')
@@ -1005,7 +1013,53 @@ class Exchange(object):
         return self.fetch_partial_balance('total', params)
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        self.raise_error(NotSupported, details='API does not allow to fetch OHLCV series for now')
+        self.load_markets()
+        trades = self.fetch_trades(symbol, since, limit, params)
+        return self.build_ohlcv(trades, timeframe, since, limit)
+
+    def build_ohlcv(self, trades, timeframe = '1m', since = None, limit = None):
+        ms = self.parse_timeframe(timeframe) * 1000
+        print(type(ms), ms)
+        ohlcvs = []
+        (timestamp, open, high, low, close, volume) = (0, 1, 2, 3, 4, 5)
+        num_trades = len(trades)
+        oldest = (num_trades - 1) if limit is None else min(num_trades - 1, limit)
+        for i in range(oldest, 0, -1):
+            trade = trades[i]
+            if (since is not None) and (trade['timestamp'] < since):
+                continue
+            opening_time = int(math.floor(trade['timestamp'] / ms) * ms) # Shift the edge of the m/h/d (but not M)
+            j = len(ohlcvs)
+            if (j == 0) or opening_time >= ohlcvs[j-1][0] + ms:
+                # moved to a new timeframe -> create a new candle from opening trade
+                ohlcvs.append([
+                    opening_time,
+                    trade['price'],
+                    trade['price'],
+                    trade['price'],
+                    trade['price'],
+                    trade['amount'],
+                ])
+            else:
+                # still processing the same timeframe -> update opening trade
+                ohlcvs[j - 1][high] = max(ohlcvs[j - 1][high], trade['price'])
+                ohlcvs[j - 1][low] = min(ohlcvs[j - 1][low], trade['price'])
+                ohlcvs[j - 1][close] = trade['price']
+                ohlcvs[j - 1][volume] += trade['amount']
+        return ohlcvs
+
+    def parse_timeframe(self, timeframe):
+        amount = int(timeframe[0:-1])
+        unit = timeframe[-1]
+        if 'M' in unit:
+            scale = 60 * 60 * 24 * 30
+        elif 'd' in unit:
+            scale = 60 * 60 * 24
+        elif 'h' in unit:
+            scale = 60 * 60
+        else:
+            scale = 60 # 1m by default
+        return amount * scale
 
     def parse_trades(self, trades, market=None, since=None, limit=None):
         array = self.to_array(trades)
@@ -1047,7 +1101,7 @@ class Exchange(object):
         self.raise_error(ExchangeError, details='No market symbol ' + str(symbol))
 
     def market_ids(self, symbols):
-        return [self.marketId(symbol) for symbol in symbols]
+        return [self.market_id(symbol) for symbol in symbols]
 
     def market_id(self, symbol):
         market = self.market(symbol)
@@ -1098,4 +1152,4 @@ class Exchange(object):
         return self.create_order(symbol, 'market', 'sell', amount, None, params)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        raise NotImplemented(self.id + ' sign() pure method must be redefined in derived classes')
+        raise NotSupported(self.id + ' sign() pure method must be redefined in derived classes')
