@@ -22,6 +22,7 @@ module.exports = class coinmarketcap extends Exchange {
                 'cancelOrder': false,
                 'fetchBalance': false,
                 'fetchOrderBook': false,
+                'fetchOHLCV': false,
                 'fetchTrades': false,
                 'fetchTickers': true,
                 'fetchCurrencies': true,
