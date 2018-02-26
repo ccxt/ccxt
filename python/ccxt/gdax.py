@@ -12,6 +12,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import OrderNotFound
 
 
 class gdax (Exchange):
@@ -539,7 +540,7 @@ class gdax (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body):
-        if code == 400:
+        if code >= 400:
             if body[0] == '{':
                 response = json.loads(body)
                 message = response['message']
@@ -550,6 +551,8 @@ class gdax (Exchange):
                     raise InvalidOrder(error)
                 elif message == 'Insufficient funds':
                     raise InsufficientFunds(error)
+                elif message == 'NotFound':
+                    raise OrderNotFound(error)
                 elif message == 'Invalid API Key':
                     raise AuthenticationError(error)
                 raise ExchangeError(self.id + ' ' + message)

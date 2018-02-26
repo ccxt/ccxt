@@ -574,7 +574,7 @@ class gdax extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
-        if ($code === 400) {
+        if ($code >= 400) {
             if ($body[0] === '{') {
                 $response = json_decode ($body, $as_associative_array = true);
                 $message = $response['message'];
@@ -585,6 +585,8 @@ class gdax extends Exchange {
                     throw new InvalidOrder ($error);
                 } else if ($message === 'Insufficient funds') {
                     throw new InsufficientFunds ($error);
+                } else if ($message === 'NotFound') {
+                    throw new OrderNotFound ($error);
                 } else if ($message === 'Invalid API Key') {
                     throw new AuthenticationError ($error);
                 }
