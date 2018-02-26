@@ -1648,7 +1648,7 @@ Most of methods returning orders within ccxt unified API will usually yield an o
 {
     'id':        '12345-67890:09876/54321', // string
     'datetime':  '2017-08-17 12:42:48.000', // ISO8601 datetime with milliseconds
-    'timestamp':  1502962946216, // Unix timestamp in milliseconds
+    'timestamp':  1502962946216, // order placing/opening Unix timestamp in milliseconds
     'status':    'open',         // 'open', 'closed', 'canceled'
     'symbol':    'ETH/BTC',      // symbol
     'type':      'limit',        // 'market', 'limit'
