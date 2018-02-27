@@ -99,7 +99,11 @@ module.exports = class binance extends Exchange {
                         'ticker/allBookTickers',
                         'ticker/price',
                         'ticker/bookTicker',
+                        'exchangeInfo',
                     ],
+                    'put': [ 'userDataStream' ],
+                    'post': [ 'userDataStream' ],
+                    'delete': [ 'userDataStream' ],
                 },
                 'private': {
                     'get': [
@@ -116,11 +120,6 @@ module.exports = class binance extends Exchange {
                     'delete': [
                         'order',
                     ],
-                },
-                'v1': {
-                    'put': [ 'userDataStream' ],
-                    'post': [ 'userDataStream' ],
-                    'delete': [ 'userDataStream' ],
                 },
             },
             'fees': {
@@ -728,8 +727,6 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        // if (!symbol)
-        //     throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol param');
         await this.loadMarkets ();
         let market = undefined;
         let request = {};
