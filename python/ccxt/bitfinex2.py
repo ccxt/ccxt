@@ -23,6 +23,9 @@ class bitfinex2 (bitfinex):
             'has': {
                 'CORS': True,
                 'createOrder': False,
+                'createMarketOrder': False,
+                'createLimitOrder': False,
+                'editOrder': False,
                 'fetchMyTrades': False,
                 'fetchOHLCV': True,
                 'fetchTickers': True,

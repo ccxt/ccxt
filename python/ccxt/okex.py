@@ -16,7 +16,6 @@ class okex (okcoinusd):
             'has': {
                 'CORS': False,
                 'futures': True,
-                'hasFetchTickers': True,
                 'fetchTickers': True,
             },
             'urls': {

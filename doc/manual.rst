@@ -412,7 +412,7 @@ Below is a detailed description of each of the base exchange properties:
 
 -  ``has``: This is an associative array of exchange capabilities (e.g ``fetchTickers``, ``fetchOHLCV`` or ``CORS``).
 
--  ``timeframes``: An associative array of timeframes, supported by the fetchOHLCV method of the exchange. This is only populated when ``hasFetchTickers`` property is true.
+-  ``timeframes``: An associative array of timeframes, supported by the fetchOHLCV method of the exchange. This is only populated when ``has['fetchTickers']`` property is true.
 
 -  ``timeout``: A timeout in milliseconds for a request-response roundtrip (default timeout is 10000 ms = 10 seconds). You should always set it to a reasonable value, hanging forever with no timeout is not your option, for sure.
 
@@ -1299,7 +1299,7 @@ OHLCV Candlestick Charts
 
     - this is under heavy development right now, contributions appreciated
 
-Most exchanges have endpoints for fetching OHLCV data, but some of them don't. The exchange boolean (true/false) property named ``hasFetchOHLCV`` indicates whether the exchange supports candlestick data series or not.
+Most exchanges have endpoints for fetching OHLCV data, but some of them don't. The exchange boolean (true/false) property named ``has['fetchOHLCV']`` indicates whether the exchange supports candlestick data series or not.
 
 The ``fetchOHLCV`` method is declared in the following way:
 
@@ -1340,7 +1340,7 @@ You can call the unified ``fetchOHLCV`` / ``fetch_ohlcv`` method to get the list
             var_dump ($exchange->fetch_ohlcv ($symbol, '1M')); // one month
         }
 
-To get the list of available timeframes for your exchange see the ``timeframes`` property. Note that it is only populated when ``hasFetchTickers`` is true as well.
+To get the list of available timeframes for your exchange see the ``timeframes`` property. Note that it is only populated when ``has['fetchTickers']`` is true as well.
 
 **There's a limit on how far back in time your requests can go.** Most of exchanges will not allow to query detailed candlestick history (like those for 1-minute and 5-minute timeframes) too far in the past. They usually keep a reasonable amount of most recent candles, like 1000 last candles for any timeframe is more than enough for most of needs. You can work around that limitation by continuously fetching (aka *REST polling*) latest OHLCVs and storing them in a CSV file or in a database.
 
