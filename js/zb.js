@@ -553,20 +553,6 @@ module.exports = class zb extends Exchange {
                 }
             }
         }
-        //---------------------------------------------------------------------
-        // old code
-        if (api === 'private')
-            if ('code' in response)
-                throw new ExchangeError (this.id + ' ' + this.json (response));
-        // end of old code
-        //---------------------------------------------------------------------
-        //---------------------------------------------------------------------
-        // new code
-        if (api == 'private')
-            if ('code' in response && response['code'] !== 1000)
-                throw new ExchangeError (this.id + ' ' + this.json (response));
-        // end of new code
-        //---------------------------------------------------------------------
         return response;
     }
 };
