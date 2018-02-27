@@ -121,6 +121,7 @@ module.exports = class binance extends Exchange {
                     'put': [ 'userDataStream' ],
                     'post': [ 'userDataStream' ],
                     'delete': [ 'userDataStream' ],
+                    'get': ['exchangeInfo'],
                 },
             },
             'fees': {
