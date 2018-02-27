@@ -126,11 +126,6 @@ class Exchange(object):
     currencies_by_id = None
     options = {}  # Python does not allow to define properties in run-time with setattr
 
-    hasPublicAPI = True
-    hasPrivateAPI = True
-    hasCreateOrder = hasPrivateAPI
-    hasCancelOrder = hasPrivateAPI
-
     requiredCredentials = {
         'apiKey': True,
         'secret': True,
@@ -141,10 +136,15 @@ class Exchange(object):
 
     # API method metainfo
     has = {
-        'cancelOrder': hasPrivateAPI,
+        'publicAPI': True,
+        'privateAPI': True,
+        'CORS': False,
+        'cancelOrder': True,
         'cancelOrders': False,
         'createDepositAddress': False,
-        'createOrder': hasPrivateAPI,
+        'createOrder': True,
+        'createMarketOrder': True,
+        'createLimitOrder': True,
         'deposit': False,
         'editOrder': 'emulated',
         'fetchBalance': True,
