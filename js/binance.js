@@ -13,7 +13,7 @@ module.exports = class binance extends Exchange {
             'id': 'binance',
             'name': 'Binance',
             'countries': 'JP', // Japan
-            'rateLimit': 1200,
+            'rateLimit': 500,
             // new metainfo interface
             'has': {
                 'fetchDepositAddress': true,
@@ -721,8 +721,8 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        // if (!symbol)
-        //     throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol param');
+        if (!symbol)
+            throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol param');
         await this.loadMarkets ();
         let market = undefined;
         let request = {};
