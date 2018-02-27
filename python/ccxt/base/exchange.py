@@ -93,6 +93,7 @@ class Exchange(object):
     fees = {
         'trading': {
             'fee_loaded': False,
+            'percentage': True,  # subclasses should rarely have to redefine this
         },
         'funding': {
             'fee_loaded': False,
@@ -127,21 +128,6 @@ class Exchange(object):
 
     hasPublicAPI = True
     hasPrivateAPI = True
-    hasCORS = False
-    hasFetchTicker = True
-    hasFetchOrderBook = True
-    hasFetchTrades = True
-    hasFetchTickers = False
-    hasFetchOHLCV = False
-    hasDeposit = False
-    hasWithdraw = False
-    hasFetchBalance = True
-    hasFetchOrder = False
-    hasFetchOrders = False
-    hasFetchOpenOrders = False
-    hasFetchClosedOrders = False
-    hasFetchMyTrades = False
-    hasFetchCurrencies = False
     hasCreateOrder = hasPrivateAPI
     hasCancelOrder = hasPrivateAPI
 
@@ -160,6 +146,7 @@ class Exchange(object):
         'createDepositAddress': False,
         'createOrder': hasPrivateAPI,
         'deposit': False,
+        'editOrder': 'emulated',
         'fetchBalance': True,
         'fetchClosedOrders': False,
         'fetchCurrencies': False,
