@@ -223,6 +223,7 @@ And structurally:
 - do not use conditional statements that are too complex (heavy if-bracketing)
 - do not use heavy ternary conditionals
 - avoid operators clutter (**don't do this**: `a && b || c ? d + 80 : e ** f`)
+- never use `.toString()` on floats: `Number (0.00000001).toString () === '1e-8'`
 - keep it simple, don't do more than one statement in one line
 
 **If you want to add (support for) another exchange, or implement a new method for a particular exchange, then the best way to make it a consistent improvement is to learn from example. Take a look at how same things are implemented in other exchanges and try to copy the code flow and style.**
