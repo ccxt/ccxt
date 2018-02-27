@@ -683,10 +683,15 @@ class binance (Exchange):
             raise ExchangeError(self.id + ' fetchOrder requires a symbol param')
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.privateGetOrder(self.extend({
+        origClientOrderId = self.safe_value(params, 'origClientOrderId')
+        request = {
             'symbol': market['id'],
-            'orderId': int(id),
-        }, params))
+        }
+        if origClientOrderId is not None:
+            request['origClientOrderId'] = origClientOrderId
+        else:
+            request['orderId'] = int(id)
+        response = await self.privateGetOrder(self.extend(request, params))
         return self.parse_order(response, market)
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
