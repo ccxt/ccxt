@@ -215,10 +215,11 @@ module.exports = class virwox extends Exchange {
         return this.parseTrades (trades, symbol);
     }
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
+        let market = this.market (symbol);
         let order = {
-            'instrument': this.symbol (market),
+            'instrument': market['id'],
             'orderType': side.toUpperCase (),
             'amount': amount,
         };
