@@ -165,7 +165,7 @@ class bithumb (Exchange):
             'previousClose': None,
             'change': change,
             'percentage': change / open * 100,
-            'average': (open + close) / 2,
+            'average': self.sum(open, close) / 2,
             'baseVolume': baseVolume,
             'quoteVolume': baseVolume * vwap,
             'info': ticker,

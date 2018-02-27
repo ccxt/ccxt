@@ -265,7 +265,7 @@ class poloniex (Exchange):
         if relativeChange != -1:
             open = last / (1 + relativeChange)
             change = last - open
-            average = (last + open) / 2
+            average = self.sum(last, open) / 2
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -752,6 +752,8 @@ class poloniex (Exchange):
             error = response['error']
             feedback = self.id + ' ' + self.json(response)
             if error == 'Invalid order number, or you are not the person who placed the order.':
+                raise OrderNotFound(feedback)
+            elif error == 'Order not found, or you are not the person who placed it.':
                 raise OrderNotFound(feedback)
             elif error == 'Invalid API key/secret pair.':
                 raise AuthenticationError(feedback)

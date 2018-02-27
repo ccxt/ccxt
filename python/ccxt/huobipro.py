@@ -177,7 +177,7 @@ class huobipro (Exchange):
         average = None
         if (open is not None) and(close is not None):
             change = close - open
-            average = (open + close) / 2
+            average = self.sum(open, close) / 2
             if (close is not None) and(close > 0):
                 percentage = (change / open) * 100
         baseVolume = self.safe_float(ticker, 'amount')

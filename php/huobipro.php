@@ -180,7 +180,7 @@ class huobipro extends Exchange {
         $average = null;
         if (($open !== null) && ($close !== null)) {
             $change = $close - $open;
-            $average = ($open . $close) / 2;
+            $average = $this->sum ($open, $close) / 2;
             if (($close !== null) && ($close > 0))
                 $percentage = ($change / $open) * 100;
         }

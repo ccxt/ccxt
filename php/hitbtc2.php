@@ -729,7 +729,7 @@ class hitbtc2 extends hitbtc {
         $average = null;
         if ($last !== null && $open !== null) {
             $change = $last - $open;
-            $average = ($last . $open) / 2;
+            $average = $this->sum ($last, $open) / 2;
             if ($open > 0)
                 $percentage = $change / $open * 100;
         }

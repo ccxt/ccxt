@@ -236,7 +236,7 @@ class cryptopia (Exchange):
             'previousClose': None,
             'change': change,
             'percentage': float(ticker['Change']),
-            'average': (last + open) / 2,
+            'average': self.sum(last, open) / 2,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
         }

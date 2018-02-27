@@ -266,7 +266,7 @@ class poloniex extends Exchange {
         if ($relativeChange !== -1) {
             $open = $last / (1 . $relativeChange);
             $change = $last - $open;
-            $average = ($last . $open) / 2;
+            $average = $this->sum ($last, $open) / 2;
         }
         return array (
             'symbol' => $symbol,
@@ -812,6 +812,8 @@ class poloniex extends Exchange {
             $error = $response['error'];
             $feedback = $this->id . ' ' . $this->json ($response);
             if ($error === 'Invalid order number, or you are not the person who placed the order.') {
+                throw new OrderNotFound ($feedback);
+            } else if ($error === 'Order not found, or you are not the person who placed it.') {
                 throw new OrderNotFound ($feedback);
             } else if ($error === 'Invalid API key/secret pair.') {
                 throw new AuthenticationError ($feedback);
