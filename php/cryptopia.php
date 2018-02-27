@@ -240,7 +240,7 @@ class cryptopia extends Exchange {
             'previousClose' => null,
             'change' => $change,
             'percentage' => floatval ($ticker['Change']),
-            'average' => ($last . $open) / 2,
+            'average' => $this->sum ($last, $open) / 2,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
         );

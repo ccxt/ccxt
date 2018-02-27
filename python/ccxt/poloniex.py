@@ -265,7 +265,7 @@ class poloniex (Exchange):
         if relativeChange != -1:
             open = last / (1 + relativeChange)
             change = last - open
-            average = (last + open) / 2
+            average = self.sum(last, open) / 2
         return {
             'symbol': symbol,
             'timestamp': timestamp,

@@ -725,7 +725,7 @@ class hitbtc2 (hitbtc):
         average = None
         if last is not None and open is not None:
             change = last - open
-            average = (last + open) / 2
+            average = self.sum(last, open) / 2
             if open > 0:
                 percentage = change / open * 100
         vwap = None

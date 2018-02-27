@@ -168,7 +168,7 @@ class bithumb extends Exchange {
             'previousClose' => null,
             'change' => $change,
             'percentage' => $change / $open * 100,
-            'average' => ($open . $close) / 2,
+            'average' => $this->sum ($open, $close) / 2,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $baseVolume * $vwap,
             'info' => $ticker,
