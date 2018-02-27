@@ -115,7 +115,11 @@ class binance (Exchange):
                         'ticker/allBookTickers',
                         'ticker/price',
                         'ticker/bookTicker',
+                        'exchangeInfo',
                     ],
+                    'put': ['userDataStream'],
+                    'post': ['userDataStream'],
+                    'delete': ['userDataStream'],
                 },
                 'private': {
                     'get': [
@@ -132,11 +136,6 @@ class binance (Exchange):
                     'delete': [
                         'order',
                     ],
-                },
-                'v1': {
-                    'put': ['userDataStream'],
-                    'post': ['userDataStream'],
-                    'delete': ['userDataStream'],
                 },
             },
             'fees': {
@@ -708,8 +707,6 @@ class binance (Exchange):
         return self.parse_orders(response, market, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        # if not symbol:
-        #     raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol param')
         self.load_markets()
         market = None
         request = {}
