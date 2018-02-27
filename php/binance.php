@@ -700,10 +700,15 @@ class binance extends Exchange {
             throw new ExchangeError ($this->id . ' fetchOrder requires a $symbol param');
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->privateGetOrder (array_merge (array (
+        $origClientOrderId = $this->safe_value($params, 'origClientOrderId');
+        $request = array (
             'symbol' => $market['id'],
-            'orderId' => intval ($id),
-        ), $params));
+        );
+        if ($origClientOrderId !== null)
+            $request['origClientOrderId'] = $origClientOrderId;
+        else
+            $request['orderId'] = intval ($id);
+        $response = $this->privateGetOrder (array_merge ($request, $params));
         return $this->parse_order($response, $market);
     }
 
