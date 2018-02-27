@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, InsufficientFunds, OrderNotFound, ExchangeNotAvailable, DDoSProtection, InvalidOrder } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -484,23 +484,6 @@ module.exports = class zb extends Exchange {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
-            // let query = this.keysort (this.extend ({
-            //     'method': path,
-            //     'accesskey': this.apiKey,
-            // }, params));
-            // let nonce = this.nonce ();
-            // query = this.keysort (query);
-            // let auth = this.rawencode (query);
-            //---------------------------------------------------------------------
-            // old code
-            this.checkRequiredCredentials ();
-            let nonce = this.nonce ();
-            let auth = 'accesskey=' + this.apiKey;
-            auth += '&' + 'method=' + path;
-            // end of old code
-            //---------------------------------------------------------------------
-            //---------------------------------------------------------------------
-            // new code
             let query = this.keysort (this.extend ({
                 'method': path,
                 'accesskey': this.apiKey,
@@ -508,8 +491,6 @@ module.exports = class zb extends Exchange {
             let nonce = this.nonce ();
             query = this.keysort (query);
             let auth = this.rawencode (query);
-            // end of new code
-            //---------------------------------------------------------------------
             let secret = this.hash (this.encode (this.secret), 'sha1');
             let signature = this.hmac (this.encode (auth), this.encode (secret), 'md5');
             let suffix = 'sign=' + signature + '&reqTime=' + nonce.toString ();
