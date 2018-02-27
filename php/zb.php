@@ -16,9 +16,10 @@ class zb extends Exchange {
             'version' => 'v1',
             'has' => array (
                 'CORS' => false,
-                'fetchOHLCV' => true,
-                'fetchTickers' => false,
+                'createMarketOrder' => false,
                 'fetchOrder' => true,
+                'fetchOrders' => true,
+                'fetchOpenOrders' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array (
@@ -35,6 +36,33 @@ class zb extends Exchange {
                 '1d' => '1day',
                 '3d' => '3day',
                 '1w' => '1week',
+            ),
+            'exceptions' => array (
+                // '1000' => 'Successful operation',
+                '1001' => '\\ccxt\\ExchangeError', // 'General error message',
+                '1002' => '\\ccxt\\ExchangeError', // 'Internal error',
+                '1003' => '\\ccxt\\AuthenticationError', // 'Verification does not pass',
+                '1004' => '\\ccxt\\AuthenticationError', // 'Funding security password lock',
+                '1005' => '\\ccxt\\AuthenticationError', // 'Funds security password is incorrect, please confirm and re-enter.',
+                '1006' => '\\ccxt\\AuthenticationError', // 'Real-name certification pending approval or audit does not pass',
+                '1009' => '\\ccxt\\ExchangeNotAvailable', // 'This interface is under maintenance',
+                '2001' => '\\ccxt\\InsufficientFunds', // 'Insufficient CNY Balance',
+                '2002' => '\\ccxt\\InsufficientFunds', // 'Insufficient BTC Balance',
+                '2003' => '\\ccxt\\InsufficientFunds', // 'Insufficient LTC Balance',
+                '2005' => '\\ccxt\\InsufficientFunds', // 'Insufficient ETH Balance',
+                '2006' => '\\ccxt\\InsufficientFunds', // 'Insufficient ETC Balance',
+                '2007' => '\\ccxt\\InsufficientFunds', // 'Insufficient BTS Balance',
+                '2009' => '\\ccxt\\InsufficientFunds', // 'Account balance is not enough',
+                '3001' => '\\ccxt\\OrderNotFound', // 'Pending orders not found',
+                '3002' => '\\ccxt\\InvalidOrder', // 'Invalid price',
+                '3003' => '\\ccxt\\InvalidOrder', // 'Invalid amount',
+                '3004' => '\\ccxt\\AuthenticationError', // 'User does not exist',
+                '3005' => '\\ccxt\\ExchangeError', // 'Invalid parameter',
+                '3006' => '\\ccxt\\AuthenticationError', // 'Invalid IP or inconsistent with the bound IP',
+                '3007' => '\\ccxt\\AuthenticationError', // 'The request time has expired',
+                '3008' => '\\ccxt\\OrderNotFound', // 'Transaction records not found',
+                '4001' => '\\ccxt\\ExchangeNotAvailable', // 'API interface is locked or not enabled',
+                '4002' => '\\ccxt\\DDoSProtection', // 'Request too often',
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg',
@@ -57,7 +85,7 @@ class zb extends Exchange {
                     ),
                 ),
                 'private' => array (
-                    'post' => array (
+                    'get' => array (
                         'order',
                         'cancelOrder',
                         'getOrder',
@@ -163,15 +191,28 @@ class zb extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostGetAccountInfo ();
+        $response = $this->privateGetGetAccountInfo ($params);
+        // todo => use this somehow
+        // $permissions = $response['result']['base'];
         $balances = $response['result']['coins'];
-        $result = array ( 'info' => $balances );
+        $result = array ( 'info' => $response );
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
-            $currency = $balance['key'];
-            if (is_array ($this->currencies) && array_key_exists ($currency, $this->currencies))
-                $currency = $this->currencies[$currency]['code'];
+            //     {        enName => "BTC",
+            //               freez => "0.00000000",
+            //         unitDecimal =>  8, // always 8
+            //              cnName => "BTC",
+            //       isCanRecharge =>  true, // TODO => should use this
+            //             unitTag => "฿",
+            //       isCanWithdraw =>  true,  // TODO => should use this
+            //           available => "0.00000000",
+            //                 key => "btc"         }
             $account = $this->account ();
+            $currency = $balance['key'];
+            if (is_array ($this->currencies_by_id) && array_key_exists ($currency, $this->currencies_by_id))
+                $currency = $this->currencies_by_id[$currency]['code'];
+            else
+                $currency = $this->common_currency_code($balance['enName']);
             $account['free'] = floatval ($balance['available']);
             $account['used'] = floatval ($balance['freez']);
             $account['total'] = $this->sum ($account['free'], $account['used']);
@@ -285,13 +326,16 @@ class zb extends Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        if ($type !== 'limit')
+            throw new InvalidOrder ($this->id . ' allows limit orders only');
         $this->load_markets();
-        $paramString = '&$price=' . (string) $price;
-        $paramString .= '&$amount=' . (string) $amount;
-        $tradeType = ($side === 'buy') ? '1' : '0';
-        $paramString .= '&$tradeType=' . $tradeType;
-        $paramString .= '&currency=' . $this->market_id($symbol);
-        $response = $this->privatePostOrder ($paramString);
+        $order = array (
+            'price' => $this->price_to_precision($symbol, $price),
+            'amount' => $this->amount_to_string($symbol, $amount),
+            'tradeType' => ($side === 'buy') ? '1' : '0',
+            'currency' => $this->market_id($symbol),
+        );
+        $response = $this->privateGetOrder (array_merge ($order, $params));
         return array (
             'info' => $response,
             'id' => $response['id'],
@@ -300,18 +344,138 @@ class zb extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $paramString = '&$id=' . (string) $id;
-        if (is_array ($params) && array_key_exists ('currency', $params))
-            $paramString .= '&currency=' . $params['currency'];
-        return $this->privatePostCancelOrder ($paramString);
+        $order = array (
+            'id' => (string) $id,
+            'currency' => $this->market_id($symbol),
+        );
+        $order = array_merge ($order, $params);
+        return $this->privateGetCancelOrder ($order);
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $paramString = '&$id=' . (string) $id;
-        if (is_array ($params) && array_key_exists ('currency', $params))
-            $paramString .= '&currency=' . $params['currency'];
-        return $this->privatePostGetOrder ($paramString);
+        $order = array (
+            'id' => (string) $id,
+            'currency' => $this->market_id($symbol),
+        );
+        $order = array_merge ($order, $params);
+        $response = $this->privateGetGetOrder ($order);
+        return $this->parse_order($response, null, true);
+    }
+
+    public function fetch_orders ($symbol = null, $since = null, $limit = 50, $params = array ()) {
+        if (!$symbol)
+            throw new ExchangeError ($this->id . 'fetchOrders requires a $symbol parameter');
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array (
+            'currency' => $market['id'],
+            'pageIndex' => 1, // default pageIndex is 1
+            'pageSize' => $limit, // default pageSize is 50
+        );
+        $method = 'privateGetGetOrdersIgnoreTradeType';
+        // tradeType 交易类型1/0[buy/sell]
+        if (is_array ($params) && array_key_exists ('tradeType', $params))
+            $method = 'privateGetGetOrdersNew';
+        $response = null;
+        try {
+            $response = $this->$method (array_merge ($request, $params));
+        } catch (Exception $e) {
+            if ($this->last_json_response) {
+                $code = $this->safe_string($this->last_json_response, 'code');
+                if ($code === '3001')
+                    return array ();
+            }
+            throw $e;
+        }
+        return $this->parse_orders($response, $market, $since, $limit);
+    }
+
+    public function fetch_open_orders ($symbol = null, $since = null, $limit = 10, $params = array ()) {
+        if (!$symbol)
+            throw new ExchangeError ($this->id . 'fetchOpenOrders requires a $symbol parameter');
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array (
+            'currency' => $market['id'],
+            'pageIndex' => 1, // default pageIndex is 1
+            'pageSize' => $limit, // default pageSize is 10
+        );
+        $method = 'privateGetGetUnfinishedOrdersIgnoreTradeType';
+        // tradeType 交易类型1/0[buy/sell]
+        if (is_array ($params) && array_key_exists ('tradeType', $params))
+            $method = 'privateGetGetOrdersNew';
+        $response = null;
+        try {
+            $response = $this->$method (array_merge ($request, $params));
+        } catch (Exception $e) {
+            if ($this->last_json_response) {
+                $code = $this->safe_string($this->last_json_response, 'code');
+                if ($code === '3001')
+                    return array ();
+            }
+            throw $e;
+        }
+        return $this->parse_orders($response, $market, $since, $limit);
+    }
+
+    public function parse_order ($order, $market = null) {
+        $side = $order['type'] === 1 ? 'buy' : 'sell';
+        $type = 'limit'; // $market $order is not availalbe in ZB
+        $timestamp = null;
+        $createDateField = $this->get_create_date_field ();
+        if (is_array ($order) && array_key_exists ($createDateField, $order))
+            $timestamp = $order[$createDateField];
+        $symbol = null;
+        if (is_array ($order) && array_key_exists ('currency', $order)) {
+            // get $symbol from currency
+            $market = $this->marketsById[$order['currency']];
+        }
+        if ($market)
+            $symbol = $market['symbol'];
+        $price = $order['price'];
+        $average = $order['trade_price'];
+        $filled = $order['trade_amount'];
+        $amount = $order['total_amount'];
+        $remaining = $amount - $filled;
+        $cost = $order['trade_money'];
+        $status = $this->safe_string($order, 'status');
+        if ($status !== null)
+            $status = $this->parse_order_status($status);
+        $result = array (
+            'info' => $order,
+            'id' => $order['id'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $symbol,
+            'type' => $type,
+            'side' => $side,
+            'price' => $price,
+            'average' => $average,
+            'cost' => $cost,
+            'amount' => $amount,
+            'filled' => $filled,
+            'remaining' => $remaining,
+            'status' => $status,
+            'fee' => null,
+        );
+        return $result;
+    }
+
+    public function parse_order_status ($status) {
+        $statuses = array (
+            '0' => 'open',
+            '1' => 'canceled',
+            '2' => 'closed',
+            '3' => 'open', // partial
+        );
+        if (is_array ($statuses) && array_key_exists ($status, $statuses))
+            return $statuses[$status];
+        return $status;
+    }
+
+    public function get_create_date_field () {
+        return 'trade_date';
     }
 
     public function nonce () {
@@ -325,10 +489,13 @@ class zb extends Exchange {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         } else {
-            $this->check_required_credentials();
+            $query = $this->keysort (array_merge (array (
+                'method' => $path,
+                'accesskey' => $this->apiKey,
+            ), $params));
             $nonce = $this->nonce ();
-            $auth = 'accesskey=' . $this->apiKey;
-            $auth .= '&' . 'method=' . $path;
+            $query = $this->keysort ($query);
+            $auth = $this->rawencode ($query);
             $secret = $this->hash ($this->encode ($this->secret), 'sha1');
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($secret), 'md5');
             $suffix = 'sign=' . $signature . '&reqTime=' . (string) $nonce;
@@ -339,31 +506,21 @@ class zb extends Exchange {
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body) {
         if (gettype ($body) != 'string')
-            return; // fallback to default error handler
+            return; // fallback to default $error handler
         if (strlen ($body) < 2)
-            return; // fallback to default error handler
-        if (($body[0] === '{') || ($body[0] === '[')) {
+            return; // fallback to default $error handler
+        if ($body[0] === '{') {
             $response = json_decode ($body, $as_associative_array = true);
-            // array ("result":false,"message":)
-            if (is_array ($response) && array_key_exists ('result', $response)) {
-                $success = $this->safe_value($response, 'result', false);
-                if (gettype ($success) == 'string') {
-                    if (($success === 'true') || ($success === '1'))
-                        $success = true;
-                    else
-                        $success = false;
+            if (is_array ($response) && array_key_exists ('code', $response)) {
+                $error = $this->safe_string($response, 'code');
+                $message = $this->id . ' ' . $this->json ($response);
+                if (is_array ($this->exceptions) && array_key_exists ($error, $this->exceptions)) {
+                    $ExceptionClass = $this->exceptions[$error];
+                    throw new $ExceptionClass ($message);
+                } else if ($error !== '1000') {
+                    throw new ExchangeError ($message);
                 }
-                if (!$success)
-                    throw new ExchangeError ($this->id . ' ' . $this->json ($response));
             }
         }
-    }
-
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if ($api === 'private')
-            if (is_array ($response) && array_key_exists ('code', $response))
-                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
-        return $response;
     }
 }
