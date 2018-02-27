@@ -181,7 +181,7 @@ module.exports = class huobipro extends Exchange {
         let average = undefined;
         if ((typeof open !== 'undefined') && (typeof close !== 'undefined')) {
             change = close - open;
-            average = (open + close) / 2;
+            average = this.sum (open, close) / 2;
             if ((typeof close !== 'undefined') && (close > 0))
                 percentage = (change / open) * 100;
         }

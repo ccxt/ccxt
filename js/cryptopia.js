@@ -241,7 +241,7 @@ module.exports = class cryptopia extends Exchange {
             'previousClose': undefined,
             'change': change,
             'percentage': parseFloat (ticker['Change']),
-            'average': (last + open) / 2,
+            'average': this.sum (last, open) / 2,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
         };

@@ -290,7 +290,7 @@ module.exports = class bitmex extends Exchange {
             'previousClose': undefined,
             'change': change,
             'percentage': change / open * 100,
-            'average': (open + close) / 2,
+            'average': this.sum (open, close) / 2,
             'baseVolume': parseFloat (ticker['homeNotional']),
             'quoteVolume': parseFloat (ticker['foreignNotional']),
             'info': ticker,

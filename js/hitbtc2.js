@@ -730,7 +730,7 @@ module.exports = class hitbtc2 extends hitbtc {
         let average = undefined;
         if (typeof last !== 'undefined' && typeof open !== 'undefined') {
             change = last - open;
-            average = (last + open) / 2;
+            average = this.sum (last, open) / 2;
             if (open > 0)
                 percentage = change / open * 100;
         }
