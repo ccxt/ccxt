@@ -359,40 +359,60 @@ module.exports = class zb extends Exchange {
         return this.parseOrder (response, undefined, true);
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol = undefined, since = undefined, limit = 50, params = {}) {
         if (!symbol)
             throw new ExchangeError (this.id + 'fetchOrders requires a symbol parameter');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
             'currency': market['id'],
-            // 'pageIndex': 1, // pageIndex 页数 默认1; default pageIndex is 1
-            // 'pageSize': 50, // pageSize 每页数量 默认50; default pageSize is 50
+            'pageIndex': 1, // pageIndex 页数 默认1; default pageIndex is 1
+            'pageSize': limit, // pageSize 每页数量 默认50; default pageSize is 50
         };
-        let method = 'privateGetGetOrdersIgnoreTradeType'; // 默认请求方法，不分买卖类型 (default method GetOrdersIgnoreTradeType)
-        // 如果传入了status，则查未完成的订单；如果传入了tradeType，则查买单或者卖单
-        // (if status in params, change method to GetUnfinishedOrdersIgnoreTradeType);
-        // status === 1表示完成的订单,zb api不提供这样的查询.
-        // (status === 1 means get finished orders, the zb exchange did not support query finished orders)
-        let hasStatus = ('status' in params);
-        if (hasStatus && params['status'] === 0) {
-            method = 'privateGetGetUnfinishedOrdersIgnoreTradeType';
-            // request['pageSize'] = 10; // fixed to 10
-        } else if ('tradeType' in params) {
+        let method = 'privateGetGetOrdersIgnoreTradeType';
+        // tradeType 交易类型1/0[buy/sell]
+        if ('tradeType' in params)
             method = 'privateGetGetOrdersNew';
-            // tradeType 交易类型1/0[buy/sell]
-            request['tradeType'] = params['tradeType'];
+        let response = undefined;
+        try {
+            response = await this[method] (this.extend (request, params));
+        } catch (e) {
+            if (this.last_json_response) {
+                let code = this.safeString (this.last_json_response, 'code');
+                if (code === '3001')
+                    return [];
+            }
+            throw e;
         }
-        request = this.extend (request, params);
-        let response = await this[method] (request);
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let open = 0; // 0 for unfilled orders, 1 for filled orders
-        return await this.fetchOrders (symbol, undefined, undefined, this.extend ({
-            'status': open,
-        }, params));
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = 10, params = {}) {
+        if (!symbol)
+            throw new ExchangeError (this.id + 'fetchOpenOrders requires a symbol parameter');
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'currency': market['id'],
+            'pageIndex': 1, // pageIndex 页数 默认1; default pageIndex is 1
+            'pageSize': limit, // pageSize 每页数量 默认10; default pageSize is 10
+        };
+        let method = 'privateGetGetUnfinishedOrdersIgnoreTradeType';
+        // tradeType 交易类型1/0[buy/sell]
+        if ('tradeType' in params)
+            method = 'privateGetGetOrdersNew';
+        let response = undefined;
+        try {
+            response = await this[method] (this.extend (request, params));
+        } catch (e) {
+            if (this.last_json_response) {
+                let code = this.safeString (this.last_json_response, 'code');
+                if (code === '3001')
+                    return [];
+            }
+            throw e;
+        }
+        return this.parseOrders (response, market, since, limit);
     }
 
     parseOrder (order, market = undefined, isSingle = false) {
