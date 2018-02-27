@@ -753,6 +753,8 @@ class poloniex (Exchange):
             feedback = self.id + ' ' + self.json(response)
             if error == 'Invalid order number, or you are not the person who placed the order.':
                 raise OrderNotFound(feedback)
+            elif error == 'Order not found, or you are not the person who placed it.':
+                raise OrderNotFound(feedback)
             elif error == 'Invalid API key/secret pair.':
                 raise AuthenticationError(feedback)
             elif error.find('Total must be at least') >= 0:
