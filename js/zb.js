@@ -324,8 +324,8 @@ module.exports = class zb extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let order = {
-            'price': price.toString (), // TODO: this is a problem
-            'amount': amount.toString (), // TODO: this is a problem
+            'price': this.priceToPrecision (symbol, price),
+            'amount': this.amountToString (symbol, amount),
             'tradeType': (side === 'buy') ? '1' : '0',
             'currency': this.marketId (symbol),
         };
