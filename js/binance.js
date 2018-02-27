@@ -727,8 +727,6 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (!symbol)
-            throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol param');
         await this.loadMarkets ();
         let market = undefined;
         let request = {};
