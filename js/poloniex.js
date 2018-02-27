@@ -814,6 +814,8 @@ module.exports = class poloniex extends Exchange {
             const feedback = this.id + ' ' + this.json (response);
             if (error === 'Invalid order number, or you are not the person who placed the order.') {
                 throw new OrderNotFound (feedback);
+            } else if (error === 'Order not found, or you are not the person who placed it.') {
+                throw new OrderNotFound (feedback);
             } else if (error === 'Invalid API key/secret pair.') {
                 throw new AuthenticationError (feedback);
             } else if (error.indexOf ('Total must be at least') >= 0) {
