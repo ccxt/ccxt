@@ -190,6 +190,9 @@ module.exports = class zb extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privateGetGetAccountInfo ();
+        const log = require ('ololog');
+        log (response);
+        process.exit ();
         let balances = response['result'];
         let coins = balances['coins'];
         let result = { 'info': balances };
@@ -197,24 +200,23 @@ module.exports = class zb extends Exchange {
         for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];
             let account = this.account ();
-            // let coinBalance = undefined;
-            // for (let j = 0; i < coins.length; j++) {
-            //     let coin = coins[j];
-            //     coin['key'] = coin['key'].toUpperCase ();
-            //     if (coin['key'] === 'BCC') {
             //---------------------------------------------------------------------
             // old code
-            account['free'] = parseFloat (balance['available']);
-            account['used'] = parseFloat (balance['freez']);
+            // account['free'] = parseFloat (balance['available']);
+            // account['used'] = parseFloat (balance['freez']);
             // end of old code
             //---------------------------------------------------------------------
             //---------------------------------------------------------------------
             // new code
             let coinBalance = undefined;
-            for (let j=0;i<balances.coins.length;j++) {
-                let coin = balances.coins[j];
+            // for (let j=0;i<balances.coins.length;j++) {
+            //     let coin = balances.coins[j];
+            //     coin['key'] = coin['key'].toUpperCase ();
+            //     if (coin['key'] == 'BCC') {
+            for (let j = 0; i < coins.length; j++) {
+                let coin = coins[j];
                 coin['key'] = coin['key'].toUpperCase ();
-                if (coin['key'] == 'BCC') {
+                if (coin['key'] === 'BCC') {
                     coin['key'] = 'BCH';
                     coin['cnName'] = 'BCH';
                     coin['enName'] = 'BCH';
@@ -382,25 +384,24 @@ module.exports = class zb extends Exchange {
         let market = this.market (symbol);
         let request = {
             'currency': market['id'],
+            // 'pageIndex': 1, // pageIndex 页数 默认1; default pageIndex is 1
+            // 'pageSize': 50, // pageSize 每页数量 默认50; default pageSize is 50
         };
-        // pageIndex 页数 默认1; pageSize 每页数量 默认50
-        let defaultParams = {
-            'pageIndex': 1,
-            'pageSize': 50,
-        };
-        // 默认请求方法，不分买卖类型 (default method GetOrdersIgnoreTradeType)
-        let method = 'privateGetGetOrdersIgnoreTradeType';
-        // 如果传入了status，则查未完成的订单；如果传入了tradeType，则查买单或者卖单(if status in parmas,change method to GetUnfinishedOrdersIgnoreTradeType); status === 1表示完成的订单,zb api不提供这样的查询.(status ===1 means get finished orders, the zb exchange did not support query finished orders )
+        let method = 'privateGetGetOrdersIgnoreTradeType'; // 默认请求方法，不分买卖类型 (default method GetOrdersIgnoreTradeType)
+        // 如果传入了status，则查未完成的订单；如果传入了tradeType，则查买单或者卖单
+        // (if status in params, change method to GetUnfinishedOrdersIgnoreTradeType);
+        // status === 1表示完成的订单,zb api不提供这样的查询.
+        // (status === 1 means get finished orders, the zb exchange did not support query finished orders)
         let hasStatus = ('status' in params);
         if (hasStatus && params['status'] === 0) {
             method = 'privateGetGetUnfinishedOrdersIgnoreTradeType';
-            defaultParams['pageSize'] = 10; // fixed to 10
+            // request['pageSize'] = 10; // fixed to 10
         } else if ('tradeType' in params) {
             method = 'privateGetGetOrdersNew';
             // tradeType 交易类型1/0[buy/sell]
             request['tradeType'] = params['tradeType'];
         }
-        request = this.extend (request, defaultParams, params);
+        request = this.extend (request, params);
         let response = await this[method] (request);
         return this.parseOrders (response, market, since, limit);
     }
