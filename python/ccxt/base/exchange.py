@@ -88,8 +88,6 @@ class Exchange(object):
     verbose = False
     markets = None
     symbols = None
-    precision = {}
-    limits = {}
     fees = {
         'trading': {
             'fee_loaded': False,
@@ -106,13 +104,6 @@ class Exchange(object):
     tickers = None
     api = None
     parseJsonResponse = True
-    exceptions = {}
-    headers = {}
-    balance = {}
-    orderbooks = {}
-    orders = {}
-    trades = {}
-    currencies = {}
     proxy = ''
     origin = '*'  # CORS origin
     proxies = None
@@ -124,7 +115,16 @@ class Exchange(object):
     marketsById = None
     markets_by_id = None
     currencies_by_id = None
-    options = {}  # Python does not allow to define properties in run-time with setattr
+    precision = None
+    limits = None
+    exceptions = None
+    headers = None
+    balance = None
+    orderbooks = None
+    orders = None
+    trades = None
+    currencies = None
+    options = None  # Python does not allow to define properties in run-time with setattr
 
     requiredCredentials = {
         'apiKey': True,
@@ -180,6 +180,17 @@ class Exchange(object):
     last_response_headers = None
 
     def __init__(self, config={}):
+
+        self.precision = {} if self.precision is None else self.precision
+        self.limits = {} if self.limits is None else self.limits
+        self.exceptions = {} if self.exceptions is None else self.exceptions
+        self.headers = {} if self.headers is None else self.headers
+        self.balance = {} if self.balance is None else self.balance
+        self.orderbooks = {} if self.orderbooks is None else self.orderbooks
+        self.orders = {} if self.orders is None else self.orders
+        self.trades = {} if self.trades is None else self.trades
+        self.currencies = {} if self.currencies is None else self.currencies
+        self.options = {} if self.options is None else self.options  # Python does not allow to define properties in run-time with setattr
 
         # version = '.'.join(map(str, sys.version_info[:3]))
         # self.userAgent = {
