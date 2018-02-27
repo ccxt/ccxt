@@ -35,32 +35,32 @@ module.exports = class zb extends Exchange {
                 '3d': '3day',
                 '1w': '1week',
             },
-            'errors': {
-                '1000': 'Successful operation',
-                '1001': 'General error message',
-                '1002': 'Internal error',
-                '1003': 'Verification does not pass',
-                '1004': 'Funding security password lock',
-                '1005': 'Funds security password is incorrect, please confirm and re-enter.',
-                '1006': 'Real-name certification pending approval or audit does not pass',
-                '1009': 'This interface is under maintenance',
-                '2001': 'Insufficient CNY Balance',
-                '2002': 'Insufficient BTC Balance',
-                '2003': 'Insufficient LTC Balance',
-                '2005': 'Insufficient ETH Balance',
-                '2006': 'Insufficient ETC Balance',
-                '2007': 'Insufficient BTS Balance',
-                '2009': 'Account balance is not enough',
-                '3001': 'Pending orders not found',
-                '3002': 'Invalid price',
-                '3003': 'Invalid amount',
-                '3004': 'User does not exist',
-                '3005': 'Invalid parameter',
-                '3006': 'Invalid IP or inconsistent with the bound IP',
-                '3007': 'The request time has expired',
-                '3008': 'Transaction records not found',
-                '4001': 'API interface is locked or not enabled',
-                '4002': 'Request too often',
+            'exceptions': {
+                // '1000': 'Successful operation',
+                '1001': ExchangeError, // 'General error message',
+                '1002': ExchangeError, // 'Internal error',
+                '1003': AuthenticationError, // 'Verification does not pass',
+                '1004': AuthenticationError, // 'Funding security password lock',
+                '1005': AuthenticationError, // 'Funds security password is incorrect, please confirm and re-enter.',
+                '1006': AuthenticationError, // 'Real-name certification pending approval or audit does not pass',
+                '1009': ExchangeNotAvailable, // 'This interface is under maintenance',
+                '2001': InsufficientFunds, // 'Insufficient CNY Balance',
+                '2002': InsufficientFunds, // 'Insufficient BTC Balance',
+                '2003': InsufficientFunds, // 'Insufficient LTC Balance',
+                '2005': InsufficientFunds, // 'Insufficient ETH Balance',
+                '2006': InsufficientFunds, // 'Insufficient ETC Balance',
+                '2007': InsufficientFunds, // 'Insufficient BTS Balance',
+                '2009': InsufficientFunds, // 'Account balance is not enough',
+                '3001': OrderNotFound, // 'Pending orders not found',
+                '3002': InvalidOrder, // 'Invalid price',
+                '3003': InvalidOrder, // 'Invalid amount',
+                '3004': AuthenticationError, // 'User does not exist',
+                '3005': ExchangeError, // 'Invalid parameter',
+                '3006': AuthenticationError, // 'Invalid IP or inconsistent with the bound IP',
+                '3007': AuthenticationError, // 'The request time has expired',
+                '3008': OrderNotFound, // 'Transaction records not found',
+                '4001': ExchangeNotAvailable, // 'API interface is locked or not enabled',
+                '4002': DDoSProtection, // 'Request too often',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg',
@@ -540,19 +540,19 @@ module.exports = class zb extends Exchange {
         }
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if (api === 'private') {
+    handleErrors (code, reason, url, method, headers, body) {
+        if (body[0] === '{') {
+            let response = JSON.parse (body);
             if ('code' in response) {
-                let code = response['code'];
-                if (this.errors[code]) {
-                    response['message'] = this.errors[code];
-                }
-                if (code !== 1000) {
-                    throw new ExchangeError (this.id + ' ' + this.json (response));
+                let error = this.safeString (response, 'code');
+                let message = this.id + ' ' + this.json (response);
+                if (error in this.exceptions) {
+                    let ExceptionClass = this.exceptions[error];
+                    throw new ExceptionClass (message);
+                } else if (error !== '1000') {
+                    throw new ExchangeError (message);
                 }
             }
         }
-        return response;
     }
 };
