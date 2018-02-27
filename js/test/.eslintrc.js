@@ -8,6 +8,7 @@ module.exports = {
     "ecmaVersion": 2017,
     "sourceType": "script",
   },
+  "extends": ["eslint:recommended"],
   "rules": {
       "semi": ["error", "never"],
       "no-unused-vars": ["off"],
@@ -32,9 +33,10 @@ module.exports = {
       "key-spacing": "off",
       "brace-style": "off",
       "padding-line-between-statements": ["off",
-        {"blankLine": "always", "prev":"function", "next": "*" },
-        {"blankLine": "always", "prev":"directive", "next": "*" },
-        {"blankLine": "always", "prev":"*", "next": "cjs-export" },
+        { "blankLine": "always", "prev":"function", "next": "*" },
+        { "blankLine": "always", "prev":"directive", "next": "*" },
+        { "blankLine": "always", "prev":"*", "next": "cjs-export" },
       ],
-  },
+      "import/no-extraneous-dependencies": ["error", { "devDependencies": true }],
+    },
 }
