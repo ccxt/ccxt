@@ -17,7 +17,10 @@ module.exports = class zb extends Exchange {
             'version': 'v1',
             'has': {
                 'CORS': false,
+                'createMarketOrder': false,
                 'fetchOrder': true,
+                'fetchOrders': true,
+                'fetchOpenOrders': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -324,6 +327,8 @@ module.exports = class zb extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        if (type !== 'limit')
+            throw new InvalidOrder (this.id + ' allows limit orders only');
         await this.loadMarkets ();
         let order = {
             'price': this.priceToPrecision (symbol, price),
