@@ -701,10 +701,15 @@ module.exports = class binance extends Exchange {
             throw new ExchangeError (this.id + ' fetchOrder requires a symbol param');
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.privateGetOrder (this.extend ({
+        let origClientOrderId = this.safeValue (params, 'origClientOrderId');
+        let request = {
             'symbol': market['id'],
-            'orderId': parseInt (id),
-        }, params));
+        };
+        if (typeof origClientOrderId !== 'undefined')
+            request['origClientOrderId'] = origClientOrderId;
+        else
+            request['orderId'] = parseInt (id);
+        let response = await this.privateGetOrder (this.extend (request, params));
         return this.parseOrder (response, market);
     }
 
