@@ -99,7 +99,11 @@ module.exports = class binance extends Exchange {
                         'ticker/allBookTickers',
                         'ticker/price',
                         'ticker/bookTicker',
+                        'exchangeInfo',
                     ],
+                    'put': [ 'userDataStream' ],
+                    'post': [ 'userDataStream' ],
+                    'delete': [ 'userDataStream' ],
                 },
                 'private': {
                     'get': [
@@ -116,12 +120,6 @@ module.exports = class binance extends Exchange {
                     'delete': [
                         'order',
                     ],
-                },
-                'v1': {
-                    'put': [ 'userDataStream' ],
-                    'post': [ 'userDataStream' ],
-                    'delete': [ 'userDataStream' ],
-                    'get': ['exchangeInfo'],
                 },
             },
             'fees': {
