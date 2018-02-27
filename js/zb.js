@@ -341,36 +341,13 @@ module.exports = class zb extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        // let order = {
-        //     'price': price.toString (),
-        //     'amount': amount.toString (),
-        //     'tradeType': (side === 'buy') ? '1' : '0',
-        //     'currency': this.marketId (symbol),
-        // };
-        // order = this.extend (order, params);
-        // let response = await this.privateGetOrder (order);
-        //---------------------------------------------------------------------
-        // old code
-        let paramString = '&price=' + price.toString ();
-        paramString += '&amount=' + amount.toString ();
-        let tradeType = (side === 'buy') ? '1' : '0';
-        paramString += '&tradeType=' + tradeType;
-        paramString += '&currency=' + this.marketId (symbol);
-        let response = await this.privatePostOrder (paramString);
-        // end of old code
-        //---------------------------------------------------------------------
-        //---------------------------------------------------------------------
-        // new code
         let order = {
-            'price': price.toString (),
-            'amount': amount.toString (),
-            'tradeType': (side == 'buy') ? '1' : '0',
+            'price': price.toString (), // TODO: this is a problem
+            'amount': amount.toString (), // TODO: this is a problem
+            'tradeType': (side === 'buy') ? '1' : '0',
             'currency': this.marketId (symbol),
         };
-        order = this.extend (order, params);
-        let response = await this.privatePostOrder (order);
-        // end of new code
-        //---------------------------------------------------------------------
+        let response = await this.privateGetOrder (this.extend (order, params));
         return {
             'info': response,
             'id': response['id'],
@@ -565,17 +542,17 @@ module.exports = class zb extends Exchange {
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
-        // if (api === 'private') {
-        //     if ('code' in response) {
-        //         let code = response['code'];
-        //         if (this.errors[code]) {
-        //             response['message'] = this.errors[code];
-        //         }
-        //         if (code !== 1000) {
-        //             throw new ExchangeError (this.id + ' ' + this.json (response));
-        //         }
-        //     }
-        // }
+        if (api === 'private') {
+            if ('code' in response) {
+                let code = response['code'];
+                if (this.errors[code]) {
+                    response['message'] = this.errors[code];
+                }
+                if (code !== 1000) {
+                    throw new ExchangeError (this.id + ' ' + this.json (response));
+                }
+            }
+        }
         //---------------------------------------------------------------------
         // old code
         if (api === 'private')
