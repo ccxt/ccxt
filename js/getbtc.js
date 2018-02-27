@@ -21,6 +21,7 @@ module.exports = class getbtc extends _1btcxe {
             },
             'has': {
                 'fetchTrades': false,
+                'fetchOHLCV': false,
             },
             'fees': {
                 'trading': {

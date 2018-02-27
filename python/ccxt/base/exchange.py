@@ -93,6 +93,7 @@ class Exchange(object):
     fees = {
         'trading': {
             'fee_loaded': False,
+            'percentage': True,  # subclasses should rarely have to redefine this
         },
         'funding': {
             'fee_loaded': False,
@@ -125,26 +126,6 @@ class Exchange(object):
     currencies_by_id = None
     options = {}  # Python does not allow to define properties in run-time with setattr
 
-    hasPublicAPI = True
-    hasPrivateAPI = True
-    hasCORS = False
-    hasFetchTicker = True
-    hasFetchOrderBook = True
-    hasFetchTrades = True
-    hasFetchTickers = False
-    hasFetchOHLCV = False
-    hasDeposit = False
-    hasWithdraw = False
-    hasFetchBalance = True
-    hasFetchOrder = False
-    hasFetchOrders = False
-    hasFetchOpenOrders = False
-    hasFetchClosedOrders = False
-    hasFetchMyTrades = False
-    hasFetchCurrencies = False
-    hasCreateOrder = hasPrivateAPI
-    hasCancelOrder = hasPrivateAPI
-
     requiredCredentials = {
         'apiKey': True,
         'secret': True,
@@ -155,11 +136,17 @@ class Exchange(object):
 
     # API method metainfo
     has = {
-        'cancelOrder': hasPrivateAPI,
+        'publicAPI': True,
+        'privateAPI': True,
+        'CORS': False,
+        'cancelOrder': True,
         'cancelOrders': False,
         'createDepositAddress': False,
-        'createOrder': hasPrivateAPI,
+        'createOrder': True,
+        'createMarketOrder': True,
+        'createLimitOrder': True,
         'deposit': False,
+        'editOrder': 'emulated',
         'fetchBalance': True,
         'fetchClosedOrders': False,
         'fetchCurrencies': False,

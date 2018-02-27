@@ -153,7 +153,7 @@ declare module 'ccxt' {
         used: number,
         total: number
     }
-    
+
     export interface PartialBalances {
         [currency: string]: number;
     }
@@ -230,23 +230,7 @@ declare module 'ccxt' {
         twofa: boolean;// two-factor authentication
         substituteCommonCurrencyCodes: boolean;
         timeframes: any;
-        hasPublicAPI: boolean;
-        hasPrivateAPI: boolean;
-        hasCORS: boolean;
-        hasFetchTicker: boolean;
-        hasFetchOrderBook: boolean;
-        hasFetchTrades: boolean;
-        hasFetchTickers: boolean;
-        hasFetchOHLCV: boolean;
-        hasFetchOrder: boolean;
-        hasFetchOrders: boolean;
-        hasFetchOpenOrders: boolean;
-        hasFetchClosedOrders: boolean;
-        hasFetchMyTrades: boolean;
-        hasDeposit: boolean;
-        hasWithdraw: boolean;
-        hasCreateOrder: boolean;
-        hasCancelOrder: boolean;
+        has: { [what: string]: any }; // https://github.com/ccxt/ccxt/pull/1984
         balance: object;
         orderbooks: object;
         orders: object;

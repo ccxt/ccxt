@@ -18,7 +18,6 @@ module.exports = class kuna extends acx {
             'has': {
                 'CORS': false,
                 'fetchTickers': false,
-                'fetchOHLCV': false,
                 'fetchOpenOrders': true,
             },
             'urls': {

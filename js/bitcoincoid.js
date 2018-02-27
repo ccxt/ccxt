@@ -17,7 +17,6 @@ module.exports = class bitcoincoid extends Exchange {
                 'CORS': false,
                 'createMarketOrder': false,
                 'fetchTickers': false,
-                'fetchOHLCV': false,
                 'fetchOrder': true,
                 'fetchOrders': false,
                 'fetchClosedOrders': true,
