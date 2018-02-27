@@ -443,6 +443,14 @@ abstract class Exchange {
         return str_replace ('+', sprintf (".%03d+", $msec), $result);
     }
 
+    public static function parse_date ($timestamp) {
+        if (!isset ($timestamp))
+            return $timestamp;
+        if (strstr ($timestamp, 'GMT'))
+            return strtotime ($timestamp) * 1000;
+        return static::parse8601 ($timestamp);
+    }
+
     public static function parse8601 ($timestamp) {
         $time = strtotime ($timestamp) * 1000;
         if (preg_match ('/\.(?<milliseconds>[0-9]{1,3})/', $timestamp, $match)) {

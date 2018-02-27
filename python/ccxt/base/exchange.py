@@ -663,6 +663,8 @@ class Exchange(object):
 
     @staticmethod
     def parse_date(timestamp):
+        if timestamp is None:
+            return timestamp
         if 'GMT' in timestamp:
             string = ''.join([str(value) for value in parsedate(timestamp)[:6]]) + '.000Z'
             dt = datetime.datetime.strptime(string, "%Y%m%d%H%M%S.%fZ")

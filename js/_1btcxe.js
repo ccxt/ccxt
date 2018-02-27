@@ -118,6 +118,7 @@ module.exports = class _1btcxe extends Exchange {
             'currency': this.marketId (symbol),
         }, params));
         let ticker = response['stats'];
+        let last = parseFloat (ticker['last_price']);
         return {
             'symbol': symbol,
             'timestamp': undefined,
@@ -128,9 +129,9 @@ module.exports = class _1btcxe extends Exchange {
             'ask': parseFloat (ticker['ask']),
             'vwap': undefined,
             'open': parseFloat (ticker['open']),
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last_price']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': parseFloat (ticker['daily_change']),
             'percentage': undefined,
             'average': undefined,
