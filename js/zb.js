@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, InsufficientFunds, OrderNotFound, ExchangeNotAvailable, DDoSProtection, InvalidOrder } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -17,9 +17,10 @@ module.exports = class zb extends Exchange {
             'version': 'v1',
             'has': {
                 'CORS': false,
-                'fetchOHLCV': true,
-                'fetchTickers': false,
+                'createMarketOrder': false,
                 'fetchOrder': true,
+                'fetchOrders': true,
+                'fetchOpenOrders': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -36,6 +37,33 @@ module.exports = class zb extends Exchange {
                 '1d': '1day',
                 '3d': '3day',
                 '1w': '1week',
+            },
+            'exceptions': {
+                // '1000': 'Successful operation',
+                '1001': ExchangeError, // 'General error message',
+                '1002': ExchangeError, // 'Internal error',
+                '1003': AuthenticationError, // 'Verification does not pass',
+                '1004': AuthenticationError, // 'Funding security password lock',
+                '1005': AuthenticationError, // 'Funds security password is incorrect, please confirm and re-enter.',
+                '1006': AuthenticationError, // 'Real-name certification pending approval or audit does not pass',
+                '1009': ExchangeNotAvailable, // 'This interface is under maintenance',
+                '2001': InsufficientFunds, // 'Insufficient CNY Balance',
+                '2002': InsufficientFunds, // 'Insufficient BTC Balance',
+                '2003': InsufficientFunds, // 'Insufficient LTC Balance',
+                '2005': InsufficientFunds, // 'Insufficient ETH Balance',
+                '2006': InsufficientFunds, // 'Insufficient ETC Balance',
+                '2007': InsufficientFunds, // 'Insufficient BTS Balance',
+                '2009': InsufficientFunds, // 'Account balance is not enough',
+                '3001': OrderNotFound, // 'Pending orders not found',
+                '3002': InvalidOrder, // 'Invalid price',
+                '3003': InvalidOrder, // 'Invalid amount',
+                '3004': AuthenticationError, // 'User does not exist',
+                '3005': ExchangeError, // 'Invalid parameter',
+                '3006': AuthenticationError, // 'Invalid IP or inconsistent with the bound IP',
+                '3007': AuthenticationError, // 'The request time has expired',
+                '3008': OrderNotFound, // 'Transaction records not found',
+                '4001': ExchangeNotAvailable, // 'API interface is locked or not enabled',
+                '4002': DDoSProtection, // 'Request too often',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg',
@@ -58,7 +86,7 @@ module.exports = class zb extends Exchange {
                     ],
                 },
                 'private': {
-                    'post': [
+                    'get': [
                         'order',
                         'cancelOrder',
                         'getOrder',
@@ -164,15 +192,28 @@ module.exports = class zb extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostGetAccountInfo ();
+        let response = await this.privateGetGetAccountInfo (params);
+        // todo: use this somehow
+        // let permissions = response['result']['base'];
         let balances = response['result']['coins'];
-        let result = { 'info': balances };
+        let result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             let balance = balances[i];
-            let currency = balance['key'];
-            if (currency in this.currencies)
-                currency = this.currencies[currency]['code'];
+            //     {        enName: "BTC",
+            //               freez: "0.00000000",
+            //         unitDecimal:  8, // always 8
+            //              cnName: "BTC",
+            //       isCanRecharge:  true, // TODO: should use this
+            //             unitTag: "฿",
+            //       isCanWithdraw:  true,  // TODO: should use this
+            //           available: "0.00000000",
+            //                 key: "btc"         }
             let account = this.account ();
+            let currency = balance['key'];
+            if (currency in this.currencies_by_id)
+                currency = this.currencies_by_id[currency]['code'];
+            else
+                currency = this.commonCurrencyCode (balance['enName']);
             account['free'] = parseFloat (balance['available']);
             account['used'] = parseFloat (balance['freez']);
             account['total'] = this.sum (account['free'], account['used']);
@@ -286,13 +327,16 @@ module.exports = class zb extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        if (type !== 'limit')
+            throw new InvalidOrder (this.id + ' allows limit orders only');
         await this.loadMarkets ();
-        let paramString = '&price=' + price.toString ();
-        paramString += '&amount=' + amount.toString ();
-        let tradeType = (side === 'buy') ? '1' : '0';
-        paramString += '&tradeType=' + tradeType;
-        paramString += '&currency=' + this.marketId (symbol);
-        let response = await this.privatePostOrder (paramString);
+        let order = {
+            'price': this.priceToPrecision (symbol, price),
+            'amount': this.amountToString (symbol, amount),
+            'tradeType': (side === 'buy') ? '1' : '0',
+            'currency': this.marketId (symbol),
+        };
+        let response = await this.privateGetOrder (this.extend (order, params));
         return {
             'info': response,
             'id': response['id'],
@@ -301,18 +345,138 @@ module.exports = class zb extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let paramString = '&id=' + id.toString ();
-        if ('currency' in params)
-            paramString += '&currency=' + params['currency'];
-        return await this.privatePostCancelOrder (paramString);
+        let order = {
+            'id': id.toString (),
+            'currency': this.marketId (symbol),
+        };
+        order = this.extend (order, params);
+        return await this.privateGetCancelOrder (order);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let paramString = '&id=' + id.toString ();
-        if ('currency' in params)
-            paramString += '&currency=' + params['currency'];
-        return await this.privatePostGetOrder (paramString);
+        let order = {
+            'id': id.toString (),
+            'currency': this.marketId (symbol),
+        };
+        order = this.extend (order, params);
+        let response = await this.privateGetGetOrder (order);
+        return this.parseOrder (response, undefined, true);
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = 50, params = {}) {
+        if (!symbol)
+            throw new ExchangeError (this.id + 'fetchOrders requires a symbol parameter');
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'currency': market['id'],
+            'pageIndex': 1, // default pageIndex is 1
+            'pageSize': limit, // default pageSize is 50
+        };
+        let method = 'privateGetGetOrdersIgnoreTradeType';
+        // tradeType 交易类型1/0[buy/sell]
+        if ('tradeType' in params)
+            method = 'privateGetGetOrdersNew';
+        let response = undefined;
+        try {
+            response = await this[method] (this.extend (request, params));
+        } catch (e) {
+            if (this.last_json_response) {
+                let code = this.safeString (this.last_json_response, 'code');
+                if (code === '3001')
+                    return [];
+            }
+            throw e;
+        }
+        return this.parseOrders (response, market, since, limit);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = 10, params = {}) {
+        if (!symbol)
+            throw new ExchangeError (this.id + 'fetchOpenOrders requires a symbol parameter');
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'currency': market['id'],
+            'pageIndex': 1, // default pageIndex is 1
+            'pageSize': limit, // default pageSize is 10
+        };
+        let method = 'privateGetGetUnfinishedOrdersIgnoreTradeType';
+        // tradeType 交易类型1/0[buy/sell]
+        if ('tradeType' in params)
+            method = 'privateGetGetOrdersNew';
+        let response = undefined;
+        try {
+            response = await this[method] (this.extend (request, params));
+        } catch (e) {
+            if (this.last_json_response) {
+                let code = this.safeString (this.last_json_response, 'code');
+                if (code === '3001')
+                    return [];
+            }
+            throw e;
+        }
+        return this.parseOrders (response, market, since, limit);
+    }
+
+    parseOrder (order, market = undefined) {
+        let side = order['type'] === 1 ? 'buy' : 'sell';
+        let type = 'limit'; // market order is not availalbe in ZB
+        let timestamp = undefined;
+        let createDateField = this.getCreateDateField ();
+        if (createDateField in order)
+            timestamp = order[createDateField];
+        let symbol = undefined;
+        if ('currency' in order) {
+            // get symbol from currency
+            market = this.marketsById[order['currency']];
+        }
+        if (market)
+            symbol = market['symbol'];
+        let price = order['price'];
+        let average = order['trade_price'];
+        let filled = order['trade_amount'];
+        let amount = order['total_amount'];
+        let remaining = amount - filled;
+        let cost = order['trade_money'];
+        let status = this.safeString (order, 'status');
+        if (typeof status !== 'undefined')
+            status = this.parseOrderStatus (status);
+        let result = {
+            'info': order,
+            'id': order['id'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'average': average,
+            'cost': cost,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': undefined,
+        };
+        return result;
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            '0': 'open',
+            '1': 'canceled',
+            '2': 'closed',
+            '3': 'open', // partial
+        };
+        if (status in statuses)
+            return statuses[status];
+        return status;
+    }
+
+    getCreateDateField () {
+        return 'trade_date';
     }
 
     nonce () {
@@ -326,10 +490,13 @@ module.exports = class zb extends Exchange {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
-            this.checkRequiredCredentials ();
+            let query = this.keysort (this.extend ({
+                'method': path,
+                'accesskey': this.apiKey,
+            }, params));
             let nonce = this.nonce ();
-            let auth = 'accesskey=' + this.apiKey;
-            auth += '&' + 'method=' + path;
+            query = this.keysort (query);
+            let auth = this.rawencode (query);
             let secret = this.hash (this.encode (this.secret), 'sha1');
             let signature = this.hmac (this.encode (auth), this.encode (secret), 'md5');
             let suffix = 'sign=' + signature + '&reqTime=' + nonce.toString ();
@@ -343,28 +510,18 @@ module.exports = class zb extends Exchange {
             return; // fallback to default error handler
         if (body.length < 2)
             return; // fallback to default error handler
-        if ((body[0] === '{') || (body[0] === '[')) {
+        if (body[0] === '{') {
             let response = JSON.parse (body);
-            // {"result":false,"message":}
-            if ('result' in response) {
-                let success = this.safeValue (response, 'result', false);
-                if (typeof success === 'string') {
-                    if ((success === 'true') || (success === '1'))
-                        success = true;
-                    else
-                        success = false;
+            if ('code' in response) {
+                let error = this.safeString (response, 'code');
+                let message = this.id + ' ' + this.json (response);
+                if (error in this.exceptions) {
+                    let ExceptionClass = this.exceptions[error];
+                    throw new ExceptionClass (message);
+                } else if (error !== '1000') {
+                    throw new ExchangeError (message);
                 }
-                if (!success)
-                    throw new ExchangeError (this.id + ' ' + this.json (response));
             }
         }
-    }
-
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if (api === 'private')
-            if ('code' in response)
-                throw new ExchangeError (this.id + ' ' + this.json (response));
-        return response;
     }
 };
