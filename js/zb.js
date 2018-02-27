@@ -190,47 +190,27 @@ module.exports = class zb extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privateGetGetAccountInfo ();
-        const log = require ('ololog');
-        log (response);
-        process.exit ();
-        let balances = response['result'];
-        let coins = balances['coins'];
-        let result = { 'info': balances };
-        let currencies = Object.keys (this.currencies);
-        for (let i = 0; i < currencies.length; i++) {
-            let currency = currencies[i];
+        // todo: use this somehow
+        // let permissions = response['result']['base'];
+        let balances = response['result']['coins'];
+        let result = { 'info': response };
+        for (let i = 0; i < balances.length; i++) {
+            let balance = balances[i];
+            //     {        enName: "BTC",
+            //               freez: "0.00000000",
+            //         unitDecimal:  8, // always 8
+            //              cnName: "BTC",
+            //       isCanRecharge:  true, // TODO: should use this
+            //             unitTag: "฿",
+            //       isCanWithdraw:  true,  // TODO: should use this
+            //           available: "0.00000000",
+            //                 key: "btc"         }
             let account = this.account ();
-            //---------------------------------------------------------------------
-            // old code
-            // account['free'] = parseFloat (balance['available']);
-            // account['used'] = parseFloat (balance['freez']);
-            // end of old code
-            //---------------------------------------------------------------------
-            //---------------------------------------------------------------------
-            // new code
-            let coinBalance = undefined;
-            // for (let j=0;i<balances.coins.length;j++) {
-            //     let coin = balances.coins[j];
-            //     coin['key'] = coin['key'].toUpperCase ();
-            //     if (coin['key'] == 'BCC') {
-            for (let j = 0; i < coins.length; j++) {
-                let coin = coins[j];
-                coin['key'] = coin['key'].toUpperCase ();
-                if (coin['key'] === 'BCC') {
-                    coin['key'] = 'BCH';
-                    coin['cnName'] = 'BCH';
-                    coin['enName'] = 'BCH';
-                    coin['unitTag'] = 'BCH';
-                }
-                if (coin['key'] === currency) {
-                    coinBalance = coin;
-                    break;
-                }
-            }
-            account['free'] = parseFloat (coinBalance['available']);
-            account['used'] = parseFloat (coinBalance['freez']);
-            // end of new code
-            //---------------------------------------------------------------------
+            let currency = balance['key'];
+            if (currency in this.currencies_by_id)
+                currency = this.currencies_by_id[currency]['code'];
+            account['free'] = parseFloat (balance['available']);
+            account['used'] = parseFloat (balance['freez']);
             account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
         }
