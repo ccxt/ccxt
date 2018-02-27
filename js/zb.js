@@ -189,7 +189,7 @@ module.exports = class zb extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateGetGetAccountInfo ();
+        let response = await this.privateGetGetAccountInfo (params);
         // todo: use this somehow
         // let permissions = response['result']['base'];
         let balances = response['result']['coins'];
@@ -209,6 +209,8 @@ module.exports = class zb extends Exchange {
             let currency = balance['key'];
             if (currency in this.currencies_by_id)
                 currency = this.currencies_by_id[currency]['code'];
+            else
+                currency = this.commonCurrencyCode (balance['enName']);
             account['free'] = parseFloat (balance['available']);
             account['used'] = parseFloat (balance['freez']);
             account['total'] = this.sum (account['free'], account['used']);
