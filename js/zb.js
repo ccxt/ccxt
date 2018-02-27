@@ -366,8 +366,8 @@ module.exports = class zb extends Exchange {
         let market = this.market (symbol);
         let request = {
             'currency': market['id'],
-            'pageIndex': 1, // pageIndex 页数 默认1; default pageIndex is 1
-            'pageSize': limit, // pageSize 每页数量 默认50; default pageSize is 50
+            'pageIndex': 1, // default pageIndex is 1
+            'pageSize': limit, // default pageSize is 50
         };
         let method = 'privateGetGetOrdersIgnoreTradeType';
         // tradeType 交易类型1/0[buy/sell]
@@ -394,8 +394,8 @@ module.exports = class zb extends Exchange {
         let market = this.market (symbol);
         let request = {
             'currency': market['id'],
-            'pageIndex': 1, // pageIndex 页数 默认1; default pageIndex is 1
-            'pageSize': limit, // pageSize 每页数量 默认10; default pageSize is 10
+            'pageIndex': 1, // default pageIndex is 1
+            'pageSize': limit, // default pageSize is 10
         };
         let method = 'privateGetGetUnfinishedOrdersIgnoreTradeType';
         // tradeType 交易类型1/0[buy/sell]
@@ -415,7 +415,7 @@ module.exports = class zb extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    parseOrder (order, market = undefined, isSingle = false) {
+    parseOrder (order, market = undefined) {
         let side = order['type'] === 1 ? 'buy' : 'sell';
         let type = 'limit'; // market order is not availalbe in ZB
         let timestamp = undefined;
@@ -435,7 +435,9 @@ module.exports = class zb extends Exchange {
         let amount = order['total_amount'];
         let remaining = amount - filled;
         let cost = order['trade_money'];
-        let status = this.parseOrderStatus (order['status'], filled, isSingle);
+        let status = this.safeString (order, 'status');
+        if (typeof status !== 'undefined')
+            status = this.parseOrderStatus (status);
         let result = {
             'info': order,
             'id': order['id'],
@@ -456,19 +458,15 @@ module.exports = class zb extends Exchange {
         return result;
     }
 
-    parseOrderStatus (status, filled, isSingle) {
-        if (status === 1)
-            return 'canceled';
-        if (status === 3 && isSingle) {
-            // when fetch single order detail, status == 3 means partial or open
-            return filled === 0 ? 'open' : 'partial';
-        }
-        if (status === 3)
-            return 'partial';
-        if (status === 0)
-            return 'open';
-        if (status === 2)
-            return 'closed';
+    parseOrderStatus (status) {
+        const statuses = {
+            '0': 'open',
+            '1': 'canceled',
+            '2': 'closed',
+            '3': 'open', // partial
+        };
+        if (status in statuses)
+            return statuses[status];
         return status;
     }
 
@@ -501,28 +499,6 @@ module.exports = class zb extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-
-    // handleErrors (httpCode, reason, url, method, headers, body) {
-    //     if (typeof body !== 'string')
-    //         return; // fallback to default error handler
-    //     if (body.length < 2)
-    //         return; // fallback to default error handler
-    //     if ((body[0] === '{') || (body[0] === '[')) {
-    //         let response = JSON.parse (body);
-    //         // {"result":false,"message":}
-    //         if ('result' in response) {
-    //             let success = this.safeValue (response, 'result', false);
-    //             if (typeof success === 'string') {
-    //                 if ((success === 'true') || (success === '1'))
-    //                     success = true;
-    //                 else
-    //                     success = false;
-    //             }
-    //             if (!success)
-    //                 throw new ExchangeError (this.id + ' ' + this.json (response));
-    //         }
-    //     }
-    // }
 
     handleErrors (httpCode, reason, url, method, headers, body) {
         if (typeof body !== 'string')
