@@ -47,7 +47,8 @@ class Exchange(BaseExchange):
         if 'asyncio_loop' in config:
             self.asyncio_loop = config['asyncio_loop']
         self.asyncio_loop = self.asyncio_loop or asyncio.get_event_loop()
-        if 'session' not in config:
+        self.own_session = 'session' not in config
+        if self.own_session:
             # Create out SSL context object with our CA cert file
             context = ssl.create_default_context(cafile=certifi.where())
             # Pass this SSL context to aiohttp and create a TCPConnector
@@ -67,7 +68,8 @@ class Exchange(BaseExchange):
 
     async def close(self):
         if self.session is not None:
-            await self.session.close()
+            if self.own_session:
+                await self.session.close()
             self.session = None
 
     async def wait_for_token(self):
