@@ -197,11 +197,24 @@ module.exports = class zb extends Exchange {
         for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];
             let account = this.account ();
+            // let coinBalance = undefined;
+            // for (let j = 0; i < coins.length; j++) {
+            //     let coin = coins[j];
+            //     coin['key'] = coin['key'].toUpperCase ();
+            //     if (coin['key'] === 'BCC') {
+            //---------------------------------------------------------------------
+            // old code
+            account['free'] = parseFloat (balance['available']);
+            account['used'] = parseFloat (balance['freez']);
+            // end of old code
+            //---------------------------------------------------------------------
+            //---------------------------------------------------------------------
+            // new code
             let coinBalance = undefined;
-            for (let j = 0; i < coins.length; j++) {
-                let coin = coins[j];
+            for (let j=0;i<balances.coins.length;j++) {
+                let coin = balances.coins[j];
                 coin['key'] = coin['key'].toUpperCase ();
-                if (coin['key'] === 'BCC') {
+                if (coin['key'] == 'BCC') {
                     coin['key'] = 'BCH';
                     coin['cnName'] = 'BCH';
                     coin['enName'] = 'BCH';
@@ -214,6 +227,8 @@ module.exports = class zb extends Exchange {
             }
             account['free'] = parseFloat (coinBalance['available']);
             account['used'] = parseFloat (coinBalance['freez']);
+            // end of new code
+            //---------------------------------------------------------------------
             account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
         }
@@ -326,14 +341,36 @@ module.exports = class zb extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
+        // let order = {
+        //     'price': price.toString (),
+        //     'amount': amount.toString (),
+        //     'tradeType': (side === 'buy') ? '1' : '0',
+        //     'currency': this.marketId (symbol),
+        // };
+        // order = this.extend (order, params);
+        // let response = await this.privateGetOrder (order);
+        //---------------------------------------------------------------------
+        // old code
+        let paramString = '&price=' + price.toString ();
+        paramString += '&amount=' + amount.toString ();
+        let tradeType = (side === 'buy') ? '1' : '0';
+        paramString += '&tradeType=' + tradeType;
+        paramString += '&currency=' + this.marketId (symbol);
+        let response = await this.privatePostOrder (paramString);
+        // end of old code
+        //---------------------------------------------------------------------
+        //---------------------------------------------------------------------
+        // new code
         let order = {
             'price': price.toString (),
             'amount': amount.toString (),
-            'tradeType': (side === 'buy') ? '1' : '0',
+            'tradeType': (side == 'buy') ? '1' : '0',
             'currency': this.marketId (symbol),
         };
         order = this.extend (order, params);
-        let response = await this.privateGetOrder (order);
+        let response = await this.privatePostOrder (order);
+        // end of new code
+        //---------------------------------------------------------------------
         return {
             'info': response,
             'id': response['id'],
@@ -470,6 +507,23 @@ module.exports = class zb extends Exchange {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
+            // let query = this.keysort (this.extend ({
+            //     'method': path,
+            //     'accesskey': this.apiKey,
+            // }, params));
+            // let nonce = this.nonce ();
+            // query = this.keysort (query);
+            // let auth = this.rawencode (query);
+            //---------------------------------------------------------------------
+            // old code
+            this.checkRequiredCredentials ();
+            let nonce = this.nonce ();
+            let auth = 'accesskey=' + this.apiKey;
+            auth += '&' + 'method=' + path;
+            // end of old code
+            //---------------------------------------------------------------------
+            //---------------------------------------------------------------------
+            // new code
             let query = this.keysort (this.extend ({
                 'method': path,
                 'accesskey': this.apiKey,
@@ -477,6 +531,8 @@ module.exports = class zb extends Exchange {
             let nonce = this.nonce ();
             query = this.keysort (query);
             let auth = this.rawencode (query);
+            // end of new code
+            //---------------------------------------------------------------------
             let secret = this.hash (this.encode (this.secret), 'sha1');
             let signature = this.hmac (this.encode (auth), this.encode (secret), 'md5');
             let suffix = 'sign=' + signature + '&reqTime=' + nonce.toString ();
@@ -509,17 +565,31 @@ module.exports = class zb extends Exchange {
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
-        if (api === 'private') {
-            if ('code' in response) {
-                let code = response['code'];
-                if (this.errors[code]) {
-                    response['message'] = this.errors[code];
-                }
-                if (code !== 1000) {
-                    throw new ExchangeError (this.id + ' ' + this.json (response));
-                }
-            }
-        }
+        // if (api === 'private') {
+        //     if ('code' in response) {
+        //         let code = response['code'];
+        //         if (this.errors[code]) {
+        //             response['message'] = this.errors[code];
+        //         }
+        //         if (code !== 1000) {
+        //             throw new ExchangeError (this.id + ' ' + this.json (response));
+        //         }
+        //     }
+        // }
+        //---------------------------------------------------------------------
+        // old code
+        if (api === 'private')
+            if ('code' in response)
+                throw new ExchangeError (this.id + ' ' + this.json (response));
+        // end of old code
+        //---------------------------------------------------------------------
+        //---------------------------------------------------------------------
+        // new code
+        if (api == 'private')
+            if ('code' in response && response['code'] !== 1000)
+                throw new ExchangeError (this.id + ' ' + this.json (response));
+        // end of new code
+        //---------------------------------------------------------------------
         return response;
     }
 };
