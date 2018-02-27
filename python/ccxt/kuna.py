@@ -19,7 +19,6 @@ class kuna (acx):
             'has': {
                 'CORS': False,
                 'fetchTickers': False,
-                'fetchOHLCV': False,
                 'fetchOpenOrders': True,
             },
             'urls': {

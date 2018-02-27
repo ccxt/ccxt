@@ -23,7 +23,6 @@ class gemini (Exchange):
                 'CORS': False,
                 'fetchBidsAsks': False,
                 'fetchTickers': False,
-                'fetchOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOrder': False,
                 'fetchOrders': False,

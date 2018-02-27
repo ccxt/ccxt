@@ -24,7 +24,6 @@ class bitcoincoid (Exchange):
                 'CORS': False,
                 'createMarketOrder': False,
                 'fetchTickers': False,
-                'fetchOHLCV': False,
                 'fetchOrder': True,
                 'fetchOrders': False,
                 'fetchClosedOrders': True,
