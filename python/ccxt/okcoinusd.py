@@ -147,6 +147,9 @@ class okcoinusd (Exchange):
                 '10005': AuthenticationError,  # bad apiKey
                 '10008': ExchangeError,  # Illegal URL parameter
             },
+            'options': {
+                'warnOnFetchOHLCVLimitArgument': True,
+            },
         })
 
     def fetch_markets(self):
@@ -319,7 +322,7 @@ class okcoinusd (Exchange):
         response = getattr(self, method)(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=1440, params={}):
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         method = 'publicGet'
@@ -332,7 +335,9 @@ class okcoinusd (Exchange):
             request['contract_type'] = 'this_week'  # next_week, quarter
         method += 'Kline'
         if limit is not None:
-            request['size'] = int(limit)
+            if self.options['warnOnFetchOHLCVLimitArgument']:
+                raise ExchangeError(self.id + ' fetchOHLCV counts "limit" candles from current time backwards, therefore the "limit" argument for ' + self.id + ' is disabled. Set ' + self.id + '.options["warnOnFetchOHLCVLimitArgument"] = False to suppress self warning message.')
+            request['size'] = int(limit)  # max is 1440 candles
         if since is not None:
             request['since'] = since
         else:

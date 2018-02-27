@@ -139,6 +139,9 @@ class okcoinusd extends Exchange {
                 '10005' => '\\ccxt\\AuthenticationError', // bad apiKey
                 '10008' => '\\ccxt\\ExchangeError', // Illegal URL parameter
             ),
+            'options' => array (
+                'warnOnFetchOHLCVLimitArgument' => true,
+            ),
         ));
     }
 
@@ -325,7 +328,7 @@ class okcoinusd extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = 1440, $params = array ()) {
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $method = 'publicGet';
@@ -338,8 +341,11 @@ class okcoinusd extends Exchange {
             $request['contract_type'] = 'this_week'; // next_week, quarter
         }
         $method .= 'Kline';
-        if ($limit !== null)
-            $request['size'] = intval ($limit);
+        if ($limit !== null) {
+            if ($this->options['warnOnFetchOHLCVLimitArgument'])
+                throw new ExchangeError ($this->id . ' fetchOHLCV counts "$limit" candles from current time backwards, therefore the "$limit" argument for ' . $this->id . ' is disabled. Set ' . $this->id . '.options["warnOnFetchOHLCVLimitArgument"] = false to suppress this warning message.');
+            $request['size'] = intval ($limit); // max is 1440 candles
+        }
         if ($since !== null)
             $request['since'] = $since;
         else
