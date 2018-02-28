@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -18,6 +18,8 @@ module.exports = class bitflyer extends Exchange {
             'has': {
                 'CORS': false,
                 'withdraw': true,
+                'fetchOrders': true,
+                'fetchOrder': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg',
@@ -232,6 +234,71 @@ module.exports = class bitflyer extends Exchange {
             'product_code': this.marketId (symbol),
             'child_order_acceptance_id': id,
         }, params));
+    }
+
+    parseOrderStatus (status) {
+        let statuses = {
+            'ACTIVE': 'open',
+            'COMPLETED': 'closed',
+            'CANCELED': 'canceled',
+            'EXPIRED': 'canceled',
+            'REJECTED': 'canceled',
+        };
+        return (status in statuses) ? statuses[status] : status.toLowerCase ();
+    }
+
+    parseOrder (order, market = undefined) {
+        let timestamp = this.parse8601 (order['child_order_date']);
+        let amount = this.safeFloat (order, 'size');
+        let remaining = this.safeFloat (order, 'outstanding_size');
+        let filled = this.safeFloat (order, 'executed_size');
+        let price = this.safeFloat (order, 'price');
+        let cost = price * filled;
+        return {
+            'id': order['child_order_acceptance_id'],
+            'info': order,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'status': this.parseOrderStatus(order['child_order_state']),
+            'symbol': market,
+            'type': order['child_order_type'].toLowerCase (),
+            'side': order['side'].toLowerCase (),
+            'price': price,
+            'cost': cost,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'fee': this.safeFloat (order, 'total_commission'),
+        };
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (typeof symbol === 'undefined')
+            throw new ExchangeError (this.id + ' cancelOrder() requires a symbol argument');
+        let count = 100;
+        if(limit)
+            count = limit;
+        await this.loadMarkets ();
+        let response = await this.privateGetGetchildorders (this.extend ({
+            'product_code': this.marketId (symbol),
+            'count': count,
+        }, params));
+        let orders = this.parseOrders (response, symbol, since, limit);
+        if (symbol)
+            orders = this.filterBy (orders, 'symbol', symbol);
+        return orders;
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        if (typeof symbol === 'undefined')
+            throw new ExchangeError (this.id + ' cancelOrder() requires a symbol argument');
+        let orders = await this.fetchOrders (symbol);
+        for(let i = 0; i < orders.length; i++) {
+            let order = orders[i]
+            if(order['id'] === id)
+                return order;
+        }
+        throw new OrderNotFound (this.id + ' No matching order found: ' + id);
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
