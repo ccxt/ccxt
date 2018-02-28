@@ -480,18 +480,13 @@ module.exports = class huobipro extends Exchange {
         let response = await this.privateGetDwDepositVirtualAddresses (this.extend ({
             'currency': currency['id'].toLowerCase (),
         }, params));
-        if ('status' in response) {
-            if (response['status'] === 'ok') {
-                let address = this.safeString (response, 'data');
-                return {
-                    'currency': code,
-                    'status': 'ok',
-                    'address': address,
-                    'info': response,
-                };
-            }
-        }
-        throw new ExchangeError (this.id + ' fetchDepositAddress failed: ' + this.last_http_response);
+        let address = this.safeString (response, 'data');
+        return {
+            'currency': code,
+            'status': 'ok',
+            'address': address,
+            'info': response,
+        };
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
