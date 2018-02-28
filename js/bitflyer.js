@@ -19,6 +19,7 @@ module.exports = class bitflyer extends Exchange {
                 'CORS': false,
                 'withdraw': true,
                 'fetchOrders': true,
+                'fetchOrder': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg',
@@ -235,19 +236,30 @@ module.exports = class bitflyer extends Exchange {
         }, params));
     }
 
+    parseOrderStatus (status) {
+        let statuses = {
+            'ACTIVE': 'open',
+            'COMPLETED': 'closed',
+            'CANCELED': 'canceled',
+            'EXPIRED': 'canceled',
+            'REJECTED': 'canceled',
+        };
+        return (status in statuses) ? statuses[status] : status.toLowerCase ();
+    }
+
     parseOrder (order, market = undefined) {
         let timestamp = this.parse8601 (order['child_order_date']);
         let amount = this.safeFloat (order, 'size');
         let remaining = this.safeFloat (order, 'outstanding_size');
         let filled = this.safeFloat (order, 'executed_size');
-        let price = this.safeFloat (order, 'price')
-        let cost = price * filled
+        let price = this.safeFloat (order, 'price');
+        let cost = price * filled;
         return {
-            'id': order['id'],
+            'id': order['child_order_id'],
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'status': order['child_order_state'],
+            'status': this.parseOrderStatus(order['child_order_state']),
             'symbol': market,
             'type': order['child_order_type'].toLowerCase (),
             'side': order['side'].toLowerCase (),
@@ -280,11 +292,13 @@ module.exports = class bitflyer extends Exchange {
     async fetchOrder (id, symbol = undefined, params = {}) {
         if (typeof symbol === 'undefined')
             throw new ExchangeError (this.id + ' cancelOrder() requires a symbol argument');
-        await this.loadMarkets ();
-        let response = await this.privatePostGetchildorders (this.extend ({
-            'order_id': parseInt (id),
-        }, params));
-        return this.parseOrder (response);
+        let orders = await this.fetchOrders (symbol);
+        for(let i = 0; i < orders.length; i++) {
+            let order = orders[i]
+            if(order['id'] == id)
+                return order;
+        }
+        throw new OrderNotFound (this.id + ' No matching order found: ' + id);
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
