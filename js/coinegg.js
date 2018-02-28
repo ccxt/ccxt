@@ -455,42 +455,41 @@ module.exports = class coinegg extends Exchange {
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
-        let result = this.safeValue (response, 'result');
-        if (!result) {
-            let errorMessages = {
-                '100': 'Required parameters can not be empty',
-                '101': 'Illegal parameter',
-                '102': 'coin does not exist',
-                '103': 'Key does not exist',
-                '104': 'Signature does not match',
-                '105': 'Insufficient permissions',
-                '106': 'Request expired(nonce error)',
-                '200': 'Lack of balance',
-                '201': 'Too small for the number of trading',
-                '202': 'Price must be in 0 - 1000000',
-                '203': 'Order does not exist',
-                '204': 'Pending order amount must be above 0.001 BTC',
-                '205': 'Restrict pending order prices',
-                '206': 'Decimal place error',
-                '401': 'System error',
-                '402': 'Requests are too frequent',
-                '403': 'Non-open API',
-                '404': 'IP restriction does not request the resource',
-                '405': 'Currency transactions are temporarily closed',
-            };
-            let errorClasses = {
-                '103': AuthenticationError,
-                '104': AuthenticationError,
-                '105': AuthenticationError,
-                '106': InvalidNonce,
-                '200': InsufficientFunds,
-                '201': InvalidOrder,
-                '202': InvalidOrder,
-                '203': OrderNotFound,
-                '402': DDoSProtection,
-            };
-            let code = this.safeString (response, 'code');
-            let message = this.safeString (errorMessages, code, 'Error');
+        let errorMessages = {
+            '100': 'Required parameters can not be empty',
+            '101': 'Illegal parameter',
+            '102': 'coin does not exist',
+            '103': 'Key does not exist',
+            '104': 'Signature does not match',
+            '105': 'Insufficient permissions',
+            '106': 'Request expired(nonce error)',
+            '200': 'Lack of balance',
+            '201': 'Too small for the number of trading',
+            '202': 'Price must be in 0 - 1000000',
+            '203': 'Order does not exist',
+            '204': 'Pending order amount must be above 0.001 BTC',
+            '205': 'Restrict pending order prices',
+            '206': 'Decimal place error',
+            '401': 'System error',
+            '402': 'Requests are too frequent',
+            '403': 'Non-open API',
+            '404': 'IP restriction does not request the resource',
+            '405': 'Currency transactions are temporarily closed',
+        };
+        let errorClasses = {
+            '103': AuthenticationError,
+            '104': AuthenticationError,
+            '105': AuthenticationError,
+            '106': InvalidNonce,
+            '200': InsufficientFunds,
+            '201': InvalidOrder,
+            '202': InvalidOrder,
+            '203': OrderNotFound,
+            '402': DDoSProtection,
+        };
+        let code = this.safeString (response, 'code');
+        let message = this.safeString (errorMessages, code, 'Error');
+        if (typeof code !== 'undefined') {
             if (code in errorClasses) {
                 let ErrorClass = errorClasses[code];
                 throw new ErrorClass (message);
