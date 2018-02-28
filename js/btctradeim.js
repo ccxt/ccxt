@@ -14,12 +14,12 @@ module.exports = class btctradeim extends coinegg {
             'name': 'BtcTrade.im',
             'countries': 'HK',
             'urls': {
-                'logo': 'https://www.btctrade.im/static/images/logo.png',
+                'logo': 'https://user-images.githubusercontent.com/1294454/36770531-c2142444-1c5b-11e8-91e2-a4d90dc85fe8.jpg',
                 'api': {
                     'web': 'https://www.btctrade.im/coin',
                     'rest': 'https://api.btctrade.im/api/v1',
                 },
-                'www': 'https://www.btctrade.im/',
+                'www': 'https://www.btctrade.im',
                 'doc': 'https://www.btctrade.im/help.api.html',
                 'fees': 'https://www.btctrade.im/spend.price.html',
             },
