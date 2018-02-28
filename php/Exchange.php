@@ -1039,7 +1039,8 @@ abstract class Exchange {
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = 60, $since = null, $limit = null) {
-        return $ohlcv;
+        return (gettype ($ohlcv) === 'array' && count (array_filter (array_keys ($ohlcv), 'is_string')) == 0) ?
+            array_slice ($ohlcv, 0, 6) : $ohlcv;
     }
 
     public function parseOHLCV ($ohlcv, $market = null, $timeframe = 60, $since = null, $limit = null) {

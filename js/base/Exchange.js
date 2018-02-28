@@ -809,7 +809,7 @@ module.exports = class Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        return ohlcv
+        return Array.isArray (ohlcv) ? ohlcv.slice (0, 6) : ohlcv
     }
 
     parseOHLCVs (ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
