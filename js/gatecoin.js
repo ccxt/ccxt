@@ -415,7 +415,7 @@ module.exports = class gatecoin extends Exchange {
             'trades': undefined,
             'fee': undefined,
             'info': order,
-        }
+        };
         return result;
     }
 
