@@ -181,14 +181,14 @@ class lakebtc (Exchange):
         }, params))
         return self.parse_trades(response, market, since, limit)
 
-    async def create_order(self, market, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
         method = 'privatePost' + self.capitalize(side) + 'Order'
-        marketId = self.market_id(market)
+        market = self.market(symbol)
         order = {
-            'params': [price, amount, marketId],
+            'params': [price, amount, market['id']],
         }
         response = await getattr(self, method)(self.extend(order, params))
         return {

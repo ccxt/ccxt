@@ -191,14 +191,14 @@ class lakebtc extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         if ($type === 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
         $method = 'privatePost' . $this->capitalize ($side) . 'Order';
-        $marketId = $this->market_id($market);
+        $market = $this->market ($symbol);
         $order = array (
-            'params' => array ( $price, $amount, $marketId ),
+            'params' => [ $price, $amount, $market['id'] ],
         );
         $response = $this->$method (array_merge ($order, $params));
         return array (
