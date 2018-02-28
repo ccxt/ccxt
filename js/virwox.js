@@ -228,7 +228,7 @@ module.exports = class virwox extends Exchange {
         let response = await this.privatePostPlaceOrder (this.extend (order, params));
         return {
             'info': response,
-            'id': response['orderID'].toString (),
+            'id': response['result']['orderID'].toString (),
         };
     }
 
