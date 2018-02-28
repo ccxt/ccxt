@@ -267,7 +267,7 @@ module.exports = class bitflyer extends Exchange {
         if(limit)
             count = limit;
         await this.loadMarkets ();
-        let response = await this.privatePostGetchildorders (this.extend ({
+        let response = await this.privateGetGetchildorders (this.extend ({
             'product_code': this.marketId (symbol),
             'count': count,
         }, params));
