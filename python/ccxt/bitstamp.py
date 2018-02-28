@@ -280,6 +280,13 @@ class bitstamp (Exchange):
         # only if overrided externally
         side = self.safe_string(trade, 'side')
         orderId = self.safe_string(trade, 'order_id')
+        if orderId is None:
+            if side is None:
+                side = self.safe_integer(trade, 'type')
+                if side == 0:
+                    side = 'buy'
+                else:
+                    side = 'sell'
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
         id = self.safe_string(trade, 'tid')
@@ -412,6 +419,9 @@ class bitstamp (Exchange):
         id = self.safe_string(order, 'id')
         timestamp = None
         iso8601 = None
+        side = self.safe_string(order, 'type')
+        if side is not None:
+            side = 'sell' if (side == '1') else 'buy'
         datetimeString = self.safe_string(order, 'datetime')
         if datetimeString is not None:
             timestamp = self.parse8601(datetimeString)
@@ -431,7 +441,10 @@ class bitstamp (Exchange):
         if transactions is not None:
             if isinstance(transactions, list):
                 for i in range(0, len(transactions)):
-                    trade = self.parse_trade(self.extend({'order_id': id}, transactions[i]), market)
+                    trade = self.parse_trade(self.extend({
+                        'order_id': id,
+                        'side': side,
+                    }, transactions[i]), market)
                     filled += trade['amount']
                     if feeCost is None:
                         feeCost = 0.0
@@ -451,9 +464,6 @@ class bitstamp (Exchange):
         if amount is not None:
             remaining = amount - filled
         price = self.safe_float(order, 'price')
-        side = self.safe_string(order, 'type')
-        if side is not None:
-            side = 'sell' if (side == '1') else 'buy'
         if market is None:
             market = self.get_market_from_trades(trades)
         feeCurrency = None

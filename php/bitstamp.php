@@ -276,6 +276,14 @@ class bitstamp extends Exchange {
         // only if overrided externally
         $side = $this->safe_string($trade, 'side');
         $orderId = $this->safe_string($trade, 'order_id');
+        if ($orderId === null)
+            if ($side === null) {
+                $side = $this->safe_integer($trade, 'type');
+                if ($side === 0)
+                    $side = 'buy';
+                else
+                    $side = 'sell';
+            }
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
         $id = $this->safe_string($trade, 'tid');
@@ -423,6 +431,9 @@ class bitstamp extends Exchange {
         $id = $this->safe_string($order, 'id');
         $timestamp = null;
         $iso8601 = null;
+        $side = $this->safe_string($order, 'type');
+        if ($side !== null)
+            $side = ($side === '1') ? 'sell' : 'buy';
         $datetimeString = $this->safe_string($order, 'datetime');
         if ($datetimeString !== null) {
             $timestamp = $this->parse8601 ($datetimeString);
@@ -445,7 +456,10 @@ class bitstamp extends Exchange {
         if ($transactions !== null) {
             if (gettype ($transactions) === 'array' && count (array_filter (array_keys ($transactions), 'is_string')) == 0) {
                 for ($i = 0; $i < count ($transactions); $i++) {
-                    $trade = $this->parse_trade(array_merge (array ( 'order_id' => $id ), $transactions[$i]), $market);
+                    $trade = $this->parse_trade(array_merge (array (
+                        'order_id' => $id,
+                        'side' => $side,
+                    ), $transactions[$i]), $market);
                     $filled .= $trade['amount'];
                     if ($feeCost === null)
                         $feeCost = 0.0;
@@ -469,9 +483,6 @@ class bitstamp extends Exchange {
         if ($amount !== null)
             $remaining = $amount - $filled;
         $price = $this->safe_float($order, 'price');
-        $side = $this->safe_string($order, 'type');
-        if ($side !== null)
-            $side = ($side === '1') ? 'sell' : 'buy';
         if ($market === null)
             $market = $this->get_market_from_trades ($trades);
         $feeCurrency = null;
