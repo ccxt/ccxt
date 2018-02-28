@@ -18,12 +18,12 @@ module.exports = class coinegg extends Exchange {
                 'fetchMyTrades': true,
             },
             'urls': {
-                'logo': 'https://www.coinegg.com/static/images/logo.png',
+                'logo': 'https://user-images.githubusercontent.com/1294454/36770310-adfa764e-1c5a-11e8-8e09-449daac3d2fb.jpg',
                 'api': {
                     'web': 'https://www.coinegg.com/coin',
                     'rest': 'https://api.coinegg.com/api/v1',
                 },
-                'www': 'https://www.coinegg.com/',
+                'www': 'https://www.coinegg.com',
                 'doc': 'https://www.coinegg.com/explain.api.html',
                 'fees': 'https://www.coinegg.com/fee.html',
             },
@@ -121,7 +121,7 @@ module.exports = class coinegg extends Exchange {
             });
             let baseIds = Object.keys (bases);
             if (!baseIds.length) {
-                throw new ExchangeError ('fetchMarkets failed for ' + quoteId);
+                throw new ExchangeError (this.id + ' fetchMarkets() failed for ' + quoteId);
             }
             for (let i = 0; i < baseIds.length; i++) {
                 let baseId = baseIds[i];
@@ -491,8 +491,12 @@ module.exports = class coinegg extends Exchange {
             };
             let code = this.safeString (response, 'code');
             let message = this.safeString (errorMessages, code, 'Error');
-            let ErrorClass = this.safeValue (errorClasses, code, ExchangeError);
-            throw new ErrorClass (message);
+            if (code in errorClasses) {
+                let ErrorClass = errorClasses[code];
+                throw new ErrorClass (message);
+            } else {
+                throw new ExchangeError (message);
+            }
         }
         return response;
     }
