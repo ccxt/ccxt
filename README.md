@@ -397,12 +397,6 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 <a href="https://opencollective.com/ccxt/sponsor/8/website" target="_blank"><img src="https://opencollective.com/ccxt/sponsor/8/avatar.svg"></a>
 <a href="https://opencollective.com/ccxt/sponsor/9/website" target="_blank"><img src="https://opencollective.com/ccxt/sponsor/9/avatar.svg"></a>
 
-### Supporters
-
-Thank you to all our supporters! [[Become a supporter](https://opencollective.com/ccxt#supporter)]
-
-<a href="https://opencollective.com/ccxt#supporters" target="_blank"><img src="https://opencollective.com/ccxt/supporter.svg?width=890"></a>
-
 ### Backers
 
 Thank you to all our backers! [[Become a backer](https://opencollective.com/ccxt#backer)]
