@@ -12,7 +12,7 @@ module.exports = class coinegg extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'coinegg',
             'name': 'CoinEgg',
-            'countries': ['CN', 'UK'],
+            'countries': [ 'CN', 'UK' ],
             'has': {
                 'fetchOpenOrders': true,
                 'fetchMyTrades': true,
@@ -112,7 +112,7 @@ module.exports = class coinegg extends Exchange {
     }
 
     async fetchMarkets () {
-        let quoteIds = ['btc', 'usc'];
+        let quoteIds = [ 'btc', 'usc' ];
         let result = [];
         for (let b = 0; b < quoteIds.length; b++) {
             let quoteId = quoteIds[b];
@@ -205,7 +205,7 @@ module.exports = class coinegg extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let quoteIds = ['btc', 'usc'];
+        let quoteIds = [ 'btc', 'usc' ];
         let result = {};
         for (let b = 0; b < quoteIds.length; b++) {
             let quoteId = quoteIds[b];
@@ -232,9 +232,6 @@ module.exports = class coinegg extends Exchange {
                     'vol': ticker[6],
                     'quoteVol': ticker[7],
                 }, market);
-            }
-            if (b === 0) {
-                this.sleep (500);
             }
         }
         return result;
@@ -406,9 +403,8 @@ module.exports = class coinegg extends Exchange {
             'coin': market['baseId'],
             'quote': market['quoteId'],
         };
-        if (since) {
+        if (typeof since !== 'undefined')
             request['since'] = since / 1000;
-        }
         let orders = await this.privatePostTradeListQuote (this.extend (request, params));
         return this.parseOrders (orders['data'], market, since, limit);
     }
