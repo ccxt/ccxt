@@ -465,7 +465,6 @@ module.exports = class coinegg extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body) {
-
         let errorMessages = {
             '100': 'Required parameters can not be empty',
             '101': 'Illegal parameter',
