@@ -300,6 +300,7 @@ class binance extends Exchange {
             ),
             // exchange-specific options
             'options' => array (
+                'warnOnFetchOpenOrdersWithoutSymbol' => true,
                 'recvWindow' => 5 * 1000, // 5 sec, binance default
                 'timeDifference' => 0, // the difference between system clock and Binance clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
@@ -732,6 +733,11 @@ class binance extends Exchange {
         if ($symbol !== null) {
             $market = $this->market ($symbol);
             $request['symbol'] = $market['id'];
+        } else if ($this->options['warnOnFetchOpenOrdersWithoutSymbol']) {
+            $symbols = $this->symbols;
+            $numSymbols = is_array ($symbols) ? count ($symbols) : 0;
+            $fetchOpenOrdersRateLimit = intval ($numSymbols / 2);
+            throw new ExchangeError ($this->id . ' fetchOpenOrders WARNING => fetching open orders without specifying a $symbol is rate-limited to one call per ' . (string) $fetchOpenOrdersRateLimit . ' seconds. Do not call this method frequently to avoid ban. Set ' . $this->id . '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
         }
         $response = $this->privateGetOpenOrders (array_merge ($request, $params));
         return $this->parse_orders($response, $market, $since, $limit);

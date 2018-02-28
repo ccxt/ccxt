@@ -317,6 +317,7 @@ class binance (Exchange):
             },
             # exchange-specific options
             'options': {
+                'warnOnFetchOpenOrdersWithoutSymbol': True,
                 'recvWindow': 5 * 1000,  # 5 sec, binance default
                 'timeDifference': 0,  # the difference between system clock and Binance clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
@@ -713,6 +714,11 @@ class binance (Exchange):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
+        elif self.options['warnOnFetchOpenOrdersWithoutSymbol']:
+            symbols = self.symbols
+            numSymbols = len(symbols)
+            fetchOpenOrdersRateLimit = int(numSymbols / 2)
+            raise ExchangeError(self.id + ' fetchOpenOrders WARNING: fetching open orders without specifying a symbol is rate-limited to one call per ' + str(fetchOpenOrdersRateLimit) + ' seconds. Do not call self method frequently to avoid ban. Set ' + self.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = False to suppress self warning message.')
         response = await self.privateGetOpenOrders(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
