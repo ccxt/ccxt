@@ -210,7 +210,7 @@ class virwox (Exchange):
         self.load_markets()
         market = self.market(symbol)
         order = {
-            'instrument': market['id'],
+            'instrument': market['symbol'],
             'orderType': side.upper(),
             'amount': amount,
         }
