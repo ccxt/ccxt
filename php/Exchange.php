@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.10.1251';
+$version = '1.10.1252';
 
 abstract class Exchange {
 
@@ -64,6 +64,7 @@ abstract class Exchange {
         'btcchina',
         'btcexchange',
         'btcmarkets',
+        'btctradeim',
         'btctradeua',
         'btcturk',
         'btcx',
@@ -74,6 +75,7 @@ abstract class Exchange {
         'chilebit',
         'cobinhood',
         'coincheck',
+        'coinegg',
         'coinexchange',
         'coinfloor',
         'coingi',
@@ -81,6 +83,7 @@ abstract class Exchange {
         'coinmate',
         'coinsecure',
         'coinspot',
+        'coolcoin',
         'cryptopia',
         'dsx',
         'exmo',

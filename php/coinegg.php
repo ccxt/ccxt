@@ -107,6 +107,17 @@ class coinegg extends Exchange {
                     ),
                 ),
             ),
+            'exceptions' => array (
+                '103' => '\\ccxt\\AuthenticationError',
+                '104' => '\\ccxt\\AuthenticationError',
+                '105' => '\\ccxt\\AuthenticationError',
+                '106' => '\\ccxt\\InvalidNonce',
+                '200' => '\\ccxt\\InsufficientFunds',
+                '201' => '\\ccxt\\InvalidOrder',
+                '202' => '\\ccxt\\InvalidOrder',
+                '203' => '\\ccxt\\OrderNotFound',
+                '402' => '\\ccxt\\DDoSProtection',
+            ),
         ));
     }
 
@@ -119,9 +130,9 @@ class coinegg extends Exchange {
                 'quote' => $quoteId,
             ));
             $baseIds = is_array ($bases) ? array_keys ($bases) : array ();
-            if (strlen (!$baseIds)) {
+            $numBaseIds = is_array ($baseIds) ? count ($baseIds) : 0;
+            if ($numBaseIds < 1)
                 throw new ExchangeError ($this->id . ' fetchMarkets() failed for ' . $quoteId);
-            }
             for ($i = 0; $i < count ($baseIds); $i++) {
                 $baseId = $baseIds[$i];
                 $market = $bases[$baseId];
@@ -452,51 +463,44 @@ class coinegg extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        $result = $this->safe_value($response, 'result');
-        if (!$result) {
-            $errorMessages = array (
-                '100' => 'Required parameters can not be empty',
-                '101' => 'Illegal parameter',
-                '102' => 'coin does not exist',
-                '103' => 'Key does not exist',
-                '104' => 'Signature does not match',
-                '105' => 'Insufficient permissions',
-                '106' => 'Request expired(nonce error)',
-                '200' => 'Lack of balance',
-                '201' => 'Too small for the number of trading',
-                '202' => 'Price must be in 0 - 1000000',
-                '203' => 'Order does not exist',
-                '204' => 'Pending order amount must be above 0.001 BTC',
-                '205' => 'Restrict pending order prices',
-                '206' => 'Decimal place error',
-                '401' => 'System error',
-                '402' => 'Requests are too frequent',
-                '403' => 'Non-open API',
-                '404' => 'IP restriction does not request the resource',
-                '405' => 'Currency transactions are temporarily closed',
-            );
-            $errorClasses = array (
-                '103' => '\\ccxt\\AuthenticationError',
-                '104' => '\\ccxt\\AuthenticationError',
-                '105' => '\\ccxt\\AuthenticationError',
-                '106' => '\\ccxt\\InvalidNonce',
-                '200' => '\\ccxt\\InsufficientFunds',
-                '201' => '\\ccxt\\InvalidOrder',
-                '202' => '\\ccxt\\InvalidOrder',
-                '203' => '\\ccxt\\OrderNotFound',
-                '402' => '\\ccxt\\DDoSProtection',
-            );
-            $code = $this->safe_string($response, 'code');
-            $message = $this->safe_string($errorMessages, $code, 'Error');
-            if (is_array ($errorClasses) && array_key_exists ($code, $errorClasses)) {
-                $ErrorClass = $errorClasses[$code];
-                throw new $ErrorClass ($message);
-            } else {
-                throw new ExchangeError ($message);
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+        $errorMessages = array (
+            '100' => 'Required parameters can not be empty',
+            '101' => 'Illegal parameter',
+            '102' => 'coin does not exist',
+            '103' => 'Key does not exist',
+            '104' => 'Signature does not match',
+            '105' => 'Insufficient permissions',
+            '106' => 'Request expired(nonce $error)',
+            '200' => 'Lack of balance',
+            '201' => 'Too small for the number of trading',
+            '202' => 'Price must be in 0 - 1000000',
+            '203' => 'Order does not exist',
+            '204' => 'Pending order amount must be above 0.001 BTC',
+            '205' => 'Restrict pending order prices',
+            '206' => 'Decimal place error',
+            '401' => 'System error',
+            '402' => 'Requests are too frequent',
+            '403' => 'Non-open API',
+            '404' => 'IP restriction does not request the resource',
+            '405' => 'Currency transactions are temporarily closed',
+        );
+        // checks against $error codes
+        if (gettype ($body) == 'string') {
+            if (strlen ($body) > 0) {
+                if ($body[0] === '{') {
+                    $response = json_decode ($body, $as_associative_array = true);
+                    $error = $this->safe_string($response, 'code');
+                    $message = $this->safe_string($errorMessages, $code, 'Error');
+                    if ($error !== null) {
+                        if (is_array ($this->exceptions) && array_key_exists ($error, $this->exceptions)) {
+                            throw new $this->exceptions[$error] ($this->id . ' ' . $message);
+                        } else {
+                            throw new ExchangeError ($this->id . $message);
+                        }
+                    }
+                }
             }
         }
-        return $response;
     }
 }

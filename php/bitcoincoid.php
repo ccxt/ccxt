@@ -85,7 +85,7 @@ class bitcoincoid extends Exchange {
                     'tierBased' => false,
                     'percentage' => true,
                     'maker' => 0,
-                    'taker' => 0.3,
+                    'taker' => 0.003,
                 ),
             ),
         ));

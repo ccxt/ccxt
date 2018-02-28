@@ -227,7 +227,7 @@ class virwox extends Exchange {
         $response = $this->privatePostPlaceOrder (array_merge ($order, $params));
         return array (
             'info' => $response,
-            'id' => (string) $response['orderID'],
+            'id' => (string) $response['result']['orderID'],
         );
     }
 

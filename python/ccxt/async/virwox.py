@@ -219,7 +219,7 @@ class virwox (Exchange):
         response = await self.privatePostPlaceOrder(self.extend(order, params))
         return {
             'info': response,
-            'id': str(response['orderID']),
+            'id': str(response['result']['orderID']),
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
