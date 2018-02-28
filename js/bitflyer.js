@@ -244,7 +244,9 @@ module.exports = class bitflyer extends Exchange {
             'EXPIRED': 'canceled',
             'REJECTED': 'canceled',
         };
-        return (status in statuses) ? statuses[status] : status.toLowerCase ();
+        if (status in statuses)
+            return statuses[status];
+        return status.toLowerCase ();
     }
 
     parseOrder (order, market = undefined) {
@@ -254,35 +256,55 @@ module.exports = class bitflyer extends Exchange {
         let filled = this.safeFloat (order, 'executed_size');
         let price = this.safeFloat (order, 'price');
         let cost = price * filled;
+        let status = this.parseOrderStatus (order['child_order_state']);
+        let type = order['child_order_type'].toLowerCase ();
+        let side = order['side'].toLowerCase ();
+        let symbol = undefined;
+        if (typeof market === 'undefined') {
+            let marketId = this.safeString (order, 'product_code');
+            if (typeof marketId !== 'undefined') {
+                if (marketId in this.markets_by_id)
+                    market = this.markets_by_id[marketId];
+            }
+        }
+        if (typeof market !== 'undefined')
+            symbol = market['symbol'];
+        let fee = undefined;
+        let feeCost = this.safeFloat (order, 'total_commission');
+        if (typeof feeCost !== 'undefined') {
+            fee = {
+                'cost': feeCost,
+                'currency': undefined,
+                'rate': undefined,
+            };
+        }
         return {
             'id': order['child_order_acceptance_id'],
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'status': this.parseOrderStatus(order['child_order_state']),
-            'symbol': market,
-            'type': order['child_order_type'].toLowerCase (),
-            'side': order['side'].toLowerCase (),
+            'status': status,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
             'price': price,
             'cost': cost,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
-            'fee': this.safeFloat (order, 'total_commission'),
+            'fee': fee,
         };
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol = undefined, since = undefined, limit = 100, params = {}) {
         if (typeof symbol === 'undefined')
             throw new ExchangeError (this.id + ' cancelOrder() requires a symbol argument');
-        let count = 100;
-        if(limit)
-            count = limit;
         await this.loadMarkets ();
-        let response = await this.privateGetGetchildorders (this.extend ({
+        let request = {
             'product_code': this.marketId (symbol),
-            'count': count,
-        }, params));
+            'count': limit,
+        };
+        let response = await this.privateGetGetchildorders (this.extend (request, params));
         let orders = this.parseOrders (response, symbol, since, limit);
         if (symbol)
             orders = this.filterBy (orders, 'symbol', symbol);
@@ -293,12 +315,10 @@ module.exports = class bitflyer extends Exchange {
         if (typeof symbol === 'undefined')
             throw new ExchangeError (this.id + ' cancelOrder() requires a symbol argument');
         let orders = await this.fetchOrders (symbol);
-        for(let i = 0; i < orders.length; i++) {
-            let order = orders[i]
-            if(order['id'] === id)
-                return order;
-        }
-        throw new OrderNotFound (this.id + ' No matching order found: ' + id);
+        let ordersById = this.indexBy (orders, 'id');
+        if (id in ordersById)
+            return ordersById[id];
+        throw new OrderNotFound (this.id + ' No order found with id ' + id);
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
