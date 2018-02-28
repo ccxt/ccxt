@@ -254,7 +254,7 @@ class coinegg (Exchange):
                 }, market)
         return result
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         orderbook = self.publicGetDepthQuote(self.extend({
