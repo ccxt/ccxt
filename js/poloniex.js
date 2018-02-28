@@ -265,7 +265,7 @@ module.exports = class poloniex extends Exchange {
         let last = parseFloat (ticker['last']);
         let relativeChange = parseFloat (ticker['percentChange']);
         if (relativeChange !== -1) {
-            open = last / (1 + relativeChange);
+            open = last / this.sum (1, relativeChange);
             change = last - open;
             average = this.sum (last, open) / 2;
         }
