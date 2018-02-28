@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -18,6 +18,8 @@ module.exports = class bitflyer extends Exchange {
             'has': {
                 'CORS': false,
                 'withdraw': true,
+                'fetchOrders': true,
+                'fetchOrder': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg',
@@ -232,6 +234,91 @@ module.exports = class bitflyer extends Exchange {
             'product_code': this.marketId (symbol),
             'child_order_acceptance_id': id,
         }, params));
+    }
+
+    parseOrderStatus (status) {
+        let statuses = {
+            'ACTIVE': 'open',
+            'COMPLETED': 'closed',
+            'CANCELED': 'canceled',
+            'EXPIRED': 'canceled',
+            'REJECTED': 'canceled',
+        };
+        if (status in statuses)
+            return statuses[status];
+        return status.toLowerCase ();
+    }
+
+    parseOrder (order, market = undefined) {
+        let timestamp = this.parse8601 (order['child_order_date']);
+        let amount = this.safeFloat (order, 'size');
+        let remaining = this.safeFloat (order, 'outstanding_size');
+        let filled = this.safeFloat (order, 'executed_size');
+        let price = this.safeFloat (order, 'price');
+        let cost = price * filled;
+        let status = this.parseOrderStatus (order['child_order_state']);
+        let type = order['child_order_type'].toLowerCase ();
+        let side = order['side'].toLowerCase ();
+        let symbol = undefined;
+        if (typeof market === 'undefined') {
+            let marketId = this.safeString (order, 'product_code');
+            if (typeof marketId !== 'undefined') {
+                if (marketId in this.markets_by_id)
+                    market = this.markets_by_id[marketId];
+            }
+        }
+        if (typeof market !== 'undefined')
+            symbol = market['symbol'];
+        let fee = undefined;
+        let feeCost = this.safeFloat (order, 'total_commission');
+        if (typeof feeCost !== 'undefined') {
+            fee = {
+                'cost': feeCost,
+                'currency': undefined,
+                'rate': undefined,
+            };
+        }
+        return {
+            'id': order['child_order_acceptance_id'],
+            'info': order,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'status': status,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'cost': cost,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'fee': fee,
+        };
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = 100, params = {}) {
+        if (typeof symbol === 'undefined')
+            throw new ExchangeError (this.id + ' cancelOrder() requires a symbol argument');
+        await this.loadMarkets ();
+        let request = {
+            'product_code': this.marketId (symbol),
+            'count': limit,
+        };
+        let response = await this.privateGetGetchildorders (this.extend (request, params));
+        let orders = this.parseOrders (response, symbol, since, limit);
+        if (symbol)
+            orders = this.filterBy (orders, 'symbol', symbol);
+        return orders;
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        if (typeof symbol === 'undefined')
+            throw new ExchangeError (this.id + ' cancelOrder() requires a symbol argument');
+        let orders = await this.fetchOrders (symbol);
+        let ordersById = this.indexBy (orders, 'id');
+        if (id in ordersById)
+            return ordersById[id];
+        throw new OrderNotFound (this.id + ' No order found with id ' + id);
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
