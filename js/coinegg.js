@@ -131,9 +131,9 @@ module.exports = class coinegg extends Exchange {
                 'quote': quoteId,
             });
             let baseIds = Object.keys (bases);
-            if (!baseIds.length) {
+            let numBaseIds = baseIds.length;
+            if (numBaseIds < 1)
                 throw new ExchangeError (this.id + ' fetchMarkets() failed for ' + quoteId);
-            }
             for (let i = 0; i < baseIds.length; i++) {
                 let baseId = baseIds[i];
                 let market = bases[baseId];
@@ -464,8 +464,8 @@ module.exports = class coinegg extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
+    handleErrors (code, reason, url, method, headers, body) {
+
         let errorMessages = {
             '100': 'Required parameters can not be empty',
             '101': 'Illegal parameter',
@@ -487,16 +487,22 @@ module.exports = class coinegg extends Exchange {
             '404': 'IP restriction does not request the resource',
             '405': 'Currency transactions are temporarily closed',
         };
-        let code = this.safeString (response, 'code');
-        let message = this.safeString (errorMessages, code, 'Error');
-        if (typeof code !== 'undefined') {
-            if (code in this.exceptions) {
-                let ErrorClass = this.exceptions[code];
-                throw new ErrorClass (message);
-            } else {
-                throw new ExchangeError (message);
+        // checks against error codes
+        if (typeof body === 'string') {
+            if (body.length > 0) {
+                if (body[0] === '{') {
+                    let response = JSON.parse (body);
+                    let error = this.safeString (response, 'code');
+                    let message = this.safeString (errorMessages, code, 'Error');
+                    if (typeof error !== 'undefined') {
+                        if (error in this.exceptions) {
+                            throw new this.exceptions[error] (this.id + ' ' + message);
+                        } else {
+                            throw new ExchangeError (this.id + message);
+                        }
+                    }
+                }
             }
         }
-        return response;
     }
 };
