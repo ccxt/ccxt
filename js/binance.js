@@ -301,6 +301,7 @@ module.exports = class binance extends Exchange {
             },
             // exchange-specific options
             'options': {
+                'warnOnFetchOpenOrdersWithoutSymbol': true,
                 'recvWindow': 5 * 1000, // 5 sec, binance default
                 'timeDifference': 0, // the difference between system clock and Binance clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
@@ -733,6 +734,11 @@ module.exports = class binance extends Exchange {
         if (typeof symbol !== 'undefined') {
             market = this.market (symbol);
             request['symbol'] = market['id'];
+        } else if (this.options['warnOnFetchOpenOrdersWithoutSymbol']) {
+            let symbols = this.symbols;
+            let numSymbols = symbols.length;
+            let fetchOpenOrdersRateLimit = parseInt (numSymbols / 2);
+            throw new ExchangeError (this.id + ' fetchOpenOrders WARNING: fetching open orders without specifying a symbol is rate-limited to one call per ' + fetchOpenOrdersRateLimit.toString () + ' seconds. Do not call this method frequently to avoid ban. Set ' + this.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
         }
         let response = await this.privateGetOpenOrders (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
