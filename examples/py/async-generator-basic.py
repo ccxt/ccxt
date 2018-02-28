@@ -10,7 +10,7 @@ sys.path.append(root + '/python')
 import ccxt.async as ccxt  # noqa: E402
 
 exchange = ccxt.poloniex({
-    'enableRateLimit': true,
+    'enableRateLimit': True,
 })
 
 
