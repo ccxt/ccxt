@@ -192,14 +192,14 @@ module.exports = class lakebtc extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         if (type === 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
         let method = 'privatePost' + this.capitalize (side) + 'Order';
-        let marketId = this.marketId (market);
+        let market = this.market (symbol);
         let order = {
-            'params': [ price, amount, marketId ],
+            'params': [ price, amount, market['id'] ],
         };
         let response = await this[method] (this.extend (order, params));
         return {
