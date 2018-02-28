@@ -98,7 +98,11 @@ class binance extends Exchange {
                         'ticker/allBookTickers',
                         'ticker/price',
                         'ticker/bookTicker',
+                        'exchangeInfo',
                     ),
+                    'put' => array ( 'userDataStream' ),
+                    'post' => array ( 'userDataStream' ),
+                    'delete' => array ( 'userDataStream' ),
                 ),
                 'private' => array (
                     'get' => array (
@@ -115,11 +119,6 @@ class binance extends Exchange {
                     'delete' => array (
                         'order',
                     ),
-                ),
-                'v1' => array (
-                    'put' => array ( 'userDataStream' ),
-                    'post' => array ( 'userDataStream' ),
-                    'delete' => array ( 'userDataStream' ),
                 ),
             ),
             'fees' => array (
@@ -727,8 +726,6 @@ class binance extends Exchange {
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        // if (!$symbol)
-        //     throw new ExchangeError ($this->id . ' fetchOpenOrders requires a $symbol param');
         $this->load_markets();
         $market = null;
         $request = array ();
