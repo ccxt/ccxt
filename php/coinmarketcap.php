@@ -92,11 +92,13 @@ class coinmarketcap extends Exchange {
             'Bitgem' => 'Bitgem',
             'BlockCAT' => 'BlockCAT',
             'Catcoin' => 'Catcoin',
+            'Hi Mutual Society' => 'Hi Mutual Society',
             'iCoin' => 'iCoin',
             'NetCoin' => 'NetCoin',
             // a special case, most exchanges list it as IOTA, therefore
             // we change just the Coinmarketcap instead of changing them all
             'MIOTA' => 'IOTA',
+            'Maggie' => 'Maggie',
         );
         if (is_array ($currencies) && array_key_exists ($name, $currencies))
             return $currencies[$name];
