@@ -34,8 +34,10 @@ class okex extends okcoinusd {
     public function common_currency_code ($currency) {
         $currencies = array (
             'FAIR' => 'FairGame',
-            'YOYO' => 'YOYOW',
+            'HMC' => 'Hi Mutual Society',
+            'MAG' => 'Maggie',
             'NANO' => 'XRB',
+            'YOYO' => 'YOYOW',
         );
         if (is_array ($currencies) && array_key_exists ($currency, $currencies))
             return $currencies[$currency];
