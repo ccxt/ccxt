@@ -263,7 +263,7 @@ class poloniex (Exchange):
         last = float(ticker['last'])
         relativeChange = float(ticker['percentChange'])
         if relativeChange != -1:
-            open = last / (1 + relativeChange)
+            open = last / self.sum(1, relativeChange)
             change = last - open
             average = self.sum(last, open) / 2
         return {

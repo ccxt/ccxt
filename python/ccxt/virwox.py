@@ -206,10 +206,11 @@ class virwox (Exchange):
         trades = result['data']
         return self.parse_trades(trades, symbol)
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
+        market = self.market(symbol)
         order = {
-            'instrument': self.symbol(market),
+            'instrument': market['id'],
             'orderType': side.upper(),
             'amount': amount,
         }
