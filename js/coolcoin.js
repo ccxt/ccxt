@@ -13,12 +13,12 @@ module.exports = class coolcoin extends coinegg {
             'name': 'CoolCoin',
             'countries': 'HK',
             'urls': {
-                'logo': 'https://www.coolcoin.com/static/images/logo.png',
+                'logo': 'https://user-images.githubusercontent.com/1294454/36770529-be7b1a04-1c5b-11e8-9600-d11f1996b539.jpg',
                 'api': {
                     'web': 'https://www.coolcoin.com/coin',
                     'rest': 'https://www.coolcoin.com/api/v1',
                 },
-                'www': 'https://www.coolcoin.com/',
+                'www': 'https://www.coolcoin.com',
                 'doc': 'https://www.coolcoin.com/help.api.html',
                 'fees': 'https://www.coolcoin.com/spend.price.html',
             },
