@@ -163,7 +163,7 @@ class kucoin extends Exchange {
                         'DRGN' => 1.0,
                         'ACT' => 0.1,
                     ),
-                    'deposit' => 0.00,
+                    'deposit' => array (),
                 ),
             ),
         ));
