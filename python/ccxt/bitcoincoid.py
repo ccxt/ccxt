@@ -93,7 +93,7 @@ class bitcoincoid (Exchange):
                     'tierBased': False,
                     'percentage': True,
                     'maker': 0,
-                    'taker': 0.3,
+                    'taker': 0.003,
                 },
             },
         })

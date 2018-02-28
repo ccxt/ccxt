@@ -4,7 +4,15 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import math
+import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
@@ -116,6 +124,17 @@ class coinegg (Exchange):
                     },
                 },
             },
+            'exceptions': {
+                '103': AuthenticationError,
+                '104': AuthenticationError,
+                '105': AuthenticationError,
+                '106': InvalidNonce,
+                '200': InsufficientFunds,
+                '201': InvalidOrder,
+                '202': InvalidOrder,
+                '203': OrderNotFound,
+                '402': DDoSProtection,
+            },
         })
 
     def fetch_markets(self):
@@ -127,7 +146,8 @@ class coinegg (Exchange):
                 'quote': quoteId,
             })
             baseIds = list(bases.keys())
-            if not len(baseIds):
+            numBaseIds = len(baseIds)
+            if numBaseIds < 1:
                 raise ExchangeError(self.id + ' fetchMarkets() failed for ' + quoteId)
             for i in range(0, len(baseIds)):
                 baseId = baseIds[i]
@@ -428,47 +448,37 @@ class coinegg (Exchange):
                 body = query
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
-        result = self.safe_value(response, 'result')
-        if not result:
-            errorMessages = {
-                '100': 'Required parameters can not be empty',
-                '101': 'Illegal parameter',
-                '102': 'coin does not exist',
-                '103': 'Key does not exist',
-                '104': 'Signature does not match',
-                '105': 'Insufficient permissions',
-                '106': 'Request expired(nonce error)',
-                '200': 'Lack of balance',
-                '201': 'Too small for the number of trading',
-                '202': 'Price must be in 0 - 1000000',
-                '203': 'Order does not exist',
-                '204': 'Pending order amount must be above 0.001 BTC',
-                '205': 'Restrict pending order prices',
-                '206': 'Decimal place error',
-                '401': 'System error',
-                '402': 'Requests are too frequent',
-                '403': 'Non-open API',
-                '404': 'IP restriction does not request the resource',
-                '405': 'Currency transactions are temporarily closed',
-            }
-            errorClasses = {
-                '103': AuthenticationError,
-                '104': AuthenticationError,
-                '105': AuthenticationError,
-                '106': InvalidNonce,
-                '200': InsufficientFunds,
-                '201': InvalidOrder,
-                '202': InvalidOrder,
-                '203': OrderNotFound,
-                '402': DDoSProtection,
-            }
-            code = self.safe_string(response, 'code')
-            message = self.safe_string(errorMessages, code, 'Error')
-            if code in errorClasses:
-                ErrorClass = errorClasses[code]
-                raise ErrorClass(message)
-            else:
-                raise ExchangeError(message)
-        return response
+    def handle_errors(self, code, reason, url, method, headers, body):
+        errorMessages = {
+            '100': 'Required parameters can not be empty',
+            '101': 'Illegal parameter',
+            '102': 'coin does not exist',
+            '103': 'Key does not exist',
+            '104': 'Signature does not match',
+            '105': 'Insufficient permissions',
+            '106': 'Request expired(nonce error)',
+            '200': 'Lack of balance',
+            '201': 'Too small for the number of trading',
+            '202': 'Price must be in 0 - 1000000',
+            '203': 'Order does not exist',
+            '204': 'Pending order amount must be above 0.001 BTC',
+            '205': 'Restrict pending order prices',
+            '206': 'Decimal place error',
+            '401': 'System error',
+            '402': 'Requests are too frequent',
+            '403': 'Non-open API',
+            '404': 'IP restriction does not request the resource',
+            '405': 'Currency transactions are temporarily closed',
+        }
+        # checks against error codes
+        if isinstance(body, basestring):
+            if len(body) > 0:
+                if body[0] == '{':
+                    response = json.loads(body)
+                    error = self.safe_string(response, 'code')
+                    message = self.safe_string(errorMessages, code, 'Error')
+                    if error is not None:
+                        if error in self.exceptions:
+                            raise self.exceptions[error](self.id + ' ' + message)
+                        else:
+                            raise ExchangeError(self.id + message)

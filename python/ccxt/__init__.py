@@ -28,7 +28,7 @@ SOFTWARE.
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.10.1251'
+__version__ = '1.10.1252'
 
 # ----------------------------------------------------------------------------
 
@@ -79,6 +79,7 @@ from ccxt.btcbox import btcbox                              # noqa: F401
 from ccxt.btcchina import btcchina                          # noqa: F401
 from ccxt.btcexchange import btcexchange                    # noqa: F401
 from ccxt.btcmarkets import btcmarkets                      # noqa: F401
+from ccxt.btctradeim import btctradeim                      # noqa: F401
 from ccxt.btctradeua import btctradeua                      # noqa: F401
 from ccxt.btcturk import btcturk                            # noqa: F401
 from ccxt.btcx import btcx                                  # noqa: F401
@@ -89,6 +90,7 @@ from ccxt.chbtc import chbtc                                # noqa: F401
 from ccxt.chilebit import chilebit                          # noqa: F401
 from ccxt.cobinhood import cobinhood                        # noqa: F401
 from ccxt.coincheck import coincheck                        # noqa: F401
+from ccxt.coinegg import coinegg                            # noqa: F401
 from ccxt.coinexchange import coinexchange                  # noqa: F401
 from ccxt.coinfloor import coinfloor                        # noqa: F401
 from ccxt.coingi import coingi                              # noqa: F401
@@ -96,6 +98,7 @@ from ccxt.coinmarketcap import coinmarketcap                # noqa: F401
 from ccxt.coinmate import coinmate                          # noqa: F401
 from ccxt.coinsecure import coinsecure                      # noqa: F401
 from ccxt.coinspot import coinspot                          # noqa: F401
+from ccxt.coolcoin import coolcoin                          # noqa: F401
 from ccxt.cryptopia import cryptopia                        # noqa: F401
 from ccxt.dsx import dsx                                    # noqa: F401
 from ccxt.exmo import exmo                                  # noqa: F401
@@ -180,6 +183,7 @@ exchanges = [
     'btcchina',
     'btcexchange',
     'btcmarkets',
+    'btctradeim',
     'btctradeua',
     'btcturk',
     'btcx',
@@ -190,6 +194,7 @@ exchanges = [
     'chilebit',
     'cobinhood',
     'coincheck',
+    'coinegg',
     'coinexchange',
     'coinfloor',
     'coingi',
@@ -197,6 +202,7 @@ exchanges = [
     'coinmate',
     'coinsecure',
     'coinspot',
+    'coolcoin',
     'cryptopia',
     'dsx',
     'exmo',
