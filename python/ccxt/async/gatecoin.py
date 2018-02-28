@@ -20,8 +20,9 @@ class gatecoin (Exchange):
             'comment': 'a regulated/licensed exchange',
             'has': {
                 'CORS': False,
-                'fetchTickers': True,
                 'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchTickers': True,
             },
             'timeframes': {
                 '1m': '1m',
@@ -363,6 +364,51 @@ class gatecoin (Exchange):
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
         return await self.privateDeleteTradeOrdersOrderID({'OrderID': id})
+
+    def parse_order(self, order, market=None):
+        side = 'buy' if (order['side'] == 0) else 'sell'
+        type = 'limit' if (order['type'] == 0) else 'market'
+        symbol = None
+        if market is None:
+            marketId = self.safe_string(order, 'code')
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+        if market is not None:
+            symbol = market['symbol']
+        timestamp = int(order['date']) * 1000
+        amount = order['initialQuantity']
+        remaining = order['remainingQuantity']
+        filled = amount - remaining
+        price = order['price']
+        cost = price * filled
+        id = order['clOrderId']
+        status = 'open'  # they report open orders only? TODO use .orders cache for emulation
+        result = {
+            'id': id,
+            'datetime': self.iso8601(timestamp),
+            'timestamp': timestamp,
+            'status': status,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'cost': cost,
+            'trades': None,
+            'fee': None,
+            'info': order,
+        }
+        return result
+
+    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        response = await self.privateGetTradeOrders()
+        orders = self.parse_orders(response['orders'], None, since, limit)
+        if symbol is not None:
+            return self.filter_orders_by_symbol(orders, symbol)
+        return orders
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.implode_params(path, params)

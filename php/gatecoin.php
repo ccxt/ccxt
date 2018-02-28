@@ -16,8 +16,9 @@ class gatecoin extends Exchange {
             'comment' => 'a regulated/licensed exchange',
             'has' => array (
                 'CORS' => false,
-                'fetchTickers' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenOrders' => true,
+                'fetchTickers' => true,
             ),
             'timeframes' => array (
                 '1m' => '1m',
@@ -376,6 +377,54 @@ class gatecoin extends Exchange {
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         return $this->privateDeleteTradeOrdersOrderID (array ( 'OrderID' => $id ));
+    }
+
+    public function parse_order ($order, $market = null) {
+        $side = ($order['side'] === 0) ? 'buy' : 'sell';
+        $type = ($order['type'] === 0) ? 'limit' : 'market';
+        $symbol = null;
+        if ($market === null) {
+            $marketId = $this->safe_string($order, 'code');
+            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
+                $market = $this->markets_by_id[$marketId];
+        }
+        if ($market !== null)
+            $symbol = $market['symbol'];
+        $timestamp = intval ($order['date']) * 1000;
+        $amount = $order['initialQuantity'];
+        $remaining = $order['remainingQuantity'];
+        $filled = $amount - $remaining;
+        $price = $order['price'];
+        $cost = $price * $filled;
+        $id = $order['clOrderId'];
+        $status = 'open'; // they report open orders only? TODO use .orders cache for emulation
+        $result = array (
+            'id' => $id,
+            'datetime' => $this->iso8601 ($timestamp),
+            'timestamp' => $timestamp,
+            'status' => $status,
+            'symbol' => $symbol,
+            'type' => $type,
+            'side' => $side,
+            'price' => $price,
+            'amount' => $amount,
+            'filled' => $filled,
+            'remaining' => $remaining,
+            'cost' => $cost,
+            'trades' => null,
+            'fee' => null,
+            'info' => $order,
+        );
+        return $result;
+    }
+
+    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $response = $this->privateGetTradeOrders ();
+        $orders = $this->parse_orders($response['orders'], null, $since, $limit);
+        if ($symbol !== null)
+            return $this->filter_orders_by_symbol($orders, $symbol);
+        return $orders;
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
