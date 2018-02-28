@@ -28,6 +28,7 @@ class huobipro (Exchange):
                 'fetchOrders': True,
                 'fetchOrder': True,
                 'fetchOpenOrders': True,
+                'fetchDepositAddress': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -75,6 +76,7 @@ class huobipro (Exchange):
                         'order/orders',  # 查询当前委托、历史委托
                         'order/matchresults',  # 查询当前成交、历史成交
                         'dw/withdraw-virtual/addresses',  # 查询虚拟币提现地址
+                        'dw/deposit-virtual/addresses',
                     ],
                     'post': [
                         'order/orders/place',  # 创建并执行一个新订单(一步下单， 推荐使用)
@@ -434,6 +436,20 @@ class huobipro (Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         return await self.privatePostOrderOrdersIdSubmitcancel({'id': id})
+
+    async def fetch_deposit_address(self, code, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        response = await self.privateGetDwDepositVirtualAddresses(self.extend({
+            'currency': currency['id'].lower(),
+        }, params))
+        address = self.safe_string(response, 'data')
+        return {
+            'currency': code,
+            'status': 'ok',
+            'address': address,
+            'info': response,
+        }
 
     async def withdraw(self, currency, amount, address, tag=None, params={}):
         request = {

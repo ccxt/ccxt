@@ -24,6 +24,7 @@ class huobipro extends Exchange {
                 'fetchOrders' => true,
                 'fetchOrder' => true,
                 'fetchOpenOrders' => true,
+                'fetchDepositAddress' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array (
@@ -71,6 +72,7 @@ class huobipro extends Exchange {
                         'order/orders', // 查询当前委托、历史委托
                         'order/matchresults', // 查询当前成交、历史成交
                         'dw/withdraw-virtual/addresses', // 查询虚拟币提现地址
+                        'dw/deposit-virtual/addresses',
                     ),
                     'post' => array (
                         'order/orders/place', // 创建并执行一个新订单 (一步下单， 推荐使用)
@@ -469,6 +471,21 @@ class huobipro extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         return $this->privatePostOrderOrdersIdSubmitcancel (array ( 'id' => $id ));
+    }
+
+    public function fetch_deposit_address ($code, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency ($code);
+        $response = $this->privateGetDwDepositVirtualAddresses (array_merge (array (
+            'currency' => strtolower ($currency['id']),
+        ), $params));
+        $address = $this->safe_string($response, 'data');
+        return array (
+            'currency' => $code,
+            'status' => 'ok',
+            'address' => $address,
+            'info' => $response,
+        );
     }
 
     public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
