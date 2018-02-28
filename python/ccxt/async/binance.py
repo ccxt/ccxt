@@ -781,6 +781,7 @@ class binance (Exchange):
         raise ExchangeError(self.id + ' fetchDepositAddress failed: ' + self.last_http_response)
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        await self.load_markets()
         currency = self.currency(code)
         name = address[0:20]
         request = {
