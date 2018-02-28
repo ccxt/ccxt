@@ -219,7 +219,7 @@ module.exports = class virwox extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let order = {
-            'instrument': market['id'],
+            'instrument': market['symbol'],
             'orderType': side.toUpperCase (),
             'amount': amount,
         };
