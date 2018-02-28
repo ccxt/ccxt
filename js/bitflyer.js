@@ -255,7 +255,7 @@ module.exports = class bitflyer extends Exchange {
         let price = this.safeFloat (order, 'price');
         let cost = price * filled;
         return {
-            'id': order['child_order_id'],
+            'id': order['child_order_acceptance_id'],
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -295,7 +295,7 @@ module.exports = class bitflyer extends Exchange {
         let orders = await this.fetchOrders (symbol);
         for(let i = 0; i < orders.length; i++) {
             let order = orders[i]
-            if(order['id'] == id)
+            if(order['id'] === id)
                 return order;
         }
         throw new OrderNotFound (this.id + ' No matching order found: ' + id);
