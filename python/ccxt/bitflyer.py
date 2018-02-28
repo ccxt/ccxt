@@ -5,6 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import OrderNotFound
 
 
 class bitflyer (Exchange):
@@ -19,6 +20,8 @@ class bitflyer (Exchange):
             'has': {
                 'CORS': False,
                 'withdraw': True,
+                'fetchOrders': True,
+                'fetchOrder': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg',
@@ -219,6 +222,84 @@ class bitflyer (Exchange):
             'product_code': self.market_id(symbol),
             'child_order_acceptance_id': id,
         }, params))
+
+    def parse_order_status(self, status):
+        statuses = {
+            'ACTIVE': 'open',
+            'COMPLETED': 'closed',
+            'CANCELED': 'canceled',
+            'EXPIRED': 'canceled',
+            'REJECTED': 'canceled',
+        }
+        if status in statuses:
+            return statuses[status]
+        return status.lower()
+
+    def parse_order(self, order, market=None):
+        timestamp = self.parse8601(order['child_order_date'])
+        amount = self.safe_float(order, 'size')
+        remaining = self.safe_float(order, 'outstanding_size')
+        filled = self.safe_float(order, 'executed_size')
+        price = self.safe_float(order, 'price')
+        cost = price * filled
+        status = self.parse_order_status(order['child_order_state'])
+        type = order['child_order_type'].lower()
+        side = order['side'].lower()
+        symbol = None
+        if market is None:
+            marketId = self.safe_string(order, 'product_code')
+            if marketId is not None:
+                if marketId in self.markets_by_id:
+                    market = self.markets_by_id[marketId]
+        if market is not None:
+            symbol = market['symbol']
+        fee = None
+        feeCost = self.safe_float(order, 'total_commission')
+        if feeCost is not None:
+            fee = {
+                'cost': feeCost,
+                'currency': None,
+                'rate': None,
+            }
+        return {
+            'id': order['child_order_acceptance_id'],
+            'info': order,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'status': status,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'cost': cost,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'fee': fee,
+        }
+
+    def fetch_orders(self, symbol=None, since=None, limit=100, params={}):
+        if symbol is None:
+            raise ExchangeError(self.id + ' cancelOrder() requires a symbol argument')
+        self.load_markets()
+        request = {
+            'product_code': self.market_id(symbol),
+            'count': limit,
+        }
+        response = self.privateGetGetchildorders(self.extend(request, params))
+        orders = self.parse_orders(response, symbol, since, limit)
+        if symbol:
+            orders = self.filter_by(orders, 'symbol', symbol)
+        return orders
+
+    def fetch_order(self, id, symbol=None, params={}):
+        if symbol is None:
+            raise ExchangeError(self.id + ' cancelOrder() requires a symbol argument')
+        orders = self.fetch_orders(symbol)
+        ordersById = self.index_by(orders, 'id')
+        if id in ordersById:
+            return ordersById[id]
+        raise OrderNotFound(self.id + ' No order found with id ' + id)
 
     def withdraw(self, currency, amount, address, tag=None, params={}):
         self.load_markets()

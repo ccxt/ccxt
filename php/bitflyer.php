@@ -17,6 +17,8 @@ class bitflyer extends Exchange {
             'has' => array (
                 'CORS' => false,
                 'withdraw' => true,
+                'fetchOrders' => true,
+                'fetchOrder' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg',
@@ -231,6 +233,91 @@ class bitflyer extends Exchange {
             'product_code' => $this->market_id($symbol),
             'child_order_acceptance_id' => $id,
         ), $params));
+    }
+
+    public function parse_order_status ($status) {
+        $statuses = array (
+            'ACTIVE' => 'open',
+            'COMPLETED' => 'closed',
+            'CANCELED' => 'canceled',
+            'EXPIRED' => 'canceled',
+            'REJECTED' => 'canceled',
+        );
+        if (is_array ($statuses) && array_key_exists ($status, $statuses))
+            return $statuses[$status];
+        return strtolower ($status);
+    }
+
+    public function parse_order ($order, $market = null) {
+        $timestamp = $this->parse8601 ($order['child_order_date']);
+        $amount = $this->safe_float($order, 'size');
+        $remaining = $this->safe_float($order, 'outstanding_size');
+        $filled = $this->safe_float($order, 'executed_size');
+        $price = $this->safe_float($order, 'price');
+        $cost = $price * $filled;
+        $status = $this->parse_order_status($order['child_order_state']);
+        $type = strtolower ($order['child_order_type']);
+        $side = strtolower ($order['side']);
+        $symbol = null;
+        if ($market === null) {
+            $marketId = $this->safe_string($order, 'product_code');
+            if ($marketId !== null) {
+                if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
+                    $market = $this->markets_by_id[$marketId];
+            }
+        }
+        if ($market !== null)
+            $symbol = $market['symbol'];
+        $fee = null;
+        $feeCost = $this->safe_float($order, 'total_commission');
+        if ($feeCost !== null) {
+            $fee = array (
+                'cost' => $feeCost,
+                'currency' => null,
+                'rate' => null,
+            );
+        }
+        return array (
+            'id' => $order['child_order_acceptance_id'],
+            'info' => $order,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'status' => $status,
+            'symbol' => $symbol,
+            'type' => $type,
+            'side' => $side,
+            'price' => $price,
+            'cost' => $cost,
+            'amount' => $amount,
+            'filled' => $filled,
+            'remaining' => $remaining,
+            'fee' => $fee,
+        );
+    }
+
+    public function fetch_orders ($symbol = null, $since = null, $limit = 100, $params = array ()) {
+        if ($symbol === null)
+            throw new ExchangeError ($this->id . ' cancelOrder() requires a $symbol argument');
+        $this->load_markets();
+        $request = array (
+            'product_code' => $this->market_id($symbol),
+            'count' => $limit,
+        );
+        $response = $this->privateGetGetchildorders (array_merge ($request, $params));
+        $orders = $this->parse_orders($response, $symbol, $since, $limit);
+        if ($symbol)
+            $orders = $this->filter_by($orders, 'symbol', $symbol);
+        return $orders;
+    }
+
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
+        if ($symbol === null)
+            throw new ExchangeError ($this->id . ' cancelOrder() requires a $symbol argument');
+        $orders = $this->fetch_orders($symbol);
+        $ordersById = $this->index_by($orders, 'id');
+        if (is_array ($ordersById) && array_key_exists ($id, $ordersById))
+            return $ordersById[$id];
+        throw new OrderNotFound ($this->id . ' No order found with $id ' . $id);
     }
 
     public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
