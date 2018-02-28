@@ -132,7 +132,7 @@ class Exchange(BaseExchange):
                 self.logger.debug("%s %s, Response: %s %s %s", method, url, response.status, response.headers, self.last_http_response)
 
         except socket.gaierror as e:
-            self.raise_error(ExchangeError, url, method, e, None)
+            self.raise_error(ExchangeNotAvailable, url, method, e, None)
 
         except concurrent.futures._base.TimeoutError as e:
             self.raise_error(RequestTimeout, method, url, e, None)
