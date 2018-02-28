@@ -366,11 +366,13 @@ class bitfinex (Exchange):
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
-        orderbook = self.publicGetBookSymbol(self.extend({
+        request = {
             'symbol': self.market_id(symbol),
-            'limit_bids': limit,
-            'limit_asks': limit,
-        }, params))
+        }
+        if limit is not None:
+            request['limit_bids'] = limit
+            request['limit_asks'] = limit
+        orderbook = self.publicGetBookSymbol(self.extend(request, params))
         return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'amount')
 
     def fetch_tickers(self, symbols=None, params={}):
