@@ -16,7 +16,7 @@ exchange = ccxt.poloniex({
 
 async def poll():
     while True:
-        yield await exchange.fetch_ticker('BTC/USD')
+        yield await exchange.fetch_ticker('ETH/BTC')
 
 
 async def main():
