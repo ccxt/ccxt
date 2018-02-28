@@ -108,6 +108,17 @@ module.exports = class coinegg extends Exchange {
                     },
                 },
             },
+            'exceptions': {
+                '103': AuthenticationError,
+                '104': AuthenticationError,
+                '105': AuthenticationError,
+                '106': InvalidNonce,
+                '200': InsufficientFunds,
+                '201': InvalidOrder,
+                '202': InvalidOrder,
+                '203': OrderNotFound,
+                '402': DDoSProtection,
+            },
         });
     }
 
@@ -476,22 +487,11 @@ module.exports = class coinegg extends Exchange {
             '404': 'IP restriction does not request the resource',
             '405': 'Currency transactions are temporarily closed',
         };
-        let errorClasses = {
-            '103': AuthenticationError,
-            '104': AuthenticationError,
-            '105': AuthenticationError,
-            '106': InvalidNonce,
-            '200': InsufficientFunds,
-            '201': InvalidOrder,
-            '202': InvalidOrder,
-            '203': OrderNotFound,
-            '402': DDoSProtection,
-        };
         let code = this.safeString (response, 'code');
         let message = this.safeString (errorMessages, code, 'Error');
         if (typeof code !== 'undefined') {
-            if (code in errorClasses) {
-                let ErrorClass = errorClasses[code];
+            if (code in this.exceptions) {
+                let ErrorClass = this.exceptions[code];
                 throw new ErrorClass (message);
             } else {
                 throw new ExchangeError (message);
