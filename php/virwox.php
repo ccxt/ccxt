@@ -218,7 +218,7 @@ class virwox extends Exchange {
         $this->load_markets();
         $market = $this->market ($symbol);
         $order = array (
-            'instrument' => $market['id'],
+            'instrument' => $market['symbol'],
             'orderType' => strtoupper ($side),
             'amount' => $amount,
         );
