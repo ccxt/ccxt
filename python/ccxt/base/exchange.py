@@ -1113,7 +1113,7 @@ class Exchange(object):
 
     def find_symbol(self, string):
         market = self.find_market(string)
-        if isinstance(market, dict)
+        if isinstance(market, dict):
             return market['symbol']
         return market
 
