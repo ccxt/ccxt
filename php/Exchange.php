@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.10.1263';
+$version = '1.10.1262';
 
 abstract class Exchange {
 
@@ -1522,6 +1522,34 @@ abstract class Exchange {
                    isset ($this->currencies) &&
                    isset ($this->currencies[$code])) ?
                         $this->currencies[$code] : $code;
+    }
+
+    public function find_market ($string) {
+
+        if (!isset ($this->markets))
+            throw new ExchangeError ($this->id . ' markets not loaded');
+
+        if (gettype ($string) === 'string') {
+
+            if (isset ($this->markets_by_id[$string]))
+                return $this->markets_by_id[$string];
+
+            if (isset ($this->markets[$string]))
+                return $this->markets[$string];
+        }
+
+        return $string;
+
+    }
+
+    public function find_symbol ($string) {
+
+        $market = $this->find_market ($string);
+
+        if (gettype ($market) === 'array' && count (array_filter (array_keys ($market), 'is_string')) !== 0)
+            return $market['symbol'];
+
+        return $market;
     }
 
     public function market ($symbol) {

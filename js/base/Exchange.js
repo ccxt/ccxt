@@ -655,10 +655,13 @@ module.exports = class Exchange {
     }
 
     findSymbol (string) {
+
         let market = this.findMarket (string)
+
         if (typeof market === 'object')
-            return market['symbol'];
-        return market;
+            return market['symbol']
+
+        return market
     }
 
     market (symbol) {
