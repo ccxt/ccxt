@@ -191,11 +191,11 @@ module.exports = class lbank extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = 60, params = {}) {
         await this.loadMarkets ();
         let response = await this.publicGetDepth (this.extend ({
             'symbol': this.marketId (symbol),
-            'size': 60,
+            'size': Math.min (limit, 60),
         }, params));
         return this.parseOrderBook (response);
     }
