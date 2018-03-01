@@ -1111,11 +1111,12 @@ class Exchange(object):
                 return self.markets[string]
         return string
 
-    def find_symbol(self, string):
-        market = self.find_market(string)
+    def find_symbol(self, string, market=None):
+        if market is None:
+            market = self.find_market(string)
         if isinstance(market, dict):
             return market['symbol']
-        return market
+        return string
 
     def market(self, symbol):
         if not self.markets:

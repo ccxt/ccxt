@@ -651,17 +651,18 @@ module.exports = class Exchange {
                 return this.markets[string]
         }
 
-        return string;
+        return string
     }
 
-    findSymbol (string) {
+    findSymbol (string, market = undefined) {
 
-        let market = this.findMarket (string)
+        if (typeof market === 'undefined')
+            market = this.findMarket (string)
 
         if (typeof market === 'object')
             return market['symbol']
 
-        return market
+        return string
     }
 
     market (symbol) {
