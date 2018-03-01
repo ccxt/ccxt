@@ -461,13 +461,7 @@ module.exports = class binance extends Exchange {
     parseTicker (ticker, market = undefined) {
         let timestamp = this.safeInteger (ticker, 'closeTime');
         let iso8601 = (typeof timestamp === 'undefined') ? undefined : this.iso8601 (timestamp);
-        let symbol = ticker['symbol'];
-        if (typeof market === 'undefined') {
-            if (symbol in this.markets_by_id)
-                market = this.markets_by_id[symbol];
-        }
-        if (typeof market !== 'undefined')
-            symbol = market['symbol'];
+        let symbol = this.findSymbol (this.safeString (ticker, 'symbol'), market);
         let last = this.safeFloat (ticker, 'lastPrice');
         return {
             'symbol': symbol,
@@ -633,16 +627,7 @@ module.exports = class binance extends Exchange {
         let status = this.safeValue (order, 'status');
         if (typeof status !== 'undefined')
             status = this.parseOrderStatus (status);
-        let symbol = undefined;
-        if (market) {
-            symbol = market['symbol'];
-        } else {
-            let id = order['symbol'];
-            if (id in this.markets_by_id) {
-                market = this.markets_by_id[id];
-                symbol = market['symbol'];
-            }
-        }
+        let symbol = this.findSymbol (this.safeString (order, 'symbol'), market);
         let timestamp = undefined;
         if ('time' in order)
             timestamp = order['time'];
