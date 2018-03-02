@@ -202,7 +202,7 @@ class Exchange(object):
         settings = self.deep_extend(self.describe(), config)
 
         for key in config:
-            if key in settings['options']:
+            if 'options' in settings and key in settings['options']:
                 settings['options'][key] = config[key]
 
         for key, value in settings.items():
