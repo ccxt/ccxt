@@ -13716,11 +13716,36 @@ var huobi1 = {
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
+            let precision = {
+                'amount': market['amount-precision'],
+                'price': market['price-precision'],
+            };
+            let lot = Math.pow (10, -precision['amount']);
+            let maker = (base === 'OMG') ? 0 : 0.2 / 100;
+            let taker = (base === 'OMG') ? 0 : 0.2 / 100;
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'lot': lot,
+                'precision': precision,
+                'taker': taker,
+                'maker': maker,
+                'limits': {
+                    'amount': {
+                        'min': lot,
+                        'max': Math.pow (10, precision['amount']),
+                    },
+                    'price': {
+                        'min': Math.pow (10, -precision['price']),
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': 0,
+                        'max': undefined,
+                    },
+                },
                 'info': market,
             });
         }
@@ -13759,7 +13784,7 @@ var huobi1 = {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.marketGetDepth (this.extend ({
-            'symbol': market['id'],
+            'symbol': 'ethusdt',
             'type': 'step0',
         }, params));
         return this.parseOrderBook (response['tick'], response['tick']['ts']);
@@ -13864,7 +13889,14 @@ var huobi1 = {
             let uppercase = balance['currency'].toUpperCase ();
             let currency = this.commonCurrencyCode (uppercase);
             let account = this.account ();
-            account['free'] = parseFloat (balance['balance']);
+            if (currency in result)
+                account = result[currency];
+            else
+                account = this.account ();
+            if (balance['type'] === 'trade')
+                account['free'] = parseFloat (balance['balance']);
+            if (balance['type'] === 'frozen')
+                account['used'] = parseFloat (balance['balance']);
             account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
         }
@@ -13877,12 +13909,13 @@ var huobi1 = {
         let market = this.market (symbol);
         let order = {
             'account-id': this.accounts[0]['id'],
-            'amount': amount.toFixed (10),
-            'symbol': market['id'],
+            'amount': amount,
+            'symbol': 'ethusdt',
             'type': side + '-' + type,
         };
         if (type == 'limit')
-            order['price'] = price.toFixed (10);
+            order['price'] = price;
+        console.log(order);
         let response = await this.privatePostOrderOrdersPlace (this.extend (order, params));
         return {
             'info': response,
@@ -13890,19 +13923,22 @@ var huobi1 = {
         };
     },
 
+
+
     async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostOrderOrdersIdSubmitcancel ({ 'id': id });
     },
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/';
-        if (api == 'market')
+        if (api === 'market')
             url += api;
         else
             url += this.version;
         url += '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (api == 'private') {
+        if (api === 'private') {
+            // this.checkRequiredCredentials ();
             let timestamp = this.YmdHMS (this.milliseconds (), 'T');
             let request = this.keysort (this.extend ({
                 'SignatureMethod': 'HmacSHA256',
@@ -13911,15 +13947,20 @@ var huobi1 = {
                 'Timestamp': timestamp,
             }, query));
             let auth = this.urlencode (request);
+            // unfortunately, PHP demands double quotes for the escaped newline symbol
+            // eslint-disable-next-line quotes
             let payload = [ method, this.hostname, url, auth ].join ("\n");
             let signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
             auth += '&' + this.urlencode ({ 'Signature': signature });
-            if (method == 'GET') {
-                url += '?' + auth;
-            } else {
+            url += '?' + auth;
+            if (method === 'POST') {
                 body = this.json (query);
                 headers = {
                     'Content-Type': 'application/json',
+                };
+            } else {
+                headers = {
+                    'Content-Type': 'application/x-www-form-urlencoded',
                 };
             }
         } else {
@@ -13933,12 +13974,11 @@ var huobi1 = {
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('status' in response)
-            if (response['status'] == 'error')
+            if (response['status'] === 'error')
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
-    },
-}
-
+    }
+};
 //-----------------------------------------------------------------------------
 
 var huobicny = extend (huobi1, {
