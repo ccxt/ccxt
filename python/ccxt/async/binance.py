@@ -464,12 +464,7 @@ class binance (Exchange):
     def parse_ticker(self, ticker, market=None):
         timestamp = self.safe_integer(ticker, 'closeTime')
         iso8601 = None if (timestamp is None) else self.iso8601(timestamp)
-        symbol = ticker['symbol']
-        if market is None:
-            if symbol in self.markets_by_id:
-                market = self.markets_by_id[symbol]
-        if market is not None:
-            symbol = market['symbol']
+        symbol = self.find_symbol(self.safe_string(ticker, 'symbol'), market)
         last = self.safe_float(ticker, 'lastPrice')
         return {
             'symbol': symbol,
@@ -620,14 +615,7 @@ class binance (Exchange):
         status = self.safe_value(order, 'status')
         if status is not None:
             status = self.parse_order_status(status)
-        symbol = None
-        if market:
-            symbol = market['symbol']
-        else:
-            id = order['symbol']
-            if id in self.markets_by_id:
-                market = self.markets_by_id[id]
-                symbol = market['symbol']
+        symbol = self.find_symbol(self.safe_string(order, 'symbol'), market)
         timestamp = None
         if 'time' in order:
             timestamp = order['time']

@@ -460,13 +460,7 @@ class binance extends Exchange {
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = $this->safe_integer($ticker, 'closeTime');
         $iso8601 = ($timestamp === null) ? null : $this->iso8601 ($timestamp);
-        $symbol = $ticker['symbol'];
-        if ($market === null) {
-            if (is_array ($this->markets_by_id) && array_key_exists ($symbol, $this->markets_by_id))
-                $market = $this->markets_by_id[$symbol];
-        }
-        if ($market !== null)
-            $symbol = $market['symbol'];
+        $symbol = $this->find_symbol($this->safe_string($ticker, 'symbol'), $market);
         $last = $this->safe_float($ticker, 'lastPrice');
         return array (
             'symbol' => $symbol,
@@ -632,16 +626,7 @@ class binance extends Exchange {
         $status = $this->safe_value($order, 'status');
         if ($status !== null)
             $status = $this->parse_order_status($status);
-        $symbol = null;
-        if ($market) {
-            $symbol = $market['symbol'];
-        } else {
-            $id = $order['symbol'];
-            if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$id];
-                $symbol = $market['symbol'];
-            }
-        }
+        $symbol = $this->find_symbol($this->safe_string($order, 'symbol'), $market);
         $timestamp = null;
         if (is_array ($order) && array_key_exists ('time', $order))
             $timestamp = $order['time'];
