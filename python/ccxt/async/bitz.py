@@ -250,10 +250,15 @@ class bitz (Exchange):
         ohlcv = self.unjson(response['data']['datas']['data'])
         return self.parse_ohlcvs(ohlcv, market, timeframe, since, limit)
 
-    def parse_order(self, order, market):
+    def parse_order(self, order, market=None):
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
+        side = self.safe_string(order, 'side')
+        if side is None:
+            side = self.safe_string(order, 'type')
+            if side is not None:
+                side = 'buy' if (side == 'in') else 'sell'
         return {
             'id': order['id'],
             'datetime': None,
@@ -275,9 +280,10 @@ class bitz (Exchange):
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        orderType = 'in' if (side == 'buy') else 'out'
         request = {
             'coin': market['id'],
-            'type': side,
+            'type': orderType,
             'price': self.price_to_precision(symbol, price),
             'number': self.amount_to_string(symbol, amount),
             'tradepwd': self.password,
@@ -288,7 +294,7 @@ class bitz (Exchange):
             'id': id,
             'price': price,
             'number': amount,
-            'type': side,
+            'side': side,
         }, market)
         self.orders[id] = order
         return order
