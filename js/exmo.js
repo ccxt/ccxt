@@ -188,11 +188,7 @@ module.exports = class exmo extends Exchange {
         ids = Object.keys (response);
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
-            let symbol = id;
-            if (id in this.markets_by_id) {
-                let market = this.markets_by_id[id];
-                symbol = market['symbol'];
-            }
+            let symbol = this.findSymbol (id);
             result[symbol] = this.parseOrderBook (response[id], undefined, 'bid', 'ask');
         }
         return result;
@@ -324,9 +320,10 @@ module.exports = class exmo extends Exchange {
             await this.loadMarkets ();
             market = this.market (symbol);
         }
-        let response = await this.privatePostOrderTrades (this.extend ({
+        let request = {
             'order_id': id,
-        }, params));
+        };
+        let response = await this.privatePostOrderTrades (this.extend (request, params));
         return this.parseTrades (response['trades'], market, since, limit);
     }
 
@@ -337,11 +334,10 @@ module.exports = class exmo extends Exchange {
             market = this.market (symbol);
         }
         let orders = await this.privatePostUserOpenOrders ();
-        if (typeof market !== 'undefined')
-            if (typeof orders[market['id']] !== 'undefined')
-                orders = orders[market['id']];
-            else
-                orders = [];
+        if (typeof market !== 'undefined') {
+            let id = market['id'];
+            orders = (id in orders) ? orders[id] : [];
+        }
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -363,7 +359,7 @@ module.exports = class exmo extends Exchange {
                 else
                     marketId = order['out_currency'] + '_' + order['in_currency'];
             }
-            if (marketId in this.markets_by_id)
+            if ((typeof marketId !== 'undefined') && (marketId in this.markets_by_id))
                 market = this.markets_by_id[marketId];
         }
         let amount = this.safeFloat (order, 'quantity');

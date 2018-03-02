@@ -573,22 +573,12 @@ module.exports = class liqui extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let orders = await this.fetchOrders (symbol, since, limit, params);
-        let result = [];
-        for (let i = 0; i < orders.length; i++) {
-            if (orders[i]['status'] === 'open')
-                result.push (orders[i]);
-        }
-        return result;
+        return this.filterBy (orders, 'status', 'open');
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let orders = await this.fetchOrders (symbol, since, limit, params);
-        let result = [];
-        for (let i = 0; i < orders.length; i++) {
-            if (orders[i]['status'] === 'closed')
-                result.push (orders[i]);
-        }
-        return result;
+        return this.filterBy (orders, 'status', 'closed');
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
