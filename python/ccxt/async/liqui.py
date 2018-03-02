@@ -546,19 +546,11 @@ class liqui (Exchange):
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         orders = await self.fetch_orders(symbol, since, limit, params)
-        result = []
-        for i in range(0, len(orders)):
-            if orders[i]['status'] == 'open':
-                result.append(orders[i])
-        return result
+        return self.filter_by(orders, 'status', 'open')
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         orders = await self.fetch_orders(symbol, since, limit, params)
-        result = []
-        for i in range(0, len(orders)):
-            if orders[i]['status'] == 'closed':
-                result.append(orders[i])
-        return result
+        return self.filter_by(orders, 'status', 'closed')
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
