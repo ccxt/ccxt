@@ -124,7 +124,7 @@ class Exchange(object):
     orders = None
     trades = None
     currencies = None
-    options = None  # Python does not allow to define properties in run-time with setattr
+    options = {}
 
     requiredCredentials = {
         'apiKey': True,
@@ -201,11 +201,15 @@ class Exchange(object):
 
         settings = self.deep_extend(self.describe(), config)
 
-        for key in settings:
+        for key in config:
+            if key in settings['options']:
+                settings['options'][key] = config[key]
+
+        for key, value in settings.items():
             if hasattr(self, key) and isinstance(getattr(self, key), dict):
-                setattr(self, key, self.deep_extend(getattr(self, key), settings[key]))
+                setattr(self, key, self.deep_extend(getattr(self, key), value))
             else:
-                setattr(self, key, settings[key])
+                setattr(self, key, value)
 
         if self.api:
             self.define_rest_api(self.api, 'request')
