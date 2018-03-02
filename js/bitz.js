@@ -255,10 +255,16 @@ module.exports = class bitz extends Exchange {
         return this.parseOHLCVs (ohlcv, market, timeframe, since, limit);
     }
 
-    parseOrder (order, market) {
+    parseOrder (order, market = undefined) {
         let symbol = undefined;
-        if (market)
+        if (typeof market !== 'undefined')
             symbol = market['symbol'];
+        let side = this.safeString (order, 'side');
+        if (typeof side === 'undefined') {
+            side = this.safeString (order, 'type');
+            if (typeof side !== 'undefined')
+                side = (side === 'in') ? 'buy' : 'sell';
+        }
         return {
             'id': order['id'],
             'datetime': undefined,
@@ -281,9 +287,10 @@ module.exports = class bitz extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
+        let orderType = (side === 'buy') ? 'in' : 'out';
         let request = {
             'coin': market['id'],
-            'type': side,
+            'type': orderType,
             'price': this.priceToPrecision (symbol, price),
             'number': this.amountToString (symbol, amount),
             'tradepwd': this.password,
@@ -294,7 +301,7 @@ module.exports = class bitz extends Exchange {
             'id': id,
             'price': price,
             'number': amount,
-            'type': side,
+            'side': side,
         }, market);
         this.orders[id] = order;
         return order;
