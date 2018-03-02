@@ -124,7 +124,7 @@ class Exchange(object):
     orders = None
     trades = None
     currencies = None
-    options = {}
+    options = None
 
     requiredCredentials = {
         'apiKey': True,
