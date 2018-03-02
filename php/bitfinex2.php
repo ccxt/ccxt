@@ -227,6 +227,7 @@ class bitfinex2 extends bitfinex {
     }
 
     public function fetch_balance ($params = array ()) {
+        $this->load_markets();
         $response = $this->privatePostAuthRWallets ();
         $balanceType = $this->safe_string($params, 'type', 'exchange');
         $result = array ( 'info' => $response );
@@ -253,6 +254,7 @@ class bitfinex2 extends bitfinex {
     }
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+        $this->load_markets();
         $orderbook = $this->publicGetBookSymbolPrecision (array_merge (array (
             'symbol' => $this->market_id($symbol),
             'precision' => 'R0',
@@ -306,6 +308,7 @@ class bitfinex2 extends bitfinex {
     }
 
     public function fetch_tickers ($symbols = null, $params = array ()) {
+        $this->load_markets();
         $tickers = $this->publicGetTickers (array_merge (array (
             'symbols' => implode (',', $this->ids),
         ), $params));
@@ -321,6 +324,7 @@ class bitfinex2 extends bitfinex {
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {
+        $this->load_markets();
         $market = $this->markets[$symbol];
         $ticker = $this->publicGetTickerSymbol (array_merge (array (
             'symbol' => $market['id'],
@@ -348,6 +352,7 @@ class bitfinex2 extends bitfinex {
     }
 
     public function fetch_trades ($symbol, $since = null, $limit = 120, $params = array ()) {
+        $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
             'symbol' => $market['id'],
@@ -362,6 +367,7 @@ class bitfinex2 extends bitfinex {
     }
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = 100, $params = array ()) {
+        $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
             'symbol' => $market['id'],
