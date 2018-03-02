@@ -254,10 +254,16 @@ class bitz extends Exchange {
         return $this->parse_ohlcvs($ohlcv, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_order ($order, $market) {
+    public function parse_order ($order, $market = null) {
         $symbol = null;
-        if ($market)
+        if ($market !== null)
             $symbol = $market['symbol'];
+        $side = $this->safe_string($order, 'side');
+        if ($side === null) {
+            $side = $this->safe_string($order, 'type');
+            if ($side !== null)
+                $side = ($side === 'in') ? 'buy' : 'sell';
+        }
         return array (
             'id' => $order['id'],
             'datetime' => null,
@@ -280,9 +286,10 @@ class bitz extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
+        $orderType = ($side === 'buy') ? 'in' : 'out';
         $request = array (
             'coin' => $market['id'],
-            'type' => $side,
+            'type' => $orderType,
             'price' => $this->price_to_precision($symbol, $price),
             'number' => $this->amount_to_string($symbol, $amount),
             'tradepwd' => $this->password,
@@ -293,7 +300,7 @@ class bitz extends Exchange {
             'id' => $id,
             'price' => $price,
             'number' => $amount,
-            'type' => $side,
+            'side' => $side,
         ), $market);
         $this->orders[$id] = $order;
         return $order;
