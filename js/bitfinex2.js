@@ -228,6 +228,7 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     async fetchBalance (params = {}) {
+        await this.loadMarkets ();
         let response = await this.privatePostAuthRWallets ();
         let balanceType = this.safeString (params, 'type', 'exchange');
         let result = { 'info': response };
@@ -254,6 +255,7 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         let orderbook = await this.publicGetBookSymbolPrecision (this.extend ({
             'symbol': this.marketId (symbol),
             'precision': 'R0',
@@ -307,6 +309,7 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
         let tickers = await this.publicGetTickers (this.extend ({
             'symbols': this.ids.join (','),
         }, params));
@@ -322,6 +325,7 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
         let market = this.markets[symbol];
         let ticker = await this.publicGetTickerSymbol (this.extend ({
             'symbol': market['id'],
@@ -349,6 +353,7 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     async fetchTrades (symbol, since = undefined, limit = 120, params = {}) {
+        await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
             'symbol': market['id'],
@@ -363,6 +368,7 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 100, params = {}) {
+        await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
             'symbol': market['id'],
