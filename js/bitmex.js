@@ -229,7 +229,7 @@ module.exports = class bitmex extends Exchange {
         let filter_params = { 'filter': { 'orderID': id }};
         let result = await this.fetchOrders (symbol, undefined, undefined, this.deepExtend (filter_params, params));
         if (result.length === 1)
-            return result[0]
+            return result[0];
         throw new OrderNotFound (this.id + ': The order ' + id + ' does not exist.');
     }
 
@@ -242,10 +242,10 @@ module.exports = class bitmex extends Exchange {
             request['symbol'] = market['id'];
         }
         if (typeof since !== 'undefined') {
-            request['startTime'] = this.iso8601(since);
+            request['startTime'] = this.iso8601 (since);
         }
         if (typeof limit !== 'undefined') {
-            request['count'] = limit
+            request['count'] = limit;
         }
         request = this.deepExtend (request, params);
         // why the hassle? urlencode in python is kinda broken for nested dicts.
