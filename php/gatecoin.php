@@ -187,20 +187,45 @@ class gatecoin extends Exchange {
     }
 
     public function fetch_markets () {
-        $response = $this->publicGetPublicLiveTickers ();
-        $markets = $response['tickers'];
+        $response = $this->publicGetReferenceCurrencyPairs ();
+        $markets = $response['currencyPairs'];
         $result = array ();
-        for ($p = 0; $p < count ($markets); $p++) {
-            $market = $markets[$p];
-            $id = $market['currencyPair'];
-            $base = mb_substr ($id, 0, 3);
-            $quote = mb_substr ($id, 3, 6);
+        for ($i = 0; $i < count ($markets); $i++) {
+            $market = $markets[$i];
+            $id = $market['tradingCode'];
+            $baseId = $market['baseCurrency'];
+            $quoteId = $market['quoteCurrency'];
+            $base = $baseId;
+            $quote = $quoteId;
             $symbol = $base . '/' . $quote;
+            $precision = array (
+                'amount' => 8,
+                'price' => $market['priceDecimalPlaces'],
+            );
+            $limits = array (
+                'amount' => array (
+                    'min' => pow (10, -$precision['amount']),
+                    'max' => null,
+                ),
+                'price' => array (
+                    'min' => pow (10, -$precision['amount']),
+                    'max' => null,
+                ),
+                'cost' => array (
+                    'min' => null,
+                    'max' => null,
+                ),
+            );
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
+                'active' => true,
+                'precision' => $precision,
+                'limits' => $limits,
                 'info' => $market,
             );
         }
