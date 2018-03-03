@@ -19,7 +19,7 @@ class okcoincny extends okcoinusd {
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766792-8be9157a-5ee5-11e7-926c-6d69b8d3378d.jpg',
                 'api' => array (
                     'web' => 'https://www.okcoin.cn',
-                    'public' => 'https://www.okcoin.cn/pai',
+                    'public' => 'https://www.okcoin.cn/api',
                     'private' => 'https://www.okcoin.cn/api',
                 ),
                 'www' => 'https://www.okcoin.cn',
