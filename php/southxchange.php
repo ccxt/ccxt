@@ -15,6 +15,7 @@ class southxchange extends Exchange {
             'rateLimit' => 1000,
             'has' => array (
                 'CORS' => true,
+                'createDepositAddres' => true,
                 'fetchOpenOrders' => true,
                 'fetchTickers' => true,
                 'withdraw' => true,
@@ -258,12 +259,36 @@ class southxchange extends Exchange {
         ), $params));
     }
 
+    public function create_deposit_address ($code, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency ($code);
+        $response = $this->privatePostGeneratenewaddress (array_merge (array (
+            'currency' => $currency['id'],
+        ), $params));
+        $parts = explode ('|', $response);
+        $numParts = is_array ($parts) ? count ($parts) : 0;
+        $address = $parts[0];
+        $tag = null;
+        if ($numParts > 1)
+            $tag = $parts[1];
+        return array (
+            'currency' => $code,
+            'address' => $address,
+            'tag' => $tag,
+            'status' => 'ok',
+            'info' => $response,
+        );
+    }
+
     public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
-        $response = $this->privatePostWithdraw (array_merge (array (
+        $request = array (
             'currency' => $currency,
             'address' => $address,
             'amount' => $amount,
-        ), $params));
+        );
+        if ($tag !== null)
+            $request['currency'] = $address . '|' . $tag;
+        $response = $this->privatePostWithdraw (array_merge ($request, $params));
         return array (
             'info' => $response,
             'id' => null,

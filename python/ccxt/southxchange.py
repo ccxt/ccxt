@@ -18,6 +18,7 @@ class southxchange (Exchange):
             'rateLimit': 1000,
             'has': {
                 'CORS': True,
+                'createDepositAddres': True,
                 'fetchOpenOrders': True,
                 'fetchTickers': True,
                 'withdraw': True,
@@ -243,12 +244,35 @@ class southxchange (Exchange):
             'orderCode': id,
         }, params))
 
+    def create_deposit_address(self, code, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        response = self.privatePostGeneratenewaddress(self.extend({
+            'currency': currency['id'],
+        }, params))
+        parts = response.split('|')
+        numParts = len(parts)
+        address = parts[0]
+        tag = None
+        if numParts > 1:
+            tag = parts[1]
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'status': 'ok',
+            'info': response,
+        }
+
     def withdraw(self, currency, amount, address, tag=None, params={}):
-        response = self.privatePostWithdraw(self.extend({
+        request = {
             'currency': currency,
             'address': address,
             'amount': amount,
-        }, params))
+        }
+        if tag is not None:
+            request['currency'] = address + '|' + tag
+        response = self.privatePostWithdraw(self.extend(request, params))
         return {
             'info': response,
             'id': None,
