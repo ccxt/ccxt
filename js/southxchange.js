@@ -288,7 +288,7 @@ module.exports = class southxchange extends Exchange {
             'amount': amount,
         };
         if (typeof tag !== 'undefined')
-            request['currency'] = address + '|' + tag;
+            request['address'] = address + '|' + tag;
         let response = await this.privatePostWithdraw (this.extend (request, params));
         return {
             'info': response,
