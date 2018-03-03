@@ -216,7 +216,7 @@ module.exports = class gatecoin extends Exchange {
                     'min': undefined,
                     'max': undefined,
                 },
-            }
+            };
             result.push ({
                 'id': id,
                 'symbol': symbol,
