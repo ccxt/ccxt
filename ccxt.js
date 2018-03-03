@@ -15234,6 +15234,10 @@ var kraken = {
         let orders = this.parseOrders (response['result']['closed']);
         return this.filterOrdersBySymbol (orders, symbol);
     },
+    
+    nonce () {
+        return this.milliseconds ();
+    },
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/' + this.version + '/' + api + '/' + path;
