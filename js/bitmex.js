@@ -20,6 +20,7 @@ module.exports = class bitmex extends Exchange {
                 'CORS': false,
                 'fetchOHLCV': true,
                 'withdraw': true,
+                'fetchOrder': true,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
@@ -224,7 +225,15 @@ module.exports = class bitmex extends Exchange {
         return result;
     }
 
-     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        let filter_params = { 'filter': { 'orderID': id }};
+        let result = await this.fetchOrders (symbol, undefined, undefined, this.deepExtend (filter_params, params));
+        if (result.length === 1)
+            return result[0]
+        throw new OrderNotFound (this.id + ': The order ' + id + ' does not exist.');
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         let request = {};
