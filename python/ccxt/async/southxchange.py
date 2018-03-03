@@ -271,7 +271,7 @@ class southxchange (Exchange):
             'amount': amount,
         }
         if tag is not None:
-            request['currency'] = address + '|' + tag
+            request['address'] = address + '|' + tag
         response = await self.privatePostWithdraw(self.extend(request, params))
         return {
             'info': response,

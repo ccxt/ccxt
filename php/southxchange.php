@@ -287,7 +287,7 @@ class southxchange extends Exchange {
             'amount' => $amount,
         );
         if ($tag !== null)
-            $request['currency'] = $address . '|' . $tag;
+            $request['address'] = $address . '|' . $tag;
         $response = $this->privatePostWithdraw (array_merge ($request, $params));
         return array (
             'info' => $response,
