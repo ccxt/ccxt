@@ -16,6 +16,7 @@ module.exports = class southxchange extends Exchange {
             'rateLimit': 1000,
             'has': {
                 'CORS': true,
+                'createDepositAddres': true,
                 'fetchOpenOrders': true,
                 'fetchTickers': true,
                 'withdraw': true,
@@ -259,12 +260,36 @@ module.exports = class southxchange extends Exchange {
         }, params));
     }
 
+    async createDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let response = await this.privatePostGeneratenewaddress (this.extend ({
+            'currency': currency['id'],
+        }, params));
+        let parts = response.split ('|');
+        let numParts = parts.length;
+        let address = parts[0];
+        let tag = undefined;
+        if (numParts > 1)
+            tag = parts[1];
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'status': 'ok',
+            'info': response,
+        };
+    }
+
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
-        let response = await this.privatePostWithdraw (this.extend ({
+        let request = {
             'currency': currency,
             'address': address,
             'amount': amount,
-        }, params));
+        };
+        if (typeof tag !== 'undefined')
+            request['currency'] = address + '|' + tag;
+        let response = await this.privatePostWithdraw (this.extend (request, params));
         return {
             'info': response,
             'id': undefined,
