@@ -576,22 +576,12 @@ class liqui extends Exchange {
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $orders = $this->fetch_orders($symbol, $since, $limit, $params);
-        $result = array ();
-        for ($i = 0; $i < count ($orders); $i++) {
-            if ($orders[$i]['status'] === 'open')
-                $result[] = $orders[$i];
-        }
-        return $result;
+        return $this->filter_by($orders, 'status', 'open');
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $orders = $this->fetch_orders($symbol, $since, $limit, $params);
-        $result = array ();
-        for ($i = 0; $i < count ($orders); $i++) {
-            if ($orders[$i]['status'] === 'closed')
-                $result[] = $orders[$i];
-        }
-        return $result;
+        return $this->filter_by($orders, 'status', 'closed');
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {

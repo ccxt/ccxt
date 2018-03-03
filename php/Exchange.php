@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.10.1269';
+$version = '1.10.1271';
 
 abstract class Exchange {
 
@@ -605,8 +605,8 @@ abstract class Exchange {
             'fetchMyTrades' => false,
             'fetchOHLCV' => 'emulated',
             'fetchOpenOrders' => false,
-            'fethcOrder' => false,
-            'fethcOrderBook' => true,
+            'fetchOrder' => false,
+            'fetchOrderBook' => true,
             'fetchOrderBooks' => false,
             'fetchOrders' => false,
             'fetchTicker' => true,
