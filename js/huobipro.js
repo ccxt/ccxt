@@ -489,6 +489,24 @@ module.exports = class huobipro extends Exchange {
         };
     }
 
+    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+        let market = this.markets[symbol];
+        let rate = market[takerOrMaker];
+        let cost = parseFloat (this.costToPrecision (symbol, amount * rate));
+        let key = 'quote';
+        if (side === 'sell') {
+            cost *= price;
+        } else {
+            key = 'base';
+        }
+        return {
+            'type': takerOrMaker,
+            'currency': market[key],
+            'rate': rate,
+            'cost': parseFloat (this.feeToPrecision (symbol, cost)),
+        };
+    }
+
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
         let request = {
             'address': address, // only supports existing addresses in your withdraw address list
