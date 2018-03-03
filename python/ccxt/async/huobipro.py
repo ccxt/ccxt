@@ -451,6 +451,22 @@ class huobipro (Exchange):
             'info': response,
         }
 
+    def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
+        market = self.markets[symbol]
+        rate = market[takerOrMaker]
+        cost = float(self.cost_to_precision(symbol, amount * rate))
+        key = 'quote'
+        if side == 'sell':
+            cost *= price
+        else:
+            key = 'base'
+        return {
+            'type': takerOrMaker,
+            'currency': market[key],
+            'rate': rate,
+            'cost': float(self.fee_to_precision(symbol, cost)),
+        }
+
     async def withdraw(self, currency, amount, address, tag=None, params={}):
         request = {
             'address': address,  # only supports existing addresses in your withdraw address list
