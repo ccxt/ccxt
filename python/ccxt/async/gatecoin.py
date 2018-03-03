@@ -5,6 +5,7 @@
 
 from ccxt.async.base.exchange import Exchange
 import hashlib
+import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 
@@ -190,20 +191,45 @@ class gatecoin (Exchange):
         })
 
     async def fetch_markets(self):
-        response = await self.publicGetPublicLiveTickers()
-        markets = response['tickers']
+        response = await self.publicGetReferenceCurrencyPairs()
+        markets = response['currencyPairs']
         result = []
-        for p in range(0, len(markets)):
-            market = markets[p]
-            id = market['currencyPair']
-            base = id[0:3]
-            quote = id[3:6]
+        for i in range(0, len(markets)):
+            market = markets[i]
+            id = market['tradingCode']
+            baseId = market['baseCurrency']
+            quoteId = market['quoteCurrency']
+            base = baseId
+            quote = quoteId
             symbol = base + '/' + quote
+            precision = {
+                'amount': 8,
+                'price': market['priceDecimalPlaces'],
+            }
+            limits = {
+                'amount': {
+                    'min': math.pow(10, -precision['amount']),
+                    'max': None,
+                },
+                'price': {
+                    'min': math.pow(10, -precision['amount']),
+                    'max': None,
+                },
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
+            }
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': True,
+                'precision': precision,
+                'limits': limits,
                 'info': market,
             })
         return result
