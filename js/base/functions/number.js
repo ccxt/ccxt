@@ -14,13 +14,13 @@ const { max } = Math
        I switched to using named constants instead, as it is actually more readable and
        succinct, and surely doesn't come with any inherent performance downside:
 
-            decimalToPrecision ('123.456', ROUND, 2, AFTER_POINT)                     */
+            decimalToPrecision ('123.456', ROUND, 2, AFTER_DOT)                     */
 
 
 const ROUND    = 0                  // rounding mode
     , TRUNCATE = 1
 
-const AFTER_POINT        = 0        // digits counting mode
+const AFTER_DOT          = 0        // digits counting mode
     , SIGNIFICANT_DIGITS = 1
 
 const NO_PADDING    = 0             // zero-padding mode
@@ -55,8 +55,8 @@ function numberToString (x) { // avoids scientific notation for too large and to
 
 const decimalToPrecision = (x, roundingMode
                              , numPrecisionDigits
-                             , countingMode       = AFTER_POINT
-                             , paddingMode        = NO_PADDING) => { 
+                             , countingMode       = AFTER_DOT
+                             , paddingMode        = NO_PADDING) => {
 
     if (numPrecisionDigits < 0) throw new Error ('negative precision is not yet supported')
 
@@ -100,7 +100,7 @@ const decimalToPrecision = (x, roundingMode
 
         } else if ((c < ZERO) || (c > NINE)) {
             throw new Error (`invalid number (contains an illegal character '${str[i - 1]}')`)
-            
+
         } else {
             chars[i] = c
             if ((c !== ZERO) && (digitsStart < 0)) digitsStart = i
@@ -109,8 +109,8 @@ const decimalToPrecision = (x, roundingMode
 
 /*  Determine the range to cut  */
 
-    let precisionStart = (countingMode === AFTER_POINT) ? afterDot      // 0.(0)001234567
-                                                        : digitsStart   // 0.00(1)234567
+    let precisionStart = (countingMode === AFTER_DOT) ? afterDot      // 0.(0)001234567
+                                                      : digitsStart   // 0.00(1)234567
       , precisionEnd = precisionStart +
                        numPrecisionDigits
 
@@ -123,7 +123,7 @@ const decimalToPrecision = (x, roundingMode
 
         step  =          i=3      i=2      i=1      i=0
 
-        chars =         0999     0999     0900     1000 
+        chars =         0999     0999     0900     1000
         memo  =         ---0     --1-     -1--     0---                     */
 
     for (let i = chars.length - 1, memo = 0; i >= 0; i--) {
@@ -160,7 +160,7 @@ const decimalToPrecision = (x, roundingMode
 
 /*  Determine the input character range     */
 
-    const readStart     = (digitsStart >= afterDot) ? (afterDot - 1) : digitsStart // 0.000(1)234  ----> (0).0001234                  
+    const readStart     = (digitsStart >= afterDot) ? (afterDot - 1) : digitsStart // 0.000(1)234  ----> (0).0001234
         , readEnd       = (digitsEnd    < afterDot) ? (afterDot    ) : digitsEnd   // 12(3)000     ----> 123000( )
 
 /*  Compute various sub-ranges       */
@@ -196,13 +196,13 @@ const decimalToPrecision = (x, roundingMode
 /*  ------------------------------------------------------------------------ */
 
 module.exports = {
- 
+
     numberToString,
     decimalToPrecision,
 
     TRUNCATE,
     ROUND,
-    AFTER_POINT,
+    AFTER_DOT,
     SIGNIFICANT_DIGITS,
     NO_PADDING,
     PAD_WITH_ZERO,

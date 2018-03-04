@@ -5,7 +5,7 @@
 const { decimalToPrecision
       , ROUND
       , TRUNCATE
-      , AFTER_POINT
+      , AFTER_DOT
       , PAD_WITH_ZERO
       , SIGNIFICANT_DIGITS } = require ('../../../../ccxt')
 
@@ -16,7 +16,7 @@ const { strictEqual: equal, throws }  = require ('assert')
 it ('decimalToPrecision: error handling', () => {
 
     throws (() =>
-        equal (decimalToPrecision ('123456.789', TRUNCATE, -2, AFTER_POINT), 123500),
+        equal (decimalToPrecision ('123456.789', TRUNCATE, -2, AFTER_DOT), 123500),
             'negative precision is not yet supported')
 
     throws (() =>
@@ -26,16 +26,16 @@ it ('decimalToPrecision: error handling', () => {
 
 it ('decimalToPrecision: truncation (to N digits after dot)', () => {
 
-    equal (decimalToPrecision ('12.3456000', TRUNCATE, 100, AFTER_POINT),  '12.3456')
-    equal (decimalToPrecision ('12.3456',    TRUNCATE, 100, AFTER_POINT),  '12.3456')
-    equal (decimalToPrecision ('12.3456',    TRUNCATE,   4, AFTER_POINT),  '12.3456')
-    equal (decimalToPrecision ('12.3456',    TRUNCATE,   3, AFTER_POINT),  '12.345')
-    equal (decimalToPrecision ('12.3456',    TRUNCATE,   2, AFTER_POINT),  '12.34')
-    equal (decimalToPrecision ('12.3456',    TRUNCATE,   1, AFTER_POINT),  '12.3')
-    equal (decimalToPrecision ('12.3456',    TRUNCATE,   0, AFTER_POINT),  '12')
-//  equal (decimalToPrecision ('12.3456',    TRUNCATE,  -1, AFTER_POINT),  '10')   // not yet supported
-//  equal (decimalToPrecision ('123.456',    TRUNCATE,  -2, AFTER_POINT),  '120')  // not yet supported
-//  equal (decimalToPrecision ('123.456',    TRUNCATE,  -3, AFTER_POINT),  '100')  // not yet supported
+    equal (decimalToPrecision ('12.3456000', TRUNCATE, 100, AFTER_DOT),  '12.3456')
+    equal (decimalToPrecision ('12.3456',    TRUNCATE, 100, AFTER_DOT),  '12.3456')
+    equal (decimalToPrecision ('12.3456',    TRUNCATE,   4, AFTER_DOT),  '12.3456')
+    equal (decimalToPrecision ('12.3456',    TRUNCATE,   3, AFTER_DOT),  '12.345')
+    equal (decimalToPrecision ('12.3456',    TRUNCATE,   2, AFTER_DOT),  '12.34')
+    equal (decimalToPrecision ('12.3456',    TRUNCATE,   1, AFTER_DOT),  '12.3')
+    equal (decimalToPrecision ('12.3456',    TRUNCATE,   0, AFTER_DOT),  '12')
+//  equal (decimalToPrecision ('12.3456',    TRUNCATE,  -1, AFTER_DOT),  '10')   // not yet supported
+//  equal (decimalToPrecision ('123.456',    TRUNCATE,  -2, AFTER_DOT),  '120')  // not yet supported
+//  equal (decimalToPrecision ('123.456',    TRUNCATE,  -3, AFTER_DOT),  '100')  // not yet supported
 })
 
 it ('decimalToPrecision: truncation (to N significant digits)', () => {
@@ -63,22 +63,22 @@ it ('decimalToPrecision: truncation (to N significant digits)', () => {
 
 it ('decimalToPrecision: rounding (to N digits after dot)', () => {
 
-    equal (decimalToPrecision ('12.3456000',  ROUND, 100, AFTER_POINT),  '12.3456')
-    equal (decimalToPrecision ('12.3456',     ROUND, 100, AFTER_POINT),  '12.3456')
-    equal (decimalToPrecision ('12.3456',     ROUND,   4, AFTER_POINT),  '12.3456')
-    equal (decimalToPrecision ('12.3456',     ROUND,   3, AFTER_POINT),  '12.346')
-    equal (decimalToPrecision ('12.3456',     ROUND,   2, AFTER_POINT),  '12.35')
-    equal (decimalToPrecision ('12.3456',     ROUND,   1, AFTER_POINT),  '12.3')
-    equal (decimalToPrecision ('12.3456',     ROUND,   0, AFTER_POINT),  '12')
-//  equal (decimalToPrecision ('12.3456',     ROUND,  -1, AFTER_POINT),  '10')  // not yet supported
-//  equal (decimalToPrecision ('123.456',     ROUND,  -1, AFTER_POINT), '120')  // not yet supported
-//  equal (decimalToPrecision ('123.456',     ROUND,  -2, AFTER_POINT), '100')  // not yet supported
+    equal (decimalToPrecision ('12.3456000',  ROUND, 100, AFTER_DOT),  '12.3456')
+    equal (decimalToPrecision ('12.3456',     ROUND, 100, AFTER_DOT),  '12.3456')
+    equal (decimalToPrecision ('12.3456',     ROUND,   4, AFTER_DOT),  '12.3456')
+    equal (decimalToPrecision ('12.3456',     ROUND,   3, AFTER_DOT),  '12.346')
+    equal (decimalToPrecision ('12.3456',     ROUND,   2, AFTER_DOT),  '12.35')
+    equal (decimalToPrecision ('12.3456',     ROUND,   1, AFTER_DOT),  '12.3')
+    equal (decimalToPrecision ('12.3456',     ROUND,   0, AFTER_DOT),  '12')
+//  equal (decimalToPrecision ('12.3456',     ROUND,  -1, AFTER_DOT),  '10')  // not yet supported
+//  equal (decimalToPrecision ('123.456',     ROUND,  -1, AFTER_DOT), '120')  // not yet supported
+//  equal (decimalToPrecision ('123.456',     ROUND,  -2, AFTER_DOT), '100')  // not yet supported
 
-    equal (decimalToPrecision ( '9.999',  ROUND, 3, AFTER_POINT),                 '9.999')
-    equal (decimalToPrecision ( '9.999',  ROUND, 2, AFTER_POINT),                 '10')
-    equal (decimalToPrecision ( '9.999',  ROUND, 2, AFTER_POINT, PAD_WITH_ZERO),  '10.00')
-    equal (decimalToPrecision ( '99.999', ROUND, 2, AFTER_POINT, PAD_WITH_ZERO),  '100.00')
-    equal (decimalToPrecision ('-99.999', ROUND, 2, AFTER_POINT, PAD_WITH_ZERO), '-100.00')
+    equal (decimalToPrecision ( '9.999',  ROUND, 3, AFTER_DOT),                 '9.999')
+    equal (decimalToPrecision ( '9.999',  ROUND, 2, AFTER_DOT),                 '10')
+    equal (decimalToPrecision ( '9.999',  ROUND, 2, AFTER_DOT, PAD_WITH_ZERO),  '10.00')
+    equal (decimalToPrecision ( '99.999', ROUND, 2, AFTER_DOT, PAD_WITH_ZERO),  '100.00')
+    equal (decimalToPrecision ('-99.999', ROUND, 2, AFTER_DOT, PAD_WITH_ZERO), '-100.00')
 })
 
 it ('decimalToPrecision: rounding (to N significant digits)', () => {
@@ -107,8 +107,8 @@ it ('decimalToPrecision: rounding (to N significant digits)', () => {
 
 it ('decimalToPrecision: negative numbers', () => {
 
-    equal (decimalToPrecision ('-0.123456', TRUNCATE, 5, AFTER_POINT), '-0.12345')
-    equal (decimalToPrecision ('-0.123456', ROUND,    5, AFTER_POINT), '-0.12346')
+    equal (decimalToPrecision ('-0.123456', TRUNCATE, 5, AFTER_DOT), '-0.12345')
+    equal (decimalToPrecision ('-0.123456', ROUND,    5, AFTER_DOT), '-0.12346')
 })
 
 /*  ------------------------------------------------------------------------ */
