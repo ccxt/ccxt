@@ -5,7 +5,7 @@
 const log       = require ('ololog')
     , ansi      = require ('ansicolor').nice
     , chai      = require ('chai')
-    , ccxt      = require ('../../ccxt.js')
+    , ccxt      = require ('../../../ccxt.js')
     , expect    = chai.expect
     , assert    = chai.assert
 
