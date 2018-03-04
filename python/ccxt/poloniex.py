@@ -14,6 +14,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import OrderNotCached
 from ccxt.base.errors import CancelPending
+from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import InvalidNonce
 
 
@@ -757,6 +758,8 @@ class poloniex (Exchange):
                 raise OrderNotFound(feedback)
             elif error == 'Invalid API key/secret pair.':
                 raise AuthenticationError(feedback)
+            elif error == 'Please do not make more than 8 API calls per second.':
+                raise DDoSProtection(feedback)
             elif error.find('Total must be at least') >= 0:
                 raise InvalidOrder(feedback)
             elif error.find('Not enough') >= 0:

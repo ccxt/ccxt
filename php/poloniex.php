@@ -817,6 +817,8 @@ class poloniex extends Exchange {
                 throw new OrderNotFound ($feedback);
             } else if ($error === 'Invalid API key/secret pair.') {
                 throw new AuthenticationError ($feedback);
+            } else if ($error === 'Please do not make more than 8 API calls per second.') {
+                throw new DDoSProtection ($feedback);
             } else if (mb_strpos ($error, 'Total must be at least') !== false) {
                 throw new InvalidOrder ($feedback);
             } else if (mb_strpos ($error, 'Not enough') !== false) {
