@@ -225,7 +225,6 @@ class Exchange(object):
             'delay': 1.0,
             'capacity': 1.0,
             'defaultCost': 1.0,
-            'maxCapacity': 1000,
         }, getattr(self, 'tokenBucket') if hasattr(self, 'tokenBucket') else {})
 
         self.session = self.session if self.session else Session()
