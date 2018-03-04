@@ -21,7 +21,7 @@ module.exports = async (exchange, symbol) => {
 
         let orderbook = await exchange[method] (symbol)
 
-        testOrderBook (orderbook, method, symbol)
+        testOrderBook (exchange, orderbook, method, symbol)
 
         return orderbook
 

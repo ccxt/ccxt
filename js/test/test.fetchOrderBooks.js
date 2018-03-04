@@ -23,7 +23,7 @@ module.exports = async (exchange) => {
         log.green (orderbooks)
 
         // Object.values (orderbooks).forEach (orderbook => {
-        //     testOrderBook (orderbook, method) //, symbol)
+        //     testOrderBook (exchange, orderbook, method) //, symbol)
         // })
 
         return orderbooks

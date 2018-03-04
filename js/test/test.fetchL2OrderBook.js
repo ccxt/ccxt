@@ -20,7 +20,7 @@ module.exports = async (exchange, symbol) => {
     if (exchange.has[method]) {
 
         let orderbook = await exchange[method] (symbol)
-        testOrderBook (orderbook, method, symbol)
+        testOrderBook (exchange, orderbook, method, symbol)
         return orderbook
 
     } else {

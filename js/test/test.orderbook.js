@@ -26,7 +26,7 @@ const printOrderBookOneLiner = (orderbook, method, symbol) => {
 
 /*  ------------------------------------------------------------------------ */
 
-module.exports = (orderbook, method, symbol) => {
+module.exports = (exchange, orderbook, method, symbol) => {
 
     const format = {
         'bids': [],
@@ -49,10 +49,9 @@ module.exports = (orderbook, method, symbol) => {
         assert (asks[i][0] >= asks[i - 1][0])
     }
 
-    // if (exchange.id !== 'xbtce')
-    //     if (bids.length && asks.length)
-    //         assert (bids[0][0] <= asks[0][0])
-
+    if (exchange.id !== 'xbtce')
+        if (bids.length && asks.length)
+            assert (bids[0][0] <= asks[0][0])
 
     printOrderBookOneLiner (orderbook, method, symbol)
 }
