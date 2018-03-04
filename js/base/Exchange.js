@@ -843,7 +843,7 @@ module.exports = class Exchange {
         let result = Object.values (orders).map (order => this.parseOrder (order, market))
         result = sortBy (result, 'timestamp', true)
         let symbol = (typeof market !== 'undefined') ? market['symbol'] : undefined
-        return this.filterBySymbolinceLimit (result, symbol, since, limit)
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit)
     }
 
     filterBySymbol (array, symbol = undefined) {
