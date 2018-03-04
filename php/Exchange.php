@@ -1174,6 +1174,10 @@ abstract class Exchange {
         return $result;
     }
 
+    public function filterBySinceLimit ($array, $since = null, $limit = null) {
+        return $this->filter_by_since_limit ($array, $since, $limit);
+    }
+
     public function parse_trades ($trades, $market = null, $since = null, $limit = null) {
         $result = array ();
         $array = is_array ($trades) ? array_values ($trades) : array ();
@@ -1197,9 +1201,9 @@ abstract class Exchange {
         return $this->parse_orders ($orders, $market, $since, $limit);
     }
 
-    public function filter_orders_by_symbol ($orders, $symbol = null) {
+    public function filter_by_symbol ($array, $symbol = null) {
         if ($symbol) {
-            $grouped = $this->group_by ($orders, 'symbol');
+            $grouped = $this->group_by ($array, 'symbol');
             if (is_array ($grouped) && array_key_exists ($symbol, $grouped))
                 return $grouped[$symbol];
             return array ();
@@ -1207,8 +1211,24 @@ abstract class Exchange {
         return $orders;
     }
 
-    public function filterOrdersBySymbol ($orders, $symbol = null) {
-        return $this->filter_orders_by_symbol ($orders, $symbol);
+    public function filterBySymbol ($orders, $symbol = null) {
+        return $this->filter_by_symbol ($orders, $symbol);
+    }
+
+    public function filter_by_symbol_since_limit ($array, $symbol = null, $since = null, $limit = null) {
+        $symbolIsSet = isset ($symbol);
+        $sinceIsSet = isset ($since);
+        $array = array_filter ($array, function ($element) use ($symbolIsSet, $symbol, $sinceIsSet, $since) {
+            return (($symbolIsSet ? ($element['symbol'] === $symbol) : true) &&
+                    ($sinceIsSet  ? ($element['timestamp'] >= $since) : true));
+        });
+        if (isset ($limit))
+            $array = array_slice ($array, 0, $limit);
+        return $array;
+    }
+
+    public function filterBySymbolSinceLimit ($array, $symbol = null, $since = null, $limit = null) {
+        return $this->filter_by_symbol_since_limit ($array, $symbol, $since, $limit);
     }
 
     public function fetch_bids_asks ($symbols, $params = array ()) { // stub
