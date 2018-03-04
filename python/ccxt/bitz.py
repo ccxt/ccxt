@@ -266,7 +266,7 @@ class bitz (Exchange):
             'status': 'open',
             'symbol': symbol,
             'type': 'limit',
-            'side': order['type'],
+            'side': side,
             'price': order['price'],
             'cost': None,
             'amount': order['number'],
