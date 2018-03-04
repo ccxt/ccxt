@@ -532,7 +532,7 @@ class liqui (Exchange):
         self.load_markets()
         request = {}
         market = None
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['pair'] = market['id']
         response = self.privatePostActiveOrders(self.extend(request, params))
