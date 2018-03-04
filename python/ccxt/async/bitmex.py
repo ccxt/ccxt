@@ -25,6 +25,7 @@ class bitmex (Exchange):
                 'CORS': False,
                 'fetchOHLCV': True,
                 'withdraw': True,
+                'fetchOrder': True,
                 'fetchOrders': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
@@ -220,16 +221,26 @@ class bitmex (Exchange):
         result['asks'] = self.sort_by(result['asks'], 0)
         return result
 
+    async def fetch_order(self, id, symbol=None, params={}):
+        filter = {'filter': {'orderID': id}}
+        result = await self.fetch_orders(symbol, None, None, self.deep_extend(filter, params))
+        numResults = len(result)
+        if numResults == 1:
+            return result[0]
+        raise OrderNotFound(self.id + ': The order ' + id + ' not found.')
+
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         market = None
-        filter = {}
+        request = {}
         if symbol is not None:
             market = self.market(symbol)
-            filter['symbol'] = market['id']
-        request = self.deep_extend({
-            'filter': filter,
-        }, params)
+            request['symbol'] = market['id']
+        if since is not None:
+            request['startTime'] = self.iso8601(since)
+        if limit is not None:
+            request['count'] = limit
+        request = self.deep_extend(request, params)
         # why the hassle? urlencode in python is kinda broken for nested dicts.
         # E.g. self.urlencode({"filter": {"open": True}}) will return "filter={'open':+True}"
         # Bitmex doesn't like that. Hence resorting to self hack.
@@ -239,7 +250,7 @@ class bitmex (Exchange):
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         filter_params = {'filter': {'open': True}}
-        return await self.fetch_orders(symbol, since, limit, self.extend(filter_params, params))
+        return await self.fetch_orders(symbol, since, limit, self.deep_extend(filter_params, params))
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         # Bitmex barfs if you set 'open': False in the filter...

@@ -19,6 +19,7 @@ class bitmex extends Exchange {
                 'CORS' => false,
                 'fetchOHLCV' => true,
                 'withdraw' => true,
+                'fetchOrder' => true,
                 'fetchOrders' => true,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
@@ -223,19 +224,30 @@ class bitmex extends Exchange {
         return $result;
     }
 
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
+        $filter = array ( 'filter' => array ( 'orderID' => $id ));
+        $result = $this->fetch_orders($symbol, null, null, array_replace_recursive ($filter, $params));
+        $numResults = is_array ($result) ? count ($result) : 0;
+        if ($numResults === 1)
+            return $result[0];
+        throw new OrderNotFound ($this->id . ' => The order ' . $id . ' not found.');
+    }
+
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
-        $filter = array ();
+        $request = array ();
         if ($symbol !== null) {
             $market = $this->market ($symbol);
-            $filter['symbol'] = $market['id'];
+            $request['symbol'] = $market['id'];
         }
-        $request = array_replace_recursive (array (
-            'filter' => $filter,
-        ), $params);
+        if ($since !== null)
+            $request['startTime'] = $this->iso8601 ($since);
+        if ($limit !== null)
+            $request['count'] = $limit;
+        $request = array_replace_recursive ($request, $params);
         // why the hassle? urlencode in python is kinda broken for nested dicts.
-        // E.g. self.urlencode(array ("$filter" => array ("open" => True))) will return "$filter=array ('open':+True)"
+        // E.g. self.urlencode(array ("filter" => array ("open" => True))) will return "filter=array ('open':+True)"
         // Bitmex doesn't like that. Hence resorting to this hack.
         $request['filter'] = $this->json ($request['filter']);
         $response = $this->privateGetOrder ($request);
@@ -244,7 +256,7 @@ class bitmex extends Exchange {
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $filter_params = array ( 'filter' => array ( 'open' => true ));
-        return $this->fetch_orders($symbol, $since, $limit, array_merge ($filter_params, $params));
+        return $this->fetch_orders($symbol, $since, $limit, array_replace_recursive ($filter_params, $params));
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
