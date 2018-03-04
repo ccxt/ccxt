@@ -43,11 +43,15 @@ def decimalToPrecision(n, rounding_mode=ROUND, precision=None, counting_mode=AFT
             truncated = before + '.' + after[:precision]
             precise = truncated.rstrip('.')
         elif counting_mode == SIGNIFICANT_DIGITS:
-            start = string.index('.') - dec.adjusted()
+            dot = string.index('.')
+            start = dot - dec.adjusted()
             end = start + precision
-            precise = string[:end]
+            if dec.adjusted() > 0:
+                precise = string[:end-1].ljust(dot, '0')
+            else:
+                precise = string[:end]
 
     if padding_mode == NO_PADDING:
-        return precise.rstrip('0').rstrip('.')
+        return precise.rstrip('0').rstrip('.') if '.' in precise else precise
     elif padding_mode == PAD_WITH_ZERO:
-        return precise.zfill(precision).rstrip('.')
+        return precise.ljust(precision, '0').rstrip('.')
