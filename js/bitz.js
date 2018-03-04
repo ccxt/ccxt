@@ -272,7 +272,7 @@ module.exports = class bitz extends Exchange {
             'status': 'open',
             'symbol': symbol,
             'type': 'limit',
-            'side': order['type'],
+            'side': side,
             'price': order['price'],
             'cost': undefined,
             'amount': order['number'],
