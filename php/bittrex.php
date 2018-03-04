@@ -423,7 +423,7 @@ class bittrex extends Exchange {
         }
         $response = $this->marketGetOpenorders (array_merge ($request, $params));
         $orders = $this->parse_orders($response['result'], $market, $since, $limit);
-        return $this->filter_orders_by_symbol($orders, $symbol);
+        return $this->filter_by_symbol($orders, $symbol);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -583,7 +583,7 @@ class bittrex extends Exchange {
         $response = $this->accountGetOrderhistory (array_merge ($request, $params));
         $orders = $this->parse_orders($response['result'], $market, $since, $limit);
         if ($symbol)
-            return $this->filter_orders_by_symbol($orders, $symbol);
+            return $this->filter_by_symbol($orders, $symbol);
         return $orders;
     }
 

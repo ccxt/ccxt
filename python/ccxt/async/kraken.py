@@ -726,7 +726,7 @@ class kraken (Exchange):
             request['start'] = int(since / 1000)
         response = await self.privatePostOpenOrders(self.extend(request, params))
         orders = self.parse_orders(response['result']['open'], None, since, limit)
-        return self.filter_orders_by_symbol(orders, symbol)
+        return self.filter_by_symbol(orders, symbol)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -735,7 +735,7 @@ class kraken (Exchange):
             request['start'] = int(since / 1000)
         response = await self.privatePostClosedOrders(self.extend(request, params))
         orders = self.parse_orders(response['result']['closed'], None, since, limit)
-        return self.filter_orders_by_symbol(orders, symbol)
+        return self.filter_by_symbol(orders, symbol)
 
     async def fetch_deposit_methods(self, code=None, params={}):
         await self.load_markets()
