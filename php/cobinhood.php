@@ -445,7 +445,7 @@ class cobinhood extends Exchange {
         $result = $this->privateGetTradingOrders ($params);
         $orders = $this->parse_orders($result['result']['orders'], null, $since, $limit);
         if ($symbol !== null)
-            return $this->filter_orders_by_symbol($orders, $symbol);
+            return $this->filter_by_symbol($orders, $symbol);
         return $orders;
     }
 

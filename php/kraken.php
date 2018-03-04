@@ -756,7 +756,7 @@ class kraken extends Exchange {
             $request['start'] = intval ($since / 1000);
         $response = $this->privatePostOpenOrders (array_merge ($request, $params));
         $orders = $this->parse_orders($response['result']['open'], null, $since, $limit);
-        return $this->filter_orders_by_symbol($orders, $symbol);
+        return $this->filter_by_symbol($orders, $symbol);
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -766,7 +766,7 @@ class kraken extends Exchange {
             $request['start'] = intval ($since / 1000);
         $response = $this->privatePostClosedOrders (array_merge ($request, $params));
         $orders = $this->parse_orders($response['result']['closed'], null, $since, $limit);
-        return $this->filter_orders_by_symbol($orders, $symbol);
+        return $this->filter_by_symbol($orders, $symbol);
     }
 
     public function fetch_deposit_methods ($code = null, $params = array ()) {

@@ -541,7 +541,7 @@ class liqui (Exchange):
         if 'return' in response:
             openOrders = self.parse_orders(response['return'], market)
         allOrders = self.update_cached_orders(openOrders, symbol)
-        result = self.filter_orders_by_symbol(allOrders, symbol)
+        result = self.filter_by_symbol(allOrders, symbol)
         return self.filter_by_since_limit(result, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):

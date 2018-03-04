@@ -268,7 +268,7 @@ class bxinth extends Exchange {
         }
         $response = $this->privatePostGetorders (array_merge ($request, $params));
         $orders = $this->parse_orders($response['orders'], $market, $since, $limit);
-        return $this->filter_orders_by_symbol($orders, $symbol);
+        return $this->filter_by_symbol($orders, $symbol);
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

@@ -414,7 +414,7 @@ class bittrex (Exchange):
             request['market'] = market['id']
         response = await self.marketGetOpenorders(self.extend(request, params))
         orders = self.parse_orders(response['result'], market, since, limit)
-        return self.filter_orders_by_symbol(orders, symbol)
+        return self.filter_by_symbol(orders, symbol)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type != 'limit':
@@ -558,7 +558,7 @@ class bittrex (Exchange):
         response = await self.accountGetOrderhistory(self.extend(request, params))
         orders = self.parse_orders(response['result'], market, since, limit)
         if symbol:
-            return self.filter_orders_by_symbol(orders, symbol)
+            return self.filter_by_symbol(orders, symbol)
         return orders
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):

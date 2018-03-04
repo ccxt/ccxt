@@ -286,7 +286,7 @@ class bitcoincoid (Exchange):
         orders = self.parse_orders(response['return']['orders'], market, since, limit)
         orders = self.filter_by(orders, 'status', 'closed')
         if symbol:
-            return self.filter_orders_by_symbol(orders, symbol)
+            return self.filter_by_symbol(orders, symbol)
         return orders
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):

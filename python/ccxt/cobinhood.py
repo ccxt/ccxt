@@ -424,7 +424,7 @@ class cobinhood (Exchange):
         result = self.privateGetTradingOrders(params)
         orders = self.parse_orders(result['result']['orders'], None, since, limit)
         if symbol is not None:
-            return self.filter_orders_by_symbol(orders, symbol)
+            return self.filter_by_symbol(orders, symbol)
         return orders
 
     def fetch_order_trades(self, id, symbol=None, params={}):
