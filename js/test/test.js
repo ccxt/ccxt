@@ -56,19 +56,19 @@ const exchange = new (ccxt)[exchangeId] ({
 const tests = {}
 const properties = Object.keys (exchange.has)
 properties
-    .filter (property => fs.existsSync (__dirname + '/test.' + property + '.js'))
+    .filter (property => fs.existsSync (__dirname + '/Exchange/test.' + property + '.js'))
     .forEach (property => {
         // eslint-disable-next-line import/no-dynamic-require
-        tests[property] = require (__dirname + '/test.' + property + '.js')
+        tests[property] = require (__dirname + '/Exchange/test.' + property + '.js')
     })
 
 const errors = require ('../base/errors.js')
 
 Object.keys (errors)
-    .filter (error => fs.existsSync (__dirname + '/test.' + error + '.js'))
+    .filter (error => fs.existsSync (__dirname + '/errors/test.' + error + '.js'))
     .forEach (error => {
         // eslint-disable-next-line import/no-dynamic-require
-        tests[error] = require (__dirname + '/test.' + error + '.js')
+        tests[error] = require (__dirname + '/errors/test.' + error + '.js')
     })
 
 //-----------------------------------------------------------------------------
