@@ -47,7 +47,7 @@ def decimalToPrecision(n, rounding_mode=ROUND, precision=None, counting_mode=AFT
             start = dot - dec.adjusted()
             end = start + precision
             if dec.adjusted() > 0:
-                precise = string[:end-1].ljust(dot, '0')
+                precise = string[:end - 1].ljust(dot, '0')
             else:
                 precise = string[:end]
 
