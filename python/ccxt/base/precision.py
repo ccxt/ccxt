@@ -50,4 +50,4 @@ def decimalToPrecision(n, rounding_mode=ROUND, precision=None, counting_mode=AFT
     if padding_mode == NO_PADDING:
         return precise.rstrip('0').rstrip('.')
     elif padding_mode == PAD_WITH_ZERO:
-        return precise.zfill(precision)
+        return precise.zfill(precision).rstrip('.')
