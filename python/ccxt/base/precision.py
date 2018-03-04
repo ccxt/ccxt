@@ -33,8 +33,8 @@ def decimalToPrecision(n, rounding_mode=ROUND, precision=None, counting_mode=AFT
         if counting_mode == AFTER_POINT:
             precise = str(dec.quantize(quant(precision)))  # ROUND_HALF_EVEN is default context
         elif counting_mode == SIGNIFICANT_DIGITS:
-            # TODO
-            raise NotImplementedError
+            q = precision - dec.adjusted() - 1
+            precise = str(dec.quantize(quant(q)))
 
     elif rounding_mode == TRUNCATE:
         # Slice a string
