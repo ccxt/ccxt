@@ -45,7 +45,7 @@ module.exports = async (exchange, symbol) => {
                 (typeof balance[currency]['total'] !== 'undefined'))
 
         if (result.length > 0) {
-            result = result.map (currency => currency + ': ' + human_value (balance[currency]['total']))
+            result = result.map (currency => currency + ': ' + balance[currency]['total'])
             if (exchange.currencies.length > result.length)
                 result = result.join (', ') + ' + more...'
             else
