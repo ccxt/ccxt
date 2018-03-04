@@ -557,7 +557,7 @@ module.exports = class liqui extends Exchange {
         await this.loadMarkets ();
         let request = {};
         let market = undefined;
-        if (symbol) {
+        if (typeof symbol !== 'undefined') {
             let market = this.market (symbol);
             request['pair'] = market['id'];
         }
