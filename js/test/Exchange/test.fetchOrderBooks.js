@@ -20,7 +20,8 @@ module.exports = async (exchange) => {
         // log ('fetching order books...')
 
         let orderbooks = await exchange[method] ()
-        log.green (orderbooks)
+
+        // log.green (orderbooks)
 
         // Object.values (orderbooks).forEach (orderbook => {
         //     testOrderBook (exchange, orderbook, method) //, symbol)
