@@ -20,6 +20,7 @@ module.exports = class bitmex extends Exchange {
                 'CORS': false,
                 'fetchOHLCV': true,
                 'withdraw': true,
+                'fetchOrder': true,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
@@ -224,17 +225,28 @@ module.exports = class bitmex extends Exchange {
         return result;
     }
 
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        let filter = { 'filter': { 'orderID': id }};
+        let result = await this.fetchOrders (symbol, undefined, undefined, this.deepExtend (filter, params));
+        let numResults = result.length;
+        if (numResults === 1)
+            return result[0];
+        throw new OrderNotFound (this.id + ': The order ' + id + ' not found.');
+    }
+
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
-        let filter = {};
+        let request = {};
         if (typeof symbol !== 'undefined') {
             market = this.market (symbol);
-            filter['symbol'] = market['id'];
+            request['symbol'] = market['id'];
         }
-        let request = this.deepExtend ({
-            'filter': filter,
-        }, params);
+        if (typeof since !== 'undefined')
+            request['startTime'] = this.iso8601 (since);
+        if (typeof limit !== 'undefined')
+            request['count'] = limit;
+        request = this.deepExtend (request, params);
         // why the hassle? urlencode in python is kinda broken for nested dicts.
         // E.g. self.urlencode({"filter": {"open": True}}) will return "filter={'open':+True}"
         // Bitmex doesn't like that. Hence resorting to this hack.
@@ -245,7 +257,7 @@ module.exports = class bitmex extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let filter_params = { 'filter': { 'open': true }};
-        return await this.fetchOrders (symbol, since, limit, this.extend (filter_params, params));
+        return await this.fetchOrders (symbol, since, limit, this.deepExtend (filter_params, params));
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
