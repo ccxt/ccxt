@@ -23,7 +23,9 @@ module.exports = class huobipro extends Exchange {
                 'CORS': false,
                 'fetchOHCLV': true,
                 'fetchOrders': true,
+                'fetchOrder': true,
                 'fetchOpenOrders': true,
+                'fetchDepositAddress': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -71,6 +73,7 @@ module.exports = class huobipro extends Exchange {
                         'order/orders', // 查询当前委托、历史委托
                         'order/matchresults', // 查询当前成交、历史成交
                         'dw/withdraw-virtual/addresses', // 查询虚拟币提现地址
+                        'dw/deposit-virtual/addresses',
                     ],
                     'post': [
                         'order/orders/place', // 创建并执行一个新订单 (一步下单， 推荐使用)
@@ -154,22 +157,41 @@ module.exports = class huobipro extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
-        let last = undefined;
-        if ('last' in ticker)
-            last = ticker['last'];
         let timestamp = this.milliseconds ();
         if ('ts' in ticker)
             timestamp = ticker['ts'];
         let bid = undefined;
         let ask = undefined;
+        let bidVolume = undefined;
+        let askVolume = undefined;
         if ('bid' in ticker) {
-            if (ticker['bid'])
+            if (Array.isArray (ticker['bid'])) {
                 bid = this.safeFloat (ticker['bid'], 0);
+                bidVolume = this.safeFloat (ticker['bid'], 1);
+            }
         }
         if ('ask' in ticker) {
-            if (ticker['ask'])
+            if (Array.isArray (ticker['ask'])) {
                 ask = this.safeFloat (ticker['ask'], 0);
+                askVolume = this.safeFloat (ticker['ask'], 1);
+            }
         }
+        let open = this.safeFloat (ticker, 'open');
+        let close = this.safeFloat (ticker, 'close');
+        let change = undefined;
+        let percentage = undefined;
+        let average = undefined;
+        if ((typeof open !== 'undefined') && (typeof close !== 'undefined')) {
+            change = close - open;
+            average = this.sum (open, close) / 2;
+            if ((typeof close !== 'undefined') && (close > 0))
+                percentage = (change / open) * 100;
+        }
+        let baseVolume = this.safeFloat (ticker, 'amount');
+        let quoteVolume = this.safeFloat (ticker, 'vol');
+        let vwap = undefined;
+        if (typeof baseVolume !== 'undefined' && typeof quoteVolume !== 'undefined' && baseVolume > 0)
+            vwap = quoteVolume / baseVolume;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -177,17 +199,18 @@ module.exports = class huobipro extends Exchange {
             'high': ticker['high'],
             'low': ticker['low'],
             'bid': bid,
+            'bidVolume': bidVolume,
             'ask': ask,
-            'vwap': undefined,
-            'open': ticker['open'],
-            'close': ticker['close'],
-            'first': undefined,
-            'last': last,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': parseFloat (ticker['amount']),
-            'quoteVolume': ticker['vol'],
+            'askVolume': askVolume,
+            'vwap': vwap,
+            'open': open,
+            'close': close,
+            'last': close,
+            'change': change,
+            'percentage': percentage,
+            'average': average,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         };
     }
@@ -357,6 +380,14 @@ module.exports = class huobipro extends Exchange {
         }, params));
     }
 
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privateGetOrderOrdersId (this.extend ({
+            'id': id,
+        }, params));
+        return this.parseOrder (response['data']);
+    }
+
     parseOrderStatus (status) {
         if (status === 'partial-filled') {
             return 'open';
@@ -402,7 +433,7 @@ module.exports = class huobipro extends Exchange {
             average = parseFloat (cost / filled);
         let result = {
             'info': order,
-            'id': order['id'],
+            'id': order['id'].toString (),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
@@ -443,6 +474,39 @@ module.exports = class huobipro extends Exchange {
         return await this.privatePostOrderOrdersIdSubmitcancel ({ 'id': id });
     }
 
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let response = await this.privateGetDwDepositVirtualAddresses (this.extend ({
+            'currency': currency['id'].toLowerCase (),
+        }, params));
+        let address = this.safeString (response, 'data');
+        return {
+            'currency': code,
+            'status': 'ok',
+            'address': address,
+            'info': response,
+        };
+    }
+
+    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+        let market = this.markets[symbol];
+        let rate = market[takerOrMaker];
+        let cost = parseFloat (this.costToPrecision (symbol, amount * rate));
+        let key = 'quote';
+        if (side === 'sell') {
+            cost *= price;
+        } else {
+            key = 'base';
+        }
+        return {
+            'type': takerOrMaker,
+            'currency': market[key],
+            'rate': rate,
+            'cost': parseFloat (this.feeToPrecision (symbol, cost)),
+        };
+    }
+
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
         let request = {
             'address': address, // only supports existing addresses in your withdraw address list
@@ -481,6 +545,7 @@ module.exports = class huobipro extends Exchange {
             }, query));
             let auth = this.urlencode (request);
             // unfortunately, PHP demands double quotes for the escaped newline symbol
+            // eslint-disable-next-line quotes
             let payload = [ method, this.hostname, url, auth ].join ("\n");
             let signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
             auth += '&' + this.urlencode ({ 'Signature': signature });

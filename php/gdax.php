@@ -29,15 +29,9 @@ class gdax extends Exchange {
                 '1m' => 60,
                 '5m' => 300,
                 '15m' => 900,
-                '30m' => 1800,
                 '1h' => 3600,
-                '2h' => 7200,
-                '4h' => 14400,
-                '12h' => 43200,
+                '6h' => 21600,
                 '1d' => 86400,
-                '1w' => 604800,
-                '1M' => 2592000,
-                '1y' => 31536000,
             ),
             'urls' => array (
                 'test' => 'https://api-public.sandbox.gdax.com',
@@ -88,6 +82,7 @@ class gdax extends Exchange {
                     'post' => array (
                         'deposits/coinbase-account',
                         'deposits/payment-method',
+                        'coinbase-accounts/{id}/addresses',
                         'funding/repay',
                         'orders',
                         'position/close',
@@ -151,7 +146,7 @@ class gdax extends Exchange {
                 'amount' => 8,
                 'price' => $this->precision_from_string($this->safe_string($market, 'quote_increment')),
             );
-            $taker = $this->fees['trading']['taker'];
+            $taker = $this->fees['trading']['taker'];  // does not seem right
             if (($base === 'ETH') || ($base === 'LTC')) {
                 $taker = 0.003;
             }
@@ -253,7 +248,6 @@ class gdax extends Exchange {
         $iso8601 = null;
         if ($timestamp !== null)
             $iso8601 = $this->iso8601 ($timestamp);
-        $side = ($trade['side'] === 'buy') ? 'sell' : 'buy';
         $symbol = null;
         if (!$market) {
             if (is_array ($trade) && array_key_exists ('product_id', $trade)) {
@@ -283,7 +277,11 @@ class gdax extends Exchange {
         );
         $type = null;
         $id = $this->safe_string($trade, 'trade_id');
+        $side = ($trade['side'] === 'buy') ? 'sell' : 'buy';
         $orderId = $this->safe_string($trade, 'order_id');
+        // GDAX returns inverted $side to fetchMyTrades vs fetchTrades
+        if ($orderId !== null)
+            $side = ($trade['side'] === 'buy') ? 'buy' : 'sell';
         return array (
             'id' => $id,
             'order' => $orderId,
@@ -576,7 +574,7 @@ class gdax extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
-        if ($code === 400) {
+        if (($code === 400) || ($code === 404)) {
             if ($body[0] === '{') {
                 $response = json_decode ($body, $as_associative_array = true);
                 $message = $response['message'];
@@ -587,6 +585,8 @@ class gdax extends Exchange {
                     throw new InvalidOrder ($error);
                 } else if ($message === 'Insufficient funds') {
                     throw new InsufficientFunds ($error);
+                } else if ($message === 'NotFound') {
+                    throw new OrderNotFound ($error);
                 } else if ($message === 'Invalid API Key') {
                     throw new AuthenticationError ($error);
                 }

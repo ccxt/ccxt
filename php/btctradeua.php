@@ -16,6 +16,7 @@ class btctradeua extends Exchange {
             'has' => array (
                 'CORS' => true,
                 'createMarketOrder' => false,
+                'fetchOpenOrders' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27941483-79fc7350-62d9-11e7-9f61-ac47f28fcd96.jpg',
@@ -132,15 +133,6 @@ class btctradeua extends Exchange {
         $response = $this->publicGetJapanStatHighSymbol (array_merge (array (
             'symbol' => $this->market_id($symbol),
         ), $params));
-        $orderbook = $this->fetch_order_book($symbol);
-        $bid = null;
-        $numBids = is_array ($orderbook['bids']) ? count ($orderbook['bids']) : 0;
-        if ($numBids > 0)
-            $bid = $orderbook['bids'][0][0];
-        $ask = null;
-        $numAsks = is_array ($orderbook['asks']) ? count ($orderbook['asks']) : 0;
-        if ($numAsks > 0)
-            $ask = $orderbook['asks'][0][0];
         $ticker = $response['trades'];
         $timestamp = $this->milliseconds ();
         $result = array (
@@ -149,13 +141,13 @@ class btctradeua extends Exchange {
             'datetime' => $this->iso8601 ($timestamp),
             'high' => null,
             'low' => null,
-            'bid' => $bid,
-            'ask' => $ask,
+            'bid' => null,
+            'ask' => null,
             'vwap' => null,
             'open' => null,
             'close' => null,
-            'first' => null,
             'last' => null,
+            'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
@@ -180,7 +172,8 @@ class btctradeua extends Exchange {
                     $result['baseVolume'] -= $candle[5];
             }
             $last = $tickerLength - 1;
-            $result['close'] = $ticker[$last][4];
+            $result['last'] = $ticker[$last][4];
+            $result['close'] = $result['last'];
             $result['baseVolume'] = -1 * $result['baseVolume'];
         }
         return $result;

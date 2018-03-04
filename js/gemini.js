@@ -16,8 +16,15 @@ module.exports = class gemini extends Exchange {
             'rateLimit': 1500, // 200 for private API
             'version': 'v1',
             'has': {
+                'fetchDepositAddress': false,
                 'CORS': false,
-                'createMarketOrder': false,
+                'fetchBidsAsks': false,
+                'fetchTickers': false,
+                'fetchMyTrades': true,
+                'fetchOrder': false,
+                'fetchOrders': false,
+                'fetchOpenOrders': false,
+                'fetchClosedOrders': false,
                 'withdraw': true,
             },
             'urls': {
@@ -62,6 +69,11 @@ module.exports = class gemini extends Exchange {
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'taker': 0.0025,
+                },
+            },
         });
     }
 
@@ -81,7 +93,6 @@ module.exports = class gemini extends Exchange {
                 'base': base,
                 'quote': quote,
                 'info': market,
-                'taker': 0.0025,
             });
         }
         return result;
@@ -128,16 +139,37 @@ module.exports = class gemini extends Exchange {
 
     parseTrade (trade, market) {
         let timestamp = trade['timestampms'];
+        let order = undefined;
+        if ('orderId' in trade)
+            order = trade['orderId'].toString ();
+        let fee = this.safeFloat (trade, 'fee_amount');
+        if (typeof fee !== 'undefined') {
+            let currency = this.safeString (trade, 'fee_currency');
+            if (typeof currency !== 'undefined') {
+                if (currency in this.currencies_by_id)
+                    currency = this.currencies_by_id[currency]['code'];
+                currency = this.commonCurrencyCode (currency);
+            }
+            fee = {
+                'cost': parseFloat (trade['fee_amount']),
+                'currency': currency,
+            };
+        }
+        let price = parseFloat (trade['price']);
+        let amount = parseFloat (trade['amount']);
         return {
             'id': trade['tid'].toString (),
+            'order': order,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
             'type': undefined,
             'side': trade['type'],
-            'price': parseFloat (trade['price']),
-            'amount': parseFloat (trade['amount']),
+            'price': price,
+            'cost': price * amount,
+            'amount': amount,
+            'fee': fee,
         };
     }
 
@@ -190,7 +222,7 @@ module.exports = class gemini extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        return await this.privatePostCancelOrder ({ 'order_id': id });
+        return await this.privatePostOrderCancel ({ 'order_id': id });
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {

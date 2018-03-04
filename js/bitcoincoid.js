@@ -17,7 +17,6 @@ module.exports = class bitcoincoid extends Exchange {
                 'CORS': false,
                 'createMarketOrder': false,
                 'fetchTickers': false,
-                'fetchOHLCV': false,
                 'fetchOrder': true,
                 'fetchOrders': false,
                 'fetchClosedOrders': true,
@@ -87,7 +86,7 @@ module.exports = class bitcoincoid extends Exchange {
                     'tierBased': false,
                     'percentage': true,
                     'maker': 0,
-                    'taker': 0.3,
+                    'taker': 0.003,
                 },
             },
         });
@@ -263,12 +262,24 @@ module.exports = class bitcoincoid extends Exchange {
             request['pair'] = market['id'];
         }
         let response = await this.privatePostOpenOrders (this.extend (request, params));
-        // { success: 1, return: { orders: null }}
-        let raw = response['return']['orders'];
-        if (!raw)
+        let rawOrders = response['return']['orders'];
+        // { success: 1, return: { orders: null }} if no orders
+        if (!rawOrders)
             return [];
-        let orders = this.parseOrders (raw, market, since, limit);
-        return this.filterOrdersBySymbol (orders, symbol);
+        // { success: 1, return: { orders: [ ... objects ] }} for orders fetched by symbol
+        if (typeof symbol !== 'undefined')
+            return this.parseOrders (rawOrders, market, since, limit);
+        // { success: 1, return: { orders: { marketid: [ ... objects ] }}} if all orders are fetched
+        let marketIds = Object.keys (rawOrders);
+        let exchangeOrders = [];
+        for (let i = 0; i < marketIds.length; i++) {
+            let marketId = marketIds[i];
+            let marketOrders = rawOrders[marketId];
+            market = this.markets_by_id[marketId];
+            let parsedOrders = this.parseOrders (marketOrders, market, since, limit);
+            exchangeOrders = this.arrayConcat (exchangeOrders, parsedOrders);
+        }
+        return exchangeOrders;
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {

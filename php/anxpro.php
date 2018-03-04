@@ -16,6 +16,7 @@ class anxpro extends Exchange {
             'rateLimit' => 1500,
             'has' => array (
                 'CORS' => false,
+                'fetchOHLCV' => false,
                 'fetchTrades' => false,
                 'withdraw' => true,
             ),

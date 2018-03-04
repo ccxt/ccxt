@@ -21,9 +21,13 @@ class coinmarketcap (Exchange):
                 'CORS': True,
                 'privateAPI': False,
                 'createOrder': False,
+                'createMarketOrder': False,
+                'createLimitOrder': False,
                 'cancelOrder': False,
+                'editOrder': False,
                 'fetchBalance': False,
                 'fetchOrderBook': False,
+                'fetchOHLCV': False,
                 'fetchTrades': False,
                 'fetchTickers': True,
                 'fetchCurrencies': True,
@@ -89,8 +93,13 @@ class coinmarketcap (Exchange):
             'Bitgem': 'Bitgem',
             'BlockCAT': 'BlockCAT',
             'Catcoin': 'Catcoin',
+            'Hi Mutual Society': 'Hi Mutual Society',
             'iCoin': 'iCoin',
             'NetCoin': 'NetCoin',
+            # a special case, most exchanges list it as IOTA, therefore
+            # we change just the Coinmarketcap instead of changing them all
+            'MIOTA': 'IOTA',
+            'Maggie': 'Maggie',
         }
         if name in currencies:
             return currencies[name]

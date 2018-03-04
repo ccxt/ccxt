@@ -12,6 +12,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import OrderNotFound
 
 
 class gdax (Exchange):
@@ -38,15 +39,9 @@ class gdax (Exchange):
                 '1m': 60,
                 '5m': 300,
                 '15m': 900,
-                '30m': 1800,
                 '1h': 3600,
-                '2h': 7200,
-                '4h': 14400,
-                '12h': 43200,
+                '6h': 21600,
                 '1d': 86400,
-                '1w': 604800,
-                '1M': 2592000,
-                '1y': 31536000,
             },
             'urls': {
                 'test': 'https://api-public.sandbox.gdax.com',
@@ -97,6 +92,7 @@ class gdax (Exchange):
                     'post': [
                         'deposits/coinbase-account',
                         'deposits/payment-method',
+                        'coinbase-accounts/{id}/addresses',
                         'funding/repay',
                         'orders',
                         'position/close',
@@ -159,7 +155,7 @@ class gdax (Exchange):
                 'amount': 8,
                 'price': self.precision_from_string(self.safe_string(market, 'quote_increment')),
             }
-            taker = self.fees['trading']['taker']
+            taker = self.fees['trading']['taker']  # does not seem right
             if (base == 'ETH') or (base == 'LTC'):
                 taker = 0.003
             active = market['status'] == 'online'
@@ -253,7 +249,6 @@ class gdax (Exchange):
         iso8601 = None
         if timestamp is not None:
             iso8601 = self.iso8601(timestamp)
-        side = 'sell' if (trade['side'] == 'buy') else 'buy'
         symbol = None
         if not market:
             if 'product_id' in trade:
@@ -279,7 +274,11 @@ class gdax (Exchange):
         }
         type = None
         id = self.safe_string(trade, 'trade_id')
+        side = 'sell' if (trade['side'] == 'buy') else 'buy'
         orderId = self.safe_string(trade, 'order_id')
+        # GDAX returns inverted side to fetchMyTrades vs fetchTrades
+        if orderId is not None:
+            side = 'buy' if (trade['side'] == 'buy') else 'sell'
         return {
             'id': id,
             'order': orderId,
@@ -541,7 +540,7 @@ class gdax (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body):
-        if code == 400:
+        if (code == 400) or (code == 404):
             if body[0] == '{':
                 response = json.loads(body)
                 message = response['message']
@@ -552,6 +551,8 @@ class gdax (Exchange):
                     raise InvalidOrder(error)
                 elif message == 'Insufficient funds':
                     raise InsufficientFunds(error)
+                elif message == 'NotFound':
+                    raise OrderNotFound(error)
                 elif message == 'Invalid API Key':
                     raise AuthenticationError(error)
                 raise ExchangeError(self.id + ' ' + message)

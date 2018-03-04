@@ -163,7 +163,7 @@ module.exports = class bittrex extends Exchange {
                 'price': 8,
             };
             let active = market['IsActive'];
-            result.push (this.extend (this.fees['trading'], {
+            result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -184,7 +184,7 @@ module.exports = class bittrex extends Exchange {
                         'max': undefined,
                     },
                 },
-            }));
+            });
         }
         return result;
     }
@@ -236,17 +236,20 @@ module.exports = class bittrex extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = this.parse8601 (ticker['TimeStamp']);
+        let timestamp = this.parse8601 (ticker['TimeStamp'] + '+00:00');
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
         let previous = this.safeFloat (ticker, 'PrevDay');
         let last = this.safeFloat (ticker, 'Last');
         let change = undefined;
+        let percentage = undefined;
         if (typeof last !== 'undefined')
-            if (typeof previous !== 'undefined')
+            if (typeof previous !== 'undefined') {
+                change = last - previous;
                 if (previous > 0)
-                    change = (last - previous) / previous;
+                    percentage = (change / previous) * 100;
+            }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -261,7 +264,7 @@ module.exports = class bittrex extends Exchange {
             'first': undefined,
             'last': last,
             'change': change,
-            'percentage': undefined,
+            'percentage': percentage,
             'average': undefined,
             'baseVolume': this.safeFloat (ticker, 'Volume'),
             'quoteVolume': this.safeFloat (ticker, 'BaseVolume'),
@@ -348,7 +351,7 @@ module.exports = class bittrex extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = this.parse8601 (trade['TimeStamp']);
+        let timestamp = this.parse8601 (trade['TimeStamp'] + '+00:00');
         let side = undefined;
         if (trade['OrderType'] === 'BUY') {
             side = 'buy';
@@ -385,7 +388,7 @@ module.exports = class bittrex extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {
-        let timestamp = this.parse8601 (ohlcv['T']);
+        let timestamp = this.parse8601 (ohlcv['T'] + '+00:00');
         return [
             timestamp,
             ohlcv['O'],
@@ -456,22 +459,10 @@ module.exports = class bittrex extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = undefined;
-        try {
-            let orderIdField = this.getOrderIdField ();
-            let request = {};
-            request[orderIdField] = id;
-            response = await this.marketGetCancel (this.extend (request, params));
-        } catch (e) {
-            if (this.last_json_response) {
-                let message = this.safeString (this.last_json_response, 'message');
-                if (message === 'ORDER_NOT_OPEN')
-                    throw new InvalidOrder (this.id + ' cancelOrder() error: ' + this.last_http_response);
-                if (message === 'UUID_INVALID')
-                    throw new OrderNotFound (this.id + ' cancelOrder() error: ' + this.last_http_response);
-            }
-            throw e;
-        }
+        let orderIdField = this.getOrderIdField ();
+        let request = {};
+        request[orderIdField] = id;
+        let response = await this.marketGetCancel (this.extend (request, params));
         return response;
     }
 
@@ -507,11 +498,11 @@ module.exports = class bittrex extends Exchange {
             symbol = market['symbol'];
         let timestamp = undefined;
         if ('Opened' in order)
-            timestamp = this.parse8601 (order['Opened']);
+            timestamp = this.parse8601 (order['Opened'] + '+00:00');
         if ('TimeStamp' in order)
-            timestamp = this.parse8601 (order['TimeStamp']);
+            timestamp = this.parse8601 (order['TimeStamp'] + '+00:00');
         if ('Created' in order)
-            timestamp = this.parse8601 (order['Created']);
+            timestamp = this.parse8601 (order['Created'] + '+00:00');
         let fee = undefined;
         let commission = undefined;
         if ('Commission' in order) {
@@ -684,23 +675,32 @@ module.exports = class bittrex extends Exchange {
 
     throwExceptionOnError (response) {
         if ('message' in response) {
-            if (response['message'] === 'APISIGN_NOT_PROVIDED')
+            let message = this.safeString (response, 'message');
+            if (message === 'APISIGN_NOT_PROVIDED')
                 throw new AuthenticationError (this.id + ' ' + this.json (response));
-            if (response['message'] === 'INVALID_SIGNATURE')
+            if (message === 'INVALID_SIGNATURE')
                 throw new AuthenticationError (this.id + ' ' + this.json (response));
-            if (response['message'] === 'INSUFFICIENT_FUNDS')
+            if (message === 'INVALID_PERMISSION')
+                throw new AuthenticationError (this.id + ' ' + this.json (response));
+            if (message === 'INSUFFICIENT_FUNDS')
                 throw new InsufficientFunds (this.id + ' ' + this.json (response));
-            if (response['message'] === 'MIN_TRADE_REQUIREMENT_NOT_MET')
+            if (message === 'QUANTITY_NOT_PROVIDED')
                 throw new InvalidOrder (this.id + ' ' + this.json (response));
-            if (response['message'] === 'APIKEY_INVALID') {
+            if (message === 'MIN_TRADE_REQUIREMENT_NOT_MET')
+                throw new InvalidOrder (this.id + ' ' + this.json (response));
+            if (message === 'APIKEY_INVALID') {
                 if (this.hasAlreadyAuthenticatedSuccessfully) {
                     throw new DDoSProtection (this.id + ' ' + this.json (response));
                 } else {
                     throw new AuthenticationError (this.id + ' ' + this.json (response));
                 }
             }
-            if (response['message'] === 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT')
+            if (message === 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT')
                 throw new InvalidOrder (this.id + ' order cost should be over 50k satoshi ' + this.json (response));
+            if (message === 'ORDER_NOT_OPEN')
+                throw new InvalidOrder (this.id + ' ' + this.json (response));
+            if (message === 'UUID_INVALID')
+                throw new OrderNotFound (this.id + ' ' + this.json (response));
         }
     }
 

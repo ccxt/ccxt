@@ -15,6 +15,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import InvalidNonce
 
 
 class bitfinex (Exchange):
@@ -33,12 +34,14 @@ class bitfinex (Exchange):
                 'deposit': True,
                 'fetchClosedOrders': True,
                 'fetchDepositAddress': True,
+                'fetchFees': True,
                 'fetchFundingFees': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchTickers': True,
+                'fetchTradingFees': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -222,14 +225,6 @@ class bitfinex (Exchange):
                         'ZRX': 5.6442,
                         'TNB': 87.511,
                         'SNT': 32.736,
-                        'QSH': None,
-                        'TRX': None,
-                        'RCN': None,
-                        'RLC': None,
-                        'AID': None,
-                        'SNG': None,
-                        'REP': None,
-                        'ELF': None,
                     },
                 },
             },
@@ -243,9 +238,10 @@ class bitfinex (Exchange):
                     'Key price should be a decimal number, e.g. "123.456"': InvalidOrder,  # on isNaN(price)
                     'Key amount should be a decimal number, e.g. "123.456"': InvalidOrder,  # on isNaN(amount)
                     'ERR_RATE_LIMIT': DDoSProtection,
+                    'Nonce is too small.': InvalidNonce,
                 },
                 'broad': {
-                    'Invalid order: not enough exchange balance for ': InsufficientFunds,  # when buy, cost > quote currency
+                    'Invalid order: not enough exchange balance for ': InsufficientFunds,  # when buying cost is greater than the available quote currency
                     'Invalid order: minimum size for ': InvalidOrder,  # when amount below limits.amount.min
                     'Invalid order': InvalidOrder,  # ?
                 },
@@ -263,8 +259,9 @@ class bitfinex (Exchange):
         }
         return currencies[currency] if (currency in list(currencies.keys())) else currency
 
-    def fetch_funding_fees(self):
-        response = self.privatePostAccountFees()
+    def fetch_funding_fees(self, params={}):
+        self.load_markets()
+        response = self.privatePostAccountFees(params)
         fees = response['withdraw']
         withdraw = {}
         ids = list(fees.keys())
@@ -281,8 +278,9 @@ class bitfinex (Exchange):
             'deposit': withdraw,  # only for deposits of less than $1000
         }
 
-    def fetch_trading_fees(self):
-        response = self.privatePostSummary()
+    def fetch_trading_fees(self, params={}):
+        self.load_markets()
+        response = self.privatePostSummary(params)
         return {
             'info': response,
             'maker': self.safe_float(response, 'maker_fee'),
@@ -297,7 +295,7 @@ class bitfinex (Exchange):
         # fees = self.fetch_funding_fees()
         # funding = self.deep_extend(funding, fees)
         # return funding
-        raise NotImplemented(self.id + ' loadFees() not implemented yet')
+        raise NotSupported(self.id + ' loadFees() not implemented yet')
 
     def fetch_fees(self):
         fundingFees = self.fetch_funding_fees()
@@ -368,9 +366,13 @@ class bitfinex (Exchange):
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
-        orderbook = self.publicGetBookSymbol(self.extend({
+        request = {
             'symbol': self.market_id(symbol),
-        }, params))
+        }
+        if limit is not None:
+            request['limit_bids'] = limit
+            request['limit_asks'] = limit
+        orderbook = self.publicGetBookSymbol(self.extend(request, params))
         return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'amount')
 
     def fetch_tickers(self, symbols=None, params={}):
@@ -439,6 +441,16 @@ class bitfinex (Exchange):
         price = float(trade['price'])
         amount = float(trade['amount'])
         cost = price * amount
+        fee = None
+        if 'fee_amount' in trade:
+            feeCost = self.safe_float(trade, 'fee_amount')
+            feeCurrency = self.safe_string(trade, 'fee_currency')
+            if feeCurrency in self.currencies_by_id:
+                feeCurrency = self.currencies_by_id[feeCurrency]['code']
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            }
         return {
             'id': str(trade['tid']),
             'info': trade,
@@ -451,15 +463,19 @@ class bitfinex (Exchange):
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': None,
+            'fee': fee,
         }
 
-    def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    def fetch_trades(self, symbol, since=None, limit=50, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetTradesSymbol(self.extend({
+        request = {
             'symbol': market['id'],
-        }, params))
+            'limit_trades': limit,
+        }
+        if since is not None:
+            request['timestamp'] = int(since / 1000)
+        response = self.publicGetTradesSymbol(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
@@ -579,7 +595,7 @@ class bitfinex (Exchange):
             ohlcv[5],
         ]
 
-    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=100, params={}):
         self.load_markets()
         market = self.market(symbol)
         v2id = 't' + market['id']
@@ -587,9 +603,8 @@ class bitfinex (Exchange):
             'symbol': v2id,
             'timeframe': self.timeframes[timeframe],
             'sort': 1,
+            'limit': limit,
         }
-        if limit is not None:
-            request['limit'] = limit
         if since is not None:
             request['start'] = since
         request = self.extend(request, params)
@@ -602,15 +617,19 @@ class bitfinex (Exchange):
             'LTC': 'litecoin',
             'ETH': 'ethereum',
             'ETC': 'ethereumc',
-            'OMNI': 'mastercoin',  # left by previous author, now throws {"message":"Unknown method"}
+            'OMNI': 'mastercoin',
             'ZEC': 'zcash',
             'XMR': 'monero',
-            'USD': 'wire',  # left by previous author, now throws {"message":"Unknown method"}
+            'USD': 'wire',
             'DASH': 'dash',
             'XRP': 'ripple',
             'EOS': 'eos',
-            'BCH': 'bcash',
-            'USDT': 'tetheruso',
+            'BCH': 'bcash',  # undocumented
+            'USDT': 'tetheruso',  # undocumented
+            'NEO': 'neo',  # #1811
+            'AVT': 'aventus',  # #1811
+            'QTUM': 'qtum',  # #1811
+            'EDO': 'eidoo',  # #1811
         }
         if currency in names:
             return names[currency]

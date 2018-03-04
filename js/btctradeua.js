@@ -17,6 +17,7 @@ module.exports = class btctradeua extends Exchange {
             'has': {
                 'CORS': true,
                 'createMarketOrder': false,
+                'fetchOpenOrders': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27941483-79fc7350-62d9-11e7-9f61-ac47f28fcd96.jpg',
@@ -133,15 +134,6 @@ module.exports = class btctradeua extends Exchange {
         let response = await this.publicGetJapanStatHighSymbol (this.extend ({
             'symbol': this.marketId (symbol),
         }, params));
-        let orderbook = await this.fetchOrderBook (symbol);
-        let bid = undefined;
-        let numBids = orderbook['bids'].length;
-        if (numBids > 0)
-            bid = orderbook['bids'][0][0];
-        let ask = undefined;
-        let numAsks = orderbook['asks'].length;
-        if (numAsks > 0)
-            ask = orderbook['asks'][0][0];
         let ticker = response['trades'];
         let timestamp = this.milliseconds ();
         let result = {
@@ -150,13 +142,13 @@ module.exports = class btctradeua extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
             'low': undefined,
-            'bid': bid,
-            'ask': ask,
+            'bid': undefined,
+            'ask': undefined,
             'vwap': undefined,
             'open': undefined,
             'close': undefined,
-            'first': undefined,
             'last': undefined,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
@@ -181,7 +173,8 @@ module.exports = class btctradeua extends Exchange {
                     result['baseVolume'] -= candle[5];
             }
             let last = tickerLength - 1;
-            result['close'] = ticker[last][4];
+            result['last'] = ticker[last][4];
+            result['close'] = result['last'];
             result['baseVolume'] = -1 * result['baseVolume'];
         }
         return result;

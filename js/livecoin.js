@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, NotSupported, InvalidOrder, OrderNotFound, ExchangeNotAvailable } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, NotSupported, InvalidOrder, OrderNotFound, ExchangeNotAvailable, DDoSProtection } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -19,6 +19,7 @@ module.exports = class livecoin extends Exchange {
                 'CORS': false,
                 'fetchTickers': true,
                 'fetchCurrencies': true,
+                'fetchFees': true,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
@@ -117,7 +118,7 @@ module.exports = class livecoin extends Exchange {
                 'min': Math.pow (10, -precision['price']),
                 'max': Math.pow (10, precision['price']),
             };
-            result.push (this.extend (this.fees['trading'], {
+            result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -125,7 +126,7 @@ module.exports = class livecoin extends Exchange {
                 'precision': precision,
                 'limits': limits,
                 'info': market,
-            }));
+            });
         }
         return result;
     }
@@ -236,14 +237,20 @@ module.exports = class livecoin extends Exchange {
     }
 
     async fetchFees (params = {}) {
+        let tradingFees = await this.fetchTradingFees (params);
+        return this.extend (tradingFees, {
+            'withdraw': {},
+        });
+    }
+
+    async fetchTradingFees (params = {}) {
         await this.loadMarkets ();
-        let commissionInfo = await this.privateGetExchangeCommissionCommonInfo ();
-        let commission = this.safeFloat (commissionInfo, 'commission');
+        let response = await this.privateGetExchangeCommissionCommonInfo (params);
+        const commission = this.safeFloat (response, 'commission');
         return {
-            'info': commissionInfo,
+            'info': response,
             'maker': commission,
             'taker': commission,
-            'withdraw': 0.0,
         };
     }
 
@@ -358,7 +365,9 @@ module.exports = class livecoin extends Exchange {
             status = 'canceled';
         }
         let symbol = order['currencyPair'];
-        let [ base, quote ] = symbol.split ('/');
+        let parts = symbol.split ('/');
+        let quote = parts[1];
+        // let [ base, quote ] = symbol.split ('/');
         let type = undefined;
         let side = undefined;
         if (order['type'].indexOf ('MARKET') >= 0) {
@@ -554,6 +563,8 @@ module.exports = class livecoin extends Exchange {
                         throw new InvalidOrder (this.id + ': Unable to block funds ' + this.json (response));
                     } else if (error === 503) {
                         throw new ExchangeNotAvailable (this.id + ': Exchange is not available ' + this.json (response));
+                    } else if (error === 429) {
+                        throw new DDoSProtection (this.id + ': Too many requests' + this.json (response));
                     } else {
                         throw new ExchangeError (this.id + ' ' + this.json (response));
                     }

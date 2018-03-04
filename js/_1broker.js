@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, NotSupported } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -157,7 +157,7 @@ module.exports = class _1broker extends Exchange {
     }
 
     async fetchTrades (symbol) {
-        throw new ExchangeError (this.id + ' fetchTrades () method not implemented yet');
+        throw new NotSupported (this.id + ' fetchTrades () method not implemented yet');
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -167,24 +167,26 @@ module.exports = class _1broker extends Exchange {
             'resolution': 60,
             'limit': 1,
         }, params));
-        let orderbook = await this.fetchOrderBook (symbol);
         let ticker = result['response'][0];
         let timestamp = this.parse8601 (ticker['date']);
+        let open = parseFloat (ticker['o']);
+        let close = parseFloat (ticker['c']);
+        let change = close - open;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': parseFloat (ticker['h']),
             'low': parseFloat (ticker['l']),
-            'bid': orderbook['bids'][0][0],
-            'ask': orderbook['asks'][0][0],
+            'bid': undefined,
+            'ask': undefined,
             'vwap': undefined,
-            'open': parseFloat (ticker['o']),
-            'close': parseFloat (ticker['c']),
-            'first': undefined,
-            'last': undefined,
-            'change': undefined,
-            'percentage': undefined,
+            'open': open,
+            'close': close,
+            'last': close,
+            'previousClose': undefined,
+            'change': change,
+            'percentage': change / open * 100,
             'average': undefined,
             'baseVolume': undefined,
             'quoteVolume': undefined,

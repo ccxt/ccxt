@@ -20,11 +20,16 @@ class cobinhood (Exchange):
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
+                'fetchOrder': True,
+            },
+            'requiredCredentials': {
+                'apiKey': True,
+                'secret': False,
             },
             'timeframes': {
                 # the first two don't seem to work at all
-                # '1m': '1m',
-                # '5m': '5m',
+                '1m': '1m',
+                '5m': '5m',
                 '15m': '15m',
                 '30m': '30m',
                 '1h': '1h',
@@ -253,7 +258,7 @@ class cobinhood (Exchange):
         if limit is not None:
             request['limit'] = limit  # 100
         response = self.publicGetMarketOrderbooksTradingPairId(self.extend(request, params))
-        return self.parse_order_book(response['result']['orderbook'])
+        return self.parse_order_book(response['result']['orderbook'], None, 'bids', 'asks', 0, 2)
 
     def parse_trade(self, trade, market=None):
         symbol = None
@@ -300,20 +305,28 @@ class cobinhood (Exchange):
             float(ohlcv['volume']),
         ]
 
-    def fetch_ohlcv(self, symbol, timeframe='15m', since=None, limit=None, params={}):
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        query = {
+        #
+        # they say in their docs that end_time defaults to current server time
+        # but if you don't specify it, their range limits does not allow you to query anything
+        #
+        # they also say that start_time defaults to 0,
+        # but most calls fail if you do not specify any of end_time
+        #
+        # to make things worse, their docs say it should be a Unix Timestamp
+        # but with seconds it fails, so we set milliseconds(somehow it works that way)
+        #
+        endTime = self.milliseconds()
+        request = {
             'trading_pair_id': market['id'],
             'timeframe': self.timeframes[timeframe],
-            # they say in their docs that end_time defaults to current server time
-            # but if you don't specify it, their range limits does not allow you to query anything
-            'end_time': self.milliseconds(),
+            'end_time': endTime,
         }
-        if since:
-            # in their docs they say that start_time defaults to 0, but, obviously it does not
-            query['start_time'] = since
-        response = self.publicGetChartCandlesTradingPairId(self.extend(query, params))
+        if since is not None:
+            request['start_time'] = since
+        response = self.publicGetChartCandlesTradingPairId(self.extend(request, params))
         ohlcv = response['result']['candles']
         return self.parse_ohlcvs(ohlcv, market, timeframe, since, limit)
 
@@ -324,14 +337,14 @@ class cobinhood (Exchange):
         balances = response['result']['balances']
         for i in range(0, len(balances)):
             balance = balances[i]
-            id = balance['currency']
-            currency = self.common_currency_code(id)
+            currency = balance['currency']
+            if currency in self.currencies_by_id:
+                currency = self.currencies_by_id[currency]['code']
             account = {
-                'free': float(balance['total']),
                 'used': float(balance['on_order']),
-                'total': 0.0,
+                'total': float(balance['total']),
             }
-            account['total'] = self.sum(account['free'], account['used'])
+            account['free'] = float(account['total'] - account['used'])
             result[currency] = account
         return self.parse_balance(result)
 
@@ -346,7 +359,7 @@ class cobinhood (Exchange):
         price = float(order['price'])
         amount = float(order['size'])
         filled = float(order['filled'])
-        remaining = self.amount_to_precision(symbol, amount - filled)
+        remaining = amount - filled
         # new, queued, open, partially_filled, filled, cancelled
         status = order['state']
         if status == 'filled':
@@ -355,15 +368,14 @@ class cobinhood (Exchange):
             status = 'canceled'
         else:
             status = 'open'
-        side = order['side'] == 'buy' if 'bid' else 'sell'
+        side = 'buy' if (order['side'] == 'bid') else 'sell'
         return {
             'id': order['id'],
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'status': status,
             'symbol': symbol,
-            # market, limit, stop, stop_limit, trailing_stop, fill_or_kill
-            'type': order['type'],
+            'type': order['type'],  # market, limit, stop, stop_limit, trailing_stop, fill_or_kill
             'side': side,
             'price': price,
             'cost': price * amount,
@@ -378,13 +390,13 @@ class cobinhood (Exchange):
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        side = (side == 'ask' if 'sell' else 'bid')
+        side = 'ask' if (side == 'sell') else 'bid'
         request = {
             'trading_pair_id': market['id'],
             # market, limit, stop, stop_limit
             'type': type,
             'side': side,
-            'size': self.amount_to_precision(symbol, amount),
+            'size': self.amount_to_string(symbol, amount),
         }
         if type != 'market':
             request['price'] = self.price_to_precision(symbol, price)
@@ -407,12 +419,21 @@ class cobinhood (Exchange):
         }, params))
         return self.parse_order(response['result']['order'])
 
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        result = self.privateGetTradingOrders(params)
+        orders = self.parse_orders(result['result']['orders'], None, since, limit)
+        if symbol is not None:
+            return self.filter_orders_by_symbol(orders, symbol)
+        return orders
+
     def fetch_order_trades(self, id, symbol=None, params={}):
         self.load_markets()
         response = self.privateGetTradingOrdersOrderIdTrades(self.extend({
             'order_id': id,
         }, params))
-        return self.parse_trades(response['result'])
+        market = None if (symbol is None) else self.market(symbol)
+        return self.parse_trades(response['result'], market)
 
     def create_deposit_address(self, code, params={}):
         self.load_markets()
@@ -465,9 +486,9 @@ class cobinhood (Exchange):
         headers = {}
         if api == 'private':
             self.check_required_credentials()
-            headers['device_id'] = self.apiKey
-            headers['nonce'] = self.nonce()
-            headers['Authorization'] = self.jwt(query, self.secret)
+            # headers['device_id'] = self.apiKey
+            headers['nonce'] = str(self.nonce())
+            headers['Authorization'] = self.apiKey
         if method == 'GET':
             query = self.urlencode(query)
             if len(query):

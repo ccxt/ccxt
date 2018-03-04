@@ -158,6 +158,7 @@ class bitlish extends Exchange {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
+        $last = $this->safe_float($ticker, 'last');
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -167,12 +168,12 @@ class bitlish extends Exchange {
             'bid' => null,
             'ask' => null,
             'vwap' => null,
-            'open' => null,
-            'close' => null,
-            'first' => $this->safe_float($ticker, 'first'),
-            'last' => $this->safe_float($ticker, 'last'),
+            'open' => $this->safe_float($ticker, 'first'),
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
             'change' => null,
-            'percentage' => $this->safe_float($ticker, 'prc'),
+            'percentage' => $this->safe_float($ticker, 'prc') * 100,
             'average' => null,
             'baseVolume' => $this->safe_float($ticker, 'sum'),
             'quoteVolume' => null,

@@ -114,20 +114,20 @@ class _1btcxe (Exchange):
             'currency': self.market_id(symbol),
         }, params))
         ticker = response['stats']
-        timestamp = self.milliseconds()
+        last = float(ticker['last_price'])
         return {
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'high': float(ticker['max']),
             'low': float(ticker['min']),
             'bid': float(ticker['bid']),
             'ask': float(ticker['ask']),
             'vwap': None,
             'open': float(ticker['open']),
-            'close': None,
-            'first': None,
-            'last': float(ticker['last_price']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': float(ticker['daily_change']),
             'percentage': None,
             'average': None,

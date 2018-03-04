@@ -153,6 +153,7 @@ class btcchina extends Exchange {
 
     public function parse_ticker ($ticker, $market) {
         $timestamp = $ticker['date'] * 1000;
+        $last = floatval ($ticker['last']);
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -162,9 +163,9 @@ class btcchina extends Exchange {
             'ask' => floatval ($ticker['sell']),
             'vwap' => floatval ($ticker['vwap']),
             'open' => floatval ($ticker['open']),
-            'close' => floatval ($ticker['prev_close']),
-            'first' => null,
-            'last' => floatval ($ticker['last']),
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
@@ -189,8 +190,6 @@ class btcchina extends Exchange {
             'ask' => floatval ($ticker['AskPrice']),
             'vwap' => null,
             'open' => floatval ($ticker['Open']),
-            'close' => floatval ($ticker['PrevCls']),
-            'first' => null,
             'last' => floatval ($ticker['Last']),
             'change' => null,
             'percentage' => null,

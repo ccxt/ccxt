@@ -17,6 +17,7 @@ class poloniex extends Exchange {
                 'createDepositAddress' => true,
                 'fetchDepositAddress' => true,
                 'CORS' => false,
+                'editOrder' => true,
                 'createMarketOrder' => false,
                 'fetchOHLCV' => true,
                 'fetchMyTrades' => true,
@@ -163,7 +164,7 @@ class poloniex extends Exchange {
             $ohlcv['high'],
             $ohlcv['low'],
             $ohlcv['close'],
-            $ohlcv['volume'],
+            $ohlcv['quoteVolume'],
         ];
     }
 
@@ -257,6 +258,16 @@ class poloniex extends Exchange {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
+        $open = null;
+        $change = null;
+        $average = null;
+        $last = floatval ($ticker['last']);
+        $relativeChange = floatval ($ticker['percentChange']);
+        if ($relativeChange !== -1) {
+            $open = $last / $this->sum (1, $relativeChange);
+            $change = $last - $open;
+            $average = $this->sum ($last, $open) / 2;
+        }
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -266,13 +277,13 @@ class poloniex extends Exchange {
             'bid' => floatval ($ticker['highestBid']),
             'ask' => floatval ($ticker['lowestAsk']),
             'vwap' => null,
-            'open' => null,
-            'close' => null,
-            'first' => null,
-            'last' => floatval ($ticker['last']),
-            'change' => floatval ($ticker['percentChange']),
-            'percentage' => null,
-            'average' => null,
+            'open' => $open,
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
+            'change' => $change,
+            'percentage' => $relativeChange * 100,
+            'average' => $average,
             'baseVolume' => floatval ($ticker['quoteVolume']),
             'quoteVolume' => floatval ($ticker['baseVolume']),
             'info' => $ticker,
@@ -317,7 +328,7 @@ class poloniex extends Exchange {
                 'name' => $currency['name'],
                 'active' => $active,
                 'status' => $status,
-                'fee' => $currency['txFee'], // todo => redesign
+                'fee' => $this->safe_float($currency, 'txFee'), // todo => redesign
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
@@ -559,12 +570,17 @@ class poloniex extends Exchange {
             } else {
                 $order = $this->orders[$id];
                 if ($order['status'] === 'open') {
-                    $this->orders[$id] = array_merge ($order, array (
+                    $order = array_merge ($order, array (
                         'status' => 'closed',
-                        'cost' => $order['amount'] * $order['price'],
+                        'cost' => null,
                         'filled' => $order['amount'],
                         'remaining' => 0.0,
                     ));
+                    if ($order['cost'] == null) {
+                        if ($order['filled'] != null)
+                            $order['cost'] = $order['filled'] * $order['price'];
+                    }
+                    $this->orders[$id] = $order;
                 }
             }
             $order = $this->orders[$id];
@@ -587,7 +603,7 @@ class poloniex extends Exchange {
             if ($orders[$i]['id'] === $id)
                 return $orders[$i];
         }
-        throw new OrderNotCached ($this->id . ' order $id ' . (string) $id . ' not found in cache');
+        throw new OrderNotCached ($this->id . ' order $id ' . (string) $id . ' is not in "open" state and not found in cache');
     }
 
     public function filter_orders_by_status ($orders, $status) {
@@ -677,15 +693,25 @@ class poloniex extends Exchange {
             $response = $this->privatePostCancelOrder (array_merge (array (
                 'orderNumber' => $id,
             ), $params));
-            if (is_array ($this->orders) && array_key_exists ($id, $this->orders))
-                $this->orders[$id]['status'] = 'canceled';
         } catch (Exception $e) {
-            if ($this->last_http_response) {
-                if (mb_strpos ($this->last_http_response, 'Invalid order') !== false)
-                    throw new OrderNotFound ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
+            if ($e instanceof CancelPending) {
+                // A request to cancel the order has been sent already.
+                // If we then attempt to cancel the order the second time
+                // before the first request is processed the exchange will
+                // throw a CancelPending exception. Poloniex won't show the
+                // order in the list of active (open) orders and the cached
+                // order will be marked as 'closed' (see #1801 for details).
+                // To avoid that we proactively mark the order as 'canceled'
+                // here. If for some reason the order does not get canceled
+                // and still appears in the active list then the order cache
+                // will eventually get back in sync on a call to `fetchOrder`.
+                if (is_array ($this->orders) && array_key_exists ($id, $this->orders))
+                    $this->orders[$id]['status'] = 'canceled';
             }
             throw $e;
         }
+        if (is_array ($this->orders) && array_key_exists ($id, $this->orders))
+            $this->orders[$id]['status'] = 'canceled';
         return $response;
     }
 
@@ -775,34 +801,35 @@ class poloniex extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
-        if ($body[0] === '{') {
+        $response = null;
+        try {
             $response = json_decode ($body, $as_associative_array = true);
-            if (is_array ($response) && array_key_exists ('error', $response)) {
-                $error = $this->id . ' ' . $body;
-                if ($response['error'] === 'Invalid order number, or you are not the person who placed the order.') {
-                    throw new OrderNotFound ($error);
-                } else if (mb_strpos ($response['error'], 'Total must be at least') !== false) {
-                    throw new InvalidOrder ($error);
-                } else if (mb_strpos ($response['error'], 'Not enough') !== false) {
-                    throw new InsufficientFunds ($error);
-                } else if (mb_strpos ($response['error'], 'Nonce must be greater') !== false) {
-                    throw new ExchangeNotAvailable ($error);
-                } else if (mb_strpos ($response['error'], 'You have already called cancelOrder or moveOrder on this order.') !== false) {
-                    throw new CancelPending ($error);
-                }
+        } catch (Exception $e) {
+            // syntax $error, resort to default $error handler
+            return;
+        }
+        if (is_array ($response) && array_key_exists ('error', $response)) {
+            $error = $response['error'];
+            $feedback = $this->id . ' ' . $this->json ($response);
+            if ($error === 'Invalid order number, or you are not the person who placed the order.') {
+                throw new OrderNotFound ($feedback);
+            } else if ($error === 'Order not found, or you are not the person who placed it.') {
+                throw new OrderNotFound ($feedback);
+            } else if ($error === 'Invalid API key/secret pair.') {
+                throw new AuthenticationError ($feedback);
+            } else if ($error === 'Please do not make more than 8 API calls per second.') {
+                throw new DDoSProtection ($feedback);
+            } else if (mb_strpos ($error, 'Total must be at least') !== false) {
+                throw new InvalidOrder ($feedback);
+            } else if (mb_strpos ($error, 'Not enough') !== false) {
+                throw new InsufficientFunds ($feedback);
+            } else if (mb_strpos ($error, 'Nonce must be greater') !== false) {
+                throw new InvalidNonce ($feedback);
+            } else if (mb_strpos ($error, 'You have already called cancelOrder or moveOrder on this order.') !== false) {
+                throw new CancelPending ($feedback);
+            } else {
+                throw new ExchangeError ($this->id . ' => unknown $error => ' . $this->json ($response));
             }
         }
-    }
-
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (is_array ($response) && array_key_exists ('error', $response)) {
-            $error = $this->id . ' ' . $this->json ($response);
-            $failed = mb_strpos ($response['error'], 'Not enough') !== false;
-            if ($failed)
-                throw new InsufficientFunds ($error);
-            throw new ExchangeError ($error);
-        }
-        return $response;
     }
 }

@@ -56,6 +56,7 @@ const commonRegexes = [
     [ /\.parseBalance\s/g, '.parse_balance'],
     [ /\.parseOHLCVs\s/g, '.parse_ohlcvs'],
     [ /\.parseOHLCV\s/g, '.parse_ohlcv'],
+    [ /\.parseDate\s/g, '.parse_date'],
     [ /\.parseTicker\s/g, '.parse_ticker'],
     [ /\.parseTradesData\s/g, '.parse_trades_data'],
     [ /\.parseTrades\s/g, '.parse_trades'],
@@ -73,8 +74,13 @@ const commonRegexes = [
     [ /\.sortBy\s/g, '.sort_by'],
     [ /\.filterBy\s/g, '.filter_by'],
     [ /\.groupBy\s/g, '.group_by'],
+    [ /\.findMarket\s/g, '.find_market'],
+    [ /\.findSymbol\s/g, '.find_symbol'],
     [ /\.marketIds\s/g, '.market_ids'],
     [ /\.marketId\s/g, '.market_id'],
+    [ /\.fetchFundingFees\s/g, '.fetch_funding_fees'],
+    [ /\.fetchTradingFees\s/g, '.fetch_trading_fees'],
+    [ /\.fetchFees\s/g, '.fetch_fees'],
     [ /\.fetchL2OrderBook\s/g, '.fetch_l2_order_book'],
     [ /\.fetchOrderBook\s/g, '.fetch_order_book'],
     [ /\.fetchMyTrades\s/g, '.fetch_my_trades'],
@@ -82,6 +88,7 @@ const commonRegexes = [
     [ /\.fetchOpenOrders\s/g, '.fetch_open_orders'],
     [ /\.fetchOpenOrder\s/g, '.fetch_open_order'],
     [ /\.fetchOrders\s/g, '.fetch_orders'],
+    [ /\.fetchOrderTrades\s/g, '.fetch_order_trades'],
     [ /\.fetchOrder\s/g, '.fetch_order'],
     [ /\.fetchBidsAsks\s/g, '.fetch_bids_asks'],
     [ /\.fetchTickers\s/g, '.fetch_tickers'],
@@ -94,6 +101,7 @@ const commonRegexes = [
     [ /\.feeToPrecision\s/g, '.fee_to_precision'],
     [ /\.costToPrecision\s/g, '.cost_to_precision'],
     [ /\.commonCurrencyCode\s/g, '.common_currency_code'],
+    [ /\.loadFees\s/g, '.load_fees'],
     [ /\.loadMarkets\s/g, '.load_markets'],
     [ /\.fetchMarkets\s/g, '.fetch_markets'],
     [ /\.appendInactiveMarkets\s/g, '.append_inactive_markets'],
@@ -114,6 +122,7 @@ const commonRegexes = [
 const pythonRegexes = [
 
         [ /Array\.isArray\s*\(([^\)]+)\)/g, 'isinstance($1, list)' ],
+        [ /([^\(\s]+)\s+instanceof\s+([^\)\s]+)/g, 'isinstance($1, $2)' ],
         [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2] is None' ],
         [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'undefined\'/g, '$1[$2] is not None' ],
         [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'undefined\'/g, '$1 is None' ],
@@ -182,7 +191,7 @@ const pythonRegexes = [
         [ /Math\.round\s*\(([^\)]+)\)/g, 'int(round($1))' ],
         [ /Math\.ceil\s*\(([^\)]+)\)/g, 'int(ceil($1))' ],
         [ /Math\.log/g, 'math.log' ],
-        [ /(\([^\)]+\)|[^\s]+)\s*\?\s*(\([^\)]+\)|[^\s]+)\s*\:\s*(\([^\)]+\)|[^\s]+)/g, '$2 if $1 else $3'],
+        [ /(\([^\)]+\)|[^\s]+)\s*\?\s*([^\:]+)\s+\:\s*([^\n]+)/g, '$2 if $1 else $3'],
         [ / \/\//g, ' #' ],
         [ /([^\n\s]) #/g, '$1  #' ],   // PEP8 E261
         [ /\.indexOf/g, '.find'],
@@ -195,12 +204,12 @@ const pythonRegexes = [
         [ /Math\.(max|min)\s/g, '$1' ],
         [ /console\.log\s/g, 'print'],
         [ /process\.exit\s+/g, 'sys.exit'],
-        [ /([^:+=\s]+) \(/g, '$1(' ], // PEP8 E225 remove whitespaces before left ( round bracket
+        [ /([^:+=\/\*\s-]+) \(/g, '$1(' ], // PEP8 E225 remove whitespaces before left ( round bracket
         [ /\[ /g, '[' ],              // PEP8 E201 remove whitespaces after left [ square bracket
         [ /\{ /g, '{' ],              // PEP8 E201 remove whitespaces after left { bracket
         [ /([^\s]+) \]/g, '$1]' ],    // PEP8 E202 remove whitespaces before right ] square bracket
         [ /([^\s]+) \}/g, '$1}' ],    // PEP8 E202 remove whitespaces before right } bracket
-        [ /([^a-z])(elif|if|or)\(/g, '$1$2 \(' ], // a correction for PEP8 E225 side-effect for compound and ternary conditionals
+        [ /([^a-z])(elif|if|or|else)\(/g, '$1$2 \(' ], // a correction for PEP8 E225 side-effect for compound and ternary conditionals
         [ /\=\=\sTrue/g, 'is True' ], // a correction for PEP8 E712, it likes "is True", not "== True"
     ])
 
@@ -214,7 +223,6 @@ const pythonRegexes = [
 
     const phpRegexes = [
         [ /\{([a-zA-Z0-9_]+?)\}/g, '<$1>' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
-
         [ /Array\.isArray\s*\(([^\)]+)\)/g, "gettype ($1) === 'array' && count (array_filter (array_keys ($1), 'is_string')) == 0" ],
         [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2] == null' ],
         [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'undefined\'/g, '$1[$2] != null' ],
@@ -250,7 +258,7 @@ const pythonRegexes = [
         [ /throw new Error \((.*)\)/g, 'throw new \\Exception ($1)' ],
         [ /throw new ([\S]+) \((.*)\)/g, 'throw new $1 ($2)' ],
         [ /throw ([\S]+)\;/g, 'throw $$$1;' ],
-        [ '(' + Object.keys (errors).join ('|') + ')([^\\s])', "'\\\\ccxt\\\\$1'$2" ],
+        [ '([^a-z]+) (' + Object.keys (errors).join ('|') + ')([^\\s])', "$1 '\\\\ccxt\\\\$2'$3" ],
         [ /\}\s+catch \(([\S]+)\) {/g, '} catch (Exception $$$1) {' ],
         [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(\<=|\>=|<|>)\s*(.*)\.length\s*\;([^\)]+)\)\s*{/g, 'for ($1 = $2; $1 $3 count ($4);$5) {' ],
         [ /([^\s]+)\.length\;/g, 'is_array ($1) ? count ($1) : 0;' ],
@@ -277,13 +285,13 @@ const pythonRegexes = [
         [ /parseInt\s/g, 'intval '],
         [ / \+ /g, ' . ' ],
         [ / \+\= /g, ' .= ' ],
-        [ /([^\s]+(?:\s*\(.+\))?)\.toUpperCase\s*\(\)/g, 'strtoupper ($1)' ],
-        [ /([^\s]+(?:\s*\(.+\))?)\.toLowerCase\s*\(\)/g, 'strtolower ($1)' ],
-        [ /([^\s]+(?:\s*\(.+\))?)\.replace\s*\(([^\)]+)\)/g, 'str_replace ($2, $1)' ],
+        [ /([^\s\(]+(?:\s*\(.+\))?)\.toUpperCase\s*\(\)/g, 'strtoupper ($1)' ],
+        [ /([^\s\(]+(?:\s*\(.+\))?)\.toLowerCase\s*\(\)/g, 'strtolower ($1)' ],
+        [ /([^\s\(]+(?:\s*\(.+\))?)\.replace\s*\(([^\)]+)\)/g, 'str_replace ($2, $1)' ],
         [ /this\[([^\]+]+)\]/g, '$$this->$$$1' ],
-        [ /([^\s]+).slice \(([^\)\:]+)\)/g, 'mb_substr ($1, $2)' ],
-        [ /([^\s]+).slice \(([^\,\)]+)\,\s*([^\)]+)\)/g, 'mb_substr ($1, $2, $3)' ],
-        [ /([^\s]+).split \(([^\,]+?)\)/g, 'explode ($2, $1)' ],
+        [ /([^\s\(]+).slice \(([^\)\:]+)\)/g, 'mb_substr ($1, $2)' ],
+        [ /([^\s\(]+).slice \(([^\,\)]+)\,\s*([^\)]+)\)/g, 'mb_substr ($1, $2, $3)' ],
+        [ /([^\s\(]+).split \(([^\,]+?)\)/g, 'explode ($2, $1)' ],
         [ /Math\.floor\s*\(([^\)]+)\)/g, '(int) floor ($1)' ],
         [ /Math\.abs\s*\(([^\)]+)\)/g, 'abs ($1)' ],
         [ /Math\.round\s*\(([^\)]+)\)/g, '(int) round ($1)' ],
@@ -505,6 +513,12 @@ const pythonRegexes = [
                 variables.push (localVariablesMatches[1])       // add them to the list of local variables
             }
 
+            let catchClauseRegex = /catch \(([^)]+)\)/g
+            let catchClauseMatches
+            while (catchClauseMatches = catchClauseRegex.exec (body)) {
+                variables.push (catchClauseMatches[1])
+            }
+
             // append $ to all variables in the method (PHP syntax demands $ at the beginning of a variable name)
             let phpVariablesRegexes = variables.map (x => [ "([^$$a-zA-Z0-9\\.\\>'_])" + x + "([^a-zA-Z0-9'_])", '$1$$' + x + '$2' ])
 
@@ -666,6 +680,7 @@ const pythonRegexes = [
                             line.replace ('asyncio.get_event_loop().run_until_complete(main())', 'main()')
                                 .replace ('import ccxt.async as ccxt', 'import ccxt')
                                 .replace (/.*token\_bucket.*/g, '')
+                                .replace ('await asyncio.sleep', 'time.sleep')
                                 .replace ('async ', '')
                                 .replace ('await ', ''))
                     })

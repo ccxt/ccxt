@@ -22,7 +22,9 @@ class huobipro extends Exchange {
                 'CORS' => false,
                 'fetchOHCLV' => true,
                 'fetchOrders' => true,
+                'fetchOrder' => true,
                 'fetchOpenOrders' => true,
+                'fetchDepositAddress' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array (
@@ -70,6 +72,7 @@ class huobipro extends Exchange {
                         'order/orders', // 查询当前委托、历史委托
                         'order/matchresults', // 查询当前成交、历史成交
                         'dw/withdraw-virtual/addresses', // 查询虚拟币提现地址
+                        'dw/deposit-virtual/addresses',
                     ),
                     'post' => array (
                         'order/orders/place', // 创建并执行一个新订单 (一步下单， 推荐使用)
@@ -153,22 +156,41 @@ class huobipro extends Exchange {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
-        $last = null;
-        if (is_array ($ticker) && array_key_exists ('last', $ticker))
-            $last = $ticker['last'];
         $timestamp = $this->milliseconds ();
         if (is_array ($ticker) && array_key_exists ('ts', $ticker))
             $timestamp = $ticker['ts'];
         $bid = null;
         $ask = null;
+        $bidVolume = null;
+        $askVolume = null;
         if (is_array ($ticker) && array_key_exists ('bid', $ticker)) {
-            if ($ticker['bid'])
+            if (gettype ($ticker['bid']) === 'array' && count (array_filter (array_keys ($ticker['bid']), 'is_string')) == 0) {
                 $bid = $this->safe_float($ticker['bid'], 0);
+                $bidVolume = $this->safe_float($ticker['bid'], 1);
+            }
         }
         if (is_array ($ticker) && array_key_exists ('ask', $ticker)) {
-            if ($ticker['ask'])
+            if (gettype ($ticker['ask']) === 'array' && count (array_filter (array_keys ($ticker['ask']), 'is_string')) == 0) {
                 $ask = $this->safe_float($ticker['ask'], 0);
+                $askVolume = $this->safe_float($ticker['ask'], 1);
+            }
         }
+        $open = $this->safe_float($ticker, 'open');
+        $close = $this->safe_float($ticker, 'close');
+        $change = null;
+        $percentage = null;
+        $average = null;
+        if (($open !== null) && ($close !== null)) {
+            $change = $close - $open;
+            $average = $this->sum ($open, $close) / 2;
+            if (($close !== null) && ($close > 0))
+                $percentage = ($change / $open) * 100;
+        }
+        $baseVolume = $this->safe_float($ticker, 'amount');
+        $quoteVolume = $this->safe_float($ticker, 'vol');
+        $vwap = null;
+        if ($baseVolume !== null && $quoteVolume !== null && $baseVolume > 0)
+            $vwap = $quoteVolume / $baseVolume;
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -176,17 +198,18 @@ class huobipro extends Exchange {
             'high' => $ticker['high'],
             'low' => $ticker['low'],
             'bid' => $bid,
+            'bidVolume' => $bidVolume,
             'ask' => $ask,
-            'vwap' => null,
-            'open' => $ticker['open'],
-            'close' => $ticker['close'],
-            'first' => null,
-            'last' => $last,
-            'change' => null,
-            'percentage' => null,
-            'average' => null,
-            'baseVolume' => floatval ($ticker['amount']),
-            'quoteVolume' => $ticker['vol'],
+            'askVolume' => $askVolume,
+            'vwap' => $vwap,
+            'open' => $open,
+            'close' => $close,
+            'last' => $close,
+            'change' => $change,
+            'percentage' => $percentage,
+            'average' => $average,
+            'baseVolume' => $baseVolume,
+            'quoteVolume' => $quoteVolume,
             'info' => $ticker,
         );
     }
@@ -356,6 +379,14 @@ class huobipro extends Exchange {
         ), $params));
     }
 
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
+        $response = $this->privateGetOrderOrdersId (array_merge (array (
+            'id' => $id,
+        ), $params));
+        return $this->parse_order($response['data']);
+    }
+
     public function parse_order_status ($status) {
         if ($status === 'partial-filled') {
             return 'open';
@@ -401,7 +432,7 @@ class huobipro extends Exchange {
             $average = floatval ($cost / $filled);
         $result = array (
             'info' => $order,
-            'id' => $order['id'],
+            'id' => (string) $order['id'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
@@ -442,6 +473,39 @@ class huobipro extends Exchange {
         return $this->privatePostOrderOrdersIdSubmitcancel (array ( 'id' => $id ));
     }
 
+    public function fetch_deposit_address ($code, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency ($code);
+        $response = $this->privateGetDwDepositVirtualAddresses (array_merge (array (
+            'currency' => strtolower ($currency['id']),
+        ), $params));
+        $address = $this->safe_string($response, 'data');
+        return array (
+            'currency' => $code,
+            'status' => 'ok',
+            'address' => $address,
+            'info' => $response,
+        );
+    }
+
+    public function calculate_fee ($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
+        $market = $this->markets[$symbol];
+        $rate = $market[$takerOrMaker];
+        $cost = floatval ($this->cost_to_precision($symbol, $amount * $rate));
+        $key = 'quote';
+        if ($side === 'sell') {
+            $cost *= $price;
+        } else {
+            $key = 'base';
+        }
+        return array (
+            'type' => $takerOrMaker,
+            'currency' => $market[$key],
+            'rate' => $rate,
+            'cost' => floatval ($this->fee_to_precision($symbol, $cost)),
+        );
+    }
+
     public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
         $request = array (
             'address' => $address, // only supports existing addresses in your withdraw $address list
@@ -480,6 +544,7 @@ class huobipro extends Exchange {
             ), $query));
             $auth = $this->urlencode ($request);
             // unfortunately, PHP demands double quotes for the escaped newline symbol
+            // eslint-disable-next-line quotes
             $payload = implode ("\n", array ($method, $this->hostname, $url, $auth));
             $signature = $this->hmac ($this->encode ($payload), $this->encode ($this->secret), 'sha256', 'base64');
             $auth .= '&' . $this->urlencode (array ( 'Signature' => $signature ));

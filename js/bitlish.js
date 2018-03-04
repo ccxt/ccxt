@@ -159,6 +159,7 @@ module.exports = class bitlish extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        let last = this.safeFloat (ticker, 'last');
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -168,12 +169,12 @@ module.exports = class bitlish extends Exchange {
             'bid': undefined,
             'ask': undefined,
             'vwap': undefined,
-            'open': undefined,
-            'close': undefined,
-            'first': this.safeFloat (ticker, 'first'),
-            'last': this.safeFloat (ticker, 'last'),
+            'open': this.safeFloat (ticker, 'first'),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
-            'percentage': this.safeFloat (ticker, 'prc'),
+            'percentage': this.safeFloat (ticker, 'prc') * 100,
             'average': undefined,
             'baseVolume': this.safeFloat (ticker, 'sum'),
             'quoteVolume': undefined,

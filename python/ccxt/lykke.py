@@ -20,6 +20,9 @@ class lykke (Exchange):
                 'CORS': False,
                 'fetchOHLCV': False,
                 'fetchTrades': False,
+                'fetchOpenOrders': True,
+                'fetchClosedOrders': True,
+                'fetchOrders': True,
             },
             'requiredCredentials': {
                 'apiKey': True,
@@ -76,8 +79,8 @@ class lykke (Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0.0010,
-                    'taker': 0.0019,
+                    'maker': 0.0,  # as of 7 Feb 2018, see https://github.com/ccxt/ccxt/issues/1863
+                    'taker': 0.0,  # https://www.lykke.com/cp/wallet-fees-and-limits
                 },
                 'funding': {
                     'tierBased': False,
@@ -146,7 +149,7 @@ class lykke (Exchange):
                 'amount': market['Accuracy'],
                 'price': market['InvertedAccuracy'],
             }
-            result.append(self.extend(self.fees['trading'], {
+            result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -165,7 +168,7 @@ class lykke (Exchange):
                         'max': math.pow(10, precision['price']),
                     },
                 },
-            }))
+            })
         return result
 
     def parse_ticker(self, ticker, market=None):

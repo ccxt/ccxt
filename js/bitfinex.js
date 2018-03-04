@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { NotImplemented, DDoSProtection, AuthenticationError, ExchangeError, InsufficientFunds, NotSupported, InvalidOrder, OrderNotFound } = require ('./base/errors');
+const { NotSupported, DDoSProtection, AuthenticationError, ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound, InvalidNonce } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -22,12 +22,14 @@ module.exports = class bitfinex extends Exchange {
                 'deposit': true,
                 'fetchClosedOrders': true,
                 'fetchDepositAddress': true,
+                'fetchFees': true,
                 'fetchFundingFees': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchTickers': true,
+                'fetchTradingFees': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -211,14 +213,6 @@ module.exports = class bitfinex extends Exchange {
                         'ZRX': 5.6442,
                         'TNB': 87.511,
                         'SNT': 32.736,
-                        'QSH': undefined,
-                        'TRX': undefined,
-                        'RCN': undefined,
-                        'RLC': undefined,
-                        'AID': undefined,
-                        'SNG': undefined,
-                        'REP': undefined,
-                        'ELF': undefined,
                     },
                 },
             },
@@ -232,9 +226,10 @@ module.exports = class bitfinex extends Exchange {
                     'Key price should be a decimal number, e.g. "123.456"': InvalidOrder, // on isNaN (price)
                     'Key amount should be a decimal number, e.g. "123.456"': InvalidOrder, // on isNaN (amount)
                     'ERR_RATE_LIMIT': DDoSProtection,
+                    'Nonce is too small.': InvalidNonce,
                 },
                 'broad': {
-                    'Invalid order: not enough exchange balance for ': InsufficientFunds, // when buy, cost > quote currency
+                    'Invalid order: not enough exchange balance for ': InsufficientFunds, // when buying cost is greater than the available quote currency
                     'Invalid order: minimum size for ': InvalidOrder, // when amount below limits.amount.min
                     'Invalid order': InvalidOrder, // ?
                 },
@@ -254,8 +249,9 @@ module.exports = class bitfinex extends Exchange {
         return (currency in currencies) ? currencies[currency] : currency;
     }
 
-    async fetchFundingFees () {
-        const response = await this.privatePostAccountFees ();
+    async fetchFundingFees (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privatePostAccountFees (params);
         const fees = response['withdraw'];
         const withdraw = {};
         const ids = Object.keys (fees);
@@ -275,8 +271,9 @@ module.exports = class bitfinex extends Exchange {
         };
     }
 
-    async fetchTradingFees () {
-        let response = await this.privatePostSummary ();
+    async fetchTradingFees (params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privatePostSummary (params);
         return {
             'info': response,
             'maker': this.safeFloat (response, 'maker_fee'),
@@ -292,10 +289,10 @@ module.exports = class bitfinex extends Exchange {
         // const fees = await this.fetchFundingFees ();
         // funding = this.deepExtend (funding, fees);
         // return funding;
-        throw new NotImplemented (this.id + ' loadFees() not implemented yet');
+        throw new NotSupported (this.id + ' loadFees() not implemented yet');
     }
 
-    async fetchFees () {
+    async fetchFees () {  // this can be removed since it is now dealt with in the base class
         let fundingFees = await this.fetchFundingFees ();
         let tradingFees = await this.fetchTradingFees ();
         return this.deepExtend (fundingFees, tradingFees);
@@ -370,9 +367,14 @@ module.exports = class bitfinex extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let orderbook = await this.publicGetBookSymbol (this.extend ({
+        let request = {
             'symbol': this.marketId (symbol),
-        }, params));
+        };
+        if (typeof limit !== 'undefined') {
+            request['limit_bids'] = limit;
+            request['limit_asks'] = limit;
+        }
+        let orderbook = await this.publicGetBookSymbol (this.extend (request, params));
         return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'amount');
     }
 
@@ -450,6 +452,17 @@ module.exports = class bitfinex extends Exchange {
         let price = parseFloat (trade['price']);
         let amount = parseFloat (trade['amount']);
         let cost = price * amount;
+        let fee = undefined;
+        if ('fee_amount' in trade) {
+            let feeCost = this.safeFloat (trade, 'fee_amount');
+            let feeCurrency = this.safeString (trade, 'fee_currency');
+            if (feeCurrency in this.currencies_by_id)
+                feeCurrency = this.currencies_by_id[feeCurrency]['code'];
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            };
+        }
         return {
             'id': trade['tid'].toString (),
             'info': trade,
@@ -462,16 +475,20 @@ module.exports = class bitfinex extends Exchange {
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = 50, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetTradesSymbol (this.extend ({
+        let request = {
             'symbol': market['id'],
-        }, params));
+            'limit_trades': limit,
+        };
+        if (typeof since !== 'undefined')
+            request['timestamp'] = parseInt (since / 1000);
+        let response = await this.publicGetTradesSymbol (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -605,7 +622,7 @@ module.exports = class bitfinex extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 100, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let v2id = 't' + market['id'];
@@ -613,9 +630,8 @@ module.exports = class bitfinex extends Exchange {
             'symbol': v2id,
             'timeframe': this.timeframes[timeframe],
             'sort': 1,
+            'limit': limit,
         };
-        if (typeof limit !== 'undefined')
-            request['limit'] = limit;
         if (typeof since !== 'undefined')
             request['start'] = since;
         request = this.extend (request, params);
@@ -629,15 +645,19 @@ module.exports = class bitfinex extends Exchange {
             'LTC': 'litecoin',
             'ETH': 'ethereum',
             'ETC': 'ethereumc',
-            'OMNI': 'mastercoin', // left by previous author, now throws {"message":"Unknown method"}
+            'OMNI': 'mastercoin',
             'ZEC': 'zcash',
             'XMR': 'monero',
-            'USD': 'wire', // left by previous author, now throws {"message":"Unknown method"}
+            'USD': 'wire',
             'DASH': 'dash',
             'XRP': 'ripple',
             'EOS': 'eos',
-            'BCH': 'bcash',
-            'USDT': 'tetheruso',
+            'BCH': 'bcash', // undocumented
+            'USDT': 'tetheruso', // undocumented
+            'NEO': 'neo', // #1811
+            'AVT': 'aventus', // #1811
+            'QTUM': 'qtum', // #1811
+            'EDO': 'eidoo', // #1811
         };
         if (currency in names)
             return names[currency];

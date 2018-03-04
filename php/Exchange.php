@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.10.1001';
+$version = '1.11.2';
 
 abstract class Exchange {
 
@@ -56,6 +56,7 @@ abstract class Exchange {
         'bitstamp',
         'bitstamp1',
         'bittrex',
+        'bitz',
         'bl3p',
         'bleutrade',
         'braziliex',
@@ -63,6 +64,7 @@ abstract class Exchange {
         'btcchina',
         'btcexchange',
         'btcmarkets',
+        'btctradeim',
         'btctradeua',
         'btcturk',
         'btcx',
@@ -73,6 +75,7 @@ abstract class Exchange {
         'chilebit',
         'cobinhood',
         'coincheck',
+        'coinegg',
         'coinexchange',
         'coinfloor',
         'coingi',
@@ -80,6 +83,7 @@ abstract class Exchange {
         'coinmate',
         'coinsecure',
         'coinspot',
+        'coolcoin',
         'cryptopia',
         'dsx',
         'exmo',
@@ -204,38 +208,39 @@ abstract class Exchange {
         $amount = substr ($timeframe, 0, -1);
         $unit = substr ($timeframe, -1);
         $scale = 1;
-        switch ($unit) {
-            default:
-                throw new ExchangeError ("Unknown timeframe unit: '{$unit}'");
-            case 'M':
-                $scale *= 30;
-            case 'd':
-                $scale *= 24;
-            case 'h':
-                $scale *= 60;
-            case 'm':
-                $scale *= 60;
-        }
+        if ($unit === 'M')
+            $scale = 60 * 60 * 24 * 30;
+        else if ($unit === 'd')
+            $scale = 60 * 60 * 24;
+        else if ($unit === 'h')
+            $scale = 60 * 60;
+        else
+            $scale = 60;
         return $amount * $scale;
     }
 
     // given a sorted arrays of trades (recent first) and a timeframe builds an array of OHLCV candles
-    public static function build_ohlcv ($trades, $since = PHP_INT_MIN, $limits = PHP_INT_MAX, $timeframe = '1m') {
-        $ms = static::parseTimeframe ($timeframe) * 1000;
+    public static function build_ohlcv ($trades, $timeframe = '1m', $since = PHP_INT_MIN, $limits = PHP_INT_MAX) {
+        $ms = static::parse_timeframe ($timeframe) * 1000;
         $ohlcvs = [];
         list(/* $timestamp */, /* $open */, $high, $low, $close, $volume) = [0, 1, 2, 3, 4, 5];
-
-        for ($i = min(count($trades) - 1, $limits); $i >= 0; $i--) {
+        for ($i = min (count($trades) - 1, $limits); $i >= 0; $i--) {
             $trade = $trades[$i];
-            if ($trade['timestamp'] < $since) {
+            if ($trade['timestamp'] < $since)
                 continue;
-            }
             $openingTime = floor ($trade['timestamp'] / $ms) * $ms; // shift to the edge of m/h/d (but not M)
             $j = count($ohlcvs);
 
             if ($j == 0 || $openingTime >= $ohlcvs[$j-1][0] + $ms) {
                 // moved to a new timeframe -> create a new candle from opening trade
-                $ohlcvs[] = [$openingTime, $trade['price'], $trade['price'], $trade['price'], $trade['price'], $trade['amount']];
+                $ohlcvs[] = [
+                    $openingTime,
+                    $trade['price'],
+                    $trade['price'],
+                    $trade['price'],
+                    $trade['price'],
+                    $trade['amount']
+                ];
             } else {
                 // still processing the same timeframe -> update opening trade
                 $ohlcvs[$j-1][$high] = max ($ohlcvs[$j-1][$high], $trade['price']);
@@ -434,9 +439,19 @@ abstract class Exchange {
     }
 
     public static function iso8601 ($timestamp) {
+        if (!isset ($timestamp))
+            return $timestamp;
         $result = date ('c', (int) round ($timestamp / 1000));
         $msec = (int) $timestamp % 1000;
         return str_replace ('+', sprintf (".%03d+", $msec), $result);
+    }
+
+    public static function parse_date ($timestamp) {
+        if (!isset ($timestamp))
+            return $timestamp;
+        if (strstr ($timestamp, 'GMT'))
+            return strtotime ($timestamp) * 1000;
+        return static::parse8601 ($timestamp);
     }
 
     public static function parse8601 ($timestamp) {
@@ -522,6 +537,15 @@ abstract class Exchange {
 
         $this->options     = array (); // exchange-specific options if any
 
+        $this->skipJsonOnStatusCodes = false; // TODO: reserved, rewrite the curl routine to parse JSON body anyway
+
+        $this->name      = null;
+        $this->countries = null;
+        $this->version   = null;
+        $this->urls      = array ();
+        $this->api       = array ();
+        $this->comment   = null;
+
         $this->markets     = null;
         $this->symbols     = null;
         $this->ids         = null;
@@ -552,26 +576,6 @@ abstract class Exchange {
         $this->timeframes = null;
         $this->parseJsonResponse = true;
 
-        $this->hasPublicAPI         = true;
-        $this->hasPrivateAPI        = true;
-        $this->hasCORS              = false;
-        $this->hasDeposit           = false;
-        $this->hasFetchBalance      = true;
-        $this->hasFetchClosedOrders = false;
-        $this->hasFetchCurrencies   = false;
-        $this->hasFetchMyTrades     = false;
-        $this->hasFetchOHLCV        = false;
-        $this->hasFetchOpenOrders   = false;
-        $this->hasFetchOrder        = false;
-        $this->hasFetchOrderBook    = true;
-        $this->hasFetchOrders       = false;
-        $this->hasFetchTicker       = true;
-        $this->hasFetchTickers      = false;
-        $this->hasFetchTrades       = true;
-        $this->hasWithdraw          = false;
-        $this->hasCreateOrder       = $this->hasPrivateAPI;
-        $this->hasCancelOrder       = $this->hasPrivateAPI;
-
         $this->requiredCredentials = array (
             'apiKey' => true,
             'secret' => true,
@@ -582,22 +586,28 @@ abstract class Exchange {
 
         // API methods metainfo
         $this->has = array (
-            'cancelOrder' => $this->hasPrivateAPI,
+            'CORS' => false,
+            'publicAPI' => true,
+            'privateAPI' => true,
+            'cancelOrder' => true,
+            'cancelOrders' => false,
             'createDepositAddress' => false,
-            'createOrder' => $this->hasPrivateAPI,
-            'createMarketOrder' => $this->hasPrivateAPI,
-            'createLimitOrder' => $this->hasPrivateAPI,
+            'createOrder' => true,
+            'createMarketOrder' => true,
+            'createLimitOrder' => true,
             'deposit' => false,
             'fetchBalance' => true,
             'fetchClosedOrders' => false,
             'fetchCurrencies' => false,
             'fetchDepositAddress' => false,
+            'fetchL2OrderBook' => true,
             'fetchMarkets' => true,
             'fetchMyTrades' => false,
-            'fetchOHLCV' => false,
+            'fetchOHLCV' => 'emulated',
             'fetchOpenOrders' => false,
-            'fethcOrder' => false,
-            'fethcOrderBook' => true,
+            'fetchOrder' => false,
+            'fetchOrderBook' => true,
+            'fetchOrderBooks' => false,
             'fetchOrders' => false,
             'fetchTicker' => true,
             'fetchTickers' => false,
@@ -612,12 +622,16 @@ abstract class Exchange {
         $this->enableRateLimit          = false;
         $this->last_http_response = null;
         $this->last_json_response = null;
+        $this->last_response_headers = null;
 
         $options = array_replace_recursive ($this->describe(), $options);
 
         if ($options)
             foreach ($options as $key => $value)
-                $this->$key = $value;
+                $this->{$key} =
+                    (property_exists ($this, $key) && is_array ($this->{$key}) && is_array ($value)) ?
+                        array_replace_recursive ($this->{$key}, $value) :
+                        $value;
 
         if ($this->api)
             $this->define_rest_api ($this->api, 'request');
@@ -702,11 +716,11 @@ abstract class Exchange {
         $elapsed = $now - $this->lastRestRequestTimestamp;
         if ($elapsed < $this->rateLimit) {
             $delay = $this->rateLimit - $elapsed;
-            usleep ($delay * 1000.0);
+              usleep ((int)($delay * 1000.0));
         }
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         throw new NotSupported ($this->id . ' sign() not implemented yet');
     }
 
@@ -824,24 +838,24 @@ abstract class Exchange {
         // this function is called by curl for each header received
         curl_setopt ($this->curl, CURLOPT_HEADERFUNCTION,
             function ($curl, $header) use (&$response_headers) {
-                $len = strlen ($header);
+                $length = strlen ($header);
                 $header = explode (':', $header, 2);
-                if (count($header) < 2) // ignore invalid headers
-                    return $len;
+                if (count ($header) < 2) // ignore invalid headers
+                    return $length;
                 $name = strtolower (trim ($header[0]));
                 if (!array_key_exists ($name, $response_headers))
                     $response_headers[$name] = [trim ($header[1])];
                 else
                     $response_headers[$name][] = trim ($header[1]);
-                return $len;
+                return $length;
             }
         );
 
         $result = curl_exec ($this->curl);
 
         $this->lastRestRequestTimestamp = $this->milliseconds ();
-
         $this->last_http_response = $result;
+        $this->last_response_headers = $response_headers;
 
         $curl_errno = curl_errno ($this->curl);
         $curl_error = curl_error ($this->curl);
@@ -1028,7 +1042,8 @@ abstract class Exchange {
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = 60, $since = null, $limit = null) {
-        return $ohlcv;
+        return (gettype ($ohlcv) === 'array' && count (array_filter (array_keys ($ohlcv), 'is_string')) == 0) ?
+            array_slice ($ohlcv, 0, 6) : $ohlcv;
     }
 
     public function parseOHLCV ($ohlcv, $market = null, $timeframe = 60, $since = null, $limit = null) {
@@ -1221,12 +1236,31 @@ abstract class Exchange {
         return $this->fetch_order_status ($id);
     }
 
+    public function purge_cached_orders ($before) {
+        $this->orders = $this->index_by (array_filter ($this->orders, function ($orders) use ($before) {
+            return ($order['status'] === 'open') || ($order['timestamp'] >= $before);
+        }), 'id');
+        return $this->orders;
+    }
+
+    public function purgeCachesOrders ($before) {
+        return $this->purge_cached_orders ($before);
+    }
+
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         throw new NotSupported ($this->id . ' fetch_order() not implemented yet');
     }
 
     public function fetchOrder ($id, $symbol = null, $params = array ()) {
         return $this->fetch_order ($id, $symbol, $params);
+    }
+
+    public function fetch_order_trades ($id, $symbol = null, $params = array ()) {
+        throw new NotSupported ($this->id . ' fetch_order_trades() not implemented yet');
+    }
+
+    public function fetchOrderTrades ($id, $symbol = null, $params = array ()) {
+        return $this->fetch_order_trades ($id, $symbol, $params);
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -1290,7 +1324,11 @@ abstract class Exchange {
     }
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        throw new NotSupported ($this->id . ' fetch_ohlcv() not suported or not implemented yet');
+        if (!$this->has['fetchTrades'])
+            throw new NotSupported ($this->$id . ' fetch_ohlcv() not implemented yet');
+        $this->load_markets ();
+        $trades = $this->fetch_trades ($symbol, $since, $limit, $params);
+        return $this->build_ohlcv ($trades, $timeframe, $since, $limit);
     }
 
     public function fetchOHLCV ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -1310,7 +1348,7 @@ abstract class Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        throw new NotSupported ($this->id . ' cancel_order() not suported or not implemented yet');
+        throw new NotSupported ($this->id . ' cancel_order() not supported or not implemented yet');
     }
 
     public function edit_order ($id, $symbol, $type, $side, $amount, $price, $params = array ()) {
@@ -1484,6 +1522,35 @@ abstract class Exchange {
                    isset ($this->currencies) &&
                    isset ($this->currencies[$code])) ?
                         $this->currencies[$code] : $code;
+    }
+
+    public function find_market ($string) {
+
+        if (!isset ($this->markets))
+            throw new ExchangeError ($this->id . ' markets not loaded');
+
+        if (gettype ($string) === 'string') {
+
+            if (isset ($this->markets_by_id[$string]))
+                return $this->markets_by_id[$string];
+
+            if (isset ($this->markets[$string]))
+                return $this->markets[$string];
+        }
+
+        return $string;
+
+    }
+
+    public function find_symbol ($string, $market = null) {
+
+        if (!isset ($market))
+            $market = $this->find_market ($string);
+
+        if (gettype ($market) === 'array' && count (array_filter (array_keys ($market), 'is_string')) !== 0)
+            return $market['symbol'];
+
+        return $string;
     }
 
     public function market ($symbol) {

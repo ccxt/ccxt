@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -286,7 +286,7 @@ module.exports = class coinsecure extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         // let method = 'privateDeleteUserExchangeAskCancelOrderId'; // TODO fixme, have to specify order side here
         // return await this[method] ({ 'orderID': id });
-        throw new ExchangeError (this.id + ' cancelOrder () is not fully implemented yet');
+        throw new NotSupported (this.id + ' cancelOrder () is not fully implemented yet');
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

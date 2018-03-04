@@ -18,6 +18,7 @@ class livecoin extends Exchange {
                 'CORS' => false,
                 'fetchTickers' => true,
                 'fetchCurrencies' => true,
+                'fetchFees' => true,
                 'fetchOrders' => true,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
@@ -116,7 +117,7 @@ class livecoin extends Exchange {
                 'min' => pow (10, -$precision['price']),
                 'max' => pow (10, $precision['price']),
             );
-            $result[] = array_merge ($this->fees['trading'], array (
+            $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
@@ -124,7 +125,7 @@ class livecoin extends Exchange {
                 'precision' => $precision,
                 'limits' => $limits,
                 'info' => $market,
-            ));
+            );
         }
         return $result;
     }
@@ -235,14 +236,20 @@ class livecoin extends Exchange {
     }
 
     public function fetch_fees ($params = array ()) {
+        $tradingFees = $this->fetch_trading_fees($params);
+        return array_merge ($tradingFees, array (
+            'withdraw' => array (),
+        ));
+    }
+
+    public function fetch_trading_fees ($params = array ()) {
         $this->load_markets();
-        $commissionInfo = $this->privateGetExchangeCommissionCommonInfo ();
-        $commission = $this->safe_float($commissionInfo, 'commission');
+        $response = $this->privateGetExchangeCommissionCommonInfo ($params);
+        $commission = $this->safe_float($response, 'commission');
         return array (
-            'info' => $commissionInfo,
+            'info' => $response,
             'maker' => $commission,
             'taker' => $commission,
-            'withdraw' => 0.0,
         );
     }
 
@@ -357,7 +364,9 @@ class livecoin extends Exchange {
             $status = 'canceled';
         }
         $symbol = $order['currencyPair'];
-        list ($base, $quote) = explode ('/', $symbol);
+        $parts = explode ('/', $symbol);
+        $quote = $parts[1];
+        // list ($base, $quote) = explode ('/', $symbol);
         $type = null;
         $side = null;
         if (mb_strpos ($order['type'], 'MARKET') !== false) {
@@ -553,6 +562,8 @@ class livecoin extends Exchange {
                         throw new InvalidOrder ($this->id . ' => Unable to block funds ' . $this->json ($response));
                     } else if ($error === 503) {
                         throw new ExchangeNotAvailable ($this->id . ' => Exchange is not available ' . $this->json ($response));
+                    } else if ($error === 429) {
+                        throw new DDoSProtection ($this->id . ' => Too many requests' . $this->json ($response));
                     } else {
                         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
                     }

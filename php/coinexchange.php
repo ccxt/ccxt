@@ -16,7 +16,13 @@ class coinexchange extends Exchange {
             // new metainfo interface
             'has' => array (
                 'privateAPI' => false,
+                'createOrder' => false,
+                'createMarketOrder' => false,
+                'createLimitOrder' => false,
+                'cancelOrder' => false,
+                'editOrder' => false,
                 'fetchTrades' => false,
+                'fetchOHLCV' => false,
                 'fetchCurrencies' => true,
                 'fetchTickers' => true,
             ),
@@ -619,7 +625,7 @@ class coinexchange extends Exchange {
         if (!$market) {
             $marketId = $ticker['MarketID'];
             if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
-                $market = $this->marketsById[$marketId];
+                $market = $this->markets_by_id[$marketId];
             else
                 $symbol = $marketId;
         }

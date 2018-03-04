@@ -43,15 +43,15 @@ class btcturk extends Exchange {
                         'userTransactions', // ?offset=0&limit=25&sort=asc
                     ),
                     'post' => array (
-                        'buy',
+                        'exchange',
                         'cancelOrder',
-                        'sell',
                     ),
                 ),
             ),
             'markets' => array (
                 'BTC/TRY' => array ( 'id' => 'BTCTRY', 'symbol' => 'BTC/TRY', 'base' => 'BTC', 'quote' => 'TRY', 'maker' => 0.002 * 1.18, 'taker' => 0.0035 * 1.18 ),
                 'ETH/TRY' => array ( 'id' => 'ETHTRY', 'symbol' => 'ETH/TRY', 'base' => 'ETH', 'quote' => 'TRY', 'maker' => 0.002 * 1.18, 'taker' => 0.0035 * 1.18 ),
+                'XRP/TRY' => array ( 'id' => 'XRPTRY', 'symbol' => 'XRP/TRY', 'base' => 'XRP', 'quote' => 'TRY', 'maker' => 0.002 * 1.18, 'taker' => 0.0035 * 1.18 ),
                 'ETH/BTC' => array ( 'id' => 'ETHBTC', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'maker' => 0.002 * 1.18, 'taker' => 0.0035 * 1.18 ),
             ),
         ));
@@ -186,21 +186,20 @@ class btcturk extends Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        $method = 'privatePost' . $this->capitalize ($side);
+        $this->load_markets();
         $order = array (
-            'Type' => ($side === 'buy') ? 'BuyBtc' : 'SelBtc',
-            'IsMarketOrder' => ($type === 'market') ? 1 : 0,
+            'PairSymbol' => $this->market_id($symbol),
+            'OrderType' => ($side === 'buy') ? 0 : 1,
+            'OrderMethod' => ($type === 'market') ? 1 : 0,
         );
         if ($type === 'market') {
-            if ($side === 'buy')
-                $order['Total'] = $amount;
-            else
-                $order['Amount'] = $amount;
+            if (!(is_array ($params) && array_key_exists ('Total', $params)))
+                throw new ExchangeError ($this->id . ' createOrder requires the "Total" extra parameter for market orders ($amount and $price are both ignored)');
         } else {
             $order['Price'] = $price;
             $order['Amount'] = $amount;
         }
-        $response = $this->$method (array_merge ($order, $params));
+        $response = $this->privatePostExchange (array_merge ($order, $params));
         return array (
             'info' => $response,
             'id' => $response['id'],

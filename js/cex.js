@@ -19,6 +19,7 @@ module.exports = class cex extends Exchange {
                 'fetchTickers': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
+                'fetchOrders': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -94,7 +95,6 @@ module.exports = class cex extends Exchange {
                         'BTG': 0.001,
                         'ZEC': 0.001,
                         'XRP': 0.02,
-                        'XLM': undefined,
                     },
                     'deposit': {
                         // 'USD': amount => amount * 0.035 + 0.25,

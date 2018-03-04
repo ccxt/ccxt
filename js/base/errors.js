@@ -14,7 +14,6 @@ module.exports = subclass (
         { 'ExchangeError':
             { 'NotSupported':               {}
             , 'AuthenticationError':        {}
-            , 'InvalidNonce':               {}
             , 'InsufficientFunds':          {}
             , 'InvalidOrder':
                 { 'OrderNotFound':          {}
@@ -25,6 +24,7 @@ module.exports = subclass (
                 { 'DDoSProtection':         {}
                 , 'RequestTimeout':         {}
                 , 'ExchangeNotAvailable':   {}
+                , 'InvalidNonce':           {}
                 }
             }
         }

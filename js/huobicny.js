@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 // ---------------------------------------------------------------------------
 
@@ -7,7 +7,6 @@ const huobipro = require ('./huobipro.js');
 // ---------------------------------------------------------------------------
 
 module.exports = class huobicny extends huobipro {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'huobicny',
@@ -24,4 +23,4 @@ module.exports = class huobicny extends huobipro {
             },
         });
     }
-}
+};

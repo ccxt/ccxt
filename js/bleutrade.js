@@ -18,7 +18,6 @@ module.exports = class bleutrade extends bittrex {
             'has': {
                 'CORS': true,
                 'fetchTickers': true,
-                'fetchOHLCV': false,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30303000-b602dbe6-976d-11e7-956d-36c5049c01e7.jpg',
@@ -102,7 +101,7 @@ module.exports = class bleutrade extends bittrex {
                 'price': 8,
             };
             let active = market['IsActive'];
-            result.push (this.extend (this.fees['trading'], {
+            result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -125,7 +124,7 @@ module.exports = class bleutrade extends bittrex {
                         'max': undefined,
                     },
                 },
-            }));
+            });
         }
         return result;
     }

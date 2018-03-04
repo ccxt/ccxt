@@ -17,7 +17,6 @@ class bleutrade extends bittrex {
             'has' => array (
                 'CORS' => true,
                 'fetchTickers' => true,
-                'fetchOHLCV' => false,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/30303000-b602dbe6-976d-11e7-956d-36c5049c01e7.jpg',
@@ -101,7 +100,7 @@ class bleutrade extends bittrex {
                 'price' => 8,
             );
             $active = $market['IsActive'];
-            $result[] = array_merge ($this->fees['trading'], array (
+            $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
@@ -124,7 +123,7 @@ class bleutrade extends bittrex {
                         'max' => null,
                     ),
                 ),
-            ));
+            );
         }
         return $result;
     }

@@ -6,6 +6,7 @@
 from ccxt.async.base.exchange import Exchange
 import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import NotSupported
 
 
 class coinsecure (Exchange):
@@ -278,7 +279,7 @@ class coinsecure (Exchange):
     async def cancel_order(self, id, symbol=None, params={}):
         # method = 'privateDeleteUserExchangeAskCancelOrderId'  # TODO fixme, have to specify order side here
         # return await getattr(self, method)({'orderID': id})
-        raise ExchangeError(self.id + ' cancelOrder() is not fully implemented yet')
+        raise NotSupported(self.id + ' cancelOrder() is not fully implemented yet')
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { InsufficientFunds, ExchangeError, InvalidOrder, AuthenticationError, NotSupported } = require ('./base/errors');
+const { InsufficientFunds, ExchangeError, InvalidOrder, AuthenticationError, NotSupported, OrderNotFound } = require ('./base/errors');
 
 // ----------------------------------------------------------------------------
 
@@ -30,15 +30,9 @@ module.exports = class gdax extends Exchange {
                 '1m': 60,
                 '5m': 300,
                 '15m': 900,
-                '30m': 1800,
                 '1h': 3600,
-                '2h': 7200,
-                '4h': 14400,
-                '12h': 43200,
+                '6h': 21600,
                 '1d': 86400,
-                '1w': 604800,
-                '1M': 2592000,
-                '1y': 31536000,
             },
             'urls': {
                 'test': 'https://api-public.sandbox.gdax.com',
@@ -89,6 +83,7 @@ module.exports = class gdax extends Exchange {
                     'post': [
                         'deposits/coinbase-account',
                         'deposits/payment-method',
+                        'coinbase-accounts/{id}/addresses',
                         'funding/repay',
                         'orders',
                         'position/close',
@@ -152,7 +147,7 @@ module.exports = class gdax extends Exchange {
                 'amount': 8,
                 'price': this.precisionFromString (this.safeString (market, 'quote_increment')),
             };
-            let taker = this.fees['trading']['taker'];
+            let taker = this.fees['trading']['taker'];  // does not seem right
             if ((base === 'ETH') || (base === 'LTC')) {
                 taker = 0.003;
             }
@@ -254,7 +249,6 @@ module.exports = class gdax extends Exchange {
         let iso8601 = undefined;
         if (typeof timestamp !== 'undefined')
             iso8601 = this.iso8601 (timestamp);
-        let side = (trade['side'] === 'buy') ? 'sell' : 'buy';
         let symbol = undefined;
         if (!market) {
             if ('product_id' in trade) {
@@ -284,7 +278,11 @@ module.exports = class gdax extends Exchange {
         };
         let type = undefined;
         let id = this.safeString (trade, 'trade_id');
+        let side = (trade['side'] === 'buy') ? 'sell' : 'buy';
         let orderId = this.safeString (trade, 'order_id');
+        // GDAX returns inverted side to fetchMyTrades vs fetchTrades
+        if (typeof orderId !== 'undefined')
+            side = (trade['side'] === 'buy') ? 'buy' : 'sell';
         return {
             'id': id,
             'order': orderId,
@@ -577,7 +575,7 @@ module.exports = class gdax extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body) {
-        if (code === 400) {
+        if ((code === 400) || (code === 404)) {
             if (body[0] === '{') {
                 let response = JSON.parse (body);
                 let message = response['message'];
@@ -588,6 +586,8 @@ module.exports = class gdax extends Exchange {
                     throw new InvalidOrder (error);
                 } else if (message === 'Insufficient funds') {
                     throw new InsufficientFunds (error);
+                } else if (message === 'NotFound') {
+                    throw new OrderNotFound (error);
                 } else if (message === 'Invalid API Key') {
                     throw new AuthenticationError (error);
                 }

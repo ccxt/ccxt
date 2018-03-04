@@ -15,13 +15,13 @@ import base64
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import CancelPending
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import InvalidNonce
 
 
 class kraken (Exchange):
@@ -80,26 +80,26 @@ class kraken (Exchange):
                     'maker': 0.16 / 100,
                     'tiers': {
                         'taker': [
-                            [0, 0.26 / 100],
-                            [50000, 0.24 / 100],
-                            [100000, 0.22 / 100],
-                            [250000, 0.2 / 100],
-                            [500000, 0.18 / 100],
-                            [1000000, 0.16 / 100],
-                            [2500000, 0.14 / 100],
-                            [5000000, 0.12 / 100],
-                            [10000000, 0.1 / 100],
+                            [0, 0.0026],
+                            [50000, 0.0024],
+                            [100000, 0.0022],
+                            [250000, 0.0020],
+                            [500000, 0.0018],
+                            [1000000, 0.0016],
+                            [2500000, 0.0014],
+                            [5000000, 0.0012],
+                            [10000000, 0.0001],
                         ],
                         'maker': [
-                            [0, 0.16 / 100],
-                            [50000, 0.14 / 100],
-                            [100000, 0.12 / 100],
-                            [250000, 0.10 / 100],
-                            [500000, 0.8 / 100],
-                            [1000000, 0.6 / 100],
-                            [2500000, 0.4 / 100],
-                            [5000000, 0.2 / 100],
-                            [10000000, 0.0 / 100],
+                            [0, 0.0016],
+                            [50000, 0.0014],
+                            [100000, 0.0012],
+                            [250000, 0.0010],
+                            [500000, 0.0008],
+                            [1000000, 0.0006],
+                            [2500000, 0.0004],
+                            [5000000, 0.0002],
+                            [10000000, 0.0],
                         ],
                     },
                 },
@@ -265,7 +265,7 @@ class kraken (Exchange):
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
             darkpool = id.find('.d') >= 0
-            symbol = market['altname'] if darkpool else(base + '/' + quote)
+            symbol = market['altname'] if darkpool else (base + '/' + quote)
             maker = None
             if 'fees_maker' in market:
                 maker = float(market['fees_maker'][0][1]) / 100
@@ -326,7 +326,7 @@ class kraken (Exchange):
             'limits': limits,
         }
         markets = [
-            {'id': 'XXLMZEUR', 'symbol': 'XLM/EUR', 'base': 'XLM', 'quote': 'EUR', 'altname': 'XLMEUR'},
+            # {'id': 'XXLMZEUR', 'symbol': 'XLM/EUR', 'base': 'XLM', 'quote': 'EUR', 'altname': 'XLMEUR'},
         ]
         for i in range(0, len(markets)):
             result.append(self.extend(defaults, markets[i]))
@@ -375,12 +375,31 @@ class kraken (Exchange):
             }
         return result
 
+    async def fetch_trading_fees(self, params={}):
+        await self.load_markets()
+        self.check_required_credentials()
+        response = await self.privatePostTradeVolume(params)
+        tradedVolume = self.safe_float(response['result'], 'volume')
+        tiers = self.fees['trading']['tiers']
+        taker = tiers['taker'][1]
+        maker = tiers['maker'][1]
+        for i in range(0, len(tiers['taker'])):
+            if tradedVolume >= tiers['taker'][i][0]:
+                taker = tiers['taker'][i][1]
+        for i in range(0, len(tiers['maker'])):
+            if tradedVolume >= tiers['maker'][i][0]:
+                maker = tiers['maker'][i][1]
+        return {
+            'info': response,
+            'maker': maker,
+            'taker': taker,
+        }
+
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
-        darkpool = symbol.find('.d') >= 0
-        if darkpool:
-            raise ExchangeError(self.id + ' does not provide an order book for darkpool symbol ' + symbol)
         market = self.market(symbol)
+        if market['darkpool']:
+            raise ExchangeError(self.id + ' does not provide an order book for darkpool symbol ' + symbol)
         request = {
             'pair': market['id'],
         }
@@ -511,6 +530,9 @@ class kraken (Exchange):
             type = 'limit' if (trade[4] == 'l') else 'market'
             price = float(trade[0])
             amount = float(trade[1])
+            tradeLength = len(trade)
+            if tradeLength > 6:
+                id = trade[6]  # artificially added as per  #1794
         symbol = market['symbol'] if (market) else None
         return {
             'id': id,
@@ -533,7 +555,16 @@ class kraken (Exchange):
         response = await self.publicGetTrades(self.extend({
             'pair': id,
         }, params))
-        trades = response['result'][id]
+        # {result: {marketid: [...trades]}, last: "last_trade_id"}
+        result = response['result']
+        trades = result[id]
+        # trades is a sorted array: last(most recent trade) goes last
+        length = len(trades)
+        if length <= 0:
+            return []
+        lastTrade = trades[length - 1]
+        lastTradeId = self.safe_string(result, 'last')
+        lastTrade.append(lastTradeId)
         return self.parse_trades(trades, market, since, limit)
 
     async def fetch_balance(self, params={}):
@@ -572,8 +603,11 @@ class kraken (Exchange):
         if type == 'limit':
             order['price'] = self.price_to_precision(symbol, price)
         response = await self.privatePostAddOrder(self.extend(order, params))
-        length = len(response['result']['txid'])
-        id = response['result']['txid'] if (length > 1) else response['result']['txid'][0]
+        id = self.safe_value(response['result'], 'txid')
+        if id is not None:
+            if isinstance(id, list):
+                length = len(id)
+                id = id if (length > 1) else id[0]
         return {
             'info': response,
             'id': id,

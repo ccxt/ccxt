@@ -17,6 +17,7 @@ module.exports = class anxpro extends Exchange {
             'rateLimit': 1500,
             'has': {
                 'CORS': false,
+                'fetchOHLCV': false,
                 'fetchTrades': false,
                 'withdraw': true,
             },

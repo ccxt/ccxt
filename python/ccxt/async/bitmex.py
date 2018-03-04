@@ -6,6 +6,8 @@
 from ccxt.async.base.exchange import Exchange
 import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 
 
@@ -18,11 +20,15 @@ class bitmex (Exchange):
             'countries': 'SC',  # Seychelles
             'version': 'v1',
             'userAgent': None,
-            'rateLimit': 1500,
+            'rateLimit': 2000,
             'has': {
                 'CORS': False,
                 'fetchOHLCV': True,
                 'withdraw': True,
+                'fetchOrder': True,
+                'fetchOrders': True,
+                'fetchOpenOrders': True,
+                'fetchClosedOrders': True,
             },
             'timeframes': {
                 '1m': '1m',
@@ -215,6 +221,42 @@ class bitmex (Exchange):
         result['asks'] = self.sort_by(result['asks'], 0)
         return result
 
+    async def fetch_order(self, id, symbol=None, params={}):
+        filter = {'filter': {'orderID': id}}
+        result = await self.fetch_orders(symbol, None, None, self.deep_extend(filter, params))
+        numResults = len(result)
+        if numResults == 1:
+            return result[0]
+        raise OrderNotFound(self.id + ': The order ' + id + ' not found.')
+
+    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        market = None
+        request = {}
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        if since is not None:
+            request['startTime'] = self.iso8601(since)
+        if limit is not None:
+            request['count'] = limit
+        request = self.deep_extend(request, params)
+        # why the hassle? urlencode in python is kinda broken for nested dicts.
+        # E.g. self.urlencode({"filter": {"open": True}}) will return "filter={'open':+True}"
+        # Bitmex doesn't like that. Hence resorting to self hack.
+        request['filter'] = self.json(request['filter'])
+        response = await self.privateGetOrder(request)
+        return self.parse_orders(response, market, since, limit)
+
+    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        filter_params = {'filter': {'open': True}}
+        return await self.fetch_orders(symbol, since, limit, self.deep_extend(filter_params, params))
+
+    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        # Bitmex barfs if you set 'open': False in the filter...
+        orders = await self.fetch_orders(symbol, since, limit, params)
+        return self.filter_by(orders, 'status', 'closed')
+
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
@@ -233,6 +275,9 @@ class bitmex (Exchange):
         tickers = await self.publicGetTradeBucketed(request)
         ticker = tickers[0]
         timestamp = self.milliseconds()
+        open = self.safe_float(ticker, 'open')
+        close = self.safe_float(ticker, 'close')
+        change = close - open
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -242,13 +287,13 @@ class bitmex (Exchange):
             'bid': float(quote['bidPrice']),
             'ask': float(quote['askPrice']),
             'vwap': float(ticker['vwap']),
-            'open': None,
-            'close': float(ticker['close']),
-            'first': None,
-            'last': None,
-            'change': None,
-            'percentage': None,
-            'average': None,
+            'open': open,
+            'close': close,
+            'last': close,
+            'previousClose': None,
+            'change': change,
+            'percentage': change / open * 100,
+            'average': self.sum(open, close) / 2,
             'baseVolume': float(ticker['homeNotional']),
             'quoteVolume': float(ticker['foreignNotional']),
             'info': ticker,
@@ -265,7 +310,7 @@ class bitmex (Exchange):
             ohlcv['volume'],
         ]
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=100, params={}):
         await self.load_markets()
         # send JSON key/value pairs, such as {"key": "value"}
         # filter by individual fields and do advanced queries on timestamps
@@ -278,18 +323,18 @@ class bitmex (Exchange):
             'symbol': market['id'],
             'binSize': self.timeframes[timeframe],
             'partial': True,     # True == include yet-incomplete current bins
+            'count': limit,      # default 100, max 500
             # 'filter': filter,  # filter by individual fields and do advanced queries
             # 'columns': [],    # will return all columns if omitted
             # 'start': 0,       # starting point for results(wtf?)
             # 'reverse': False,  # True == newest first
             # 'endTime': '',    # ending date filter for results
         }
+        # if since is not set, they will return candles starting from 2017-01-01
         if since is not None:
             ymdhms = self.ymdhms(since)
             ymdhm = ymdhms[0:16]
             request['startTime'] = ymdhm  # starting date filter for results
-        if limit is not None:
-            request['count'] = limit  # default 100
         response = await self.publicGetTradeBucketed(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
@@ -313,6 +358,65 @@ class bitmex (Exchange):
             'price': trade['price'],
             'amount': trade['size'],
         }
+
+    def parse_order_status(self, status):
+        statuses = {
+            'new': 'open',
+            'partiallyfilled': 'open',
+            'filled': 'closed',
+            'canceled': 'canceled',
+            'rejected': 'rejected',
+            'expired': 'expired',
+        }
+        return self.safe_string(statuses, status.lower())
+
+    def parse_order(self, order, market=None):
+        status = self.safe_value(order, 'ordStatus')
+        if status is not None:
+            status = self.parse_order_status(status)
+        symbol = None
+        if market:
+            symbol = market['symbol']
+        else:
+            id = order['symbol']
+            if id in self.markets_by_id:
+                market = self.markets_by_id[id]
+                symbol = market['symbol']
+        datetime_value = None
+        timestamp = None
+        iso8601 = None
+        if 'timestamp' in order:
+            datetime_value = order['timestamp']
+        elif 'transactTime' in order:
+            datetime_value = order['transactTime']
+        if datetime_value is not None:
+            timestamp = self.parse8601(datetime_value)
+            iso8601 = self.iso8601(timestamp)
+        price = float(order['price'])
+        amount = float(order['orderQty'])
+        filled = self.safe_float(order, 'cumQty', 0.0)
+        remaining = max(amount - filled, 0.0)
+        cost = None
+        if price is not None:
+            if filled is not None:
+                cost = price * filled
+        result = {
+            'info': order,
+            'id': str(order['orderID']),
+            'timestamp': timestamp,
+            'datetime': iso8601,
+            'symbol': symbol,
+            'type': order['ordType'].lower(),
+            'side': order['side'].lower(),
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': None,
+        }
+        return result
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
@@ -340,7 +444,13 @@ class bitmex (Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        return await self.privateDeleteOrder({'orderID': id})
+        response = await self.privateDeleteOrder({'orderID': id})
+        order = response[0]
+        error = self.safe_string(order, 'error')
+        if error is not None:
+            if error.find('Unable to cancel order due to existing state') >= 0:
+                raise OrderNotFound(self.id + ' cancelOrder() failed: ' + error)
+        return self.parse_order(order)
 
     def is_fiat(self, currency):
         if currency == 'EUR':
@@ -375,6 +485,10 @@ class bitmex (Exchange):
                     response = json.loads(body)
                     if 'error' in response:
                         if 'message' in response['error']:
+                            message = self.safe_value(response['error'], 'message')
+                            if message is not None:
+                                if message == 'Invalid API Key.':
+                                    raise AuthenticationError(self.id + ' ' + self.json(response))
                             # stub code, need proper handling
                             raise ExchangeError(self.id + ' ' + self.json(response))
 

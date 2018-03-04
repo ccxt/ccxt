@@ -21,12 +21,14 @@ class bitfinex extends Exchange {
                 'deposit' => true,
                 'fetchClosedOrders' => true,
                 'fetchDepositAddress' => true,
+                'fetchFees' => true,
                 'fetchFundingFees' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchTickers' => true,
+                'fetchTradingFees' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array (
@@ -210,14 +212,6 @@ class bitfinex extends Exchange {
                         'ZRX' => 5.6442,
                         'TNB' => 87.511,
                         'SNT' => 32.736,
-                        'QSH' => null,
-                        'TRX' => null,
-                        'RCN' => null,
-                        'RLC' => null,
-                        'AID' => null,
-                        'SNG' => null,
-                        'REP' => null,
-                        'ELF' => null,
                     ),
                 ),
             ),
@@ -231,9 +225,10 @@ class bitfinex extends Exchange {
                     'Key price should be a decimal number, e.g. "123.456"' => '\\ccxt\\InvalidOrder', // on isNaN (price)
                     'Key amount should be a decimal number, e.g. "123.456"' => '\\ccxt\\InvalidOrder', // on isNaN (amount)
                     'ERR_RATE_LIMIT' => '\\ccxt\\DDoSProtection',
+                    'Nonce is too small.' => '\\ccxt\\InvalidNonce',
                 ),
                 'broad' => array (
-                    'Invalid order => not enough exchange balance for ' => '\\ccxt\\InsufficientFunds', // when buy, cost > quote currency
+                    'Invalid order => not enough exchange balance for ' => '\\ccxt\\InsufficientFunds', // when buying cost is greater than the available quote currency
                     'Invalid order => minimum size for ' => '\\ccxt\\InvalidOrder', // when amount below limits.amount.min
                     'Invalid order' => '\\ccxt\\InvalidOrder', // ?
                 ),
@@ -253,8 +248,9 @@ class bitfinex extends Exchange {
         return (is_array ($currencies) && array_key_exists ($currency, $currencies)) ? $currencies[$currency] : $currency;
     }
 
-    public function fetch_funding_fees () {
-        $response = $this->privatePostAccountFees ();
+    public function fetch_funding_fees ($params = array ()) {
+        $this->load_markets();
+        $response = $this->privatePostAccountFees ($params);
         $fees = $response['withdraw'];
         $withdraw = array ();
         $ids = is_array ($fees) ? array_keys ($fees) : array ();
@@ -274,8 +270,9 @@ class bitfinex extends Exchange {
         );
     }
 
-    public function fetch_trading_fees () {
-        $response = $this->privatePostSummary ();
+    public function fetch_trading_fees ($params = array ()) {
+        $this->load_markets();
+        $response = $this->privatePostSummary ($params);
         return array (
             'info' => $response,
             'maker' => $this->safe_float($response, 'maker_fee'),
@@ -288,15 +285,15 @@ class bitfinex extends Exchange {
         // // setting $fees on the exchange instance isn't portable, unfortunately...
         // // this should probably go into the base class as well
         // $funding = $this->fees['funding'];
-        // $fees = $this->fetch_funding_fees ();
+        // $fees = $this->fetch_funding_fees();
         // $funding = array_replace_recursive ($funding, $fees);
         // return $funding;
-        throw new NotImplemented ($this->id . ' loadFees() not implemented yet');
+        throw new NotSupported ($this->id . ' loadFees() not implemented yet');
     }
 
     public function fetch_fees () {
-        $fundingFees = $this->fetch_funding_fees ();
-        $tradingFees = $this->fetch_trading_fees ();
+        $fundingFees = $this->fetch_funding_fees();
+        $tradingFees = $this->fetch_trading_fees();
         return array_replace_recursive ($fundingFees, $tradingFees);
     }
 
@@ -369,9 +366,14 @@ class bitfinex extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $orderbook = $this->publicGetBookSymbol (array_merge (array (
+        $request = array (
             'symbol' => $this->market_id($symbol),
-        ), $params));
+        );
+        if ($limit !== null) {
+            $request['limit_bids'] = $limit;
+            $request['limit_asks'] = $limit;
+        }
+        $orderbook = $this->publicGetBookSymbol (array_merge ($request, $params));
         return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'price', 'amount');
     }
 
@@ -449,6 +451,17 @@ class bitfinex extends Exchange {
         $price = floatval ($trade['price']);
         $amount = floatval ($trade['amount']);
         $cost = $price * $amount;
+        $fee = null;
+        if (is_array ($trade) && array_key_exists ('fee_amount', $trade)) {
+            $feeCost = $this->safe_float($trade, 'fee_amount');
+            $feeCurrency = $this->safe_string($trade, 'fee_currency');
+            if (is_array ($this->currencies_by_id) && array_key_exists ($feeCurrency, $this->currencies_by_id))
+                $feeCurrency = $this->currencies_by_id[$feeCurrency]['code'];
+            $fee = array (
+                'cost' => $feeCost,
+                'currency' => $feeCurrency,
+            );
+        }
         return array (
             'id' => (string) $trade['tid'],
             'info' => $trade,
@@ -461,16 +474,20 @@ class bitfinex extends Exchange {
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
-            'fee' => null,
+            'fee' => $fee,
         );
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades ($symbol, $since = null, $limit = 50, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetTradesSymbol (array_merge (array (
+        $request = array (
             'symbol' => $market['id'],
-        ), $params));
+            'limit_trades' => $limit,
+        );
+        if ($since !== null)
+            $request['timestamp'] = intval ($since / 1000);
+        $response = $this->publicGetTradesSymbol (array_merge ($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
@@ -604,7 +621,7 @@ class bitfinex extends Exchange {
         ];
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = 100, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $v2id = 't' . $market['id'];
@@ -612,9 +629,8 @@ class bitfinex extends Exchange {
             'symbol' => $v2id,
             'timeframe' => $this->timeframes[$timeframe],
             'sort' => 1,
+            'limit' => $limit,
         );
-        if ($limit !== null)
-            $request['limit'] = $limit;
         if ($since !== null)
             $request['start'] = $since;
         $request = array_merge ($request, $params);
@@ -628,15 +644,19 @@ class bitfinex extends Exchange {
             'LTC' => 'litecoin',
             'ETH' => 'ethereum',
             'ETC' => 'ethereumc',
-            'OMNI' => 'mastercoin', // left by previous author, now throws array ("message":"Unknown method")
+            'OMNI' => 'mastercoin',
             'ZEC' => 'zcash',
             'XMR' => 'monero',
-            'USD' => 'wire', // left by previous author, now throws array ("message":"Unknown method")
+            'USD' => 'wire',
             'DASH' => 'dash',
             'XRP' => 'ripple',
             'EOS' => 'eos',
-            'BCH' => 'bcash',
-            'USDT' => 'tetheruso',
+            'BCH' => 'bcash', // undocumented
+            'USDT' => 'tetheruso', // undocumented
+            'NEO' => 'neo', // #1811
+            'AVT' => 'aventus', // #1811
+            'QTUM' => 'qtum', // #1811
+            'EDO' => 'eidoo', // #1811
         );
         if (is_array ($names) && array_key_exists ($currency, $names))
             return $names[$currency];

@@ -156,6 +156,7 @@ class bitlish (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
+        last = self.safe_float(ticker, 'last')
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -165,12 +166,12 @@ class bitlish (Exchange):
             'bid': None,
             'ask': None,
             'vwap': None,
-            'open': None,
-            'close': None,
-            'first': self.safe_float(ticker, 'first'),
-            'last': self.safe_float(ticker, 'last'),
+            'open': self.safe_float(ticker, 'first'),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
-            'percentage': self.safe_float(ticker, 'prc'),
+            'percentage': self.safe_float(ticker, 'prc') * 100,
             'average': None,
             'baseVolume': self.safe_float(ticker, 'sum'),
             'quoteVolume': None,

@@ -15,7 +15,6 @@ module.exports = class okex extends okcoinusd {
             'has': {
                 'CORS': false,
                 'futures': true,
-                'hasFetchTickers': true,
                 'fetchTickers': true,
             },
             'urls': {
@@ -35,18 +34,46 @@ module.exports = class okex extends okcoinusd {
     commonCurrencyCode (currency) {
         const currencies = {
             'FAIR': 'FairGame',
+            'HMC': 'Hi Mutual Society',
+            'MAG': 'Maggie',
+            'NANO': 'XRB',
+            'YOYO': 'YOYOW',
         };
         if (currency in currencies)
             return currencies[currency];
         return currency;
     }
 
+    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+        let market = this.markets[symbol];
+        let key = 'quote';
+        let rate = market[takerOrMaker];
+        let cost = parseFloat (this.costToPrecision (symbol, amount * rate));
+        if (side === 'sell') {
+            cost *= price;
+        } else {
+            key = 'base';
+        }
+        return {
+            'type': takerOrMaker,
+            'currency': market[key],
+            'rate': rate,
+            'cost': parseFloat (this.feeToPrecision (symbol, cost)),
+        };
+    }
+
     async fetchMarkets () {
         let markets = await super.fetchMarkets ();
+        // TODO: they have a new fee schedule as of Feb 7
+        // the new fees are progressive and depend on 30-day traded volume
+        // the following is the worst case
         for (let i = 0; i < markets.length; i++) {
             if (markets[i]['spot']) {
-                markets[i]['maker'] = -0.001;
-                markets[i]['taker'] = 0.001;
+                markets[i]['maker'] = 0.0015;
+                markets[i]['taker'] = 0.0020;
+            } else {
+                markets[i]['maker'] = 0.0003;
+                markets[i]['taker'] = 0.0005;
             }
         }
         return markets;

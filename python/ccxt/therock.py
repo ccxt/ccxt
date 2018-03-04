@@ -148,6 +148,7 @@ class therock (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
+        last = float(ticker['last'])
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -158,9 +159,9 @@ class therock (Exchange):
             'ask': float(ticker['ask']),
             'vwap': None,
             'open': float(ticker['open']),
-            'close': float(ticker['close']),
-            'first': None,
-            'last': float(ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': float(ticker['close']),  # previous day close, if any
             'change': None,
             'percentage': None,
             'average': None,

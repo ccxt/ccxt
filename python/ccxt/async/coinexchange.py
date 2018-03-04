@@ -19,7 +19,13 @@ class coinexchange (Exchange):
             # new metainfo interface
             'has': {
                 'privateAPI': False,
+                'createOrder': False,
+                'createMarketOrder': False,
+                'createLimitOrder': False,
+                'cancelOrder': False,
+                'editOrder': False,
                 'fetchTrades': False,
+                'fetchOHLCV': False,
                 'fetchCurrencies': True,
                 'fetchTickers': True,
             },
@@ -616,7 +622,7 @@ class coinexchange (Exchange):
         if not market:
             marketId = ticker['MarketID']
             if marketId in self.markets_by_id:
-                market = self.marketsById[marketId]
+                market = self.markets_by_id[marketId]
             else:
                 symbol = marketId
         if market:

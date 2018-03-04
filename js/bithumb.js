@@ -78,7 +78,7 @@ module.exports = class bithumb extends Exchange {
                 let base = id;
                 let quote = 'KRW';
                 let symbol = id + '/' + quote;
-                result.push (this.extend (this.fees['trading'], {
+                result.push ({
                     'id': id,
                     'symbol': symbol,
                     'base': base,
@@ -104,7 +104,7 @@ module.exports = class bithumb extends Exchange {
                             'max': undefined,
                         },
                     },
-                }));
+                });
             }
         }
         return result;
@@ -149,6 +149,11 @@ module.exports = class bithumb extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        let open = this.safeFloat (ticker, 'opening_price');
+        let close = this.safeFloat (ticker, 'closing_price');
+        let change = close - open;
+        let vwap = this.safeFloat (ticker, 'average_price');
+        let baseVolume = this.safeFloat (ticker, 'volume_1day');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -157,16 +162,16 @@ module.exports = class bithumb extends Exchange {
             'low': this.safeFloat (ticker, 'min_price'),
             'bid': this.safeFloat (ticker, 'buy_price'),
             'ask': this.safeFloat (ticker, 'sell_price'),
-            'vwap': undefined,
-            'open': this.safeFloat (ticker, 'opening_price'),
-            'close': this.safeFloat (ticker, 'closing_price'),
-            'first': undefined,
-            'last': this.safeFloat (ticker, 'last_trade'),
-            'change': undefined,
-            'percentage': undefined,
-            'average': this.safeFloat (ticker, 'average_price'),
-            'baseVolume': this.safeFloat (ticker, 'volume_1day'),
-            'quoteVolume': undefined,
+            'vwap': vwap,
+            'open': open,
+            'close': close,
+            'last': close,
+            'previousClose': undefined,
+            'change': change,
+            'percentage': change / open * 100,
+            'average': this.sum (open, close) / 2,
+            'baseVolume': baseVolume,
+            'quoteVolume': baseVolume * vwap,
             'info': ticker,
         };
     }

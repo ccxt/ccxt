@@ -89,12 +89,12 @@ class acx (Exchange):
                 'funding': {
                     'tierBased': False,
                     'percentage': True,
-                    'withdraw': 0.0,  # There is only 1% fee on withdrawals to your bank account.
+                    'withdraw': {},  # There is only 1% fee on withdrawals to your bank account.
                 },
             },
             'exceptions': {
-                2002: InsufficientFunds,
-                2003: OrderNotFound,
+                '2002': InsufficientFunds,
+                '2003': OrderNotFound,
             },
         })
 
@@ -263,7 +263,7 @@ class acx (Exchange):
             symbol = market['symbol']
         else:
             marketId = order['market']
-            symbol = self.marketsById[marketId]['symbol']
+            symbol = self.markets_by_id[marketId]['symbol']
         timestamp = self.parse8601(order['created_at'])
         state = order['state']
         status = None
@@ -301,7 +301,7 @@ class acx (Exchange):
         if type == 'limit':
             order['price'] = str(price)
         response = self.privatePostOrders(self.extend(order, params))
-        market = self.marketsById[response['market']]
+        market = self.markets_by_id[response['market']]
         return self.parse_order(response, market)
 
     def cancel_order(self, id, symbol=None, params={}):

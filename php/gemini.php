@@ -15,8 +15,15 @@ class gemini extends Exchange {
             'rateLimit' => 1500, // 200 for private API
             'version' => 'v1',
             'has' => array (
+                'fetchDepositAddress' => false,
                 'CORS' => false,
-                'createMarketOrder' => false,
+                'fetchBidsAsks' => false,
+                'fetchTickers' => false,
+                'fetchMyTrades' => true,
+                'fetchOrder' => false,
+                'fetchOrders' => false,
+                'fetchOpenOrders' => false,
+                'fetchClosedOrders' => false,
                 'withdraw' => true,
             ),
             'urls' => array (
@@ -61,6 +68,11 @@ class gemini extends Exchange {
                     ),
                 ),
             ),
+            'fees' => array (
+                'trading' => array (
+                    'taker' => 0.0025,
+                ),
+            ),
         ));
     }
 
@@ -80,7 +92,6 @@ class gemini extends Exchange {
                 'base' => $base,
                 'quote' => $quote,
                 'info' => $market,
-                'taker' => 0.0025,
             );
         }
         return $result;
@@ -127,16 +138,37 @@ class gemini extends Exchange {
 
     public function parse_trade ($trade, $market) {
         $timestamp = $trade['timestampms'];
+        $order = null;
+        if (is_array ($trade) && array_key_exists ('orderId', $trade))
+            $order = (string) $trade['orderId'];
+        $fee = $this->safe_float($trade, 'fee_amount');
+        if ($fee !== null) {
+            $currency = $this->safe_string($trade, 'fee_currency');
+            if ($currency !== null) {
+                if (is_array ($this->currencies_by_id) && array_key_exists ($currency, $this->currencies_by_id))
+                    $currency = $this->currencies_by_id[$currency]['code'];
+                $currency = $this->common_currency_code($currency);
+            }
+            $fee = array (
+                'cost' => floatval ($trade['fee_amount']),
+                'currency' => $currency,
+            );
+        }
+        $price = floatval ($trade['price']);
+        $amount = floatval ($trade['amount']);
         return array (
             'id' => (string) $trade['tid'],
+            'order' => $order,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $market['symbol'],
             'type' => null,
             'side' => $trade['type'],
-            'price' => floatval ($trade['price']),
-            'amount' => floatval ($trade['amount']),
+            'price' => $price,
+            'cost' => $price * $amount,
+            'amount' => $amount,
+            'fee' => $fee,
         );
     }
 
@@ -189,7 +221,7 @@ class gemini extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->privatePostCancelOrder (array ( 'order_id' => $id ));
+        return $this->privatePostOrderCancel (array ( 'order_id' => $id ));
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {

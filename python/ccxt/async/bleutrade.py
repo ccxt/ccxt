@@ -23,7 +23,6 @@ class bleutrade (bittrex):
             'has': {
                 'CORS': True,
                 'fetchTickers': True,
-                'fetchOHLCV': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30303000-b602dbe6-976d-11e7-956d-36c5049c01e7.jpg',
@@ -106,7 +105,7 @@ class bleutrade (bittrex):
                 'price': 8,
             }
             active = market['IsActive']
-            result.append(self.extend(self.fees['trading'], {
+            result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -129,7 +128,7 @@ class bleutrade (bittrex):
                         'max': None,
                     },
                 },
-            }))
+            })
         return result
 
     def get_order_id_field(self):

@@ -18,11 +18,16 @@ class cobinhood extends Exchange {
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
+                'fetchOrder' => true,
+            ),
+            'requiredCredentials' => array (
+                'apiKey' => true,
+                'secret' => false,
             ),
             'timeframes' => array (
                 // the first two don't seem to work at all
-                // '1m' => '1m',
-                // '5m' => '5m',
+                '1m' => '1m',
+                '5m' => '5m',
                 '15m' => '15m',
                 '30m' => '30m',
                 '1h' => '1h',
@@ -261,7 +266,7 @@ class cobinhood extends Exchange {
         if ($limit !== null)
             $request['limit'] = $limit; // 100
         $response = $this->publicGetMarketOrderbooksTradingPairId (array_merge ($request, $params));
-        return $this->parse_order_book($response['result']['orderbook']);
+        return $this->parse_order_book($response['result']['orderbook'], null, 'bids', 'asks', 0, 2);
     }
 
     public function parse_trade ($trade, $market = null) {
@@ -312,21 +317,28 @@ class cobinhood extends Exchange {
         ];
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = '15m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $query = array (
+        //
+        // they say in their docs that end_time defaults to current server time
+        // but if you don't specify it, their range limits does not allow you to query anything
+        //
+        // they also say that start_time defaults to 0,
+        // but most calls fail if you do not specify any of end_time
+        //
+        // to make things worse, their docs say it should be a Unix Timestamp
+        // but with seconds it fails, so we set milliseconds (somehow it works that way)
+        //
+        $endTime = $this->milliseconds ();
+        $request = array (
             'trading_pair_id' => $market['id'],
             'timeframe' => $this->timeframes[$timeframe],
-            // they say in their docs that end_time defaults to current server time
-            // but if you don't specify it, their range limits does not allow you to $query anything
-            'end_time' => $this->milliseconds (),
+            'end_time' => $endTime,
         );
-        if ($since) {
-            // in their docs they say that start_time defaults to 0, but, obviously it does not
-            $query['start_time'] = $since;
-        }
-        $response = $this->publicGetChartCandlesTradingPairId (array_merge ($query, $params));
+        if ($since !== null)
+            $request['start_time'] = $since;
+        $response = $this->publicGetChartCandlesTradingPairId (array_merge ($request, $params));
         $ohlcv = $response['result']['candles'];
         return $this->parse_ohlcvs($ohlcv, $market, $timeframe, $since, $limit);
     }
@@ -338,14 +350,14 @@ class cobinhood extends Exchange {
         $balances = $response['result']['balances'];
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
-            $id = $balance['currency'];
-            $currency = $this->common_currency_code($id);
+            $currency = $balance['currency'];
+            if (is_array ($this->currencies_by_id) && array_key_exists ($currency, $this->currencies_by_id))
+                $currency = $this->currencies_by_id[$currency]['code'];
             $account = array (
-                'free' => floatval ($balance['total']),
                 'used' => floatval ($balance['on_order']),
-                'total' => 0.0,
+                'total' => floatval ($balance['total']),
             );
-            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $account['free'] = floatval ($account['total'] - $account['used']);
             $result[$currency] = $account;
         }
         return $this->parse_balance($result);
@@ -363,7 +375,7 @@ class cobinhood extends Exchange {
         $price = floatval ($order['price']);
         $amount = floatval ($order['size']);
         $filled = floatval ($order['filled']);
-        $remaining = $this->amount_to_precision($symbol, $amount - $filled);
+        $remaining = $amount - $filled;
         // new, queued, open, partially_filled, $filled, cancelled
         $status = $order['state'];
         if ($status === 'filled') {
@@ -373,15 +385,14 @@ class cobinhood extends Exchange {
         } else {
             $status = 'open';
         }
-        $side = $order['side'] === 'bid' ? 'buy' : 'sell';
+        $side = ($order['side'] === 'bid') ? 'buy' : 'sell';
         return array (
             'id' => $order['id'],
             'datetime' => $this->iso8601 ($timestamp),
             'timestamp' => $timestamp,
             'status' => $status,
             'symbol' => $symbol,
-            // $market, limit, stop, stop_limit, trailing_stop, fill_or_kill
-            'type' => $order['type'],
+            'type' => $order['type'], // $market, limit, stop, stop_limit, trailing_stop, fill_or_kill
             'side' => $side,
             'price' => $price,
             'cost' => $price * $amount,
@@ -397,13 +408,13 @@ class cobinhood extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $side = ($side === 'sell' ? 'ask' : 'bid');
+        $side = ($side === 'sell') ? 'ask' : 'bid';
         $request = array (
             'trading_pair_id' => $market['id'],
             // $market, limit, stop, stop_limit
             'type' => $type,
             'side' => $side,
-            'size' => $this->amount_to_precision($symbol, $amount),
+            'size' => $this->amount_to_string($symbol, $amount),
         );
         if ($type !== 'market')
             $request['price'] = $this->price_to_precision($symbol, $price);
@@ -429,12 +440,22 @@ class cobinhood extends Exchange {
         return $this->parse_order($response['result']['order']);
     }
 
+    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $result = $this->privateGetTradingOrders ($params);
+        $orders = $this->parse_orders($result['result']['orders'], null, $since, $limit);
+        if ($symbol !== null)
+            return $this->filter_orders_by_symbol($orders, $symbol);
+        return $orders;
+    }
+
     public function fetch_order_trades ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privateGetTradingOrdersOrderIdTrades (array_merge (array (
             'order_id' => $id,
         ), $params));
-        return $this->parse_trades($response['result']);
+        $market = ($symbol === null) ? null : $this->market ($symbol);
+        return $this->parse_trades($response['result'], $market);
     }
 
     public function create_deposit_address ($code, $params = array ()) {
@@ -491,9 +512,9 @@ class cobinhood extends Exchange {
         $headers = array ();
         if ($api === 'private') {
             $this->check_required_credentials();
-            $headers['device_id'] = $this->apiKey;
-            $headers['nonce'] = $this->nonce ();
-            $headers['Authorization'] = $this->jwt ($query, $this->secret);
+            // $headers['device_id'] = $this->apiKey;
+            $headers['nonce'] = (string) $this->nonce ();
+            $headers['Authorization'] = $this->apiKey;
         }
         if ($method === 'GET') {
             $query = $this->urlencode ($query);

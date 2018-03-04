@@ -19,11 +19,16 @@ module.exports = class cobinhood extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
+                'fetchOrder': true,
+            },
+            'requiredCredentials': {
+                'apiKey': true,
+                'secret': false,
             },
             'timeframes': {
                 // the first two don't seem to work at all
-                // '1m': '1m',
-                // '5m': '5m',
+                '1m': '1m',
+                '5m': '5m',
                 '15m': '15m',
                 '30m': '30m',
                 '1h': '1h',
@@ -262,7 +267,7 @@ module.exports = class cobinhood extends Exchange {
         if (typeof limit !== 'undefined')
             request['limit'] = limit; // 100
         let response = await this.publicGetMarketOrderbooksTradingPairId (this.extend (request, params));
-        return this.parseOrderBook (response['result']['orderbook']);
+        return this.parseOrderBook (response['result']['orderbook'], undefined, 'bids', 'asks', 0, 2);
     }
 
     parseTrade (trade, market = undefined) {
@@ -313,21 +318,28 @@ module.exports = class cobinhood extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '15m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let query = {
+        //
+        // they say in their docs that end_time defaults to current server time
+        // but if you don't specify it, their range limits does not allow you to query anything
+        //
+        // they also say that start_time defaults to 0,
+        // but most calls fail if you do not specify any of end_time
+        //
+        // to make things worse, their docs say it should be a Unix Timestamp
+        // but with seconds it fails, so we set milliseconds (somehow it works that way)
+        //
+        let endTime = this.milliseconds ();
+        let request = {
             'trading_pair_id': market['id'],
             'timeframe': this.timeframes[timeframe],
-            // they say in their docs that end_time defaults to current server time
-            // but if you don't specify it, their range limits does not allow you to query anything
-            'end_time': this.milliseconds (),
+            'end_time': endTime,
         };
-        if (since) {
-            // in their docs they say that start_time defaults to 0, but, obviously it does not
-            query['start_time'] = since;
-        }
-        let response = await this.publicGetChartCandlesTradingPairId (this.extend (query, params));
+        if (typeof since !== 'undefined')
+            request['start_time'] = since;
+        let response = await this.publicGetChartCandlesTradingPairId (this.extend (request, params));
         let ohlcv = response['result']['candles'];
         return this.parseOHLCVs (ohlcv, market, timeframe, since, limit);
     }
@@ -339,14 +351,14 @@ module.exports = class cobinhood extends Exchange {
         let balances = response['result']['balances'];
         for (let i = 0; i < balances.length; i++) {
             let balance = balances[i];
-            let id = balance['currency'];
-            let currency = this.commonCurrencyCode (id);
+            let currency = balance['currency'];
+            if (currency in this.currencies_by_id)
+                currency = this.currencies_by_id[currency]['code'];
             let account = {
-                'free': parseFloat (balance['total']),
                 'used': parseFloat (balance['on_order']),
-                'total': 0.0,
+                'total': parseFloat (balance['total']),
             };
-            account['total'] = this.sum (account['free'], account['used']);
+            account['free'] = parseFloat (account['total'] - account['used']);
             result[currency] = account;
         }
         return this.parseBalance (result);
@@ -364,7 +376,7 @@ module.exports = class cobinhood extends Exchange {
         let price = parseFloat (order['price']);
         let amount = parseFloat (order['size']);
         let filled = parseFloat (order['filled']);
-        let remaining = this.amountToPrecision (symbol, amount - filled);
+        let remaining = amount - filled;
         // new, queued, open, partially_filled, filled, cancelled
         let status = order['state'];
         if (status === 'filled') {
@@ -374,15 +386,14 @@ module.exports = class cobinhood extends Exchange {
         } else {
             status = 'open';
         }
-        let side = order['side'] === 'bid' ? 'buy' : 'sell';
+        let side = (order['side'] === 'bid') ? 'buy' : 'sell';
         return {
             'id': order['id'],
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'status': status,
             'symbol': symbol,
-            // market, limit, stop, stop_limit, trailing_stop, fill_or_kill
-            'type': order['type'],
+            'type': order['type'], // market, limit, stop, stop_limit, trailing_stop, fill_or_kill
             'side': side,
             'price': price,
             'cost': price * amount,
@@ -398,13 +409,13 @@ module.exports = class cobinhood extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        side = (side === 'sell' ? 'ask' : 'bid');
+        side = (side === 'sell') ? 'ask' : 'bid';
         let request = {
             'trading_pair_id': market['id'],
             // market, limit, stop, stop_limit
             'type': type,
             'side': side,
-            'size': this.amountToPrecision (symbol, amount),
+            'size': this.amountToString (symbol, amount),
         };
         if (type !== 'market')
             request['price'] = this.priceToPrecision (symbol, price);
@@ -430,12 +441,22 @@ module.exports = class cobinhood extends Exchange {
         return this.parseOrder (response['result']['order']);
     }
 
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let result = await this.privateGetTradingOrders (params);
+        let orders = this.parseOrders (result['result']['orders'], undefined, since, limit);
+        if (typeof symbol !== 'undefined')
+            return this.filterOrdersBySymbol (orders, symbol);
+        return orders;
+    }
+
     async fetchOrderTrades (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privateGetTradingOrdersOrderIdTrades (this.extend ({
             'order_id': id,
         }, params));
-        return this.parseTrades (response['result']);
+        let market = (typeof symbol === 'undefined') ? undefined : this.market (symbol);
+        return this.parseTrades (response['result'], market);
     }
 
     async createDepositAddress (code, params = {}) {
@@ -492,9 +513,9 @@ module.exports = class cobinhood extends Exchange {
         headers = {};
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            headers['device_id'] = this.apiKey;
-            headers['nonce'] = this.nonce ();
-            headers['Authorization'] = this.jwt (query, this.secret);
+            // headers['device_id'] = this.apiKey;
+            headers['nonce'] = this.nonce ().toString ();
+            headers['Authorization'] = this.apiKey;
         }
         if (method === 'GET') {
             query = this.urlencode (query);

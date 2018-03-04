@@ -12,10 +12,15 @@ class exmo extends Exchange {
             'id' => 'exmo',
             'name' => 'EXMO',
             'countries' => array ( 'ES', 'RU' ), // Spain, Russia
-            'rateLimit' => 1000, // once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
+            'rateLimit' => 350, // once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
             'version' => 'v1',
             'has' => array (
                 'CORS' => false,
+                'fetchOrder' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrderTrades' => true,
+                'fetchOrderBooks' => true,
+                'fetchMyTrades' => true,
                 'fetchTickers' => true,
                 'withdraw' => true,
             ),
@@ -147,9 +152,12 @@ class exmo extends Exchange {
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetOrderBook (array_merge (array (
+        $request = array_merge (array (
             'pair' => $market['id'],
-        ), $params));
+        ), $params);
+        if ($limit !== null)
+            $request['limit'] = $limit;
+        $response = $this->publicGetOrderBook ($request);
         $result = $response[$market['id']];
         $orderbook = $this->parse_order_book($result, null, 'bid', 'ask');
         return array_merge ($orderbook, array (
@@ -158,11 +166,39 @@ class exmo extends Exchange {
         ));
     }
 
+    public function fetch_order_books ($symbols = null, $params = array ()) {
+        $this->load_markets();
+        $ids = null;
+        if (!$symbols) {
+            $ids = implode (',', $this->ids);
+            // max URL length is 2083 $symbols, including http schema, hostname, tld, etc...
+            if (strlen ($ids) > 2048) {
+                $numIds = is_array ($this->ids) ? count ($this->ids) : 0;
+                throw new ExchangeError ($this->id . ' has ' . (string) $numIds . ' $symbols exceeding max URL length, you are required to specify a list of $symbols in the first argument to fetchOrderBooks');
+            }
+        } else {
+            $ids = $this->market_ids($symbols);
+            $ids = implode (',', $ids);
+        }
+        $response = $this->publicGetOrderBook (array_merge (array (
+            'pair' => $ids,
+        ), $params));
+        $result = array ();
+        $ids = is_array ($response) ? array_keys ($response) : array ();
+        for ($i = 0; $i < count ($ids); $i++) {
+            $id = $ids[$i];
+            $symbol = $this->find_symbol($id);
+            $result[$symbol] = $this->parse_order_book($response[$id], null, 'bid', 'ask');
+        }
+        return $result;
+    }
+
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = $ticker['updated'] * 1000;
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
+        $last = floatval ($ticker['last_trade']);
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -173,9 +209,9 @@ class exmo extends Exchange {
             'ask' => floatval ($ticker['sell_price']),
             'vwap' => null,
             'open' => null,
-            'close' => null,
-            'first' => null,
-            'last' => floatval ($ticker['last_trade']),
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => floatval ($ticker['avg']),
@@ -215,11 +251,12 @@ class exmo extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $market['symbol'],
-            'order' => null,
+            'order' => $this->safe_string($trade, 'order_id'),
             'type' => null,
             'side' => $trade['type'],
             'price' => floatval ($trade['price']),
             'amount' => floatval ($trade['quantity']),
+            'cost' => $this->safe_float($trade, 'amount'),
         );
     }
 
@@ -232,13 +269,23 @@ class exmo extends Exchange {
         return $this->parse_trades($response[$market['id']], $market, $since, $limit);
     }
 
+    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = array ();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market ($symbol);
+            $request['pair'] = $market['id'];
+        }
+        $response = $this->privatePostUserTrades (array_merge ($request, $params));
+        if ($market !== null)
+            $response = $response[$market['id']];
+        return $this->parse_trades($response, $market, $since, $limit);
+    }
+
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        $prefix = '';
-        if ($type === 'market')
-            $prefix = 'market_';
-        if ($price === null)
-            $price = 0;
+        $prefix = ($type === 'market') ? 'market_' : '';
         $order = array (
             'pair' => $this->market_id($symbol),
             'quantity' => $amount,
@@ -255,6 +302,169 @@ class exmo extends Exchange {
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         return $this->privatePostOrderCancel (array ( 'order_id' => $id ));
+    }
+
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
+        $market = null;
+        if ($symbol !== null)
+            $market = $this->market ($symbol);
+        $response = $this->privatePostOrderTrades (array_merge (array ( 'order_id' => $id ), $params));
+        return $this->parse_order($response, $market);
+    }
+
+    public function fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        $market = null;
+        if ($symbol !== null) {
+            $this->load_markets();
+            $market = $this->market ($symbol);
+        }
+        $request = array (
+            'order_id' => $id,
+        );
+        $response = $this->privatePostOrderTrades (array_merge ($request, $params));
+        return $this->parse_trades($response['trades'], $market, $since, $limit);
+    }
+
+    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $market = null;
+        if ($symbol !== null) {
+            $this->load_markets();
+            $market = $this->market ($symbol);
+        }
+        $orders = $this->privatePostUserOpenOrders ();
+        if ($market !== null) {
+            $id = $market['id'];
+            $orders = (is_array ($orders) && array_key_exists ($id, $orders)) ? $orders[$id] : array ();
+        }
+        return $this->parse_orders($orders, $market, $since, $limit);
+    }
+
+    public function parse_order ($order, $market = null) {
+        $id = $this->safe_string($order, 'order_id');
+        $timestamp = $this->safe_integer($order, 'created');
+        if ($timestamp !== null)
+            $timestamp *= 1000;
+        $iso8601 = null;
+        $symbol = null;
+        $side = $this->safe_string($order, 'type');
+        if ($market === null) {
+            $marketId = null;
+            if (is_array ($order) && array_key_exists ('pair', $order)) {
+                $marketId = $order['pair'];
+            } else if ((is_array ($order) && array_key_exists ('in_currency', $order)) && (is_array ($order) && array_key_exists ('out_currency', $order))) {
+                if ($side === 'buy')
+                    $marketId = $order['in_currency'] . '_' . $order['out_currency'];
+                else
+                    $marketId = $order['out_currency'] . '_' . $order['in_currency'];
+            }
+            if (($marketId !== null) && (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)))
+                $market = $this->markets_by_id[$marketId];
+        }
+        $amount = $this->safe_float($order, 'quantity');
+        if ($amount === null) {
+            $amountField = ($side === 'buy') ? 'in_amount' : 'out_amount';
+            $amount = $this->safe_float($order, $amountField);
+        }
+        $price = $this->safe_float($order, 'price');
+        $cost = $this->safe_float($order, 'amount');
+        $filled = 0.0;
+        $trades = array ();
+        $transactions = $this->safe_value($order, 'trades');
+        $feeCost = null;
+        if ($transactions !== null) {
+            if (gettype ($transactions) === 'array' && count (array_filter (array_keys ($transactions), 'is_string')) == 0) {
+                for ($i = 0; $i < count ($transactions); $i++) {
+                    $trade = $this->parse_trade($transactions[$i], $market);
+                    if ($id === null)
+                        $id = $trade['order'];
+                    if ($timestamp === null)
+                        $timestamp = $trade['timestamp'];
+                    if ($timestamp > $trade['timestamp'])
+                        $timestamp = $trade['timestamp'];
+                    $filled .= $trade['amount'];
+                    if ($feeCost === null)
+                        $feeCost = 0.0;
+                    // $feeCost .= $trade['fee']['cost'];
+                    if ($cost === null)
+                        $cost = 0.0;
+                    $cost .= $trade['cost'];
+                    $trades[] = $trade;
+                }
+            }
+        }
+        if ($timestamp !== null)
+            $iso8601 = $this->iso8601 ($timestamp);
+        $remaining = null;
+        if ($amount !== null)
+            $remaining = $amount - $filled;
+        $status = $this->safe_string($order, 'status'); // in case we need to redefine it for canceled orders
+        if ($filled >= $amount)
+            $status = 'closed';
+        else
+            $status = 'open';
+        if ($market === null)
+            $market = $this->get_market_from_trades ($trades);
+        $feeCurrency = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+            $feeCurrency = $market['quote'];
+        }
+        if ($cost === null) {
+            if ($price !== null)
+                $cost = $price * $filled;
+        } else if ($price === null) {
+            if ($filled > 0)
+                $price = $cost / $filled;
+        }
+        $fee = array (
+            'cost' => $feeCost,
+            'currency' => $feeCurrency,
+        );
+        return array (
+            'id' => $id,
+            'datetime' => $iso8601,
+            'timestamp' => $timestamp,
+            'status' => $status,
+            'symbol' => $symbol,
+            'type' => null,
+            'side' => $side,
+            'price' => $price,
+            'cost' => $cost,
+            'amount' => $amount,
+            'filled' => $filled,
+            'remaining' => $remaining,
+            'trades' => $trades,
+            'fee' => $fee,
+            'info' => $order,
+        );
+    }
+
+    public function get_market_from_trades ($trades) {
+        $tradesBySymbol = $this->index_by($trades, 'pair');
+        $symbols = is_array ($tradesBySymbol) ? array_keys ($tradesBySymbol) : array ();
+        $numSymbols = is_array ($symbols) ? count ($symbols) : 0;
+        if ($numSymbols === 1)
+            return $this->markets[$symbols[0]];
+        return null;
+    }
+
+    public function calculate_fee ($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
+        $market = $this->markets[$symbol];
+        $rate = $market[$takerOrMaker];
+        $cost = floatval ($this->cost_to_precision($symbol, $amount * $rate));
+        $key = 'quote';
+        if ($side === 'sell') {
+            $cost *= $price;
+        } else {
+            $key = 'base';
+        }
+        return array (
+            'type' => $takerOrMaker,
+            'currency' => $market[$key],
+            'rate' => $rate,
+            'cost' => floatval ($this->fee_to_precision($symbol, $cost)),
+        );
     }
 
     public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
