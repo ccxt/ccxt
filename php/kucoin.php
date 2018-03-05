@@ -179,10 +179,9 @@ class kucoin extends Exchange {
     }
 
     public function load_time_difference () {
-        $before = $this->milliseconds ();
         $response = $this->publicGetOpenTick ();
         $after = $this->milliseconds ();
-        $this->options['timeDifference'] = intval (($this->sum ($before, $after) / 2) - $response['timestamp']);
+        $this->options['timeDifference'] = intval ($after - $response['timestamp']);
         return $this->options['timeDifference'];
     }
 

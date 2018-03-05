@@ -316,15 +316,14 @@ class binance extends Exchange {
         ));
     }
 
-    public function milliseconds () {
-        return parent::milliseconds () - $this->options['timeDifference'];
+    public function nonce () {
+        return $this->milliseconds () - $this->options['timeDifference'];
     }
 
     public function load_time_difference () {
-        $before = $this->milliseconds ();
         $response = $this->publicGetTime ();
         $after = $this->milliseconds ();
-        $this->options['timeDifference'] = intval (($before . $after) / 2 - $response['serverTime']);
+        $this->options['timeDifference'] = intval ($after - $response['serverTime']);
         return $this->options['timeDifference'];
     }
 
@@ -827,7 +826,7 @@ class binance extends Exchange {
         } else if (($api === 'private') || ($api === 'wapi')) {
             $this->check_required_credentials();
             $query = $this->urlencode (array_merge (array (
-                'timestamp' => $this->milliseconds (),
+                'timestamp' => $this->nonce (),
                 'recvWindow' => $this->options['recvWindow'],
             ), $params));
             $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret));

@@ -188,10 +188,9 @@ class kucoin (Exchange):
         return self.milliseconds() - self.options['timeDifference']
 
     def load_time_difference(self):
-        before = self.milliseconds()
         response = self.publicGetOpenTick()
         after = self.milliseconds()
-        self.options['timeDifference'] = int((self.sum(before, after) / 2) - response['timestamp'])
+        self.options['timeDifference'] = int(after - response['timestamp'])
         return self.options['timeDifference']
 
     def fetch_markets(self):

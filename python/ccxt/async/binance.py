@@ -332,14 +332,13 @@ class binance (Exchange):
             },
         })
 
-    def milliseconds(self):
-        return super(binance, self).milliseconds() - self.options['timeDifference']
+    def nonce(self):
+        return self.milliseconds() - self.options['timeDifference']
 
     async def load_time_difference(self):
-        before = self.milliseconds()
         response = await self.publicGetTime()
         after = self.milliseconds()
-        self.options['timeDifference'] = int((before + after) / 2 - response['serverTime'])
+        self.options['timeDifference'] = int(after - response['serverTime'])
         return self.options['timeDifference']
 
     async def fetch_markets(self):
@@ -801,7 +800,7 @@ class binance (Exchange):
         elif (api == 'private') or (api == 'wapi'):
             self.check_required_credentials()
             query = self.urlencode(self.extend({
-                'timestamp': self.milliseconds(),
+                'timestamp': self.nonce(),
                 'recvWindow': self.options['recvWindow'],
             }, params))
             signature = self.hmac(self.encode(query), self.encode(self.secret))
