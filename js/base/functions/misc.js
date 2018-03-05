@@ -8,7 +8,9 @@ const parseTimeframe = (timeframe) => {
     let unit = timeframe.slice (-1)
     let scale = 60 // 1m by default
 
-    if (unit === 'M') {
+    if (unit === 'y') {
+        scale = 60 * 60 * 24 * 365
+    } else if (unit === 'M') {
         scale = 60 * 60 * 24 * 30
     } else if (unit === 'w') {
         scale = 60 * 60 * 24 * 7
