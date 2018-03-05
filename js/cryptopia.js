@@ -80,6 +80,7 @@ module.exports = class cryptopia extends Exchange {
         const currencies = {
             'ACC': 'AdCoin',
             'BAT': 'BatCoin',
+            'BLZ': 'BlazeCoin',
             'CC': 'CCX',
             'CMT': 'Comet',
             'FCN': 'Facilecoin',
@@ -98,6 +99,7 @@ module.exports = class cryptopia extends Exchange {
         const currencies = {
             'AdCoin': 'ACC',
             'BatCoin': 'BAT',
+            'BlazeCoin': 'BLZ',
             'CCX': 'CC',
             'Comet': 'CMT',
             'Cubits': 'QBT',
