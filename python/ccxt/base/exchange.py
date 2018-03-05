@@ -397,7 +397,7 @@ class Exchange(object):
             else:
                 return response
         except ValueError as e:  # ValueError == JsonDecodeError
-            ddos_protection = re.search('(cloudflare|incapsula)', response, flags=re.IGNORECASE)
+            ddos_protection = re.search('(cloudflare|incapsula|overload|ddos)', response, flags=re.IGNORECASE)
             exchange_not_available = re.search('(offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing)', response, flags=re.IGNORECASE)
             if ddos_protection:
                 self.raise_error(DDoSProtection, method, url, None, response)

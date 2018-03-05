@@ -405,7 +405,7 @@ module.exports = class Exchange {
                 title = match[1].trim ();
 
             let maintenance = responseBody.match (/offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing/i)
-            let ddosProtection = responseBody.match (/cloudflare|incapsula|overload/i)
+            let ddosProtection = responseBody.match (/cloudflare|incapsula|overload|ddos/i)
 
             if (e instanceof SyntaxError) {
 

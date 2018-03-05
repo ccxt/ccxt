@@ -923,7 +923,7 @@ abstract class Exchange {
 
         if (in_array ($http_status_code, array (400, 403, 405, 503, 520, 521, 522, 525, 530))) {
 
-            if (preg_match ('#cloudflare|incapsula#i', $result)) {
+            if (preg_match ('#cloudflare|incapsula|overload|ddos#i', $result)) {
 
                 $this->raise_error ('DDoSProtection', $url, $method, $http_status_code,
                     'not accessible from this location at the moment');

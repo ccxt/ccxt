@@ -2090,6 +2090,8 @@ This exception is thrown whenever Cloudflare or Incapsula rate limiter restricti
 
   - `cloudflare`
   - `incapsula`
+  - `overload`
+  - `ddos`
 
 ### RequestTimeout
 
