@@ -1082,9 +1082,18 @@ class Exchange(object):
         symbol = market['symbol'] if market else None
         return self.filter_by_symbol_since_limit(array, symbol, since, limit)
 
+    def filter_by_symbol_since_limit(self, array, symbol=None, since=None, limit=None):
+        if symbol:
+            array [entry for entry in array if entry['symbol'] == symbol]
+        if since:
+            array = [entry for entry in array if entry['timestamp'] >= since]
+        if limit:
+            array = array[0:limit]
+        return array
+
     def filter_by_since_limit(self, array, since=None, limit=None):
         if since:
-            array = [entry for entry in array if entry['timestamp'] > since]
+            array = [entry for entry in array if entry['timestamp'] >= since]
         if limit:
             array = array[0:limit]
         return array
