@@ -175,15 +175,15 @@ module.exports = class kucoin extends Exchange {
         });
     }
 
-    milliseconds () {
-        return super.milliseconds () - this.options['timeDifference'];
+    nonce () {
+        return this.milliseconds () - this.options['timeDifference'];
     }
 
     async loadTimeDifference () {
         const before = this.milliseconds ();
         const response = await this.publicGetOpenTick ();
         const after = this.milliseconds ();
-        this.options['timeDifference'] = parseInt ((before + after) / 2 - response['timestamp']);
+        this.options['timeDifference'] = parseInt ((this.sum (before, after) / 2) - response['timestamp']);
         return this.options['timeDifference'];
     }
 
@@ -755,7 +755,7 @@ module.exports = class kucoin extends Exchange {
         if (api === 'private') {
             this.checkRequiredCredentials ();
             // their nonce is always a calibrated synched milliseconds-timestamp
-            let nonce = this.milliseconds ();
+            let nonce = this.nonce ();
             let queryString = '';
             nonce = nonce.toString ();
             if (Object.keys (query).length) {
