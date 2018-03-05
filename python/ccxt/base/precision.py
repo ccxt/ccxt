@@ -34,7 +34,13 @@ def decimalToPrecision(n, rounding_mode=ROUND, precision=None, counting_mode=AFT
             precise = str(dec.quantize(quant(precision)))  # ROUND_HALF_EVEN is default context
         elif counting_mode == SIGNIFICANT_DIGITS:
             q = precision - dec.adjusted() - 1
-            precise = str(dec.quantize(quant(q)))
+            if q < 0:
+                sigfig = quant(q)
+                below = sigfig * decimal.Decimal(string[:precision])
+                above = below + sigfig
+                precise = str(min((below, above), key=lambda x: abs(x - dec)))
+            else:
+                precise = str(dec.quantize(quant(q)))
 
     elif rounding_mode == TRUNCATE:
         # Slice a string
