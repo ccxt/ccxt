@@ -210,6 +210,8 @@ abstract class Exchange {
         $scale = 1;
         if ($unit === 'M')
             $scale = 60 * 60 * 24 * 30;
+        else if ($unit === 'w')
+            $scale = 60 * 60 * 24 * 7;
         else if ($unit === 'd')
             $scale = 60 * 60 * 24;
         else if ($unit === 'h')
