@@ -317,15 +317,14 @@ module.exports = class binance extends Exchange {
         });
     }
 
-    milliseconds () {
-        return super.milliseconds () - this.options['timeDifference'];
+    nonce () {
+        return this.milliseconds () - this.options['timeDifference'];
     }
 
     async loadTimeDifference () {
-        const before = this.milliseconds ();
         const response = await this.publicGetTime ();
         const after = this.milliseconds ();
-        this.options['timeDifference'] = parseInt ((before + after) / 2 - response['serverTime']);
+        this.options['timeDifference'] = parseInt (after - response['serverTime']);
         return this.options['timeDifference'];
     }
 
@@ -828,7 +827,7 @@ module.exports = class binance extends Exchange {
         } else if ((api === 'private') || (api === 'wapi')) {
             this.checkRequiredCredentials ();
             let query = this.urlencode (this.extend ({
-                'timestamp': this.milliseconds (),
+                'timestamp': this.nonce (),
                 'recvWindow': this.options['recvWindow'],
             }, params));
             let signature = this.hmac (this.encode (query), this.encode (this.secret));
