@@ -16,8 +16,9 @@ class kuna extends acx {
             'version' => 'v2',
             'has' => array (
                 'CORS' => false,
-                'fetchTickers' => false,
+                'fetchTickers' => true,
                 'fetchOpenOrders' => true,
+                'fetchMyTrades' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/31697638-912824fa-b3c1-11e7-8c36-cf9606eb94ac.jpg',
@@ -29,6 +30,7 @@ class kuna extends acx {
             'api' => array (
                 'public' => array (
                     'get' => array (
+                        'tickers', // all of them at once
                         'tickers/{market}',
                         'order_book',
                         'order_book/{market}',
