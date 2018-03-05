@@ -167,11 +167,30 @@ module.exports = class kucoin extends Exchange {
                     'deposit': {},
                 },
             },
+            // exchange-specific options
+            'options': {
+                'timeDifference': 0, // the difference between system clock and Kucoin clock
+                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
+            },
         });
+    }
+
+    milliseconds () {
+        return super.milliseconds () - this.options['timeDifference'];
+    }
+
+    async loadTimeDifference () {
+        const before = this.milliseconds ();
+        const response = await this.publicGetOpenTick ();
+        const after = this.milliseconds ();
+        this.options['timeDifference'] = parseInt ((before + after) / 2 - response['timestamp']);
+        return this.options['timeDifference'];
     }
 
     async fetchMarkets () {
         let response = await this.publicGetMarketOpenSymbols ();
+        if (this.options['adjustForTimeDifference'])
+            await this.loadTimeDifference ();
         let markets = response['data'];
         let result = [];
         for (let i = 0; i < markets.length; i++) {
