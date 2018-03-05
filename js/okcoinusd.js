@@ -530,7 +530,8 @@ module.exports = class okcoinusd extends Exchange {
         method += 'OrderInfo';
         let response = await this[method] (this.extend (request, params));
         let ordersField = this.getOrdersField ();
-        if (response[ordersField].length > 0)
+        let numOrders = response[ordersField].length;
+        if (numOrders > 0)
             return this.parseOrder (response[ordersField][0]);
         throw new OrderNotFound (this.id + ' order ' + id + ' not found');
     }
