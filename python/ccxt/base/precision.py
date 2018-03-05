@@ -27,8 +27,6 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=A
     dec = decimal.Decimal(n)
     string = str(dec)
 
-    precision = min(precision, 20)
-
     def quant(x):
         return decimal.Decimal('10') ** (-x)
 
@@ -68,12 +66,11 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=A
         return precise.rstrip('0').rstrip('.') if '.' in precise else precise
     elif padding_mode == PAD_WITH_ZERO:
         if counting_mode == AFTER_POINT:
-            print(precision)
             if '.' in precise:
                 before, after = precise.split('.')
                 return before + '.' + after.ljust(precision, '0')
             else:
-                return precise  # may need more tests
+                return precise
         elif counting_mode == SIGNIFICANT_DIGITS:
             fsfg = len(list(itertools.takewhile(lambda x: x == '.' or x == '0', precise)))
             if precision >= len(precise.replace('.', '').rstrip('0')):
@@ -82,4 +79,8 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=A
                 if '.' in precise:
                     return precise.rstrip('0').ljust(precision, '0').rstrip('.')
                 else:
-                    return precise
+                    # THIS NEEDS TO BE TESTED
+                    if len(precise) > precision:
+                        return precise
+                    else:
+                        return precise + '.' + '0' * (precision - len(precise))
