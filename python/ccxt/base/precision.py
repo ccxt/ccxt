@@ -76,7 +76,10 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=A
                     precision += 1
                 return precise[:fsfg] + precise[fsfg:].rstrip('0').ljust(precision, '0')
         else:
-            if precision > len(precise):
-                return precise + '.' + (precision - len(precise)) * '0'
-            else:
-                return precise
+            if rounding_mode == SIGNIFICANT_DIGITS:
+                if precision > len(precise):
+                    return precise + '.' + (precision - len(precise)) * '0'
+            elif rounding_mode == AFTER_POINT:
+                if precision > 0:
+                    return precise + '.' + precision * '0'
+            return precise
