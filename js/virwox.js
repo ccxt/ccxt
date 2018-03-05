@@ -208,7 +208,7 @@ module.exports = class virwox extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetGetRawTradeData (this.extend ({
-            'instrument': market['id'],
+            'instrument': symbol,
             'timespan': 3600,
         }, params));
         let result = response['result'];
