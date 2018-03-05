@@ -118,6 +118,17 @@ class yobit (liqui):
             return substitutions[commonCode]
         return commonCode
 
+    def parse_order_status(self, status):
+        statuses = {
+            '0': 'open',
+            '1': 'closed',
+            '2': 'canceled',
+            '3': 'open',  # or partially-filled and closed? https://github.com/ccxt/ccxt/issues/1594
+        }
+        if status in statuses:
+            return statuses[status]
+        return status
+
     def fetch_balance(self, params={}):
         self.load_markets()
         response = self.privatePostGetInfo()
