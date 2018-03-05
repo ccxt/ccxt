@@ -192,7 +192,7 @@ module.exports = class paymium extends Exchange {
             let auth = nonce + url + body;
             headers = {
                 'Api-Key': this.apiKey,
-                'Api-Signature': this.hmac (this.encode (auth), this.secret),
+                'Api-Signature': this.hmac (this.encode (auth), this.encode (this.secret)),
                 'Api-Nonce': nonce,
                 'Content-Type': 'application/json',
             };
