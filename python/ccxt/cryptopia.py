@@ -86,6 +86,7 @@ class cryptopia (Exchange):
         currencies = {
             'ACC': 'AdCoin',
             'BAT': 'BatCoin',
+            'BLZ': 'BlazeCoin',
             'CC': 'CCX',
             'CMT': 'Comet',
             'FCN': 'Facilecoin',
@@ -103,6 +104,7 @@ class cryptopia (Exchange):
         currencies = {
             'AdCoin': 'ACC',
             'BatCoin': 'BAT',
+            'BlazeCoin': 'BLZ',
             'CCX': 'CC',
             'Comet': 'CMT',
             'Cubits': 'QBT',

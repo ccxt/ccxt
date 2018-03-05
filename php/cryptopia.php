@@ -79,6 +79,7 @@ class cryptopia extends Exchange {
         $currencies = array (
             'ACC' => 'AdCoin',
             'BAT' => 'BatCoin',
+            'BLZ' => 'BlazeCoin',
             'CC' => 'CCX',
             'CMT' => 'Comet',
             'FCN' => 'Facilecoin',
@@ -97,6 +98,7 @@ class cryptopia extends Exchange {
         $currencies = array (
             'AdCoin' => 'ACC',
             'BatCoin' => 'BAT',
+            'BlazeCoin' => 'BLZ',
             'CCX' => 'CC',
             'Comet' => 'CMT',
             'Cubits' => 'QBT',

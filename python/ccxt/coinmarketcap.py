@@ -100,6 +100,7 @@ class coinmarketcap (Exchange):
             # we change just the Coinmarketcap instead of changing them all
             'MIOTA': 'IOTA',
             'Maggie': 'Maggie',
+            'BlazeCoin': 'BlazeCoin',
         }
         if name in currencies:
             return currencies[name]
