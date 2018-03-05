@@ -1777,8 +1777,6 @@ As such, `cancelOrder()` can throw an `OrderNotFound` exception in these cases:
 
 ## Personal Trades
 
-
-
 ```
 - this part of the unified API is currenty a work in progress
 - there may be some issues and missing implementations here and there
@@ -1888,10 +1886,13 @@ createDepositAddress (code, params = {})
 {
     'currency': currency, // currency code
     'address': address,   // address in terms of requested currency
+    'tag': tag,           // tag / memo / paymentId for particular currencies (XRP, XMR, ...)
     'status': status,     // 'ok' or other
     'info': response,     // raw unparsed data as returned from the exchange
 }
 ```
+
+With certain currencies, like AEON, BTS, GXS, NXT, SBD, STEEM, STR, XEM, XLM, XMR, XRP, an additional argument `tag` is usually required by exchanges. The tag is a memo or a message or a payment id that is attached to a withdrawal transaction. The tag is mandatory for those currencies and it identifies the recipient user account.
 
 ### Withdraw
 
@@ -1907,8 +1908,6 @@ The withdraw method returns a dictionary containing the withdrawal id, which is 
     'id': '12345567890', // string withdrawal id, if any
 }
 ```
-
-With certain currencies, like AEON, BTS, GXS, NXT, SBD, STEEM, STR, XEM, XLM, XMR, XRP, an additional argument `tag` is usually required by exchanges. The tag is a memo or a message or a payment id that is attached to a withdrawal transaction.
 
 Some exchanges require a manual approval of each withdrawal by means of 2FA (2-factor authentication). In order to approve your withdrawal you usually have to either click their secret link in your email inbox or enter a Google Authenticator code or an Authy code on their website to verify that withdrawal transaction was requested intentionally.
 
