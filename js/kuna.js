@@ -111,7 +111,8 @@ module.exports = class kuna extends acx {
                 baseId = baseId.replace ('uah', '');
                 baseId = baseId.replace ('gbg', '');
                 if (baseId.length > 0) {
-                    let quoteId = id.slice (baseId.length);
+                    let baseIdLength = baseId.length - 0; // a transpiler workaround
+                    let quoteId = id.slice (baseIdLength);
                     let base = baseId.toUpperCase ();
                     let quote = quoteId.toUpperCase ();
                     base = this.commonCurrencyCode (base);

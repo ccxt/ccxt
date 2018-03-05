@@ -5,10 +5,7 @@ import os
 import re
 import sys
 import json
-import time
-from os import _exit
 from pprint import pprint
-from traceback import format_tb
 
 # ------------------------------------------------------------------------------
 
@@ -45,8 +42,10 @@ parser.parse_args(namespace=argv)
 
 # ------------------------------------------------------------------------------
 
+
 def print_supported_exchanges():
     print('Supported exchanges: ' + ', '.join(ccxt.exchanges) + '\n')
+
 
 # ------------------------------------------------------------------------------
 
@@ -60,7 +59,9 @@ def print_usage():
     print('python ' + sys.argv[0] + ' kraken fetch_order_book ETH/BTC\n')
     print_supported_exchanges()
 
+
 # ------------------------------------------------------------------------------
+
 
 # prefer local testing keys to global keys
 keys_global = root + '/keys.json'
@@ -76,8 +77,6 @@ config = {
     'timeout': 30000,
     'enableRateLimit': True,
 }
-
-# print (argv.args)
 
 if not (argv.method and argv.exchange_id):
     print_usage()
@@ -100,7 +99,7 @@ exchange = getattr(ccxt, argv.exchange_id)(config)
 args = argv.args
 
 # unpack json objects (mostly for extra params)
-args = [exchange.unjson (arg) if arg[0] == '{' else arg for arg in args]
+args = [exchange.unjson(arg) if arg[0] == '{' else arg for arg in args]
 
 # parse floats (mostly for amount argument and price argument)
 args = [arg if re.match(r"[^\d\.]", arg) else float(arg) for arg in args]
@@ -113,6 +112,6 @@ if callable(method):
     result = method(*args)
     pprint(result)
 
-else: # otherwise it's a property, print it
+else:  # otherwise it's a property, print it
 
     pprint(method)
