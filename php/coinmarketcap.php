@@ -120,7 +120,7 @@ class coinmarketcap extends Exchange {
                 $baseId = $market['id'];
                 $base = $this->currency_code ($market['symbol'], $market['name']);
                 $symbol = $base . '/' . $quote;
-                $id = $baseId . '/' . $quote;
+                $id = $baseId . '/' . $quoteId;
                 $result[] = array (
                     'id' => $id,
                     'symbol' => $symbol,

@@ -120,7 +120,7 @@ class coinmarketcap (Exchange):
                 baseId = market['id']
                 base = self.currency_code(market['symbol'], market['name'])
                 symbol = base + '/' + quote
-                id = baseId + '/' + quote
+                id = baseId + '/' + quoteId
                 result.append({
                     'id': id,
                     'symbol': symbol,
