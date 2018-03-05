@@ -117,6 +117,18 @@ class yobit extends liqui {
         return $commonCode;
     }
 
+    public function parse_order_status ($status) {
+        $statuses = array (
+            '0' => 'open',
+            '1' => 'closed',
+            '2' => 'canceled',
+            '3' => 'open', // or partially-filled and closed? https://github.com/ccxt/ccxt/issues/1594
+        );
+        if (is_array ($statuses) && array_key_exists ($status, $statuses))
+            return $statuses[$status];
+        return $status;
+    }
+
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostGetInfo ();
