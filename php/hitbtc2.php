@@ -996,7 +996,9 @@ class hitbtc2 extends hitbtc {
         if ($since !== null)
             $request['from'] = $this->iso8601 ($since);
         $response = $this->privateGetHistoryOrder (array_merge ($request, $params));
-        return $this->parse_orders($response, $market, $since, $limit);
+        $orders = $this->parse_orders($response, $market);
+        $orders = $this->filter_by($orders, 'status', 'closed');
+        return $this->filter_by_since_limit($orders, $since, $limit);
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {

@@ -967,7 +967,9 @@ class hitbtc2 (hitbtc):
         if since is not None:
             request['from'] = self.iso8601(since)
         response = await self.privateGetHistoryOrder(self.extend(request, params))
-        return self.parse_orders(response, market, since, limit)
+        orders = self.parse_orders(response, market)
+        orders = self.filter_by(orders, 'status', 'closed')
+        return self.filter_by_since_limit(orders, since, limit)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
