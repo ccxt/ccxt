@@ -429,16 +429,23 @@ module.exports = class liqui extends Exchange {
         return response;
     }
 
+    parseOrderStatus (status) {
+        let statuses = {
+            '0': 'open',
+            '1': 'closed',
+            '2': 'canceled',
+            '3': 'canceled', // or partially-filled and still open? https://github.com/ccxt/ccxt/issues/1594
+        };
+        if (status in statuses)
+            return statuses[status];
+        return status;
+    }
+
     parseOrder (order, market = undefined) {
         let id = order['id'].toString ();
-        let status = this.safeInteger (order, 'status');
-        if (status === 0) {
-            status = 'open';
-        } else if (status === 1) {
-            status = 'closed';
-        } else if ((status === 2) || (status === 3)) {
-            status = 'canceled';
-        }
+        let status = this.safeString (order, 'status');
+        if (status !== 'undefined')
+            status = this.parseOrderStatus (status);
         let timestamp = parseInt (order['timestamp_created']) * 1000;
         let symbol = undefined;
         if (!market)

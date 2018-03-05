@@ -118,6 +118,18 @@ module.exports = class yobit extends liqui {
         return commonCode;
     }
 
+    parseOrderStatus (status) {
+        let statuses = {
+            '0': 'open',
+            '1': 'closed',
+            '2': 'canceled',
+            '3': 'open', // or partially-filled and closed? https://github.com/ccxt/ccxt/issues/1594
+        };
+        if (status in statuses)
+            return statuses[status];
+        return status;
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostGetInfo ();
