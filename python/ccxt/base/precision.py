@@ -1,5 +1,6 @@
 import decimal
 import numbers
+import itertools
 
 # rounding mode
 TRUNCATE = 0
@@ -14,8 +15,8 @@ NO_PADDING = 4
 PAD_WITH_ZERO = 5
 
 
-def decimalToPrecision(n, rounding_mode=ROUND, precision=None, counting_mode=AFTER_POINT, padding_mode=NO_PADDING):
-    assert precision is not None and isinstance(precision, numbers.Integral) and precision < 28
+def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=AFTER_POINT, padding_mode=NO_PADDING):
+    assert precision is not None and isinstance(precision, numbers.Integral)
     assert rounding_mode in [TRUNCATE, ROUND]
     assert counting_mode in [AFTER_POINT, SIGNIFICANT_DIGITS]
     assert padding_mode in [NO_PADDING, PAD_WITH_ZERO]
@@ -26,6 +27,8 @@ def decimalToPrecision(n, rounding_mode=ROUND, precision=None, counting_mode=AFT
     dec = decimal.Decimal(n)
     string = str(dec)
 
+    precision = min(precision, 20)
+
     def quant(x):
         return decimal.Decimal('10') ** (-x)
 
@@ -34,13 +37,13 @@ def decimalToPrecision(n, rounding_mode=ROUND, precision=None, counting_mode=AFT
             precise = str(dec.quantize(quant(precision)))  # ROUND_HALF_EVEN is default context
         elif counting_mode == SIGNIFICANT_DIGITS:
             q = precision - dec.adjusted() - 1
+            sigfig = quant(q)
             if q < 0:
-                sigfig = quant(q)
                 below = sigfig * decimal.Decimal(string[:precision])
                 above = below + sigfig
                 precise = str(min((below, above), key=lambda x: abs(x - dec)))
             else:
-                precise = str(dec.quantize(quant(q)))
+                precise = str(dec.quantize(sigfig))
 
     elif rounding_mode == TRUNCATE:
         # Slice a string
@@ -50,14 +53,33 @@ def decimalToPrecision(n, rounding_mode=ROUND, precision=None, counting_mode=AFT
             precise = truncated.rstrip('.')
         elif counting_mode == SIGNIFICANT_DIGITS:
             dot = string.index('.')
-            start = dot - dec.adjusted()
+            start = dot - dec.adjusted() if dot is not None else 0
             end = start + precision
-            if dec.adjusted() > 0:
-                precise = string[:end - 1].ljust(dot, '0')
-            else:
-                precise = string[:end]
+            if dot >= end:
+                end -= 1
+            if dec.adjusted() < 0:
+                end += 1
+            precise = string[:end].ljust(dot, '0')
+
+    if '.' == precise[-1]:
+        raise ValueError
 
     if padding_mode == NO_PADDING:
         return precise.rstrip('0').rstrip('.') if '.' in precise else precise
     elif padding_mode == PAD_WITH_ZERO:
-        return precise.ljust(precision, '0').rstrip('.')
+        if counting_mode == AFTER_POINT:
+            print(precision)
+            if '.' in precise:
+                before, after = precise.split('.')
+                return before + '.' + after.ljust(precision, '0')
+            else:
+                return precise  # may need more tests
+        elif counting_mode == SIGNIFICANT_DIGITS:
+            fsfg = len(list(itertools.takewhile(lambda x: x == '.' or x == '0', precise)))
+            if precision >= len(precise.replace('.', '').rstrip('0')):
+                return precise[:fsfg] + precise[fsfg:].ljust(precision, '0')
+            else:
+                if '.' in precise:
+                    return precise.rstrip('0').ljust(precision, '0').rstrip('.')
+                else:
+                    return precise
