@@ -1084,7 +1084,7 @@ class Exchange(object):
 
     def filter_by_symbol_since_limit(self, array, symbol=None, since=None, limit=None):
         if symbol:
-            array [entry for entry in array if entry['symbol'] == symbol]
+            array = [entry for entry in array if entry['symbol'] == symbol]
         if since:
             array = [entry for entry in array if entry['timestamp'] >= since]
         if limit:
