@@ -877,7 +877,7 @@ module.exports = class binance extends Exchange {
             if (body.length > 0) {
                 if (body[0] === '{') {
                     let response = JSON.parse (body);
-                    let error = this.safeValue (response, 'code');
+                    let error = this.safeString (response, 'code');
                     if (typeof error !== 'undefined') {
                         const exceptions = this.exceptions;
                         if (error in exceptions) {
