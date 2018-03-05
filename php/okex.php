@@ -100,4 +100,31 @@ class okex extends okcoinusd {
         }
         return $result;
     }
+    
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
+        if (!$symbol)
+            throw new ExchangeError ($this->id . ' fetchOrder requires a $symbol parameter');
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $method = 'privatePost';
+        $request = array (
+            'order_id' => $id,
+            'symbol' => $market['id'],
+            // 'status' => 0, // 0 for unfilled orders, 1 for filled orders
+            // 'current_page' => 1, // current page number
+            // 'page_length' => 200, // number of orders returned per page, maximum 200
+        );
+        if ($market['future']) {
+            $method .= 'Future';
+            $request['contract_type'] = 'this_week'; // next_week, quarter
+        }
+        $method .= 'OrderInfo';
+        $response = $this->$method (array_merge ($request, $params));
+        $ordersField = $this->get_orders_field ();
+  
+        return $this->parse_order($response['orders'][0]);
+        
+        throw new OrderNotFound ($this->id . ' order ' . $id . ' not found');
+    }
+    
 }
