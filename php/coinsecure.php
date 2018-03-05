@@ -171,6 +171,7 @@ class coinsecure extends Exchange {
     }
 
     public function fetch_balance ($params = array ()) {
+        $this->load_markets();
         $response = $this->privateGetUserExchangeBankSummary ();
         $balance = $response['message'];
         $coin = array (
@@ -192,6 +193,7 @@ class coinsecure extends Exchange {
     }
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+        $this->load_markets();
         $bids = $this->publicGetExchangeBidOrders ($params);
         $asks = $this->publicGetExchangeAskOrders ($params);
         $orderbook = array (
@@ -202,6 +204,7 @@ class coinsecure extends Exchange {
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {
+        $this->load_markets();
         $response = $this->publicGetExchangeTicker ($params);
         $ticker = $response['message'];
         $timestamp = $ticker['timestamp'];
@@ -253,14 +256,17 @@ class coinsecure extends Exchange {
     }
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
         $result = $this->publicGetExchangeTrades ($params);
         if (is_array ($result) && array_key_exists ('message', $result)) {
             $trades = $result['message'];
-            return $this->parse_trades($trades, $symbol);
+            return $this->parse_trades($trades, $market);
         }
     }
 
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+        $this->load_markets();
         $method = 'privatePutUserExchange';
         $order = array ();
         if ($type === 'market') {
@@ -283,6 +289,7 @@ class coinsecure extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
         // $method = 'privateDeleteUserExchangeAskCancelOrderId'; // TODO fixme, have to specify order side here
         // return $this->$method (array ( 'orderID' => $id ));
         throw new NotSupported ($this->id . ' cancelOrder () is not fully implemented yet');

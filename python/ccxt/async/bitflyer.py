@@ -16,7 +16,7 @@ class bitflyer (Exchange):
             'name': 'bitFlyer',
             'countries': 'JP',
             'version': 'v1',
-            'rateLimit': 500,
+            'rateLimit': 1000,  # their nonce-timestamp is in seconds...
             'has': {
                 'CORS': False,
                 'withdraw': True,
@@ -280,7 +280,7 @@ class bitflyer (Exchange):
 
     async def fetch_orders(self, symbol=None, since=None, limit=100, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' cancelOrder() requires a symbol argument')
+            raise ExchangeError(self.id + ' fetchOrders() requires a symbol argument')
         await self.load_markets()
         request = {
             'product_code': self.market_id(symbol),
@@ -294,7 +294,7 @@ class bitflyer (Exchange):
 
     async def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' cancelOrder() requires a symbol argument')
+            raise ExchangeError(self.id + ' fetchOrder() requires a symbol argument')
         orders = await self.fetch_orders(symbol)
         ordersById = self.index_by(orders, 'id')
         if id in ordersById:
