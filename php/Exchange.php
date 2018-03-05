@@ -208,7 +208,9 @@ abstract class Exchange {
         $amount = substr ($timeframe, 0, -1);
         $unit = substr ($timeframe, -1);
         $scale = 1;
-        if ($unit === 'M')
+        if ($unit === 'y')
+            $scale = 60 * 60 * 24 * 365;
+        else if ($unit === 'M')
             $scale = 60 * 60 * 24 * 30;
         else if ($unit === 'w')
             $scale = 60 * 60 * 24 * 7;
