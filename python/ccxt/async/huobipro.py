@@ -245,14 +245,6 @@ class huobipro (Exchange):
             'amount': trade['amount'],
         }
 
-    def parse_trades_data(self, data, market, since=None, limit=None):
-        result = []
-        for i in range(0, len(data)):
-            trades = self.parse_trades(data[i]['data'], market, since, limit)
-            for k in range(0, len(trades)):
-                result.append(trades[k])
-        return result
-
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
@@ -260,7 +252,15 @@ class huobipro (Exchange):
             'symbol': market['id'],
             'size': 2000,
         }, params))
-        return self.parse_trades_data(response['data'], market, since, limit)
+        data = response['data']
+        result = []
+        for i in range(0, len(data)):
+            trades = data[i]['data']
+            for j in range(0, len(trades)):
+                trade = self.parse_trade(trades[j], market)
+                result.append(trade)
+        result = self.sort_by(result, 'timestamp')
+        return self.filter_by_symbol_since_limit(result, symbol, since, limit)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return [

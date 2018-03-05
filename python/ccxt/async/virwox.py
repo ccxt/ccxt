@@ -198,13 +198,14 @@ class virwox (Exchange):
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
+        market = self.market(symbol)
         response = await self.publicGetGetRawTradeData(self.extend({
             'instrument': symbol,
             'timespan': 3600,
         }, params))
         result = response['result']
         trades = result['data']
-        return self.parse_trades(trades, symbol)
+        return self.parse_trades(trades, market)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()

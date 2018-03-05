@@ -174,6 +174,7 @@ class coinsecure (Exchange):
         })
 
     async def fetch_balance(self, params={}):
+        await self.load_markets()
         response = await self.privateGetUserExchangeBankSummary()
         balance = response['message']
         coin = {
@@ -194,6 +195,7 @@ class coinsecure (Exchange):
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
+        await self.load_markets()
         bids = await self.publicGetExchangeBidOrders(params)
         asks = await self.publicGetExchangeAskOrders(params)
         orderbook = {
@@ -203,6 +205,7 @@ class coinsecure (Exchange):
         return self.parse_order_book(orderbook, None, 'bids', 'asks', 'rate', 'vol')
 
     async def fetch_ticker(self, symbol, params={}):
+        await self.load_markets()
         response = await self.publicGetExchangeTicker(params)
         ticker = response['message']
         timestamp = ticker['timestamp']
@@ -251,12 +254,15 @@ class coinsecure (Exchange):
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
         result = await self.publicGetExchangeTrades(params)
         if 'message' in result:
             trades = result['message']
-            return self.parse_trades(trades, symbol)
+            return self.parse_trades(trades, market)
 
     async def create_order(self, market, type, side, amount, price=None, params={}):
+        await self.load_markets()
         method = 'privatePutUserExchange'
         order = {}
         if type == 'market':
@@ -277,6 +283,7 @@ class coinsecure (Exchange):
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
+        await self.load_markets()
         # method = 'privateDeleteUserExchangeAskCancelOrderId'  # TODO fixme, have to specify order side here
         # return await getattr(self, method)({'orderID': id})
         raise NotSupported(self.id + ' cancelOrder() is not fully implemented yet')
