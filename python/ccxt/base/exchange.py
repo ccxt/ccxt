@@ -1058,7 +1058,9 @@ class Exchange(object):
     def parse_timeframe(self, timeframe):
         amount = int(timeframe[0:-1])
         unit = timeframe[-1]
-        if 'M' in unit:
+        if 'y' in unit:
+            scale = 60 * 60 * 24 * 365
+        elif 'M' in unit:
             scale = 60 * 60 * 24 * 30
         elif 'w' in unit:
             scale = 60 * 60 * 24 * 7
