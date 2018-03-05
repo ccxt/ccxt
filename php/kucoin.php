@@ -166,11 +166,30 @@ class kucoin extends Exchange {
                     'deposit' => array (),
                 ),
             ),
+            // exchange-specific options
+            'options' => array (
+                'timeDifference' => 0, // the difference between system clock and Kucoin clock
+                'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
+            ),
         ));
+    }
+
+    public function nonce () {
+        return $this->milliseconds () - $this->options['timeDifference'];
+    }
+
+    public function load_time_difference () {
+        $before = $this->milliseconds ();
+        $response = $this->publicGetOpenTick ();
+        $after = $this->milliseconds ();
+        $this->options['timeDifference'] = intval (($this->sum ($before, $after) / 2) - $response['timestamp']);
+        return $this->options['timeDifference'];
     }
 
     public function fetch_markets () {
         $response = $this->publicGetMarketOpenSymbols ();
+        if ($this->options['adjustForTimeDifference'])
+            $this->load_time_difference ();
         $markets = $response['data'];
         $result = array ();
         for ($i = 0; $i < count ($markets); $i++) {
@@ -735,7 +754,7 @@ class kucoin extends Exchange {
         if ($api === 'private') {
             $this->check_required_credentials();
             // their $nonce is always a calibrated synched milliseconds-timestamp
-            $nonce = $this->milliseconds ();
+            $nonce = $this->nonce ();
             $queryString = '';
             $nonce = (string) $nonce;
             if ($query) {

@@ -184,7 +184,7 @@ class paymium (Exchange):
             auth = nonce + url + body
             headers = {
                 'Api-Key': self.apiKey,
-                'Api-Signature': self.hmac(self.encode(auth), self.secret),
+                'Api-Signature': self.hmac(self.encode(auth), self.encode(self.secret)),
                 'Api-Nonce': nonce,
                 'Content-Type': 'application/json',
             }
