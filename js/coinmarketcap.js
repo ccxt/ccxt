@@ -121,7 +121,7 @@ module.exports = class coinmarketcap extends Exchange {
                 let baseId = market['id'];
                 let base = this.currencyCode (market['symbol'], market['name']);
                 let symbol = base + '/' + quote;
-                let id = baseId + '/' + quote;
+                let id = baseId + '/' + quoteId;
                 result.push ({
                     'id': id,
                     'symbol': symbol,
