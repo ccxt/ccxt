@@ -256,17 +256,6 @@ module.exports = class huobipro extends Exchange {
         };
     }
 
-    parseTradesData (data, market, since = undefined, limit = undefined) {
-        let result = [];
-        for (let i = 0; i < data.length; i++) {
-            let trades = this.parseTrades (data[i]['data'], market, since, limit);
-            for (let k = 0; k < trades.length; k++) {
-                result.push (trades[k]);
-            }
-        }
-        return result;
-    }
-
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -274,7 +263,17 @@ module.exports = class huobipro extends Exchange {
             'symbol': market['id'],
             'size': 2000,
         }, params));
-        return this.parseTradesData (response['data'], market, since, limit);
+        let data = response['data'];
+        let result = [];
+        for (let i = 0; i < data.length; i++) {
+            let trades = data[i]['data'];
+            for (let j = 0; j < trades.length; j++) {
+                let trade = this.parseTrade (trades[j], market);
+                result.push (trade);
+            }
+        }
+        result = this.sortBy (result, 'timestamp');
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
