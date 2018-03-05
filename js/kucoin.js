@@ -180,10 +180,9 @@ module.exports = class kucoin extends Exchange {
     }
 
     async loadTimeDifference () {
-        const before = this.milliseconds ();
         const response = await this.publicGetOpenTick ();
         const after = this.milliseconds ();
-        this.options['timeDifference'] = parseInt ((this.sum (before, after) / 2) - response['timestamp']);
+        this.options['timeDifference'] = parseInt (after - response['timestamp']);
         return this.options['timeDifference'];
     }
 
