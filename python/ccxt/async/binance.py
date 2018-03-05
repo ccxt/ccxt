@@ -846,7 +846,7 @@ class binance (Exchange):
             if len(body) > 0:
                 if body[0] == '{':
                     response = json.loads(body)
-                    error = self.safe_value(response, 'code')
+                    error = self.safe_string(response, 'code')
                     if error is not None:
                         exceptions = self.exceptions
                         if error in exceptions:

@@ -875,7 +875,7 @@ class binance extends Exchange {
             if (strlen ($body) > 0) {
                 if ($body[0] === '{') {
                     $response = json_decode ($body, $as_associative_array = true);
-                    $error = $this->safe_value($response, 'code');
+                    $error = $this->safe_string($response, 'code');
                     if ($error !== null) {
                         $exceptions = $this->exceptions;
                         if (is_array ($exceptions) && array_key_exists ($error, $exceptions)) {
