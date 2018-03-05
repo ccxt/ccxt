@@ -1060,6 +1060,8 @@ class Exchange(object):
         unit = timeframe[-1]
         if 'M' in unit:
             scale = 60 * 60 * 24 * 30
+        elif 'w' in unit:
+            scale = 60 * 60 * 24 * 7
         elif 'd' in unit:
             scale = 60 * 60 * 24
         elif 'h' in unit:
