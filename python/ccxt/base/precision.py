@@ -50,8 +50,8 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=A
             truncated = before + '.' + after[:precision]
             precise = truncated.rstrip('.')
         elif counting_mode == SIGNIFICANT_DIGITS:
-            dot = string.index('.')
-            start = dot - dec.adjusted() if dot is not None else 0
+            dot = string.index('.') if '.' in string else 0
+            start = dot - dec.adjusted()
             end = start + precision
             if dot >= end:
                 end -= 1
@@ -65,22 +65,18 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=A
     if padding_mode == NO_PADDING:
         return precise.rstrip('0').rstrip('.') if '.' in precise else precise
     elif padding_mode == PAD_WITH_ZERO:
-        if counting_mode == AFTER_POINT:
-            if '.' in precise:
+        if '.' in precise:
+            if counting_mode == AFTER_POINT:
                 before, after = precise.split('.')
                 return before + '.' + after.ljust(precision, '0')
+
+            elif counting_mode == SIGNIFICANT_DIGITS:
+                fsfg = len(list(itertools.takewhile(lambda x: x == '.' or x == '0', precise)))
+                if '.' in precise[fsfg:]:
+                    precision += 1
+                return precise[:fsfg] + precise[fsfg:].rstrip('0').ljust(precision, '0')
+        else:
+            if precision > len(precise):
+                return precise + '.' + (precision - len(precise)) * '0'
             else:
                 return precise
-        elif counting_mode == SIGNIFICANT_DIGITS:
-            fsfg = len(list(itertools.takewhile(lambda x: x == '.' or x == '0', precise)))
-            if precision >= len(precise.replace('.', '').rstrip('0')):
-                return precise[:fsfg] + precise[fsfg:].ljust(precision, '0')
-            else:
-                if '.' in precise:
-                    return precise.rstrip('0').ljust(precision, '0').rstrip('.')
-                else:
-                    # THIS NEEDS TO BE TESTED
-                    if len(precise) > precision:
-                        return precise
-                    else:
-                        return precise + '.' + '0' * (precision - len(precise))
