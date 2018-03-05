@@ -79,21 +79,56 @@ class kuna extends acx {
     }
 
     public function fetch_markets () {
-        return array (
-            array ( 'id' => 'btcuah', 'symbol' => 'BTC/UAH', 'base' => 'BTC', 'quote' => 'UAH', 'precision' => array ( 'amount' => 6, 'price' => 0 ), 'lot' => 0.000001, 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 1, 'max' => null ), 'cost' => array ( 'min' => 0.000001, 'max' => null ))),
-            array ( 'id' => 'ethuah', 'symbol' => 'ETH/UAH', 'base' => 'ETH', 'quote' => 'UAH', 'precision' => array ( 'amount' => 6, 'price' => 0 ), 'lot' => 0.000001, 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 1, 'max' => null ), 'cost' => array ( 'min' => 0.000001, 'max' => null ))),
-            array ( 'id' => 'gbguah', 'symbol' => 'GBG/UAH', 'base' => 'GBG', 'quote' => 'UAH', 'precision' => array ( 'amount' => 3, 'price' => 2 ), 'lot' => 0.001, 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 0.01, 'max' => null ), 'cost' => array ( 'min' => 0.000001, 'max' => null ))), // Golos Gold (GBG != GOLOS)
-            array ( 'id' => 'kunbtc', 'symbol' => 'KUN/BTC', 'base' => 'KUN', 'quote' => 'BTC', 'precision' => array ( 'amount' => 6, 'price' => 6 ), 'lot' => 0.000001, 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.000001, 'max' => null ))),
-            array ( 'id' => 'bchbtc', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC', 'precision' => array ( 'amount' => 6, 'price' => 6 ), 'lot' => 0.000001, 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.000001, 'max' => null ))),
-            array ( 'id' => 'bchuah', 'symbol' => 'BCH/UAH', 'base' => 'BCH', 'quote' => 'UAH', 'precision' => array ( 'amount' => 6, 'price' => 0 ), 'lot' => 0.000001, 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 1, 'max' => null ), 'cost' => array ( 'min' => 0.000001, 'max' => null ))),
-            array ( 'id' => 'wavesuah', 'symbol' => 'WAVES/UAH', 'base' => 'WAVES', 'quote' => 'UAH', 'precision' => array ( 'amount' => 6, 'price' => 0 ), 'lot' => 0.000001, 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 1, 'max' => null ), 'cost' => array ( 'min' => 0.000001, 'max' => null ))),
-            array ( 'id' => 'arnbtc', 'symbol' => 'ARN/BTC', 'base' => 'ARN', 'quote' => 'BTC' ),
-            array ( 'id' => 'b2bbtc', 'symbol' => 'B2B/BTC', 'base' => 'B2B', 'quote' => 'BTC' ),
-            array ( 'id' => 'evrbtc', 'symbol' => 'EVR/BTC', 'base' => 'EVR', 'quote' => 'BTC' ),
-            array ( 'id' => 'golgbg', 'symbol' => 'GOL/GBG', 'base' => 'GOL', 'quote' => 'GBG' ),
-            array ( 'id' => 'rbtc', 'symbol' => 'R/BTC', 'base' => 'R', 'quote' => 'BTC' ),
-            array ( 'id' => 'rmcbtc', 'symbol' => 'RMC/BTC', 'base' => 'RMC', 'quote' => 'BTC' ),
+        $predefinedMarkets = array (
+            array ( 'id' => 'btcuah', 'symbol' => 'BTC/UAH', 'base' => 'BTC', 'quote' => 'UAH', 'baseId' => 'btc', 'quoteId' => 'uah', 'precision' => array ( 'amount' => 6, 'price' => 0 ), 'lot' => 0.000001, 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 1, 'max' => null ), 'cost' => array ( 'min' => 0.000001, 'max' => null ))),
+            array ( 'id' => 'ethuah', 'symbol' => 'ETH/UAH', 'base' => 'ETH', 'quote' => 'UAH', 'baseId' => 'eth', 'quoteId' => 'uah', 'precision' => array ( 'amount' => 6, 'price' => 0 ), 'lot' => 0.000001, 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 1, 'max' => null ), 'cost' => array ( 'min' => 0.000001, 'max' => null ))),
+            array ( 'id' => 'gbguah', 'symbol' => 'GBG/UAH', 'base' => 'GBG', 'quote' => 'UAH', 'baseId' => 'gbg', 'quoteId' => 'uah', 'precision' => array ( 'amount' => 3, 'price' => 2 ), 'lot' => 0.001, 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 0.01, 'max' => null ), 'cost' => array ( 'min' => 0.000001, 'max' => null ))), // Golos Gold (GBG != GOLOS)
+            array ( 'id' => 'kunbtc', 'symbol' => 'KUN/BTC', 'base' => 'KUN', 'quote' => 'BTC', 'baseId' => 'kun', 'quoteId' => 'btc', 'precision' => array ( 'amount' => 6, 'price' => 6 ), 'lot' => 0.000001, 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.000001, 'max' => null ))),
+            array ( 'id' => 'bchbtc', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC', 'baseId' => 'bch', 'quoteId' => 'btc', 'precision' => array ( 'amount' => 6, 'price' => 6 ), 'lot' => 0.000001, 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.000001, 'max' => null ))),
+            array ( 'id' => 'bchuah', 'symbol' => 'BCH/UAH', 'base' => 'BCH', 'quote' => 'UAH', 'baseId' => 'bch', 'quoteId' => 'uah', 'precision' => array ( 'amount' => 6, 'price' => 0 ), 'lot' => 0.000001, 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 1, 'max' => null ), 'cost' => array ( 'min' => 0.000001, 'max' => null ))),
+            array ( 'id' => 'wavesuah', 'symbol' => 'WAVES/UAH', 'base' => 'WAVES', 'quote' => 'UAH', 'baseId' => 'waves', 'quoteId' => 'uah', 'precision' => array ( 'amount' => 6, 'price' => 0 ), 'lot' => 0.000001, 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 1, 'max' => null ), 'cost' => array ( 'min' => 0.000001, 'max' => null ))),
+            array ( 'id' => 'arnbtc', 'symbol' => 'ARN/BTC', 'base' => 'ARN', 'quote' => 'BTC', 'baseId' => 'arn', 'quoteId' => 'btc' ),
+            array ( 'id' => 'b2bbtc', 'symbol' => 'B2B/BTC', 'base' => 'B2B', 'quote' => 'BTC', 'baseId' => 'b2b', 'quoteId' => 'btc' ),
+            array ( 'id' => 'evrbtc', 'symbol' => 'EVR/BTC', 'base' => 'EVR', 'quote' => 'BTC', 'baseId' => 'evr', 'quoteId' => 'btc' ),
+            array ( 'id' => 'golgbg', 'symbol' => 'GOL/GBG', 'base' => 'GOL', 'quote' => 'GBG', 'baseId' => 'gol', 'quoteId' => 'gbg' ),
+            array ( 'id' => 'rbtc', 'symbol' => 'R/BTC', 'base' => 'R', 'quote' => 'BTC', 'baseId' => 'r', 'quoteId' => 'btc' ),
+            array ( 'id' => 'rmcbtc', 'symbol' => 'RMC/BTC', 'base' => 'RMC', 'quote' => 'BTC', 'baseId' => 'rmc', 'quoteId' => 'btc' ),
         );
+        $markets = array ();
+        $tickers = $this->publicGetTickers ();
+        for ($i = 0; $i < count ($predefinedMarkets); $i++) {
+            $market = $predefinedMarkets[$i];
+            if (is_array ($tickers) && array_key_exists ($market['id'], $tickers))
+                $markets[] = $market;
+        }
+        $marketsById = $this->index_by($markets, 'id');
+        $ids = is_array ($tickers) ? array_keys ($tickers) : array ();
+        for ($i = 0; $i < count ($ids); $i++) {
+            $id = $ids[$i];
+            if (!(is_array ($marketsById) && array_key_exists ($id, $marketsById))) {
+                $baseId = str_replace ('btc', '', $id);
+                $baseId = str_replace ('uah', '', $baseId);
+                $baseId = str_replace ('gbg', '', $baseId);
+                if (strlen ($baseId) > 0) {
+                    $baseIdLength = strlen ($baseId) - 0; // a transpiler workaround
+                    $quoteId = mb_substr ($id, $baseIdLength);
+                    $base = strtoupper ($baseId);
+                    $quote = strtoupper ($quoteId);
+                    $base = $this->common_currency_code($base);
+                    $quote = $this->common_currency_code($quote);
+                    $symbol = $base . '/' . $quote;
+                    $markets[] = array (
+                        'id' => $id,
+                        'symbol' => $symbol,
+                        'base' => $base,
+                        'quote' => $quote,
+                        'baseId' => $baseId,
+                        'quoteId' => $quoteId,
+                    );
+                }
+            }
+        }
+        return $markets;
     }
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
