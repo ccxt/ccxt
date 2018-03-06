@@ -776,7 +776,7 @@ class Exchange(object):
         """Checks an address is not the same character repeated or an empty sequence"""
         if address is None:
             self.raise_error(InvalidAddress, details='address is None')
-        if all(letter == address[0] for letter in address) or len(address) < 6:
+        if all(letter == address[0] for letter in address) or len(address) < 10 or ' ' in address:
             self.raise_error(InvalidAddress, details='address is invalid or has less than 6 characters: "' + str(address) + '"')
         return address
 
