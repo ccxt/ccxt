@@ -1238,6 +1238,22 @@ abstract class Exchange {
         return $this->filter_by_symbol_since_limit ($array, $symbol, $since, $limit);
     }
 
+    public function check_address ($address) {
+        if (empty ($address) || !is_string ($address)) {
+            throw new InvalidAddress ($this->id . ' address is undefined');
+        }
+
+        if (count (array_unique (explode ('', $address))) == 1 || strlen ($address) < 6) {
+            throw new InvalidAddress ($this->id . ' sent a bad address ' . $address);
+        }
+
+        return $address;
+    }
+
+    public function checkAddress ($address) {
+        return $this->check_address ($address);
+    }
+
     public function fetch_bids_asks ($symbols, $params = array ()) { // stub
         throw new NotSupported ($this->id . ' API does not allow to fetch all prices at once with a single call to fetch_bids_asks () for now');
     }
