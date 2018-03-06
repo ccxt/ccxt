@@ -322,6 +322,7 @@ module.exports = class bitlish extends Exchange {
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
         await this.loadMarkets ();
         if (currency !== 'BTC') {
             // they did not document other types...

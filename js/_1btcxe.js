@@ -207,6 +207,7 @@ module.exports = class _1btcxe extends Exchange {
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
         await this.loadMarkets ();
         let response = await this.privatePostWithdrawalsNew (this.extend ({
             'currency': currency,

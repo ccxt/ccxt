@@ -473,6 +473,7 @@ module.exports = class exmo extends Exchange {
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
         await this.loadMarkets ();
         let request = {
             'amount': amount,

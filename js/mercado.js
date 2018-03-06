@@ -252,6 +252,7 @@ module.exports = class mercado extends Exchange {
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
         await this.loadMarkets ();
         let request = {
             'coin': currency,
