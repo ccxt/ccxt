@@ -506,6 +506,7 @@ module.exports = class bibox extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
         await this.loadMarkets ();
         let currency = this.currency (code);
         if (typeof this.password === 'undefined')

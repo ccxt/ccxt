@@ -521,8 +521,8 @@ abstract class Exchange {
             throw new InvalidAddress ($this->id . ' address is undefined');
         }
 
-        if (count (array_unique (explode ('', $address))) == 1 || strlen ($address) < 6) {
-            throw new InvalidAddress ($this->id . ' address is invalid or has less than 6 characters: "' . strval ($address) . '"');
+        if (count (array_unique (explode ('', $address))) == 1 || strlen ($address) < 10 || strpos($address, ' ') !== false) {
+            throw new InvalidAddress ($this->id . ' address is invalid or has less than 10 characters: "' . strval ($address) . '"');
         }
 
         return $address;

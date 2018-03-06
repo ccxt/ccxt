@@ -275,9 +275,9 @@ module.exports = class Exchange {
         if (typeof address === 'undefined')
             throw new InvalidAddress (this.id + ' address is undefined')
 
-        // check the address is not all the same letter like 'aaaaa' or '00000'
-        if ((unique (address).length < 2) || address.length < 6)
-            throw new InvalidAddress (this.id + ' address is invalid or has less than 6 characters: "' + address.toString () + '"')
+        // check the address is not the same letter like 'aaaaa' nor too short nor has a space
+        if ((unique (address).length < 2) || address.length < 10 || address.includes (' '))
+            throw new InvalidAddress (this.id + ' address is invalid or has less than 10 characters: "' + address.toString () + '"')
 
         return address
     }

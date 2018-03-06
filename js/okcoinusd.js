@@ -597,6 +597,7 @@ module.exports = class okcoinusd extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
         await this.loadMarkets ();
         let currency = this.currency (code);
         // if (amount < 0.01)
