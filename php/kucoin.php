@@ -440,10 +440,14 @@ class kucoin extends Exchange {
             'orderOid' => $id,
         );
         $response = $this->privateGetOrderDetail (array_merge ($request, $params));
-        $order = $response['data'];
-        if (!$order)
+        if (!$response['data'])
             throw new OrderNotFound ($this->id . ' ' . $this->json ($response));
-        return $this->parse_order($response['data'], $market);
+        $order = $this->parse_order($response['data'], $market);
+        $orderId = $order['id'];
+        if (is_array ($this->orders) && array_key_exists ($orderId, $this->orders))
+            $order['status'] = $this->orders[$orderId]['status'];
+        $this->orders[$orderId] = $order;
+        return $order;
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -456,11 +460,18 @@ class kucoin extends Exchange {
         );
         $response = $this->privateGetOrderActiveMap (array_merge ($request, $params));
         $orders = $this->array_concat($response['data']['SELL'], $response['data']['BUY']);
-        $result = array ();
         for ($i = 0; $i < count ($orders); $i++) {
-            $result[] = array_merge ($orders[$i], array ( 'status' => 'open' ));
+            $order = $this->parse_order(array_merge ($orders[$i], array (
+                'status' => 'open',
+            )), $market);
+            $orderId = $order['id'];
+            if (is_array ($this->orders) && array_key_exists ($orderId, $this->orders))
+                if ($this->orders[$orderId]['status'] !== 'open')
+                    $order['status'] = $this->orders[$orderId]['status'];
+            $this->orders[$order['id']] = $order;
         }
-        return $this->parse_orders($result, $market, $since, $limit);
+        $openOrders = $this->filter_by($this->orders, 'status', 'open');
+        return $this->filter_by_symbol_since_limit($openOrders, $symbol, $since, $limit);
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -477,11 +488,18 @@ class kucoin extends Exchange {
             $request['limit'] = $limit;
         $response = $this->privateGetOrderDealt (array_merge ($request, $params));
         $orders = $response['data']['datas'];
-        $result = array ();
         for ($i = 0; $i < count ($orders); $i++) {
-            $result[] = array_merge ($orders[$i], array ( 'status' => 'closed' ));
+            $order = $this->parse_order(array_merge ($orders[$i], array (
+                'status' => 'closed',
+            )), $market);
+            $orderId = $order['id'];
+            if (is_array ($this->orders) && array_key_exists ($orderId, $this->orders))
+                if ($this->orders[$orderId]['status'] === 'canceled')
+                    $order['status'] = $this->orders[$orderId]['status'];
+            $this->orders[$order['id']] = $order;
         }
-        return $this->parse_orders($result, $market, $since, $limit);
+        $closedOrders = $this->filter_by($this->orders, 'status', 'closed');
+        return $this->filter_by_symbol_since_limit($closedOrders, $symbol, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -490,17 +508,35 @@ class kucoin extends Exchange {
         $this->load_markets();
         $market = $this->market ($symbol);
         $base = $market['base'];
-        $order = array (
+        $request = array (
             'symbol' => $market['id'],
             'type' => strtoupper ($side),
             'price' => $this->price_to_precision($symbol, $price),
             'amount' => $this->truncate ($amount, $this->currencies[$base]['precision']),
         );
-        $response = $this->privatePostOrder (array_merge ($order, $params));
-        return array (
+        $price = floatval ($price);
+        $amount = floatval ($amount);
+        $cost = $price * $amount;
+        $response = $this->privatePostOrder (array_merge ($request, $params));
+        $orderId = $this->safe_string($response['data'], 'orderOid');
+        $order = array (
             'info' => $response,
-            'id' => $this->safe_string($response['data'], 'orderOid'),
+            'id' => $orderId,
+            'timestamp' => null,
+            'datetime' => null,
+            'type' => $type,
+            'side' => $side,
+            'amount' => $amount,
+            'filled' => null,
+            'remaining' => null,
+            'price' => $price,
+            'cost' => $cost,
+            'status' => 'open',
+            'fee' => null,
+            'trades' => null,
         );
+        $this->orders[$orderId] = $order;
+        return $order;
     }
 
     public function cancel_orders ($symbol = null, $params = array ()) {
@@ -518,11 +554,17 @@ class kucoin extends Exchange {
             $params = $this->omit ($params, 'type');
         }
         $response = $this->privatePostOrderCancelAll (array_merge ($request, $params));
+        $openOrders = $this->filter_by($this->orders, 'status', 'open');
+        for ($i = 0; $i < count ($openOrders); $i++) {
+            $order = $openOrders[$i];
+            $orderId = $order['id'];
+            $this->orders[$orderId]['status'] = 'canceled';
+        }
         return $response;
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        if (!$symbol)
+        if ($symbol === null)
             throw new ExchangeError ($this->id . ' cancelOrder requires a symbol');
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -537,6 +579,22 @@ class kucoin extends Exchange {
             throw new ExchangeError ($this->id . ' cancelOrder requires parameter type=["BUY"|"SELL"]');
         }
         $response = $this->privatePostCancelOrder (array_merge ($request, $params));
+        if (is_array ($this->orders) && array_key_exists ($id, $this->orders)) {
+            $this->orders[$id]['status'] = 'canceled';
+        } else {
+            // store it in cache for further references
+            $timestamp = $this->milliseconds ();
+            $side = strtolower ($request['type']);
+            $this->orders[$id] = array (
+                'id' => $id,
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601 ($timestamp),
+                'type' => null,
+                'side' => $side,
+                'symbol' => $symbol,
+                'status' => 'canceled',
+            );
+        }
         return $response;
     }
 
@@ -736,6 +794,7 @@ class kucoin extends Exchange {
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency ($code);
+        $this->check_address($address);
         $response = $this->privatePostAccountCoinWithdrawApply (array_merge (array (
             'coin' => $currency['id'],
             'amount' => $amount,
