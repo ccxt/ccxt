@@ -25,6 +25,7 @@ from ccxt.base.errors import NetworkError                       # noqa: F401
 from ccxt.base.errors import DDoSProtection                     # noqa: F401
 from ccxt.base.errors import RequestTimeout                     # noqa: F401
 from ccxt.base.errors import ExchangeNotAvailable               # noqa: F401
+from ccxt.base.errors import InvalidAddress                     # noqa: F401
 
 from ccxt.async._1broker import _1broker                        # noqa: F401
 from ccxt.async._1btcxe import _1btcxe                          # noqa: F401
