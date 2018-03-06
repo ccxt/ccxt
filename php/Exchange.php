@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.11.24';
+$version = '1.11.29';
 
 abstract class Exchange {
 
@@ -513,6 +513,23 @@ abstract class Exchange {
                 throw new AuthenticationError ($this->id . ' requires `' . $key . '`');
             }
         }
+    }
+
+    public function check_address ($address) {
+
+        if (empty ($address) || !is_string ($address)) {
+            throw new InvalidAddress ($this->id . ' address is undefined');
+        }
+
+        if (count (array_unique (explode ('', $address))) == 1 || strlen ($address) < 6) {
+            throw new InvalidAddress ($this->id . ' address is invalid or has less than 6 characters: "' . strval ($address) . '"');
+        }
+
+        return $address;
+    }
+
+    public function checkAddress ($address) {
+        return $this->check_address ($address);
     }
 
     public function describe () {

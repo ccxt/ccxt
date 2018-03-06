@@ -549,10 +549,10 @@ class bitfinex (Exchange):
             'type': orderType,
             'side': side,
             'price': self.safe_float(order, 'price'),
-            'average': float(order['avg_execution_price']),
-            'amount': float(order['original_amount']),
-            'remaining': float(order['remaining_amount']),
-            'filled': float(order['executed_amount']),
+            'average': self.safe_float(order, 'avg_execution_price'),
+            'amount': self.safe_float(order, 'original_amount'),
+            'remaining': self.safe_float(order, 'remaining_amount'),
+            'filled': self.safe_float(order, 'executed_amount'),
             'status': status,
             'fee': None,
         }
@@ -639,9 +639,11 @@ class bitfinex (Exchange):
         response = self.fetch_deposit_address(currency, self.extend({
             'renew': 1,
         }, params))
+        address = self.safe_string(response, 'address')
+        self.check_address(address)
         return {
             'currency': currency,
-            'address': response['address'],
+            'address': address,
             'status': 'ok',
             'info': response['info'],
         }
@@ -659,6 +661,7 @@ class bitfinex (Exchange):
         if 'address_pool' in response:
             tag = address
             address = response['address_pool']
+        self.check_address(address)
         return {
             'currency': currency,
             'address': address,

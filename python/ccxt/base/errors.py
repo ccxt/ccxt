@@ -121,4 +121,8 @@ class InvalidNonce(NetworkError):
     pass
 
 
+class InvalidAddress(ExchangeError):
+    """Raised on invalid funding address"""
+    pass
+
 # =============================================================================

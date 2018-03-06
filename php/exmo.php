@@ -284,14 +284,16 @@ class exmo extends Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        if ($price === null)
-            throw new ExchangeError ($this->id . ' createOrder() requires a $price argument for all orders');
         $this->load_markets();
-        $type = ($type === 'market') ? ($type . '_') : '';
+        if ($type === 'market') {
+            $price = '0';
+            $type = $type . '_';
+        }
+        $type .= $side;
         $request = array (
             'pair' => $this->market_id($symbol),
             'quantity' => $amount,
-            'type' => $type . $side,
+            'type' => $type,
             'price' => $price,
         );
         $response = $this->privatePostOrderCreate (array_merge ($request, $params));

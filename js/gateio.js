@@ -273,11 +273,11 @@ module.exports = class gateio extends Exchange {
         };
     }
 
-    async createDepositAddress (currency, params = {}) {
+    async createDepositAddress (currency, params = {}) { // CHANGE
         return await this.queryDepositAddress ('New', currency, params);
     }
 
-    async fetchDepositAddress (currency, params = {}) {
+    async fetchDepositAddress (currency, params = {}) {  // CHANGE
         return await this.queryDepositAddress ('Deposit', currency, params);
     }
 

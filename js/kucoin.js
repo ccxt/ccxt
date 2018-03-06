@@ -239,6 +239,7 @@ module.exports = class kucoin extends Exchange {
         }, params));
         let data = response['data'];
         let address = this.safeString (data, 'address');
+        this.checkAddress (address);
         let tag = this.safeString (data, 'userOid');
         return {
             'currency': code,

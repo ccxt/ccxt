@@ -12,6 +12,7 @@ const {
     , deepExtend
     , extend
     , flatten
+    , unique
     , indexBy
     , sortBy
     , groupBy
@@ -29,6 +30,7 @@ const {
 
 const {
     ExchangeError
+    , InvalidAddress
     , NotSupported
     , AuthenticationError
     , DDoSProtection
@@ -266,6 +268,18 @@ module.exports = class Exchange {
             if (this.requiredCredentials[key] && !this[key])
                 throw new AuthenticationError (this.id + ' requires `' + key + '`')
         })
+    }
+
+    checkAddress (address) {
+
+        if (typeof address === 'undefined')
+            throw new InvalidAddress (this.id + ' address is undefined')
+
+        // check the address is not all the same letter like 'aaaaa' or '00000'
+        if ((unique (address).length < 2) || address.length < 6)
+            throw new InvalidAddress (this.id + ' address is invalid or has less than 6 characters: "' + address.toString () + '"')
+
+        return address
     }
 
     initRestRateLimiter () {

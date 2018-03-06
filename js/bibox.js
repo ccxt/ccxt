@@ -500,7 +500,7 @@ module.exports = class bibox extends Exchange {
         });
         let result = {
             'info': response,
-            'address': undefined,
+            'address': undefined,  // POINTLESS?
         };
         return result;
     }

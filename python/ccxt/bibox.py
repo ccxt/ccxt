@@ -477,7 +477,7 @@ class bibox (Exchange):
         })
         result = {
             'info': response,
-            'address': None,
+            'address': None,  # POINTLESS?
         }
         return result
 

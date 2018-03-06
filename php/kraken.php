@@ -785,9 +785,11 @@ class kraken extends Exchange {
             'new' => 'true',
         );
         $response = $this->fetch_deposit_address ($currency, array_merge ($request, $params));
+        $address = $this->safe_string($response, 'address');
+        $this->check_address($address);
         return array (
             'currency' => $currency,
-            'address' => $response['address'],
+            'address' => $address,
             'status' => 'ok',
             'info' => $response,
         );
@@ -807,8 +809,9 @@ class kraken extends Exchange {
         $result = $response['result'];
         $numResults = is_array ($result) ? count ($result) : 0;
         if ($numResults < 1)
-            throw new ExchangeError ($this->id . ' privatePostDepositAddresses() returned no addresses');
+            throw new InvalidAddress ($this->id . ' privatePostDepositAddresses() returned no addresses');
         $address = $this->safe_string($result[0], 'address');
+        $this->check_address($address);
         return array (
             'currency' => $code,
             'address' => $address,

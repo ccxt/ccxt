@@ -238,6 +238,7 @@ class kucoin extends Exchange {
         ), $params));
         $data = $response['data'];
         $address = $this->safe_string($data, 'address');
+        $this->check_address($address);
         $tag = $this->safe_string($data, 'userOid');
         return array (
             'currency' => $code,

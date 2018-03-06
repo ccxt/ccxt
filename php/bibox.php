@@ -499,7 +499,7 @@ class bibox extends Exchange {
         ));
         $result = array (
             'info' => $response,
-            'address' => null,
+            'address' => null,  // POINTLESS?
         );
         return $result;
     }

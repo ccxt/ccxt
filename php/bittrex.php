@@ -614,6 +614,7 @@ class bittrex extends Exchange {
             $tag = $address;
             $address = $currency['address'];
         }
+        $this->check_address($address);
         return array (
             'currency' => $code,
             'address' => $address,
@@ -675,31 +676,34 @@ class bittrex extends Exchange {
     public function throw_exception_on_error ($response) {
         if (is_array ($response) && array_key_exists ('message', $response)) {
             $message = $this->safe_string($response, 'message');
+            $error = $this->id . ' ' . $this->json ($response);
             if ($message === 'APISIGN_NOT_PROVIDED')
-                throw new AuthenticationError ($this->id . ' ' . $this->json ($response));
+                throw new AuthenticationError ($error);
             if ($message === 'INVALID_SIGNATURE')
-                throw new AuthenticationError ($this->id . ' ' . $this->json ($response));
+                throw new AuthenticationError ($error);
+            if ($message === 'INVALID_CURRENCY')
+                throw new ExchangeError ($error);
             if ($message === 'INVALID_PERMISSION')
-                throw new AuthenticationError ($this->id . ' ' . $this->json ($response));
+                throw new AuthenticationError ($error);
             if ($message === 'INSUFFICIENT_FUNDS')
-                throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
+                throw new InsufficientFunds ($error);
             if ($message === 'QUANTITY_NOT_PROVIDED')
-                throw new InvalidOrder ($this->id . ' ' . $this->json ($response));
+                throw new InvalidOrder ($error);
             if ($message === 'MIN_TRADE_REQUIREMENT_NOT_MET')
-                throw new InvalidOrder ($this->id . ' ' . $this->json ($response));
+                throw new InvalidOrder ($error);
             if ($message === 'APIKEY_INVALID') {
                 if ($this->hasAlreadyAuthenticatedSuccessfully) {
-                    throw new DDoSProtection ($this->id . ' ' . $this->json ($response));
+                    throw new DDoSProtection ($error);
                 } else {
-                    throw new AuthenticationError ($this->id . ' ' . $this->json ($response));
+                    throw new AuthenticationError ($error);
                 }
             }
             if ($message === 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT')
                 throw new InvalidOrder ($this->id . ' order cost should be over 50k satoshi ' . $this->json ($response));
             if ($message === 'ORDER_NOT_OPEN')
-                throw new InvalidOrder ($this->id . ' ' . $this->json ($response));
+                throw new InvalidOrder ($error);
             if ($message === 'UUID_INVALID')
-                throw new OrderNotFound ($this->id . ' ' . $this->json ($response));
+                throw new OrderNotFound ($error);
         }
     }
 

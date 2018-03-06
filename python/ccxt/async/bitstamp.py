@@ -528,10 +528,12 @@ class bitstamp (Exchange):
         method += 'Deposit' if v1 else ''
         method += 'Address'
         response = await getattr(self, method)(params)
+        address = self.safe_string(response, 'address')
+        self.check_address(address)
         return {
             'currency': code,
             'status': 'ok',
-            'address': self.safe_string(response, 'address'),
+            'address': address,
             'tag': self.safe_string(response, 'destination_tag'),
             'info': response,
         }

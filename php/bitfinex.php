@@ -570,10 +570,10 @@ class bitfinex extends Exchange {
             'type' => $orderType,
             'side' => $side,
             'price' => $this->safe_float($order, 'price'),
-            'average' => floatval ($order['avg_execution_price']),
-            'amount' => floatval ($order['original_amount']),
-            'remaining' => floatval ($order['remaining_amount']),
-            'filled' => floatval ($order['executed_amount']),
+            'average' => $this->safe_float($order, 'avg_execution_price'),
+            'amount' => $this->safe_float($order, 'original_amount'),
+            'remaining' => $this->safe_float($order, 'remaining_amount'),
+            'filled' => $this->safe_float($order, 'executed_amount'),
             'status' => $status,
             'fee' => null,
         );
@@ -667,9 +667,11 @@ class bitfinex extends Exchange {
         $response = $this->fetch_deposit_address ($currency, array_merge (array (
             'renew' => 1,
         ), $params));
+        $address = $this->safe_string($response, 'address');
+        $this->check_address($address);
         return array (
             'currency' => $currency,
-            'address' => $response['address'],
+            'address' => $address,
             'status' => 'ok',
             'info' => $response['info'],
         );
@@ -689,6 +691,7 @@ class bitfinex extends Exchange {
             $tag = $address;
             $address = $response['address_pool'];
         }
+        $this->check_address($address);
         return array (
             'currency' => $currency,
             'address' => $address,

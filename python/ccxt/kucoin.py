@@ -244,6 +244,7 @@ class kucoin (Exchange):
         }, params))
         data = response['data']
         address = self.safe_string(data, 'address')
+        self.check_address(address)
         tag = self.safe_string(data, 'userOid')
         return {
             'currency': code,

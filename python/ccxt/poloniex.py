@@ -686,8 +686,7 @@ class poloniex (Exchange):
         address = None
         if response['success'] == 1:
             address = self.safe_string(response, 'response')
-        if not address:
-            raise ExchangeError(self.id + ' createDepositAddress failed: ' + self.last_http_response)
+        self.check_address(address)
         return {
             'currency': currency,
             'address': address,
@@ -699,6 +698,7 @@ class poloniex (Exchange):
         response = self.privatePostReturnDepositAddresses()
         currencyId = self.currency_id(currency)
         address = self.safe_string(response, currencyId)
+        self.check_address(address)
         status = 'ok' if address else 'none'
         return {
             'currency': currency,

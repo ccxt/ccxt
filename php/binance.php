@@ -782,7 +782,7 @@ class binance extends Exchange {
                 $tag = $this->safe_string($response, 'addressTag');
                 return array (
                     'currency' => $code,
-                    'address' => $address,
+                    'address' => $this->check_address($address),
                     'tag' => $tag,
                     'status' => 'ok',
                     'info' => $response,

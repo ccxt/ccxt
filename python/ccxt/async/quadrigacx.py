@@ -187,6 +187,7 @@ class quadrigacx (Exchange):
         else:
             address = response
             status = 'ok'
+        self.check_address(address)
         return {
             'currency': currency,
             'address': address,

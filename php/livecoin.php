@@ -499,6 +499,7 @@ class livecoin extends Exchange {
             $address = $parts[0];
             $tag = $parts[2];
         }
+        $this->check_address($address);
         return array (
             'currency' => $currency,
             'address' => $address,

@@ -1049,6 +1049,7 @@ class hitbtc2 extends hitbtc {
             'currency' => $currency['id'],
         ));
         $address = $response['address'];
+        $this->check_address($address);
         $tag = $this->safe_string($response, 'paymentId');
         return array (
             'currency' => $currency,
@@ -1066,6 +1067,7 @@ class hitbtc2 extends hitbtc {
             'currency' => $currency['id'],
         ));
         $address = $response['address'];
+        $this->check_address($address);
         $tag = $this->safe_string($response, 'paymentId');
         return array (
             'currency' => $currency,

@@ -253,6 +253,7 @@ class southxchange (Exchange):
         parts = response.split('|')
         numParts = len(parts)
         address = parts[0]
+        self.check_address(address)
         tag = None
         if numParts > 1:
             tag = parts[1]
