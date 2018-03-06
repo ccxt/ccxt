@@ -47,6 +47,7 @@ class bitz extends Exchange {
                 ),
                 'private' => array (
                     'post' => array (
+                        'balances',
                         'tradeAdd',
                         'tradeCancel',
                         'openOrders',

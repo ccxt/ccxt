@@ -54,6 +54,7 @@ class bitz (Exchange):
                 },
                 'private': {
                     'post': [
+                        'balances',
                         'tradeAdd',
                         'tradeCancel',
                         'openOrders',
