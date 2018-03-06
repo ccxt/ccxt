@@ -441,10 +441,14 @@ module.exports = class kucoin extends Exchange {
             'orderOid': id,
         };
         let response = await this.privateGetOrderDetail (this.extend (request, params));
-        let order = response['data'];
-        if (!order)
+        if (!response['data'])
             throw new OrderNotFound (this.id + ' ' + this.json (response));
-        return this.parseOrder (response['data'], market);
+        let order = this.parseOrder (response['data'], market);
+        let orderId = order['id'];
+        if (orderId in this.orders)
+            order['status'] = this.orders[orderId]['status'];
+        this.orders[orderId] = order;
+        return order;
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -457,11 +461,18 @@ module.exports = class kucoin extends Exchange {
         };
         let response = await this.privateGetOrderActiveMap (this.extend (request, params));
         let orders = this.arrayConcat (response['data']['SELL'], response['data']['BUY']);
-        let result = [];
         for (let i = 0; i < orders.length; i++) {
-            result.push (this.extend (orders[i], { 'status': 'open' }));
+            let order = this.parseOrder (this.extend (orders[i], {
+                'status': 'open',
+            }), market);
+            let orderId = order['id'];
+            if (orderId in this.orders)
+                if (this.orders[orderId]['status'] !== 'open')
+                    order['status'] = this.orders[orderId]['status'];
+            this.orders[order['id']] = order;
         }
-        return this.parseOrders (result, market, since, limit);
+        let openOrders = this.filterBy (this.orders, 'status', 'open');
+        return this.filterBySymbolSinceLimit (openOrders, symbol, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -478,11 +489,18 @@ module.exports = class kucoin extends Exchange {
             request['limit'] = limit;
         let response = await this.privateGetOrderDealt (this.extend (request, params));
         let orders = response['data']['datas'];
-        let result = [];
         for (let i = 0; i < orders.length; i++) {
-            result.push (this.extend (orders[i], { 'status': 'closed' }));
+            let order = this.parseOrder (this.extend (orders[i], {
+                'status': 'closed',
+            }), market);
+            let orderId = order['id'];
+            if (orderId in this.orders)
+                if (this.orders[orderId]['status'] === 'canceled')
+                    order['status'] = this.orders[orderId]['status'];
+            this.orders[order['id']] = order;
         }
-        return this.parseOrders (result, market, since, limit);
+        let closedOrders = this.filterBy (this.orders, 'status', 'closed');
+        return this.filterBySymbolSinceLimit (closedOrders, symbol, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -491,17 +509,35 @@ module.exports = class kucoin extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let base = market['base'];
-        let order = {
+        let request = {
             'symbol': market['id'],
             'type': side.toUpperCase (),
             'price': this.priceToPrecision (symbol, price),
             'amount': this.truncate (amount, this.currencies[base]['precision']),
         };
-        let response = await this.privatePostOrder (this.extend (order, params));
-        return {
+        price = parseFloat (price);
+        amount = parseFloat (amount);
+        let cost = price * amount;
+        let response = await this.privatePostOrder (this.extend (request, params));
+        let orderId = this.safeString (response['data'], 'orderOid');
+        let order = {
             'info': response,
-            'id': this.safeString (response['data'], 'orderOid'),
+            'id': orderId,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'type': type,
+            'side': side,
+            'amount': amount,
+            'filled': undefined,
+            'remaining': undefined,
+            'price': price,
+            'cost': cost,
+            'status': 'open',
+            'fee': undefined,
+            'trades': undefined,
         };
+        this.orders[orderId] = order;
+        return order;
     }
 
     async cancelOrders (symbol = undefined, params = {}) {
@@ -519,11 +555,17 @@ module.exports = class kucoin extends Exchange {
             params = this.omit (params, 'type');
         }
         let response = await this.privatePostOrderCancelAll (this.extend (request, params));
+        let openOrders = this.filterBy (this.orders, 'status', 'open');
+        for (let i = 0; i < openOrders.length; i++) {
+            let order = openOrders[i];
+            let orderId = order['id'];
+            this.orders[orderId]['status'] = 'canceled';
+        }
         return response;
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        if (!symbol)
+        if (typeof symbol === 'undefined')
             throw new ExchangeError (this.id + ' cancelOrder requires a symbol');
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -538,6 +580,22 @@ module.exports = class kucoin extends Exchange {
             throw new ExchangeError (this.id + ' cancelOrder requires parameter type=["BUY"|"SELL"]');
         }
         let response = await this.privatePostCancelOrder (this.extend (request, params));
+        if (id in this.orders) {
+            this.orders[id]['status'] = 'canceled';
+        } else {
+            // store it in cache for further references
+            let timestamp = this.milliseconds ();
+            let side = request['type'].toLowerCase ();
+            this.orders[id] = {
+                'id': id,
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'type': undefined,
+                'side': side,
+                'symbol': symbol,
+                'status': 'canceled',
+            };
+        }
         return response;
     }
 
@@ -737,6 +795,7 @@ module.exports = class kucoin extends Exchange {
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
         let currency = this.currency (code);
+        this.checkAddress (address);
         let response = await this.privatePostAccountCoinWithdrawApply (this.extend ({
             'coin': currency['id'],
             'amount': amount,
