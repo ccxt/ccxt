@@ -46,6 +46,7 @@ Exchange.ccxtVersion = version
 const exchanges = {
     '_1broker':                require ('./js/_1broker.js'),
     '_1btcxe':                 require ('./js/_1btcxe.js'),
+    'abucoins':                require ('./js/abucoins.js'),
     'acx':                     require ('./js/acx.js'),
     'allcoin':                 require ('./js/allcoin.js'),
     'anxpro':                  require ('./js/anxpro.js'),
