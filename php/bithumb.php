@@ -287,6 +287,7 @@ class bithumb extends Exchange {
     }
 
     public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+        $this->check_address($address);
         $request = array (
             'units' => $amount,
             'address' => $address,

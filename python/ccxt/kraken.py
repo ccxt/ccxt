@@ -786,6 +786,7 @@ class kraken (Exchange):
         }
 
     def withdraw(self, currency, amount, address, tag=None, params={}):
+        self.check_address(address)
         if 'key' in params:
             self.load_markets()
             response = self.privatePostWithdraw(self.extend({

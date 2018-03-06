@@ -622,6 +622,7 @@ class cryptopia extends Exchange {
     }
 
     public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+        $this->check_address($address);
         $currencyId = $this->currency_id ($currency);
         $request = array (
             'Currency' => $currencyId,

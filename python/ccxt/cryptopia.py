@@ -575,6 +575,7 @@ class cryptopia (Exchange):
         }
 
     def withdraw(self, currency, amount, address, tag=None, params={}):
+        self.check_address(address)
         currencyId = self.currency_id(currency)
         request = {
             'Currency': currencyId,

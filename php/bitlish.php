@@ -321,6 +321,7 @@ class bitlish extends Exchange {
     }
 
     public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+        $this->check_address($address);
         $this->load_markets();
         if ($currency !== 'BTC') {
             // they did not document other types...

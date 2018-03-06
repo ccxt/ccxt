@@ -302,6 +302,7 @@ class bitflyer (Exchange):
         raise OrderNotFound(self.id + ' No order found with id ' + id)
 
     async def withdraw(self, currency, amount, address, tag=None, params={}):
+        self.check_address(address)
         await self.load_markets()
         response = await self.privatePostWithdraw(self.extend({
             'currency_code': currency,

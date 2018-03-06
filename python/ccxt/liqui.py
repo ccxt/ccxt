@@ -586,6 +586,7 @@ class liqui (Exchange):
         return self.parse_trades(trades, market, since, limit)
 
     def withdraw(self, currency, amount, address, tag=None, params={}):
+        self.check_address(address)
         self.load_markets()
         response = self.privatePostWithdrawCoin(self.extend({
             'coinName': currency,

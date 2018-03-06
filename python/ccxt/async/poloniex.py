@@ -708,6 +708,7 @@ class poloniex (Exchange):
         }
 
     async def withdraw(self, currency, amount, address, tag=None, params={}):
+        self.check_address(address)
         await self.load_markets()
         currencyId = self.currency_id(currency)
         request = {

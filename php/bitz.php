@@ -15,7 +15,6 @@ class bitz extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v1',
             'has' => array (
-                'fetchBalance' => false, // so far the only exchange that has createOrder but not fetchBalance %)
                 'fetchTickers' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
@@ -132,8 +131,9 @@ class bitz extends Exchange {
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $market = $markets[$id];
-            $idUpper = strtoupper ($id);
-            list ($base, $quote) = explode ('_', $idUpper);
+            list ($baseId, $quoteId) = explode ('_', $id);
+            $base = strtoupper ($baseId);
+            $quote = strtoupper ($quoteId);
             $base = $this->common_currency_code($base);
             $quote = $this->common_currency_code($quote);
             $symbol = $base . '/' . $quote;
@@ -142,11 +142,36 @@ class bitz extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
                 'active' => true,
                 'info' => $market,
             );
         }
         return $result;
+    }
+
+    public function fetch_balance ($params = array ()) {
+        $this->load_markets();
+        $response = $this->privatePostBalances ($params);
+        $data = $response['data'];
+        $balances = $this->omit ($data, 'uid');
+        $result = array ( 'info' => $response );
+        $keys = is_array ($balances) ? array_keys ($balances) : array ();
+        for ($i = 0; $i < count ($keys); $i++) {
+            $currency = $keys[$i];
+            $balance = floatval ($balances[$currency]);
+            if (is_array ($this->currencies_by_id) && array_key_exists ($currency, $this->currencies_by_id))
+                $currency = $this->currencies_by_id[$currency]['code'];
+            else
+                $currency = strtoupper ($currency);
+            $account = $this->account ();
+            $account['free'] = $balance;
+            $account['used'] = null;
+            $account['total'] = $balance;
+            $result[$currency] = $account;
+        }
+        return $this->parse_balance($result);
     }
 
     public function parse_ticker ($ticker, $market = null) {

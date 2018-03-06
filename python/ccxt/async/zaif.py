@@ -284,6 +284,7 @@ class zaif (Exchange):
         return self.parse_orders(response['return'], market, since, limit)
 
     async def withdraw(self, currency, amount, address, tag=None, params={}):
+        self.check_address(address)
         await self.load_markets()
         if currency == 'JPY':
             raise ExchangeError(self.id + ' does not allow ' + currency + ' withdrawals')

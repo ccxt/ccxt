@@ -190,7 +190,7 @@ class bittrex extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $response = $this->accountGetBalances ();
+        $response = $this->accountGetBalances ($params);
         $balances = $response['result'];
         $result = array ( 'info' => $balances );
         $indexed = $this->index_by($balances, 'Currency');
@@ -625,6 +625,7 @@ class bittrex extends Exchange {
     }
 
     public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+        $this->check_address($address);
         $currencyId = $this->currency_id ($currency);
         $request = array (
             'currency' => $currencyId,
