@@ -472,6 +472,7 @@ class exmo extends Exchange {
     }
 
     public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+        $this->check_address($address);
         $this->load_markets();
         $request = array (
             'amount' => $amount,

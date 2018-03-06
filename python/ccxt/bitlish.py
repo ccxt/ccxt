@@ -304,6 +304,7 @@ class bitlish (Exchange):
         return self.privatePostCancelTrade({'id': id})
 
     def withdraw(self, currency, amount, address, tag=None, params={}):
+        self.check_address(address)
         self.load_markets()
         if currency != 'BTC':
             # they did not document other types...

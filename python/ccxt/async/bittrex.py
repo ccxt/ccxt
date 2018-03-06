@@ -202,7 +202,7 @@ class bittrex (Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        response = await self.accountGetBalances()
+        response = await self.accountGetBalances(params)
         balances = response['result']
         result = {'info': balances}
         indexed = self.index_by(balances, 'Currency')
@@ -595,6 +595,7 @@ class bittrex (Exchange):
         }
 
     async def withdraw(self, currency, amount, address, tag=None, params={}):
+        self.check_address(address)
         currencyId = self.currency_id(currency)
         request = {
             'currency': currencyId,

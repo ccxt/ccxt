@@ -206,6 +206,7 @@ class quadrigacx (Exchange):
         return currencies[currency]
 
     def withdraw(self, currency, amount, address, tag=None, params={}):
+        self.check_address(address)
         self.load_markets()
         request = {
             'amount': amount,

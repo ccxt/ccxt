@@ -263,6 +263,7 @@ class gateio (Exchange):
         return self.query_deposit_address('Deposit', currency, params)
 
     def withdraw(self, currency, amount, address, tag=None, params={}):
+        self.check_address(address)
         self.load_markets()
         response = self.privatePostWithdraw(self.extend({
             'currency': currency.lower(),

@@ -266,6 +266,7 @@ class southxchange (Exchange):
         }
 
     def withdraw(self, currency, amount, address, tag=None, params={}):
+        self.check_address(address)
         request = {
             'currency': currency,
             'address': address,

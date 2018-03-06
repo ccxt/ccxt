@@ -702,6 +702,7 @@ class bitfinex extends Exchange {
     }
 
     public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+        $this->check_address($address);
         $name = $this->get_currency_name ($currency);
         $request = array (
             'withdraw_type' => $name,

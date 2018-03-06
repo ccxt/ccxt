@@ -671,6 +671,7 @@ class bitfinex (Exchange):
         }
 
     async def withdraw(self, currency, amount, address, tag=None, params={}):
+        self.check_address(address)
         name = self.get_currency_name(currency)
         request = {
             'withdraw_type': name,

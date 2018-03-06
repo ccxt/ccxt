@@ -191,7 +191,7 @@ module.exports = class bittrex extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.accountGetBalances ();
+        let response = await this.accountGetBalances (params);
         let balances = response['result'];
         let result = { 'info': balances };
         let indexed = this.indexBy (balances, 'Currency');
