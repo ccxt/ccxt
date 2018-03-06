@@ -285,15 +285,17 @@ module.exports = class exmo extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        if (typeof price === 'undefined')
+            throw new ExchangeError (this.id + ' createOrder() requires a price argument for all orders');
         await this.loadMarkets ();
-        let prefix = (type === 'market') ? 'market_' : '';
-        let order = {
+        type = (type === 'market') ? (type + '_') : '';
+        let request = {
             'pair': this.marketId (symbol),
             'quantity': amount,
+            'type': type + side,
             'price': price,
-            'type': prefix + side,
         };
-        let response = await this.privatePostOrderCreate (this.extend (order, params));
+        let response = await this.privatePostOrderCreate (this.extend (request, params));
         return {
             'info': response,
             'id': response['order_id'].toString (),
