@@ -12,6 +12,7 @@ const {
     , deepExtend
     , extend
     , flatten
+    , unique
     , indexBy
     , sortBy
     , groupBy
@@ -29,12 +30,12 @@ const {
 
 const {
     ExchangeError
+    , InvalidAddress
     , NotSupported
     , AuthenticationError
     , DDoSProtection
     , RequestTimeout
-    , ExchangeNotAvailable
-    , InvalidAddress } = require ('./errors')
+    , ExchangeNotAvailable } = require ('./errors')
 
 const defaultFetch = isNode ? require ('fetch-ponyfill') ().fetch : fetch
 
@@ -270,11 +271,14 @@ module.exports = class Exchange {
     }
 
     checkAddress (address) {
+
         if (typeof address === 'undefined')
             throw new InvalidAddress (this.id + ' address is undefined')
+
         // check the address is not all the same letter like 'aaaaa' or '00000'
-        if (Array.from (address).every (letter => letter === address[0]) || address.length < 6)
-            throw new InvalidAddress (this.id + ' sent a bad address ' + address)
+        if ((unique (address).length < 2) || address.length < 6)
+            throw new InvalidAddress (this.id + ' address is invalid or has less than 6 characters: "' + address.toString () + '"')
+
         return address
     }
 
