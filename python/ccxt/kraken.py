@@ -16,6 +16,7 @@ import hashlib
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import CancelPending
@@ -751,9 +752,11 @@ class kraken (Exchange):
             'new': 'true',
         }
         response = self.fetch_deposit_address(currency, self.extend(request, params))
+        address = self.safe_string(response, 'address')
+        self.check_address(address)
         return {
             'currency': currency,
-            'address': response['address'],
+            'address': address,
             'status': 'ok',
             'info': response,
         }
@@ -772,8 +775,9 @@ class kraken (Exchange):
         result = response['result']
         numResults = len(result)
         if numResults < 1:
-            raise ExchangeError(self.id + ' privatePostDepositAddresses() returned no addresses')
+            raise InvalidAddress(self.id + ' privatePostDepositAddresses() returned no addresses')
         address = self.safe_string(result[0], 'address')
+        self.check_address(address)
         return {
             'currency': code,
             'address': address,

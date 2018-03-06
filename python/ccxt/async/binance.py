@@ -760,7 +760,7 @@ class binance (Exchange):
                 tag = self.safe_string(response, 'addressTag')
                 return {
                     'currency': code,
-                    'address': address,
+                    'address': self.check_address(address),
                     'tag': tag,
                     'status': 'ok',
                     'info': response,

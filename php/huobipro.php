@@ -479,6 +479,7 @@ class huobipro extends Exchange {
             'currency' => strtolower ($currency['id']),
         ), $params));
         $address = $this->safe_string($response, 'data');
+        $this->check_address($address);
         return array (
             'currency' => $code,
             'status' => 'ok',

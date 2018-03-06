@@ -478,8 +478,7 @@ class cobinhood (Exchange):
             'currency': currency['id'],
         })
         address = self.safe_string(response['result']['deposit_address'], 'address')
-        if not address:
-            raise ExchangeError(self.id + ' createDepositAddress failed: ' + self.last_http_response)
+        self.check_address(address)
         return {
             'currency': code,
             'address': address,
@@ -494,8 +493,7 @@ class cobinhood (Exchange):
             'currency': currency['id'],
         }, params))
         address = self.safe_string(response['result']['deposit_addresses'], 'address')
-        if not address:
-            raise ExchangeError(self.id + ' fetchDepositAddress failed: ' + self.last_http_response)
+        self.check_address(address)
         return {
             'currency': code,
             'address': address,

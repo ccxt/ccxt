@@ -444,6 +444,7 @@ class huobipro (Exchange):
             'currency': currency['id'].lower(),
         }, params))
         address = self.safe_string(response, 'data')
+        self.check_address(address)
         return {
             'currency': code,
             'status': 'ok',

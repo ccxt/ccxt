@@ -414,8 +414,7 @@ class braziliex extends Exchange {
             'currency' => $currency['id'],
         ), $params));
         $address = $this->safe_string($response, 'deposit_address');
-        if (!$address)
-            throw new ExchangeError ($this->id . ' fetchDepositAddress failed => ' . $this->last_http_response);
+        $this->check_address($address);
         $tag = $this->safe_string($response, 'payment_id');
         return array (
             'currency' => $code,

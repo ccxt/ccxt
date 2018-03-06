@@ -165,9 +165,11 @@ class yobit extends liqui {
         $response = $this->fetch_deposit_address ($currency, array_merge (array (
             'need_new' => 1,
         ), $params));
+        $address = $this->safe_string($response, 'address');
+        $this->check_address($address);
         return array (
             'currency' => $currency,
-            'address' => $response['address'],
+            'address' => $address,
             'status' => 'ok',
             'info' => $response['info'],
         );
@@ -181,6 +183,7 @@ class yobit extends liqui {
         );
         $response = $this->privatePostGetDepositAddress (array_merge ($request, $params));
         $address = $this->safe_string($response['return'], 'address');
+        $this->check_address($address);
         return array (
             'currency' => $currency,
             'address' => $address,

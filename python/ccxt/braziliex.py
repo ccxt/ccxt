@@ -398,8 +398,7 @@ class braziliex (Exchange):
             'currency': currency['id'],
         }, params))
         address = self.safe_string(response, 'deposit_address')
-        if not address:
-            raise ExchangeError(self.id + ' fetchDepositAddress failed: ' + self.last_http_response)
+        self.check_address(address)
         tag = self.safe_string(response, 'payment_id')
         return {
             'currency': code,

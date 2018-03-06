@@ -585,6 +585,7 @@ class bittrex (Exchange):
         if (code == 'XRP') or (code == 'XLM'):
             tag = address
             address = currency['address']
+        self.check_address(address)
         return {
             'currency': code,
             'address': address,

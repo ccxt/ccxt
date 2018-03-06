@@ -476,6 +476,7 @@ class livecoin (Exchange):
             parts = address.split(':')
             address = parts[0]
             tag = parts[2]
+        self.check_address(address)
         return {
             'currency': currency,
             'address': address,

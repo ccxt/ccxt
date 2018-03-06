@@ -738,8 +738,7 @@ class poloniex extends Exchange {
         $address = null;
         if ($response['success'] === 1)
             $address = $this->safe_string($response, 'response');
-        if (!$address)
-            throw new ExchangeError ($this->id . ' createDepositAddress failed => ' . $this->last_http_response);
+        $this->check_address($address);
         return array (
             'currency' => $currency,
             'address' => $address,
@@ -752,6 +751,7 @@ class poloniex extends Exchange {
         $response = $this->privatePostReturnDepositAddresses ();
         $currencyId = $this->currency_id ($currency);
         $address = $this->safe_string($response, $currencyId);
+        $this->check_address($address);
         $status = $address ? 'ok' : 'none';
         return array (
             'currency' => $currency,

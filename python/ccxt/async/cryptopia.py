@@ -566,6 +566,7 @@ class cryptopia (Exchange):
         address = self.safe_string(response['Data'], 'BaseAddress')
         if not address:
             address = self.safe_string(response['Data'], 'Address')
+        self.check_address(address)
         return {
             'currency': currency,
             'address': address,

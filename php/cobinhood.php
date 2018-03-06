@@ -501,8 +501,7 @@ class cobinhood extends Exchange {
             'currency' => $currency['id'],
         ));
         $address = $this->safe_string($response['result']['deposit_address'], 'address');
-        if (!$address)
-            throw new ExchangeError ($this->id . ' createDepositAddress failed => ' . $this->last_http_response);
+        $this->check_address($address);
         return array (
             'currency' => $code,
             'address' => $address,
@@ -518,8 +517,7 @@ class cobinhood extends Exchange {
             'currency' => $currency['id'],
         ), $params));
         $address = $this->safe_string($response['result']['deposit_addresses'], 'address');
-        if (!$address)
-            throw new ExchangeError ($this->id . ' fetchDepositAddress failed => ' . $this->last_http_response);
+        $this->check_address($address);
         return array (
             'currency' => $code,
             'address' => $address,

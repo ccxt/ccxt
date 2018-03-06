@@ -160,9 +160,11 @@ class yobit (liqui):
         response = await self.fetch_deposit_address(currency, self.extend({
             'need_new': 1,
         }, params))
+        address = self.safe_string(response, 'address')
+        self.check_address(address)
         return {
             'currency': currency,
-            'address': response['address'],
+            'address': address,
             'status': 'ok',
             'info': response['info'],
         }
@@ -175,6 +177,7 @@ class yobit (liqui):
         }
         response = await self.privatePostGetDepositAddress(self.extend(request, params))
         address = self.safe_string(response['return'], 'address')
+        self.check_address(address)
         return {
             'currency': currency,
             'address': address,

@@ -614,6 +614,7 @@ class bittrex extends Exchange {
             $tag = $address;
             $address = $currency['address'];
         }
+        $this->check_address($address);
         return array (
             'currency' => $code,
             'address' => $address,
