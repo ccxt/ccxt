@@ -466,8 +466,7 @@ module.exports = class cobinhood extends Exchange {
             'currency': currency['id'],
         });
         let address = this.safeString (response['result']['deposit_address'], 'address');
-        if (!address)
-            throw new ExchangeError (this.id + ' createDepositAddress failed: ' + this.last_http_response);
+        this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
@@ -483,8 +482,7 @@ module.exports = class cobinhood extends Exchange {
             'currency': currency['id'],
         }, params));
         let address = this.safeString (response['result']['deposit_addresses'], 'address');
-        if (!address)
-            throw new ExchangeError (this.id + ' fetchDepositAddress failed: ' + this.last_http_response);
+        this.checkAddress (address);
         return {
             'currency': code,
             'address': address,

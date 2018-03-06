@@ -212,7 +212,7 @@ module.exports = class bitlish extends Exchange {
         await this.loadMarkets ();
         // let market = this.market (symbol);
         let now = this.seconds ();
-        let start = since - 86400 * 30; // last 30 days
+        let start = now - 86400 * 30; // last 30 days
         if (typeof since !== 'undefined')
             start = parseInt (since / 1000);
         let interval = [ start.toString (), undefined ];

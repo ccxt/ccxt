@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeNotAvailable, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder } = require ('./base/errors');
+const { ExchangeNotAvailable, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -786,9 +786,11 @@ module.exports = class kraken extends Exchange {
             'new': 'true',
         };
         let response = await this.fetchDepositAddress (currency, this.extend (request, params));
+        let address = this.safeString (response, 'address');
+        this.checkAddress (address);
         return {
             'currency': currency,
-            'address': response['address'],
+            'address': address,
             'status': 'ok',
             'info': response,
         };
@@ -808,8 +810,9 @@ module.exports = class kraken extends Exchange {
         let result = response['result'];
         let numResults = result.length;
         if (numResults < 1)
-            throw new ExchangeError (this.id + ' privatePostDepositAddresses() returned no addresses');
+            throw new InvalidAddress (this.id + ' privatePostDepositAddresses() returned no addresses');
         let address = this.safeString (result[0], 'address');
+        this.checkAddress (address);
         return {
             'currency': code,
             'address': address,

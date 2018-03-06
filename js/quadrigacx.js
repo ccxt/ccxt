@@ -188,6 +188,7 @@ module.exports = class quadrigacx extends Exchange {
             address = response;
             status = 'ok';
         }
+        this.checkAddress (address);
         return {
             'currency': currency,
             'address': address,

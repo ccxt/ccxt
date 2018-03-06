@@ -615,6 +615,7 @@ module.exports = class bittrex extends Exchange {
             tag = address;
             address = currency['address'];
         }
+        this.checkAddress (address);
         return {
             'currency': code,
             'address': address,

@@ -114,4 +114,9 @@ class InvalidNonce(NetworkError):
     """Raised in case of a wrong or conflicting nonce number in private requests"""
     pass
 
+
+class InvalidAddress(ExchangeError):
+    """Raised if an exchange sends an invalid address in fetchDepositAddress or createDepositAddress"""
+    pass
+
 # =============================================================================

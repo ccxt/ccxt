@@ -739,8 +739,7 @@ module.exports = class poloniex extends Exchange {
         let address = undefined;
         if (response['success'] === 1)
             address = this.safeString (response, 'response');
-        if (!address)
-            throw new ExchangeError (this.id + ' createDepositAddress failed: ' + this.last_http_response);
+        this.checkAddress (address);
         return {
             'currency': currency,
             'address': address,
@@ -753,6 +752,7 @@ module.exports = class poloniex extends Exchange {
         let response = await this.privatePostReturnDepositAddresses ();
         let currencyId = this.currencyId (currency);
         let address = this.safeString (response, currencyId);
+        this.checkAddress (address);
         let status = address ? 'ok' : 'none';
         return {
             'currency': currency,
