@@ -641,29 +641,32 @@ class bittrex (Exchange):
     def throw_exception_on_error(self, response):
         if 'message' in response:
             message = self.safe_string(response, 'message')
+            error = self.id + ' ' + self.json(response)
             if message == 'APISIGN_NOT_PROVIDED':
-                raise AuthenticationError(self.id + ' ' + self.json(response))
+                raise AuthenticationError(error)
             if message == 'INVALID_SIGNATURE':
-                raise AuthenticationError(self.id + ' ' + self.json(response))
+                raise AuthenticationError(error)
+            if message == 'INVALID_CURRENCY':
+                raise ExchangeError(error)
             if message == 'INVALID_PERMISSION':
-                raise AuthenticationError(self.id + ' ' + self.json(response))
+                raise AuthenticationError(error)
             if message == 'INSUFFICIENT_FUNDS':
-                raise InsufficientFunds(self.id + ' ' + self.json(response))
+                raise InsufficientFunds(error)
             if message == 'QUANTITY_NOT_PROVIDED':
-                raise InvalidOrder(self.id + ' ' + self.json(response))
+                raise InvalidOrder(error)
             if message == 'MIN_TRADE_REQUIREMENT_NOT_MET':
-                raise InvalidOrder(self.id + ' ' + self.json(response))
+                raise InvalidOrder(error)
             if message == 'APIKEY_INVALID':
                 if self.hasAlreadyAuthenticatedSuccessfully:
-                    raise DDoSProtection(self.id + ' ' + self.json(response))
+                    raise DDoSProtection(error)
                 else:
-                    raise AuthenticationError(self.id + ' ' + self.json(response))
+                    raise AuthenticationError(error)
             if message == 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT':
                 raise InvalidOrder(self.id + ' order cost should be over 50k satoshi ' + self.json(response))
             if message == 'ORDER_NOT_OPEN':
-                raise InvalidOrder(self.id + ' ' + self.json(response))
+                raise InvalidOrder(error)
             if message == 'UUID_INVALID':
-                raise OrderNotFound(self.id + ' ' + self.json(response))
+                raise OrderNotFound(error)
 
     def handle_errors(self, code, reason, url, method, headers, body):
         if code >= 400:
