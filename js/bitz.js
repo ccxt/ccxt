@@ -16,7 +16,6 @@ module.exports = class bitz extends Exchange {
             'rateLimit': 1000,
             'version': 'v1',
             'has': {
-                'fetchBalance': false, // so far the only exchange that has createOrder but not fetchBalance %)
                 'fetchTickers': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
@@ -133,8 +132,9 @@ module.exports = class bitz extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
             let market = markets[id];
-            let idUpper = id.toUpperCase ();
-            let [ base, quote ] = idUpper.split ('_');
+            let [ baseId, quoteId ] = id.split ('_');
+            let base = baseId.toUpperCase ();
+            let quote = quoteId.toUpperCase ();
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
@@ -143,11 +143,36 @@ module.exports = class bitz extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': true,
                 'info': market,
             });
         }
         return result;
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privatePostBalances (params);
+        let data = response['data'];
+        let balances = this.omit (data, 'uid');
+        let result = { 'info': response };
+        let keys = Object.keys (balances);
+        for (let i = 0; i < keys.length; i++) {
+            let currency = keys[i];
+            let balance = parseFloat (balances[currency]);
+            if (currency in this.currencies_by_id)
+                currency = this.currencies_by_id[currency]['code'];
+            else
+                currency = currency.toUpperCase ();
+            let account = this.account ();
+            account['free'] = balance;
+            account['used'] = undefined;
+            account['total'] = balance;
+            result[currency] = account;
+        }
+        return this.parseBalance (result);
     }
 
     parseTicker (ticker, market = undefined) {
