@@ -192,7 +192,7 @@ class cobinhood (Exchange):
             quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
-                'amount': None,
+                'amount': 8,
                 'price': self.precision_from_string(market['quote_increment']),
             }
             result.append({
@@ -432,7 +432,7 @@ class cobinhood (Exchange):
             'trading_pair_id': market['id'],
             'type': type,  # market, limit, stop, stop_limit
             'side': side,
-            'size': amount,
+            'size': self.amount_to_string(symbol, amount),
         }
         if type != 'market':
             request['price'] = self.price_to_precision(symbol, price)
