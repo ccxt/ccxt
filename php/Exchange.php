@@ -515,6 +515,23 @@ abstract class Exchange {
         }
     }
 
+    public function check_address ($address) {
+
+        if (empty ($address) || !is_string ($address)) {
+            throw new InvalidAddress ($this->id . ' address is undefined');
+        }
+
+        if (count (array_unique (explode ('', $address))) == 1 || strlen ($address) < 6) {
+            throw new InvalidAddress ($this->id . ' address is invalid or has less than 6 characters: "' . strval ($address) . '"');
+        }
+
+        return $address;
+    }
+
+    public function checkAddress ($address) {
+        return $this->check_address ($address);
+    }
+
     public function describe () {
         return array ();
     }
