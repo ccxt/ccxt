@@ -292,7 +292,7 @@ module.exports = class abucoins extends Exchange {
         };
         return this.safeString (statuses, status, status);
     }
- 
+
     parseOrder (order, market = undefined) {
         let timestamp = this.parse8601 (order['created_at']);
         let symbol = undefined;
