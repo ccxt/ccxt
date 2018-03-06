@@ -431,10 +431,14 @@ class kucoin (Exchange):
             'orderOid': id,
         }
         response = await self.privateGetOrderDetail(self.extend(request, params))
-        order = response['data']
-        if not order:
+        if not response['data']:
             raise OrderNotFound(self.id + ' ' + self.json(response))
-        return self.parse_order(response['data'], market)
+        order = self.parse_order(response['data'], market)
+        orderId = order['id']
+        if orderId in self.orders:
+            order['status'] = self.orders[orderId]['status']
+        self.orders[orderId] = order
+        return order
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
@@ -446,10 +450,17 @@ class kucoin (Exchange):
         }
         response = await self.privateGetOrderActiveMap(self.extend(request, params))
         orders = self.array_concat(response['data']['SELL'], response['data']['BUY'])
-        result = []
         for i in range(0, len(orders)):
-            result.append(self.extend(orders[i], {'status': 'open'}))
-        return self.parse_orders(result, market, since, limit)
+            order = self.parse_order(self.extend(orders[i], {
+                'status': 'open',
+            }), market)
+            orderId = order['id']
+            if orderId in self.orders:
+                if self.orders[orderId]['status'] != 'open':
+                    order['status'] = self.orders[orderId]['status']
+            self.orders[order['id']] = order
+        openOrders = self.filter_by(self.orders, 'status', 'open')
+        return self.filter_by_symbol_since_limit(openOrders, symbol, since, limit)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         request = {}
@@ -464,10 +475,17 @@ class kucoin (Exchange):
             request['limit'] = limit
         response = await self.privateGetOrderDealt(self.extend(request, params))
         orders = response['data']['datas']
-        result = []
         for i in range(0, len(orders)):
-            result.append(self.extend(orders[i], {'status': 'closed'}))
-        return self.parse_orders(result, market, since, limit)
+            order = self.parse_order(self.extend(orders[i], {
+                'status': 'closed',
+            }), market)
+            orderId = order['id']
+            if orderId in self.orders:
+                if self.orders[orderId]['status'] == 'canceled':
+                    order['status'] = self.orders[orderId]['status']
+            self.orders[order['id']] = order
+        closedOrders = self.filter_by(self.orders, 'status', 'closed')
+        return self.filter_by_symbol_since_limit(closedOrders, symbol, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type != 'limit':
@@ -475,17 +493,35 @@ class kucoin (Exchange):
         await self.load_markets()
         market = self.market(symbol)
         base = market['base']
-        order = {
+        request = {
             'symbol': market['id'],
             'type': side.upper(),
             'price': self.price_to_precision(symbol, price),
             'amount': self.truncate(amount, self.currencies[base]['precision']),
         }
-        response = await self.privatePostOrder(self.extend(order, params))
-        return {
+        price = float(price)
+        amount = float(amount)
+        cost = price * amount
+        response = await self.privatePostOrder(self.extend(request, params))
+        orderId = self.safe_string(response['data'], 'orderOid')
+        order = {
             'info': response,
-            'id': self.safe_string(response['data'], 'orderOid'),
+            'id': orderId,
+            'timestamp': None,
+            'datetime': None,
+            'type': type,
+            'side': side,
+            'amount': amount,
+            'filled': None,
+            'remaining': None,
+            'price': price,
+            'cost': cost,
+            'status': 'open',
+            'fee': None,
+            'trades': None,
         }
+        self.orders[orderId] = order
+        return order
 
     async def cancel_orders(self, symbol=None, params={}):
         # https://kucoinapidocs.docs.apiary.io/#reference/0/trading/cancel-all-orders
@@ -500,10 +536,15 @@ class kucoin (Exchange):
             request['type'] = params['type'].upper()
             params = self.omit(params, 'type')
         response = await self.privatePostOrderCancelAll(self.extend(request, params))
+        openOrders = self.filter_by(self.orders, 'status', 'open')
+        for i in range(0, len(openOrders)):
+            order = openOrders[i]
+            orderId = order['id']
+            self.orders[orderId]['status'] = 'canceled'
         return response
 
     async def cancel_order(self, id, symbol=None, params={}):
-        if not symbol:
+        if symbol is None:
             raise ExchangeError(self.id + ' cancelOrder requires a symbol')
         await self.load_markets()
         market = self.market(symbol)
@@ -517,6 +558,21 @@ class kucoin (Exchange):
         else:
             raise ExchangeError(self.id + ' cancelOrder requires parameter type=["BUY"|"SELL"]')
         response = await self.privatePostCancelOrder(self.extend(request, params))
+        if id in self.orders:
+            self.orders[id]['status'] = 'canceled'
+        else:
+            # store it in cache for further references
+            timestamp = self.milliseconds()
+            side = request['type'].lower()
+            self.orders[id] = {
+                'id': id,
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+                'type': None,
+                'side': side,
+                'symbol': symbol,
+                'status': 'canceled',
+            }
         return response
 
     def parse_ticker(self, ticker, market=None):
@@ -699,6 +755,7 @@ class kucoin (Exchange):
     async def withdraw(self, code, amount, address, tag=None, params={}):
         await self.load_markets()
         currency = self.currency(code)
+        self.check_address(address)
         response = await self.privatePostAccountCoinWithdrawApply(self.extend({
             'coin': currency['id'],
             'amount': amount,
