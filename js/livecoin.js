@@ -23,6 +23,7 @@ module.exports = class livecoin extends Exchange {
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
+                'withdraw': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27980768-f22fc424-638a-11e7-89c9-6010a54ff9be.jpg',
@@ -486,6 +487,22 @@ module.exports = class livecoin extends Exchange {
             }
         }
         throw new ExchangeError (this.id + ' cancelOrder() failed: ' + this.json (response));
+    }
+
+    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+        // Sometimes the response with be { key: null } for all keys.
+        // An example is if you attempt to withdraw more than is allowed when withdrawal fees are considered.
+        await this.loadMarkets ();
+        let withdrawal = {
+            'amount': amount,
+            'currency': this.commonCurrencyCode (currency),
+            'wallet': this.checkAddress (address),
+        };
+        let response = await this.privatePostPaymentOutCoin (this.extend (withdrawal, params));
+        return {
+            'info': response,
+            'id': this.safeInteger (response, 'id'),
+        };
     }
 
     async fetchDepositAddress (currency, params = {}) {
