@@ -283,6 +283,7 @@ module.exports = class southxchange extends Exchange {
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
         let request = {
             'currency': currency,
             'address': address,

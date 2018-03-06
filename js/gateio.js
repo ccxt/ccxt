@@ -282,6 +282,7 @@ module.exports = class gateio extends Exchange {
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
         await this.loadMarkets ();
         let response = await this.privatePostWithdraw (this.extend ({
             'currency': currency.toLowerCase (),

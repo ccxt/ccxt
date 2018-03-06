@@ -617,6 +617,7 @@ module.exports = class liqui extends Exchange {
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
         await this.loadMarkets ();
         let response = await this.privatePostWithdrawCoin (this.extend ({
             'coinName': currency,
