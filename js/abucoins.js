@@ -444,7 +444,7 @@ module.exports = class abucoins extends Exchange {
             headers['AC-ACCESS-KEY'] = this.apiKey,
             headers['AC-ACCESS-SIGN'] = signature;
             headers['AC-ACCESS-TIMESTAMP'] = nonce;
-            headers['AC-ACCESS-PASSPHRASE'] = this.password,
+            headers['AC-ACCESS-PASSPHRASE'] = this.password;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
