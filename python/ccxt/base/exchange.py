@@ -777,7 +777,7 @@ class Exchange(object):
         if address is None:
             self.raise_error(InvalidAddress, details='address is None')
         if all(letter == address[0] for letter in address) or len(address) < 10 or ' ' in address:
-            self.raise_error(InvalidAddress, details='address is invalid or has less than 6 characters: "' + str(address) + '"')
+            self.raise_error(InvalidAddress, details='address is invalid or has less than 10 characters: "' + str(address) + '"')
         return address
 
     def account(self):

@@ -277,7 +277,7 @@ module.exports = class Exchange {
 
         // check the address is not the same letter like 'aaaaa' nor too short nor has a space
         if ((unique (address).length < 2) || address.length < 10 || address.includes (' '))
-            throw new InvalidAddress (this.id + ' address is invalid or has less than 6 characters: "' + address.toString () + '"')
+            throw new InvalidAddress (this.id + ' address is invalid or has less than 10 characters: "' + address.toString () + '"')
 
         return address
     }
