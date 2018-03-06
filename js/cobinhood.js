@@ -194,7 +194,7 @@ module.exports = class cobinhood extends Exchange {
             let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
             let precision = {
-                'amount': undefined,
+                'amount': 8,
                 'price': this.precisionFromString (market['quote_increment']),
             };
             result.push ({
@@ -451,7 +451,7 @@ module.exports = class cobinhood extends Exchange {
             'trading_pair_id': market['id'],
             'type': type, // market, limit, stop, stop_limit
             'side': side,
-            'size': amount,
+            'size': this.amountToString (symbol, amount),
         };
         if (type !== 'market')
             request['price'] = this.priceToPrecision (symbol, price);
