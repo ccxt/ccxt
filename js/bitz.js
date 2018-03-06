@@ -48,6 +48,7 @@ module.exports = class bitz extends Exchange {
                 },
                 'private': {
                     'post': [
+                        'balances',
                         'tradeAdd',
                         'tradeCancel',
                         'openOrders',
