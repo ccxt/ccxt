@@ -703,6 +703,7 @@ module.exports = class bitfinex extends Exchange {
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
         let name = this.getCurrencyName (currency);
         let request = {
             'withdraw_type': name,

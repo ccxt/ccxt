@@ -626,6 +626,7 @@ module.exports = class bittrex extends Exchange {
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
         let currencyId = this.currencyId (currency);
         let request = {
             'currency': currencyId,
