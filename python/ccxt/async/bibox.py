@@ -482,6 +482,7 @@ class bibox (Exchange):
         return result
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        self.check_address(address)
         await self.load_markets()
         currency = self.currency(code)
         if self.password is None:

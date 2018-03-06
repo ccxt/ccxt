@@ -539,6 +539,7 @@ class bitstamp (Exchange):
         }
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        self.check_address(address)
         if self.is_fiat(code):
             raise NotSupported(self.id + ' fiat withdraw() for ' + code + ' is not implemented yet')
         name = self.get_currency_name(code)

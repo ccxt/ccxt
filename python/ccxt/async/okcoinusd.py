@@ -564,6 +564,7 @@ class okcoinusd (Exchange):
         return self.filter_by(orders, 'status', 'closed')
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        self.check_address(address)
         await self.load_markets()
         currency = self.currency(code)
         # if amount < 0.01:

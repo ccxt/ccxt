@@ -1044,6 +1044,7 @@ class hitbtc2 (hitbtc):
         }
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        self.check_address(address)
         currency = self.currency(code)
         request = {
             'currency': currency['id'],

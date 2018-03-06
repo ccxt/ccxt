@@ -1079,6 +1079,7 @@ class hitbtc2 extends hitbtc {
     }
 
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+        $this->check_address($address);
         $currency = $this->currency ($code);
         $request = array (
             'currency' => $currency['id'],
