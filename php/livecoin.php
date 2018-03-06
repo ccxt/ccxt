@@ -22,6 +22,7 @@ class livecoin extends Exchange {
                 'fetchOrders' => true,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
+                'withdraw' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27980768-f22fc424-638a-11e7-89c9-6010a54ff9be.jpg',
@@ -485,6 +486,22 @@ class livecoin extends Exchange {
             }
         }
         throw new ExchangeError ($this->id . ' cancelOrder() failed => ' . $this->json ($response));
+    }
+
+    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+        // Sometimes the $response with be array ( key => null ) for all keys.
+        // An example is if you attempt to withdraw more than is allowed when $withdrawal fees are considered.
+        $this->load_markets();
+        $withdrawal = array (
+            'amount' => $amount,
+            'currency' => $this->common_currency_code($currency),
+            'wallet' => $this->check_address($address),
+        );
+        $response = $this->privatePostPaymentOutCoin (array_merge ($withdrawal, $params));
+        return array (
+            'info' => $response,
+            'id' => $this->safe_integer($response, 'id'),
+        );
     }
 
     public function fetch_deposit_address ($currency, $params = array ()) {
