@@ -500,6 +500,7 @@ module.exports = class livecoin extends Exchange {
             address = parts[0];
             tag = parts[2];
         }
+        this.checkAddress (address);
         return {
             'currency': currency,
             'address': address,

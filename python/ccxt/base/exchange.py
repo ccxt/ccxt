@@ -14,6 +14,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import InvalidAddress
 
 # -----------------------------------------------------------------------------
 
@@ -770,6 +771,14 @@ class Exchange(object):
         for key in keys:
             if self.requiredCredentials[key] and not getattr(self, key):
                 self.raise_error(AuthenticationError, details='requires `' + key + '`')
+
+    def check_address(self, address):
+        """Checks an address is not the same character repeated or an empty sequence"""
+        if address is None:
+            self.raise_error(InvalidAddress, details='address is None')
+        if all(letter == address[0] for letter in address) or len(address) < 6:
+            self.raise_error(InvalidAddress, details='address is invalid or has less than 6 characters: "' + str(address) + '"')
+        return address
 
     def account(self):
         return {

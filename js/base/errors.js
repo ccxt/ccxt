@@ -15,6 +15,7 @@ module.exports = subclass (
             { 'NotSupported':               {}
             , 'AuthenticationError':        {}
             , 'InsufficientFunds':          {}
+            , 'InvalidAddress':             {}
             , 'InvalidOrder':
                 { 'OrderNotFound':          {}
                 , 'OrderNotCached':         {}

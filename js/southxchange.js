@@ -269,6 +269,7 @@ module.exports = class southxchange extends Exchange {
         let parts = response.split ('|');
         let numParts = parts.length;
         let address = parts[0];
+        this.checkAddress (address);
         let tag = undefined;
         if (numParts > 1)
             tag = parts[1];
