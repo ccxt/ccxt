@@ -236,7 +236,6 @@ module.exports = class abucoins extends Exchange {
         let id = this.safeString (trade, 'trade_id');
         let side = (trade['side'] === 'buy') ? 'sell' : 'buy';
         let orderId = this.safeString (trade, 'order_id');
-        // GDAX returns inverted side to fetchMyTrades vs fetchTrades
         if (typeof orderId !== 'undefined')
             side = (trade['side'] === 'buy') ? 'buy' : 'sell';
         return {
@@ -442,12 +441,10 @@ module.exports = class abucoins extends Exchange {
             let what = nonce + method + request + payload;
             let secret = this.base64ToBinary (this.secret);
             let signature = this.hmac (this.encode (what), secret, 'sha256', 'base64');
-            headers = Object.assign (headers, {
-                'AC-ACCESS-KEY': this.apiKey,
-                'AC-ACCESS-SIGN': signature, // this.decode (signature),
-                'AC-ACCESS-TIMESTAMP': nonce,
-                'AC-ACCESS-PASSPHRASE': this.password,
-            });
+            headers['AC-ACCESS-KEY'] = this.apiKey,
+            headers['AC-ACCESS-SIGN'] = signature;
+            headers['AC-ACCESS-TIMESTAMP'] = nonce;
+            headers['AC-ACCESS-PASSPHRASE'] = this.password,
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
