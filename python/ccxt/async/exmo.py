@@ -269,15 +269,17 @@ class exmo (Exchange):
         return self.parse_trades(response, market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        if price is None:
+            raise ExchangeError(self.id + ' createOrder() requires a price argument for all orders')
         await self.load_markets()
-        prefix = 'market_' if (type == 'market') else ''
-        order = {
+        type = (type + '_') if (type == 'market') else ''
+        request = {
             'pair': self.market_id(symbol),
             'quantity': amount,
+            'type': type + side,
             'price': price,
-            'type': prefix + side,
         }
-        response = await self.privatePostOrderCreate(self.extend(order, params))
+        response = await self.privatePostOrderCreate(self.extend(request, params))
         return {
             'info': response,
             'id': str(response['order_id']),
