@@ -77,7 +77,7 @@ class InvalidOrder(ExchangeError):
 
 
 class InvalidAddress(ExchangeError):
-    """Raised if an exchange sends an invalid address in fetchDepositAddress or createDepositAddress"""
+    """Raised on invalid funding address"""
     pass
 
 
@@ -120,9 +120,5 @@ class InvalidNonce(NetworkError):
     """Raised in case of a wrong or conflicting nonce number in private requests"""
     pass
 
-
-class InvalidAddress(ExchangeError):
-    """Raised on invalid funding address"""
-    pass
 
 # =============================================================================
