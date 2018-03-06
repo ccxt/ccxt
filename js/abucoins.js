@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { InsufficientFunds, ExchangeError, InvalidOrder, AuthenticationError, NotSupported, OrderNotFound } = require ('./base/errors');
+const { InsufficientFunds, ExchangeError, InvalidOrder, AuthenticationError, OrderNotFound } = require ('./base/errors');
 
 // ----------------------------------------------------------------------------
 
@@ -28,7 +28,7 @@ module.exports = class abucoins extends Exchange {
                 'www': 'https://abucoins.com',
                 'doc': 'https://docs.abucoins.com/',
                 'fees': [
-                    'https://abucoins.com/fees'
+                    'https://abucoins.com/fees',
                 ],
             },
             'requiredCredentials': {
@@ -42,7 +42,7 @@ module.exports = class abucoins extends Exchange {
                         'products',
                         'products/{id}/book',
                         'products/{id}/ticker',
-                        'products/{id}/trades'
+                        'products/{id}/trades',
                     ],
                 },
                 'private': {
@@ -50,11 +50,11 @@ module.exports = class abucoins extends Exchange {
                         'accounts',
                         'orders',
                         'orders/{id}',
-                        'fills'
+                        'fills',
                     ],
                     'post': [
                         'deposits/coinbase-account',
-                        'orders'
+                        'orders',
                     ],
                     'delete': [
                         'orders/{id}',
@@ -66,7 +66,7 @@ module.exports = class abucoins extends Exchange {
                     'tierBased': true, // complicated tier system per coin
                     'percentage': true,
                     'maker': 0.0,
-                    'taker': 0.25 / 100, 
+                    'taker': 0.25 / 100,
                 },
                 'funding': {
                     'tierBased': false,
@@ -100,8 +100,8 @@ module.exports = class abucoins extends Exchange {
                 'price': this.precisionFromString (this.safeString (market, 'quote_increment')),
             };
             let taker = 0;
-            let maker;
-            if ((base === 'PLN') && (base === 'EUR') && (base === 'USD') && (base === 'PLN')){
+            let maker = 0;
+            if ((base === 'PLN') && (base === 'EUR') && (base === 'USD') && (base === 'PLN')) {
                 maker = 0.0025;
             } else {
                 maker = 0.0010;
@@ -154,7 +154,7 @@ module.exports = class abucoins extends Exchange {
         await this.loadMarkets ();
         let orderbook = await this.publicGetProductsIdBook (this.extend ({
             'id': this.marketId (symbol),
-            'level': 2, // 0	fully agregated order book 1	best ask and bid 2	top 50 asks and bids
+            'level': 2, // 0 fully agregated order book 1 best ask and bid 2 top 50 asks and bids
         }, params));
         return this.parseOrderBook (orderbook);
     }
@@ -292,7 +292,7 @@ module.exports = class abucoins extends Exchange {
         };
         return this.safeString (statuses, status, status);
     }
-   
+ 
     parseOrder (order, market = undefined) {
         let timestamp = this.parse8601 (order['created_at']);
         let symbol = undefined;
@@ -362,7 +362,7 @@ module.exports = class abucoins extends Exchange {
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {
-          'status': 'open'
+            'status': 'open',
         };
         let market = undefined;
         if (symbol) {
@@ -389,24 +389,23 @@ module.exports = class abucoins extends Exchange {
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        
         let order = {
             'product_id': this.marketId (market),
             'side': side,
             'size': this.truncate_to_string (amount, 20),
-            'type': type
+            'type': type,
         };
         if (type === 'limit') {
             order['price'] = this.truncate_to_string (price, 20);
         } else {
-              // for market buy 
-              if (side === 'buy') {
-                  if (!price) {
-                      throw new InvalidOrder ('For market buy orders ' + this.id + " requires the amount of quote currency to spend, to calculate proper costs call createOrder (symbol, 'market', 'buy', amount, price)");
-                  }
-                  order['funds'] = this.truncate_to_string (amount * price, 20);
-              }
-          }
+            // for market buy
+            if (side === 'buy') {
+                if (!price) {
+                    throw new InvalidOrder ('For market buy orders ' + this.id + " requires the amount of quote currency to spend, to calculate proper costs call createOrder (symbol, 'market', 'buy', amount, price)");
+                }
+                order['funds'] = this.truncate_to_string (amount * price, 20);
+            }
+        }
         let response = await this.privatePostOrders (this.extend (order, params));
         return {
             'info': response,
@@ -443,12 +442,11 @@ module.exports = class abucoins extends Exchange {
             let what = nonce + method + request + payload;
             let secret = this.base64ToBinary (this.secret);
             let signature = this.hmac (this.encode (what), secret, 'sha256', 'base64');
-
-            headers = Object.assign(headers, {
+            headers = Object.assign (headers, {
                 'AC-ACCESS-KEY': this.apiKey,
                 'AC-ACCESS-SIGN': signature, // this.decode (signature),
                 'AC-ACCESS-TIMESTAMP': nonce,
-                'AC-ACCESS-PASSPHRASE': this.password
+                'AC-ACCESS-PASSPHRASE': this.password,
             });
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
@@ -456,19 +454,19 @@ module.exports = class abucoins extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body) {
         let response = JSON.parse (body);
-        if (response['message']){
-          let message = response['message'];
-          let error = this.id + ' ' + message;
-          if (message.indexOf ('Amount is too small') >= 0) {
-            throw new InvalidOrder (error);
-          } else if (message.indexOf('Insufficient funds') >= 0) {
-            throw new InsufficientFunds (error);
-          } else if (message.indexOf('Order not found') >= 0) {
-            throw new OrderNotFound (error);
-          } else if (message.indexOf('ACCESS DENIED') >= 0) {
-            throw new AuthenticationError (error);
-          }
-          throw new ExchangeError (this.id + ' ' + message);
+        if (response['message']) {
+            let message = response['message'];
+            let error = this.id + ' ' + message;
+            if (message.indexOf ('Amount is too small') >= 0) {
+                throw new InvalidOrder (error);
+            } else if (message.indexOf ('Insufficient funds') >= 0) {
+                throw new InsufficientFunds (error);
+            } else if (message.indexOf ('Order not found') >= 0) {
+                throw new OrderNotFound (error);
+            } else if (message.indexOf ('ACCESS DENIED') >= 0) {
+                throw new AuthenticationError (error);
+            }
+            throw new ExchangeError (this.id + ' ' + message);
         }
     }
 
