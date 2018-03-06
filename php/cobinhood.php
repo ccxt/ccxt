@@ -14,6 +14,7 @@ class cobinhood extends Exchange {
             'countries' => 'TW',
             'rateLimit' => 1000 / 10,
             'has' => array (
+                'fetchCurrencies' => true,
                 'fetchTickers' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
@@ -129,28 +130,48 @@ class cobinhood extends Exchange {
 
     public function fetch_currencies ($params = array ()) {
         $response = $this->publicGetMarketCurrencies ($params);
-        $currencies = $response['result'];
+        $currencies = $response['result']['currencies'];
         $result = array ();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             $id = $currency['currency'];
             $code = $this->common_currency_code($id);
+            $fundingNotFrozen = !$currency['funding_frozen'];
+            $active = $currency['is_active'] && $fundingNotFrozen;
+            $minUnit = floatval ($currency['min_unit']);
             $result[$code] = array (
                 'id' => $id,
                 'code' => $code,
                 'name' => $currency['name'],
-                'active' => true,
+                'active' => $active,
                 'status' => 'ok',
                 'fiat' => false,
-                'lot' => floatval ($currency['min_unit']),
-                'precision' => 8,
+                'precision' => $this->precision_from_string($currency['min_unit']),
+                'limits' => array (
+                    'amount' => array (
+                        'min' => $minUnit,
+                        'max' => null,
+                    ),
+                    'price' => array (
+                        'min' => $minUnit,
+                        'max' => null,
+                    ),
+                    'deposit' => array (
+                        'min' => $minUnit,
+                        'max' => null,
+                    ),
+                    'withdraw' => array (
+                        'min' => $minUnit,
+                        'max' => null,
+                    ),
+                ),
                 'funding' => array (
                     'withdraw' => array (
-                        'active' => true,
+                        'active' => $fundingNotFrozen,
                         'fee' => floatval ($currency['withdrawal_fee']),
                     ),
                     'deposit' => array (
-                        'active' => true,
+                        'active' => $fundingNotFrozen,
                         'fee' => floatval ($currency['deposit_fee']),
                     ),
                 ),
@@ -167,19 +188,35 @@ class cobinhood extends Exchange {
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
             $id = $market['id'];
-            list ($base, $quote) = explode ('-', $id);
+            list ($baseId, $quoteId) = explode ('-', $id);
+            $base = $this->common_currency_code($baseId);
+            $quote = $this->common_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
+            $precision = array (
+                'amount' => null,
+                'price' => $this->precision_from_string($market['quote_increment']),
+            );
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
-                'base' => $this->common_currency_code($base),
-                'quote' => $this->common_currency_code($quote),
-                'active' => true,
-                'lot' => floatval ($market['quote_increment']),
+                'base' => $base,
+                'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
+                'active' => $market['is_active'],
+                'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
                         'min' => floatval ($market['base_min_size']),
                         'max' => floatval ($market['base_max_size']),
+                    ),
+                    'price' => array (
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'cost' => array (
+                        'min' => null,
+                        'max' => null,
                     ),
                 ),
                 'info' => $market,
@@ -411,10 +448,9 @@ class cobinhood extends Exchange {
         $side = ($side === 'sell') ? 'ask' : 'bid';
         $request = array (
             'trading_pair_id' => $market['id'],
-            // $market, limit, stop, stop_limit
-            'type' => $type,
+            'type' => $type, // $market, limit, stop, stop_limit
             'side' => $side,
-            'size' => $this->amount_to_string($symbol, $amount),
+            'size' => $amount,
         );
         if ($type !== 'market')
             $request['price'] = $this->price_to_precision($symbol, $price);
