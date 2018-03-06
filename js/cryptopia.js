@@ -613,6 +613,7 @@ module.exports = class cryptopia extends Exchange {
         let address = this.safeString (response['Data'], 'BaseAddress');
         if (!address)
             address = this.safeString (response['Data'], 'Address');
+        this.checkAddress (address);
         return {
             'currency': currency,
             'address': address,

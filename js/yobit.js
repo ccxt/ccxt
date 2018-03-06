@@ -166,9 +166,11 @@ module.exports = class yobit extends liqui {
         let response = await this.fetchDepositAddress (currency, this.extend ({
             'need_new': 1,
         }, params));
+        let address = this.safeString (response, 'address');
+        this.checkAddress (address);
         return {
             'currency': currency,
-            'address': response['address'],
+            'address': address,
             'status': 'ok',
             'info': response['info'],
         };
@@ -182,6 +184,7 @@ module.exports = class yobit extends liqui {
         };
         let response = await this.privatePostGetDepositAddress (this.extend (request, params));
         let address = this.safeString (response['return'], 'address');
+        this.checkAddress (address);
         return {
             'currency': currency,
             'address': address,

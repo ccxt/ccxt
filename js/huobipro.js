@@ -480,6 +480,7 @@ module.exports = class huobipro extends Exchange {
             'currency': currency['id'].toLowerCase (),
         }, params));
         let address = this.safeString (response, 'data');
+        this.checkAddress (address);
         return {
             'currency': code,
             'status': 'ok',

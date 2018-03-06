@@ -33,7 +33,8 @@ const {
     , AuthenticationError
     , DDoSProtection
     , RequestTimeout
-    , ExchangeNotAvailable } = require ('./errors')
+    , ExchangeNotAvailable
+    , InvalidAddress } = require ('./errors')
 
 const defaultFetch = isNode ? require ('fetch-ponyfill') ().fetch : fetch
 
@@ -266,6 +267,15 @@ module.exports = class Exchange {
             if (this.requiredCredentials[key] && !this[key])
                 throw new AuthenticationError (this.id + ' requires `' + key + '`')
         })
+    }
+
+    checkAddress (address) {
+        if (typeof address === 'undefined')
+            throw new InvalidAddress (this.id + ' address is undefined')
+        // check the address is not all the same letter like 'aaaaa' or '00000'
+        if (Array.from (address).every (letter => letter === address[0]) || address.length < 6)
+            throw new InvalidAddress (this.id + ' sent a bad address ' + address)
+        return address
     }
 
     initRestRateLimiter () {
