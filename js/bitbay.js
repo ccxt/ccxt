@@ -244,6 +244,7 @@ module.exports = class bitbay extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
         await this.loadMarkets ();
         let method = undefined;
         let currency = this.currency (code);
