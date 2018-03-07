@@ -361,6 +361,8 @@ module.exports = class qryptos extends Exchange {
                 request['status'] = 'cancelled';
             }
         }
+        if (typeof limit !== 'undefined')
+            request['limit'] = limit;
         let result = await this.privateGetOrders (this.extend (request, params));
         let orders = result['models'];
         return this.parseOrders (orders, market, since, limit);
