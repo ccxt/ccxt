@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.11.40';
+$version = '1.11.41';
 
 abstract class Exchange {
 
