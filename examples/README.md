@@ -45,6 +45,8 @@ php -f path/to/example.php # substitute for actual filename here
 
 [Projects based on ccxt](https://github.com/ccxt/ccxt/network/dependents) – A list of hundreds of ccxt-based projects by developers from all over the world!
 
+[CC Power Analytics Part 1: How to get the data of the exchanges](https://www.linkedin.com/pulse/part-1-cc-power-analytics-how-get-data-exchanges-steve-rein/) – The first part of a series of articles on cryptocurrency analytics.
+
 [Looking for arbitrage opportunies with ccxt](https://steemit.com/steemdev/@codewithcheese/looking-for-arbitrage-opportunies-with-javascript-library-cctx-supporting-70-exchanges) – An article @steemit on getting started with ccxt.
 
 [A n00bs Guide To Deep Cryptocurrency Trading](https://medium.com/@LeonFedden/deep-cryptocurrency-trading-1e64af6d280a) – An article @ Medium on deep neural trading using ccxt for backend tasks.
