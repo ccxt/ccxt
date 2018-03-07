@@ -333,22 +333,34 @@ class kucoin (Exchange):
         return self.parse_order_book(orderbook, None, 'BUY', 'SELL')
 
     def parse_order(self, order, market=None):
+        side = self.safe_value(order, 'direction')
+        if side is None:
+            side = order['type']
+        if side is not None:
+            side = side.lower()
+        orderId = self.safe_string(order, 'orderOid')
+        if orderId is None:
+            orderId = self.safe_string(order, 'oid')
+        # do not confuse trades with orders
+        trades = self.safe_value(order['dealOrders'], 'datas')
+        if trades is not None:
+            trades = self.parse_trades(trades, market)
+            for i in range(0, len(trades)):
+                trades[i]['side'] = side
+                trades[i]['order'] = orderId
         symbol = None
         if market:
             symbol = market['symbol']
         else:
             symbol = order['coinType'] + '/' + order['coinTypePair']
         timestamp = self.safe_value(order, 'createdAt')
-        price = self.safe_float(order, 'price')
-        if price is None:
-            price = self.safe_float(order, 'dealPrice')
-        if price is None:
-            price = self.safe_float(order, 'dealPriceAverage')
-        if price is None:
-            price = self.safe_float(order, 'orderPrice')
         remaining = self.safe_float(order, 'pendingAmount')
         status = self.safe_value(order, 'status')
         filled = self.safe_float(order, 'dealAmount')
+        amount = self.safe_float(order, 'amount')
+        cost = self.safe_float(order, 'dealValue')
+        if cost is None:
+            cost = self.safe_float(order, 'dealValueTotal')
         if status is None:
             if remaining is not None:
                 if remaining > 0:
@@ -359,11 +371,28 @@ class kucoin (Exchange):
             if status is not None:
                 if status == 'closed':
                     filled = self.safe_float(order, 'amount')
-        amount = self.safe_float(order, 'amount')
-        cost = self.safe_float(order, 'dealValue')
-        if cost is None:
-            cost = self.safe_float(order, 'dealValueTotal')
+        elif filled == 0.0:
+            if trades is not None:
+                cost = 0
+                for i in range(0, len(trades)):
+                    filled += trades[i]['amount']
+                    cost += trades[i]['cost']
+        # kucoin price and amount fields have varying names
+        # thus the convoluted spaghetti code below
+        price = None
         if filled is not None:
+            # if the order was filled at least for some part
+            if filled > 0.0:
+                price = self.safe_float(order, 'price')
+                if price is None:
+                    price = self.safe_float(order, 'dealPrice')
+                if price is None:
+                    price = self.safe_float(order, 'dealPriceAverage')
+            else:
+                # it's an open order, not filled yet, use the initial price
+                price = self.safe_float(order, 'orderPrice')
+                if price is None:
+                    price = self.safe_float(order, 'price')
             if price is not None:
                 if cost is None:
                     cost = price * filled
@@ -372,13 +401,11 @@ class kucoin (Exchange):
                     amount = self.sum(filled, remaining)
             elif remaining is None:
                 remaining = amount - filled
-        if (status == 'open') and(cost is None):
-            cost = price * amount
-        side = self.safe_value(order, 'direction')
-        if side is None:
-            side = order['type']
-        if side is not None:
-            side = side.lower()
+        if status == 'open':
+            if (cost is None) or (cost == 0.0):
+                if price is not None:
+                    if amount is not None:
+                        cost = amount * price
         feeCurrency = None
         if market:
             feeCurrency = market['quote'] if (side == 'sell') else market['base']
@@ -394,11 +421,6 @@ class kucoin (Exchange):
             'rate': self.safe_float(order, 'feeRate'),
             'currency': feeCurrency,
         }
-        # todo: parse order trades and fill fees from 'datas'
-        # do not confuse trades with orders
-        orderId = self.safe_string(order, 'orderOid')
-        if orderId is None:
-            orderId = self.safe_string(order, 'oid')
         result = {
             'info': order,
             'id': orderId,
@@ -414,6 +436,7 @@ class kucoin (Exchange):
             'remaining': remaining,
             'status': status,
             'fee': fee,
+            'trades': trades,
         }
         return result
 
@@ -462,7 +485,7 @@ class kucoin (Exchange):
         openOrders = self.filter_by(self.orders, 'status', 'open')
         return self.filter_by_symbol_since_limit(openOrders, symbol, since, limit)
 
-    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_closed_orders(self, symbol=None, since=None, limit=20, params={}):
         request = {}
         await self.load_markets()
         market = None
@@ -651,7 +674,9 @@ class kucoin (Exchange):
             order = self.safe_string(trade, 'orderOid')
             if order is None:
                 order = self.safe_string(trade, 'oid')
-            side = trade['dealDirection'].lower()
+            side = self.safe_string(trade, 'dealDirection')
+            if side is not None:
+                side = side.lower()
             price = self.safe_float(trade, 'dealPrice')
             amount = self.safe_float(trade, 'amount')
             cost = self.safe_float(trade, 'dealValue')
