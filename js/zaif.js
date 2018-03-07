@@ -320,6 +320,10 @@ module.exports = class zaif extends Exchange {
         };
     }
 
+    nonce () {
+        return this.milliseconds ();
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/';
         if (api === 'public') {
@@ -357,10 +361,5 @@ module.exports = class zaif extends Exchange {
             if (!response['success'])
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
-    }
-
-    nonce () {
-        const micro = this.microseconds ();
-        return (micro / 1000000).toFixed(8);
     }
 };
