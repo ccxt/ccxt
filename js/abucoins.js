@@ -223,7 +223,6 @@ module.exports = class abucoins extends Exchange {
             } else {
                 feeCurrency = market['quote'];
             }
-
             if ('liquidity' in trade) {
                 let rateType = (trade['liquidity'] === 'T') ? 'taker' : 'maker';
                 feeRate = market[rateType];
