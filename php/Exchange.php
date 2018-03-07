@@ -32,6 +32,18 @@ namespace ccxt;
 
 $version = '1.11.44';
 
+// rounding mode
+const TRUNCATE = 0;
+const ROUND = 1;
+
+// digits counting mode
+const AFTER_POINT = 0;
+const SIGNIFICANT_DIGITS = 1;
+
+// padding mode
+const NO_PADDING = 0;
+const PAD_WITH_ZERO = 1;
+
 abstract class Exchange {
 
     public static $exchanges = array (
@@ -1660,6 +1672,18 @@ abstract class Exchange {
 
         $old_feature = "has{$feature}";
         return array_key_exists ($old_feature, $old_feature_map) ? $old_feature_map[$old_feature] : false;
+    }
+
+    public static function decimalToPrecision ($n, $rounding_mode = ROUND, $precision = null, $counting_mode = AFTER_POINT, $padding_mode = NO_PADDING) {
+        if ($precision < 0) {
+            throw new BaseError ('Negative precision is not yet supported');
+        }
+
+        if (!is_numeric ($n)) {
+            throw new BaseError ('Invalid number');
+        }
+
+        return (string) round ($n, $precision);
     }
 
 }
