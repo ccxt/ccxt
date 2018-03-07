@@ -334,6 +334,23 @@ module.exports = class kucoin extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        let side = this.safeValue (order, 'direction');
+        if (typeof side === 'undefined')
+            side = order['type'];
+        if (typeof side !== 'undefined')
+            side = side.toLowerCase ();
+        let orderId = this.safeString (order, 'orderOid');
+        if (typeof orderId === 'undefined')
+            orderId = this.safeString (order, 'oid');
+        // do not confuse trades with orders
+        let trades = this.safeValue (order['dealOrders'], 'datas');
+        if (typeof trades !== 'undefined') {
+            trades = this.parseTrades (trades, market);
+            for (let i = 0; i < trades.length; i++) {
+                trades[i]['side'] = side;
+                trades[i]['order'] = orderId;
+            }
+        }
         let symbol = undefined;
         if (market) {
             symbol = market['symbol'];
@@ -341,16 +358,13 @@ module.exports = class kucoin extends Exchange {
             symbol = order['coinType'] + '/' + order['coinTypePair'];
         }
         let timestamp = this.safeValue (order, 'createdAt');
-        let price = this.safeFloat (order, 'price');
-        if (typeof price === 'undefined')
-            price = this.safeFloat (order, 'dealPrice');
-        if (typeof price === 'undefined')
-            price = this.safeFloat (order, 'dealPriceAverage');
-        if (typeof price === 'undefined')
-            price = this.safeFloat (order, 'orderPrice');
         let remaining = this.safeFloat (order, 'pendingAmount');
         let status = this.safeValue (order, 'status');
         let filled = this.safeFloat (order, 'dealAmount');
+        let amount = this.safeFloat (order, 'amount');
+        let cost = this.safeFloat (order, 'dealValue');
+        if (typeof cost === 'undefined')
+            cost = this.safeFloat (order, 'dealValueTotal');
         if (typeof status === 'undefined') {
             if (typeof remaining !== 'undefined')
                 if (remaining > 0)
@@ -362,12 +376,32 @@ module.exports = class kucoin extends Exchange {
             if (typeof status !== 'undefined')
                 if (status === 'closed')
                     filled = this.safeFloat (order, 'amount');
+        } else if (filled === 0.0) {
+            if (typeof trades !== 'undefined') {
+                cost = 0;
+                for (let i = 0; i < trades.length; i++) {
+                    filled += trades[i]['amount'];
+                    cost += trades[i]['cost'];
+                }
+            }
         }
-        let amount = this.safeFloat (order, 'amount');
-        let cost = this.safeFloat (order, 'dealValue');
-        if (typeof cost === 'undefined')
-            cost = this.safeFloat (order, 'dealValueTotal');
+        // kucoin price and amount fields have varying names
+        // thus the convoluted spaghetti code below
+        let price = undefined;
         if (typeof filled !== 'undefined') {
+            // if the order was filled at least for some part
+            if (filled > 0.0) {
+                price = this.safeFloat (order, 'price');
+                if (typeof price === 'undefined')
+                    price = this.safeFloat (order, 'dealPrice');
+                if (typeof price === 'undefined')
+                    price = this.safeFloat (order, 'dealPriceAverage');
+            } else {
+                // it's an open order, not filled yet, use the initial price
+                price = this.safeFloat (order, 'orderPrice');
+                if (typeof price === 'undefined')
+                    price = this.safeFloat (order, 'price');
+            }
             if (typeof price !== 'undefined') {
                 if (typeof cost === 'undefined')
                     cost = price * filled;
@@ -379,13 +413,12 @@ module.exports = class kucoin extends Exchange {
                 remaining = amount - filled;
             }
         }
-        if ((status === 'open') && (typeof cost === 'undefined'))
-            cost = price * amount;
-        let side = this.safeValue (order, 'direction');
-        if (typeof side === 'undefined')
-            side = order['type'];
-        if (typeof side !== 'undefined')
-            side = side.toLowerCase ();
+        if (status === 'open') {
+            if ((typeof cost === 'undefined') || (cost === 0.0))
+                if (typeof price !== 'undefined')
+                    if (typeof amount !== 'undefined')
+                        cost = amount * price;
+        }
         let feeCurrency = undefined;
         if (market) {
             feeCurrency = (side === 'sell') ? market['quote'] : market['base'];
@@ -403,11 +436,6 @@ module.exports = class kucoin extends Exchange {
             'rate': this.safeFloat (order, 'feeRate'),
             'currency': feeCurrency,
         };
-        // todo: parse order trades and fill fees from 'datas'
-        // do not confuse trades with orders
-        let orderId = this.safeString (order, 'orderOid');
-        if (typeof orderId === 'undefined')
-            orderId = this.safeString (order, 'oid');
         let result = {
             'info': order,
             'id': orderId,
@@ -423,6 +451,7 @@ module.exports = class kucoin extends Exchange {
             'remaining': remaining,
             'status': status,
             'fee': fee,
+            'trades': trades,
         };
         return result;
     }
@@ -475,7 +504,7 @@ module.exports = class kucoin extends Exchange {
         return this.filterBySymbolSinceLimit (openOrders, symbol, since, limit);
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = 20, params = {}) {
         let request = {};
         await this.loadMarkets ();
         let market = undefined;
@@ -681,7 +710,9 @@ module.exports = class kucoin extends Exchange {
             order = this.safeString (trade, 'orderOid');
             if (typeof order === 'undefined')
                 order = this.safeString (trade, 'oid');
-            side = trade['dealDirection'].toLowerCase ();
+            side = this.safeString (trade, 'dealDirection');
+            if (typeof side !== 'undefined')
+                side = side.toLowerCase ();
             price = this.safeFloat (trade, 'dealPrice');
             amount = this.safeFloat (trade, 'amount');
             cost = this.safeFloat (trade, 'dealValue');
