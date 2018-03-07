@@ -358,4 +358,9 @@ module.exports = class zaif extends Exchange {
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
     }
+
+    nonce () {
+        const micro = this.microseconds ();
+        return (micro / 1000000).toFixed(8);
+    }
 };
