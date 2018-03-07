@@ -218,7 +218,7 @@ module.exports = class abucoins extends Exchange {
         let feeRate = undefined;
         let feeCurrency = undefined;
         if (market) {
-            if (trade['side'] === 'buy'){
+            if (trade['side'] === 'buy') {
                 feeCurrency = market['base'];
             } else {
                 feeCurrency = market['quote'];
