@@ -333,6 +333,23 @@ class kucoin extends Exchange {
     }
 
     public function parse_order ($order, $market = null) {
+        $side = $this->safe_value($order, 'direction');
+        if ($side === null)
+            $side = $order['type'];
+        if ($side !== null)
+            $side = strtolower ($side);
+        $orderId = $this->safe_string($order, 'orderOid');
+        if ($orderId === null)
+            $orderId = $this->safe_string($order, 'oid');
+        // do not confuse $trades with orders
+        $trades = $this->safe_value($order['dealOrders'], 'datas');
+        if ($trades !== null) {
+            $trades = $this->parse_trades($trades, $market);
+            for ($i = 0; $i < count ($trades); $i++) {
+                $trades[$i]['side'] = $side;
+                $trades[$i]['order'] = $orderId;
+            }
+        }
         $symbol = null;
         if ($market) {
             $symbol = $market['symbol'];
@@ -340,16 +357,13 @@ class kucoin extends Exchange {
             $symbol = $order['coinType'] . '/' . $order['coinTypePair'];
         }
         $timestamp = $this->safe_value($order, 'createdAt');
-        $price = $this->safe_float($order, 'price');
-        if ($price === null)
-            $price = $this->safe_float($order, 'dealPrice');
-        if ($price === null)
-            $price = $this->safe_float($order, 'dealPriceAverage');
-        if ($price === null)
-            $price = $this->safe_float($order, 'orderPrice');
         $remaining = $this->safe_float($order, 'pendingAmount');
         $status = $this->safe_value($order, 'status');
         $filled = $this->safe_float($order, 'dealAmount');
+        $amount = $this->safe_float($order, 'amount');
+        $cost = $this->safe_float($order, 'dealValue');
+        if ($cost === null)
+            $cost = $this->safe_float($order, 'dealValueTotal');
         if ($status === null) {
             if ($remaining !== null)
                 if ($remaining > 0)
@@ -361,12 +375,32 @@ class kucoin extends Exchange {
             if ($status !== null)
                 if ($status === 'closed')
                     $filled = $this->safe_float($order, 'amount');
+        } else if ($filled === 0.0) {
+            if ($trades !== null) {
+                $cost = 0;
+                for ($i = 0; $i < count ($trades); $i++) {
+                    $filled .= $trades[$i]['amount'];
+                    $cost .= $trades[$i]['cost'];
+                }
+            }
         }
-        $amount = $this->safe_float($order, 'amount');
-        $cost = $this->safe_float($order, 'dealValue');
-        if ($cost === null)
-            $cost = $this->safe_float($order, 'dealValueTotal');
+        // kucoin $price and $amount fields have varying names
+        // thus the convoluted spaghetti code below
+        $price = null;
         if ($filled !== null) {
+            // if the $order was $filled at least for some part
+            if ($filled > 0.0) {
+                $price = $this->safe_float($order, 'price');
+                if ($price === null)
+                    $price = $this->safe_float($order, 'dealPrice');
+                if ($price === null)
+                    $price = $this->safe_float($order, 'dealPriceAverage');
+            } else {
+                // it's an open $order, not $filled yet, use the initial $price
+                $price = $this->safe_float($order, 'orderPrice');
+                if ($price === null)
+                    $price = $this->safe_float($order, 'price');
+            }
             if ($price !== null) {
                 if ($cost === null)
                     $cost = $price * $filled;
@@ -378,13 +412,12 @@ class kucoin extends Exchange {
                 $remaining = $amount - $filled;
             }
         }
-        if (($status === 'open') && ($cost === null))
-            $cost = $price * $amount;
-        $side = $this->safe_value($order, 'direction');
-        if ($side === null)
-            $side = $order['type'];
-        if ($side !== null)
-            $side = strtolower ($side);
+        if ($status === 'open') {
+            if (($cost === null) || ($cost === 0.0))
+                if ($price !== null)
+                    if ($amount !== null)
+                        $cost = $amount * $price;
+        }
         $feeCurrency = null;
         if ($market) {
             $feeCurrency = ($side === 'sell') ? $market['quote'] : $market['base'];
@@ -402,11 +435,6 @@ class kucoin extends Exchange {
             'rate' => $this->safe_float($order, 'feeRate'),
             'currency' => $feeCurrency,
         );
-        // todo => parse $order trades and fill fees from 'datas'
-        // do not confuse trades with orders
-        $orderId = $this->safe_string($order, 'orderOid');
-        if ($orderId === null)
-            $orderId = $this->safe_string($order, 'oid');
         $result = array (
             'info' => $order,
             'id' => $orderId,
@@ -422,6 +450,7 @@ class kucoin extends Exchange {
             'remaining' => $remaining,
             'status' => $status,
             'fee' => $fee,
+            'trades' => $trades,
         );
         return $result;
     }
@@ -474,7 +503,7 @@ class kucoin extends Exchange {
         return $this->filter_by_symbol_since_limit($openOrders, $symbol, $since, $limit);
     }
 
-    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders ($symbol = null, $since = null, $limit = 20, $params = array ()) {
         $request = array ();
         $this->load_markets();
         $market = null;
@@ -680,7 +709,9 @@ class kucoin extends Exchange {
             $order = $this->safe_string($trade, 'orderOid');
             if ($order === null)
                 $order = $this->safe_string($trade, 'oid');
-            $side = strtolower ($trade['dealDirection']);
+            $side = $this->safe_string($trade, 'dealDirection');
+            if ($side !== null)
+                $side = strtolower ($side);
             $price = $this->safe_float($trade, 'dealPrice');
             $amount = $this->safe_float($trade, 'amount');
             $cost = $this->safe_float($trade, 'dealValue');
