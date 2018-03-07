@@ -451,7 +451,7 @@ module.exports = class cobinhood extends Exchange {
             'trading_pair_id': market['id'],
             'type': type, // market, limit, stop, stop_limit
             'side': side,
-            'size': this.amountToString (symbol, amount),
+            'size': this.amountToPrecision (symbol, amount),
         };
         if (type !== 'market')
             request['price'] = this.priceToPrecision (symbol, price);
