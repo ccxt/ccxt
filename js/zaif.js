@@ -321,7 +321,7 @@ module.exports = class zaif extends Exchange {
     }
 
     nonce () {
-        let nonce = parseFloat (this.milliseconds () / 1000)
+        let nonce = parseFloat (this.milliseconds () / 1000);
         return nonce.toFixed (8);
     }
 
