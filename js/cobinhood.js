@@ -569,7 +569,7 @@ module.exports = class cobinhood extends Exchange {
         if (body[0] !== '{') {
             throw new ExchangeError (this.id + ' ' + body);
         }
-        let response = this.unjson (body);
+        let response = JSON.parse (body);
         let message = this.safeValue (response['error'], 'error_code');
         throw new ExchangeError (this.id + ' ' + message);
     }
