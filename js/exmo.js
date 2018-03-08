@@ -286,15 +286,16 @@ module.exports = class exmo extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
+        let orderType = '';
         if (type === 'market') {
             price = '0';
-            type = type + '_';
+            orderType = type + '_';
         }
-        type += side;
+        orderType += side;
         let request = {
             'pair': this.marketId (symbol),
             'quantity': amount,
-            'type': type,
+            'type': orderType,
             'price': price,
         };
         let response = await this.privatePostOrderCreate (this.extend (request, params));
