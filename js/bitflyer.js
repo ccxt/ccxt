@@ -350,9 +350,10 @@ module.exports = class bitflyer extends Exchange {
             let nonce = this.nonce ().toString ();
             let auth = [ nonce, method, request ].join ('');
             if (Object.keys (params).length) {
-                body = this.json (params);
-                if (method !== 'GET')
+                if (method !== 'GET') {
+                    body = this.json (params);
                     auth += body;
+                }
             }
             headers = {
                 'ACCESS-KEY': this.apiKey,
