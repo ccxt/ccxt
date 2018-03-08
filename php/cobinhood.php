@@ -568,7 +568,7 @@ class cobinhood extends Exchange {
         if ($body[0] !== '{') {
             throw new ExchangeError ($this->id . ' ' . $body);
         }
-        $response = $this->unjson ($body);
+        $response = json_decode ($body, $as_associative_array = true);
         $message = $this->safe_value($response['error'], 'error_code');
         throw new ExchangeError ($this->id . ' ' . $message);
     }

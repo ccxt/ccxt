@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async.base.exchange import Exchange
+import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
@@ -271,7 +272,7 @@ class bitz (Exchange):
             'coin': market['id'],
             'type': self.timeframes[timeframe],
         }, params))
-        ohlcv = self.unjson(response['data']['datas']['data'])
+        ohlcv = json.loads(response['data']['datas']['data'])
         return self.parse_ohlcvs(ohlcv, market, timeframe, since, limit)
 
     def parse_order(self, order, market=None):

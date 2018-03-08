@@ -276,7 +276,7 @@ class bitz extends Exchange {
             'coin' => $market['id'],
             'type' => $this->timeframes[$timeframe],
         ), $params));
-        $ohlcv = $this->unjson ($response['data']['datas']['data']);
+        $ohlcv = json_decode ($response['data']['datas']['data'], $as_associative_array = true);
         return $this->parse_ohlcvs($ohlcv, $market, $timeframe, $since, $limit);
     }
 

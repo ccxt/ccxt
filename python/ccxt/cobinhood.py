@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+import json
 from ccxt.base.errors import ExchangeError
 
 
@@ -537,6 +538,6 @@ class cobinhood (Exchange):
             return
         if body[0] != '{':
             raise ExchangeError(self.id + ' ' + body)
-        response = self.unjson(body)
+        response = json.loads(body)
         message = self.safe_value(response['error'], 'error_code')
         raise ExchangeError(self.id + ' ' + message)
