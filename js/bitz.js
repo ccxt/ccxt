@@ -277,7 +277,7 @@ module.exports = class bitz extends Exchange {
             'coin': market['id'],
             'type': this.timeframes[timeframe],
         }, params));
-        let ohlcv = this.unjson (response['data']['datas']['data']);
+        let ohlcv = JSON.parse (response['data']['datas']['data']);
         return this.parseOHLCVs (ohlcv, market, timeframe, since, limit);
     }
 
