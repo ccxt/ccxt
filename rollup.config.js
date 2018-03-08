@@ -5,13 +5,14 @@ export default {
   input: 'ccxt.js',
   output: {
     name: "ccxt",
-    file: 'build/ccxt.module.js',
+    file: 'ccxt.module.js',
     format: 'iife'
   },
   plugins: [
     nodeResolve({
       jsnext: true,
-      main: true
+      main: true,
+      preferBuiltins: true
     }),
 
     commonjs({
