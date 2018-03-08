@@ -349,9 +349,10 @@ class bitflyer extends Exchange {
             $nonce = (string) $this->nonce ();
             $auth = implode ('', array ($nonce, $method, $request));
             if ($params) {
-                $body = $this->json ($params);
-                if ($method !== 'GET')
+                if ($method !== 'GET') {
+                    $body = $this->json ($params);
                     $auth .= $body;
+                }
             }
             $headers = array (
                 'ACCESS-KEY' => $this->apiKey,
