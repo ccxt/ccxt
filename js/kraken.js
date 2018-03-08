@@ -807,7 +807,7 @@ module.exports = class kraken extends Exchange {
             if (code === noDepositMethod[i])
                 throw new ExchangeError (this.id + ' ' + code + ' does not have a deposit method');
         }
-        let method = this.fetchDepositMethods (currency)[0]['method'];
+        let method = this.fetchDepositMethods (code)[0]['method'];
         let request = {
             'asset': currency['id'],
             'method': method,
