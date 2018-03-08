@@ -1,6 +1,6 @@
 import commonjs from 'rollup-plugin-commonjs';
 import nodeResolve from 'rollup-plugin-node-resolve';
-
+import json from 'rollup-plugin-json';
 export default {
   input: 'ccxt.js',
   output: {
@@ -45,6 +45,20 @@ export default {
       // option if you know what you're doing!
       ignore: [ 'conditional-runtime-dependency' ]
       */
-    })
+    }),
+    json({
+        // All JSON files will be parsed by default,
+        // but you can also specifically include/exclude files
+        //include: 'node_modules/**',
+        //exclude: [ 'node_modules/foo/**', 'node_modules/bar/**' ],
+        
+        // for tree-shaking, properties will be declared as
+        // variables, using either `var` or `const`
+        preferConst: true, // Default: false
+  
+        // specify indentation for the generated default export —
+        // defaults to '\t'
+        //indent: '  '
+      })
   ]
 };

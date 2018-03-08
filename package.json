@@ -60,6 +60,7 @@
     "ololog": "^1.1.84",
     "rollup": "^0.56.5",
     "rollup-plugin-commonjs": "^9.0.0",
+    "rollup-plugin-json": "^2.3.0",
     "rollup-plugin-node-resolve": "^3.2.0"
   },
   "author": {
