@@ -270,14 +270,15 @@ class exmo (Exchange):
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
+        orderType = ''
         if type == 'market':
             price = '0'
-            type = type + '_'
-        type += side
+            orderType = type + '_'
+        orderType += side
         request = {
             'pair': self.market_id(symbol),
             'quantity': amount,
-            'type': type,
+            'type': orderType,
             'price': price,
         }
         response = await self.privatePostOrderCreate(self.extend(request, params))

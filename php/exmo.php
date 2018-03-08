@@ -285,15 +285,16 @@ class exmo extends Exchange {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
+        $orderType = '';
         if ($type === 'market') {
             $price = '0';
-            $type = $type . '_';
+            $orderType = $type . '_';
         }
-        $type .= $side;
+        $orderType .= $side;
         $request = array (
             'pair' => $this->market_id($symbol),
             'quantity' => $amount,
-            'type' => $type,
+            'type' => $orderType,
             'price' => $price,
         );
         $response = $this->privatePostOrderCreate (array_merge ($request, $params));
