@@ -802,7 +802,7 @@ module.exports = class kraken extends Exchange {
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
         let currency = this.currency (code);
-        let noDepositMethod = this.options.noDepositMethod;
+        let noDepositMethod = this.options['noDepositMethod'];
         for (let i = 0; i < noDepositMethod.length; i++) {
             if (code === noDepositMethod[i])
                 throw new ExchangeError (this.id + ' ' + code + ' does not have a deposit method');
