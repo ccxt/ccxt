@@ -328,8 +328,8 @@ class bitflyer (Exchange):
             nonce = str(self.nonce())
             auth = ''.join([nonce, method, request])
             if params:
-                body = self.json(params)
                 if method != 'GET':
+                    body = self.json(params)
                     auth += body
             headers = {
                 'ACCESS-KEY': self.apiKey,
