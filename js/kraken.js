@@ -183,6 +183,9 @@ module.exports = class kraken extends Exchange {
                     ],
                 },
             },
+            'options': {
+                'noDepositMethod': ['DAO', 'NMC', 'XVN', 'GBP', 'KRW'],
+            },
         });
     }
 
@@ -797,11 +800,14 @@ module.exports = class kraken extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
-        let method = this.safeValue (params, 'method');
-        if (!method)
-            throw new ExchangeError (this.id + ' fetchDepositAddress() requires an extra `method` parameter');
         await this.loadMarkets ();
         let currency = this.currency (code);
+        let noDepositMethod = this.options.noDepositMethod;
+        for (let i = 0; i < noDepositMethod.length; i++) {
+            if (code === noDepositMethod[i])
+                throw new ExchangeError (this.id + ' ' + code + ' does not have a deposit method');
+        }
+        let method = this.fetchDepositMethods (currency)[0]['method'];
         let request = {
             'asset': currency['id'],
             'method': method,
