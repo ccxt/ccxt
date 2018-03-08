@@ -55,7 +55,7 @@ class ExchangeTest extends TestCase {
      * @dataProvider truncationToNSignificantDigits
      */
     public function testDecimalToPrecisionTruncationToNSignificantDigits ($n, $rounding_mode, $precision, $counting_mode, $padding_mode, $expected) {
-        $this->assertSame ($expected, Exchange::decimalToPrecision ($n, $rounding_mode, $precision, $padding_mode, $counting_mode));
+        $this->assertSame ($expected, Exchange::decimalToPrecision ($n, $rounding_mode, $precision, $counting_mode, $padding_mode));
     }
 
     public function truncationToNSignificantDigits () {
@@ -85,7 +85,7 @@ class ExchangeTest extends TestCase {
      * @dataProvider roundingToNDigitsAfterDot
      */
     public function testDecimalToPrecisionRoundingToNDigitsAfterDot ($n, $rounding_mode, $precision, $counting_mode, $padding_mode, $expected) {
-        $this->assertSame ($expected, Exchange::decimalToPrecision ($n, $rounding_mode, $precision, $padding_mode, $counting_mode));
+        $this->assertSame ($expected, Exchange::decimalToPrecision ($n, $rounding_mode, $precision, $counting_mode, $padding_mode));
     }
 
     public function roundingToNDigitsAfterDot () {
@@ -113,7 +113,7 @@ class ExchangeTest extends TestCase {
      * @dataProvider roundingToNSignificantDigits
      */
     public function testDecimalToPrecisionRoundingToNSignificantDigits ($n, $rounding_mode, $precision, $counting_mode, $padding_mode, $expected) {
-        $this->assertSame ($expected, Exchange::decimalToPrecision ($n, $rounding_mode, $precision, $padding_mode, $counting_mode));
+        $this->assertSame ($expected, Exchange::decimalToPrecision ($n, $rounding_mode, $precision, $counting_mode, $padding_mode));
     }
 
     public function roundingToNSignificantDigits () {
