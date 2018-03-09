@@ -306,7 +306,7 @@ module.exports = class bitflyer extends Exchange {
             'count': limit,
         };
         let response = await this.privateGetGetchildorders (this.extend (request, params));
-        let orders = this.parseOrders (response, symbol, since, limit);
+        let orders = this.parseOrders (response, market, since, limit);
         if (symbol)
             orders = this.filterBy (orders, 'symbol', symbol);
         return orders;
