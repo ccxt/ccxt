@@ -288,7 +288,7 @@ class bitflyer (Exchange):
             'count': limit,
         }
         response = self.privateGetGetchildorders(self.extend(request, params))
-        orders = self.parse_orders(response, symbol, since, limit)
+        orders = self.parse_orders(response, market, since, limit)
         if symbol:
             orders = self.filter_by(orders, 'symbol', symbol)
         return orders

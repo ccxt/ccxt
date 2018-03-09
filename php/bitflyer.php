@@ -305,7 +305,7 @@ class bitflyer extends Exchange {
             'count' => $limit,
         );
         $response = $this->privateGetGetchildorders (array_merge ($request, $params));
-        $orders = $this->parse_orders($response, $symbol, $since, $limit);
+        $orders = $this->parse_orders($response, $market, $since, $limit);
         if ($symbol)
             $orders = $this->filter_by($orders, 'symbol', $symbol);
         return $orders;
