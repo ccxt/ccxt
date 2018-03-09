@@ -282,8 +282,9 @@ class bitflyer (Exchange):
         if symbol is None:
             raise ExchangeError(self.id + ' fetchOrders() requires a symbol argument')
         await self.load_markets()
+        market = self.market(symbol)
         request = {
-            'product_code': self.market_id(symbol),
+            'product_code': market['id'],
             'count': limit,
         }
         response = await self.privateGetGetchildorders(self.extend(request, params))
