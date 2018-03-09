@@ -75,6 +75,7 @@ module.exports = class hitbtc extends Exchange {
                     ],
                 },
             },
+            // hardcoded fees are deprecated and should only be used when there's no other way to get fee info
             'fees': {
                 'trading': {
                     'tierBased': false,
