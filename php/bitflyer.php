@@ -299,8 +299,9 @@ class bitflyer extends Exchange {
         if ($symbol === null)
             throw new ExchangeError ($this->id . ' fetchOrders() requires a $symbol argument');
         $this->load_markets();
+        $market = $this->market ($symbol);
         $request = array (
-            'product_code' => $this->market_id($symbol),
+            'product_code' => $market['id'],
             'count' => $limit,
         );
         $response = $this->privateGetGetchildorders (array_merge ($request, $params));
