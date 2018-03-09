@@ -67,6 +67,7 @@ class bitstamp extends Exchange {
                         'xrp_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
+                        'withdrawal-requests/',
                         'withdrawal/open/',
                         'withdrawal/status/',
                         'withdrawal/cancel/',
