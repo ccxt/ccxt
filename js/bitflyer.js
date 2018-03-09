@@ -300,8 +300,9 @@ module.exports = class bitflyer extends Exchange {
         if (typeof symbol === 'undefined')
             throw new ExchangeError (this.id + ' fetchOrders() requires a symbol argument');
         await this.loadMarkets ();
+        let market = this.market (symbol);
         let request = {
-            'product_code': this.marketId (symbol),
+            'product_code': market['id'],
             'count': limit,
         };
         let response = await this.privateGetGetchildorders (this.extend (request, params));
