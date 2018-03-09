@@ -272,7 +272,13 @@ module.exports = class cryptopia extends Exchange {
                 throw new ExchangeError (this.id + ' fetchTickers() returned unrecognized pair id ' + id.toString ());
             let market = this.markets_by_id[id];
             let symbol = market['symbol'];
-            result[symbol] = this.parseTicker (ticker, market);
+            if(symbols){
+                if(symbols.includes(symbol)){
+                    result[symbol] = this.parseTicker (ticker, market);
+                }
+            }else{
+                result[symbol] = this.parseTicker (ticker, market);
+            }
         }
         return result;
     }
