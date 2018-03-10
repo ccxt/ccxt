@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const bittrex = require ('./bittrex.js');
-const { AuthenticationError, InvalidOrder, InsufficientFunds, DDoSProtection } = require ('./base/errors');
+const { AuthenticationError, InvalidOrder, InsufficientFunds } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -84,6 +84,8 @@ module.exports = class bleutrade extends bittrex {
             },
             'exceptions': {
                 'Insufficient funds!': InsufficientFunds,
+                'Invalid Order ID': InvalidOrder,
+                'Invalid apikey or apisecret': AuthenticationError,
             },
         });
     }
