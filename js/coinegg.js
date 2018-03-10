@@ -14,8 +14,11 @@ module.exports = class coinegg extends Exchange {
             'name': 'CoinEgg',
             'countries': [ 'CN', 'UK' ],
             'has': {
-                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrders': true,
+                'fetchOpenOrders': 'emulated',
                 'fetchMyTrades': true,
+                'fetchTickers': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/36770310-adfa764e-1c5a-11e8-8e09-449daac3d2fb.jpg',
