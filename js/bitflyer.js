@@ -312,6 +312,11 @@ module.exports = class bitflyer extends Exchange {
         return orders;
     }
 
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = 100, params = {}) {
+        params['child_order_state'] = 'ACTIVE';
+        return this.fetchOrders (symbol, since, limit, params);
+    }
+
     async fetchOrder (id, symbol = undefined, params = {}) {
         if (typeof symbol === 'undefined')
             throw new ExchangeError (this.id + ' fetchOrder() requires a symbol argument');
