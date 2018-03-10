@@ -790,15 +790,15 @@ module.exports = class kraken extends Exchange {
         return result;
     }
 
-    async createDepositAddress (currency, params = {}) {
+    async createDepositAddress (code, params = {}) {
         let request = {
             'new': 'true',
         };
-        let response = await this.fetchDepositAddress (currency, this.extend (request, params));
+        let response = await this.fetchDepositAddress (code, this.extend (request, params));
         let address = this.safeString (response, 'address');
         this.checkAddress (address);
         return {
-            'currency': currency,
+            'currency': code,
             'address': address,
             'status': 'ok',
             'info': response,
