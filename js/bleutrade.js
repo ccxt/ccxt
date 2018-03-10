@@ -82,6 +82,9 @@ module.exports = class bleutrade extends bittrex {
                     },
                 },
             },
+            'exceptions': {
+                'Insufficient funds!': InsufficientFunds,
+            },
         });
     }
 
