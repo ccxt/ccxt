@@ -366,9 +366,13 @@ class bitfinex (Exchange):
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
-        orderbook = await self.publicGetBookSymbol(self.extend({
+        request = {
             'symbol': self.market_id(symbol),
-        }, params))
+        }
+        if limit is not None:
+            request['limit_bids'] = limit
+            request['limit_asks'] = limit
+        orderbook = await self.publicGetBookSymbol(self.extend(request, params))
         return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'amount')
 
     async def fetch_tickers(self, symbols=None, params={}):
@@ -545,10 +549,10 @@ class bitfinex (Exchange):
             'type': orderType,
             'side': side,
             'price': self.safe_float(order, 'price'),
-            'average': float(order['avg_execution_price']),
-            'amount': float(order['original_amount']),
-            'remaining': float(order['remaining_amount']),
-            'filled': float(order['executed_amount']),
+            'average': self.safe_float(order, 'avg_execution_price'),
+            'amount': self.safe_float(order, 'original_amount'),
+            'remaining': self.safe_float(order, 'remaining_amount'),
+            'filled': self.safe_float(order, 'executed_amount'),
             'status': status,
             'fee': None,
         }
@@ -635,9 +639,11 @@ class bitfinex (Exchange):
         response = await self.fetch_deposit_address(currency, self.extend({
             'renew': 1,
         }, params))
+        address = self.safe_string(response, 'address')
+        self.check_address(address)
         return {
             'currency': currency,
-            'address': response['address'],
+            'address': address,
             'status': 'ok',
             'info': response['info'],
         }
@@ -655,6 +661,7 @@ class bitfinex (Exchange):
         if 'address_pool' in response:
             tag = address
             address = response['address_pool']
+        self.check_address(address)
         return {
             'currency': currency,
             'address': address,
@@ -664,6 +671,7 @@ class bitfinex (Exchange):
         }
 
     async def withdraw(self, currency, amount, address, tag=None, params={}):
+        self.check_address(address)
         name = self.get_currency_name(currency)
         request = {
             'withdraw_type': name,

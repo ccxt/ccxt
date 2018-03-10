@@ -23,7 +23,6 @@ class xbtce (Exchange):
                 'publicAPI': False,
                 'CORS': False,
                 'fetchTickers': True,
-                'fetchOHLCV': False,
                 'createMarketOrder': False,
             },
             'urls': {

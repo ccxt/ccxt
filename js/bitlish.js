@@ -21,6 +21,9 @@ module.exports = class bitlish extends Exchange {
                 'fetchOHLCV': true,
                 'withdraw': true,
             },
+            'timeframes': {
+                '1h': 3600,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766275-dcfc6c30-5ed3-11e7-839d-00a846385d0b.jpg',
                 'api': 'https://bitlish.com/api',
@@ -159,6 +162,7 @@ module.exports = class bitlish extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        let last = this.safeFloat (ticker, 'last');
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -169,7 +173,9 @@ module.exports = class bitlish extends Exchange {
             'ask': undefined,
             'vwap': undefined,
             'open': this.safeFloat (ticker, 'first'),
-            'last': this.safeFloat (ticker, 'last'),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': this.safeFloat (ticker, 'prc') * 100,
             'average': undefined,
@@ -202,11 +208,13 @@ module.exports = class bitlish extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         // let market = this.market (symbol);
         let now = this.seconds ();
         let start = now - 86400 * 30; // last 30 days
+        if (typeof since !== 'undefined')
+            start = parseInt (since / 1000);
         let interval = [ start.toString (), undefined ];
         return await this.publicPostOhlcv (this.extend ({
             'time_range': interval,
@@ -314,6 +322,7 @@ module.exports = class bitlish extends Exchange {
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
         await this.loadMarkets ();
         if (currency !== 'BTC') {
             // they did not document other types...

@@ -18,6 +18,8 @@ class southxchange (Exchange):
             'rateLimit': 1000,
             'has': {
                 'CORS': True,
+                'createDepositAddres': True,
+                'fetchOpenOrders': True,
                 'fetchTickers': True,
                 'withdraw': True,
             },
@@ -179,6 +181,46 @@ class southxchange (Exchange):
         }, params))
         return self.parse_trades(response, market, since, limit)
 
+    def parse_order(self, order, market=None):
+        status = 'open'
+        symbol = order['ListingCurrency'] + '/' + order['ReferenceCurrency']
+        timestamp = None
+        price = float(order['LimitPrice'])
+        amount = self.safe_float(order, 'OriginalAmount')
+        remaining = self.safe_float(order, 'Amount')
+        filled = None
+        cost = None
+        if amount is not None:
+            cost = price * amount
+            if remaining is not None:
+                filled = amount - remaining
+        orderType = order['Type'].lower()
+        result = {
+            'info': order,
+            'id': str(order['Code']),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': symbol,
+            'type': orderType,
+            'side': None,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': None,
+        }
+        return result
+
+    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        response = await self.privatePostListOrders()
+        return self.parse_orders(response, market, since, limit)
+
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
@@ -202,12 +244,37 @@ class southxchange (Exchange):
             'orderCode': id,
         }, params))
 
+    async def create_deposit_address(self, code, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        response = await self.privatePostGeneratenewaddress(self.extend({
+            'currency': currency['id'],
+        }, params))
+        parts = response.split('|')
+        numParts = len(parts)
+        address = parts[0]
+        self.check_address(address)
+        tag = None
+        if numParts > 1:
+            tag = parts[1]
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'status': 'ok',
+            'info': response,
+        }
+
     async def withdraw(self, currency, amount, address, tag=None, params={}):
-        response = await self.privatePostWithdraw(self.extend({
+        self.check_address(address)
+        request = {
             'currency': currency,
             'address': address,
             'amount': amount,
-        }, params))
+        }
+        if tag is not None:
+            request['address'] = address + '|' + tag
+        response = await self.privatePostWithdraw(self.extend(request, params))
         return {
             'info': response,
             'id': None,
@@ -229,7 +296,3 @@ class southxchange (Exchange):
                 'Hash': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512),
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
-
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = await self.fetch2(path, api, method, params, headers, body)
-        return response

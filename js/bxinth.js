@@ -269,7 +269,7 @@ module.exports = class bxinth extends Exchange {
         }
         let response = this.privatePostGetorders (this.extend (request, params));
         let orders = this.parseOrders (response['orders'], market, since, limit);
-        return this.filterOrdersBySymbol (orders, symbol);
+        return this.filterBySymbol (orders, symbol);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

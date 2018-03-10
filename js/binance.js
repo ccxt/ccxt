@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce } = require ('./base/errors');
+const { ExchangeError, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -99,7 +99,11 @@ module.exports = class binance extends Exchange {
                         'ticker/allBookTickers',
                         'ticker/price',
                         'ticker/bookTicker',
+                        'exchangeInfo',
                     ],
+                    'put': [ 'userDataStream' ],
+                    'post': [ 'userDataStream' ],
+                    'delete': [ 'userDataStream' ],
                 },
                 'private': {
                     'get': [
@@ -116,11 +120,6 @@ module.exports = class binance extends Exchange {
                     'delete': [
                         'order',
                     ],
-                },
-                'v1': {
-                    'put': [ 'userDataStream' ],
-                    'post': [ 'userDataStream' ],
-                    'delete': [ 'userDataStream' ],
                 },
             },
             'fees': {
@@ -302,29 +301,30 @@ module.exports = class binance extends Exchange {
             },
             // exchange-specific options
             'options': {
+                'warnOnFetchOpenOrdersWithoutSymbol': true,
                 'recvWindow': 5 * 1000, // 5 sec, binance default
                 'timeDifference': 0, // the difference between system clock and Binance clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
             },
             'exceptions': {
+                '-1013': InvalidOrder, // createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
+                '-1021': InvalidNonce, // 'your time is ahead of server'
+                '-1100': InvalidOrder, // createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
                 '-2010': InsufficientFunds, // createOrder -> 'Account has insufficient balance for requested action.'
                 '-2011': OrderNotFound, // cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
-                '-1013': InvalidOrder, // createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
-                '-1100': InvalidOrder, // createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
-                '-1021': InvalidNonce, // 'your time is ahead of server'
+                '-2015': AuthenticationError, // "Invalid API-key, IP, or permissions for action."
             },
         });
     }
 
-    milliseconds () {
-        return super.milliseconds () - this.options['timeDifference'];
+    nonce () {
+        return this.milliseconds () - this.options['timeDifference'];
     }
 
     async loadTimeDifference () {
-        const before = this.milliseconds ();
         const response = await this.publicGetTime ();
         const after = this.milliseconds ();
-        this.options['timeDifference'] = parseInt ((before + after) / 2 - response['serverTime']);
+        this.options['timeDifference'] = parseInt (after - response['serverTime']);
         return this.options['timeDifference'];
     }
 
@@ -460,13 +460,8 @@ module.exports = class binance extends Exchange {
     parseTicker (ticker, market = undefined) {
         let timestamp = this.safeInteger (ticker, 'closeTime');
         let iso8601 = (typeof timestamp === 'undefined') ? undefined : this.iso8601 (timestamp);
-        let symbol = ticker['symbol'];
-        if (typeof market === 'undefined') {
-            if (symbol in this.markets_by_id)
-                market = this.markets_by_id[symbol];
-        }
-        if (typeof market !== 'undefined')
-            symbol = market['symbol'];
+        let symbol = this.findSymbol (this.safeString (ticker, 'symbol'), market);
+        let last = this.safeFloat (ticker, 'lastPrice');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -479,7 +474,9 @@ module.exports = class binance extends Exchange {
             'askVolume': this.safeFloat (ticker, 'askQty'),
             'vwap': this.safeFloat (ticker, 'weightedAvgPrice'),
             'open': this.safeFloat (ticker, 'openPrice'),
-            'last': this.safeFloat (ticker, 'lastPrice'),
+            'close': last,
+            'last': last,
+            'previousClose': this.safeFloat (ticker, 'prevClosePrice'), // previous day close
             'change': this.safeFloat (ticker, 'priceChange'),
             'percentage': this.safeFloat (ticker, 'priceChangePercent'),
             'average': undefined,
@@ -503,18 +500,7 @@ module.exports = class binance extends Exchange {
         for (let i = 0; i < rawTickers.length; i++) {
             tickers.push (this.parseTicker (rawTickers[i]));
         }
-        let tickersBySymbol = this.indexBy (tickers, 'symbol');
-        // return all of them if no symbols were passed in the first argument
-        if (typeof symbols === 'undefined')
-            return tickersBySymbol;
-        // otherwise filter by symbol
-        let result = {};
-        for (let i = 0; i < symbols.length; i++) {
-            let symbol = symbols[i];
-            if (symbol in tickersBySymbol)
-                result[symbol] = tickersBySymbol[symbol];
-        }
-        return result;
+        return this.filterByArray (tickers, 'symbol', symbols);
     }
 
     async fetchBidAsks (symbols = undefined, params = {}) {
@@ -629,16 +615,7 @@ module.exports = class binance extends Exchange {
         let status = this.safeValue (order, 'status');
         if (typeof status !== 'undefined')
             status = this.parseOrderStatus (status);
-        let symbol = undefined;
-        if (market) {
-            symbol = market['symbol'];
-        } else {
-            let id = order['symbol'];
-            if (id in this.markets_by_id) {
-                market = this.markets_by_id[id];
-                symbol = market['symbol'];
-            }
-        }
+        let symbol = this.findSymbol (this.safeString (order, 'symbol'), market);
         let timestamp = undefined;
         if ('time' in order)
             timestamp = order['time'];
@@ -697,10 +674,15 @@ module.exports = class binance extends Exchange {
             throw new ExchangeError (this.id + ' fetchOrder requires a symbol param');
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.privateGetOrder (this.extend ({
+        let origClientOrderId = this.safeValue (params, 'origClientOrderId');
+        let request = {
             'symbol': market['id'],
-            'orderId': parseInt (id),
-        }, params));
+        };
+        if (typeof origClientOrderId !== 'undefined')
+            request['origClientOrderId'] = origClientOrderId;
+        else
+            request['orderId'] = parseInt (id);
+        let response = await this.privateGetOrder (this.extend (request, params));
         return this.parseOrder (response, market);
     }
 
@@ -719,14 +701,17 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        // if (!symbol)
-        //     throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol param');
         await this.loadMarkets ();
         let market = undefined;
         let request = {};
         if (typeof symbol !== 'undefined') {
             market = this.market (symbol);
             request['symbol'] = market['id'];
+        } else if (this.options['warnOnFetchOpenOrdersWithoutSymbol']) {
+            let symbols = this.symbols;
+            let numSymbols = symbols.length;
+            let fetchOpenOrdersRateLimit = parseInt (numSymbols / 2);
+            throw new ExchangeError (this.id + ' fetchOpenOrders WARNING: fetching open orders without specifying a symbol is rate-limited to one call per ' + fetchOpenOrdersRateLimit.toString () + ' seconds. Do not call this method frequently to avoid ban. Set ' + this.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
         }
         let response = await this.privateGetOpenOrders (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
@@ -787,7 +772,7 @@ module.exports = class binance extends Exchange {
                 let tag = this.safeString (response, 'addressTag');
                 return {
                     'currency': code,
-                    'address': address,
+                    'address': this.checkAddress (address),
                     'tag': tag,
                     'status': 'ok',
                     'info': response,
@@ -798,6 +783,8 @@ module.exports = class binance extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
+        await this.loadMarkets ();
         let currency = this.currency (code);
         let name = address.slice (0, 20);
         let request = {
@@ -830,7 +817,7 @@ module.exports = class binance extends Exchange {
         } else if ((api === 'private') || (api === 'wapi')) {
             this.checkRequiredCredentials ();
             let query = this.urlencode (this.extend ({
-                'timestamp': this.milliseconds (),
+                'timestamp': this.nonce (),
                 'recvWindow': this.options['recvWindow'],
             }, params));
             let signature = this.hmac (this.encode (query), this.encode (this.secret));
@@ -879,7 +866,7 @@ module.exports = class binance extends Exchange {
             if (body.length > 0) {
                 if (body[0] === '{') {
                     let response = JSON.parse (body);
-                    let error = this.safeValue (response, 'code');
+                    let error = this.safeString (response, 'code');
                     if (typeof error !== 'undefined') {
                         const exceptions = this.exceptions;
                         if (error in exceptions) {

@@ -20,7 +20,6 @@ module.exports = class gemini extends Exchange {
                 'CORS': false,
                 'fetchBidsAsks': false,
                 'fetchTickers': false,
-                'fetchOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOrder': false,
                 'fetchOrders': false,
@@ -241,6 +240,7 @@ module.exports = class gemini extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
         await this.loadMarkets ();
         let currency = this.currency (code);
         let response = await this.privatePostWithdrawCurrency (this.extend ({

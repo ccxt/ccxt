@@ -16,7 +16,6 @@ class okex (okcoinusd):
             'has': {
                 'CORS': False,
                 'futures': True,
-                'hasFetchTickers': True,
                 'fetchTickers': True,
             },
             'urls': {
@@ -35,8 +34,10 @@ class okex (okcoinusd):
     def common_currency_code(self, currency):
         currencies = {
             'FAIR': 'FairGame',
-            'YOYO': 'YOYOW',
+            'HMC': 'Hi Mutual Society',
+            'MAG': 'Maggie',
             'NANO': 'XRB',
+            'YOYO': 'YOYOW',
         }
         if currency in currencies:
             return currencies[currency]

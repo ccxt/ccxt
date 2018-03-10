@@ -729,7 +729,7 @@ class hitbtc2 extends hitbtc {
         $average = null;
         if ($last !== null && $open !== null) {
             $change = $last - $open;
-            $average = ($last . $open) / 2;
+            $average = $this->sum ($last, $open) / 2;
             if ($open > 0)
                 $percentage = $change / $open * 100;
         }
@@ -748,7 +748,9 @@ class hitbtc2 extends hitbtc {
             'ask' => $this->safe_float($ticker, 'ask'),
             'vwap' => $vwap,
             'open' => $open,
+            'close' => $last,
             'last' => $last,
+            'previousClose' => null,
             'change' => $change,
             'percentage' => $percentage,
             'average' => $average,
@@ -994,7 +996,9 @@ class hitbtc2 extends hitbtc {
         if ($since !== null)
             $request['from'] = $this->iso8601 ($since);
         $response = $this->privateGetHistoryOrder (array_merge ($request, $params));
-        return $this->parse_orders($response, $market, $since, $limit);
+        $orders = $this->parse_orders($response, $market);
+        $orders = $this->filter_by($orders, 'status', 'closed');
+        return $this->filter_by_since_limit($orders, $since, $limit);
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -1045,6 +1049,7 @@ class hitbtc2 extends hitbtc {
             'currency' => $currency['id'],
         ));
         $address = $response['address'];
+        $this->check_address($address);
         $tag = $this->safe_string($response, 'paymentId');
         return array (
             'currency' => $currency,
@@ -1062,6 +1067,7 @@ class hitbtc2 extends hitbtc {
             'currency' => $currency['id'],
         ));
         $address = $response['address'];
+        $this->check_address($address);
         $tag = $this->safe_string($response, 'paymentId');
         return array (
             'currency' => $currency,
@@ -1073,6 +1079,7 @@ class hitbtc2 extends hitbtc {
     }
 
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+        $this->check_address($address);
         $currency = $this->currency ($code);
         $request = array (
             'currency' => $currency['id'],

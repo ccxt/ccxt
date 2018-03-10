@@ -725,7 +725,7 @@ class hitbtc2 (hitbtc):
         average = None
         if last is not None and open is not None:
             change = last - open
-            average = (last + open) / 2
+            average = self.sum(last, open) / 2
             if open > 0:
                 percentage = change / open * 100
         vwap = None
@@ -743,7 +743,9 @@ class hitbtc2 (hitbtc):
             'ask': self.safe_float(ticker, 'ask'),
             'vwap': vwap,
             'open': open,
+            'close': last,
             'last': last,
+            'previousClose': None,
             'change': change,
             'percentage': percentage,
             'average': average,
@@ -965,7 +967,9 @@ class hitbtc2 (hitbtc):
         if since is not None:
             request['from'] = self.iso8601(since)
         response = await self.privateGetHistoryOrder(self.extend(request, params))
-        return self.parse_orders(response, market, since, limit)
+        orders = self.parse_orders(response, market)
+        orders = self.filter_by(orders, 'status', 'closed')
+        return self.filter_by_since_limit(orders, since, limit)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -1012,6 +1016,7 @@ class hitbtc2 (hitbtc):
             'currency': currency['id'],
         })
         address = response['address']
+        self.check_address(address)
         tag = self.safe_string(response, 'paymentId')
         return {
             'currency': currency,
@@ -1028,6 +1033,7 @@ class hitbtc2 (hitbtc):
             'currency': currency['id'],
         })
         address = response['address']
+        self.check_address(address)
         tag = self.safe_string(response, 'paymentId')
         return {
             'currency': currency,
@@ -1038,6 +1044,7 @@ class hitbtc2 (hitbtc):
         }
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        self.check_address(address)
         currency = self.currency(code)
         request = {
             'currency': currency['id'],

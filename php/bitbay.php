@@ -243,6 +243,7 @@ class bitbay extends Exchange {
     }
 
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+        $this->check_address($address);
         $this->load_markets();
         $method = null;
         $currency = $this->currency ($code);

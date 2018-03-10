@@ -22,6 +22,9 @@ class bitlish (Exchange):
                 'fetchOHLCV': True,
                 'withdraw': True,
             },
+            'timeframes': {
+                '1h': 3600,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766275-dcfc6c30-5ed3-11e7-839d-00a846385d0b.jpg',
                 'api': 'https://bitlish.com/api',
@@ -156,6 +159,7 @@ class bitlish (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
+        last = self.safe_float(ticker, 'last')
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -166,7 +170,9 @@ class bitlish (Exchange):
             'ask': None,
             'vwap': None,
             'open': self.safe_float(ticker, 'first'),
-            'last': self.safe_float(ticker, 'last'),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': self.safe_float(ticker, 'prc') * 100,
             'average': None,
@@ -195,11 +201,13 @@ class bitlish (Exchange):
         ticker = tickers[market['id']]
         return self.parse_ticker(ticker, market)
 
-    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    def fetch_ohlcv(self, symbol, timeframe='1h', since=None, limit=None, params={}):
         self.load_markets()
         # market = self.market(symbol)
         now = self.seconds()
         start = now - 86400 * 30  # last 30 days
+        if since is not None:
+            start = int(since / 1000)
         interval = [str(start), None]
         return self.publicPostOhlcv(self.extend({
             'time_range': interval,
@@ -296,6 +304,7 @@ class bitlish (Exchange):
         return self.privatePostCancelTrade({'id': id})
 
     def withdraw(self, currency, amount, address, tag=None, params={}):
+        self.check_address(address)
         self.load_markets()
         if currency != 'BTC':
             # they did not document other types...

@@ -429,16 +429,23 @@ module.exports = class liqui extends Exchange {
         return response;
     }
 
+    parseOrderStatus (status) {
+        let statuses = {
+            '0': 'open',
+            '1': 'closed',
+            '2': 'canceled',
+            '3': 'canceled', // or partially-filled and still open? https://github.com/ccxt/ccxt/issues/1594
+        };
+        if (status in statuses)
+            return statuses[status];
+        return status;
+    }
+
     parseOrder (order, market = undefined) {
         let id = order['id'].toString ();
-        let status = this.safeInteger (order, 'status');
-        if (status === 0) {
-            status = 'open';
-        } else if (status === 1) {
-            status = 'closed';
-        } else if ((status === 2) || (status === 3)) {
-            status = 'canceled';
-        }
+        let status = this.safeString (order, 'status');
+        if (status !== 'undefined')
+            status = this.parseOrderStatus (status);
         let timestamp = parseInt (order['timestamp_created']) * 1000;
         let symbol = undefined;
         if (!market)
@@ -557,7 +564,7 @@ module.exports = class liqui extends Exchange {
         await this.loadMarkets ();
         let request = {};
         let market = undefined;
-        if (symbol) {
+        if (typeof symbol !== 'undefined') {
             let market = this.market (symbol);
             request['pair'] = market['id'];
         }
@@ -567,28 +574,18 @@ module.exports = class liqui extends Exchange {
         if ('return' in response)
             openOrders = this.parseOrders (response['return'], market);
         let allOrders = this.updateCachedOrders (openOrders, symbol);
-        let result = this.filterOrdersBySymbol (allOrders, symbol);
+        let result = this.filterBySymbol (allOrders, symbol);
         return this.filterBySinceLimit (result, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let orders = await this.fetchOrders (symbol, since, limit, params);
-        let result = [];
-        for (let i = 0; i < orders.length; i++) {
-            if (orders[i]['status'] === 'open')
-                result.push (orders[i]);
-        }
-        return result;
+        return this.filterBy (orders, 'status', 'open');
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let orders = await this.fetchOrders (symbol, since, limit, params);
-        let result = [];
-        for (let i = 0; i < orders.length; i++) {
-            if (orders[i]['status'] === 'closed')
-                result.push (orders[i]);
-        }
-        return result;
+        return this.filterBy (orders, 'status', 'closed');
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -620,6 +617,7 @@ module.exports = class liqui extends Exchange {
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
         await this.loadMarkets ();
         let response = await this.privatePostWithdrawCoin (this.extend ({
             'coinName': currency,
@@ -726,6 +724,8 @@ module.exports = class liqui extends Exchange {
                     } else if (message === 'Requests too often') {
                         throw new DDoSProtection (feedback);
                     } else if (message === 'not available') {
+                        throw new DDoSProtection (feedback);
+                    } else if (message === 'data unavailable') {
                         throw new DDoSProtection (feedback);
                     } else if (message === 'external service unavailable') {
                         throw new DDoSProtection (feedback);

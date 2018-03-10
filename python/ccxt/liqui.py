@@ -418,15 +418,22 @@ class liqui (Exchange):
             self.orders[id]['status'] = 'canceled'
         return response
 
+    def parse_order_status(self, status):
+        statuses = {
+            '0': 'open',
+            '1': 'closed',
+            '2': 'canceled',
+            '3': 'canceled',  # or partially-filled and still open? https://github.com/ccxt/ccxt/issues/1594
+        }
+        if status in statuses:
+            return statuses[status]
+        return status
+
     def parse_order(self, order, market=None):
         id = str(order['id'])
-        status = self.safe_integer(order, 'status')
-        if status == 0:
-            status = 'open'
-        elif status == 1:
-            status = 'closed'
-        elif (status == 2) or (status == 3):
-            status = 'canceled'
+        status = self.safe_string(order, 'status')
+        if status != 'None':
+            status = self.parse_order_status(status)
         timestamp = int(order['timestamp_created']) * 1000
         symbol = None
         if not market:
@@ -532,7 +539,7 @@ class liqui (Exchange):
         self.load_markets()
         request = {}
         market = None
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['pair'] = market['id']
         response = self.privatePostActiveOrders(self.extend(request, params))
@@ -541,24 +548,16 @@ class liqui (Exchange):
         if 'return' in response:
             openOrders = self.parse_orders(response['return'], market)
         allOrders = self.update_cached_orders(openOrders, symbol)
-        result = self.filter_orders_by_symbol(allOrders, symbol)
+        result = self.filter_by_symbol(allOrders, symbol)
         return self.filter_by_since_limit(result, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         orders = self.fetch_orders(symbol, since, limit, params)
-        result = []
-        for i in range(0, len(orders)):
-            if orders[i]['status'] == 'open':
-                result.append(orders[i])
-        return result
+        return self.filter_by(orders, 'status', 'open')
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         orders = self.fetch_orders(symbol, since, limit, params)
-        result = []
-        for i in range(0, len(orders)):
-            if orders[i]['status'] == 'closed':
-                result.append(orders[i])
-        return result
+        return self.filter_by(orders, 'status', 'closed')
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -587,6 +586,7 @@ class liqui (Exchange):
         return self.parse_trades(trades, market, since, limit)
 
     def withdraw(self, currency, amount, address, tag=None, params={}):
+        self.check_address(address)
         self.load_markets()
         response = self.privatePostWithdrawCoin(self.extend({
             'coinName': currency,
@@ -686,6 +686,8 @@ class liqui (Exchange):
                     elif message == 'Requests too often':
                         raise DDoSProtection(feedback)
                     elif message == 'not available':
+                        raise DDoSProtection(feedback)
+                    elif message == 'data unavailable':
                         raise DDoSProtection(feedback)
                     elif message == 'external service unavailable':
                         raise DDoSProtection(feedback)

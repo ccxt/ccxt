@@ -172,6 +172,7 @@ module.exports = class coinsecure extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        await this.loadMarkets ();
         let response = await this.privateGetUserExchangeBankSummary ();
         let balance = response['message'];
         let coin = {
@@ -193,6 +194,7 @@ module.exports = class coinsecure extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         let bids = await this.publicGetExchangeBidOrders (params);
         let asks = await this.publicGetExchangeAskOrders (params);
         let orderbook = {
@@ -203,6 +205,7 @@ module.exports = class coinsecure extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
         let response = await this.publicGetExchangeTicker (params);
         let ticker = response['message'];
         let timestamp = ticker['timestamp'];
@@ -254,14 +257,17 @@ module.exports = class coinsecure extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
         let result = await this.publicGetExchangeTrades (params);
         if ('message' in result) {
             let trades = result['message'];
-            return this.parseTrades (trades, symbol);
+            return this.parseTrades (trades, market);
         }
     }
 
     async createOrder (market, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
         let method = 'privatePutUserExchange';
         let order = {};
         if (type === 'market') {
@@ -284,6 +290,7 @@ module.exports = class coinsecure extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
         // let method = 'privateDeleteUserExchangeAskCancelOrderId'; // TODO fixme, have to specify order side here
         // return await this[method] ({ 'orderID': id });
         throw new NotSupported (this.id + ' cancelOrder () is not fully implemented yet');

@@ -22,6 +22,7 @@ class getbtc (_1btcxe):
             },
             'has': {
                 'fetchTrades': False,
+                'fetchOHLCV': False,
             },
             'fees': {
                 'trading': {

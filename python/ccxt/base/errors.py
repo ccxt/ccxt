@@ -40,6 +40,7 @@ __all__ = [
     'RequestTimeout',
     'ExchangeNotAvailable',
     'InvalidNonce',
+    'InvalidAddress'
 ]
 
 # -----------------------------------------------------------------------------
@@ -72,6 +73,11 @@ class InsufficientFunds(ExchangeError):
 
 class InvalidOrder(ExchangeError):
     """"Base class for all exceptions related to the unified order API"""
+    pass
+
+
+class InvalidAddress(ExchangeError):
+    """Raised on invalid funding address"""
     pass
 
 
@@ -113,5 +119,6 @@ class ExchangeNotAvailable(NetworkError):
 class InvalidNonce(NetworkError):
     """Raised in case of a wrong or conflicting nonce number in private requests"""
     pass
+
 
 # =============================================================================

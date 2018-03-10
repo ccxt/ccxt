@@ -186,20 +186,20 @@ class braziliex extends Exchange {
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['highestBid24']),
-            'low' => floatval ($ticker['lowestAsk24']),
-            'bid' => floatval ($ticker['highestBid']),
-            'ask' => floatval ($ticker['lowestAsk']),
+            'high' => $this->safe_float($ticker, 'highestBid24'),
+            'low' => $this->safe_float($ticker, 'lowestAsk24'),
+            'bid' => $this->safe_float($ticker, 'highestBid'),
+            'ask' => $this->safe_float($ticker, 'lowestAsk'),
             'vwap' => null,
             'open' => null,
             'close' => null,
             'first' => null,
-            'last' => floatval ($ticker['last']),
-            'change' => floatval ($ticker['percentChange']),
+            'last' => $this->safe_float($ticker, 'last'),
+            'change' => $this->safe_float($ticker, 'percentChange'),
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($ticker['baseVolume24']),
-            'quoteVolume' => floatval ($ticker['quoteVolume24']),
+            'baseVolume' => $this->safe_float($ticker, 'baseVolume24'),
+            'quoteVolume' => $this->safe_float($ticker, 'quoteVolume24'),
             'info' => $ticker,
         );
     }
@@ -414,8 +414,7 @@ class braziliex extends Exchange {
             'currency' => $currency['id'],
         ), $params));
         $address = $this->safe_string($response, 'deposit_address');
-        if (!$address)
-            throw new ExchangeError ($this->id . ' fetchDepositAddress failed => ' . $this->last_http_response);
+        $this->check_address($address);
         $tag = $this->safe_string($response, 'payment_id');
         return array (
             'currency' => $code,

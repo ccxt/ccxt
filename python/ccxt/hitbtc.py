@@ -79,6 +79,7 @@ class hitbtc (Exchange):
                     ],
                 },
             },
+            # hardcoded fees are deprecated and should only be used when there's no other way to get fee info
             'fees': {
                 'trading': {
                     'tierBased': False,
@@ -520,6 +521,8 @@ class hitbtc (Exchange):
                 'lot': lot,
                 'step': step,
                 'info': market,
+                'maker': self.safe_float(market, 'provideLiquidityRate'),
+                'taker': self.safe_float(market, 'takeLiquidityRate'),
                 'precision': {
                     'amount': self.precision_from_string(market['lot']),
                     'price': self.precision_from_string(market['step']),
@@ -834,6 +837,7 @@ class hitbtc (Exchange):
         return self.parse_trades(response['trades'], market, since, limit)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
         request = {

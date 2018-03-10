@@ -5,6 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
+import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 
@@ -20,8 +21,9 @@ class gatecoin (Exchange):
             'comment': 'a regulated/licensed exchange',
             'has': {
                 'CORS': False,
-                'fetchTickers': True,
                 'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchTickers': True,
             },
             'timeframes': {
                 '1m': '1m',
@@ -189,20 +191,45 @@ class gatecoin (Exchange):
         })
 
     def fetch_markets(self):
-        response = self.publicGetPublicLiveTickers()
-        markets = response['tickers']
+        response = self.publicGetReferenceCurrencyPairs()
+        markets = response['currencyPairs']
         result = []
-        for p in range(0, len(markets)):
-            market = markets[p]
-            id = market['currencyPair']
-            base = id[0:3]
-            quote = id[3:6]
+        for i in range(0, len(markets)):
+            market = markets[i]
+            id = market['tradingCode']
+            baseId = market['baseCurrency']
+            quoteId = market['quoteCurrency']
+            base = baseId
+            quote = quoteId
             symbol = base + '/' + quote
+            precision = {
+                'amount': 8,
+                'price': market['priceDecimalPlaces'],
+            }
+            limits = {
+                'amount': {
+                    'min': math.pow(10, -precision['amount']),
+                    'max': None,
+                },
+                'price': {
+                    'min': math.pow(10, -precision['amount']),
+                    'max': None,
+                },
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
+            }
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': True,
+                'precision': precision,
+                'limits': limits,
                 'info': market,
             })
         return result
@@ -363,6 +390,51 @@ class gatecoin (Exchange):
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         return self.privateDeleteTradeOrdersOrderID({'OrderID': id})
+
+    def parse_order(self, order, market=None):
+        side = 'buy' if (order['side'] == 0) else 'sell'
+        type = 'limit' if (order['type'] == 0) else 'market'
+        symbol = None
+        if market is None:
+            marketId = self.safe_string(order, 'code')
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+        if market is not None:
+            symbol = market['symbol']
+        timestamp = int(order['date']) * 1000
+        amount = order['initialQuantity']
+        remaining = order['remainingQuantity']
+        filled = amount - remaining
+        price = order['price']
+        cost = price * filled
+        id = order['clOrderId']
+        status = 'open'  # they report open orders only? TODO use .orders cache for emulation
+        result = {
+            'id': id,
+            'datetime': self.iso8601(timestamp),
+            'timestamp': timestamp,
+            'status': status,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'cost': cost,
+            'trades': None,
+            'fee': None,
+            'info': order,
+        }
+        return result
+
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        response = self.privateGetTradeOrders()
+        orders = self.parse_orders(response['orders'], None, since, limit)
+        if symbol is not None:
+            return self.filter_by_symbol(orders, symbol)
+        return orders
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.implode_params(path, params)

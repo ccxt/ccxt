@@ -18,9 +18,13 @@ class coinmarketcap extends Exchange {
                 'CORS' => true,
                 'privateAPI' => false,
                 'createOrder' => false,
+                'createMarketOrder' => false,
+                'createLimitOrder' => false,
                 'cancelOrder' => false,
+                'editOrder' => false,
                 'fetchBalance' => false,
                 'fetchOrderBook' => false,
+                'fetchOHLCV' => false,
                 'fetchTrades' => false,
                 'fetchTickers' => true,
                 'fetchCurrencies' => true,
@@ -88,11 +92,14 @@ class coinmarketcap extends Exchange {
             'Bitgem' => 'Bitgem',
             'BlockCAT' => 'BlockCAT',
             'Catcoin' => 'Catcoin',
+            'Hi Mutual Society' => 'Hi Mutual Society',
             'iCoin' => 'iCoin',
             'NetCoin' => 'NetCoin',
             // a special case, most exchanges list it as IOTA, therefore
             // we change just the Coinmarketcap instead of changing them all
             'MIOTA' => 'IOTA',
+            'Maggie' => 'Maggie',
+            'BlazeCoin' => 'BlazeCoin',
         );
         if (is_array ($currencies) && array_key_exists ($name, $currencies))
             return $currencies[$name];
@@ -113,7 +120,7 @@ class coinmarketcap extends Exchange {
                 $baseId = $market['id'];
                 $base = $this->currency_code ($market['symbol'], $market['name']);
                 $symbol = $base . '/' . $quote;
-                $id = $baseId . '/' . $quote;
+                $id = $baseId . '/' . $quoteId;
                 $result[] = array (
                     'id' => $id,
                     'symbol' => $symbol,
@@ -192,7 +199,8 @@ class coinmarketcap extends Exchange {
         $tickers = array ();
         for ($t = 0; $t < count ($response); $t++) {
             $ticker = $response[$t];
-            $id = $ticker['id'] . '/' . $currency;
+            $currencyId = (is_array ($this->currencies) && array_key_exists ($currency, $this->currencies)) ? $this->currencies[$currency]['id'] : strtolower ($currency);
+            $id = $ticker['id'] . '/' . $currencyId;
             $symbol = $id;
             $market = null;
             if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {

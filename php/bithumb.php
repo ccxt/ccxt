@@ -149,8 +149,8 @@ class bithumb extends Exchange {
         if ($market)
             $symbol = $market['symbol'];
         $open = $this->safe_float($ticker, 'opening_price');
-        $last = $this->safe_float($ticker, 'closing_price');
-        $change = $last - $open;
+        $close = $this->safe_float($ticker, 'closing_price');
+        $change = $close - $open;
         $vwap = $this->safe_float($ticker, 'average_price');
         $baseVolume = $this->safe_float($ticker, 'volume_1day');
         return array (
@@ -163,10 +163,12 @@ class bithumb extends Exchange {
             'ask' => $this->safe_float($ticker, 'sell_price'),
             'vwap' => $vwap,
             'open' => $open,
-            'last' => $last,
+            'close' => $close,
+            'last' => $close,
+            'previousClose' => null,
             'change' => $change,
             'percentage' => $change / $open * 100,
-            'average' => ($open . $last) / 2,
+            'average' => $this->sum ($open, $close) / 2,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $baseVolume * $vwap,
             'info' => $ticker,
@@ -285,6 +287,7 @@ class bithumb extends Exchange {
     }
 
     public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+        $this->check_address($address);
         $request = array (
             'units' => $amount,
             'address' => $address,

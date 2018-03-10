@@ -252,7 +252,7 @@ class bxinth (Exchange):
             request['pairing'] = market['id']
         response = self.privatePostGetorders(self.extend(request, params))
         orders = self.parse_orders(response['orders'], market, since, limit)
-        return self.filter_orders_by_symbol(orders, symbol)
+        return self.filter_by_symbol(orders, symbol)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/'

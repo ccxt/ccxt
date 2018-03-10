@@ -19,7 +19,6 @@ module.exports = class xbtce extends Exchange {
                 'publicAPI': false,
                 'CORS': false,
                 'fetchTickers': true,
-                'fetchOHLCV': false,
                 'createMarketOrder': false,
             },
             'urls': {

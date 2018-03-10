@@ -23,7 +23,6 @@ class gemini (Exchange):
                 'CORS': False,
                 'fetchBidsAsks': False,
                 'fetchTickers': False,
-                'fetchOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOrder': False,
                 'fetchOrders': False,
@@ -230,6 +229,7 @@ class gemini (Exchange):
         return self.parse_trades(response, market, since, limit)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
         response = self.privatePostWithdrawCurrency(self.extend({

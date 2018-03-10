@@ -139,6 +139,9 @@ class okcoinusd extends Exchange {
                 '10005' => '\\ccxt\\AuthenticationError', // bad apiKey
                 '10008' => '\\ccxt\\ExchangeError', // Illegal URL parameter
             ),
+            'options' => array (
+                'warnOnFetchOHLCVLimitArgument' => true,
+            ),
         ));
     }
 
@@ -325,7 +328,7 @@ class okcoinusd extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = 1440, $params = array ()) {
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $method = 'publicGet';
@@ -338,8 +341,11 @@ class okcoinusd extends Exchange {
             $request['contract_type'] = 'this_week'; // next_week, quarter
         }
         $method .= 'Kline';
-        if ($limit !== null)
-            $request['size'] = intval ($limit);
+        if ($limit !== null) {
+            if ($this->options['warnOnFetchOHLCVLimitArgument'])
+                throw new ExchangeError ($this->id . ' fetchOHLCV counts "$limit" candles from current time backwards, therefore the "$limit" argument for ' . $this->id . ' is disabled. Set ' . $this->id . '.options["warnOnFetchOHLCVLimitArgument"] = false to suppress this warning message.');
+            $request['size'] = intval ($limit); // max is 1440 candles
+        }
         if ($since !== null)
             $request['since'] = $since;
         else
@@ -523,7 +529,8 @@ class okcoinusd extends Exchange {
         $method .= 'OrderInfo';
         $response = $this->$method (array_merge ($request, $params));
         $ordersField = $this->get_orders_field ();
-        if (strlen ($response[$ordersField]) > 0)
+        $numOrders = is_array ($response[$ordersField]) ? count ($response[$ordersField]) : 0;
+        if ($numOrders > 0)
             return $this->parse_order($response[$ordersField][0]);
         throw new OrderNotFound ($this->id . ' order ' . $id . ' not found');
     }
@@ -589,12 +596,15 @@ class okcoinusd extends Exchange {
     }
 
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+        $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency ($code);
         // if ($amount < 0.01)
         //     throw new ExchangeError ($this->id . ' withdraw() requires $amount > 0.01');
+        // for some reason they require to supply a pair of currencies for withdrawing one $currency
+        $currencyId = $currency['id'] . '_usd';
         $request = array (
-            'symbol' => $currency['id'],
+            'symbol' => $currencyId,
             'withdraw_address' => $address,
             'withdraw_amount' => $amount,
             'target' => 'address', // or okcn, okcom, okex

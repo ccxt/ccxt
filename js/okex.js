@@ -15,7 +15,6 @@ module.exports = class okex extends okcoinusd {
             'has': {
                 'CORS': false,
                 'futures': true,
-                'hasFetchTickers': true,
                 'fetchTickers': true,
             },
             'urls': {
@@ -35,8 +34,10 @@ module.exports = class okex extends okcoinusd {
     commonCurrencyCode (currency) {
         const currencies = {
             'FAIR': 'FairGame',
-            'YOYO': 'YOYOW',
+            'HMC': 'Hi Mutual Society',
+            'MAG': 'Maggie',
             'NANO': 'XRB',
+            'YOYO': 'YOYOW',
         };
         if (currency in currencies)
             return currencies[currency];

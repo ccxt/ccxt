@@ -23,7 +23,9 @@ module.exports = class huobipro extends Exchange {
                 'CORS': false,
                 'fetchOHCLV': true,
                 'fetchOrders': true,
+                'fetchOrder': true,
                 'fetchOpenOrders': true,
+                'fetchDepositAddress': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -71,6 +73,7 @@ module.exports = class huobipro extends Exchange {
                         'order/orders', // 查询当前委托、历史委托
                         'order/matchresults', // 查询当前成交、历史成交
                         'dw/withdraw-virtual/addresses', // 查询虚拟币提现地址
+                        'dw/deposit-virtual/addresses',
                     ],
                     'post': [
                         'order/orders/place', // 创建并执行一个新订单 (一步下单， 推荐使用)
@@ -174,12 +177,14 @@ module.exports = class huobipro extends Exchange {
             }
         }
         let open = this.safeFloat (ticker, 'open');
-        let last = this.safeFloat (ticker, 'close');
+        let close = this.safeFloat (ticker, 'close');
         let change = undefined;
         let percentage = undefined;
-        if ((typeof open !== 'undefined') && (typeof last !== 'undefined')) {
-            change = last - open;
-            if ((typeof last !== 'undefined') && (last > 0))
+        let average = undefined;
+        if ((typeof open !== 'undefined') && (typeof close !== 'undefined')) {
+            change = close - open;
+            average = this.sum (open, close) / 2;
+            if ((typeof close !== 'undefined') && (close > 0))
                 percentage = (change / open) * 100;
         }
         let baseVolume = this.safeFloat (ticker, 'amount');
@@ -199,10 +204,11 @@ module.exports = class huobipro extends Exchange {
             'askVolume': askVolume,
             'vwap': vwap,
             'open': open,
-            'last': last,
+            'close': close,
+            'last': close,
             'change': change,
             'percentage': percentage,
-            'average': (open + last) / 2,
+            'average': average,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
@@ -250,17 +256,6 @@ module.exports = class huobipro extends Exchange {
         };
     }
 
-    parseTradesData (data, market, since = undefined, limit = undefined) {
-        let result = [];
-        for (let i = 0; i < data.length; i++) {
-            let trades = this.parseTrades (data[i]['data'], market, since, limit);
-            for (let k = 0; k < trades.length; k++) {
-                result.push (trades[k]);
-            }
-        }
-        return result;
-    }
-
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -268,7 +263,17 @@ module.exports = class huobipro extends Exchange {
             'symbol': market['id'],
             'size': 2000,
         }, params));
-        return this.parseTradesData (response['data'], market, since, limit);
+        let data = response['data'];
+        let result = [];
+        for (let i = 0; i < data.length; i++) {
+            let trades = data[i]['data'];
+            for (let j = 0; j < trades.length; j++) {
+                let trade = this.parseTrade (trades[j], market);
+                result.push (trade);
+            }
+        }
+        result = this.sortBy (result, 'timestamp');
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
@@ -374,6 +379,14 @@ module.exports = class huobipro extends Exchange {
         }, params));
     }
 
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privateGetOrderOrdersId (this.extend ({
+            'id': id,
+        }, params));
+        return this.parseOrder (response['data']);
+    }
+
     parseOrderStatus (status) {
         if (status === 'partial-filled') {
             return 'open';
@@ -419,7 +432,7 @@ module.exports = class huobipro extends Exchange {
             average = parseFloat (cost / filled);
         let result = {
             'info': order,
-            'id': order['id'],
+            'id': order['id'].toString (),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
@@ -460,7 +473,42 @@ module.exports = class huobipro extends Exchange {
         return await this.privatePostOrderOrdersIdSubmitcancel ({ 'id': id });
     }
 
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let response = await this.privateGetDwDepositVirtualAddresses (this.extend ({
+            'currency': currency['id'].toLowerCase (),
+        }, params));
+        let address = this.safeString (response, 'data');
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'status': 'ok',
+            'address': address,
+            'info': response,
+        };
+    }
+
+    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+        let market = this.markets[symbol];
+        let rate = market[takerOrMaker];
+        let cost = parseFloat (this.costToPrecision (symbol, amount * rate));
+        let key = 'quote';
+        if (side === 'sell') {
+            cost *= price;
+        } else {
+            key = 'base';
+        }
+        return {
+            'type': takerOrMaker,
+            'currency': market[key],
+            'rate': rate,
+            'cost': parseFloat (this.feeToPrecision (symbol, cost)),
+        };
+    }
+
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
         let request = {
             'address': address, // only supports existing addresses in your withdraw address list
             'amount': amount,

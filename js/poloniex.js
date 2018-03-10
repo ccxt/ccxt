@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeNotAvailable, ExchangeError, InsufficientFunds, OrderNotFound, OrderNotCached, InvalidOrder, CancelPending } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, DDoSProtection, InsufficientFunds, OrderNotFound, OrderNotCached, InvalidOrder, CancelPending, InvalidNonce } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -259,6 +259,16 @@ module.exports = class poloniex extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        let open = undefined;
+        let change = undefined;
+        let average = undefined;
+        let last = parseFloat (ticker['last']);
+        let relativeChange = parseFloat (ticker['percentChange']);
+        if (relativeChange !== -1) {
+            open = last / this.sum (1, relativeChange);
+            change = last - open;
+            average = this.sum (last, open) / 2;
+        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -268,13 +278,13 @@ module.exports = class poloniex extends Exchange {
             'bid': parseFloat (ticker['highestBid']),
             'ask': parseFloat (ticker['lowestAsk']),
             'vwap': undefined,
-            'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last']),
-            'change': parseFloat (ticker['percentChange']),
-            'percentage': undefined,
-            'average': undefined,
+            'open': open,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': change,
+            'percentage': relativeChange * 100,
+            'average': average,
             'baseVolume': parseFloat (ticker['quoteVolume']),
             'quoteVolume': parseFloat (ticker['baseVolume']),
             'info': ticker,
@@ -319,7 +329,7 @@ module.exports = class poloniex extends Exchange {
                 'name': currency['name'],
                 'active': active,
                 'status': status,
-                'fee': currency['txFee'], // todo: redesign
+                'fee': this.safeFloat (currency, 'txFee'), // todo: redesign
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -729,8 +739,7 @@ module.exports = class poloniex extends Exchange {
         let address = undefined;
         if (response['success'] === 1)
             address = this.safeString (response, 'response');
-        if (!address)
-            throw new ExchangeError (this.id + ' createDepositAddress failed: ' + this.last_http_response);
+        this.checkAddress (address);
         return {
             'currency': currency,
             'address': address,
@@ -743,6 +752,7 @@ module.exports = class poloniex extends Exchange {
         let response = await this.privatePostReturnDepositAddresses ();
         let currencyId = this.currencyId (currency);
         let address = this.safeString (response, currencyId);
+        this.checkAddress (address);
         let status = address ? 'ok' : 'none';
         return {
             'currency': currency,
@@ -753,6 +763,7 @@ module.exports = class poloniex extends Exchange {
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
         await this.loadMarkets ();
         let currencyId = this.currencyId (currency);
         let request = {
@@ -804,12 +815,18 @@ module.exports = class poloniex extends Exchange {
             const feedback = this.id + ' ' + this.json (response);
             if (error === 'Invalid order number, or you are not the person who placed the order.') {
                 throw new OrderNotFound (feedback);
+            } else if (error === 'Order not found, or you are not the person who placed it.') {
+                throw new OrderNotFound (feedback);
+            } else if (error === 'Invalid API key/secret pair.') {
+                throw new AuthenticationError (feedback);
+            } else if (error === 'Please do not make more than 8 API calls per second.') {
+                throw new DDoSProtection (feedback);
             } else if (error.indexOf ('Total must be at least') >= 0) {
                 throw new InvalidOrder (feedback);
             } else if (error.indexOf ('Not enough') >= 0) {
                 throw new InsufficientFunds (feedback);
             } else if (error.indexOf ('Nonce must be greater') >= 0) {
-                throw new ExchangeNotAvailable (feedback);
+                throw new InvalidNonce (feedback);
             } else if (error.indexOf ('You have already called cancelOrder or moveOrder on this order.') >= 0) {
                 throw new CancelPending (feedback);
             } else {

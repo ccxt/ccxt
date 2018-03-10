@@ -13,6 +13,7 @@ class bitz extends Exchange {
             'name' => 'Bit-Z',
             'countries' => 'HK',
             'rateLimit' => 1000,
+            'version' => 'v1',
             'has' => array (
                 'fetchTickers' => true,
                 'fetchOHLCV' => true,
@@ -29,7 +30,7 @@ class bitz extends Exchange {
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/35862606-4f554f14-0b5d-11e8-957d-35058c504b6f.jpg',
                 'api' => 'https://www.bit-z.com/api_v1',
-                'www' => 'https://www.bit-z.com/',
+                'www' => 'https://www.bit-z.com',
                 'doc' => 'https://www.bit-z.com/api.html',
                 'fees' => 'https://www.bit-z.com/about/fee',
             ),
@@ -45,6 +46,7 @@ class bitz extends Exchange {
                 ),
                 'private' => array (
                     'post' => array (
+                        'balances',
                         'tradeAdd',
                         'tradeCancel',
                         'openOrders',
@@ -129,8 +131,9 @@ class bitz extends Exchange {
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $market = $markets[$id];
-            $idUpper = strtoupper ($id);
-            list ($base, $quote) = explode ('_', $idUpper);
+            list ($baseId, $quoteId) = explode ('_', $id);
+            $base = strtoupper ($baseId);
+            $quote = strtoupper ($quoteId);
             $base = $this->common_currency_code($base);
             $quote = $this->common_currency_code($quote);
             $symbol = $base . '/' . $quote;
@@ -139,11 +142,36 @@ class bitz extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
                 'active' => true,
                 'info' => $market,
             );
         }
         return $result;
+    }
+
+    public function fetch_balance ($params = array ()) {
+        $this->load_markets();
+        $response = $this->privatePostBalances ($params);
+        $data = $response['data'];
+        $balances = $this->omit ($data, 'uid');
+        $result = array ( 'info' => $response );
+        $keys = is_array ($balances) ? array_keys ($balances) : array ();
+        for ($i = 0; $i < count ($keys); $i++) {
+            $currency = $keys[$i];
+            $balance = floatval ($balances[$currency]);
+            if (is_array ($this->currencies_by_id) && array_key_exists ($currency, $this->currencies_by_id))
+                $currency = $this->currencies_by_id[$currency]['code'];
+            else
+                $currency = strtoupper ($currency);
+            $account = $this->account ();
+            $account['free'] = $balance;
+            $account['used'] = null;
+            $account['total'] = $balance;
+            $result[$currency] = $account;
+        }
+        return $this->parse_balance($result);
     }
 
     public function parse_ticker ($ticker, $market = null) {
@@ -248,14 +276,20 @@ class bitz extends Exchange {
             'coin' => $market['id'],
             'type' => $this->timeframes[$timeframe],
         ), $params));
-        $ohlcv = $this->unjson ($response['data']['datas']['data']);
+        $ohlcv = json_decode ($response['data']['datas']['data'], $as_associative_array = true);
         return $this->parse_ohlcvs($ohlcv, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_order ($order, $market) {
+    public function parse_order ($order, $market = null) {
         $symbol = null;
-        if ($market)
+        if ($market !== null)
             $symbol = $market['symbol'];
+        $side = $this->safe_string($order, 'side');
+        if ($side === null) {
+            $side = $this->safe_string($order, 'type');
+            if ($side !== null)
+                $side = ($side === 'in') ? 'buy' : 'sell';
+        }
         return array (
             'id' => $order['id'],
             'datetime' => null,
@@ -263,7 +297,7 @@ class bitz extends Exchange {
             'status' => 'open',
             'symbol' => $symbol,
             'type' => 'limit',
-            'side' => $order['type'],
+            'side' => $side,
             'price' => $order['price'],
             'cost' => null,
             'amount' => $order['number'],
@@ -278,21 +312,23 @@ class bitz extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->privatePostTradeAdd (array_merge (array (
+        $orderType = ($side === 'buy') ? 'in' : 'out';
+        $request = array (
             'coin' => $market['id'],
-            'type' => $side,
+            'type' => $orderType,
             'price' => $this->price_to_precision($symbol, $price),
-            'number' => $this->amount_to_precision($symbol, $amount),
+            'number' => $this->amount_to_string($symbol, $amount),
             'tradepwd' => $this->password,
-        ), $params));
-        $order = array (
-            'id' => $response['data'],
+        );
+        $response = $this->privatePostTradeAdd (array_merge ($request, $params));
+        $id = $response['data']['id'];
+        $order = $this->parse_order(array (
+            'id' => $id,
             'price' => $price,
             'number' => $amount,
-            'type' => $side,
-        );
-        $id = $order['id'];
-        $this->orders[$id] = $this->parse_order($order, $market);
+            'side' => $side,
+        ), $market);
+        $this->orders[$id] = $order;
         return $order;
     }
 

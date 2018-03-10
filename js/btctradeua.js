@@ -146,7 +146,9 @@ module.exports = class btctradeua extends Exchange {
             'ask': undefined,
             'vwap': undefined,
             'open': undefined,
+            'close': undefined,
             'last': undefined,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
@@ -172,6 +174,7 @@ module.exports = class btctradeua extends Exchange {
             }
             let last = tickerLength - 1;
             result['last'] = ticker[last][4];
+            result['close'] = result['last'];
             result['baseVolume'] = -1 * result['baseVolume'];
         }
         return result;

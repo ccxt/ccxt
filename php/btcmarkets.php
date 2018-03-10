@@ -15,6 +15,7 @@ class btcmarkets extends Exchange {
             'rateLimit' => 1000, // market data cached for 1 second (trades cached for 2 seconds)
             'has' => array (
                 'CORS' => false,
+                'fetchOHLCV' => true,
                 'fetchOrder' => true,
                 'fetchOrders' => true,
                 'fetchClosedOrders' => 'emulated',
@@ -23,7 +24,11 @@ class btcmarkets extends Exchange {
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/29142911-0e1acfc2-7d5c-11e7-98c4-07d9532b29d7.jpg',
-                'api' => 'https://api.btcmarkets.net',
+                'api' => array (
+                    'public' => 'https://api.btcmarkets.net',
+                    'private' => 'https://api.btcmarkets.net',
+                    'web' => 'https://btcmarkets.net/data',
+                ),
                 'www' => 'https://btcmarkets.net/',
                 'doc' => 'https://github.com/BTCMarkets/API',
             ),
@@ -52,19 +57,33 @@ class btcmarkets extends Exchange {
                         'order/detail',
                     ),
                 ),
+                'web' => array (
+                    'get' => array (
+                        'market/BTCMarkets/{id}/tickByTime',
+                    ),
+                ),
             ),
             'markets' => array (
-                'BTC/AUD' => array ( 'id' => 'BTC/AUD', 'symbol' => 'BTC/AUD', 'base' => 'BTC', 'quote' => 'AUD', 'maker' => 0.0085, 'taker' => 0.0085 ),
-                'LTC/AUD' => array ( 'id' => 'LTC/AUD', 'symbol' => 'LTC/AUD', 'base' => 'LTC', 'quote' => 'AUD', 'maker' => 0.0085, 'taker' => 0.0085 ),
-                'ETH/AUD' => array ( 'id' => 'ETH/AUD', 'symbol' => 'ETH/AUD', 'base' => 'ETH', 'quote' => 'AUD', 'maker' => 0.0085, 'taker' => 0.0085 ),
-                'ETC/AUD' => array ( 'id' => 'ETC/AUD', 'symbol' => 'ETC/AUD', 'base' => 'ETC', 'quote' => 'AUD', 'maker' => 0.0085, 'taker' => 0.0085 ),
-                'XRP/AUD' => array ( 'id' => 'XRP/AUD', 'symbol' => 'XRP/AUD', 'base' => 'XRP', 'quote' => 'AUD', 'maker' => 0.0085, 'taker' => 0.0085 ),
-                'BCH/AUD' => array ( 'id' => 'BCH/AUD', 'symbol' => 'BCH/AUD', 'base' => 'BCH', 'quote' => 'AUD', 'maker' => 0.0085, 'taker' => 0.0085 ),
-                'LTC/BTC' => array ( 'id' => 'LTC/BTC', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'maker' => 0.0022, 'taker' => 0.0022 ),
-                'ETH/BTC' => array ( 'id' => 'ETH/BTC', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'maker' => 0.0022, 'taker' => 0.0022 ),
-                'ETC/BTC' => array ( 'id' => 'ETC/BTC', 'symbol' => 'ETC/BTC', 'base' => 'ETC', 'quote' => 'BTC', 'maker' => 0.0022, 'taker' => 0.0022 ),
-                'XRP/BTC' => array ( 'id' => 'XRP/BTC', 'symbol' => 'XRP/BTC', 'base' => 'XRP', 'quote' => 'BTC', 'maker' => 0.0022, 'taker' => 0.0022 ),
-                'BCH/BTC' => array ( 'id' => 'BCH/BTC', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC', 'maker' => 0.0022, 'taker' => 0.0022 ),
+                'BTC/AUD' => array ( 'id' => 'BTC/AUD', 'symbol' => 'BTC/AUD', 'base' => 'BTC', 'quote' => 'AUD', 'maker' => 0.0085, 'taker' => 0.0085, 'limits' => array ( 'amount' => array ( 'min' => 0.001, 'max' => null )), 'precision' => array ( 'price' => 2 )),
+                'LTC/AUD' => array ( 'id' => 'LTC/AUD', 'symbol' => 'LTC/AUD', 'base' => 'LTC', 'quote' => 'AUD', 'maker' => 0.0085, 'taker' => 0.0085, 'limits' => array ( 'amount' => array ( 'min' => 0.001, 'max' => null )), 'precision' => array ( 'price' => 2 )),
+                'ETH/AUD' => array ( 'id' => 'ETH/AUD', 'symbol' => 'ETH/AUD', 'base' => 'ETH', 'quote' => 'AUD', 'maker' => 0.0085, 'taker' => 0.0085, 'limits' => array ( 'amount' => array ( 'min' => 0.001, 'max' => null )), 'precision' => array ( 'price' => 2 )),
+                'ETC/AUD' => array ( 'id' => 'ETC/AUD', 'symbol' => 'ETC/AUD', 'base' => 'ETC', 'quote' => 'AUD', 'maker' => 0.0085, 'taker' => 0.0085, 'limits' => array ( 'amount' => array ( 'min' => 0.001, 'max' => null )), 'precision' => array ( 'price' => 2 )),
+                'XRP/AUD' => array ( 'id' => 'XRP/AUD', 'symbol' => 'XRP/AUD', 'base' => 'XRP', 'quote' => 'AUD', 'maker' => 0.0085, 'taker' => 0.0085, 'limits' => array ( 'amount' => array ( 'min' => 0.001, 'max' => null )), 'precision' => array ( 'price' => 2 )),
+                'BCH/AUD' => array ( 'id' => 'BCH/AUD', 'symbol' => 'BCH/AUD', 'base' => 'BCH', 'quote' => 'AUD', 'maker' => 0.0085, 'taker' => 0.0085, 'limits' => array ( 'amount' => array ( 'min' => 0.001, 'max' => null )), 'precision' => array ( 'price' => 2 )),
+                'LTC/BTC' => array ( 'id' => 'LTC/BTC', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'maker' => 0.0022, 'taker' => 0.0022, 'limits' => array ( 'amount' => array ( 'min' => 0.001, 'max' => null ))),
+                'ETH/BTC' => array ( 'id' => 'ETH/BTC', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'maker' => 0.0022, 'taker' => 0.0022, 'limits' => array ( 'amount' => array ( 'min' => 0.001, 'max' => null ))),
+                'ETC/BTC' => array ( 'id' => 'ETC/BTC', 'symbol' => 'ETC/BTC', 'base' => 'ETC', 'quote' => 'BTC', 'maker' => 0.0022, 'taker' => 0.0022, 'limits' => array ( 'amount' => array ( 'min' => 0.001, 'max' => null ))),
+                'XRP/BTC' => array ( 'id' => 'XRP/BTC', 'symbol' => 'XRP/BTC', 'base' => 'XRP', 'quote' => 'BTC', 'maker' => 0.0022, 'taker' => 0.0022, 'limits' => array ( 'amount' => array ( 'min' => 0.001, 'max' => null ))),
+                'BCH/BTC' => array ( 'id' => 'BCH/BTC', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC', 'maker' => 0.0022, 'taker' => 0.0022, 'limits' => array ( 'amount' => array ( 'min' => 0.001, 'max' => null ))),
+            ),
+            'timeframes' => array (
+                '1m' => 'minute',
+                '1h' => 'hour',
+                '1d' => 'day',
+            ),
+            'exceptions' => array (
+                '3' => '\\ccxt\\InvalidOrder',
+                '6' => '\\ccxt\\DDoSProtection',
             ),
         ));
     }
@@ -88,6 +107,31 @@ class btcmarkets extends Exchange {
             $result[$currency] = $account;
         }
         return $this->parse_balance($result);
+    }
+
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        $multiplier = 100000000; // for price and volume
+        return [
+            $ohlcv[0],
+            floatval ($ohlcv[1]) / $multiplier,
+            floatval ($ohlcv[2]) / $multiplier,
+            floatval ($ohlcv[3]) / $multiplier,
+            floatval ($ohlcv[4]) / $multiplier,
+            floatval ($ohlcv[5]) / $multiplier,
+        ];
+    }
+
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $this->load_markets ();
+        $market = $this->market ($symbol);
+        $request = array (
+            'id' => $market['id'],
+            'timeWindow' => $this->timeframes[$timeframe],
+        );
+        if ($since !== null)
+            $request['since'] = $since;
+        $response = $this->webGetMarketBTCMarketsIdTickByTime (array_merge ($request, $params));
+        return $this->parse_ohlcvs($response['ticks'], $market, $timeframe, $since, $limit);
     }
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
@@ -340,11 +384,8 @@ class btcmarkets extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $uri = '/' . $this->implode_params($path, $params);
-        $url = $this->urls['api'] . $uri;
-        if ($api === 'public') {
-            if ($params)
-                $url .= '?' . $this->urlencode ($params);
-        } else {
+        $url = $this->urls['api'][$api] . $uri;
+        if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             // eslint-disable-next-line quotes
@@ -361,18 +402,35 @@ class btcmarkets extends Exchange {
             $secret = base64_decode ($this->secret);
             $signature = $this->hmac ($this->encode ($auth), $secret, 'sha512', 'base64');
             $headers['signature'] = $this->decode ($signature);
+        } else {
+            if ($params)
+                $url .= '?' . $this->urlencode ($params);
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+        if (strlen ($body) < 2)
+            return; // fallback to default $error handler
+        if ($body[0] === '{') {
+            $response = json_decode ($body, $as_associative_array = true);
+            if (is_array ($response) && array_key_exists ('success', $response)) {
+                if (!$response['success']) {
+                    $error = $this->safe_string($response, 'errorCode');
+                    $message = $this->id . ' ' . $this->json ($response);
+                    if (is_array ($this->exceptions) && array_key_exists ($error, $this->exceptions)) {
+                        $ExceptionClass = $this->exceptions[$error];
+                        throw new $ExceptionClass ($message);
+                    } else {
+                        throw new ExchangeError ($message);
+                    }
+                }
+            }
+        }
+    }
+
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if ($api === 'private') {
-            if (is_array ($response) && array_key_exists ('success', $response))
-                if (!$response['success'])
-                    throw new ExchangeError ($this->id . ' ' . $this->json ($response));
-            return $response;
-        }
         return $response;
     }
 }

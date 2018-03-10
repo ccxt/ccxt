@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, DDoSProtection, OrderNotFound } = require ('./base/errors');
+const { ExchangeError, DDoSProtection, OrderNotFound, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -20,6 +20,7 @@ module.exports = class bitmex extends Exchange {
                 'CORS': false,
                 'fetchOHLCV': true,
                 'withdraw': true,
+                'fetchOrder': true,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
@@ -224,17 +225,28 @@ module.exports = class bitmex extends Exchange {
         return result;
     }
 
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        let filter = { 'filter': { 'orderID': id }};
+        let result = await this.fetchOrders (symbol, undefined, undefined, this.deepExtend (filter, params));
+        let numResults = result.length;
+        if (numResults === 1)
+            return result[0];
+        throw new OrderNotFound (this.id + ': The order ' + id + ' not found.');
+    }
+
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
-        let filter = {};
+        let request = {};
         if (typeof symbol !== 'undefined') {
             market = this.market (symbol);
-            filter['symbol'] = market['id'];
+            request['symbol'] = market['id'];
         }
-        let request = this.deepExtend ({
-            'filter': filter,
-        }, params);
+        if (typeof since !== 'undefined')
+            request['startTime'] = this.iso8601 (since);
+        if (typeof limit !== 'undefined')
+            request['count'] = limit;
+        request = this.deepExtend (request, params);
         // why the hassle? urlencode in python is kinda broken for nested dicts.
         // E.g. self.urlencode({"filter": {"open": True}}) will return "filter={'open':+True}"
         // Bitmex doesn't like that. Hence resorting to this hack.
@@ -245,7 +257,7 @@ module.exports = class bitmex extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let filter_params = { 'filter': { 'open': true }};
-        return await this.fetchOrders (symbol, since, limit, this.extend (filter_params, params));
+        return await this.fetchOrders (symbol, since, limit, this.deepExtend (filter_params, params));
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -273,8 +285,8 @@ module.exports = class bitmex extends Exchange {
         let ticker = tickers[0];
         let timestamp = this.milliseconds ();
         let open = this.safeFloat (ticker, 'open');
-        let last = this.safeFloat (ticker, 'close');
-        let change = last - open;
+        let close = this.safeFloat (ticker, 'close');
+        let change = close - open;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -285,10 +297,12 @@ module.exports = class bitmex extends Exchange {
             'ask': parseFloat (quote['askPrice']),
             'vwap': parseFloat (ticker['vwap']),
             'open': open,
-            'last': last,
+            'close': close,
+            'last': close,
+            'previousClose': undefined,
             'change': change,
             'percentage': change / open * 100,
-            'average': (last + open) / 2,
+            'average': this.sum (open, close) / 2,
             'baseVolume': parseFloat (ticker['homeNotional']),
             'quoteVolume': parseFloat (ticker['foreignNotional']),
             'info': ticker,
@@ -307,7 +321,7 @@ module.exports = class bitmex extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 100, params = {}) {
         await this.loadMarkets ();
         // send JSON key/value pairs, such as {"key": "value"}
         // filter by individual fields and do advanced queries on timestamps
@@ -320,19 +334,19 @@ module.exports = class bitmex extends Exchange {
             'symbol': market['id'],
             'binSize': this.timeframes[timeframe],
             'partial': true,     // true == include yet-incomplete current bins
+            'count': limit,      // default 100, max 500
             // 'filter': filter, // filter by individual fields and do advanced queries
             // 'columns': [],    // will return all columns if omitted
             // 'start': 0,       // starting point for results (wtf?)
             // 'reverse': false, // true == newest first
             // 'endTime': '',    // ending date filter for results
         };
+        // if since is not set, they will return candles starting from 2017-01-01
         if (typeof since !== 'undefined') {
             let ymdhms = this.ymdhms (since);
             let ymdhm = ymdhms.slice (0, 16);
             request['startTime'] = ymdhm; // starting date filter for results
         }
-        if (typeof limit !== 'undefined')
-            request['count'] = limit; // default 100
         let response = await this.publicGetTradeBucketed (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
@@ -470,6 +484,7 @@ module.exports = class bitmex extends Exchange {
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
         await this.loadMarkets ();
         if (currency !== 'BTC')
             throw new ExchangeError (this.id + ' supoprts BTC withdrawals only, other currencies coming soon...');
@@ -496,6 +511,11 @@ module.exports = class bitmex extends Exchange {
                     let response = JSON.parse (body);
                     if ('error' in response) {
                         if ('message' in response['error']) {
+                            let message = this.safeValue (response['error'], 'message');
+                            if (typeof message !== 'undefined') {
+                                if (message === 'Invalid API Key.')
+                                    throw new AuthenticationError (this.id + ' ' + this.json (response));
+                            }
                             // stub code, need proper handling
                             throw new ExchangeError (this.id + ' ' + this.json (response));
                         }

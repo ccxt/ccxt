@@ -360,6 +360,8 @@ class qryptos extends Exchange {
                 $request['status'] = 'cancelled';
             }
         }
+        if ($limit !== null)
+            $request['limit'] = $limit;
         $result = $this->privateGetOrders (array_merge ($request, $params));
         $orders = $result['models'];
         return $this->parse_orders($orders, $market, $since, $limit);

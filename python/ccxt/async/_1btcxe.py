@@ -114,6 +114,7 @@ class _1btcxe (Exchange):
             'currency': self.market_id(symbol),
         }, params))
         ticker = response['stats']
+        last = float(ticker['last_price'])
         return {
             'symbol': symbol,
             'timestamp': None,
@@ -124,9 +125,9 @@ class _1btcxe (Exchange):
             'ask': float(ticker['ask']),
             'vwap': None,
             'open': float(ticker['open']),
-            'close': None,
-            'first': None,
-            'last': float(ticker['last_price']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': float(ticker['daily_change']),
             'percentage': None,
             'average': None,
@@ -195,6 +196,7 @@ class _1btcxe (Exchange):
         return await self.privatePostOrdersCancel({'id': id})
 
     async def withdraw(self, currency, amount, address, tag=None, params={}):
+        self.check_address(address)
         await self.load_markets()
         response = await self.privatePostWithdrawalsNew(self.extend({
             'currency': currency,

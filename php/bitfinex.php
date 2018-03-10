@@ -366,9 +366,14 @@ class bitfinex extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $orderbook = $this->publicGetBookSymbol (array_merge (array (
+        $request = array (
             'symbol' => $this->market_id($symbol),
-        ), $params));
+        );
+        if ($limit !== null) {
+            $request['limit_bids'] = $limit;
+            $request['limit_asks'] = $limit;
+        }
+        $orderbook = $this->publicGetBookSymbol (array_merge ($request, $params));
         return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'price', 'amount');
     }
 
@@ -565,10 +570,10 @@ class bitfinex extends Exchange {
             'type' => $orderType,
             'side' => $side,
             'price' => $this->safe_float($order, 'price'),
-            'average' => floatval ($order['avg_execution_price']),
-            'amount' => floatval ($order['original_amount']),
-            'remaining' => floatval ($order['remaining_amount']),
-            'filled' => floatval ($order['executed_amount']),
+            'average' => $this->safe_float($order, 'avg_execution_price'),
+            'amount' => $this->safe_float($order, 'original_amount'),
+            'remaining' => $this->safe_float($order, 'remaining_amount'),
+            'filled' => $this->safe_float($order, 'executed_amount'),
             'status' => $status,
             'fee' => null,
         );
@@ -662,9 +667,11 @@ class bitfinex extends Exchange {
         $response = $this->fetch_deposit_address ($currency, array_merge (array (
             'renew' => 1,
         ), $params));
+        $address = $this->safe_string($response, 'address');
+        $this->check_address($address);
         return array (
             'currency' => $currency,
-            'address' => $response['address'],
+            'address' => $address,
             'status' => 'ok',
             'info' => $response['info'],
         );
@@ -684,6 +691,7 @@ class bitfinex extends Exchange {
             $tag = $address;
             $address = $response['address_pool'];
         }
+        $this->check_address($address);
         return array (
             'currency' => $currency,
             'address' => $address,
@@ -694,6 +702,7 @@ class bitfinex extends Exchange {
     }
 
     public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+        $this->check_address($address);
         $name = $this->get_currency_name ($currency);
         $request = array (
             'withdraw_type' => $name,

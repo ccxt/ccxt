@@ -19,7 +19,6 @@ class gemini extends Exchange {
                 'CORS' => false,
                 'fetchBidsAsks' => false,
                 'fetchTickers' => false,
-                'fetchOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOrder' => false,
                 'fetchOrders' => false,
@@ -240,6 +239,7 @@ class gemini extends Exchange {
     }
 
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+        $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency ($code);
         $response = $this->privatePostWithdrawCurrency (array_merge (array (

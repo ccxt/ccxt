@@ -20,6 +20,7 @@ class anxpro (Exchange):
             'rateLimit': 1500,
             'has': {
                 'CORS': False,
+                'fetchOHLCV': False,
                 'fetchTrades': False,
                 'withdraw': True,
             },
@@ -169,6 +170,7 @@ class anxpro (Exchange):
         return 100
 
     def withdraw(self, currency, amount, address, tag=None, params={}):
+        self.check_address(address)
         self.load_markets()
         multiplier = self.get_amount_multiplier(currency)
         response = self.privatePostMoneyCurrencySendSimple(self.extend({

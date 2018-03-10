@@ -16,6 +16,7 @@ import hashlib
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import CancelPending
@@ -726,7 +727,7 @@ class kraken (Exchange):
             request['start'] = int(since / 1000)
         response = await self.privatePostOpenOrders(self.extend(request, params))
         orders = self.parse_orders(response['result']['open'], None, since, limit)
-        return self.filter_orders_by_symbol(orders, symbol)
+        return self.filter_by_symbol(orders, symbol)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -735,7 +736,7 @@ class kraken (Exchange):
             request['start'] = int(since / 1000)
         response = await self.privatePostClosedOrders(self.extend(request, params))
         orders = self.parse_orders(response['result']['closed'], None, since, limit)
-        return self.filter_orders_by_symbol(orders, symbol)
+        return self.filter_by_symbol(orders, symbol)
 
     async def fetch_deposit_methods(self, code=None, params={}):
         await self.load_markets()
@@ -751,9 +752,11 @@ class kraken (Exchange):
             'new': 'true',
         }
         response = await self.fetch_deposit_address(currency, self.extend(request, params))
+        address = self.safe_string(response, 'address')
+        self.check_address(address)
         return {
             'currency': currency,
-            'address': response['address'],
+            'address': address,
             'status': 'ok',
             'info': response,
         }
@@ -772,8 +775,9 @@ class kraken (Exchange):
         result = response['result']
         numResults = len(result)
         if numResults < 1:
-            raise ExchangeError(self.id + ' privatePostDepositAddresses() returned no addresses')
+            raise InvalidAddress(self.id + ' privatePostDepositAddresses() returned no addresses')
         address = self.safe_string(result[0], 'address')
+        self.check_address(address)
         return {
             'currency': code,
             'address': address,
@@ -782,6 +786,7 @@ class kraken (Exchange):
         }
 
     async def withdraw(self, currency, amount, address, tag=None, params={}):
+        self.check_address(address)
         if 'key' in params:
             await self.load_markets()
             response = await self.privatePostWithdraw(self.extend({

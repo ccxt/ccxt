@@ -13,6 +13,10 @@ if (count ($argv) > 2) {
     $args = array_slice ($argv, 3);
     $verbose = count (array_filter ($args, function ($option) { return strstr ($option, '--verbose') !== false; })) > 0;
     $args = array_filter ($args, function ($option) { return strstr ($option, '--verbose') === false; });
+    $args = array_map (function ($arg) {
+        return ($arg[0] === '{' || $arg[0] === '[') ? json_decode ($arg) :
+            (preg_match ('/[a-zA-Z]/', $arg) ? $arg : floatval ($arg));
+    }, $args);
 
     $exchange_found = in_array ($id, \ccxt\Exchange::$exchanges);
 

@@ -188,6 +188,7 @@ module.exports = class quadrigacx extends Exchange {
             address = response;
             status = 'ok';
         }
+        this.checkAddress (address);
         return {
             'currency': currency,
             'address': address,
@@ -208,6 +209,7 @@ module.exports = class quadrigacx extends Exchange {
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
         await this.loadMarkets ();
         let request = {
             'amount': amount,

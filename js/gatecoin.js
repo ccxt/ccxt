@@ -17,8 +17,9 @@ module.exports = class gatecoin extends Exchange {
             'comment': 'a regulated/licensed exchange',
             'has': {
                 'CORS': false,
-                'fetchTickers': true,
                 'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchTickers': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -187,20 +188,45 @@ module.exports = class gatecoin extends Exchange {
     }
 
     async fetchMarkets () {
-        let response = await this.publicGetPublicLiveTickers ();
-        let markets = response['tickers'];
+        let response = await this.publicGetReferenceCurrencyPairs ();
+        let markets = response['currencyPairs'];
         let result = [];
-        for (let p = 0; p < markets.length; p++) {
-            let market = markets[p];
-            let id = market['currencyPair'];
-            let base = id.slice (0, 3);
-            let quote = id.slice (3, 6);
+        for (let i = 0; i < markets.length; i++) {
+            let market = markets[i];
+            let id = market['tradingCode'];
+            let baseId = market['baseCurrency'];
+            let quoteId = market['quoteCurrency'];
+            let base = baseId;
+            let quote = quoteId;
             let symbol = base + '/' + quote;
+            let precision = {
+                'amount': 8,
+                'price': market['priceDecimalPlaces'],
+            };
+            let limits = {
+                'amount': {
+                    'min': Math.pow (10, -precision['amount']),
+                    'max': undefined,
+                },
+                'price': {
+                    'min': Math.pow (10, -precision['amount']),
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            };
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': true,
+                'precision': precision,
+                'limits': limits,
                 'info': market,
             });
         }
@@ -377,6 +403,54 @@ module.exports = class gatecoin extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privateDeleteTradeOrdersOrderID ({ 'OrderID': id });
+    }
+
+    parseOrder (order, market = undefined) {
+        let side = (order['side'] === 0) ? 'buy' : 'sell';
+        let type = (order['type'] === 0) ? 'limit' : 'market';
+        let symbol = undefined;
+        if (typeof market === 'undefined') {
+            let marketId = this.safeString (order, 'code');
+            if (marketId in this.markets_by_id)
+                market = this.markets_by_id[marketId];
+        }
+        if (typeof market !== 'undefined')
+            symbol = market['symbol'];
+        let timestamp = parseInt (order['date']) * 1000;
+        let amount = order['initialQuantity'];
+        let remaining = order['remainingQuantity'];
+        let filled = amount - remaining;
+        let price = order['price'];
+        let cost = price * filled;
+        let id = order['clOrderId'];
+        let status = 'open'; // they report open orders only? TODO use .orders cache for emulation
+        let result = {
+            'id': id,
+            'datetime': this.iso8601 (timestamp),
+            'timestamp': timestamp,
+            'status': status,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'cost': cost,
+            'trades': undefined,
+            'fee': undefined,
+            'info': order,
+        };
+        return result;
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privateGetTradeOrders ();
+        let orders = this.parseOrders (response['orders'], undefined, since, limit);
+        if (typeof symbol !== 'undefined')
+            return this.filterBySymbol (orders, symbol);
+        return orders;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

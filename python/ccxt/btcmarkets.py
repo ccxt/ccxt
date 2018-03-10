@@ -6,9 +6,12 @@
 from ccxt.base.exchange import Exchange
 import base64
 import hashlib
+import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import DDoSProtection
 
 
 class btcmarkets (Exchange):
@@ -21,6 +24,7 @@ class btcmarkets (Exchange):
             'rateLimit': 1000,  # market data cached for 1 second(trades cached for 2 seconds)
             'has': {
                 'CORS': False,
+                'fetchOHLCV': True,
                 'fetchOrder': True,
                 'fetchOrders': True,
                 'fetchClosedOrders': 'emulated',
@@ -29,7 +33,11 @@ class btcmarkets (Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/29142911-0e1acfc2-7d5c-11e7-98c4-07d9532b29d7.jpg',
-                'api': 'https://api.btcmarkets.net',
+                'api': {
+                    'public': 'https://api.btcmarkets.net',
+                    'private': 'https://api.btcmarkets.net',
+                    'web': 'https://btcmarkets.net/data',
+                },
                 'www': 'https://btcmarkets.net/',
                 'doc': 'https://github.com/BTCMarkets/API',
             },
@@ -58,19 +66,33 @@ class btcmarkets (Exchange):
                         'order/detail',
                     ],
                 },
+                'web': {
+                    'get': [
+                        'market/BTCMarkets/{id}/tickByTime',
+                    ],
+                },
             },
             'markets': {
-                'BTC/AUD': {'id': 'BTC/AUD', 'symbol': 'BTC/AUD', 'base': 'BTC', 'quote': 'AUD', 'maker': 0.0085, 'taker': 0.0085},
-                'LTC/AUD': {'id': 'LTC/AUD', 'symbol': 'LTC/AUD', 'base': 'LTC', 'quote': 'AUD', 'maker': 0.0085, 'taker': 0.0085},
-                'ETH/AUD': {'id': 'ETH/AUD', 'symbol': 'ETH/AUD', 'base': 'ETH', 'quote': 'AUD', 'maker': 0.0085, 'taker': 0.0085},
-                'ETC/AUD': {'id': 'ETC/AUD', 'symbol': 'ETC/AUD', 'base': 'ETC', 'quote': 'AUD', 'maker': 0.0085, 'taker': 0.0085},
-                'XRP/AUD': {'id': 'XRP/AUD', 'symbol': 'XRP/AUD', 'base': 'XRP', 'quote': 'AUD', 'maker': 0.0085, 'taker': 0.0085},
-                'BCH/AUD': {'id': 'BCH/AUD', 'symbol': 'BCH/AUD', 'base': 'BCH', 'quote': 'AUD', 'maker': 0.0085, 'taker': 0.0085},
-                'LTC/BTC': {'id': 'LTC/BTC', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'maker': 0.0022, 'taker': 0.0022},
-                'ETH/BTC': {'id': 'ETH/BTC', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'maker': 0.0022, 'taker': 0.0022},
-                'ETC/BTC': {'id': 'ETC/BTC', 'symbol': 'ETC/BTC', 'base': 'ETC', 'quote': 'BTC', 'maker': 0.0022, 'taker': 0.0022},
-                'XRP/BTC': {'id': 'XRP/BTC', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC', 'maker': 0.0022, 'taker': 0.0022},
-                'BCH/BTC': {'id': 'BCH/BTC', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'maker': 0.0022, 'taker': 0.0022},
+                'BTC/AUD': {'id': 'BTC/AUD', 'symbol': 'BTC/AUD', 'base': 'BTC', 'quote': 'AUD', 'maker': 0.0085, 'taker': 0.0085, 'limits': {'amount': {'min': 0.001, 'max': None}}, 'precision': {'price': 2}},
+                'LTC/AUD': {'id': 'LTC/AUD', 'symbol': 'LTC/AUD', 'base': 'LTC', 'quote': 'AUD', 'maker': 0.0085, 'taker': 0.0085, 'limits': {'amount': {'min': 0.001, 'max': None}}, 'precision': {'price': 2}},
+                'ETH/AUD': {'id': 'ETH/AUD', 'symbol': 'ETH/AUD', 'base': 'ETH', 'quote': 'AUD', 'maker': 0.0085, 'taker': 0.0085, 'limits': {'amount': {'min': 0.001, 'max': None}}, 'precision': {'price': 2}},
+                'ETC/AUD': {'id': 'ETC/AUD', 'symbol': 'ETC/AUD', 'base': 'ETC', 'quote': 'AUD', 'maker': 0.0085, 'taker': 0.0085, 'limits': {'amount': {'min': 0.001, 'max': None}}, 'precision': {'price': 2}},
+                'XRP/AUD': {'id': 'XRP/AUD', 'symbol': 'XRP/AUD', 'base': 'XRP', 'quote': 'AUD', 'maker': 0.0085, 'taker': 0.0085, 'limits': {'amount': {'min': 0.001, 'max': None}}, 'precision': {'price': 2}},
+                'BCH/AUD': {'id': 'BCH/AUD', 'symbol': 'BCH/AUD', 'base': 'BCH', 'quote': 'AUD', 'maker': 0.0085, 'taker': 0.0085, 'limits': {'amount': {'min': 0.001, 'max': None}}, 'precision': {'price': 2}},
+                'LTC/BTC': {'id': 'LTC/BTC', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'maker': 0.0022, 'taker': 0.0022, 'limits': {'amount': {'min': 0.001, 'max': None}}},
+                'ETH/BTC': {'id': 'ETH/BTC', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'maker': 0.0022, 'taker': 0.0022, 'limits': {'amount': {'min': 0.001, 'max': None}}},
+                'ETC/BTC': {'id': 'ETC/BTC', 'symbol': 'ETC/BTC', 'base': 'ETC', 'quote': 'BTC', 'maker': 0.0022, 'taker': 0.0022, 'limits': {'amount': {'min': 0.001, 'max': None}}},
+                'XRP/BTC': {'id': 'XRP/BTC', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC', 'maker': 0.0022, 'taker': 0.0022, 'limits': {'amount': {'min': 0.001, 'max': None}}},
+                'BCH/BTC': {'id': 'BCH/BTC', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'maker': 0.0022, 'taker': 0.0022, 'limits': {'amount': {'min': 0.001, 'max': None}}},
+            },
+            'timeframes': {
+                '1m': 'minute',
+                '1h': 'hour',
+                '1d': 'day',
+            },
+            'exceptions': {
+                '3': InvalidOrder,
+                '6': DDoSProtection,
             },
         })
 
@@ -92,6 +114,29 @@ class btcmarkets (Exchange):
             }
             result[currency] = account
         return self.parse_balance(result)
+
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+        multiplier = 100000000  # for price and volume
+        return [
+            ohlcv[0],
+            float(ohlcv[1]) / multiplier,
+            float(ohlcv[2]) / multiplier,
+            float(ohlcv[3]) / multiplier,
+            float(ohlcv[4]) / multiplier,
+            float(ohlcv[5]) / multiplier,
+        ]
+
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'id': market['id'],
+            'timeWindow': self.timeframes[timeframe],
+        }
+        if since is not None:
+            request['since'] = since
+        response = self.webGetMarketBTCMarketsIdTickByTime(self.extend(request, params))
+        return self.parse_ohlcvs(response['ticks'], market, timeframe, since, limit)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -321,11 +366,8 @@ class btcmarkets (Exchange):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         uri = '/' + self.implode_params(path, params)
-        url = self.urls['api'] + uri
-        if api == 'public':
-            if params:
-                url += '?' + self.urlencode(params)
-        else:
+        url = self.urls['api'][api] + uri
+        if api == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())
             # eslint-disable-next-line quotes
@@ -341,13 +383,26 @@ class btcmarkets (Exchange):
             secret = base64.b64decode(self.secret)
             signature = self.hmac(self.encode(auth), secret, hashlib.sha512, 'base64')
             headers['signature'] = self.decode(signature)
+        else:
+            if params:
+                url += '?' + self.urlencode(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def handle_errors(self, code, reason, url, method, headers, body):
+        if len(body) < 2:
+            return  # fallback to default error handler
+        if body[0] == '{':
+            response = json.loads(body)
+            if 'success' in response:
+                if not response['success']:
+                    error = self.safe_string(response, 'errorCode')
+                    message = self.id + ' ' + self.json(response)
+                    if error in self.exceptions:
+                        ExceptionClass = self.exceptions[error]
+                        raise ExceptionClass(message)
+                    else:
+                        raise ExchangeError(message)
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)
-        if api == 'private':
-            if 'success' in response:
-                if not response['success']:
-                    raise ExchangeError(self.id + ' ' + self.json(response))
-            return response
         return response

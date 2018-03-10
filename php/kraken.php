@@ -756,7 +756,7 @@ class kraken extends Exchange {
             $request['start'] = intval ($since / 1000);
         $response = $this->privatePostOpenOrders (array_merge ($request, $params));
         $orders = $this->parse_orders($response['result']['open'], null, $since, $limit);
-        return $this->filter_orders_by_symbol($orders, $symbol);
+        return $this->filter_by_symbol($orders, $symbol);
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -766,7 +766,7 @@ class kraken extends Exchange {
             $request['start'] = intval ($since / 1000);
         $response = $this->privatePostClosedOrders (array_merge ($request, $params));
         $orders = $this->parse_orders($response['result']['closed'], null, $since, $limit);
-        return $this->filter_orders_by_symbol($orders, $symbol);
+        return $this->filter_by_symbol($orders, $symbol);
     }
 
     public function fetch_deposit_methods ($code = null, $params = array ()) {
@@ -785,9 +785,11 @@ class kraken extends Exchange {
             'new' => 'true',
         );
         $response = $this->fetch_deposit_address ($currency, array_merge ($request, $params));
+        $address = $this->safe_string($response, 'address');
+        $this->check_address($address);
         return array (
             'currency' => $currency,
-            'address' => $response['address'],
+            'address' => $address,
             'status' => 'ok',
             'info' => $response,
         );
@@ -807,8 +809,9 @@ class kraken extends Exchange {
         $result = $response['result'];
         $numResults = is_array ($result) ? count ($result) : 0;
         if ($numResults < 1)
-            throw new ExchangeError ($this->id . ' privatePostDepositAddresses() returned no addresses');
+            throw new InvalidAddress ($this->id . ' privatePostDepositAddresses() returned no addresses');
         $address = $this->safe_string($result[0], 'address');
+        $this->check_address($address);
         return array (
             'currency' => $code,
             'address' => $address,
@@ -818,6 +821,7 @@ class kraken extends Exchange {
     }
 
     public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+        $this->check_address($address);
         if (is_array ($params) && array_key_exists ('key', $params)) {
             $this->load_markets();
             $response = $this->privatePostWithdraw (array_merge (array (

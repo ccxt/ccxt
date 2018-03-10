@@ -14,6 +14,7 @@ module.exports = class bitz extends Exchange {
             'name': 'Bit-Z',
             'countries': 'HK',
             'rateLimit': 1000,
+            'version': 'v1',
             'has': {
                 'fetchTickers': true,
                 'fetchOHLCV': true,
@@ -30,7 +31,7 @@ module.exports = class bitz extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/35862606-4f554f14-0b5d-11e8-957d-35058c504b6f.jpg',
                 'api': 'https://www.bit-z.com/api_v1',
-                'www': 'https://www.bit-z.com/',
+                'www': 'https://www.bit-z.com',
                 'doc': 'https://www.bit-z.com/api.html',
                 'fees': 'https://www.bit-z.com/about/fee',
             },
@@ -46,6 +47,7 @@ module.exports = class bitz extends Exchange {
                 },
                 'private': {
                     'post': [
+                        'balances',
                         'tradeAdd',
                         'tradeCancel',
                         'openOrders',
@@ -130,8 +132,9 @@ module.exports = class bitz extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
             let market = markets[id];
-            let idUpper = id.toUpperCase ();
-            let [ base, quote ] = idUpper.split ('_');
+            let [ baseId, quoteId ] = id.split ('_');
+            let base = baseId.toUpperCase ();
+            let quote = quoteId.toUpperCase ();
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
@@ -140,11 +143,36 @@ module.exports = class bitz extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': true,
                 'info': market,
             });
         }
         return result;
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privatePostBalances (params);
+        let data = response['data'];
+        let balances = this.omit (data, 'uid');
+        let result = { 'info': response };
+        let keys = Object.keys (balances);
+        for (let i = 0; i < keys.length; i++) {
+            let currency = keys[i];
+            let balance = parseFloat (balances[currency]);
+            if (currency in this.currencies_by_id)
+                currency = this.currencies_by_id[currency]['code'];
+            else
+                currency = currency.toUpperCase ();
+            let account = this.account ();
+            account['free'] = balance;
+            account['used'] = undefined;
+            account['total'] = balance;
+            result[currency] = account;
+        }
+        return this.parseBalance (result);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -249,14 +277,20 @@ module.exports = class bitz extends Exchange {
             'coin': market['id'],
             'type': this.timeframes[timeframe],
         }, params));
-        let ohlcv = this.unjson (response['data']['datas']['data']);
+        let ohlcv = JSON.parse (response['data']['datas']['data']);
         return this.parseOHLCVs (ohlcv, market, timeframe, since, limit);
     }
 
-    parseOrder (order, market) {
+    parseOrder (order, market = undefined) {
         let symbol = undefined;
-        if (market)
+        if (typeof market !== 'undefined')
             symbol = market['symbol'];
+        let side = this.safeString (order, 'side');
+        if (typeof side === 'undefined') {
+            side = this.safeString (order, 'type');
+            if (typeof side !== 'undefined')
+                side = (side === 'in') ? 'buy' : 'sell';
+        }
         return {
             'id': order['id'],
             'datetime': undefined,
@@ -264,7 +298,7 @@ module.exports = class bitz extends Exchange {
             'status': 'open',
             'symbol': symbol,
             'type': 'limit',
-            'side': order['type'],
+            'side': side,
             'price': order['price'],
             'cost': undefined,
             'amount': order['number'],
@@ -279,21 +313,23 @@ module.exports = class bitz extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.privatePostTradeAdd (this.extend ({
+        let orderType = (side === 'buy') ? 'in' : 'out';
+        let request = {
             'coin': market['id'],
-            'type': side,
+            'type': orderType,
             'price': this.priceToPrecision (symbol, price),
-            'number': this.amountToPrecision (symbol, amount),
+            'number': this.amountToString (symbol, amount),
             'tradepwd': this.password,
-        }, params));
-        let order = {
-            'id': response['data'],
+        };
+        let response = await this.privatePostTradeAdd (this.extend (request, params));
+        let id = response['data']['id'];
+        let order = this.parseOrder ({
+            'id': id,
             'price': price,
             'number': amount,
-            'type': side,
-        };
-        let id = order['id'];
-        this.orders[id] = this.parseOrder (order, market);
+            'side': side,
+        }, market);
+        this.orders[id] = order;
         return order;
     }
 

@@ -156,26 +156,26 @@ class virwox extends Exchange {
             'startDate' => $this->ymdhms ($start),
             'HLOC' => 1,
         ), $params));
-        $marketPrice = $this->fetch_market_price ($symbol, $params);
         $tickers = $response['result']['priceVolumeList'];
         $keys = is_array ($tickers) ? array_keys ($tickers) : array ();
         $length = is_array ($keys) ? count ($keys) : 0;
         $lastKey = $keys[$length - 1];
         $ticker = $tickers[$lastKey];
         $timestamp = $this->milliseconds ();
+        $close = floatval ($ticker['close']);
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => floatval ($ticker['high']),
             'low' => floatval ($ticker['low']),
-            'bid' => $marketPrice['bid'],
-            'ask' => $marketPrice['ask'],
+            'bid' => null,
+            'ask' => null,
             'vwap' => null,
             'open' => floatval ($ticker['open']),
-            'close' => floatval ($ticker['close']),
-            'first' => null,
-            'last' => null,
+            'close' => $close,
+            'last' => $close,
+            'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
@@ -205,19 +205,21 @@ class virwox extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
+        $market = $this->market ($symbol);
         $response = $this->publicGetGetRawTradeData (array_merge (array (
             'instrument' => $symbol,
             'timespan' => 3600,
         ), $params));
         $result = $response['result'];
         $trades = $result['data'];
-        return $this->parse_trades($trades, $symbol);
+        return $this->parse_trades($trades, $market);
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
+        $market = $this->market ($symbol);
         $order = array (
-            'instrument' => $this->symbol ($market),
+            'instrument' => $market['symbol'],
             'orderType' => strtoupper ($side),
             'amount' => $amount,
         );
@@ -226,7 +228,7 @@ class virwox extends Exchange {
         $response = $this->privatePostPlaceOrder (array_merge ($order, $params));
         return array (
             'info' => $response,
-            'id' => (string) $response['orderID'],
+            'id' => (string) $response['result']['orderID'],
         );
     }
 

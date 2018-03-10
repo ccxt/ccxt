@@ -12,6 +12,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import OrderNotFound
 
 
 class gdax (Exchange):
@@ -91,6 +92,7 @@ class gdax (Exchange):
                     'post': [
                         'deposits/coinbase-account',
                         'deposits/payment-method',
+                        'coinbase-accounts/{id}/addresses',
                         'funding/repay',
                         'orders',
                         'position/close',
@@ -488,6 +490,7 @@ class gdax (Exchange):
         }
 
     async def withdraw(self, currency, amount, address, tag=None, params={}):
+        self.check_address(address)
         await self.load_markets()
         request = {
             'currency': currency,
@@ -538,7 +541,7 @@ class gdax (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body):
-        if code == 400:
+        if (code == 400) or (code == 404):
             if body[0] == '{':
                 response = json.loads(body)
                 message = response['message']
@@ -549,6 +552,8 @@ class gdax (Exchange):
                     raise InvalidOrder(error)
                 elif message == 'Insufficient funds':
                     raise InsufficientFunds(error)
+                elif message == 'NotFound':
+                    raise OrderNotFound(error)
                 elif message == 'Invalid API Key':
                     raise AuthenticationError(error)
                 raise ExchangeError(self.id + ' ' + message)

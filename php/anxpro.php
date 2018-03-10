@@ -16,6 +16,7 @@ class anxpro extends Exchange {
             'rateLimit' => 1500,
             'has' => array (
                 'CORS' => false,
+                'fetchOHLCV' => false,
                 'fetchTrades' => false,
                 'withdraw' => true,
             ),
@@ -177,6 +178,7 @@ class anxpro extends Exchange {
     }
 
     public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+        $this->check_address($address);
         $this->load_markets();
         $multiplier = $this->get_amount_multiplier ($currency);
         $response = $this->privatePostMoneyCurrencySendSimple (array_merge (array (

@@ -140,6 +140,9 @@ module.exports = class okcoinusd extends Exchange {
                 '10005': AuthenticationError, // bad apiKey
                 '10008': ExchangeError, // Illegal URL parameter
             },
+            'options': {
+                'warnOnFetchOHLCVLimitArgument': true,
+            },
         });
     }
 
@@ -326,7 +329,7 @@ module.exports = class okcoinusd extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 1440, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let method = 'publicGet';
@@ -339,8 +342,11 @@ module.exports = class okcoinusd extends Exchange {
             request['contract_type'] = 'this_week'; // next_week, quarter
         }
         method += 'Kline';
-        if (typeof limit !== 'undefined')
-            request['size'] = parseInt (limit);
+        if (typeof limit !== 'undefined') {
+            if (this.options['warnOnFetchOHLCVLimitArgument'])
+                throw new ExchangeError (this.id + ' fetchOHLCV counts "limit" candles from current time backwards, therefore the "limit" argument for ' + this.id + ' is disabled. Set ' + this.id + '.options["warnOnFetchOHLCVLimitArgument"] = false to suppress this warning message.');
+            request['size'] = parseInt (limit); // max is 1440 candles
+        }
         if (typeof since !== 'undefined')
             request['since'] = since;
         else
@@ -524,7 +530,8 @@ module.exports = class okcoinusd extends Exchange {
         method += 'OrderInfo';
         let response = await this[method] (this.extend (request, params));
         let ordersField = this.getOrdersField ();
-        if (response[ordersField].length > 0)
+        let numOrders = response[ordersField].length;
+        if (numOrders > 0)
             return this.parseOrder (response[ordersField][0]);
         throw new OrderNotFound (this.id + ' order ' + id + ' not found');
     }
@@ -590,12 +597,15 @@ module.exports = class okcoinusd extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
         await this.loadMarkets ();
         let currency = this.currency (code);
         // if (amount < 0.01)
         //     throw new ExchangeError (this.id + ' withdraw() requires amount > 0.01');
+        // for some reason they require to supply a pair of currencies for withdrawing one currency
+        let currencyId = currency['id'] + '_usd';
         let request = {
-            'symbol': currency['id'],
+            'symbol': currencyId,
             'withdraw_address': address,
             'withdraw_amount': amount,
             'target': 'address', // or okcn, okcom, okex

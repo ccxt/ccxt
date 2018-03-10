@@ -190,7 +190,7 @@ class bittrex extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $response = $this->accountGetBalances ();
+        $response = $this->accountGetBalances ($params);
         $balances = $response['result'];
         $result = array ( 'info' => $balances );
         $indexed = $this->index_by($balances, 'Currency');
@@ -242,10 +242,13 @@ class bittrex extends Exchange {
         $previous = $this->safe_float($ticker, 'PrevDay');
         $last = $this->safe_float($ticker, 'Last');
         $change = null;
+        $percentage = null;
         if ($last !== null)
-            if ($previous !== null)
+            if ($previous !== null) {
+                $change = $last - $previous;
                 if ($previous > 0)
-                    $change = ($last - $previous) / $previous;
+                    $percentage = ($change / $previous) * 100;
+            }
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -260,7 +263,7 @@ class bittrex extends Exchange {
             'first' => null,
             'last' => $last,
             'change' => $change,
-            'percentage' => null,
+            'percentage' => $percentage,
             'average' => null,
             'baseVolume' => $this->safe_float($ticker, 'Volume'),
             'quoteVolume' => $this->safe_float($ticker, 'BaseVolume'),
@@ -420,7 +423,7 @@ class bittrex extends Exchange {
         }
         $response = $this->marketGetOpenorders (array_merge ($request, $params));
         $orders = $this->parse_orders($response['result'], $market, $since, $limit);
-        return $this->filter_orders_by_symbol($orders, $symbol);
+        return $this->filter_by_symbol($orders, $symbol);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -455,22 +458,10 @@ class bittrex extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $response = null;
-        try {
-            $orderIdField = $this->get_order_id_field ();
-            $request = array ();
-            $request[$orderIdField] = $id;
-            $response = $this->marketGetCancel (array_merge ($request, $params));
-        } catch (Exception $e) {
-            if ($this->last_json_response) {
-                $message = $this->safe_string($this->last_json_response, 'message');
-                if ($message === 'ORDER_NOT_OPEN')
-                    throw new InvalidOrder ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
-                if ($message === 'UUID_INVALID')
-                    throw new OrderNotFound ($this->id . ' cancelOrder() error => ' . $this->last_http_response);
-            }
-            throw $e;
-        }
+        $orderIdField = $this->get_order_id_field ();
+        $request = array ();
+        $request[$orderIdField] = $id;
+        $response = $this->marketGetCancel (array_merge ($request, $params));
         return $response;
     }
 
@@ -592,7 +583,7 @@ class bittrex extends Exchange {
         $response = $this->accountGetOrderhistory (array_merge ($request, $params));
         $orders = $this->parse_orders($response['result'], $market, $since, $limit);
         if ($symbol)
-            return $this->filter_orders_by_symbol($orders, $symbol);
+            return $this->filter_by_symbol($orders, $symbol);
         return $orders;
     }
 
@@ -623,6 +614,7 @@ class bittrex extends Exchange {
             $tag = $address;
             $address = $currency['address'];
         }
+        $this->check_address($address);
         return array (
             'currency' => $code,
             'address' => $address,
@@ -633,6 +625,7 @@ class bittrex extends Exchange {
     }
 
     public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+        $this->check_address($address);
         $currencyId = $this->currency_id ($currency);
         $request = array (
             'currency' => $currencyId,
@@ -683,25 +676,35 @@ class bittrex extends Exchange {
 
     public function throw_exception_on_error ($response) {
         if (is_array ($response) && array_key_exists ('message', $response)) {
-            if ($response['message'] === 'APISIGN_NOT_PROVIDED')
-                throw new AuthenticationError ($this->id . ' ' . $this->json ($response));
-            if ($response['message'] === 'INVALID_SIGNATURE')
-                throw new AuthenticationError ($this->id . ' ' . $this->json ($response));
-            if ($response['message'] === 'INVALID_PERMISSION')
-                throw new AuthenticationError ($this->id . ' ' . $this->json ($response));
-            if ($response['message'] === 'INSUFFICIENT_FUNDS')
-                throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
-            if ($response['message'] === 'MIN_TRADE_REQUIREMENT_NOT_MET')
-                throw new InvalidOrder ($this->id . ' ' . $this->json ($response));
-            if ($response['message'] === 'APIKEY_INVALID') {
+            $message = $this->safe_string($response, 'message');
+            $error = $this->id . ' ' . $this->json ($response);
+            if ($message === 'APISIGN_NOT_PROVIDED')
+                throw new AuthenticationError ($error);
+            if ($message === 'INVALID_SIGNATURE')
+                throw new AuthenticationError ($error);
+            if ($message === 'INVALID_CURRENCY')
+                throw new ExchangeError ($error);
+            if ($message === 'INVALID_PERMISSION')
+                throw new AuthenticationError ($error);
+            if ($message === 'INSUFFICIENT_FUNDS')
+                throw new InsufficientFunds ($error);
+            if ($message === 'QUANTITY_NOT_PROVIDED')
+                throw new InvalidOrder ($error);
+            if ($message === 'MIN_TRADE_REQUIREMENT_NOT_MET')
+                throw new InvalidOrder ($error);
+            if ($message === 'APIKEY_INVALID') {
                 if ($this->hasAlreadyAuthenticatedSuccessfully) {
-                    throw new DDoSProtection ($this->id . ' ' . $this->json ($response));
+                    throw new DDoSProtection ($error);
                 } else {
-                    throw new AuthenticationError ($this->id . ' ' . $this->json ($response));
+                    throw new AuthenticationError ($error);
                 }
             }
-            if ($response['message'] === 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT')
+            if ($message === 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT')
                 throw new InvalidOrder ($this->id . ' order cost should be over 50k satoshi ' . $this->json ($response));
+            if ($message === 'ORDER_NOT_OPEN')
+                throw new InvalidOrder ($error);
+            if ($message === 'UUID_INVALID')
+                throw new OrderNotFound ($error);
         }
     }
 

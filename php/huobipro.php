@@ -22,7 +22,9 @@ class huobipro extends Exchange {
                 'CORS' => false,
                 'fetchOHCLV' => true,
                 'fetchOrders' => true,
+                'fetchOrder' => true,
                 'fetchOpenOrders' => true,
+                'fetchDepositAddress' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array (
@@ -70,6 +72,7 @@ class huobipro extends Exchange {
                         'order/orders', // 查询当前委托、历史委托
                         'order/matchresults', // 查询当前成交、历史成交
                         'dw/withdraw-virtual/addresses', // 查询虚拟币提现地址
+                        'dw/deposit-virtual/addresses',
                     ),
                     'post' => array (
                         'order/orders/place', // 创建并执行一个新订单 (一步下单， 推荐使用)
@@ -173,12 +176,14 @@ class huobipro extends Exchange {
             }
         }
         $open = $this->safe_float($ticker, 'open');
-        $last = $this->safe_float($ticker, 'close');
+        $close = $this->safe_float($ticker, 'close');
         $change = null;
         $percentage = null;
-        if (($open !== null) && ($last !== null)) {
-            $change = $last - $open;
-            if (($last !== null) && ($last > 0))
+        $average = null;
+        if (($open !== null) && ($close !== null)) {
+            $change = $close - $open;
+            $average = $this->sum ($open, $close) / 2;
+            if (($close !== null) && ($close > 0))
                 $percentage = ($change / $open) * 100;
         }
         $baseVolume = $this->safe_float($ticker, 'amount');
@@ -198,10 +203,11 @@ class huobipro extends Exchange {
             'askVolume' => $askVolume,
             'vwap' => $vwap,
             'open' => $open,
-            'last' => $last,
+            'close' => $close,
+            'last' => $close,
             'change' => $change,
             'percentage' => $percentage,
-            'average' => ($open . $last) / 2,
+            'average' => $average,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
@@ -249,17 +255,6 @@ class huobipro extends Exchange {
         );
     }
 
-    public function parse_trades_data ($data, $market, $since = null, $limit = null) {
-        $result = array ();
-        for ($i = 0; $i < count ($data); $i++) {
-            $trades = $this->parse_trades($data[$i]['data'], $market, $since, $limit);
-            for ($k = 0; $k < count ($trades); $k++) {
-                $result[] = $trades[$k];
-            }
-        }
-        return $result;
-    }
-
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -267,7 +262,17 @@ class huobipro extends Exchange {
             'symbol' => $market['id'],
             'size' => 2000,
         ), $params));
-        return $this->parse_trades_data($response['data'], $market, $since, $limit);
+        $data = $response['data'];
+        $result = array ();
+        for ($i = 0; $i < count ($data); $i++) {
+            $trades = $data[$i]['data'];
+            for ($j = 0; $j < count ($trades); $j++) {
+                $trade = $this->parse_trade($trades[$j], $market);
+                $result[] = $trade;
+            }
+        }
+        $result = $this->sort_by($result, 'timestamp');
+        return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
@@ -373,6 +378,14 @@ class huobipro extends Exchange {
         ), $params));
     }
 
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
+        $response = $this->privateGetOrderOrdersId (array_merge (array (
+            'id' => $id,
+        ), $params));
+        return $this->parse_order($response['data']);
+    }
+
     public function parse_order_status ($status) {
         if ($status === 'partial-filled') {
             return 'open';
@@ -418,7 +431,7 @@ class huobipro extends Exchange {
             $average = floatval ($cost / $filled);
         $result = array (
             'info' => $order,
-            'id' => $order['id'],
+            'id' => (string) $order['id'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
@@ -459,7 +472,42 @@ class huobipro extends Exchange {
         return $this->privatePostOrderOrdersIdSubmitcancel (array ( 'id' => $id ));
     }
 
+    public function fetch_deposit_address ($code, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency ($code);
+        $response = $this->privateGetDwDepositVirtualAddresses (array_merge (array (
+            'currency' => strtolower ($currency['id']),
+        ), $params));
+        $address = $this->safe_string($response, 'data');
+        $this->check_address($address);
+        return array (
+            'currency' => $code,
+            'status' => 'ok',
+            'address' => $address,
+            'info' => $response,
+        );
+    }
+
+    public function calculate_fee ($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
+        $market = $this->markets[$symbol];
+        $rate = $market[$takerOrMaker];
+        $cost = floatval ($this->cost_to_precision($symbol, $amount * $rate));
+        $key = 'quote';
+        if ($side === 'sell') {
+            $cost *= $price;
+        } else {
+            $key = 'base';
+        }
+        return array (
+            'type' => $takerOrMaker,
+            'currency' => $market[$key],
+            'rate' => $rate,
+            'cost' => floatval ($this->fee_to_precision($symbol, $cost)),
+        );
+    }
+
     public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+        $this->check_address($address);
         $request = array (
             'address' => $address, // only supports existing addresses in your withdraw $address list
             'amount' => $amount,

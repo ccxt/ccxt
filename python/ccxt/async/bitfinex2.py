@@ -23,6 +23,9 @@ class bitfinex2 (bitfinex):
             'has': {
                 'CORS': True,
                 'createOrder': False,
+                'createMarketOrder': False,
+                'createLimitOrder': False,
+                'editOrder': False,
                 'fetchMyTrades': False,
                 'fetchOHLCV': True,
                 'fetchTickers': True,
@@ -224,6 +227,7 @@ class bitfinex2 (bitfinex):
         return result
 
     async def fetch_balance(self, params={}):
+        await self.load_markets()
         response = await self.privatePostAuthRWallets()
         balanceType = self.safe_string(params, 'type', 'exchange')
         result = {'info': response}
@@ -247,6 +251,7 @@ class bitfinex2 (bitfinex):
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
+        await self.load_markets()
         orderbook = await self.publicGetBookSymbolPrecision(self.extend({
             'symbol': self.market_id(symbol),
             'precision': 'R0',
@@ -297,6 +302,7 @@ class bitfinex2 (bitfinex):
         }
 
     async def fetch_tickers(self, symbols=None, params={}):
+        await self.load_markets()
         tickers = await self.publicGetTickers(self.extend({
             'symbols': ','.join(self.ids),
         }, params))
@@ -310,6 +316,7 @@ class bitfinex2 (bitfinex):
         return result
 
     async def fetch_ticker(self, symbol, params={}):
+        await self.load_markets()
         market = self.markets[symbol]
         ticker = await self.publicGetTickerSymbol(self.extend({
             'symbol': market['id'],
@@ -334,6 +341,7 @@ class bitfinex2 (bitfinex):
         }
 
     async def fetch_trades(self, symbol, since=None, limit=120, params={}):
+        await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -347,6 +355,7 @@ class bitfinex2 (bitfinex):
         return self.parse_trades(trades, market, None, limit)
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=100, params={}):
+        await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],

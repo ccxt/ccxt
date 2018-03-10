@@ -187,20 +187,20 @@ module.exports = class braziliex extends Exchange {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['highestBid24']),
-            'low': parseFloat (ticker['lowestAsk24']),
-            'bid': parseFloat (ticker['highestBid']),
-            'ask': parseFloat (ticker['lowestAsk']),
+            'high': this.safeFloat (ticker, 'highestBid24'),
+            'low': this.safeFloat (ticker, 'lowestAsk24'),
+            'bid': this.safeFloat (ticker, 'highestBid'),
+            'ask': this.safeFloat (ticker, 'lowestAsk'),
             'vwap': undefined,
             'open': undefined,
             'close': undefined,
             'first': undefined,
-            'last': parseFloat (ticker['last']),
-            'change': parseFloat (ticker['percentChange']),
+            'last': this.safeFloat (ticker, 'last'),
+            'change': this.safeFloat (ticker, 'percentChange'),
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': parseFloat (ticker['baseVolume24']),
-            'quoteVolume': parseFloat (ticker['quoteVolume24']),
+            'baseVolume': this.safeFloat (ticker, 'baseVolume24'),
+            'quoteVolume': this.safeFloat (ticker, 'quoteVolume24'),
             'info': ticker,
         };
     }
@@ -415,8 +415,7 @@ module.exports = class braziliex extends Exchange {
             'currency': currency['id'],
         }, params));
         let address = this.safeString (response, 'deposit_address');
-        if (!address)
-            throw new ExchangeError (this.id + ' fetchDepositAddress failed: ' + this.last_http_response);
+        this.checkAddress (address);
         let tag = this.safeString (response, 'payment_id');
         return {
             'currency': code,

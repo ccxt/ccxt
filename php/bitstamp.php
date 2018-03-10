@@ -67,6 +67,7 @@ class bitstamp extends Exchange {
                         'xrp_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
+                        'withdrawal-requests/',
                         'withdrawal/open/',
                         'withdrawal/status/',
                         'withdrawal/cancel/',
@@ -242,9 +243,12 @@ class bitstamp extends Exchange {
             'tid',
             'type',
             'order_id',
+            'side',
         ));
         $currencyIds = is_array ($trade) ? array_keys ($trade) : array ();
         $numCurrencyIds = is_array ($currencyIds) ? count ($currencyIds) : 0;
+        if ($numCurrencyIds > 2)
+            throw new ExchangeError ($this->id . ' getMarketFromTrade too many keys => ' . $this->json ($currencyIds) . ' in the $trade => ' . $this->json ($trade));
         if ($numCurrencyIds === 2) {
             $marketId = $currencyIds[0] . $currencyIds[1];
             if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
@@ -276,6 +280,14 @@ class bitstamp extends Exchange {
         // only if overrided externally
         $side = $this->safe_string($trade, 'side');
         $orderId = $this->safe_string($trade, 'order_id');
+        if ($orderId === null)
+            if ($side === null) {
+                $side = $this->safe_integer($trade, 'type');
+                if ($side === 0)
+                    $side = 'buy';
+                else
+                    $side = 'sell';
+            }
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
         $id = $this->safe_string($trade, 'tid');
@@ -423,6 +435,9 @@ class bitstamp extends Exchange {
         $id = $this->safe_string($order, 'id');
         $timestamp = null;
         $iso8601 = null;
+        $side = $this->safe_string($order, 'type');
+        if ($side !== null)
+            $side = ($side === '1') ? 'sell' : 'buy';
         $datetimeString = $this->safe_string($order, 'datetime');
         if ($datetimeString !== null) {
             $timestamp = $this->parse8601 ($datetimeString);
@@ -445,7 +460,10 @@ class bitstamp extends Exchange {
         if ($transactions !== null) {
             if (gettype ($transactions) === 'array' && count (array_filter (array_keys ($transactions), 'is_string')) == 0) {
                 for ($i = 0; $i < count ($transactions); $i++) {
-                    $trade = $this->parse_trade(array_merge (array ( 'order_id' => $id ), $transactions[$i]), $market);
+                    $trade = $this->parse_trade(array_merge (array (
+                        'order_id' => $id,
+                        'side' => $side,
+                    ), $transactions[$i]), $market);
                     $filled .= $trade['amount'];
                     if ($feeCost === null)
                         $feeCost = 0.0;
@@ -469,9 +487,6 @@ class bitstamp extends Exchange {
         if ($amount !== null)
             $remaining = $amount - $filled;
         $price = $this->safe_float($order, 'price');
-        $side = $this->safe_string($order, 'type');
-        if ($side !== null)
-            $side = ($side === '1') ? 'sell' : 'buy';
         if ($market === null)
             $market = $this->get_market_from_trades ($trades);
         $feeCurrency = null;
@@ -543,16 +558,19 @@ class bitstamp extends Exchange {
         $method .= $v1 ? 'Deposit' : '';
         $method .= 'Address';
         $response = $this->$method ($params);
+        $address = $this->safe_string($response, 'address');
+        $this->check_address($address);
         return array (
             'currency' => $code,
             'status' => 'ok',
-            'address' => $this->safe_string($response, 'address'),
+            'address' => $address,
             'tag' => $this->safe_string($response, 'destination_tag'),
             'info' => $response,
         );
     }
 
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+        $this->check_address($address);
         if ($this->is_fiat ($code))
             throw new NotSupported ($this->id . ' fiat withdraw() for ' . $code . ' is not implemented yet');
         $name = $this->get_currency_name ($code);

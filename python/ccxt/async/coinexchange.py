@@ -19,7 +19,13 @@ class coinexchange (Exchange):
             # new metainfo interface
             'has': {
                 'privateAPI': False,
+                'createOrder': False,
+                'createMarketOrder': False,
+                'createLimitOrder': False,
+                'cancelOrder': False,
+                'editOrder': False,
                 'fetchTrades': False,
+                'fetchOHLCV': False,
                 'fetchCurrencies': True,
                 'fetchTickers': True,
             },

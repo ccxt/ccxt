@@ -341,6 +341,8 @@ class qryptos (Exchange):
                 request['status'] = 'filled'
             elif status == 'canceled':
                 request['status'] = 'cancelled'
+        if limit is not None:
+            request['limit'] = limit
         result = self.privateGetOrders(self.extend(request, params))
         orders = result['models']
         return self.parse_orders(orders, market, since, limit)

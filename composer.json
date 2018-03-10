@@ -241,5 +241,8 @@
             "/wiki",
             "/ccxt.wiki"
         ]
+    },
+    "require-dev": {
+        "phpunit/phpunit": "~6"
     }
 }

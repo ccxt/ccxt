@@ -17,6 +17,7 @@ module.exports = class anxpro extends Exchange {
             'rateLimit': 1500,
             'has': {
                 'CORS': false,
+                'fetchOHLCV': false,
                 'fetchTrades': false,
                 'withdraw': true,
             },
@@ -178,6 +179,7 @@ module.exports = class anxpro extends Exchange {
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
         await this.loadMarkets ();
         let multiplier = this.getAmountMultiplier (currency);
         let response = await this.privatePostMoneyCurrencySendSimple (this.extend ({

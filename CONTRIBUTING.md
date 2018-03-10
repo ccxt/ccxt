@@ -18,7 +18,7 @@ If you want to submit an issue and you want your issue to be resolved quickly, h
 - Read the [API docs](https://github.com/ccxt-dev/ccxt/wiki/Exchange-Markets) for your exchange.
 - Search for similar issues first to avoid duplicates.
 - If your issue is unique, along with a basic description of the failure, the following **IS REQUIRED**:
-  - **set `.verbose = true` property on the exchange instance before calling its methods**
+  - **set `exchange.verbose = true` property on the exchange instance before calling its functions or methods**
   - **surround code and output with triple backticks: &#096;&#096;&#096;YOUR\_CODE&#096;&#096;&#096;**
   - paste a complete code snippet you're having difficulties with, avoid one-liners
   - paste the **full verbose output** of the failing method without your keys
@@ -219,9 +219,12 @@ And structurally:
 - if you need another base method you will have to implement it in all three languages
 - try to reduce syntax to basic one-liner expressions
 - multiple lines are ok, but you should avoid deep nesting with lots of brackets
+- avoid changing the contents of the arguments and params passed by reference into function calls
 - do not use conditional statements that are too complex (heavy if-bracketing)
 - do not use heavy ternary conditionals
 - avoid operators clutter (**don't do this**: `a && b || c ? d + 80 : e ** f`)
+- never use `.toString()` on floats: `Number (0.00000001).toString () === '1e-8'`
+- don't add custom currency or symbol/pair conversions and formatting, copy from existing code instead
 - keep it simple, don't do more than one statement in one line
 
 **If you want to add (support for) another exchange, or implement a new method for a particular exchange, then the best way to make it a consistent improvement is to learn from example. Take a look at how same things are implemented in other exchanges and try to copy the code flow and style.**
@@ -342,16 +345,7 @@ Thank you to all the people who have already contributed to ccxt!
 
 Thank you to all our backers! [[Become a backer](https://opencollective.com/ccxt#backer)]
 
-<a href="https://opencollective.com/ccxt/supporter/0/website" target="_blank"><img src="https://opencollective.com/ccxt/supporter/0/avatar.svg"></a>
-<a href="https://opencollective.com/ccxt/supporter/1/website" target="_blank"><img src="https://opencollective.com/ccxt/supporter/1/avatar.svg"></a>
-<a href="https://opencollective.com/ccxt/supporter/2/website" target="_blank"><img src="https://opencollective.com/ccxt/supporter/2/avatar.svg"></a>
-<a href="https://opencollective.com/ccxt/supporter/3/website" target="_blank"><img src="https://opencollective.com/ccxt/supporter/3/avatar.svg"></a>
-<a href="https://opencollective.com/ccxt/supporter/4/website" target="_blank"><img src="https://opencollective.com/ccxt/supporter/4/avatar.svg"></a>
-<a href="https://opencollective.com/ccxt/supporter/5/website" target="_blank"><img src="https://opencollective.com/ccxt/supporter/5/avatar.svg"></a>
-<a href="https://opencollective.com/ccxt/supporter/6/website" target="_blank"><img src="https://opencollective.com/ccxt/supporter/6/avatar.svg"></a>
-<a href="https://opencollective.com/ccxt/supporter/7/website" target="_blank"><img src="https://opencollective.com/ccxt/supporter/7/avatar.svg"></a>
-<a href="https://opencollective.com/ccxt/supporter/8/website" target="_blank"><img src="https://opencollective.com/ccxt/supporter/8/avatar.svg"></a>
-<a href="https://opencollective.com/ccxt/supporter/9/website" target="_blank"><img src="https://opencollective.com/ccxt/supporter/9/avatar.svg"></a>
+<a href="https://opencollective.com/ccxt#backers" target="_blank"><img src="https://opencollective.com/ccxt/backers.svg?width=890"></a>
 
 ### Sponsors
 

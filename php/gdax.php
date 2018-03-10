@@ -82,6 +82,7 @@ class gdax extends Exchange {
                     'post' => array (
                         'deposits/coinbase-account',
                         'deposits/payment-method',
+                        'coinbase-accounts/{id}/addresses',
                         'funding/repay',
                         'orders',
                         'position/close',
@@ -516,6 +517,7 @@ class gdax extends Exchange {
     }
 
     public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+        $this->check_address($address);
         $this->load_markets();
         $request = array (
             'currency' => $currency,
@@ -573,7 +575,7 @@ class gdax extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
-        if ($code === 400) {
+        if (($code === 400) || ($code === 404)) {
             if ($body[0] === '{') {
                 $response = json_decode ($body, $as_associative_array = true);
                 $message = $response['message'];
@@ -584,6 +586,8 @@ class gdax extends Exchange {
                     throw new InvalidOrder ($error);
                 } else if ($message === 'Insufficient funds') {
                     throw new InsufficientFunds ($error);
+                } else if ($message === 'NotFound') {
+                    throw new OrderNotFound ($error);
                 } else if ($message === 'Invalid API Key') {
                     throw new AuthenticationError ($error);
                 }
