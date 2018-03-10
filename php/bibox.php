@@ -163,21 +163,19 @@ class bibox extends Exchange {
         return $this->parse_ticker($response['result'], $market);
     }
 
+    public function parse_tickers ($rawTickers, $symbols = null) {
+        $tickers = array ();
+        for ($i = 0; $i < count ($rawTickers); $i++) {
+            $tickers[] = $this->parse_ticker($rawTickers[$i]);
+        }
+        return $this->filter_by_array($tickers, 'symbol', $symbols);
+    }
+
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $response = $this->publicGetMdata (array_merge (array (
             'cmd' => 'marketAll',
         ), $params));
-        $tickers = $response['result'];
-        $result = array ();
-        for ($t = 0; $t < count ($tickers); $t++) {
-            $ticker = $this->parse_ticker($tickers[$t]);
-            $symbol = $ticker['symbol'];
-            if ($symbols && (!(is_array ($symbols) && array_key_exists ($symbol, $symbols)))) {
-                continue;
-            }
-            $result[$symbol] = $ticker;
-        }
-        return $result;
+        return $this->parse_tickers ($response['result'], $symbols);
     }
 
     public function parse_trade ($trade, $market = null) {

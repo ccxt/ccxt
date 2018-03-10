@@ -166,19 +166,17 @@ class bibox (Exchange):
         }, params))
         return self.parse_ticker(response['result'], market)
 
+    def parse_tickers(self, rawTickers, symbols=None):
+        tickers = []
+        for i in range(0, len(rawTickers)):
+            tickers.append(self.parse_ticker(rawTickers[i]))
+        return self.filter_by_array(tickers, 'symbol', symbols)
+
     async def fetch_tickers(self, symbols=None, params={}):
         response = await self.publicGetMdata(self.extend({
             'cmd': 'marketAll',
         }, params))
-        tickers = response['result']
-        result = {}
-        for t in range(0, len(tickers)):
-            ticker = self.parse_ticker(tickers[t])
-            symbol = ticker['symbol']
-            if symbols and(not(symbol in list(symbols.keys()))):
-                continue
-            result[symbol] = ticker
-        return result
+        return self.parse_tickers(response['result'], symbols)
 
     def parse_trade(self, trade, market=None):
         timestamp = trade['time']
