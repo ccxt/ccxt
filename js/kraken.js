@@ -184,6 +184,7 @@ module.exports = class kraken extends Exchange {
                 },
             },
             'options': {
+                'depositMethods': {},
                 'noDepositMethod': ['DAO', 'NMC', 'XVN', 'GBP', 'KRW'],
             },
         });
@@ -773,15 +774,17 @@ module.exports = class kraken extends Exchange {
         return this.filterBySymbol (orders, symbol);
     }
 
-    async fetchDepositMethods (code = undefined, params = {}) {
+    async fetchDepositMethods (code, params = {}) {
         await this.loadMarkets ();
-        let request = {};
-        if (code) {
-            let currency = this.currency (code);
-            request['asset'] = currency['id'];
-        }
-        let response = await this.privatePostDepositMethods (this.extend (request, params));
-        return response['result'];
+        if (code in this.options['noDepositMethod'])
+            throw new ExchangeError (this.id + ' ' + code + ' does not have a deposit method');
+        let assetName = this.currency (code)['id'];
+        if (assetName in this.options['depositMethods'])
+            return this.options['depositMethods'][assetName]; // cache depositMethods
+        let response = await this.privatePostDepositMethods (this.extend ({ 'asset': assetName }, params));
+        let result = response['result'];
+        this.options['depositMethods'][assetName] = result;
+        return result;
     }
 
     async createDepositAddress (currency, params = {}) {
@@ -801,18 +804,13 @@ module.exports = class kraken extends Exchange {
 
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        let currency = this.currency (code);
-        let noDepositMethod = this.options['noDepositMethod'];
-        for (let i = 0; i < noDepositMethod.length; i++) {
-            if (code === noDepositMethod[i])
-                throw new ExchangeError (this.id + ' ' + code + ' does not have a deposit method');
-        }
+        let assetName = this.currency (code)['id'];
         let method = this.fetchDepositMethods (code)[0]['method'];
         let request = {
-            'asset': currency['id'],
+            'asset': assetName,
             'method': method,
         };
-        let response = await this.privatePostDepositAddresses (this.extend (request, params));
+        let response = await this.privatePostDepositAddresses (this.extend (request, params)); // overwrite methods
         let result = response['result'];
         let numResults = result.length;
         if (numResults < 1)
