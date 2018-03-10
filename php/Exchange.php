@@ -1267,20 +1267,20 @@ abstract class Exchange {
 
     public function filter_by_array ($objects, $key, $values = null, $indexed = true) {
 
+        $objects = array_values ($objects);
+
         // return all of them if no $symbols were passed in the first argument
         if ($value === null)
-            return $objects;
-
-        $objectsByKey = $this->index_by ($objects, $key);
+            return $indexed ? $this->index_by ($objects, $key) : $objects;
 
         $result = array ();
-        for ($i = 0; $i < count ($values); $i++) {
-            $value = $values[$i];
-            if (array_key_exists ($value, $objectsByKey))
-                $result[$value] = $objectsByKey[$value];
+        for ($i = 0; $i < count ($objects); $i++) {
+            $value = isset ($objects[$i][$key]) ? $objects[$i][$key] : null;
+            if (in_array ($value, $values))
+                $result[] = $objects[i];
         }
 
-        return $indexed ? $result : array_values ($result);
+        return $indexed ? $this->index_by ($result, $key) : $result;
     }
 
     public function filterByArray ($objects, $key, $values = null, $indexed = true) {

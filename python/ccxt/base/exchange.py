@@ -1119,19 +1119,19 @@ class Exchange(object):
 
     def filter_by_array(self, objects, key, values=None, indexed=True):
 
+        objects = self.to_array(objects)
+
         # return all of them if no values were passed in
         if values is None:
-            return objects
+            return self.index_by(objects, key) if indexed else objects
 
-        objects_by_key = self.index_by(objects, key)
+        result = []
+        for i in range(0, len(objects)):
+            value = objects[i][key] if key in objects[i] else None
+            if value in values:
+                result.append(objects[i])
 
-        result = {}
-        for i in range(0, len(values)):
-            value = values[i]
-            if value in objects_by_key:
-                result[value] = objects_by_key[value]
-
-        return result if indexed else self.to_array(result)
+        return self.index_by(result, key) if indexed else result
 
     def currency(self, code):
         if not self.currencies:
