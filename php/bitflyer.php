@@ -311,6 +311,11 @@ class bitflyer extends Exchange {
         return $orders;
     }
 
+    public function fetch_open_orders ($symbol = null, $since = null, $limit = 100, $params = array ()) {
+        $params['child_order_state'] = 'ACTIVE';
+        return $this->fetch_orders($symbol, $since, $limit, $params);
+    }
+
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         if ($symbol === null)
             throw new ExchangeError ($this->id . ' fetchOrder() requires a $symbol argument');

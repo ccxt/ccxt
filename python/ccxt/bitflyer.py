@@ -293,6 +293,10 @@ class bitflyer (Exchange):
             orders = self.filter_by(orders, 'symbol', symbol)
         return orders
 
+    def fetch_open_orders(self, symbol=None, since=None, limit=100, params={}):
+        params['child_order_state'] = 'ACTIVE'
+        return self.fetch_orders(symbol, since, limit, params)
+
     def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
             raise ExchangeError(self.id + ' fetchOrder() requires a symbol argument')
