@@ -1117,6 +1117,22 @@ class Exchange(object):
             return [entry for entry in array if entry['symbol'] == symbol]
         return array
 
+    def filter_by_array(self, objects, key, values=None, indexed=True):
+
+        # return all of them if no values were passed in
+        if values is None:
+            return objects
+
+        objects_by_key = self.index_by(objects, key)
+
+        result = {}
+        for i in range(0, len(values)):
+            value = values[i]
+            if value in objects_by_key:
+                result[value] = objects_by_key[value]
+
+        return result if indexed else self.to_array(result)
+
     def currency(self, code):
         if not self.currencies:
             self.raise_error(ExchangeError, details='Currencies not loaded')

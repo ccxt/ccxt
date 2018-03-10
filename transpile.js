@@ -68,6 +68,7 @@ const commonRegexes = [
     [ /\.parseOrders\s/g, '.parse_orders'],
     [ /\.parseOrderStatus\s/g, '.parse_order_status'],
     [ /\.parseOrder\s/g, '.parse_order'],
+    [ /\.filterByArray\s/g, '.filter_by_array'],
     [ /\.filterBySymbolSinceLimit\s/g, '.filter_by_symbol_since_limit'],
     [ /\.filterBySinceLimit\s/g, '.filter_by_since_limit'],
     [ /\.filterBySymbol\s/g, '.filter_by_symbol'],
