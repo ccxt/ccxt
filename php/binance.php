@@ -499,18 +499,7 @@ class binance extends Exchange {
         for ($i = 0; $i < count ($rawTickers); $i++) {
             $tickers[] = $this->parse_ticker($rawTickers[$i]);
         }
-        $tickersBySymbol = $this->index_by($tickers, 'symbol');
-        // return all of them if no $symbols were passed in the first argument
-        if ($symbols === null)
-            return $tickersBySymbol;
-        // otherwise filter by $symbol
-        $result = array ();
-        for ($i = 0; $i < count ($symbols); $i++) {
-            $symbol = $symbols[$i];
-            if (is_array ($tickersBySymbol) && array_key_exists ($symbol, $tickersBySymbol))
-                $result[$symbol] = $tickersBySymbol[$symbol];
-        }
-        return $result;
+        return $this->filter_by_array($tickers, 'symbol', $symbols);
     }
 
     public function fetch_bid_asks ($symbols = null, $params = array ()) {

@@ -500,17 +500,7 @@ class binance (Exchange):
         tickers = []
         for i in range(0, len(rawTickers)):
             tickers.append(self.parse_ticker(rawTickers[i]))
-        tickersBySymbol = self.index_by(tickers, 'symbol')
-        # return all of them if no symbols were passed in the first argument
-        if symbols is None:
-            return tickersBySymbol
-        # otherwise filter by symbol
-        result = {}
-        for i in range(0, len(symbols)):
-            symbol = symbols[i]
-            if symbol in tickersBySymbol:
-                result[symbol] = tickersBySymbol[symbol]
-        return result
+        return self.filter_by_array(tickers, 'symbol', symbols)
 
     async def fetch_bid_asks(self, symbols=None, params={}):
         await self.load_markets()
