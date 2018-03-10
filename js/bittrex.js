@@ -690,30 +690,28 @@ module.exports = class bittrex extends Exchange {
         if (body[0] === '{') {
             let response = JSON.parse (body);
             // { success: false, message: "message" }
-            if ('success' in response && 'message' in response) {
-                let success = response['success'];
-                if (typeof success === 'string')
-                    // bleutrade uses string instead of boolean
-                    success = (success === 'true') ? true : false;
-                if (!success) {
-                    const message = this.safeString (response, 'message');
-                    const feedback = this.id + ' ' + this.json (response);
-                    const exceptions = this.exceptions;
-                    if (message in exceptions)
-                        throw new exceptions[message] (feedback);
-                    if (message === 'APIKEY_INVALID') {
-                        if (this.hasAlreadyAuthenticatedSuccessfully) {
-                            throw new DDoSProtection (feedback);
-                        } else {
-                            throw new AuthenticationError (feedback);
-                        }
-                    }
-                    if (message === 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT')
-                        throw new InvalidOrder (this.id + ' order cost should be over 50k satoshi ' + this.json (response));
-                    throw new ExchangeError (this.id + ' ' + this.json (response));
-                }
-            } else {
+            let success = this.safeValue (response, 'success');
+            if (typeof success === 'undefined')
                 throw new ExchangeError (this.id + ': malformed response: ' + this.json (response));
+            if (typeof success === 'string')
+                // bleutrade uses string instead of boolean
+                success = (success === 'true') ? true : false;
+            if (!success) {
+                const message = this.safeString (response, 'message');
+                const feedback = this.id + ' ' + this.json (response);
+                const exceptions = this.exceptions;
+                if (message in exceptions)
+                    throw new exceptions[message] (feedback);
+                if (message === 'APIKEY_INVALID') {
+                    if (this.hasAlreadyAuthenticatedSuccessfully) {
+                        throw new DDoSProtection (feedback);
+                    } else {
+                        throw new AuthenticationError (feedback);
+                    }
+                }
+                if (message === 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT')
+                    throw new InvalidOrder (this.id + ' order cost should be over 50k satoshi ' + this.json (response));
+                throw new ExchangeError (this.id + ' ' + this.json (response));
             }
         }
     }
