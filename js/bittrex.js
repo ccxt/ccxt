@@ -146,6 +146,7 @@ module.exports = class bittrex extends Exchange {
                 'MIN_TRADE_REQUIREMENT_NOT_MET': InvalidOrder,
                 'ORDER_NOT_OPEN': InvalidOrder,
                 'UUID_INVALID': OrderNotFound,
+                'RATE_NOT_PROVIDED': InvalidOrder, // createLimitBuyOrder ('ETH/BTC', 1, 0)
                 'Insufficient funds!': InsufficientFunds, // bluetrade
             },
         });
