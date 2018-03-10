@@ -1265,6 +1265,28 @@ abstract class Exchange {
         return $this->filter_by_symbol_since_limit ($array, $symbol, $since, $limit);
     }
 
+    public function filter_by_array ($objects, $key, $values = null, $indexed = true) {
+
+        $objects = array_values ($objects);
+
+        // return all of them if no $symbols were passed in the first argument
+        if ($value === null)
+            return $indexed ? $this->index_by ($objects, $key) : $objects;
+
+        $result = array ();
+        for ($i = 0; $i < count ($objects); $i++) {
+            $value = isset ($objects[$i][$key]) ? $objects[$i][$key] : null;
+            if (in_array ($value, $values))
+                $result[] = $objects[i];
+        }
+
+        return $indexed ? $this->index_by ($result, $key) : $result;
+    }
+
+    public function filterByArray ($objects, $key, $values = null, $indexed = true) {
+        return $this->filter_by_array ($objects, $key, $values, $indexed);
+    }
+
     public function fetch_bids_asks ($symbols, $params = array ()) { // stub
         throw new NotSupported ($this->id . ' API does not allow to fetch all prices at once with a single call to fetch_bids_asks () for now');
     }

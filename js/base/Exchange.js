@@ -847,6 +847,23 @@ module.exports = class Exchange {
         return array
     }
 
+    filterByArray (objects, key, values = undefined, indexed = true) {
+
+        objects = Object.values (objects)
+
+        // return all of them if no values were passed
+        if (typeof values === 'undefined')
+            return indexed ? indexBy (objects, key) : objects
+
+        let result = []
+        for (let i = 0; i < objects.length; i++) {
+            if (values.includes (objects[i][key]))
+                result.push (objects[i])
+        }
+
+        return indexed ? indexBy (result, key) : result
+    }
+
     parseTrades (trades, market = undefined, since = undefined, limit = undefined) {
         let result = Object.values (trades || []).map (trade => this.parseTrade (trade, market))
         result = sortBy (result, 'timestamp')
