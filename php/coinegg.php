@@ -13,8 +13,11 @@ class coinegg extends Exchange {
             'name' => 'CoinEgg',
             'countries' => array ( 'CN', 'UK' ),
             'has' => array (
-                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrders' => true,
+                'fetchOpenOrders' => 'emulated',
                 'fetchMyTrades' => true,
+                'fetchTickers' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/36770310-adfa764e-1c5a-11e8-8e09-449daac3d2fb.jpg',

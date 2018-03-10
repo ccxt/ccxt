@@ -30,8 +30,11 @@ class coinegg (Exchange):
             'name': 'CoinEgg',
             'countries': ['CN', 'UK'],
             'has': {
-                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrders': True,
+                'fetchOpenOrders': 'emulated',
                 'fetchMyTrades': True,
+                'fetchTickers': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/36770310-adfa764e-1c5a-11e8-8e09-449daac3d2fb.jpg',
