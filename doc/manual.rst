@@ -326,7 +326,8 @@ The ccxt library in PHP uses builtin UTC/GMT time functions, therefore you are r
     $bitfinex1 = new \ccxt\bitfinex (array ('id' => 'bitfinex1'));
     $bitfinex2 = new \ccxt\bitfinex (array ('id' => 'bitfinex2'));
     $id = 'kraken';
-    $kraken = new \ccxt\$id ();
+    $exchange = '\\ccxt\\' . $id
+    $kraken = new $exchange ();
 
 Exchange Structure
 ------------------
@@ -659,7 +660,8 @@ In order to load markets manually beforehand call the ``loadMarkets ()`` / ``loa
 
     // PHP
     $id = 'huobi';
-    $huobi = new \ccxt\$id ();
+    $exchange = '\\ccxt\\' . $id;
+    $huobi = new $exchange ();
     $markets = $huobi.load_markets ();
     var_dump ($huobi->id, $markets);
 
