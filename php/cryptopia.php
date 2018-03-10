@@ -273,7 +273,7 @@ class cryptopia extends Exchange {
             $symbol = $market['symbol'];
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
-        return $result;
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function parse_trade ($trade, $market = null) {
