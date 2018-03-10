@@ -1270,14 +1270,14 @@ abstract class Exchange {
         $objects = array_values ($objects);
 
         // return all of them if no $symbols were passed in the first argument
-        if ($value === null)
+        if ($values === null)
             return $indexed ? $this->index_by ($objects, $key) : $objects;
 
         $result = array ();
         for ($i = 0; $i < count ($objects); $i++) {
             $value = isset ($objects[$i][$key]) ? $objects[$i][$key] : null;
             if (in_array ($value, $values))
-                $result[] = $objects[i];
+                $result[] = $objects[$i];
         }
 
         return $indexed ? $this->index_by ($result, $key) : $result;
