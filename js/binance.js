@@ -642,6 +642,8 @@ module.exports = class binance extends Exchange {
         if (typeof price !== 'undefined')
             if (typeof filled !== 'undefined')
                 cost = price * filled;
+        if (cost === 0.0)
+            cost = price * amount;
         let result = {
             'info': order,
             'id': order['orderId'].toString (),
