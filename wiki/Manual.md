@@ -219,7 +219,8 @@ $bitfinex = new \ccxt\bitfinex (); // default id
 $bitfinex1 = new \ccxt\bitfinex (array ('id' => 'bitfinex1'));
 $bitfinex2 = new \ccxt\bitfinex (array ('id' => 'bitfinex2'));
 $id = 'kraken';
-$kraken = new \ccxt\$id ();
+$exchange = '\\ccxt\\' . $id
+$kraken = new $exchange ();
 ```
 
 ## Exchange Structure
@@ -538,7 +539,8 @@ print (okcoin.id, markets)
 ```PHP
 // PHP
 $id = 'huobi';
-$huobi = new \ccxt\$id ();
+$exchange = '\\ccxt\\' . $id;
+$huobi = new $exchange ();
 $markets = $huobi.load_markets ();
 var_dump ($huobi->id, $markets);
 ```
