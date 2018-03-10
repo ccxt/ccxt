@@ -152,6 +152,18 @@ class bittrex (Exchange):
                     },
                 },
             },
+            'exceptions': {
+                'APISIGN_NOT_PROVIDED': AuthenticationError,
+                'INVALID_SIGNATURE': AuthenticationError,
+                'INVALID_CURRENCY': ExchangeError,
+                'INVALID_PERMISSION': AuthenticationError,
+                'INSUFFICIENT_FUNDS': InsufficientFunds,
+                'QUANTITY_NOT_PROVIDED': InvalidOrder,
+                'MIN_TRADE_REQUIREMENT_NOT_MET': InvalidOrder,
+                'ORDER_NOT_OPEN': InvalidOrder,
+                'UUID_INVALID': OrderNotFound,
+                'RATE_NOT_PROVIDED': InvalidOrder,  # createLimitBuyOrder('ETH/BTC', 1, 0)
+            },
         })
 
     def cost_to_precision(self, symbol, cost):
@@ -185,7 +197,6 @@ class bittrex (Exchange):
                 'quoteId': quoteId,
                 'active': active,
                 'info': market,
-                'lot': math.pow(10, -precision['amount']),
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -193,7 +204,7 @@ class bittrex (Exchange):
                         'max': None,
                     },
                     'price': {
-                        'min': None,
+                        'min': math.pow(10, -precision['price']),
                         'max': None,
                     },
                 },
@@ -640,58 +651,34 @@ class bittrex (Exchange):
             headers = {'apisign': signature}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def throw_exception_on_error(self, response):
-        if 'message' in response:
-            message = self.safe_string(response, 'message')
-            error = self.id + ' ' + self.json(response)
-            if message == 'APISIGN_NOT_PROVIDED':
-                raise AuthenticationError(error)
-            if message == 'INVALID_SIGNATURE':
-                raise AuthenticationError(error)
-            if message == 'INVALID_CURRENCY':
-                raise ExchangeError(error)
-            if message == 'INVALID_PERMISSION':
-                raise AuthenticationError(error)
-            if message == 'INSUFFICIENT_FUNDS':
-                raise InsufficientFunds(error)
-            if message == 'QUANTITY_NOT_PROVIDED':
-                raise InvalidOrder(error)
-            if message == 'MIN_TRADE_REQUIREMENT_NOT_MET':
-                raise InvalidOrder(error)
-            if message == 'APIKEY_INVALID':
-                if self.hasAlreadyAuthenticatedSuccessfully:
-                    raise DDoSProtection(error)
-                else:
-                    raise AuthenticationError(error)
-            if message == 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT':
-                raise InvalidOrder(self.id + ' order cost should be over 50k satoshi ' + self.json(response))
-            if message == 'ORDER_NOT_OPEN':
-                raise InvalidOrder(error)
-            if message == 'UUID_INVALID':
-                raise OrderNotFound(error)
-
     def handle_errors(self, code, reason, url, method, headers, body):
-        if code >= 400:
-            if body[0] == '{':
-                response = json.loads(body)
-                self.throw_exception_on_error(response)
-                if 'success' in response:
-                    success = response['success']
-                    if isinstance(success, basestring):
-                        success = True if (success == 'true') else False
-                    if not success:
-                        self.throw_exception_on_error(response)
-                        raise ExchangeError(self.id + ' ' + self.json(response))
+        if body[0] == '{':
+            response = json.loads(body)
+            # {success: False, message: "message"}
+            success = self.safe_value(response, 'success')
+            if success is None:
+                raise ExchangeError(self.id + ': malformed response: ' + self.json(response))
+            if isinstance(success, basestring):
+                # bleutrade uses string instead of boolean
+                success = True if (success == 'true') else False
+            if not success:
+                message = self.safe_string(response, 'message')
+                feedback = self.id + ' ' + self.json(response)
+                exceptions = self.exceptions
+                if message in exceptions:
+                    raise exceptions[message](feedback)
+                if message == 'APIKEY_INVALID':
+                    if self.hasAlreadyAuthenticatedSuccessfully:
+                        raise DDoSProtection(feedback)
+                    else:
+                        raise AuthenticationError(feedback)
+                if message == 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT':
+                    raise InvalidOrder(self.id + ' order cost should be over 50k satoshi ' + self.json(response))
+                raise ExchangeError(self.id + ' ' + self.json(response))
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)
-        if 'success' in response:
-            success = response['success']
-            if isinstance(success, basestring):
-                success = True if (success == 'true') else False
-            if success:
-                # a workaround for APIKEY_INVALID
-                if (api == 'account') or (api == 'market'):
-                    self.hasAlreadyAuthenticatedSuccessfully = True
-                return response
-        self.throw_exception_on_error(response)
+        # a workaround for APIKEY_INVALID
+        if (api == 'account') or (api == 'market'):
+            self.hasAlreadyAuthenticatedSuccessfully = True
+        return response
