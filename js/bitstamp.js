@@ -414,8 +414,7 @@ module.exports = class bitstamp extends Exchange {
         let market = undefined;
         if (typeof symbol !== 'undefined')
             market = this.market (symbol);
-        // let response = await this.privatePostOrderStatus (this.extend ({ 'id': id }, params));
-        let response = {"status": "Finished", "id": '1093XXXXXX', "transactions": [{"fee": "0.10", "bch": "0.05651953", "price": "884.65000000", "datetime": "2018-03-08 05:18:57.804907", "tid": 57626437, "type": 2, "eur": "50.0000022145000000"}]}
+        let response = await this.privatePostOrderStatus (this.extend ({ 'id': id }, params));
         return this.parseOrder (response, market);
     }
 
