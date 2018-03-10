@@ -184,6 +184,7 @@ module.exports = class kraken extends Exchange {
                 },
             },
             'options': {
+                'cacheDepositMethodsOnFetchDepositAddress': true, // will issue up to two calls in fetchDepositAddress
                 'depositMethods': {},
                 'noDepositMethod': [ 'DAO', 'NMC', 'XVN', 'GBP', 'KRW' ],
             },
@@ -807,7 +808,16 @@ module.exports = class kraken extends Exchange {
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
         let currency = this.currency (code);
-        let method = this.fetchDepositMethods (code)[0]['method'];
+        // eslint-disable-next-line quotes
+        let method = this.safeString (params, 'method');
+        if (typeof method === 'undefined') {
+            if (this.options['cacheDepositMethodsOnFetchDepositAddress']) {
+                method = this.fetchDepositMethods (code);
+                method = method[0]['method'];
+            } else {
+                throw new ExchangeError (this.id + ' fetchDepositAddress() requires an extra `method` parameter. Use fetchDepositMethods ("' + code + '") to get a list of available deposit methods or enable the exchange property .options["cacheDepositMethodsOnFetchDepositAddress"] = true');
+            }
+        }
         let request = {
             'asset': currency['id'],
             'method': method,
