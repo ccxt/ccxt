@@ -449,21 +449,21 @@ module.exports = class bitmex extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let order = {
+        let request = {
             'symbol': this.marketId (symbol),
             'side': this.capitalize (side),
             'orderQty': amount,
             'ordType': this.capitalize (type),
         };
         if (type === 'limit')
-            order['price'] = price;
-        let response = await this.privatePostOrder (this.extend (order, params));
-        return {
-            'info': response,
-            'id': response['orderID'],
-        };
+            request['price'] = price;
+        let response = await this.privatePostOrder (this.extend (request, params));
+        let order = this.parseOrder (request);
+        let id = order['id'];
+        this.orders[id] = order;
+        return this.extend ({ 'info': response }, order);
     }
-
+    
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privateDeleteOrder ({ 'orderID': id });
