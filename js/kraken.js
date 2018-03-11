@@ -185,9 +185,7 @@ module.exports = class kraken extends Exchange {
             },
             'options': {
                 'cacheDepositMethodsOnFetchDepositAddress': true, // will issue up to two calls in fetchDepositAddress
-                'forceFetchDepositMethods': false, // will issue a HTTP request even for noDepositMethod-currencies
                 'depositMethods': {},
-                'noDepositMethod': [ 'DAO', 'NMC', 'XVN', 'GBP', 'KRW' ],
             },
         });
     }
@@ -777,10 +775,6 @@ module.exports = class kraken extends Exchange {
     }
 
     async fetchDepositMethods (code, params = {}) {
-        if (code in this.options['noDepositMethod']) {
-            if (!this.options['forceFetchDepositMethods'])
-                throw new ExchangeError (this.id + ' ' + code + ' does not have a deposit method. Add exchange property .options["forceFetchDepositMethods"] = true to suppress this warning and force issuing a HTTP request');
-        }
         await this.loadMarkets ();
         let currency = this.currency (code);
         let response = await this.privatePostDepositMethods (this.extend ({
