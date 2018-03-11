@@ -458,7 +458,7 @@ module.exports = class bitmex extends Exchange {
         if (type === 'limit')
             request['price'] = price;
         let response = await this.privatePostOrder (this.extend (request, params));
-        let order = this.parseOrder (request);
+        let order = this.parseOrder (response);
         let id = order['id'];
         this.orders[id] = order;
         return this.extend ({ 'info': response }, order);
