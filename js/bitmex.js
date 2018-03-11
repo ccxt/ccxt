@@ -463,7 +463,7 @@ module.exports = class bitmex extends Exchange {
         this.orders[id] = order;
         return this.extend ({ 'info': response }, order);
     }
- 
+
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {
