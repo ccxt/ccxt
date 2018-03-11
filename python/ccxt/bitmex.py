@@ -421,10 +421,15 @@ class bitmex (Exchange):
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetTrade(self.extend({
+        request = {
             'symbol': market['id'],
-        }, params))
-        return self.parse_trades(response, market, since, limit)
+        }
+        if since is not None:
+            request['startTime'] = self.iso8601(since)
+        if limit is not None:
+            request['count'] = limit
+        response = self.publicGetTrade(self.extend(request, params))
+        return self.parse_trades(response, market)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
