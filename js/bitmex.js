@@ -472,6 +472,8 @@ module.exports = class bitmex extends Exchange {
         if (typeof error !== 'undefined')
             if (error.indexOf ('Unable to cancel order due to existing state') >= 0)
                 throw new OrderNotFound (this.id + ' cancelOrder() failed: ' + error);
+        if (id in this.orders)
+            this.orders[id]['status'] = 'canceled';
         return this.parseOrder (order);
     }
 
