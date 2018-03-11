@@ -493,10 +493,14 @@ module.exports = class livecoin extends Exchange {
         // Sometimes the response with be { key: null } for all keys.
         // An example is if you attempt to withdraw more than is allowed when withdrawal fees are considered.
         await this.loadMarkets ();
+        this.checkAddress (address);
+        let wallet = address;
+        if (typeof tag !== 'undefined')
+            wallet += '::' + tag;
         let withdrawal = {
             'amount': amount,
             'currency': this.commonCurrencyCode (currency),
-            'wallet': this.checkAddress (address),
+            'wallet': wallet,
         };
         let response = await this.privatePostPaymentOutCoin (this.extend (withdrawal, params));
         return {
