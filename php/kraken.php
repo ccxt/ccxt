@@ -184,9 +184,7 @@ class kraken extends Exchange {
             ),
             'options' => array (
                 'cacheDepositMethodsOnFetchDepositAddress' => true, // will issue up to two calls in fetchDepositAddress
-                'forceFetchDepositMethods' => false, // will issue a HTTP request even for noDepositMethod-currencies
                 'depositMethods' => array (),
-                'noDepositMethod' => array ( 'DAO', 'NMC', 'XVN', 'GBP', 'KRW' ),
             ),
         ));
     }
@@ -776,10 +774,6 @@ class kraken extends Exchange {
     }
 
     public function fetch_deposit_methods ($code, $params = array ()) {
-        if (is_array ($this->options['noDepositMethod']) && array_key_exists ($code, $this->options['noDepositMethod'])) {
-            if (!$this->options['forceFetchDepositMethods'])
-                throw new ExchangeError ($this->id . ' ' . $code . ' does not have a deposit method. Add exchange property .options["forceFetchDepositMethods"] = true to suppress this warning and force issuing a HTTP request');
-        }
         $this->load_markets();
         $currency = $this->currency ($code);
         $response = $this->privatePostDepositMethods (array_merge (array (
