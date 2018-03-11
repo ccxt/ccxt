@@ -20,6 +20,7 @@ module.exports = class bitmex extends Exchange {
                 'CORS': false,
                 'fetchOHLCV': true,
                 'withdraw': true,
+                'editOrder': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
@@ -486,7 +487,7 @@ module.exports = class bitmex extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateDeleteOrder ({ 'orderID': id });
+        let response = await this.privateDeleteOrder (this.extend ({ 'orderID': id }, params));
         let order = response[0];
         let error = this.safeString (order, 'error');
         if (typeof error !== 'undefined')
