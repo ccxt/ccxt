@@ -342,7 +342,9 @@ class kucoin (Exchange):
         if orderId is None:
             orderId = self.safe_string(order, 'oid')
         # do not confuse trades with orders
-        trades = self.safe_value(order['dealOrders'], 'datas')
+        trades = None
+        if 'dealOrders' in order:
+            trades = self.safe_value(order['dealOrders'], 'datas')
         if trades is not None:
             trades = self.parse_trades(trades, market)
             for i in range(0, len(trades)):

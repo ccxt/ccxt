@@ -342,7 +342,9 @@ class kucoin extends Exchange {
         if ($orderId === null)
             $orderId = $this->safe_string($order, 'oid');
         // do not confuse $trades with orders
-        $trades = $this->safe_value($order['dealOrders'], 'datas');
+        $trades = null;
+        if (is_array ($order) && array_key_exists ('dealOrders', $order))
+            $trades = $this->safe_value($order['dealOrders'], 'datas');
         if ($trades !== null) {
             $trades = $this->parse_trades($trades, $market);
             for ($i = 0; $i < count ($trades); $i++) {

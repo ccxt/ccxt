@@ -470,10 +470,14 @@ class livecoin (Exchange):
         # Sometimes the response with be {key: null} for all keys.
         # An example is if you attempt to withdraw more than is allowed when withdrawal fees are considered.
         self.load_markets()
+        self.check_address(address)
+        wallet = address
+        if tag is not None:
+            wallet += '::' + tag
         withdrawal = {
             'amount': amount,
             'currency': self.common_currency_code(currency),
-            'wallet': self.check_address(address),
+            'wallet': wallet,
         }
         response = self.privatePostPaymentOutCoin(self.extend(withdrawal, params))
         return {

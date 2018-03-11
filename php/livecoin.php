@@ -492,10 +492,14 @@ class livecoin extends Exchange {
         // Sometimes the $response with be array ( key => null ) for all keys.
         // An example is if you attempt to withdraw more than is allowed when $withdrawal fees are considered.
         $this->load_markets();
+        $this->check_address($address);
+        $wallet = $address;
+        if ($tag !== null)
+            $wallet .= '::' . $tag;
         $withdrawal = array (
             'amount' => $amount,
             'currency' => $this->common_currency_code($currency),
-            'wallet' => $this->check_address($address),
+            'wallet' => $wallet,
         );
         $response = $this->privatePostPaymentOutCoin (array_merge ($withdrawal, $params));
         return array (
