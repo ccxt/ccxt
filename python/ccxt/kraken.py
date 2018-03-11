@@ -204,9 +204,7 @@ class kraken (Exchange):
             },
             'options': {
                 'cacheDepositMethodsOnFetchDepositAddress': True,  # will issue up to two calls in fetchDepositAddress
-                'forceFetchDepositMethods': False,  # will issue a HTTP request even for noDepositMethod-currencies
                 'depositMethods': {},
-                'noDepositMethod': ['DAO', 'NMC', 'XVN', 'GBP', 'KRW'],
             },
         })
 
@@ -745,9 +743,6 @@ class kraken (Exchange):
         return self.filter_by_symbol(orders, symbol)
 
     def fetch_deposit_methods(self, code, params={}):
-        if code in self.options['noDepositMethod']:
-            if not self.options['forceFetchDepositMethods']:
-                raise ExchangeError(self.id + ' ' + code + ' does not have a deposit method. Add exchange property .options["forceFetchDepositMethods"] = True to suppress self warning and force issuing a HTTP request')
         self.load_markets()
         currency = self.currency(code)
         response = self.privatePostDepositMethods(self.extend({
