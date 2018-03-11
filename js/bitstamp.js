@@ -559,7 +559,7 @@ module.exports = class bitstamp extends Exchange {
         method += v1 ? 'Deposit' : '';
         method += 'Address';
         let response = await this[method] (params);
-        let address = this.safeString (response, 'address');
+        let address = (v1) ? response : this.safeString (response, 'address');
         this.checkAddress (address);
         return {
             'currency': code,
