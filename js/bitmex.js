@@ -441,10 +441,15 @@ module.exports = class bitmex extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetTrade (this.extend ({
+        let request = this.extend ({
             'symbol': market['id'],
-        }, params));
-        return this.parseTrades (response, market, since, limit);
+        }, params);
+        if (typeof since !== 'undefined')
+            request['startTime'] = this.iso8601 (since);
+        if (typeof limit !== 'undefined')
+            request['count'] = limit;
+        let response = await this.publicGetTrade (request);
+        return this.parseTrades (response, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
