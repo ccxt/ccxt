@@ -185,6 +185,7 @@ module.exports = class kraken extends Exchange {
             },
             'options': {
                 'cacheDepositMethodsOnFetchDepositAddress': true, // will issue up to two calls in fetchDepositAddress
+                'forceFetchDepositMethods': false, // will issue a HTTP request even for noDepositMethod-currencies
                 'depositMethods': {},
                 'noDepositMethod': [ 'DAO', 'NMC', 'XVN', 'GBP', 'KRW' ],
             },
@@ -776,18 +777,16 @@ module.exports = class kraken extends Exchange {
     }
 
     async fetchDepositMethods (code, params = {}) {
+        if (code in this.options['noDepositMethod']) {
+            if (!this.options['forceFetchDepositMethods'])
+                throw new ExchangeError (this.id + ' ' + code + ' does not have a deposit method. Add exchange property .options["forceFetchDepositMethods"] = true to suppress this warning and force issuing a HTTP request');
+        }
         await this.loadMarkets ();
-        if (code in this.options['noDepositMethod'])
-            throw new ExchangeError (this.id + ' ' + code + ' does not have a deposit method');
         let currency = this.currency (code);
-        if (code in this.options['depositMethods'])
-            return this.options['depositMethods'][code]; // cache depositMethods
         let response = await this.privatePostDepositMethods (this.extend ({
             'asset': currency['id'],
         }, params));
-        let result = response['result'];
-        this.options['depositMethods'][code] = result;
-        return result;
+        return response['result'];
     }
 
     async createDepositAddress (code, params = {}) {
@@ -812,8 +811,10 @@ module.exports = class kraken extends Exchange {
         let method = this.safeString (params, 'method');
         if (typeof method === 'undefined') {
             if (this.options['cacheDepositMethodsOnFetchDepositAddress']) {
-                method = this.fetchDepositMethods (code);
-                method = method[0]['method'];
+                // cache depositMethods
+                if (!(code in this.options['depositMethods']))
+                    this.options['depositMethods'][code] = this.fetchDepositMethods (code);
+                method = this.options['depositMethods'][code][0]['method'];
             } else {
                 throw new ExchangeError (this.id + ' fetchDepositAddress() requires an extra `method` parameter. Use fetchDepositMethods ("' + code + '") to get a list of available deposit methods or enable the exchange property .options["cacheDepositMethodsOnFetchDepositAddress"] = true');
             }
@@ -891,15 +892,18 @@ module.exports = class kraken extends Exchange {
             if ('error' in response) {
                 let numErrors = response['error'].length;
                 if (numErrors) {
+                    let message = this.id + ' ' + this.json (response);
                     for (let i = 0; i < response['error'].length; i++) {
+                        if (response['error'][i] === 'EFunding:Unknown withdraw key')
+                            throw new ExchangeError (message);
                         if (response['error'][i] === 'EService:Unavailable')
-                            throw new ExchangeNotAvailable (this.id + ' ' + this.json (response));
+                            throw new ExchangeNotAvailable (message);
                         if (response['error'][i] === 'EDatabase:Internal error')
-                            throw new ExchangeNotAvailable (this.id + ' ' + this.json (response));
+                            throw new ExchangeNotAvailable (message);
                         if (response['error'][i] === 'EService:Busy')
-                            throw new DDoSProtection (this.id + ' ' + this.json (response));
+                            throw new DDoSProtection (message);
                     }
-                    throw new ExchangeError (this.id + ' ' + this.json (response));
+                    throw new ExchangeError (message);
                 }
             }
         return response;
