@@ -136,6 +136,18 @@ module.exports = class bittrex extends Exchange {
                     },
                 },
             },
+            'exceptions': {
+                'APISIGN_NOT_PROVIDED': AuthenticationError,
+                'INVALID_SIGNATURE': AuthenticationError,
+                'INVALID_CURRENCY': ExchangeError,
+                'INVALID_PERMISSION': AuthenticationError,
+                'INSUFFICIENT_FUNDS': InsufficientFunds,
+                'QUANTITY_NOT_PROVIDED': InvalidOrder,
+                'MIN_TRADE_REQUIREMENT_NOT_MET': InvalidOrder,
+                'ORDER_NOT_OPEN': InvalidOrder,
+                'UUID_INVALID': OrderNotFound,
+                'RATE_NOT_PROVIDED': InvalidOrder, // createLimitBuyOrder ('ETH/BTC', 1, 0)
+            },
         });
     }
 
@@ -172,7 +184,6 @@ module.exports = class bittrex extends Exchange {
                 'quoteId': quoteId,
                 'active': active,
                 'info': market,
-                'lot': Math.pow (10, -precision['amount']),
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -180,7 +191,7 @@ module.exports = class bittrex extends Exchange {
                         'max': undefined,
                     },
                     'price': {
-                        'min': undefined,
+                        'min': Math.pow (10, -precision['price']),
                         'max': undefined,
                     },
                 },
@@ -675,71 +686,41 @@ module.exports = class bittrex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    throwExceptionOnError (response) {
-        if ('message' in response) {
-            let message = this.safeString (response, 'message');
-            let error = this.id + ' ' + this.json (response);
-            if (message === 'APISIGN_NOT_PROVIDED')
-                throw new AuthenticationError (error);
-            if (message === 'INVALID_SIGNATURE')
-                throw new AuthenticationError (error);
-            if (message === 'INVALID_CURRENCY')
-                throw new ExchangeError (error);
-            if (message === 'INVALID_PERMISSION')
-                throw new AuthenticationError (error);
-            if (message === 'INSUFFICIENT_FUNDS')
-                throw new InsufficientFunds (error);
-            if (message === 'QUANTITY_NOT_PROVIDED')
-                throw new InvalidOrder (error);
-            if (message === 'MIN_TRADE_REQUIREMENT_NOT_MET')
-                throw new InvalidOrder (error);
-            if (message === 'APIKEY_INVALID') {
-                if (this.hasAlreadyAuthenticatedSuccessfully) {
-                    throw new DDoSProtection (error);
-                } else {
-                    throw new AuthenticationError (error);
-                }
-            }
-            if (message === 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT')
-                throw new InvalidOrder (this.id + ' order cost should be over 50k satoshi ' + this.json (response));
-            if (message === 'ORDER_NOT_OPEN')
-                throw new InvalidOrder (error);
-            if (message === 'UUID_INVALID')
-                throw new OrderNotFound (error);
-        }
-    }
-
     handleErrors (code, reason, url, method, headers, body) {
-        if (code >= 400) {
-            if (body[0] === '{') {
-                let response = JSON.parse (body);
-                this.throwExceptionOnError (response);
-                if ('success' in response) {
-                    let success = response['success'];
-                    if (typeof success === 'string')
-                        success = (success === 'true') ? true : false;
-                    if (!success) {
-                        this.throwExceptionOnError (response);
-                        throw new ExchangeError (this.id + ' ' + this.json (response));
+        if (body[0] === '{') {
+            let response = JSON.parse (body);
+            // { success: false, message: "message" }
+            let success = this.safeValue (response, 'success');
+            if (typeof success === 'undefined')
+                throw new ExchangeError (this.id + ': malformed response: ' + this.json (response));
+            if (typeof success === 'string')
+                // bleutrade uses string instead of boolean
+                success = (success === 'true') ? true : false;
+            if (!success) {
+                const message = this.safeString (response, 'message');
+                const feedback = this.id + ' ' + this.json (response);
+                const exceptions = this.exceptions;
+                if (message in exceptions)
+                    throw new exceptions[message] (feedback);
+                if (message === 'APIKEY_INVALID') {
+                    if (this.hasAlreadyAuthenticatedSuccessfully) {
+                        throw new DDoSProtection (feedback);
+                    } else {
+                        throw new AuthenticationError (feedback);
                     }
                 }
+                if (message === 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT')
+                    throw new InvalidOrder (this.id + ' order cost should be over 50k satoshi ' + this.json (response));
+                throw new ExchangeError (this.id + ' ' + this.json (response));
             }
         }
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('success' in response) {
-            let success = response['success'];
-            if (typeof success === 'string')
-                success = (success === 'true') ? true : false;
-            if (success) {
-                // a workaround for APIKEY_INVALID
-                if ((api === 'account') || (api === 'market'))
-                    this.hasAlreadyAuthenticatedSuccessfully = true;
-                return response;
-            }
-        }
-        this.throwExceptionOnError (response);
+        // a workaround for APIKEY_INVALID
+        if ((api === 'account') || (api === 'market'))
+            this.hasAlreadyAuthenticatedSuccessfully = true;
+        return response;
     }
 };

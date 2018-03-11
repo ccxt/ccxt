@@ -135,6 +135,18 @@ class bittrex extends Exchange {
                     ),
                 ),
             ),
+            'exceptions' => array (
+                'APISIGN_NOT_PROVIDED' => '\\ccxt\\AuthenticationError',
+                'INVALID_SIGNATURE' => '\\ccxt\\AuthenticationError',
+                'INVALID_CURRENCY' => '\\ccxt\\ExchangeError',
+                'INVALID_PERMISSION' => '\\ccxt\\AuthenticationError',
+                'INSUFFICIENT_FUNDS' => '\\ccxt\\InsufficientFunds',
+                'QUANTITY_NOT_PROVIDED' => '\\ccxt\\InvalidOrder',
+                'MIN_TRADE_REQUIREMENT_NOT_MET' => '\\ccxt\\InvalidOrder',
+                'ORDER_NOT_OPEN' => '\\ccxt\\InvalidOrder',
+                'UUID_INVALID' => '\\ccxt\\OrderNotFound',
+                'RATE_NOT_PROVIDED' => '\\ccxt\\InvalidOrder', // createLimitBuyOrder ('ETH/BTC', 1, 0)
+            ),
         ));
     }
 
@@ -171,7 +183,6 @@ class bittrex extends Exchange {
                 'quoteId' => $quoteId,
                 'active' => $active,
                 'info' => $market,
-                'lot' => pow (10, -$precision['amount']),
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
@@ -179,7 +190,7 @@ class bittrex extends Exchange {
                         'max' => null,
                     ),
                     'price' => array (
-                        'min' => null,
+                        'min' => pow (10, -$precision['price']),
                         'max' => null,
                     ),
                 ),
@@ -674,71 +685,41 @@ class bittrex extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function throw_exception_on_error ($response) {
-        if (is_array ($response) && array_key_exists ('message', $response)) {
-            $message = $this->safe_string($response, 'message');
-            $error = $this->id . ' ' . $this->json ($response);
-            if ($message === 'APISIGN_NOT_PROVIDED')
-                throw new AuthenticationError ($error);
-            if ($message === 'INVALID_SIGNATURE')
-                throw new AuthenticationError ($error);
-            if ($message === 'INVALID_CURRENCY')
-                throw new ExchangeError ($error);
-            if ($message === 'INVALID_PERMISSION')
-                throw new AuthenticationError ($error);
-            if ($message === 'INSUFFICIENT_FUNDS')
-                throw new InsufficientFunds ($error);
-            if ($message === 'QUANTITY_NOT_PROVIDED')
-                throw new InvalidOrder ($error);
-            if ($message === 'MIN_TRADE_REQUIREMENT_NOT_MET')
-                throw new InvalidOrder ($error);
-            if ($message === 'APIKEY_INVALID') {
-                if ($this->hasAlreadyAuthenticatedSuccessfully) {
-                    throw new DDoSProtection ($error);
-                } else {
-                    throw new AuthenticationError ($error);
-                }
-            }
-            if ($message === 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT')
-                throw new InvalidOrder ($this->id . ' order cost should be over 50k satoshi ' . $this->json ($response));
-            if ($message === 'ORDER_NOT_OPEN')
-                throw new InvalidOrder ($error);
-            if ($message === 'UUID_INVALID')
-                throw new OrderNotFound ($error);
-        }
-    }
-
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
-        if ($code >= 400) {
-            if ($body[0] === '{') {
-                $response = json_decode ($body, $as_associative_array = true);
-                $this->throw_exception_on_error($response);
-                if (is_array ($response) && array_key_exists ('success', $response)) {
-                    $success = $response['success'];
-                    if (gettype ($success) == 'string')
-                        $success = ($success === 'true') ? true : false;
-                    if (!$success) {
-                        $this->throw_exception_on_error($response);
-                        throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+        if ($body[0] === '{') {
+            $response = json_decode ($body, $as_associative_array = true);
+            // array ( $success => false, $message => "$message" )
+            $success = $this->safe_value($response, 'success');
+            if ($success === null)
+                throw new ExchangeError ($this->id . ' => malformed $response => ' . $this->json ($response));
+            if (gettype ($success) == 'string')
+                // bleutrade uses string instead of boolean
+                $success = ($success === 'true') ? true : false;
+            if (!$success) {
+                $message = $this->safe_string($response, 'message');
+                $feedback = $this->id . ' ' . $this->json ($response);
+                $exceptions = $this->exceptions;
+                if (is_array ($exceptions) && array_key_exists ($message, $exceptions))
+                    throw new $exceptions[$message] ($feedback);
+                if ($message === 'APIKEY_INVALID') {
+                    if ($this->hasAlreadyAuthenticatedSuccessfully) {
+                        throw new DDoSProtection ($feedback);
+                    } else {
+                        throw new AuthenticationError ($feedback);
                     }
                 }
+                if ($message === 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT')
+                    throw new InvalidOrder ($this->id . ' order cost should be over 50k satoshi ' . $this->json ($response));
+                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
             }
         }
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (is_array ($response) && array_key_exists ('success', $response)) {
-            $success = $response['success'];
-            if (gettype ($success) == 'string')
-                $success = ($success === 'true') ? true : false;
-            if ($success) {
-                // a workaround for APIKEY_INVALID
-                if (($api === 'account') || ($api === 'market'))
-                    $this->hasAlreadyAuthenticatedSuccessfully = true;
-                return $response;
-            }
-        }
-        $this->throw_exception_on_error($response);
+        // a workaround for APIKEY_INVALID
+        if (($api === 'account') || ($api === 'market'))
+            $this->hasAlreadyAuthenticatedSuccessfully = true;
+        return $response;
     }
 }
