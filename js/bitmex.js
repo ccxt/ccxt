@@ -474,26 +474,9 @@ module.exports = class bitmex extends Exchange {
         if (typeof price !== 'undefined')
             request['price'] = price;
         let response = await this.privatePutOrder (this.extend (request, params));
-        let result = undefined;
-        if (id in this.orders) {
-            this.orders[id]['status'] = 'canceled';
-            let newid = response['orderID'];
-            this.orders[newid] = this.extend (this.orders[id], {
-                'id': newid,
-                'price': price,
-                'status': 'open',
-            });
-            if (typeof amount !== 'undefined')
-                this.orders[newid]['amount'] = amount;
-            result = this.extend (this.orders[newid], { 'info': response });
-        } else {
-            let market = undefined;
-            if (symbol)
-                market = this.market (symbol);
-            result = this.parseOrder (response, market);
-            this.orders[result['id']] = result;
-        }
-        return result;
+        let order = this.parseOrder (response);
+        this.orders[order['id']] = order;
+        return this.extend ({ 'info': response }, order);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -504,9 +487,9 @@ module.exports = class bitmex extends Exchange {
         if (typeof error !== 'undefined')
             if (error.indexOf ('Unable to cancel order due to existing state') >= 0)
                 throw new OrderNotFound (this.id + ' cancelOrder() failed: ' + error);
-        if (id in this.orders)
-            this.orders[id]['status'] = 'canceled';
-        return this.parseOrder (order);
+        order = this.parseOrder (order);
+        this.orders[order['id']] = order;
+        return this.extend ({ 'info': response }, order);
     }
 
     isFiat (currency) {
