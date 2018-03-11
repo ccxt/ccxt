@@ -440,10 +440,15 @@ class bitmex extends Exchange {
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetTrade (array_merge (array (
+        $request = array (
             'symbol' => $market['id'],
-        ), $params));
-        return $this->parse_trades($response, $market, $since, $limit);
+        );
+        if ($since !== null)
+            $request['startTime'] = $this->iso8601 ($since);
+        if ($limit !== null)
+            $request['count'] = $limit;
+        $response = $this->publicGetTrade (array_merge ($request, $params));
+        return $this->parse_trades($response, $market);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
