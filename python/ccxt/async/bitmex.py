@@ -393,7 +393,7 @@ class bitmex (Exchange):
         if datetime_value is not None:
             timestamp = self.parse8601(datetime_value)
             iso8601 = self.iso8601(timestamp)
-        price = float(order['price'])
+        price = self.safe_float(order, 'price')
         amount = float(order['orderQty'])
         filled = self.safe_float(order, 'cumQty', 0.0)
         remaining = max(amount - filled, 0.0)

@@ -411,7 +411,7 @@ class bitmex extends Exchange {
             $timestamp = $this->parse8601 ($datetime_value);
             $iso8601 = $this->iso8601 ($timestamp);
         }
-        $price = floatval ($order['price']);
+        $price = $this->safe_float($order, 'price');
         $amount = floatval ($order['orderQty']);
         $filled = $this->safe_float($order, 'cumQty', 0.0);
         $remaining = max ($amount - $filled, 0.0);
