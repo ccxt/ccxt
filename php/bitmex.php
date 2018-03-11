@@ -19,6 +19,7 @@ class bitmex extends Exchange {
                 'CORS' => false,
                 'fetchOHLCV' => true,
                 'withdraw' => true,
+                'editOrder' => true,
                 'fetchOrder' => true,
                 'fetchOrders' => true,
                 'fetchOpenOrders' => true,
@@ -453,30 +454,47 @@ class bitmex extends Exchange {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        $order = array (
+        $request = array (
             'symbol' => $this->market_id($symbol),
             'side' => $this->capitalize ($side),
             'orderQty' => $amount,
             'ordType' => $this->capitalize ($type),
         );
         if ($type === 'limit')
-            $order['price'] = $price;
-        $response = $this->privatePostOrder (array_merge ($order, $params));
-        return array (
-            'info' => $response,
-            'id' => $response['orderID'],
+            $request['price'] = $price;
+        $response = $this->privatePostOrder (array_merge ($request, $params));
+        $order = $this->parse_order($response);
+        $id = $order['id'];
+        $this->orders[$id] = $order;
+        return array_merge (array ( 'info' => $response ), $order);
+    }
+
+    public function edit_order ($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+        $this->load_markets();
+        $request = array (
+            'orderID' => $id,
         );
+        if ($amount !== null)
+            $request['orderQty'] = $amount;
+        if ($price !== null)
+            $request['price'] = $price;
+        $response = $this->privatePutOrder (array_merge ($request, $params));
+        $order = $this->parse_order($response);
+        $this->orders[$order['id']] = $order;
+        return array_merge (array ( 'info' => $response ), $order);
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->privateDeleteOrder (array ( 'orderID' => $id ));
+        $response = $this->privateDeleteOrder (array_merge (array ( 'orderID' => $id ), $params));
         $order = $response[0];
         $error = $this->safe_string($order, 'error');
         if ($error !== null)
             if (mb_strpos ($error, 'Unable to cancel $order due to existing state') !== false)
                 throw new OrderNotFound ($this->id . ' cancelOrder() failed => ' . $error);
-        return $this->parse_order($order);
+        $order = $this->parse_order($order);
+        $this->orders[$order['id']] = $order;
+        return array_merge (array ( 'info' => $response ), $order);
     }
 
     public function is_fiat ($currency) {
