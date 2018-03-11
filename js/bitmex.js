@@ -412,7 +412,7 @@ module.exports = class bitmex extends Exchange {
             timestamp = this.parse8601 (datetime_value);
             iso8601 = this.iso8601 (timestamp);
         }
-        let price = parseFloat (order['price']);
+        let price = this.safeFloat (order, 'price');
         let amount = parseFloat (order['orderQty']);
         let filled = this.safeFloat (order, 'cumQty', 0.0);
         let remaining = Math.max (amount - filled, 0.0);
