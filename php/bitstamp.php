@@ -558,13 +558,14 @@ class bitstamp extends Exchange {
         $method .= $v1 ? 'Deposit' : '';
         $method .= 'Address';
         $response = $this->$method ($params);
-        $address = $this->safe_string($response, 'address');
+        $address = $v1 ? $response : $this->safe_string($response, 'address');
+        $tag = $v1 ? null : $this->safe_string($response, 'destination_tag');
         $this->check_address($address);
         return array (
             'currency' => $code,
             'status' => 'ok',
             'address' => $address,
-            'tag' => $this->safe_string($response, 'destination_tag'),
+            'tag' => $tag,
             'info' => $response,
         );
     }
