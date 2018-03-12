@@ -541,7 +541,9 @@ class bibox (Exchange):
                     # The number of orders can not be less than
                     raise InvalidOrder(message)
                 elif code == '3012':
-                    raise AuthenticationError(message)  # invalid api key
+                    raise AuthenticationError(message)  # invalid apiKey
+                elif code == '3024':
+                    raise AuthenticationError(message)  # insufficient apiKey permissions
                 elif code == '3025':
                     raise AuthenticationError(message)  # signature failed
                 elif code == '4000':

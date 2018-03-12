@@ -327,7 +327,7 @@ class cryptopia extends Exchange {
         if ($since !== null) {
             $elapsed = $this->milliseconds () - $since;
             $hour = 1000 * 60 * 60;
-            $hours = intval ($elapsed / $hour);
+            $hours = intval ((int) ceil ($elapsed / $hour));
         }
         $request = array (
             'id' => $market['id'],
