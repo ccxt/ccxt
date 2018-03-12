@@ -339,6 +339,18 @@ module.exports = class gatecoin extends Exchange {
         let timestamp = parseInt (trade['transactionTime']) * 1000;
         if (!market)
             market = this.markets_by_id[trade['currencyPair']];
+        let fee = undefined;
+        let feeCost = this.safeFloat (trade, 'feeAmount');
+        let price = trade['price'];
+        let amount = trade['amount'];
+        let cost = this.sum (price * amount); // cost does not include fees!
+        if (typeof feeCost !== 'undefined') {
+            fee = {
+                'cost': feeCost,
+                'currency': market['quote'],
+                'rate': trade['feeRate'],
+            };
+        }
         return {
             'info': trade,
             'id': trade['transactionId'].toString (),
@@ -350,12 +362,8 @@ module.exports = class gatecoin extends Exchange {
             'side': side,
             'price': trade['price'],
             'amount': trade['quantity'],
-            'cost': trade['price'] * trade['quantity'],
-            'fee': {
-                'cost': (trade['feeAmount'] ? trade['feeAmount'] : undefined),
-                'currency': market['quote'],
-                'rate': trade['feeRate'],
-            },
+            'cost': cost,
+            'fee': fee,
         };
     }
 
@@ -460,11 +468,11 @@ module.exports = class gatecoin extends Exchange {
                         let trade = this.parseTrade (transactions[i]);
                         filled += trade['amount'];
                         price += trade['amount'] * trade['price'];
-                        if (typeof feeCost === 'undefined')
-                            feeCost = 0.0;
-                        feeCost += trade['fee']['cost'];
-                        feeCurrency = trade['fee']['currency'];
-                        feeRate += trade['fee']['rate'];
+                        if ('fee' in trade) {
+                            feeCost += trade['fee']['cost'];
+                            feeCurrency = trade['fee']['currency'];
+                            feeRate += trade['fee']['rate'];
+                        }
                         trades.push (trade);
                     }
                     cost = price;
