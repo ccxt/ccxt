@@ -491,14 +491,15 @@ module.exports = class bibox extends Exchange {
         await this.loadMarkets ();
         let currency = this.currency (code);
         let response = await this.privatePostTransfer ({
-            'cmd': 'transfer/transferOutInfo',
+            'cmd': 'transfer/transferIn',
             'body': this.extend ({
                 'coin_symbol': currency['id'],
             }, params),
         });
+        let address = this.safeString (response, 'result');
         let result = {
             'info': response,
-            'address': undefined,  // POINTLESS?
+            'address': address,
         };
         return result;
     }
