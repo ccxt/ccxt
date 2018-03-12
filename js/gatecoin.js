@@ -2,8 +2,8 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError } = require ('./base/errors');
+const Exchange = require ('ccxt/js/base/Exchange');
+const { ExchangeError, AuthenticationError } = require ('ccxt/js/base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -341,6 +341,12 @@ module.exports = class gatecoin extends Exchange {
             'side': side,
             'price': trade['price'],
             'amount': trade['quantity'],
+            'cost': trade['price'] * trade['quantity'] + trade['feeAmount'],
+            'fee': {
+                'cost': trade['feeAmount'],
+                'currency': market['quote'],
+                'rate': trade['feeRate'],
+            },
         };
     }
 
@@ -423,7 +429,46 @@ module.exports = class gatecoin extends Exchange {
         let price = order['price'];
         let cost = price * filled;
         let id = order['clOrderId'];
-        let status = 'open'; // they report open orders only? TODO use .orders cache for emulation
+        let status = 'open';
+        let trades = undefined;
+        const fees = {
+          cost: undefined,
+          currency: undefined,
+          rate: undefined
+        };
+  
+        if (order['status'] === 6) {
+            status = 'closed';
+
+            filled = 0.0;
+            price = 0.0;
+            trades = [];
+            let transactions = this.safeValue (order, 'trades');
+            let feeCost = 0.0;
+            let feeCurrency = undefined;
+            let feeRate = 0.0;
+            if (typeof transactions !== 'undefined') {
+                if (Array.isArray (transactions)) {
+                    for (let i = 0; i < transactions.length; i++) {
+                        let trade = this.parseTrade (transactions[i]);
+                        filled += trade['amount'];
+                        price += trade['amount'] * trade['price'];
+                        if (typeof feeCost === 'undefined')
+                            feeCost = 0.0;
+                        feeCost += trade['fee']['cost'];
+                        feeCurrency = trade['fee']['currency'];
+                        feeRate += trade['fee']['rate'];
+                        trades.push (trade);
+                    }
+                    cost = price + feeCost;
+                    price = price / filled;
+                    fees['cost'] = feeCost;
+                    fees['currency'] = feeCurrency;
+                    fees['rate'] = feeRate / transactions.length;
+                }
+            }
+        }
+  
         let result = {
             'id': id,
             'datetime': this.iso8601 (timestamp),
@@ -437,8 +482,8 @@ module.exports = class gatecoin extends Exchange {
             'filled': filled,
             'remaining': remaining,
             'cost': cost,
-            'trades': undefined,
-            'fee': undefined,
+            'trades': trades,
+            'fee': fees,
             'info': order,
         };
         return result;
