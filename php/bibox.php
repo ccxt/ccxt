@@ -490,14 +490,15 @@ class bibox extends Exchange {
         $this->load_markets();
         $currency = $this->currency ($code);
         $response = $this->privatePostTransfer (array (
-            'cmd' => 'transfer/transferOutInfo',
+            'cmd' => 'transfer/transferIn',
             'body' => array_merge (array (
                 'coin_symbol' => $currency['id'],
             ), $params),
         ));
+        $address = $this->safe_string($response, 'result');
         $result = array (
             'info' => $response,
-            'address' => null,  // POINTLESS?
+            'address' => $address,
         );
         return $result;
     }

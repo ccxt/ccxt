@@ -468,14 +468,15 @@ class bibox (Exchange):
         self.load_markets()
         currency = self.currency(code)
         response = self.privatePostTransfer({
-            'cmd': 'transfer/transferOutInfo',
+            'cmd': 'transfer/transferIn',
             'body': self.extend({
                 'coin_symbol': currency['id'],
             }, params),
         })
+        address = self.safe_string(response, 'result')
         result = {
             'info': response,
-            'address': None,  # POINTLESS?
+            'address': address,
         }
         return result
 
