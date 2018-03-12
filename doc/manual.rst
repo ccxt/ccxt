@@ -1202,9 +1202,9 @@ A price ticker contains statistics for a particular market/symbol for some perio
         'high':          float, // highest price
         'low':           float, // lowest price
         'bid':           float, // current best bid (buy) price
-        'bidVolume':     float, // current best bid (buy) amount
+        'bidVolume':     float, // current best bid (buy) amount (may be missing or undefined)
         'ask':           float, // current best ask (sell) price
-        'askVolume':     float, // current best ask (sell) amount
+        'askVolume':     float, // current best ask (sell) amount (may be missing or undefined)
         'vwap':          float, // volume weighed average price
         'open':          float, // opening price
         'close':         float, // price of last trade (closing price for current period)
