@@ -350,7 +350,7 @@ module.exports = class gatecoin extends Exchange {
             'side': side,
             'price': trade['price'],
             'amount': trade['quantity'],
-            'cost': trade['price'] * trade['quantity'] + (trade['feeAmount'] ? trade['feeAmount'] : 0),
+            'cost': trade['price'] * trade['quantity'],
             'fee': {
                 'cost': (trade['feeAmount'] ? trade['feeAmount'] : undefined),
                 'currency': market['quote'],
@@ -467,7 +467,7 @@ module.exports = class gatecoin extends Exchange {
                         feeRate += trade['fee']['rate'];
                         trades.push (trade);
                     }
-                    cost = price + feeCost;
+                    cost = price;
                     price = price / filled;
                     fees['cost'] = feeCost;
                     fees['currency'] = feeCurrency;
