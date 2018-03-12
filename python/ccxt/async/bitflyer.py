@@ -22,6 +22,8 @@ class bitflyer (Exchange):
                 'withdraw': True,
                 'fetchOrders': True,
                 'fetchOrder': True,
+                'fetchOpenOrders': 'emulated',
+                'fetchClosedOrders': 'emulated',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg',
@@ -295,6 +297,10 @@ class bitflyer (Exchange):
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=100, params={}):
         params['child_order_state'] = 'ACTIVE'
+        return self.fetch_orders(symbol, since, limit, params)
+
+    async def fetch_closed_orders(self, symbol=None, since=None, limit=100, params={}):
+        params['child_order_state'] = 'COMPLETED'
         return self.fetch_orders(symbol, since, limit, params)
 
     async def fetch_order(self, id, symbol=None, params={}):
