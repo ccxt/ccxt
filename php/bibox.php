@@ -570,7 +570,7 @@ class bibox extends Exchange {
                 else if ($code === '3012')
                     throw new AuthenticationError ($message); // invalid apiKey
                 else if ($code === '3024')
-                    throw new AuthenticationError ($message); // insufficient apiKey permissions
+                    throw new PermissionDenied ($message); // insufficient apiKey permissions
                 else if ($code === '3025')
                     throw new AuthenticationError ($message); // signature failed
                 else if ($code === '4000')

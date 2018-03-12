@@ -8,6 +8,7 @@ import hashlib
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
@@ -544,7 +545,7 @@ class bibox (Exchange):
                 elif code == '3012':
                     raise AuthenticationError(message)  # invalid apiKey
                 elif code == '3024':
-                    raise AuthenticationError(message)  # insufficient apiKey permissions
+                    raise PermissionDenied(message)  # insufficient apiKey permissions
                 elif code == '3025':
                     raise AuthenticationError(message)  # signature failed
                 elif code == '4000':
