@@ -2,8 +2,8 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('ccxt/js/base/Exchange');
-const { ExchangeError, AuthenticationError } = require ('ccxt/js/base/errors');
+const Exchange = require ('./base/Exchange');
+const { ExchangeError, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -19,6 +19,7 @@ module.exports = class gatecoin extends Exchange {
                 'CORS': false,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
+                'fetchOrder': true,
                 'fetchTickers': true,
             },
             'timeframes': {
@@ -264,6 +265,14 @@ module.exports = class gatecoin extends Exchange {
         return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'volume');
     }
 
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.exchange.privateGetTradeOrdersOrderID (this.exchange.extend ({
+            'OrderID': id,
+        }, params));
+        return this.exchange.parseOrder (response.order);
+    }
+
     parseTicker (ticker, market = undefined) {
         let timestamp = parseInt (ticker['createDateTime']) * 1000;
         let symbol = undefined;
@@ -432,14 +441,12 @@ module.exports = class gatecoin extends Exchange {
         let status = 'open';
         let trades = undefined;
         const fees = {
-          cost: undefined,
-          currency: undefined,
-          rate: undefined
+            'cost': undefined,
+            'currency': undefined,
+            'rate': undefined,
         };
-  
         if (order['status'] === 6) {
             status = 'closed';
-
             filled = 0.0;
             price = 0.0;
             trades = [];
@@ -468,7 +475,6 @@ module.exports = class gatecoin extends Exchange {
                 }
             }
         }
-  
         let result = {
             'id': id,
             'datetime': this.iso8601 (timestamp),
