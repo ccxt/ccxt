@@ -342,7 +342,7 @@ module.exports = class gatecoin extends Exchange {
         let fee = undefined;
         let feeCost = this.safeFloat (trade, 'feeAmount');
         let price = trade['price'];
-        let amount = trade['amount'];
+        let amount = trade['quantity'];
         let cost = this.sum (price * amount);
         if (typeof feeCost !== 'undefined') {
             fee = {
@@ -360,8 +360,8 @@ module.exports = class gatecoin extends Exchange {
             'symbol': market['symbol'],
             'type': undefined,
             'side': side,
-            'price': trade['price'],
-            'amount': trade['quantity'],
+            'price': price,
+            'amount': amount,
             'cost': cost,
             'fee': fee,
         };
