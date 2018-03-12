@@ -20,6 +20,7 @@ module.exports = class bitflyer extends Exchange {
                 'withdraw': true,
                 'fetchOrders': true,
                 'fetchOrder': true,
+                'fetchOpenOrders': 'emulated',
                 'fetchClosedOrders': 'emulated',
             },
             'urls': {
