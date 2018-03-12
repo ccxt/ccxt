@@ -350,9 +350,9 @@ module.exports = class gatecoin extends Exchange {
             'side': side,
             'price': trade['price'],
             'amount': trade['quantity'],
-            'cost': trade['price'] * trade['quantity'] + trade['feeAmount'],
+            'cost': trade['price'] * trade['quantity'] + (trade['feeAmount'] ? trade['feeAmount'] : 0),
             'fee': {
-                'cost': trade['feeAmount'],
+                'cost': (trade['feeAmount'] ? trade['feeAmount'] : undefined),
                 'currency': market['quote'],
                 'rate': trade['feeRate'],
             },
