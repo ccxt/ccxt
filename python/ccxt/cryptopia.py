@@ -314,7 +314,7 @@ class cryptopia (Exchange):
         if since is not None:
             elapsed = self.milliseconds() - since
             hour = 1000 * 60 * 60
-            hours = int(elapsed / hour)
+            hours = int(int(math.ceil(elapsed / hour)))
         request = {
             'id': market['id'],
             'hours': hours,
