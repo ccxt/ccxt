@@ -267,10 +267,10 @@ module.exports = class gatecoin extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.exchange.privateGetTradeOrdersOrderID (this.exchange.extend ({
+        let response = await this.privateGetTradeOrdersOrderID (this.extend ({
             'OrderID': id,
         }, params));
-        return this.exchange.parseOrder (response.order);
+        return this.parseOrder (response.order);
     }
 
     parseTicker (ticker, market = undefined) {
