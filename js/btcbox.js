@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InsufficientFunds, InvalidOrder, AuthenticationError, PermissionDenied, InvalidNonce, OrderNotFound, DDosProtection } = require ('./base/errors');
+const { ExchangeError, InsufficientFunds, InvalidOrder, AuthenticationError, PermissionDenied, InvalidNonce, OrderNotFound, DDoSProtection } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -56,7 +56,7 @@ module.exports = class btcbox extends Exchange {
                 '201': InvalidOrder,
                 '202': InvalidOrder,
                 '203': OrderNotFound,
-                '402': DDosProtection,
+                '402': DDoSProtection,
             },
         });
     }
