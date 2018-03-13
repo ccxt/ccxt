@@ -1,14 +1,13 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const {ExchangeError} = require ('./base/errors');
+const { ExchangeError } = require ('./base/errors');
 
 //  ----initial draft -by jjhesk
 
 module.exports = class coinone extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'coinone',
@@ -33,7 +32,7 @@ module.exports = class coinone extends Exchange {
                 'api': 'https://api.coinone.co.kr/',
                 'www': 'https://coinone.co.kr',
                 'doc': [
-                    'http://doc.coinone.co.kr/'
+                    'http://doc.coinone.co.kr/',
                 ],
             },
             'requiredCredentials': {
@@ -45,7 +44,7 @@ module.exports = class coinone extends Exchange {
                     'get': [
                         'orderbook/',
                         'trades/',
-                        'ticker/'
+                        'ticker/',
                     ],
                 },
                 'private': {
@@ -124,7 +123,7 @@ module.exports = class coinone extends Exchange {
                     'symbol': 'BCH/KRW',
                     'base': 'BCH',
                     'quote': 'KRW',
-                }
+                },
             },
             'fees': {
                 'trading': {
@@ -157,15 +156,14 @@ module.exports = class coinone extends Exchange {
                         ],
                     },
                 },
-            }
+            },
         });
     }
 
-
     async fetchBalance (params = {}) {
         let res = await this.privateGetV2AccountBalance ();
-        let result = {'info': res};
-        this.market.forEach (function (mrk) {
+        let result = { 'info': res };
+        this.market.forEach ((mrk) => {
             let id = mrk.id;
             if (id in res) {
                 let balance = res[id];
@@ -249,33 +247,32 @@ module.exports = class coinone extends Exchange {
         return this.parseTrades (trades, symbol);
     }
 
-    /*
-        async createOrder (market, type, side, amount, price = undefined, params = {}) {
-            let method = 'privatePutUserExchange';
-            let order = {};
-            if (type === 'market') {
-                method += 'Instant' + this.capitalize (side);
-                if (side === 'buy')
-                    order['maxFiat'] = amount;
-                else
-                    order['maxVol'] = amount;
-            } else {
-                let direction = (side === 'buy') ? 'Bid' : 'Ask';
-                method += direction + 'New';
-                order['rate'] = price;
-                order['vol'] = amount;
-            }
-            let response = await this[method] (this.extend (order, params));
-            return {
-                'info': response,
-                'id': response['message']['orderID'],
-            };
-        }*/
+    // async createOrder (market, type, side, amount, price = undefined, params = {}) {
+    // let method = 'privatePutUserExchange';
+    // let order = {};
+    // if (type === 'market') {
+    // method += 'Instant' + this.capitalize (side);
+    // if (side === 'buy')
+    // order['maxFiat'] = amount;
+    // else
+    // order['maxVol'] = amount;
+    // } else {
+    // let direction = (side === 'buy') ? 'Bid' : 'Ask';
+    // method += direction + 'New';
+    // order['rate'] = price;
+    // order['vol'] = amount;
+    // }
+    // let response = await this[method] (this.extend (order, params));
+    // return {
+    // 'info': response,
+    // 'id': response['message']['orderID'],
+    // };
+    // }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        throw new ExchangeError (this.id + ' cancelOrder () is not fully implemented yet');
-        let method = 'privateDeleteUserExchangeAskCancelOrderId'; // TODO fixme, have to specify order side here
-        return await this[method] ({'orderID': id});
+        // throw new ExchangeError (this.id + ' cancelOrder () is not fully implemented yet');
+        let method = 'privatePostOrderCancel'; // TODO fixme, have to specify order side here
+        return await this[method] ({ 'orderID': id });
     }
 
     /**
@@ -301,26 +298,26 @@ module.exports = class coinone extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
-            //let auth = '/api' + '/' + request + nonce + body;
+            // let auth = '/api' + '/' + request + nonce + body;
             let plj = {
                 'access_token': this.apiKey,
-                'nonce': nonce
+                'nonce': nonce,
             };
-            let payload = new Buffer (JSON.stringify (plj)).toString ('base64');
+            let payload = Buffer.from (JSON.stringify (plj)).toString ('base64');
             //  body =this.encode (payload);
             body = payload;
             let signature = this.hmac (payload, this.encode (this.secret.toUpperCase ()), 'sha512', 'hex');
             headers = {
                 'content-type': 'application/json',
                 'X-COINONE-PAYLOAD': payload,
-                'X-COINONE-SIGNATURE': signature
+                'X-COINONE-SIGNATURE': signature,
             };
         }
-        return {'url': url, 'method': method, 'body': body, 'headers': headers};
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
     handleErrors (code, reason, url, method, headers, body) {
-        let error_code = 0;
+        //   let error_code = 0;
         if (code === 200) {
             if ((body[0] === '{') || (body[0] === '[')) {
                 let response = JSON.parse (body);
@@ -328,7 +325,7 @@ module.exports = class coinone extends Exchange {
                     let success = response['result'];
                     if (success !== 'success') {
                         if ('errorCode' in response) {
-                            error_code = parseInt (response['errorCode']);
+                            //  error_code = parseInt (response['errorCode']);
                             throw new ExchangeError (this.id + ' malformed response: no "message" in response: ' + body);
                         }
                         throw new ExchangeError (this.id + ' error returned: ' + body);
@@ -342,4 +339,4 @@ module.exports = class coinone extends Exchange {
             }
         }
     }
-}
+};
