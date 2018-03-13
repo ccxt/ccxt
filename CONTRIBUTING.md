@@ -32,6 +32,8 @@ If you want to submit an issue and you want your issue to be resolved quickly, h
 
 - **PLEASE, DO NOT COMMIT THE FOLLOWING FILES IN PULL REQUESTS:**
 
+  - `README.md`
+  - `/wiki/*`
   - `/doc/*`
   - `/build/*`
   - `/php/*` (except for base classes)
