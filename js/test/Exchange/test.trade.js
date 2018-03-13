@@ -17,7 +17,7 @@ module.exports = (exchange, trade, symbol, now) => {
     assert (trade.timestamp > 1230940800000) // 03 Jan 2009 - first block
 
     //------------------------------------------------------------------
-    // console.log (exchange.iso8601 (trade.timestamp), exchange.iso8601 (now))
+    console.log (exchange.iso8601 (trade.timestamp), exchange.iso8601 (now))
 
     // The next assertion line breaks Kraken. They report trades that are
     // approximately 500ms ahead of `now`. Tried synching system clock against
