@@ -453,7 +453,7 @@ class coinegg extends Exchange {
                 'key' => $this->apiKey,
                 'nonce' => $this->nonce (),
             ), $query));
-            $secret = $this->hash ($this->secret);
+            $secret = $this->hash ($this->encode ($this->secret));
             $signature = $this->hmac ($this->encode ($query), $this->encode ($secret));
             $query .= '&' . 'signature=' . $signature;
             if ($method === 'GET') {
