@@ -21,7 +21,6 @@ module.exports = class coinone extends Exchange {
                 'fetchBalance': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
-                'fetchTickers': false,
                 'fetchOrders': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -247,45 +246,12 @@ module.exports = class coinone extends Exchange {
         return this.parseTrades (trades, symbol);
     }
 
-    // async createOrder (market, type, side, amount, price = undefined, params = {}) {
-    // let method = 'privatePutUserExchange';
-    // let order = {};
-    // if (type === 'market') {
-    // method += 'Instant' + this.capitalize (side);
-    // if (side === 'buy')
-    // order['maxFiat'] = amount;
-    // else
-    // order['maxVol'] = amount;
-    // } else {
-    // let direction = (side === 'buy') ? 'Bid' : 'Ask';
-    // method += direction + 'New';
-    // order['rate'] = price;
-    // order['vol'] = amount;
-    // }
-    // let response = await this[method] (this.extend (order, params));
-    // return {
-    // 'info': response,
-    // 'id': response['message']['orderID'],
-    // };
-    // }
-
     async cancelOrder (id, symbol = undefined, params = {}) {
         // throw new ExchangeError (this.id + ' cancelOrder () is not fully implemented yet');
-        let method = 'privatePostOrderCancel'; // TODO fixme, have to specify order side here
+        let method = 'privatePostOrderCancel';
         return await this[method] ({ 'orderID': id });
     }
 
-    /**
-     * coin one sign request path
-     * @param path string enable
-     * @param api the api is now up
-     * @param method
-     * @param params
-     * @param headers
-     * @param body
-     *
-     * @returns {{url: string, method: string, body: undefined, headers: {}}}
-     */
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
@@ -298,18 +264,16 @@ module.exports = class coinone extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
-            // let auth = '/api' + '/' + request + nonce + body;
             let plj = {
                 'access_token': this.apiKey,
                 'nonce': nonce,
             };
             let payload = Buffer.from (JSON.stringify (plj)).toString ('base64');
-            //  body =this.encode (payload);
             body = payload;
-            let signature = this.hmac (payload, this.encode (this.secret.toUpperCase ()), 'sha512', 'hex');
+            let signature = this.hmac (body, this.encode (this.secret.toUpperCase ()), 'sha512', 'hex');
             headers = {
                 'content-type': 'application/json',
-                'X-COINONE-PAYLOAD': payload,
+                'X-COINONE-PAYLOAD': body,
                 'X-COINONE-SIGNATURE': signature,
             };
         }
@@ -317,7 +281,6 @@ module.exports = class coinone extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body) {
-        //   let error_code = 0;
         if (code === 200) {
             if ((body[0] === '{') || (body[0] === '[')) {
                 let response = JSON.parse (body);
@@ -325,7 +288,6 @@ module.exports = class coinone extends Exchange {
                     let success = response['result'];
                     if (success !== 'success') {
                         if ('errorCode' in response) {
-                            //  error_code = parseInt (response['errorCode']);
                             throw new ExchangeError (this.id + ' malformed response: no "message" in response: ' + body);
                         }
                         throw new ExchangeError (this.id + ' error returned: ' + body);
@@ -334,7 +296,6 @@ module.exports = class coinone extends Exchange {
                     throw new ExchangeError (this.id + ' malformed response: no "result" in response: ' + body);
                 }
             } else {
-                // if not a JSON response
                 throw new ExchangeError (this.id + ' returned a non-JSON reply: ' + body);
             }
         }
