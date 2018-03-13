@@ -81,6 +81,7 @@ abstract class Exchange {
         'coingi',
         'coinmarketcap',
         'coinmate',
+        'coinone',
         'coinsecure',
         'coinspot',
         'coolcoin',
