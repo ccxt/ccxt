@@ -26,3 +26,5 @@ yarn.lock
 keys.local.json
 nbproject/
 vendor/
+
+yarn-error\.log
