@@ -202,6 +202,66 @@ module.exports = class btcbox extends Exchange {
         }, params));
     }
 
+    parseOrder (order) {
+        // {"id":11,"datetime":"2014-10-21 10:47:20","type":"sell","price":42000,"amount_original":1.2,"amount_outstanding":1.2,"status":"closed","trades":[]}
+        const id = this.safeString (order, 'id');
+        const datetime = order['datetime'];
+        const timestamp = this.parse8601 (datetime);
+        const amount = this.safeFloat (order, 'amount_original');
+        const remaining = this.safeFloat (order, 'amount_outstanding');
+        const filled = amount - remaining;
+        const price = this.safeFloat (order, 'price');
+        const statuses = {
+            // TODO: complete list
+            'closed': 'closed',
+            'cancelled': 'canceled',
+        };
+        let status = undefined;
+        if (order['status'] in statuses)
+            status = statuses[order['status']];
+        return {
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'amount': amount,
+            'remaining': remaining,
+            'filled': filled,
+            'side': order['type'],
+            'type': undefined,
+            'status': status,
+            'symbol': undefined,
+            'price': price,
+            'cost': filled * price,
+            'trades': order['trades'],
+            'fee': undefined,
+            'info': order,
+        };
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privatePostTradeView (this.extend ({
+            'id': id,
+        }, params));
+        return this.parseOrder (response);
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privatePostTradeList (this.extend ({
+            'type': 'all', // 'open' or 'all'
+        }));
+        return this.parseOrders (response);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privatePostTradeList (this.extend ({
+            'type': 'open', // 'open' or 'all'
+        }));
+        return this.parseOrders (response);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
         if (api === 'public') {
