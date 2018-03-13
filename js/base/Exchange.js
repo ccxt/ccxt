@@ -747,6 +747,19 @@ module.exports = class Exchange {
         })
     }
 
+    parseOrderBookSeq (orderbook, symbol = undefined, params = {}) {
+        let sec = undefined;
+        if (typeof symbol !== 'undefined') {
+            orderbook = this.safeValue (orderbook, symbol, orderbook);
+        }
+        if (typeof orderbook['sec'] !== 'undefined') {
+            sec = this.safeInteger (orderbook, 'sec', sec);
+        } else if (typeof orderbook['timestamp'] !== 'undefined') {
+            sec = this.safeInteger (orderbook, 'timestamp', sec);
+        }
+        return sec;
+    }
+
     parseOrderBook (orderbook, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1) {
         timestamp = timestamp || this.milliseconds ();
         return {
@@ -754,6 +767,7 @@ module.exports = class Exchange {
             'asks': sortBy ((asksKey in orderbook) ? this.parseBidsAsks (orderbook[asksKey], priceKey, amountKey) : [], 0),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'sec': this.parseOrderBookSeq (orderbook),
         }
     }
 
