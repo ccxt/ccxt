@@ -253,7 +253,11 @@ class bittrex (Exchange):
         return self.parse_order_book(orderbook, None, 'buy', 'sell', 'Rate', 'Quantity')
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = self.parse8601(ticker['TimeStamp'] + '+00:00')
+        timestamp = self.safe_string(ticker, 'TimeStamp')
+        iso8601 = None
+        if timestamp is not None:
+            timestamp = self.parse8601(timestamp)
+            iso8601 = self.iso8601(timestamp)
         symbol = None
         if market:
             symbol = market['symbol']
@@ -269,7 +273,7 @@ class bittrex (Exchange):
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'datetime': iso8601,
             'high': self.safe_float(ticker, 'High'),
             'low': self.safe_float(ticker, 'Low'),
             'bid': self.safe_float(ticker, 'Bid'),
