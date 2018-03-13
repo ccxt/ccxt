@@ -281,23 +281,6 @@ module.exports = class bitfinex extends Exchange {
         };
     }
 
-    async loadFees () {
-        // // PHP does flat copying for arrays
-        // // setting fees on the exchange instance isn't portable, unfortunately...
-        // // this should probably go into the base class as well
-        // let funding = this.fees['funding'];
-        // const fees = await this.fetchFundingFees ();
-        // funding = this.deepExtend (funding, fees);
-        // return funding;
-        throw new NotSupported (this.id + ' loadFees() not implemented yet');
-    }
-
-    async fetchFees () {  // this can be removed since it is now dealt with in the base class
-        let fundingFees = await this.fetchFundingFees ();
-        let tradingFees = await this.fetchTradingFees ();
-        return this.deepExtend (fundingFees, tradingFees);
-    }
-
     async fetchMarkets () {
         let markets = await this.publicGetSymbolsDetails ();
         let result = [];
