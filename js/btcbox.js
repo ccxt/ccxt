@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, InsufficientFunds, InvalidOrder, AuthenticationError, PermissionDenied, InvalidNonce, OrderNotFound, DDosProtection } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -46,6 +46,17 @@ module.exports = class btcbox extends Exchange {
             },
             'markets': {
                 'BTC/JPY': { 'id': 'BTC/JPY', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY' },
+            },
+            'exceptions': {
+                '104': AuthenticationError,
+                '105': PermissionDenied,
+                '106': InvalidNonce,
+                '107': InvalidOrder,
+                '200': InsufficientFunds,
+                '201': InvalidOrder,
+                '202': InvalidOrder,
+                '203': OrderNotFound,
+                '402': DDosProtection,
             },
         });
     }
@@ -214,11 +225,21 @@ module.exports = class btcbox extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('result' in response)
-            if (!response['result'])
-                throw new ExchangeError (this.id + ' ' + this.json (response));
-        return response;
+    handleErrors (httpCode, reason, url, method, headers, body) {
+        // typical error response: {"result":false,"code":"401"}
+        if (httpCode >= 400)
+            return; // resort to defaultErrorHandler
+        if (body[0] !== '{')
+            return; // not json, resort to defaultErrorHandler
+        const response = JSON.parse (body);
+        const result = this.safeValue (response, 'result');
+        if (typeof result === 'undefined' || result === true)
+            return; // either public API (no error codes expected) or success
+        const errorCode = this.safeValue (response, 'code');
+        const feedback = this.id + ' ' + this.json (response);
+        const exceptions = this.exceptions;
+        if (errorCode in exceptions)
+            throw new exceptions[errorCode] (feedback);
+        throw new ExchangeError (feedback); // unknown message
     }
 };
