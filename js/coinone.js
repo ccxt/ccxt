@@ -160,8 +160,9 @@ module.exports = class coinone extends Exchange {
     async fetchBalance (params = {}) {
         let res = await this.privateGetV2AccountBalance ();
         let result = { 'info': res };
-        this.market.forEach ((mrk) => {
-            let id = mrk.id;
+        Object.values (this.markets).forEach ((mrk) => {
+            let id = mrk['id'];
+            let symbol = mrk['symbol'];
             if (id in res) {
                 let balance = res[id];
                 let account = {
@@ -169,26 +170,26 @@ module.exports = class coinone extends Exchange {
                     'used': parseFloat (balance['balance']) - parseFloat (balance['avail']),
                     'total': parseFloat (balance['balance']),
                 };
-                result[mrk.symbol] = account;
+                result[symbol] = account;
             }
         });
         return this.parseBalance (result);
     }
 
     async fetchOrderBook (symbol, params = {}) {
-        let market = this.market (symbol);
+        let mkt = this.market (symbol);
         let res = await this.publicGetOrderbook (this.extend ({
-            'currency': market['id'],
+            'currency': mkt['id'],
             'format': 'json',
         }, params));
         return this.parseOrderBook (res, undefined, 'bid', 'ask', 'price', 'qty');
     }
 
     async fetchTicker (symbol, params = {}) {
-        let market = this.market (symbol);
+        let mkt = this.market (symbol);
         let timestamp = this.milliseconds ();
         let res = await this.publicGetTicker (this.extend ({
-            'currency': market['id'],
+            'currency': mkt['id'],
             'format': 'json',
         }, params));
         let ticker = res;
@@ -266,7 +267,7 @@ module.exports = class coinone extends Exchange {
                 'access_token': this.apiKey,
                 'nonce': nonce,
             };
-            let payload = Buffer.from (JSON.stringify (plj)).toString ('base64');
+            let payload = this.encode (JSON.stringify (plj));
             body = payload;
             let signature = this.hmac (body, this.encode (this.secret.toUpperCase ()), 'sha512', 'hex');
             headers = {
