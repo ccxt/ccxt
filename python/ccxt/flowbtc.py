@@ -64,20 +64,20 @@ class flowbtc (Exchange):
     def fetch_markets(self):
         response = self.publicPostGetProductPairs()
         markets = response['productPairs']
-        result = []
+        result = {}
         for p in range(0, len(markets)):
             market = markets[p]
             id = market['name']
             base = market['product1Label']
             quote = market['product2Label']
             symbol = base + '/' + quote
-            result.append({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'info': market,
-            })
+            }
         return result
 
     def fetch_balance(self, params={}):
