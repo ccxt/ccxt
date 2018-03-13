@@ -442,7 +442,7 @@ class coinegg (Exchange):
                 'key': self.apiKey,
                 'nonce': self.nonce(),
             }, query))
-            secret = self.hash(self.secret)
+            secret = self.hash(self.encode(self.secret))
             signature = self.hmac(self.encode(query), self.encode(secret))
             query += '&' + 'signature=' + signature
             if method == 'GET':
