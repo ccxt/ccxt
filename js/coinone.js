@@ -168,7 +168,7 @@ module.exports = class coinone extends Exchange {
                 let account = {
                     'free': parseFloat (balance['avail']),
                     'used': parseFloat (balance['balance']) - parseFloat (balance['avail']),
-                    'total': parseFloat (balance['balance']),
+                    'total': parseFloat (balance['balance'])
                 };
                 result[symbol] = account;
             }
@@ -263,16 +263,12 @@ module.exports = class coinone extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
-            let plj = {
-                'access_token': this.apiKey,
-                'nonce': nonce,
-            };
-            let payload = this.encode (JSON.stringify (plj));
+            let payload = this.stringToBase64 (JSON.stringify ({ 'access_token': this.apiKey, 'nonce': nonce }));
             body = payload;
-            let signature = this.hmac (body, this.encode (this.secret.toUpperCase ()), 'sha512', 'hex');
+            let signature = this.hmac (payload, this.encode (this.secret.toUpperCase ()), 'sha512', 'hex');
             headers = {
                 'content-type': 'application/json',
-                'X-COINONE-PAYLOAD': body,
+                'X-COINONE-PAYLOAD': payload,
                 'X-COINONE-SIGNATURE': signature,
             };
         }
