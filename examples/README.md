@@ -53,6 +53,8 @@ php -f path/to/example.php # substitute for actual filename here
 
 [Let’s write a cryptocurrency bot](https://medium.com/@joeldg/an-advanced-tutorial-a-new-crypto-currency-trading-bot-boilerplate-framework-e777733607ae) – A multi-part advanced tutorial on a new cryptocurrency trading framework also integrating ccxt.
 
+[Python3とCCXTライブラリを用いたBitMEX自動売買bot作成Tips](https://note.mu/akagami/n/n0af0a96c261f) – An article in Japanese on getting started with CCXT.
+
 [Using ccxt and technicalindicators to calculate MACD for BTC/USDT with Node.js](https://runkit.com/dhilipb/macd-for-btc-usdt) – A runkit sample showing how to fetch data and run statistical calculations.
 
 [Which Bitcoin crypto currency bot project? Gekko vs ccxt vs Tribeca vs Blackbird](https://www.youtube.com/watch?v=Bn2p-nkbVdE) – A video comparison of opensource cryptocurrency trading platforms.

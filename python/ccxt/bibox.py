@@ -8,6 +8,7 @@ import hashlib
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
@@ -468,14 +469,15 @@ class bibox (Exchange):
         self.load_markets()
         currency = self.currency(code)
         response = self.privatePostTransfer({
-            'cmd': 'transfer/transferOutInfo',
+            'cmd': 'transfer/transferIn',
             'body': self.extend({
                 'coin_symbol': currency['id'],
             }, params),
         })
+        address = self.safe_string(response, 'result')
         result = {
             'info': response,
-            'address': None,  # POINTLESS?
+            'address': address,
         }
         return result
 
@@ -541,7 +543,9 @@ class bibox (Exchange):
                     # The number of orders can not be less than
                     raise InvalidOrder(message)
                 elif code == '3012':
-                    raise AuthenticationError(message)  # invalid api key
+                    raise AuthenticationError(message)  # invalid apiKey
+                elif code == '3024':
+                    raise PermissionDenied(message)  # insufficient apiKey permissions
                 elif code == '3025':
                     raise AuthenticationError(message)  # signature failed
                 elif code == '4000':

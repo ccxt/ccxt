@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.11.65'
+__version__ = '1.11.83'
 
 # -----------------------------------------------------------------------------
 
@@ -15,6 +15,7 @@ from ccxt.base.errors import BaseError                          # noqa: F401
 from ccxt.base.errors import ExchangeError                      # noqa: F401
 from ccxt.base.errors import NotSupported                       # noqa: F401
 from ccxt.base.errors import AuthenticationError                # noqa: F401
+from ccxt.base.errors import PermissionDenied                   # noqa: F401
 from ccxt.base.errors import InvalidNonce                       # noqa: F401
 from ccxt.base.errors import InsufficientFunds                  # noqa: F401
 from ccxt.base.errors import InvalidOrder                       # noqa: F401

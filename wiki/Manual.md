@@ -122,7 +122,7 @@ The ccxt library currently supports the following 102 cryptocurrency exchange ma
 |![hitbtc2](https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg)            | hitbtc2            | [HitBTC v2](https://hitbtc.com)                           | 2   | [API](https://api.hitbtc.com)                                                                | UK                                      |
 |![huobi](https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg)              | huobi              | [Huobi](https://www.huobi.com)                            | 3   | [API](https://github.com/huobiapi/API_Docs_en/wiki)                                          | China                                   |
 |![huobicny](https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg)           | huobicny           | [Huobi CNY](https://www.huobi.com)                        | 1   | [API](https://github.com/huobiapi/API_Docs/wiki/REST_api_reference)                          | China                                   |
-|![huobipro](https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg)           | huobipro           | [Huobi Pro](https://www.huobi.pro)                        | 1   | [API](https://github.com/huobiapi/API_Docs/wiki/REST_api_reference)                          | China                                   |
+|![huobipro](https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg)           | huobipro           | [Huobi Pro](https://www.huobipro.com)                     | 1   | [API](https://github.com/huobiapi/API_Docs/wiki/REST_api_reference)                          | China                                   |
 |![independentreserve](https://user-images.githubusercontent.com/1294454/30521662-cf3f477c-9bcb-11e7-89bc-d1ac85012eda.jpg) | independentreserve | [Independent Reserve](https://www.independentreserve.com) | *   | [API](https://www.independentreserve.com/API)                                                | Australia, New Zealand                  |
 |![itbit](https://user-images.githubusercontent.com/1294454/27822159-66153620-60ad-11e7-89e7-005f6d7f3de0.jpg)              | itbit              | [itBit](https://www.itbit.com)                            | 1   | [API](https://api.itbit.com/docs)                                                            | US                                      |
 |![jubi](https://user-images.githubusercontent.com/1294454/27766581-9d397d9a-5edd-11e7-8fb9-5d8236c0e692.jpg)               | jubi               | [jubi.com](https://www.jubi.com)                          | 1   | [API](https://www.jubi.com/help/api.html)                                                    | China                                   |
@@ -1056,9 +1056,9 @@ A price ticker contains statistics for a particular market/symbol for some perio
     'high':          float, // highest price
     'low':           float, // lowest price
     'bid':           float, // current best bid (buy) price
-    'bidVolume':     float, // current best bid (buy) amount
+    'bidVolume':     float, // current best bid (buy) amount (may be missing or undefined)
     'ask':           float, // current best ask (sell) price
-    'askVolume':     float, // current best ask (sell) amount
+    'askVolume':     float, // current best ask (sell) amount (may be missing or undefined)
     'vwap':          float, // volume weighed average price
     'open':          float, // opening price
     'close':         float, // price of last trade (closing price for current period)
@@ -2046,6 +2046,8 @@ Below is an outline of exception inheritance hierarchy:
 |   +---+ NotSupported
 |   |
 |   +---+ AuthenticationError
+|   |   |
+|   |   +---+ PermissionDenied
 |   |
 |   +---+ InsufficientFunds
 |   |
@@ -2082,6 +2084,7 @@ Other exceptions derived from `ExchangeError`:
 
   - `NotSupported`: This exception is raised if the endpoint is not offered/not supported by the exchange API.
   - `AuthenticationError`: Raised when an exchange requires one of the API credentials that you've missed to specify, or when there's a mistake in the keypair or an outdated nonce. Most of the time you need `apiKey` and `secret`, sometimes you also need `uid` and/or `password`.
+  - `PermissionDenied`: Raised when there's no access for specified action or insufficient permissions on the specified `apiKey`.
   - `InsufficientFunds`: This exception is raised when you don't have enough currency on your account balance to place an order.
   - `InvalidAddress`: This exception is raised upon encountering a bad funding address or a funding address shorter than `.minFundingAddressLength` (10 characters by default) in a call to `fetchDepositAddress`, `createDepositAddress` or `withdraw`.
   - `InvalidOrder`: This exception is the base class for all exceptions related to the unified order API.

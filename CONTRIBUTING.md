@@ -224,6 +224,7 @@ And structurally:
 - do not use heavy ternary conditionals
 - avoid operators clutter (**don't do this**: `a && b || c ? d + 80 : e ** f`)
 - never use `.toString()` on floats: `Number (0.00000001).toString () === '1e-8'`
+- do not use the `in` operator to check if a value is in a non-associative array (list)
 - don't add custom currency or symbol/pair conversions and formatting, copy from existing code instead
 - keep it simple, don't do more than one statement in one line
 

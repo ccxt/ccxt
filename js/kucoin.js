@@ -343,7 +343,9 @@ module.exports = class kucoin extends Exchange {
         if (typeof orderId === 'undefined')
             orderId = this.safeString (order, 'oid');
         // do not confuse trades with orders
-        let trades = this.safeValue (order['dealOrders'], 'datas');
+        let trades = undefined;
+        if ('dealOrders' in order)
+            trades = this.safeValue (order['dealOrders'], 'datas');
         if (typeof trades !== 'undefined') {
             trades = this.parseTrades (trades, market);
             for (let i = 0; i < trades.length; i++) {

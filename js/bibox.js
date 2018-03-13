@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, DDoSProtection, ExchangeNotAvailable, InvalidOrder, OrderNotFound } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, DDoSProtection, ExchangeNotAvailable, InvalidOrder, OrderNotFound, PermissionDenied } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -491,14 +491,15 @@ module.exports = class bibox extends Exchange {
         await this.loadMarkets ();
         let currency = this.currency (code);
         let response = await this.privatePostTransfer ({
-            'cmd': 'transfer/transferOutInfo',
+            'cmd': 'transfer/transferIn',
             'body': this.extend ({
                 'coin_symbol': currency['id'],
             }, params),
         });
+        let address = this.safeString (response, 'result');
         let result = {
             'info': response,
-            'address': undefined,  // POINTLESS?
+            'address': address,
         };
         return result;
     }
@@ -568,7 +569,9 @@ module.exports = class bibox extends Exchange {
                     // The number of orders can not be less than
                     throw new InvalidOrder (message);
                 else if (code === '3012')
-                    throw new AuthenticationError (message); // invalid api key
+                    throw new AuthenticationError (message); // invalid apiKey
+                else if (code === '3024')
+                    throw new PermissionDenied (message); // insufficient apiKey permissions
                 else if (code === '3025')
                     throw new AuthenticationError (message); // signature failed
                 else if (code === '4000')

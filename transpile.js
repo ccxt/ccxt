@@ -193,7 +193,7 @@ const pythonRegexes = [
         [ /Math\.abs\s*\(([^\)]+)\)/g, 'abs($1)' ],
         [ /Math\.pow\s*\(([^\)]+)\)/g, 'math.pow($1)' ],
         [ /Math\.round\s*\(([^\)]+)\)/g, 'int(round($1))' ],
-        [ /Math\.ceil\s*\(([^\)]+)\)/g, 'int(ceil($1))' ],
+        [ /Math\.ceil\s*\(([^\)]+)\)/g, 'int(math.ceil($1))' ],
         [ /Math\.log/g, 'math.log' ],
         [ /(\([^\)]+\)|[^\s]+)\s*\?\s*([^\:]+)\s+\:\s*([^\n]+)/g, '$2 if $1 else $3'],
         [ / \/\//g, ' #' ],

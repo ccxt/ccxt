@@ -19,6 +19,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 
 
@@ -148,10 +149,12 @@ class coinegg (Exchange):
             bases = await self.webGetQuoteAllcoin({
                 'quote': quoteId,
             })
+            if bases is None:
+                raise ExchangeNotAvailable(self.id + ' fetchMarkets() for "' + quoteId + '" returned: "' + self.json(bases) + '"')
             baseIds = list(bases.keys())
             numBaseIds = len(baseIds)
             if numBaseIds < 1:
-                raise ExchangeError(self.id + ' fetchMarkets() failed for ' + quoteId)
+                raise ExchangeNotAvailable(self.id + ' fetchMarkets() for "' + quoteId + '" returned: "' + self.json(bases) + '"')
             for i in range(0, len(baseIds)):
                 baseId = baseIds[i]
                 market = bases[baseId]

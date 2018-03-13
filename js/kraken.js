@@ -183,6 +183,10 @@ module.exports = class kraken extends Exchange {
                     ],
                 },
             },
+            'options': {
+                'cacheDepositMethodsOnFetchDepositAddress': true, // will issue up to two calls in fetchDepositAddress
+                'depositMethods': {},
+            },
         });
     }
 
@@ -566,7 +570,7 @@ module.exports = class kraken extends Exchange {
         let response = await this.publicGetTrades (this.extend ({
             'pair': id,
         }, params));
-        // { result: {marketid: [...trades]}, last: "last_trade_id"}
+        // { result: { marketid: [ ... trades ] }, last: "last_trade_id"}
         let result = response['result'];
         let trades = result[id];
         // trades is a sorted array: last (most recent trade) goes last
@@ -770,26 +774,24 @@ module.exports = class kraken extends Exchange {
         return this.filterBySymbol (orders, symbol);
     }
 
-    async fetchDepositMethods (code = undefined, params = {}) {
+    async fetchDepositMethods (code, params = {}) {
         await this.loadMarkets ();
-        let request = {};
-        if (code) {
-            let currency = this.currency (code);
-            request['asset'] = currency['id'];
-        }
-        let response = await this.privatePostDepositMethods (this.extend (request, params));
+        let currency = this.currency (code);
+        let response = await this.privatePostDepositMethods (this.extend ({
+            'asset': currency['id'],
+        }, params));
         return response['result'];
     }
 
-    async createDepositAddress (currency, params = {}) {
+    async createDepositAddress (code, params = {}) {
         let request = {
             'new': 'true',
         };
-        let response = await this.fetchDepositAddress (currency, this.extend (request, params));
+        let response = await this.fetchDepositAddress (code, this.extend (request, params));
         let address = this.safeString (response, 'address');
         this.checkAddress (address);
         return {
-            'currency': currency,
+            'currency': code,
             'address': address,
             'status': 'ok',
             'info': response,
@@ -797,16 +799,25 @@ module.exports = class kraken extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
-        let method = this.safeValue (params, 'method');
-        if (!method)
-            throw new ExchangeError (this.id + ' fetchDepositAddress() requires an extra `method` parameter');
         await this.loadMarkets ();
         let currency = this.currency (code);
+        // eslint-disable-next-line quotes
+        let method = this.safeString (params, 'method');
+        if (typeof method === 'undefined') {
+            if (this.options['cacheDepositMethodsOnFetchDepositAddress']) {
+                // cache depositMethods
+                if (!(code in this.options['depositMethods']))
+                    this.options['depositMethods'][code] = this.fetchDepositMethods (code);
+                method = this.options['depositMethods'][code][0]['method'];
+            } else {
+                throw new ExchangeError (this.id + ' fetchDepositAddress() requires an extra `method` parameter. Use fetchDepositMethods ("' + code + '") to get a list of available deposit methods or enable the exchange property .options["cacheDepositMethodsOnFetchDepositAddress"] = true');
+            }
+        }
         let request = {
             'asset': currency['id'],
             'method': method,
         };
-        let response = await this.privatePostDepositAddresses (this.extend (request, params));
+        let response = await this.privatePostDepositAddresses (this.extend (request, params)); // overwrite methods
         let result = response['result'];
         let numResults = result.length;
         if (numResults < 1)
@@ -875,15 +886,18 @@ module.exports = class kraken extends Exchange {
             if ('error' in response) {
                 let numErrors = response['error'].length;
                 if (numErrors) {
+                    let message = this.id + ' ' + this.json (response);
                     for (let i = 0; i < response['error'].length; i++) {
+                        if (response['error'][i] === 'EFunding:Unknown withdraw key')
+                            throw new ExchangeError (message);
                         if (response['error'][i] === 'EService:Unavailable')
-                            throw new ExchangeNotAvailable (this.id + ' ' + this.json (response));
+                            throw new ExchangeNotAvailable (message);
                         if (response['error'][i] === 'EDatabase:Internal error')
-                            throw new ExchangeNotAvailable (this.id + ' ' + this.json (response));
+                            throw new ExchangeNotAvailable (message);
                         if (response['error'][i] === 'EService:Busy')
-                            throw new DDoSProtection (this.id + ' ' + this.json (response));
+                            throw new DDoSProtection (message);
                     }
-                    throw new ExchangeError (this.id + ' ' + this.json (response));
+                    throw new ExchangeError (message);
                 }
             }
         return response;

@@ -202,6 +202,10 @@ class kraken (Exchange):
                     ],
                 },
             },
+            'options': {
+                'cacheDepositMethodsOnFetchDepositAddress': True,  # will issue up to two calls in fetchDepositAddress
+                'depositMethods': {},
+            },
         })
 
     def cost_to_precision(self, symbol, cost):
@@ -556,7 +560,7 @@ class kraken (Exchange):
         response = await self.publicGetTrades(self.extend({
             'pair': id,
         }, params))
-        # {result: {marketid: [...trades]}, last: "last_trade_id"}
+        # {result: {marketid: [... trades]}, last: "last_trade_id"}
         result = response['result']
         trades = result[id]
         # trades is a sorted array: last(most recent trade) goes last
@@ -738,40 +742,46 @@ class kraken (Exchange):
         orders = self.parse_orders(response['result']['closed'], None, since, limit)
         return self.filter_by_symbol(orders, symbol)
 
-    async def fetch_deposit_methods(self, code=None, params={}):
+    async def fetch_deposit_methods(self, code, params={}):
         await self.load_markets()
-        request = {}
-        if code:
-            currency = self.currency(code)
-            request['asset'] = currency['id']
-        response = await self.privatePostDepositMethods(self.extend(request, params))
+        currency = self.currency(code)
+        response = await self.privatePostDepositMethods(self.extend({
+            'asset': currency['id'],
+        }, params))
         return response['result']
 
-    async def create_deposit_address(self, currency, params={}):
+    async def create_deposit_address(self, code, params={}):
         request = {
             'new': 'true',
         }
-        response = await self.fetch_deposit_address(currency, self.extend(request, params))
+        response = await self.fetch_deposit_address(code, self.extend(request, params))
         address = self.safe_string(response, 'address')
         self.check_address(address)
         return {
-            'currency': currency,
+            'currency': code,
             'address': address,
             'status': 'ok',
             'info': response,
         }
 
     async def fetch_deposit_address(self, code, params={}):
-        method = self.safe_value(params, 'method')
-        if not method:
-            raise ExchangeError(self.id + ' fetchDepositAddress() requires an extra `method` parameter')
         await self.load_markets()
         currency = self.currency(code)
+        # eslint-disable-next-line quotes
+        method = self.safe_string(params, 'method')
+        if method is None:
+            if self.options['cacheDepositMethodsOnFetchDepositAddress']:
+                # cache depositMethods
+                if not(code in list(self.options['depositMethods'].keys())):
+                    self.options['depositMethods'][code] = self.fetch_deposit_methods(code)
+                method = self.options['depositMethods'][code][0]['method']
+            else:
+                raise ExchangeError(self.id + ' fetchDepositAddress() requires an extra `method` parameter. Use fetchDepositMethods("' + code + '") to get a list of available deposit methods or enable the exchange property .options["cacheDepositMethodsOnFetchDepositAddress"] = True')
         request = {
             'asset': currency['id'],
             'method': method,
         }
-        response = await self.privatePostDepositAddresses(self.extend(request, params))
+        response = await self.privatePostDepositAddresses(self.extend(request, params))  # overwrite methods
         result = response['result']
         numResults = len(result)
         if numResults < 1:
@@ -834,12 +844,15 @@ class kraken (Exchange):
             if 'error' in response:
                 numErrors = len(response['error'])
                 if numErrors:
+                    message = self.id + ' ' + self.json(response)
                     for i in range(0, len(response['error'])):
+                        if response['error'][i] == 'EFunding:Unknown withdraw key':
+                            raise ExchangeError(message)
                         if response['error'][i] == 'EService:Unavailable':
-                            raise ExchangeNotAvailable(self.id + ' ' + self.json(response))
+                            raise ExchangeNotAvailable(message)
                         if response['error'][i] == 'EDatabase:Internal error':
-                            raise ExchangeNotAvailable(self.id + ' ' + self.json(response))
+                            raise ExchangeNotAvailable(message)
                         if response['error'][i] == 'EService:Busy':
-                            raise DDoSProtection(self.id + ' ' + self.json(response))
-                    raise ExchangeError(self.id + ' ' + self.json(response))
+                            raise DDoSProtection(message)
+                    raise ExchangeError(message)
         return response

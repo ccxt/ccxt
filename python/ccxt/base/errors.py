@@ -31,6 +31,7 @@ __all__ = [
     'ExchangeError',
     'NotSupported',
     'AuthenticationError',
+    'PermissionDenied',
     'InsufficientFunds',
     'InvalidOrder',
     'OrderNotFound',
@@ -62,6 +63,11 @@ class NotSupported(ExchangeError):
 
 
 class AuthenticationError(ExchangeError):
+    """Raised when API credentials are required but missing or wrong"""
+    pass
+
+
+class PermissionDenied(AuthenticationError):
     """Raised when API credentials are required but missing or wrong"""
     pass
 

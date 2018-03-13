@@ -490,14 +490,15 @@ class bibox extends Exchange {
         $this->load_markets();
         $currency = $this->currency ($code);
         $response = $this->privatePostTransfer (array (
-            'cmd' => 'transfer/transferOutInfo',
+            'cmd' => 'transfer/transferIn',
             'body' => array_merge (array (
                 'coin_symbol' => $currency['id'],
             ), $params),
         ));
+        $address = $this->safe_string($response, 'result');
         $result = array (
             'info' => $response,
-            'address' => null,  // POINTLESS?
+            'address' => $address,
         );
         return $result;
     }
@@ -567,7 +568,9 @@ class bibox extends Exchange {
                     // The number of orders can not be less than
                     throw new InvalidOrder ($message);
                 else if ($code === '3012')
-                    throw new AuthenticationError ($message); // invalid $api key
+                    throw new AuthenticationError ($message); // invalid apiKey
+                else if ($code === '3024')
+                    throw new PermissionDenied ($message); // insufficient apiKey permissions
                 else if ($code === '3025')
                     throw new AuthenticationError ($message); // signature failed
                 else if ($code === '4000')

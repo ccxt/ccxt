@@ -25,6 +25,7 @@ class bitmex (Exchange):
                 'CORS': False,
                 'fetchOHLCV': True,
                 'withdraw': True,
+                'editOrder': True,
                 'fetchOrder': True,
                 'fetchOrders': True,
                 'fetchOpenOrders': True,
@@ -392,7 +393,7 @@ class bitmex (Exchange):
         if datetime_value is not None:
             timestamp = self.parse8601(datetime_value)
             iso8601 = self.iso8601(timestamp)
-        price = float(order['price'])
+        price = self.safe_float(order, 'price')
         amount = float(order['orderQty'])
         filled = self.safe_float(order, 'cumQty', 0.0)
         remaining = max(amount - filled, 0.0)
@@ -421,36 +422,57 @@ class bitmex (Exchange):
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetTrade(self.extend({
+        request = {
             'symbol': market['id'],
-        }, params))
-        return self.parse_trades(response, market, since, limit)
+        }
+        if since is not None:
+            request['startTime'] = self.iso8601(since)
+        if limit is not None:
+            request['count'] = limit
+        response = await self.publicGetTrade(self.extend(request, params))
+        return self.parse_trades(response, market)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
-        order = {
+        request = {
             'symbol': self.market_id(symbol),
             'side': self.capitalize(side),
             'orderQty': amount,
             'ordType': self.capitalize(type),
         }
         if type == 'limit':
-            order['price'] = price
-        response = await self.privatePostOrder(self.extend(order, params))
-        return {
-            'info': response,
-            'id': response['orderID'],
+            request['price'] = price
+        response = await self.privatePostOrder(self.extend(request, params))
+        order = self.parse_order(response)
+        id = order['id']
+        self.orders[id] = order
+        return self.extend({'info': response}, order)
+
+    async def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
+        await self.load_markets()
+        request = {
+            'orderID': id,
         }
+        if amount is not None:
+            request['orderQty'] = amount
+        if price is not None:
+            request['price'] = price
+        response = await self.privatePutOrder(self.extend(request, params))
+        order = self.parse_order(response)
+        self.orders[order['id']] = order
+        return self.extend({'info': response}, order)
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        response = await self.privateDeleteOrder({'orderID': id})
+        response = await self.privateDeleteOrder(self.extend({'orderID': id}, params))
         order = response[0]
         error = self.safe_string(order, 'error')
         if error is not None:
             if error.find('Unable to cancel order due to existing state') >= 0:
                 raise OrderNotFound(self.id + ' cancelOrder() failed: ' + error)
-        return self.parse_order(order)
+        order = self.parse_order(order)
+        self.orders[order['id']] = order
+        return self.extend({'info': response}, order)
 
     def is_fiat(self, currency):
         if currency == 'EUR':

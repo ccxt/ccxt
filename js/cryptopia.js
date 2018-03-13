@@ -328,7 +328,7 @@ module.exports = class cryptopia extends Exchange {
         if (typeof since !== 'undefined') {
             let elapsed = this.milliseconds () - since;
             let hour = 1000 * 60 * 60;
-            hours = parseInt (elapsed / hour);
+            hours = parseInt (Math.ceil (elapsed / hour));
         }
         let request = {
             'id': market['id'],
