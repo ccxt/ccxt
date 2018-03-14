@@ -17,7 +17,6 @@ module.exports = class coinone extends Exchange {
             'version': 'v2',
             'has': {
                 'CORS': true,
-                'fetchTickers': true,
                 'fetchBalance': true,
                 'fetchOrders': true,
                 'fetchMyTrades': true,
