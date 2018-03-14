@@ -249,9 +249,11 @@ module.exports = class bittrex extends Exchange {
     parseTicker (ticker, market = undefined) {
         let timestamp = this.safeString (ticker, 'TimeStamp');
         let iso8601 = undefined;
-        if (typeof timestamp !== 'undefined') {
-            timestamp = this.parse8601 (timestamp);
-            iso8601 = this.iso8601 (timestamp);
+        if (typeof timestamp === 'string') {
+            if (timestamp.length > 0) {
+                timestamp = this.parse8601 (timestamp);
+                iso8601 = this.iso8601 (timestamp);
+            }
         }
         let symbol = undefined;
         if (market)
