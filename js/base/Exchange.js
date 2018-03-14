@@ -729,16 +729,6 @@ module.exports = class Exchange {
         return result
     }
 
-    parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
-        let price = parseFloat (bidask[priceKey])
-        let amount = parseFloat (bidask[amountKey])
-        return [ price, amount ]
-    }
-
-    parseBidsAsks (bidasks, priceKey = 0, amountKey = 1) {
-        return Object.values (bidasks || []).map (bidask => this.parseBidAsk (bidask, priceKey, amountKey))
-    }
-
     async fetchL2OrderBook (symbol, limit = undefined, params = {}) {
         let orderbook = await this.fetchOrderBook (symbol, limit, params)
         return extend (orderbook, {
@@ -747,27 +737,60 @@ module.exports = class Exchange {
         })
     }
 
-    parseOrderBookSeq (orderbook, symbol = undefined, params = {}) {
-        let sec = undefined;
-        if (typeof symbol !== 'undefined') {
-            orderbook = this.safeValue (orderbook, symbol, orderbook);
+    parseOrderBookNonce (orderbook, keys) {
+        let nonce = this.safeInteger (orderbook, keys['nonce'], undefined);
+        if (typeof sec !== 'undefined') {
+            nonce = this.safeInteger (orderbook, keys['timestamp'], undefined);
         }
-        if (typeof orderbook['sec'] !== 'undefined') {
-            sec = this.safeInteger (orderbook, 'sec', sec);
-        } else if (typeof orderbook['timestamp'] !== 'undefined') {
-            sec = this.safeInteger (orderbook, 'timestamp', sec);
+        return nonce;
+    }
+
+    parseOrderBookTimestamp (orderbook, keys) {
+        return this.safeInteger (orderbook, keys['timestamp'], undefined);
+    }
+
+    parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
+        let price = parseFloat (bidask[priceKey])
+        let amount = parseFloat (bidask[amountKey])
+        return [ price, amount ]
+    }
+
+    parseBidsAsks (bidasks, keys) {
+        return Object.values (bidasks || []).map (bidask => this.parseBidAsk (bidask, keys['price'], keys['amount']))
+    }
+
+    parseOrderBookOrders (orderbook, keys) {
+        let bids = (keys['bids'] in orderbook) ? this.parseBidsAsks (orderbook[keys['bids']], keys) : [];
+        let asks = (keys['asks'] in orderbook) ? this.parseBidsAsks (orderbook[keys['asks']], keys) : [];
+        return {
+            'bids': bids,
+            'asks': asks,
+        };
+    }
+
+    orderBookKeyMap () {
+        return {
+            'bids': 'bids',
+            'asks': 'asks',
+            'price': 0,
+            'amount': 0,
+            'timestamp': 'timestamp',
+            'nonce': 'sec',
         }
-        return sec;
     }
 
     parseOrderBook (orderbook, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1) {
-        timestamp = timestamp || this.milliseconds ();
+        let keys = this.orderBookKeyMap ();
+        let time = this.parseOrderBookTimestamp (orderbook, keys);
+        let orders = this.parseOrderBookOrders (orderbook, keys);
+        let sec = this.parseOrderBookNonce (orderbook, keys);
         return {
-            'bids': sortBy ((bidsKey in orderbook) ? this.parseBidsAsks (orderbook[bidsKey], priceKey, amountKey) : [], 0, true),
-            'asks': sortBy ((asksKey in orderbook) ? this.parseBidsAsks (orderbook[asksKey], priceKey, amountKey) : [], 0),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'sec': this.parseOrderBookSeq (orderbook),
+            'bids': sortBy (orders['bids'], 0, true), // sortBy ((bidsKey in orderbook) ? this.parseBidsAsks (orderbook[bidsKey], priceKey, amountKey) : [], 0, true),
+            'asks': sortBy (orders['asks'], 0), // sortBy ((asksKey in orderbook) ? this.parseBidsAsks (orderbook[asksKey], priceKey, amountKey) : [], 0),
+            'timestamp': time,
+            'datetime': this.iso8601 (time),
+            'nonce': sec,
+            'info': orderbook,
         }
     }
 
