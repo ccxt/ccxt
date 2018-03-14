@@ -181,6 +181,12 @@ class Exchange(object):
     last_json_response = None
     last_response_headers = None
 
+    commonCurrencies = {
+        'XBT': 'BTC',
+        'BCC': 'BCH',
+        'DRK': 'DASH',
+    }
+
     def __init__(self, config={}):
 
         self.precision = {} if self.precision is None else self.precision
@@ -791,6 +797,10 @@ class Exchange(object):
         if not self.substituteCommonCurrencyCodes:
             return currency
         return self.safe_string(self.commonCurrencies, currency, currency)
+
+    def currency_id(self, commonCode):
+        currencyIds = {v: k for k, v in self.commonCurrencies.items()}
+        return self.safe_string(currencyIds, commonCode, commonCode)
 
     def precision_from_string(self, string):
         parts = re.sub(r'0+$', '', string).split('.')

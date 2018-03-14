@@ -640,6 +640,16 @@ module.exports = class Exchange {
         return this.safeString (this.commonCurrencies, currency, currency)
     }
 
+    currencyId (commonCode) {
+        let currencyIds = {}
+        let distinct = Object.keys (this.commonCurrencies)
+        for (let i = 0; i < distinct.length; i++) {
+            let k = distinct[i]
+            currencyIds[this.commonCurrencies[k]] = k
+        }
+        return this.safeString (currencyIds, commonCode, commonCode)
+    }
+
     currency (code) {
 
         if (typeof this.currencies === 'undefined')

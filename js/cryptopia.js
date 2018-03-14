@@ -89,24 +89,6 @@ module.exports = class cryptopia extends Exchange {
         });
     }
 
-    currencyId (currency) {  // this can now be changed (but how to in javascript)
-        const currencies = {
-            'AdCoin': 'ACC',
-            'BatCoin': 'BAT',
-            'BlazeCoin': 'BLZ',
-            'CCX': 'CC',
-            'Comet': 'CMT',
-            'Cubits': 'QBT',
-            'Facilecoin': 'FCN',
-            'NetCoin': 'NET',
-            'Bitgem': 'BTG',
-            'FC2': 'FUEL',
-        };
-        if (currency in currencies)
-            return currencies[currency];
-        return currency;
-    }
-
     async fetchMarkets () {
         let response = await this.publicGetGetTradePairs ();
         let result = [];

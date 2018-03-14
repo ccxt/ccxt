@@ -87,31 +87,6 @@ module.exports = class yobit extends liqui {
         });
     }
 
-    currencyId (commonCode) {
-        let substitutions = {
-            'AirCoin': 'AIR',
-            'ANICoin': 'ANI',
-            'AntsCoin': 'ANT',
-            'Autumncoin': 'ATM',
-            'BCH': 'BCC',
-            'BitcoinStake': 'BCS',
-            'Bitshares2': 'BTS',
-            'Discount': 'DCT',
-            'DarkGoldCoin': 'DGD',
-            'iCoin': 'ICN',
-            'LiZi': 'LIZI',
-            'LunarCoin': 'LUN',
-            'Midnight': 'MDT',
-            'NavajoCoin': 'NAV',
-            'OMGame': 'OMG',
-            'EPAY': 'PAY',
-            'Republicoin': 'REP',
-        };
-        if (commonCode in substitutions)
-            return substitutions[commonCode];
-        return commonCode;
-    }
-
     parseOrderStatus (status) {
         let statuses = {
             '0': 'open',

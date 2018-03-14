@@ -146,14 +146,6 @@ module.exports = class poloniex extends Exchange {
         };
     }
 
-    currencyId (currency) {  // remove
-        if (currency === 'Bitmark')
-            return 'BTM';
-        if (currency === 'XLM')
-            return 'STR';
-        return currency;
-    }
-
     parseOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
         return [
             ohlcv['date'] * 1000,
