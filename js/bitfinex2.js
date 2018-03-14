@@ -260,12 +260,9 @@ module.exports = class bitfinex2 extends bitfinex {
             'symbol': this.marketId (symbol),
             'precision': 'R0',
         }, params));
-        let timestamp = this.milliseconds ();
         let result = {
             'bids': [],
             'asks': [],
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
         };
         for (let i = 0; i < orderbook.length; i++) {
             let order = orderbook[i];
@@ -275,9 +272,10 @@ module.exports = class bitfinex2 extends bitfinex {
             amount = Math.abs (amount);
             result[side].push ([ price, amount ]);
         }
-        result['bids'] = this.sortBy (result['bids'], 0, true);
-        result['asks'] = this.sortBy (result['asks'], 0);
-        return result;
+        // TODO: remove doble parsing of bidasks (above and inside this.parseOrderBook)
+        // result['bids'] = this.sortBy (result['bids'], 0, true);
+        // result['asks'] = this.sortBy (result['asks'], 0);
+        return this.parseOrderBook (result);
     }
 
     parseTicker (ticker, market = undefined) {

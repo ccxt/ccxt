@@ -207,12 +207,9 @@ module.exports = class bitmex extends Exchange {
         let orderbook = await this.publicGetOrderBookL2 (this.extend ({
             'symbol': this.marketId (symbol),
         }, params));
-        let timestamp = this.milliseconds ();
         let result = {
             'bids': [],
             'asks': [],
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
         };
         for (let o = 0; o < orderbook.length; o++) {
             let order = orderbook[o];
@@ -221,9 +218,7 @@ module.exports = class bitmex extends Exchange {
             let price = order['price'];
             result[side].push ([ price, amount ]);
         }
-        result['bids'] = this.sortBy (result['bids'], 0, true);
-        result['asks'] = this.sortBy (result['asks'], 0);
-        return result;
+        return this.parseOrder (result);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

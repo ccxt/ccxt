@@ -98,7 +98,7 @@ module.exports = class paymium extends Exchange {
             'id': this.marketId (symbol),
         }, params));
         let result = this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'amount');
-        result['bids'] = this.sortBy (result['bids'], 0, true);
+        // result['bids'] = this.sortBy (result['bids'], 0, true); // double sorting (see this.parseOrderBook impl.)
         return result;
     }
 

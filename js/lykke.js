@@ -316,7 +316,6 @@ module.exports = class lykke extends Exchange {
             'bids': [],
             'asks': [],
         };
-        let timestamp = undefined;
         for (let i = 0; i < response.length; i++) {
             let side = response[i];
             if (side['IsBuy']) {
@@ -331,8 +330,6 @@ module.exports = class lykke extends Exchange {
                 orderbook['timestamp'] = Math.max (orderbook['timestamp'], timestamp);
             }
         }
-        if (!timestamp)
-            timestamp = this.milliseconds ();
         return this.parseOrderBook (orderbook, orderbook['timestamp'], 'bids', 'asks', 'Price', 'Volume');
     }
 

@@ -107,7 +107,7 @@ module.exports = class vaultoro extends Exchange {
             'asks': response['data'][1]['s'],
         };
         let result = this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'Gold_Price', 'Gold_Amount');
-        result['bids'] = this.sortBy (result['bids'], 0, true);
+        // result['bids'] = this.sortBy (result['bids'], 0, true); // double sorting (see this.parseOrderBook impl.)
         return result;
     }
 

@@ -148,12 +148,12 @@ module.exports = class _1broker extends Exchange {
         let askPrice = parseFloat (orderbook['ask']);
         let bid = [ bidPrice, undefined ];
         let ask = [ askPrice, undefined ];
-        return {
+        return this.parseOrderBook ({
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'bids': [ bid ],
             'asks': [ ask ],
-        };
+        }, timestamp);
     }
 
     async fetchTrades (symbol) {

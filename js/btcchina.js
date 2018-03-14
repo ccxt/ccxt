@@ -147,7 +147,7 @@ module.exports = class btcchina extends Exchange {
         let orderbook = await this[method] (this.extend (request, params));
         let timestamp = orderbook['date'] * 1000;
         let result = this.parseOrderBook (orderbook, timestamp);
-        result['asks'] = this.sortBy (result['asks'], 0);
+        // result['asks'] = this.sortBy (result['asks'], 0); // double sorting (see this.parseOrderBook impl.)
         return result;
     }
 

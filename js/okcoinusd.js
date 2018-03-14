@@ -234,13 +234,7 @@ module.exports = class okcoinusd extends Exchange {
         }
         method += 'Depth';
         let orderbook = await this[method] (this.extend (request, params));
-        let timestamp = this.milliseconds ();
-        return {
-            'bids': orderbook['bids'],
-            'asks': this.sortBy (orderbook['asks'], 0),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-        };
+        return this.parseOrderBook (orderbook);
     }
 
     parseTicker (ticker, market = undefined) {

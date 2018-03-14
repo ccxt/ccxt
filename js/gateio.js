@@ -157,7 +157,7 @@ module.exports = class gateio extends Exchange {
             'id': this.marketId (symbol),
         }, params));
         let result = this.parseOrderBook (orderbook);
-        result['asks'] = this.sortBy (result['asks'], 0);
+        // result['asks'] = this.sortBy (result['asks'], 0); // double sorting (see this.parseOrderBook impl.)
         return result;
     }
 
