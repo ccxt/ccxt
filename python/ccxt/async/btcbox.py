@@ -4,7 +4,15 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async.base.exchange import Exchange
+import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import InvalidNonce
 
 
 class btcbox (Exchange):
@@ -47,6 +55,17 @@ class btcbox (Exchange):
             },
             'markets': {
                 'BTC/JPY': {'id': 'BTC/JPY', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY'},
+            },
+            'exceptions': {
+                '104': AuthenticationError,
+                '105': PermissionDenied,
+                '106': InvalidNonce,
+                '107': InvalidOrder,
+                '200': InsufficientFunds,
+                '201': InvalidOrder,
+                '202': InvalidOrder,
+                '203': OrderNotFound,
+                '402': DDoSProtection,
             },
         })
 
@@ -180,6 +199,69 @@ class btcbox (Exchange):
             'id': id,
         }, params))
 
+    def parse_order(self, order):
+        # {"id":11,"datetime":"2014-10-21 10:47:20","type":"sell","price":42000,"amount_original":1.2,"amount_outstanding":1.2,"status":"closed","trades":[]}
+        id = self.safe_string(order, 'id')
+        timestamp = self.parse8601(order['datetime'])
+        amount = self.safe_float(order, 'amount_original')
+        remaining = self.safe_float(order, 'amount_outstanding')
+        filled = None
+        if amount is not None:
+            if remaining is not None:
+                filled = amount - remaining
+        price = self.safe_float(order, 'price')
+        cost = None
+        if price is not None:
+            if filled is not None:
+                cost = filled * price
+        statuses = {
+            # TODO: complete list
+            'closed': 'closed',
+            'cancelled': 'canceled',
+        }
+        status = None
+        if order['status'] in statuses:
+            status = statuses[order['status']]
+        trades = None  # todo: self.parse_trades(order['trades'])
+        return {
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'amount': amount,
+            'remaining': remaining,
+            'filled': filled,
+            'side': order['type'],
+            'type': None,
+            'status': status,
+            'symbol': None,
+            'price': price,
+            'cost': cost,
+            'trades': trades,
+            'fee': None,
+            'info': order,
+        }
+
+    async def fetch_order(self, id, symbol=None, params={}):
+        await self.load_markets()
+        response = await self.privatePostTradeView(self.extend({
+            'id': id,
+        }, params))
+        return self.parse_order(response)
+
+    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        response = await self.privatePostTradeList(self.extend({
+            'type': 'all',  # 'open' or 'all'
+        }, params))
+        return self.parse_orders(response)
+
+    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        response = await self.privatePostTradeList(self.extend({
+            'type': 'open',  # 'open' or 'all'
+        }, params))
+        return self.parse_orders(response)
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + path
         if api == 'public':
@@ -201,9 +283,19 @@ class btcbox (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = await self.fetch2(path, api, method, params, headers, body)
-        if 'result' in response:
-            if not response['result']:
-                raise ExchangeError(self.id + ' ' + self.json(response))
-        return response
+    def handle_errors(self, httpCode, reason, url, method, headers, body):
+        # typical error response: {"result":false,"code":"401"}
+        if httpCode >= 400:
+            return  # resort to defaultErrorHandler
+        if body[0] != '{':
+            return  # not json, resort to defaultErrorHandler
+        response = json.loads(body)
+        result = self.safe_value(response, 'result')
+        if result is None or result is True:
+            return  # either public API(no error codes expected) or success
+        errorCode = self.safe_value(response, 'code')
+        feedback = self.id + ' ' + self.json(response)
+        exceptions = self.exceptions
+        if errorCode in exceptions:
+            raise exceptions[errorCode](feedback)
+        raise ExchangeError(feedback)  # unknown message
