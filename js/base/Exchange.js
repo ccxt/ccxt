@@ -729,6 +729,10 @@ module.exports = class Exchange {
         return result
     }
 
+    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
+        throw new NotSupported (this.id + ' performOrderBookRequest not supported yet');
+    }
+
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let orderbook = await this.performOrderBookRequest (symbol, limit, params);
         let keys = this.extend (this.orderBookDefaultKeys (), this.orderBookKeyMap ());
