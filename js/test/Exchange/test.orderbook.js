@@ -34,6 +34,7 @@ module.exports = (exchange, orderbook, method, symbol) => {
         'timestamp': 1234567890,
         'datetime': '2017-09-01T00:00:00',
         'nonce': 134234234,
+        'info': {},
     }
 
     expect (orderbook).to.have.all.keys (format)
