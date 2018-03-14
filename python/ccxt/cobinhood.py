@@ -49,10 +49,6 @@ class cobinhood (Exchange):
                     'web': 'https://api.cobinhood.com/v1',
                     'ws': 'wss://feed.cobinhood.com',
                 },
-                'test': {
-                    'web': 'https://sandbox-api.cobinhood.com',
-                    'ws': 'wss://sandbox-feed.cobinhood.com',
-                },
                 'www': 'https://cobinhood.com',
                 'doc': 'https://cobinhood.github.io/api-public',
             },

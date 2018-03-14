@@ -454,7 +454,7 @@ module.exports = class coinegg extends Exchange {
                 'key': this.apiKey,
                 'nonce': this.nonce (),
             }, query));
-            let secret = this.hash (this.secret);
+            let secret = this.hash (this.encode (this.secret));
             let signature = this.hmac (this.encode (query), this.encode (secret));
             query += '&' + 'signature=' + signature;
             if (method === 'GET') {

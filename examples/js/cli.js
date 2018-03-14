@@ -37,6 +37,7 @@ const scrapeCloudflareHttpHeaderCookie = (url) =>
 
 			if (error) {
 
+                log.red ('Cloudscraper error')
 				reject (error)
 
 			} else {

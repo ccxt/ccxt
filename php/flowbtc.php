@@ -70,7 +70,7 @@ class flowbtc extends Exchange {
             $base = $market['product1Label'];
             $quote = $market['product2Label'];
             $symbol = $base . '/' . $quote;
-            $result[] = array (
+            $result[$symbol] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
