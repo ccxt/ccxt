@@ -208,6 +208,7 @@ module.exports = class cryptopia extends Exchange {
         }, params));
         let orderbooks = response['Data'];
         let result = {};
+        let keys = this.orderBookKeys ();
         for (let i = 0; i < orderbooks.length; i++) {
             let orderbook = orderbooks[i];
             let id = this.safeInteger (orderbook, 'TradePairId');
@@ -216,7 +217,7 @@ module.exports = class cryptopia extends Exchange {
                 let market = this.markets_by_id[id];
                 symbol = market['symbol'];
             }
-            result[symbol] = this.parseOrderBook (orderbook, undefined, 'Buy', 'Sell', 'Price', 'Volume');
+            result[symbol] = this.parseOrderBook (orderbook, keys);
         }
         return result;
     }

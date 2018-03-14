@@ -217,7 +217,7 @@ module.exports = class bitmex extends Exchange {
         };
         for (let o = 0; o < orderbook.length; o++) {
             let order = orderbook[o];
-            let side = (order['side'] === 'Sell') ? keys['asks'] : keys['bids'];
+            let side = (order['side'] === 'Sell') ? 'asks' : 'bids';
             let amount = order[keys['amount']];
             let price = order[keys['price']];
             result[side].push ([ price, amount ]);
@@ -227,6 +227,7 @@ module.exports = class bitmex extends Exchange {
 
     orderBookKeyMap () {
         return {
+            'price': 'price',
             'amount': 'size',
         };
     }

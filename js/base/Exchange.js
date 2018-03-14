@@ -735,7 +735,7 @@ module.exports = class Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let orderbook = await this.performOrderBookRequest (symbol, limit, params);
-        let keys = this.extend (this.orderBookDefaultKeys (), this.orderBookKeyMap ());
+        let keys = this.orderBookKeys ();
         return this.parseOrderBook (orderbook, keys)
     }
 
@@ -778,8 +778,12 @@ module.exports = class Exchange {
         };
     }
 
-    orderBookDefaultKeys () {
-        return {
+    orderBookKeyMap () {
+        return {};
+    }
+
+    orderBookKeys () {
+        let orderBookDefaultKeys = {
             'bids': 'bids',
             'asks': 'asks',
             'price': 0,
@@ -787,10 +791,7 @@ module.exports = class Exchange {
             'timestamp': 'timestamp',
             'nonce': 'sec',
         };
-    }
-
-    orderBookKeyMap () {
-        return {};
+        return this.extend (orderBookDefaultKeys, this.orderBookKeyMap ());
     }
 
     parseOrderBook (orderbook, keys) {

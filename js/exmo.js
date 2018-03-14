@@ -168,7 +168,7 @@ module.exports = class exmo extends Exchange {
         // });
     }
 
-    orderBookDefaultKeys () {
+    orderBookKeyMap () {
         return {
             'bids': 'bid',
             'asks': 'ask',
@@ -194,10 +194,11 @@ module.exports = class exmo extends Exchange {
         }, params));
         let result = {};
         ids = Object.keys (response);
+        let keys = this.orderBookKeys ();
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
             let symbol = this.findSymbol (id);
-            result[symbol] = this.parseOrderBook (response[id], undefined, 'bid', 'ask');
+            result[symbol] = this.parseOrderBook (response[id], keys);
         }
         return result;
     }

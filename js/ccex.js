@@ -198,9 +198,10 @@ module.exports = class ccex extends Exchange {
         }
         let result = {};
         let keys = Object.keys (orderbooks);
+        let keys = this.orderBookKeys ();
         for (let k = 0; k < keys.length; k++) {
             let key = keys[k];
-            result[key] = this.parseOrderBook (orderbooks[key], undefined, 'buy', 'sell', 'Rate', 'Quantity');
+            result[key] = this.parseOrderBook (orderbooks[key], keys);
         }
         return result;
     }

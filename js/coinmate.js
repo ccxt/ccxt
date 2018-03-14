@@ -99,7 +99,7 @@ module.exports = class coinmate extends Exchange {
         return orderbook;
     }
 
-    orderBookDefaultKeys () {
+    orderBookKeyMap () {
         return {
             'price': 'price',
             'amount': 'amount',
