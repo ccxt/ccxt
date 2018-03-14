@@ -243,7 +243,7 @@ module.exports = class coinone extends Exchange {
             'format': 'json',
         }, params));
         let trades = result['completeOrders'];
-        return this.parseTrades (trades, symbol);
+        return this.parseTrades (trades, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
