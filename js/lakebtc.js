@@ -107,7 +107,7 @@ module.exports = class lakebtc extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetBcorderbook (this.extend ({
             'symbol': this.marketId (symbol),

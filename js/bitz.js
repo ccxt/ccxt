@@ -224,7 +224,7 @@ module.exports = class bitz extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.publicGetDepth (this.extend ({
             'coin': this.marketId (symbol),

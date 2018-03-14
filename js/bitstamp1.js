@@ -75,7 +75,7 @@ module.exports = class bitstamp1 extends Exchange {
         });
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
         if (symbol !== 'BTC/USD')
             throw new ExchangeError (this.id + ' ' + this.version + " fetchOrderBook doesn't support " + symbol + ', use it for BTC/USD only');
         let orderbook = await this.publicGetOrderBook (params);

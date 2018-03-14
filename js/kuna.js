@@ -133,7 +133,7 @@ module.exports = class kuna extends acx {
         return markets;
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let orderBook = await this.publicGetOrderBook (this.extend ({

@@ -68,7 +68,7 @@ module.exports = class btcx extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
         let request = {
             'id': this.marketId (symbol),
         };

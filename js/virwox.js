@@ -133,7 +133,7 @@ module.exports = class virwox extends Exchange {
         };
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {
             'symbols': [ symbol ],

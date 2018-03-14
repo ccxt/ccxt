@@ -135,7 +135,7 @@ module.exports = class btcmarkets extends Exchange {
         return this.parseOHLCVs (response['ticks'], market, timeframe, since, limit);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let orderbook = await this.publicGetMarketIdOrderbook (this.extend ({

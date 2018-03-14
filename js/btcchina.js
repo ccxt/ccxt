@@ -139,7 +139,7 @@ module.exports = class btcchina extends Exchange {
         return request;
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let method = market['api'] + 'GetOrderbook';

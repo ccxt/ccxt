@@ -33,7 +33,7 @@ module.exports = (exchange, orderbook, method, symbol) => {
         'asks': [],
         'timestamp': 1234567890,
         'datetime': '2017-09-01T00:00:00',
-        'sec': 134234234,
+        'nonce': 134234234,
     }
 
     expect (orderbook).to.have.all.keys (format)

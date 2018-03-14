@@ -107,7 +107,7 @@ module.exports = class btctradeua extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
         let market = this.market (symbol);
         let bids = await this.publicGetTradesBuySymbol (this.extend ({
             'symbol': market['id'],

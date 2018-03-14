@@ -78,7 +78,7 @@ module.exports = class coinfloor extends Exchange {
         });
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
         let orderbook = await this.publicGetIdOrderBook (this.extend ({
             'id': this.marketId (symbol),
         }, params));

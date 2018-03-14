@@ -237,7 +237,7 @@ module.exports = class braziliex extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetOrderbookMarket (this.extend ({
             'market': this.marketId (symbol),

@@ -705,7 +705,7 @@ module.exports = class hitbtc2 extends hitbtc {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {
             'symbol': this.marketId (symbol),

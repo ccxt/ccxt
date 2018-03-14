@@ -165,7 +165,7 @@ module.exports = class cryptopia extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.publicGetGetMarketOrdersId (this.extend ({
             'id': this.marketId (symbol),

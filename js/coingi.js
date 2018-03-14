@@ -170,7 +170,7 @@ module.exports = class coingi extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, limit = 512, params = {}) {
+    async performOrderBookRequest (symbol, limit = 512, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let orderbook = await this.currentGetOrderBookPairAskCountBidCountDepth (this.extend ({

@@ -224,7 +224,7 @@ module.exports = class bibox extends Exchange {
         return this.parseTrades (response['result'], market, since, limit);
     }
 
-    async fetchOrderBook (symbol, limit = 200, params = {}) {
+    async performOrderBookRequest (symbol, limit = 200, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {

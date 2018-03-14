@@ -196,7 +196,7 @@ module.exports = class bitstamp extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetOrderBookPair (this.extend ({
             'pair': this.marketId (symbol),

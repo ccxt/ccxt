@@ -137,7 +137,7 @@ module.exports = class _1broker extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privateGetMarketQuotes (this.extend ({
             'symbols': this.marketId (symbol),

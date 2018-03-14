@@ -729,6 +729,12 @@ module.exports = class Exchange {
         return result
     }
 
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        let orderbook = await this.performOrderBookRequest (symbol, limit, params);
+        let keys = this.extend (this.orderBookDefaultKeys (), this.orderBookKeyMap ());
+        return this.parseOrderBook (orderbook, keys)
+    }
+
     async fetchL2OrderBook (symbol, limit = undefined, params = {}) {
         let orderbook = await this.fetchOrderBook (symbol, limit, params)
         return extend (orderbook, {
@@ -783,14 +789,13 @@ module.exports = class Exchange {
         return {};
     }
 
-    parseOrderBook (orderbook, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1) {
-        let keys = this.extend (this.orderBookDefaultKeys (), this.orderBookKeyMap ());
+    parseOrderBook (orderbook, keys) {
         let time = this.parseOrderBookTimestamp (orderbook, keys);
         let orders = this.parseOrderBookOrders (orderbook, keys);
         let sec = this.parseOrderBookNonce (orderbook, keys);
         return {
-            'bids': sortBy (orders['bids'], 0, true), // sortBy ((bidsKey in orderbook) ? this.parseBidsAsks (orderbook[bidsKey], priceKey, amountKey) : [], 0, true),
-            'asks': sortBy (orders['asks'], 0), // sortBy ((asksKey in orderbook) ? this.parseBidsAsks (orderbook[asksKey], priceKey, amountKey) : [], 0),
+            'bids': sortBy (orders['bids'], 0, true),
+            'asks': sortBy (orders['asks'], 0),
             'timestamp': time,
             'datetime': this.iso8601 (time),
             'nonce': sec,

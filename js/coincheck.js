@@ -114,7 +114,7 @@ module.exports = class coincheck extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
         if (symbol !== 'BTC/JPY')
             throw new NotSupported (this.id + ' fetchOrderBook () supports BTC/JPY only');
         let orderbook = await this.publicGetOrderBooks (params);
