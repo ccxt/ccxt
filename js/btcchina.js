@@ -145,8 +145,6 @@ module.exports = class btcchina extends Exchange {
         let method = market['api'] + 'GetOrderbook';
         let request = this.createMarketRequest (market);
         let orderbook = await this[method] (this.extend (request, params));
-        // let result = this.parseOrderBook (orderbook, timestamp);
-        // result['asks'] = this.sortBy (result['asks'], 0); // double sorting (see this.parseOrderBook impl.)
         return orderbook;
     }
 
