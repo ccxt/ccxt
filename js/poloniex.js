@@ -121,6 +121,10 @@ module.exports = class poloniex extends Exchange {
                 'amount': 8,
                 'price': 8,
             },
+            'commonCurrencies': {
+                'BTM': 'Bitmark',
+                'STR': 'XLM',
+            },
         });
     }
 
@@ -142,15 +146,7 @@ module.exports = class poloniex extends Exchange {
         };
     }
 
-    commonCurrencyCode (currency) {
-        if (currency === 'BTM')
-            return 'Bitmark';
-        if (currency === 'STR')
-            return 'XLM';
-        return currency;
-    }
-
-    currencyId (currency) {
+    currencyId (currency) {  // remove
         if (currency === 'Bitmark')
             return 'BTM';
         if (currency === 'XLM')

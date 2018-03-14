@@ -73,29 +73,23 @@ module.exports = class cryptopia extends Exchange {
                     ],
                 },
             },
+            'commonCurrencies': {
+                'ACC': 'AdCoin',
+                'BAT': 'BatCoin',
+                'BLZ': 'BlazeCoin',
+                'CC': 'CCX',
+                'CMT': 'Comet',
+                'FCN': 'Facilecoin',
+                'NET': 'NetCoin',
+                'BTG': 'Bitgem',
+                'FUEL': 'FC2', // FuelCoin != FUEL
+                'QBT': 'Cubits',
+                'WRC': 'WarCoin',
+            },
         });
     }
 
-    commonCurrencyCode (currency) {
-        const currencies = {
-            'ACC': 'AdCoin',
-            'BAT': 'BatCoin',
-            'BLZ': 'BlazeCoin',
-            'CC': 'CCX',
-            'CMT': 'Comet',
-            'FCN': 'Facilecoin',
-            'NET': 'NetCoin',
-            'BTG': 'Bitgem',
-            'FUEL': 'FC2', // FuelCoin != FUEL
-            'QBT': 'Cubits',
-            'WRC': 'WarCoin',
-        };
-        if (currency in currencies)
-            return currencies[currency];
-        return currency;
-    }
-
-    currencyId (currency) {
+    currencyId (currency) {  // this can now be changed (but how to in javascript)
         const currencies = {
             'AdCoin': 'ACC',
             'BatCoin': 'BAT',

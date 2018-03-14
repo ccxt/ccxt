@@ -62,35 +62,29 @@ module.exports = class yobit extends liqui {
                     'withdraw': {},
                 },
             },
+            'commonCurrencies': {
+                'AIR': 'AirCoin',
+                'ANI': 'ANICoin',
+                'ANT': 'AntsCoin',
+                'ATM': 'Autumncoin',
+                'BCC': 'BCH',
+                'BCS': 'BitcoinStake',
+                'BTS': 'Bitshares2',
+                'DCT': 'Discount',
+                'DGD': 'DarkGoldCoin',
+                'ICN': 'iCoin',
+                'LIZI': 'LiZi',
+                'LUN': 'LunarCoin',
+                'MDT': 'Midnight',
+                'NAV': 'NavajoCoin',
+                'OMG': 'OMGame',
+                'PAY': 'EPAY',
+                'REP': 'Republicoin',
+            },
             'options': {
                 'fetchOrdersRequiresSymbol': true,
             },
         });
-    }
-
-    commonCurrencyCode (currency) {
-        let substitutions = {
-            'AIR': 'AirCoin',
-            'ANI': 'ANICoin',
-            'ANT': 'AntsCoin',
-            'ATM': 'Autumncoin',
-            'BCC': 'BCH',
-            'BCS': 'BitcoinStake',
-            'BTS': 'Bitshares2',
-            'DCT': 'Discount',
-            'DGD': 'DarkGoldCoin',
-            'ICN': 'iCoin',
-            'LIZI': 'LiZi',
-            'LUN': 'LunarCoin',
-            'MDT': 'Midnight',
-            'NAV': 'NavajoCoin',
-            'OMG': 'OMGame',
-            'PAY': 'EPAY',
-            'REP': 'Republicoin',
-        };
-        if (currency in substitutions)
-            return substitutions[currency];
-        return currency;
     }
 
     currencyId (commonCode) {
