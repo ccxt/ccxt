@@ -53,7 +53,8 @@ module.exports = (exchange, orderbook, method, symbol) => {
 
     if (exchange.id !== 'xbtce')
         if (bids.length && asks.length)
-            assert (bids[0][0] <= asks[0][0])
+            assert (bids[0][0] <= asks[0][0],
+                `bids[0][0]: ${bids[0][0]} (of ${bids.length}); asks[0][0]:${asks[0][0]} (of ${asks.length})`)
 
     printOrderBookOneLiner (orderbook, method, symbol)
 }
