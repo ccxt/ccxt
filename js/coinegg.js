@@ -48,10 +48,8 @@ module.exports = class coinegg extends Exchange {
                     ],
                 },
                 'private': {
-                    'get': [
-                        'balance',
-                    ],
                     'post': [
+                        'balance',
                         'trade_add/{quote}',
                         'trade_cancel/{quote}',
                         'trade_view/{quote}',
@@ -297,7 +295,7 @@ module.exports = class coinegg extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let balances = await this.privateGetBalance (params);
+        let balances = await this.privatePostBalance (params);
         let result = { 'info': balances };
         balances = this.omit (balances['data'], 'uid');
         let rows = Object.keys (balances);
@@ -502,7 +500,7 @@ module.exports = class coinegg extends Exchange {
                         if (error in this.exceptions) {
                             throw new this.exceptions[error] (this.id + ' ' + message);
                         } else {
-                            throw new ExchangeError (this.id + message);
+                            throw new ExchangeError (this.id + ' ' + message);
                         }
                     }
                 }
