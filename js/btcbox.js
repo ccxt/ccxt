@@ -205,12 +205,18 @@ module.exports = class btcbox extends Exchange {
     parseOrder (order) {
         // {"id":11,"datetime":"2014-10-21 10:47:20","type":"sell","price":42000,"amount_original":1.2,"amount_outstanding":1.2,"status":"closed","trades":[]}
         const id = this.safeString (order, 'id');
-        const datetime = order['datetime'];
-        const timestamp = this.parse8601 (datetime);
+        const timestamp = this.parse8601 (order['datetime']);
         const amount = this.safeFloat (order, 'amount_original');
         const remaining = this.safeFloat (order, 'amount_outstanding');
-        const filled = amount - remaining;
+        let filled = undefined;
+        if (typeof amount !== 'undefined')
+            if (typeof remaining !== 'undefined')
+                filled = amount - remaining;
         const price = this.safeFloat (order, 'price');
+        let cost = undefined;
+        if (typeof price !== 'undefined')
+            if (typeof filled !== 'undefined')
+                cost = filled * price;
         const statuses = {
             // TODO: complete list
             'closed': 'closed',
@@ -219,10 +225,11 @@ module.exports = class btcbox extends Exchange {
         let status = undefined;
         if (order['status'] in statuses)
             status = statuses[order['status']];
+        let trades = undefined; // todo: this.parseTrades (order['trades']);
         return {
             'id': id,
             'timestamp': timestamp,
-            'datetime': datetime,
+            'datetime': this.iso8601 (timestamp),
             'amount': amount,
             'remaining': remaining,
             'filled': filled,
@@ -231,8 +238,8 @@ module.exports = class btcbox extends Exchange {
             'status': status,
             'symbol': undefined,
             'price': price,
-            'cost': filled * price,
-            'trades': order['trades'],
+            'cost': cost,
+            'trades': trades,
             'fee': undefined,
             'info': order,
         };
@@ -250,7 +257,7 @@ module.exports = class btcbox extends Exchange {
         await this.loadMarkets ();
         let response = await this.privatePostTradeList (this.extend ({
             'type': 'all', // 'open' or 'all'
-        }));
+        }, params));
         return this.parseOrders (response);
     }
 
@@ -258,7 +265,7 @@ module.exports = class btcbox extends Exchange {
         await this.loadMarkets ();
         let response = await this.privatePostTradeList (this.extend ({
             'type': 'open', // 'open' or 'all'
-        }));
+        }, params));
         return this.parseOrders (response);
     }
 
