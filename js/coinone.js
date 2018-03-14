@@ -160,7 +160,9 @@ module.exports = class coinone extends Exchange {
     async fetchBalance (params = {}) {
         let res = await this.privateGetV2AccountBalance ();
         let result = { 'info': res };
-        Object.values (this.markets).forEach ((mrk) => {
+        let f = Object.keys (this.markets);
+        for (let i = 0; i < f.length; i++) {
+            let mrk = f[i];
             let id = mrk['id'];
             let symbol = mrk['symbol'];
             if (id in res) {
@@ -172,7 +174,7 @@ module.exports = class coinone extends Exchange {
                 };
                 result[symbol] = account;
             }
-        });
+        }
         return this.parseBalance (result);
     }
 
@@ -263,7 +265,7 @@ module.exports = class coinone extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
-            let payload = this.stringToBase64 (JSON.stringify ({ 'access_token': this.apiKey, 'nonce': nonce }));
+            let payload = this.stringToBase64 (this.json ({ 'access_token': this.apiKey, 'nonce': nonce }));
             body = payload;
             let signature = this.hmac (payload, this.encode (this.secret.toUpperCase ()), 'sha512', 'hex');
             headers = {
