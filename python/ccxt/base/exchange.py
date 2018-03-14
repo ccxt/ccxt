@@ -790,13 +790,7 @@ class Exchange(object):
     def common_currency_code(self, currency):
         if not self.substituteCommonCurrencyCodes:
             return currency
-        if currency == 'XBT':
-            return 'BTC'
-        if currency == 'BCC':
-            return 'BCH'
-        if currency == 'DRK':
-            return 'DASH'
-        return currency
+        return self.safe_string(self.commonCurrencies, currency, currency)
 
     def precision_from_string(self, string):
         parts = re.sub(r'0+$', '', string).split('.')

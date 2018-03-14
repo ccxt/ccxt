@@ -1525,14 +1525,8 @@ abstract class Exchange {
 
     public function common_currency_code ($currency) {
         if (!$this->substituteCommonCurrencyCodes)
-            return $currency;
-        if ($currency == 'XBT')
-            return 'BTC';
-        if ($currency == 'BCC')
-            return 'BCH';
-        if ($currency == 'DRK')
-            return 'DASH';
-        return $currency;
+            return $currency
+        return $this->safe_string($this->commonCurrencies, $currency, $currency)
     }
 
     public function precision_from_string ($string) {
