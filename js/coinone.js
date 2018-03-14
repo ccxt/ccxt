@@ -168,7 +168,7 @@ module.exports = class coinone extends Exchange {
                 let account = {
                     'free': parseFloat (balance['avail']),
                     'used': parseFloat (balance['balance']) - parseFloat (balance['avail']),
-                    'total': parseFloat (balance['balance'])
+                    'total': parseFloat (balance['balance']),
                 };
                 result[symbol] = account;
             }
