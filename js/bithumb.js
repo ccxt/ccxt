@@ -140,8 +140,18 @@ module.exports = class bithumb extends Exchange {
             request['count'] = limit; // max = 50
         let response = await this.publicGetOrderbookCurrency (this.extend (request, params));
         let orderbook = response['data'];
-        let timestamp = parseInt (orderbook['timestamp']);
-        return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 'price', 'quantity');
+        return orderbook;
+    }
+
+    parseOrderBookTimestamp (orderbook, keys) {
+        return parseInt (orderbook[keys['timestamp']]);
+    }
+
+    orderBookKeyMap () {
+        return {
+            'price': 'price',
+            'amount': 'quantity',
+        };
     }
 
     parseTicker (ticker, market = undefined) {

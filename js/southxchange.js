@@ -108,7 +108,16 @@ module.exports = class southxchange extends Exchange {
         let orderbook = await this.publicGetBookSymbol (this.extend ({
             'symbol': this.marketId (symbol),
         }, params));
-        return this.parseOrderBook (orderbook, undefined, 'BuyOrders', 'SellOrders', 'Price', 'Amount');
+        return orderbook;
+    }
+
+    orderBookKeyMap () {
+        return {
+            'bids': 'BuyOrders',
+            'asks': 'SellOrders',
+            'price': 'Price',
+            'amount': 'Amount',
+        };
     }
 
     parseTicker (ticker, market = undefined) {

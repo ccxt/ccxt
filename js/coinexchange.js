@@ -682,7 +682,16 @@ module.exports = class coinexchange extends Exchange {
         let orderbook = await this.publicGetGetorderbook (this.extend ({
             'market_id': this.marketId (symbol),
         }, params));
-        return this.parseOrderBook (orderbook['result'], undefined, 'BuyOrders', 'SellOrders', 'Price', 'Quantity');
+        return orderbook['result'];
+    }
+
+    orderBookDefaultKeys () {
+        return {
+            'bids': 'BuyOrders',
+            'asks': 'SellOrders',
+            'price': 'Price',
+            'amount': 'Quantity',
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

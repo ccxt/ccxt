@@ -92,9 +92,9 @@ module.exports = class btcbox extends Exchange {
         if (numSymbols > 1)
             request['coin'] = market['id'];
         let orderbook = await this.publicGetDepth (this.extend (request, params));
-        let result = this.parseOrderBook (orderbook);
+        // let result = this.parseOrderBook (orderbook);
         // result['asks'] = this.sortBy (result['asks'], 0); // double sorting (see this.parseOrderBook impl.)
-        return result;
+        return orderbook;
     }
 
     parseTicker (ticker, market = undefined) {

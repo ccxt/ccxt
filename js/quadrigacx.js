@@ -97,8 +97,11 @@ module.exports = class quadrigacx extends Exchange {
         let orderbook = await this.publicGetOrderBook (this.extend ({
             'book': this.marketId (symbol),
         }, params));
-        let timestamp = parseInt (orderbook['timestamp']) * 1000;
-        return this.parseOrderBook (orderbook, timestamp);
+        return orderbook;
+    }
+
+    parseOrderBookTimestamp (orderbook, keys) {
+        return parseInt (orderbook[keys['timestamp']]) * 1000;
     }
 
     async fetchTicker (symbol, params = {}) {

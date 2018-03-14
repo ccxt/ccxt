@@ -768,7 +768,7 @@ module.exports = class Exchange {
         };
     }
 
-    orderBookKeyMap () {
+    orderBookDefaultKeys () {
         return {
             'bids': 'bids',
             'asks': 'asks',
@@ -776,11 +776,15 @@ module.exports = class Exchange {
             'amount': 0,
             'timestamp': 'timestamp',
             'nonce': 'sec',
-        }
+        };
+    }
+
+    orderBookKeyMap () {
+        return {};
     }
 
     parseOrderBook (orderbook, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1) {
-        let keys = this.orderBookKeyMap ();
+        let keys = this.extend (this.orderBookDefaultKeys (), this.orderBookKeyMap ());
         let time = this.parseOrderBookTimestamp (orderbook, keys);
         let orders = this.parseOrderBookOrders (orderbook, keys);
         let sec = this.parseOrderBookNonce (orderbook, keys);

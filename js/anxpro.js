@@ -101,9 +101,22 @@ module.exports = class anxpro extends Exchange {
             'currency_pair': this.marketId (symbol),
         }, params));
         let orderbook = response['data'];
-        let t = parseInt (orderbook['dataUpdateTime']);
-        let timestamp = parseInt (t / 1000);
-        return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 'price', 'amount');
+        return orderbook;
+    }
+
+    orderBookKeyMap () {
+        return {
+            'bids': 'bids',
+            'asks': 'asks',
+            'price': 'price',
+            'amount': 'amount',
+            'timestamp': 'dataUpdateTime',
+        };
+    }
+
+    parseOrderBookTimestamp (orderbook, keys) {
+        let time = parseInt (orderbook[keys['timestamp']]);
+        return parseInt (time / 1000);
     }
 
     async fetchTicker (symbol, params = {}) {

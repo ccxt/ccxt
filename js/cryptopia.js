@@ -171,7 +171,16 @@ module.exports = class cryptopia extends Exchange {
             'id': this.marketId (symbol),
         }, params));
         let orderbook = response['Data'];
-        return this.parseOrderBook (orderbook, undefined, 'Buy', 'Sell', 'Price', 'Volume');
+        return orderbook;
+    }
+
+    orderBookDefaultKeys () {
+        return {
+            'bids': 'Buy',
+            'asks': 'Sell',
+            'price': 'Price',
+            'amount': 'Volume',
+        };
     }
 
     joinMarketIds (ids, glue = '-') {

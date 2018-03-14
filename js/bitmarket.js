@@ -201,7 +201,7 @@ module.exports = class bitmarket extends Exchange {
         let orderbook = await this.publicGetJsonMarketOrderbook (this.extend ({
             'market': this.marketId (symbol),
         }, params));
-        return this.parseOrderBook (orderbook);
+        return orderbook;
     }
 
     async fetchTicker (symbol, params = {}) {

@@ -201,7 +201,14 @@ module.exports = class coinsecure extends Exchange {
             'bids': bids['message'],
             'asks': asks['message'],
         };
-        return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'rate', 'vol');
+        return orderbook;
+    }
+
+    orderBookKeyMap () {
+        return {
+            'price': 'rate',
+            'amount': 'vol',
+        };
     }
 
     async fetchTicker (symbol, params = {}) {

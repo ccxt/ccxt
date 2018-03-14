@@ -251,7 +251,7 @@ module.exports = class poloniex extends Exchange {
         if (typeof limit !== 'undefined')
             request['depth'] = limit; // 100
         let orderbook = await this.publicGetReturnOrderBook (this.extend (request, params));
-        return this.parseOrderBook (orderbook);
+        return orderbook;
     }
 
     parseTicker (ticker, market = undefined) {

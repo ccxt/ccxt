@@ -375,7 +375,14 @@ module.exports = class bitfinex extends Exchange {
             request['limit_asks'] = limit;
         }
         let orderbook = await this.publicGetBookSymbol (this.extend (request, params));
-        return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'amount');
+        return orderbook;
+    }
+
+    orderBookKeyMap () {
+        return {
+            'price': 'price',
+            'amount': 'amount',
+        };
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

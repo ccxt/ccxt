@@ -141,8 +141,11 @@ module.exports = class btcmarkets extends Exchange {
         let orderbook = await this.publicGetMarketIdOrderbook (this.extend ({
             'id': market['id'],
         }, params));
-        let timestamp = orderbook['timestamp'] * 1000;
-        return this.parseOrderBook (orderbook, timestamp);
+        return orderbook;
+    }
+
+    parseOrderBookTimestamp (orderbook, keys) {
+        return orderbook[keys['timestamp']] * 1000;
     }
 
     parseTicker (ticker, market = undefined) {

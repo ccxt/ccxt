@@ -160,12 +160,19 @@ module.exports = class exmo extends Exchange {
             request['limit'] = limit;
         let response = await this.publicGetOrderBook (request);
         let result = response[market['id']];
-        let orderbook = this.parseOrderBook (result, undefined, 'bid', 'ask');
-        return orderbook;
+        return result;
+        // let orderbook = this.parseOrderBook (result, undefined, 'bid', 'ask');
         // return this.extend (orderbook, {
         //     'bids': this.sortBy (orderbook['bids'], 0, true), // double sorting (see this.parseOrderBook impl.)
         //     'asks': this.sortBy (orderbook['asks'], 0), // double sorting (see this.parseOrderBook impl.)
         // });
+    }
+
+    orderBookDefaultKeys () {
+        return {
+            'bids': 'bid',
+            'asks': 'ask',
+        };
     }
 
     async fetchOrderBooks (symbols = undefined, params = {}) {

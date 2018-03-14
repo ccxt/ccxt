@@ -454,7 +454,7 @@ module.exports = class binance extends Exchange {
         if (typeof limit !== 'undefined')
             request['limit'] = limit; // default = maximum = 100
         let orderbook = await this.publicGetDepth (this.extend (request, params));
-        return this.parseOrderBook (orderbook);
+        return orderbook;
     }
 
     parseTicker (ticker, market = undefined) {

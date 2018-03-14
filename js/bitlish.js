@@ -226,11 +226,22 @@ module.exports = class bitlish extends Exchange {
         let orderbook = await this.publicGetTradesDepth (this.extend ({
             'pair_id': this.marketId (symbol),
         }, params));
-        let timestamp = undefined;
-        let last = this.safeInteger (orderbook, 'last');
-        if (last)
-            timestamp = parseInt (last / 1000);
-        return this.parseOrderBook (orderbook, timestamp, 'bid', 'ask', 'price', 'volume');
+        return orderbook;
+    }
+
+    parseOrderBookTimestamp (orderbook, keys) {
+        let last = this.safeInteger (orderbook, keys['timestamp']);
+        return last ? parseInt (last / 1000) : undefined;
+    }
+
+    orderBookKeyMap () {
+        return {
+            'bids': 'bid',
+            'asks': 'ask',
+            'price': 'price',
+            'amount': 'volume',
+            'timestamp': 'last',
+        };
     }
 
     parseTrade (trade, market = undefined) {

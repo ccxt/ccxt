@@ -264,8 +264,7 @@ module.exports = class livecoin extends Exchange {
         if (typeof limit !== 'undefined')
             request['depth'] = limit; // 100
         let orderbook = await this.publicGetExchangeOrderBook (this.extend (request, params));
-        let timestamp = orderbook['timestamp'];
-        return this.parseOrderBook (orderbook, timestamp);
+        return orderbook;
     }
 
     parseTicker (ticker, market = undefined) {

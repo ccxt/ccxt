@@ -156,8 +156,17 @@ module.exports = class xbtce extends Exchange {
             'filter': market['id'],
         }, params));
         orderbook = orderbook[0];
-        let timestamp = orderbook['Timestamp'];
-        return this.parseOrderBook (orderbook, timestamp, 'Bids', 'Asks', 'Price', 'Volume');
+        return orderbook;
+    }
+
+    orderBookKeyMap () {
+        return {
+            'bids': 'Bids',
+            'asks': 'Asks',
+            'price': 'Price',
+            'amount': 'Volume',
+            'timestamp': 'Timestamp',
+        };
     }
 
     parseTicker (ticker, market = undefined) {

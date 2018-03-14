@@ -159,7 +159,7 @@ module.exports = class bitbay extends Exchange {
         let orderbook = await this.publicGetIdOrderbook (this.extend ({
             'id': this.marketId (symbol),
         }, params));
-        return this.parseOrderBook (orderbook);
+        return orderbook;
     }
 
     async fetchTicker (symbol, params = {}) {

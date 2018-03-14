@@ -261,7 +261,14 @@ module.exports = class gatecoin extends Exchange {
         let orderbook = await this.publicGetPublicMarketDepthCurrencyPair (this.extend ({
             'CurrencyPair': market['id'],
         }, params));
-        return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'volume');
+        return orderbook;
+    }
+
+    orderBookKeyMap () {
+        return {
+            'price': 'price',
+            'amount': 'volume',
+        };
     }
 
     parseTicker (ticker, market = undefined) {

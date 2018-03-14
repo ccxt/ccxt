@@ -139,7 +139,14 @@ module.exports = class kuna extends acx {
         let orderBook = await this.publicGetOrderBook (this.extend ({
             'market': market['id'],
         }, params));
-        return this.parseOrderBook (orderBook, undefined, 'bids', 'asks', 'price', 'remaining_volume');
+        return orderBook;
+    }
+
+    orderBookKeyMap () {
+        return {
+            'price': 'price',
+            'amount': 'remaining_volume',
+        };
     }
 
     async fetchL3OrderBook (symbol, limit = undefined, params = {}) {

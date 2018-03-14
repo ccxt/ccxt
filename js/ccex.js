@@ -154,7 +154,16 @@ module.exports = class ccex extends Exchange {
             request['depth'] = limit; // 100
         let response = await this.publicGetOrderbook (this.extend (request, params));
         let orderbook = response['result'];
-        return this.parseOrderBook (orderbook, undefined, 'buy', 'sell', 'Rate', 'Quantity');
+        return orderbook;
+    }
+
+    orderBookDefaultKeys () {
+        return {
+            'bids': 'buy',
+            'asks': 'sell',
+            'price': 'Rate',
+            'amount': 'Quantity',
+        };
     }
 
     async fetchOrderBooks (symbols = undefined, params = {}) {

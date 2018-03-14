@@ -74,7 +74,7 @@ module.exports = class fybse extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let orderbook = await this.publicGetOrderbook (params);
-        return this.parseOrderBook (orderbook);
+        return orderbook;
     }
 
     async fetchTicker (symbol, params = {}) {

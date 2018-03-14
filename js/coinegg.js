@@ -260,7 +260,7 @@ module.exports = class coinegg extends Exchange {
             'coin': market['baseId'],
             'quote': market['quoteId'],
         }, params));
-        return this.parseOrderBook (orderbook);
+        return orderbook;
     }
 
     parseTrade (trade, market = undefined) {

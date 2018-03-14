@@ -96,8 +96,14 @@ module.exports = class coinmate extends Exchange {
             'groupByPriceLimit': 'False',
         }, params));
         let orderbook = response['data'];
-        let timestamp = orderbook['timestamp'] * 1000;
-        return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 'price', 'amount');
+        return orderbook;
+    }
+
+    orderBookDefaultKeys () {
+        return {
+            'price': 'price',
+            'amount': 'amount',
+        };
     }
 
     async fetchTicker (symbol, params = {}) {

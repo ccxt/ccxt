@@ -411,7 +411,7 @@ module.exports = class kraken extends Exchange {
             request['count'] = limit; // 100
         let response = await this.publicGetDepth (this.extend (request, params));
         let orderbook = response['result'][market['id']];
-        return this.parseOrderBook (orderbook);
+        return orderbook;
     }
 
     parseTicker (ticker, market = undefined) {

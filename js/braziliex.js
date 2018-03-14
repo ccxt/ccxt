@@ -242,7 +242,14 @@ module.exports = class braziliex extends Exchange {
         let orderbook = await this.publicGetOrderbookMarket (this.extend ({
             'market': this.marketId (symbol),
         }, params));
-        return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'amount');
+        return orderbook;
+    }
+
+    orderBookKeyMap () {
+        return {
+            'price': 'price',
+            'amount': 'amount',
+        };
     }
 
     parseTrade (trade, market = undefined) {

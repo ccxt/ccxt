@@ -79,8 +79,11 @@ module.exports = class bitstamp1 extends Exchange {
         if (symbol !== 'BTC/USD')
             throw new ExchangeError (this.id + ' ' + this.version + " fetchOrderBook doesn't support " + symbol + ', use it for BTC/USD only');
         let orderbook = await this.publicGetOrderBook (params);
-        let timestamp = parseInt (orderbook['timestamp']) * 1000;
-        return this.parseOrderBook (orderbook, timestamp);
+        return orderbook;
+    }
+
+    parseOrderBookTimestamp (orderbook, keys) {
+        return parseInt (orderbook[keys['timestamp']]) * 1000;
     }
 
     async fetchTicker (symbol, params = {}) {

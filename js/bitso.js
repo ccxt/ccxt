@@ -141,8 +141,19 @@ module.exports = class bitso extends Exchange {
             'book': this.marketId (symbol),
         }, params));
         let orderbook = response['payload'];
-        let timestamp = this.parse8601 (orderbook['updated_at']);
-        return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 'price', 'amount');
+        return orderbook;
+    }
+
+    orderBookKeyMap () {
+        return {
+            'price': 'price',
+            'amount': 'amount',
+            'timestamp': 'updated_at',
+        };
+    }
+
+    parseOrderBookTimestamp (orderbook, keys) {
+        return this.parse8601 (orderbook[keys['timestamp']]);
     }
 
     async fetchTicker (symbol, params = {}) {

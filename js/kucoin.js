@@ -330,7 +330,14 @@ module.exports = class kucoin extends Exchange {
             'symbol': market['id'],
         }, params));
         let orderbook = response['data'];
-        return this.parseOrderBook (orderbook, undefined, 'BUY', 'SELL');
+        return orderbook;
+    }
+
+    orderBookKeyMap () {
+        return {
+            'bids': 'BUY',
+            'asks': 'SELL',
+        };
     }
 
     parseOrder (order, market = undefined) {

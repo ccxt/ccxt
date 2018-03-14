@@ -124,8 +124,14 @@ module.exports = class luno extends Exchange {
         let orderbook = await this.publicGetOrderbook (this.extend ({
             'pair': this.marketId (symbol),
         }, params));
-        let timestamp = orderbook['timestamp'];
-        return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 'price', 'volume');
+        return orderbook;
+    }
+
+    orderBookKeyMap () {
+        return {
+            'price': 'price',
+            'amount': 'volume',
+        };
     }
 
     parseOrder (order, market = undefined) {

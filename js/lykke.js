@@ -330,7 +330,14 @@ module.exports = class lykke extends Exchange {
                 orderbook['timestamp'] = Math.max (orderbook['timestamp'], timestamp);
             }
         }
-        return this.parseOrderBook (orderbook, orderbook['timestamp'], 'bids', 'asks', 'Price', 'Volume');
+        return orderbook;
+    }
+
+    orderBookDefaultKeys () {
+        return {
+            'price': 'Price',
+            'amount': 'Volume',
+        };
     }
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 1) {

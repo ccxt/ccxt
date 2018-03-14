@@ -574,7 +574,7 @@ module.exports = class hitbtc extends Exchange {
         let orderbook = await this.publicGetSymbolOrderbook (this.extend ({
             'symbol': this.marketId (symbol),
         }, params));
-        return this.parseOrderBook (orderbook);
+        return orderbook;
     }
 
     parseTicker (ticker, market = undefined) {

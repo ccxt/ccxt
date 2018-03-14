@@ -207,18 +207,28 @@ module.exports = class bitmex extends Exchange {
         let orderbook = await this.publicGetOrderBookL2 (this.extend ({
             'symbol': this.marketId (symbol),
         }, params));
+        return orderbook;
+    }
+
+    parseOrderBookOrders (orderbook, keys) {
         let result = {
             'bids': [],
             'asks': [],
         };
         for (let o = 0; o < orderbook.length; o++) {
             let order = orderbook[o];
-            let side = (order['side'] === 'Sell') ? 'asks' : 'bids';
-            let amount = order['size'];
-            let price = order['price'];
+            let side = (order['side'] === 'Sell') ? keys['asks'] : keys['bids'];
+            let amount = order[keys['amount']];
+            let price = order[keys['price']];
             result[side].push ([ price, amount ]);
         }
-        return this.parseOrder (result);
+        return result;
+    }
+
+    orderBookKeyMap () {
+        return {
+            'amount': 'size',
+        };
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

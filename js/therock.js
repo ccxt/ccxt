@@ -143,8 +143,19 @@ module.exports = class therock extends Exchange {
         let orderbook = await this.publicGetFundsIdOrderbook (this.extend ({
             'id': this.marketId (symbol),
         }, params));
-        let timestamp = this.parse8601 (orderbook['date']);
-        return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 'price', 'amount');
+        return orderbook;
+    }
+
+    parseOrderBookTimestamp (orderbook, keys) {
+        return this.parse8601 (orderbook[keys['timestamp']]);
+    }
+
+    orderBookKeyMap () {
+        return {
+            'price': 'price',
+            'amount': 'amount',
+            'timestamp': 'date',
+        };
     }
 
     parseTicker (ticker, market = undefined) {

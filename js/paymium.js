@@ -97,9 +97,16 @@ module.exports = class paymium extends Exchange {
         let orderbook = await this.publicGetDataIdDepth (this.extend ({
             'id': this.marketId (symbol),
         }, params));
-        let result = this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'amount');
+        // let result = this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'amount');
         // result['bids'] = this.sortBy (result['bids'], 0, true); // double sorting (see this.parseOrderBook impl.)
-        return result;
+        return orderbook;
+    }
+
+    orderBookKeyMap () {
+        return {
+            'price': 'price',
+            'amount': 'amount',
+        };
     }
 
     async fetchTicker (symbol, params = {}) {

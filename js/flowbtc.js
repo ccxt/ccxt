@@ -107,7 +107,14 @@ module.exports = class flowbtc extends Exchange {
         let orderbook = await this.publicPostGetOrderBook (this.extend ({
             'productPair': market['id'],
         }, params));
-        return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'px', 'qty');
+        return orderbook;
+    }
+
+    orderBookKeyMap () {
+        return {
+            'price': 'px',
+            'amount': 'qty',
+        };
     }
 
     async fetchTicker (symbol, params = {}) {

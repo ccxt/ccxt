@@ -145,10 +145,19 @@ module.exports = class btcchina extends Exchange {
         let method = market['api'] + 'GetOrderbook';
         let request = this.createMarketRequest (market);
         let orderbook = await this[method] (this.extend (request, params));
-        let timestamp = orderbook['date'] * 1000;
-        let result = this.parseOrderBook (orderbook, timestamp);
+        // let result = this.parseOrderBook (orderbook, timestamp);
         // result['asks'] = this.sortBy (result['asks'], 0); // double sorting (see this.parseOrderBook impl.)
-        return result;
+        return orderbook;
+    }
+
+    orderBookKeyMap () {
+        return {
+            'timestamp': 'date',
+        };
+    }
+
+    parseOrderBookTimestamp (orderbook, keys) {
+        return orderbook[keys['timestamp']] * 1000;
     }
 
     parseTicker (ticker, market) {

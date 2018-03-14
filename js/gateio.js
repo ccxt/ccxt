@@ -156,9 +156,9 @@ module.exports = class gateio extends Exchange {
         let orderbook = await this.publicGetOrderBookId (this.extend ({
             'id': this.marketId (symbol),
         }, params));
-        let result = this.parseOrderBook (orderbook);
+        // let result = this.parseOrderBook (orderbook);
         // result['asks'] = this.sortBy (result['asks'], 0); // double sorting (see this.parseOrderBook impl.)
-        return result;
+        return orderbook;
     }
 
     parseTicker (ticker, market = undefined) {

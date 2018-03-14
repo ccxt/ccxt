@@ -200,7 +200,7 @@ module.exports = class gdax extends Exchange {
             'id': this.marketId (symbol),
             'level': 2, // 1 best bidask, 2 aggregated, 3 full
         }, params));
-        return this.parseOrderBook (orderbook);
+        return orderbook;
     }
 
     async fetchTicker (symbol, params = {}) {

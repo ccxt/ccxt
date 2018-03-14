@@ -180,8 +180,11 @@ module.exports = class cex extends Exchange {
         let orderbook = await this.publicGetOrderBookPair (this.extend ({
             'pair': this.marketId (symbol),
         }, params));
-        let timestamp = orderbook['timestamp'] * 1000;
-        return this.parseOrderBook (orderbook, timestamp);
+        return orderbook;
+    }
+
+    parseOrderBookTimestamp (orderbook, keys) {
+        return parseInt (orderbook[keys['timestamp']] * 1000);
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {

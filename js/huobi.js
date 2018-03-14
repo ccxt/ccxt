@@ -113,7 +113,7 @@ module.exports = class huobi extends Exchange {
         let market = this.market (symbol);
         let method = market['type'] + 'GetDepthId';
         let orderbook = await this[method] (this.extend ({ 'id': market['id'] }, params));
-        return this.parseOrderBook (orderbook);
+        return orderbook;
     }
 
     async fetchTicker (symbol, params = {}) {

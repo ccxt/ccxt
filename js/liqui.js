@@ -212,10 +212,10 @@ module.exports = class liqui extends Exchange {
         if (!market_id_in_reponse)
             throw new ExchangeError (this.id + ' ' + market['symbol'] + ' order book is empty or not available');
         let orderbook = response[market['id']];
-        let result = this.parseOrderBook (orderbook);
+        // let result = this.parseOrderBook (orderbook);
         // result['bids'] = this.sortBy (result['bids'], 0, true);  // double sorting (see this.parseOrderBook impl.)
         // result['asks'] = this.sortBy (result['asks'], 0);  // double sorting (see this.parseOrderBook impl.)
-        return result;
+        return orderbook;
     }
 
     async fetchOrderBooks (symbols = undefined, params = {}) {

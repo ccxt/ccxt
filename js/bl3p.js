@@ -105,7 +105,14 @@ module.exports = class bl3p extends Exchange {
             'market': market['id'],
         }, params));
         let orderbook = response['data'];
-        return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price_int', 'amount_int');
+        return orderbook;
+    }
+
+    orderBookKeyMap () {
+        return {
+            'price': 'price_int',
+            'amount': 'amount_int',
+        };
     }
 
     async fetchTicker (symbol, params = {}) {

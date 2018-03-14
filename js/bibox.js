@@ -233,7 +233,21 @@ module.exports = class bibox extends Exchange {
         };
         request['size'] = limit; // default = 200 ?
         let response = await this.publicGetMdata (this.extend (request, params));
-        return this.parseOrderBook (response['result'], this.safeFloat (response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume');
+        return response['result'];
+    }
+
+    orderBookKeyMap () {
+        return {
+            'bids': 'bids',
+            'asks': 'asks',
+            'price': 'price',
+            'amount': 'volume',
+            'timestamp': 'update_time',
+        };
+    }
+
+    parseOrderBookTimestamp (orderbook, keys) {
+        return this.safeFloat (orderbook, keys['timestamp']);
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {

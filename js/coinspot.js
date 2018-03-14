@@ -85,10 +85,19 @@ module.exports = class coinspot extends Exchange {
         let orderbook = await this.privatePostOrders (this.extend ({
             'cointype': market['id'],
         }, params));
-        let result = this.parseOrderBook (orderbook, undefined, 'buyorders', 'sellorders', 'rate', 'amount');
+        // let result = this.parseOrderBook (orderbook, undefined, 'buyorders', 'sellorders', 'rate', 'amount');
         // result['bids'] = this.sortBy (result['bids'], 0, true); // double sorting (see this.parseOrderBook impl.)
         // result['asks'] = this.sortBy (result['asks'], 0); // double sorting (see this.parseOrderBook impl.)
-        return result;
+        return orderbook;
+    }
+
+    orderBookDefaultKeys () {
+        return {
+            'bids': 'buyorders',
+            'asks': 'sellorders',
+            'price': 'rate',
+            'amount': 'amount',
+        };
     }
 
     async fetchTicker (symbol, params = {}) {

@@ -243,7 +243,16 @@ module.exports = class bittrex extends Exchange {
                 };
             }
         }
-        return this.parseOrderBook (orderbook, undefined, 'buy', 'sell', 'Rate', 'Quantity');
+        return orderbook;
+    }
+
+    orderBookKeyMap () {
+        return {
+            'bids': 'buy',
+            'asks': 'sell',
+            'price': 'Rate',
+            'amount': 'Quantity',
+        };
     }
 
     parseTicker (ticker, market = undefined) {

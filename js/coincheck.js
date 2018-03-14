@@ -118,7 +118,7 @@ module.exports = class coincheck extends Exchange {
         if (symbol !== 'BTC/JPY')
             throw new NotSupported (this.id + ' fetchOrderBook () supports BTC/JPY only');
         let orderbook = await this.publicGetOrderBooks (params);
-        return this.parseOrderBook (orderbook);
+        return orderbook;
     }
 
     async fetchTicker (symbol, params = {}) {

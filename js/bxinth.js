@@ -128,7 +128,7 @@ module.exports = class bxinth extends Exchange {
         let orderbook = await this.publicGetOrderbook (this.extend ({
             'pairing': this.marketId (symbol),
         }, params));
-        return this.parseOrderBook (orderbook);
+        return orderbook;
     }
 
     parseTicker (ticker, market = undefined) {

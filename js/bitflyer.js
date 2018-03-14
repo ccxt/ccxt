@@ -147,7 +147,14 @@ module.exports = class bitflyer extends Exchange {
         let orderbook = await this.publicGetGetboard (this.extend ({
             'product_code': this.marketId (symbol),
         }, params));
-        return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'size');
+        return orderbook;
+    }
+
+    orderBookKeyMap () {
+        return {
+            'price': 'price',
+            'amount': 'size',
+        };
     }
 
     async fetchTicker (symbol, params = {}) {

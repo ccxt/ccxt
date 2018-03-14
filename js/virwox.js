@@ -144,7 +144,14 @@ module.exports = class virwox extends Exchange {
         }
         let response = await this.publicPostGetMarketDepth (this.extend (request, params));
         let orderbook = response['result'][0];
-        return this.parseOrderBook (orderbook, undefined, 'buy', 'sell', 'price', 'volume');
+        return orderbook;
+    }
+
+    orderBookKeyMap () {
+        return {
+            'price': 'price',
+            'amount': 'volume',
+        };
     }
 
     async fetchTicker (symbol, params = {}) {

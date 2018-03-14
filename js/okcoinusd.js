@@ -234,7 +234,7 @@ module.exports = class okcoinusd extends Exchange {
         }
         method += 'Depth';
         let orderbook = await this[method] (this.extend (request, params));
-        return this.parseOrderBook (orderbook);
+        return orderbook;
     }
 
     parseTicker (ticker, market = undefined) {

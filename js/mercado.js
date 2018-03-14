@@ -78,7 +78,7 @@ module.exports = class mercado extends Exchange {
         let orderbook = await this.publicGetCoinOrderbook (this.extend ({
             'coin': market['base'],
         }, params));
-        return this.parseOrderBook (orderbook);
+        return orderbook;
     }
 
     async fetchTicker (symbol, params = {}) {

@@ -125,8 +125,21 @@ module.exports = class independentreserve extends Exchange {
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
         }, params));
-        let timestamp = this.parse8601 (response['CreatedTimestampUtc']);
-        return this.parseOrderBook (response, timestamp, 'BuyOrders', 'SellOrders', 'Price', 'Volume');
+        return response;
+    }
+
+    parseOrderBookTimestamp (orderbook, keys) {
+        return this.parse8601 (orderbook[keys['timestamp']]);
+    }
+
+    orderBookDefaultKeys () {
+        return {
+            'bids': 'BuyOrders',
+            'asks': 'SellOrders',
+            'price': 'Price',
+            'amount': 'Volume',
+            'timestamp': 'CreatedTimestampUtc',
+        };
     }
 
     parseTicker (ticker, market = undefined) {

@@ -127,7 +127,14 @@ module.exports = class btctradeua extends Exchange {
             if ('list' in asks)
                 orderbook['asks'] = asks['list'];
         }
-        return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'currency_trade');
+        return orderbook;
+    }
+
+    orderBookKeyMap () {
+        return {
+            'price': 'price',
+            'amount': 'currency_trade',
+        };
     }
 
     async fetchTicker (symbol, params = {}) {

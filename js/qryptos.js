@@ -174,7 +174,14 @@ module.exports = class qryptos extends Exchange {
         let orderbook = await this.publicGetProductsIdPriceLevels (this.extend ({
             'id': this.marketId (symbol),
         }, params));
-        return this.parseOrderBook (orderbook, undefined, 'buy_price_levels', 'sell_price_levels');
+        return orderbook;
+    }
+
+    orderBookKeyMap () {
+        return {
+            'bids': 'buy_price_levels',
+            'asks': 'sell_price_levels',
+        };
     }
 
     parseTicker (ticker, market = undefined) {

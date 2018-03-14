@@ -83,8 +83,11 @@ module.exports = class btcturk extends Exchange {
         let orderbook = await this.publicGetOrderbook (this.extend ({
             'pairSymbol': market['id'],
         }, params));
-        let timestamp = parseInt (orderbook['timestamp'] * 1000);
-        return this.parseOrderBook (orderbook, timestamp);
+        return orderbook;
+    }
+
+    parseOrderBookTimestamp (orderbook, keys) {
+        return parseInt (orderbook[keys['timestamp']] * 1000);
     }
 
     parseTicker (ticker, market = undefined) {

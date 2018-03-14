@@ -118,7 +118,14 @@ module.exports = class bitcoincoid extends Exchange {
         let orderbook = await this.publicGetPairDepth (this.extend ({
             'pair': this.marketId (symbol),
         }, params));
-        return this.parseOrderBook (orderbook, undefined, 'buy', 'sell');
+        return orderbook;
+    }
+
+    orderBookKeyMap () {
+        return {
+            'bids': 'buy',
+            'asks': 'sell',
+        };
     }
 
     async fetchTicker (symbol, params = {}) {

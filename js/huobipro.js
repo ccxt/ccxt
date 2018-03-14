@@ -226,9 +226,15 @@ module.exports = class huobipro extends Exchange {
             if (!response['tick']) {
                 throw new ExchangeError (this.id + ' fetchOrderBook() returned empty response: ' + this.json (response));
             }
-            return this.parseOrderBook (response['tick'], response['tick']['ts']);
+            return response['tick'];
         }
         throw new ExchangeError (this.id + ' fetchOrderBook() returned unrecognized response: ' + this.json (response));
+    }
+
+    orderBookKeyMap () {
+        return {
+            'timestamp': 'ts',
+        };
     }
 
     async fetchTicker (symbol, params = {}) {

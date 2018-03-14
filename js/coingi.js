@@ -179,7 +179,14 @@ module.exports = class coingi extends Exchange {
             'askCount': limit, // maximum returned number of asks 1-512
             'bidCount': limit, // maximum returned number of bids 1-512
         }, params));
-        return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'baseAmount');
+        return orderbook;
+    }
+
+    orderBookKeyMap () {
+        return {
+            'price': 'price',
+            'amount': 'baseAmount',
+        };
     }
 
     parseTicker (ticker, market = undefined) {

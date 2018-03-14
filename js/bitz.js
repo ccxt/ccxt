@@ -230,8 +230,17 @@ module.exports = class bitz extends Exchange {
             'coin': this.marketId (symbol),
         }, params));
         let orderbook = response['data'];
-        let timestamp = orderbook['date'] * 1000;
-        return this.parseOrderBook (orderbook, timestamp);
+        return orderbook;
+    }
+
+    orderBookKeyMap () {
+        return {
+            'timestamp': 'date',
+        };
+    }
+
+    parseOrderBookTimestamp (orderbook, keys) {
+        return orderbook[keys['timestamp']] * 1000;
     }
 
     parseTrade (trade, market = undefined) {

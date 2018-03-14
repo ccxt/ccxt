@@ -112,7 +112,7 @@ module.exports = class lakebtc extends Exchange {
         let orderbook = await this.publicGetBcorderbook (this.extend ({
             'symbol': this.marketId (symbol),
         }, params));
-        return this.parseOrderBook (orderbook);
+        return orderbook;
     }
 
     parseTicker (ticker, market = undefined) {
