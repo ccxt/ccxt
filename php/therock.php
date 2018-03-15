@@ -67,7 +67,7 @@ class therock extends Exchange {
             ),
             'fees' => array (
                 'trading' => array (
-                    'maker' => 0.02 / 100,
+                    'maker' => 0.2 / 100,
                     'taker' => 0.2 / 100,
                 ),
                 'funding' => array (
