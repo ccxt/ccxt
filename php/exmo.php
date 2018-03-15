@@ -393,13 +393,13 @@ class exmo extends Exchange {
         for ($i = 0; $i < count ($marketIds); $i++) {
             $marketId = $marketIds[$i];
             $market = null;
-            $symbol = null;
+            $marketSymbol = null;
             if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
+                $marketSymbol = $market['symbol'];
             }
             $orders = $this->parse_orders($response[$marketId], $market);
-            $this->update_cached_orders ($orders, $symbol);
+            $this->update_cached_orders ($orders, $marketSymbol);
         }
         return $this->filter_by_symbol_since_limit($this->orders, $symbol, $since, $limit);
     }

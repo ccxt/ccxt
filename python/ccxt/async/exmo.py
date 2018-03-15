@@ -369,12 +369,12 @@ class exmo (Exchange):
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             market = None
-            symbol = None
+            marketSymbol = None
             if marketId in self.markets_by_id:
                 market = self.markets_by_id[marketId]
-                symbol = market['symbol']
+                marketSymbol = market['symbol']
             orders = self.parse_orders(response[marketId], market)
-            self.update_cached_orders(orders, symbol)
+            self.update_cached_orders(orders, marketSymbol)
         return self.filter_by_symbol_since_limit(self.orders, symbol, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.11.101'
+__version__ = '1.11.103'
 
 # -----------------------------------------------------------------------------
 
@@ -1174,6 +1174,7 @@ class Exchange(object):
         return self.filter_by_symbol_since_limit(array, symbol, since, limit)
 
     def filter_by_symbol_since_limit(self, array, symbol=None, since=None, limit=None):
+        array = self.to_array(array)
         if symbol:
             array = [entry for entry in array if entry['symbol'] == symbol]
         if since:
@@ -1183,6 +1184,7 @@ class Exchange(object):
         return array
 
     def filter_by_since_limit(self, array, since=None, limit=None):
+        array = self.to_array(array)
         if since:
             array = [entry for entry in array if entry['timestamp'] >= since]
         if limit:
@@ -1190,6 +1192,7 @@ class Exchange(object):
         return array
 
     def filter_by_symbol(self, array, symbol=None):
+        array = self.to_array(array)
         if symbol:
             return [entry for entry in array if entry['symbol'] == symbol]
         return array

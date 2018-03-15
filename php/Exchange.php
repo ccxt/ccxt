@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.11.101';
+$version = '1.11.103';
 
 abstract class Exchange {
 
@@ -1327,6 +1327,7 @@ abstract class Exchange {
 
     public function filter_by_since_limit ($array, $since = null, $limit = null) {
         $result = array ();
+        $array = array_values ($array);
         foreach ($array as $entry)
             if ($entry['timestamp'] > $since)
                 $result[] = $entry;
@@ -1382,6 +1383,7 @@ abstract class Exchange {
     }
 
     public function filter_by_symbol_since_limit ($array, $symbol = null, $since = null, $limit = null) {
+        $array = array_values ($array);
         $symbolIsSet = isset ($symbol);
         $sinceIsSet = isset ($since);
         $array = array_filter ($array, function ($element) use ($symbolIsSet, $symbol, $sinceIsSet, $since) {
