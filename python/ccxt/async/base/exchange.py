@@ -213,9 +213,7 @@ class Exchange(BaseExchange):
 
     def parse_httpresponse_date(self, keys):
         responseDate = None
-        headerAttributes = list(self.last_response_headers.keys())
-        for i in range(0, len(headerAttributes)):
-            key = headerAttributes[i]
+        for key in list(self.last_response_headers.keys()):
             if key.lower() == keys['responseDate']:
                 responseDate = self.last_response_headers[key]
         return responseDate
@@ -226,14 +224,9 @@ class Exchange(BaseExchange):
         return [price, amount]
 
     def parse_bids_asks(self, bidasks, keys):
-        orders = []
-        if bidasks is not None:
-            orders = bidasks
-        orderKeys = list(orders.keys())
+        orders = bidasks if bidasks is not None else []
         parsedOrders = []
-        for i in range(0, len(orderKeys)):
-            orderKey = orderKeys[i]
-            order = orders[orderKey]
+        for order in orders:
             parsedBidask = self.parse_bid_ask(order, keys['price'], keys['amount'])
             parsedOrders.append(parsedBidask)
         return parsedOrders
