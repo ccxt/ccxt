@@ -83,30 +83,30 @@ module.exports = class tidex extends liqui {
         let result = {};
         for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];
-            let id = currency['Symbol'];
-            let precision = currency['AmountPoint'];
+            let id = currency['symbol'];
+            let precision = currency['amountPoint'];
             let code = this.commonCurrencyCode (id);
-            let active = currency['Visible'] === true;
+            let active = currency['visible'] === true;
             let status = 'ok';
             if (!active) {
                 status = 'disabled';
             }
-            let canWithdraw = currency['WithdrawEnable'] === true;
-            let canDeposit = currency['DepositEnable'] === true;
+            let canWithdraw = currency['withdrawEnable'] === true;
+            let canDeposit = currency['depositEnable'] === true;
             if (!canWithdraw || !canDeposit) {
                 active = false;
             }
             result[code] = {
                 'id': id,
                 'code': code,
-                'name': currency['Name'],
+                'name': currency['name'],
                 'active': active,
                 'status': status,
                 'precision': precision,
                 'funding': {
                     'withdraw': {
                         'active': canWithdraw,
-                        'fee': currency['WithdrawFee'],
+                        'fee': currency['withdrawFee'],
                     },
                     'deposit': {
                         'active': canDeposit,
@@ -127,11 +127,11 @@ module.exports = class tidex extends liqui {
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': currency['WithdrawMinAmout'],
+                        'min': currency['withdrawMinAmout'],
                         'max': undefined,
                     },
                     'deposit': {
-                        'min': currency['DepositMinAmount'],
+                        'min': currency['depositMinAmount'],
                         'max': undefined,
                     },
                 },
