@@ -737,10 +737,7 @@ module.exports = class Exchange {
         })
     }
 
-
-    // -------------------------------------------------------------------------
-    //  Base OrderBook Fetching and Parsing
-    // -------------------------------------------------------------------------
+    //--------------------------Transpilable code-------------------------------
 
     async performOrderBookRequest (symbol, limit = undefined, params = {}) {
         throw new NotSupported (this.id + ' performOrderBookRequest not supported yet');
@@ -771,7 +768,7 @@ module.exports = class Exchange {
 
     parseOrderBookNonce (orderbook, keys) {
         let nonce = this.safeInteger (orderbook, keys['nonce'], undefined);
-        if (typeof sec !== 'undefined') {
+        if (typeof nonce === 'undefined') {
             nonce = this.safeInteger (orderbook, keys['timestamp'], undefined);
         }
         return nonce;
@@ -783,7 +780,9 @@ module.exports = class Exchange {
 
     parseHTTPResponseDate (keys) {
         let responseDate = undefined;
-        for (let key in this.last_response_headers) {
+        let headerAttributes = Object.keys (this.last_response_headers);
+        for (let i = 0; i < headerAttributes.length; i++) {
+            let key = headerAttributes[i];
             if (key.toLowerCase () === keys['responseDate']) {
                 responseDate = this.last_response_headers[key];
             }
@@ -792,13 +791,25 @@ module.exports = class Exchange {
     }
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
-        let price = parseFloat (bidask[priceKey])
-        let amount = parseFloat (bidask[amountKey])
-        return [ price, amount ]
+        let price = parseFloat (bidask[priceKey]);
+        let amount = parseFloat (bidask[amountKey]);
+        return [ price, amount ];
     }
 
     parseBidsAsks (bidasks, keys) {
-        return Object.values (bidasks || []).map (bidask => this.parseBidAsk (bidask, keys['price'], keys['amount']))
+        let orders = [];
+        if (typeof bidasks !== 'undefined') {
+            orders = bidasks;
+        }
+        let orderKeys = Object.keys (orders);
+        let parsedOrders = [];
+        for (let i = 0; i < orderKeys.length; i++) {
+            let orderKey = orderKeys[i];
+            let order = orders[orderKey];
+            let parsedBidask = this.parseBidAsk (order, keys['price'], keys['amount']);
+            parsedOrders.push (parsedBidask);
+        }
+        return parsedOrders;
     }
 
     parseOrderBookOrders (orderbook, keys) {
@@ -813,7 +824,7 @@ module.exports = class Exchange {
     parseOrderBook (orderbook, keys) {
         let timestamp = this.parseOrderBookTimestamp (orderbook, keys);
         if (typeof timestamp === 'undefined') {
-            timestamp = this.parseHTTPResponseDate (keys)
+            timestamp = this.parseHTTPResponseDate (keys);
         }
         let datetime = this.iso8601 (timestamp);
         let orders = this.parseOrderBookOrders (orderbook, keys);
@@ -825,12 +836,10 @@ module.exports = class Exchange {
             'datetime': datetime,
             'nonce': nonse,
             'info': orderbook,
-        }
+        };
     }
 
-    // -------------------------------------------------------------------------
-    //  End of Base OrderBook Fetching and Parsing
-    // -------------------------------------------------------------------------
+    // -----------------------End of transpilable code--------------------------
 
     getCurrencyUsedOnOpenOrders (currency) {
         return Object.values (this.orders).filter (order => (order['status'] === 'open')).reduce ((total, order) => {

@@ -996,14 +996,92 @@ class Exchange(object):
             'asks': self.sort_by(self.aggregate(orderbook['asks']), 0),
         })
 
-    def parse_order_book(self, orderbook, timestamp=None, bids_key='bids', asks_key='asks', price_key=0, amount_key=1):
-        timestamp = timestamp or self.milliseconds()
-        return {
-            'bids': self.sort_by(self.parse_bids_asks(orderbook[bids_key], price_key, amount_key) if (bids_key in orderbook) and isinstance(orderbook[bids_key], list) else [], 0, True),
-            'asks': self.sort_by(self.parse_bids_asks(orderbook[asks_key], price_key, amount_key) if (asks_key in orderbook) and isinstance(orderbook[asks_key], list) else [], 0),
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+    #----------------------------Transpiled code--------------------------------
+
+    def perform_order_book_request(self, symbol, limit=None, params={}):
+        raise NotSupported(self.id + ' performOrderBookRequest not supported yet')
+
+    def fetch_order_book(self, symbol, limit=None, params={}):
+        orderbook = self.perform_order_book_request(symbol, limit, params)
+        keys = self.order_book_keys()
+        return self.parse_order_book(orderbook, keys)
+
+    def order_book_exchange_keys(self):
+        return {}
+
+    def order_book_keys(self):
+        defaultOrderbookExchangeKeys = {
+            'bids': 'bids',
+            'asks': 'asks',
+            'price': 0,
+            'amount': 0,
+            'timestamp': 'timestamp',
+            'nonce': 'sec',
+            'responseDate': 'date',
         }
+        return self.extend(defaultOrderbookExchangeKeys, self.order_book_exchange_keys())
+
+    def parse_order_book_nonce(self, orderbook, keys):
+        nonce = self.safe_integer(orderbook, keys['nonce'], None)
+        if nonce is None:
+            nonce = self.safe_integer(orderbook, keys['timestamp'], None)
+        return nonce
+
+    def parse_order_book_timestamp(self, orderbook, keys):
+        return self.safe_integer(orderbook, keys['timestamp'], None)
+
+    def parse_httpresponse_date(self, keys):
+        responseDate = None
+        headerAttributes = list(self.last_response_headers.keys())
+        for i in range(0, len(headerAttributes)):
+            key = headerAttributes[i]
+            if key.lower() == keys['responseDate']:
+                responseDate = self.last_response_headers[key]
+        return responseDate
+
+    def parse_bid_ask(self, bidask, priceKey=0, amountKey=1):
+        price = float(bidask[priceKey])
+        amount = float(bidask[amountKey])
+        return [price, amount]
+
+    def parse_bids_asks(self, bidasks, keys):
+        orders = []
+        if bidasks is not None:
+            orders = bidasks
+        orderKeys = list(orders.keys())
+        parsedOrders = []
+        for i in range(0, len(orderKeys)):
+            orderKey = orderKeys[i]
+            order = orders[orderKey]
+            parsedBidask = self.parse_bid_ask(order, keys['price'], keys['amount'])
+            parsedOrders.append(parsedBidask)
+        return parsedOrders
+
+    def parse_order_book_orders(self, orderbook, keys):
+        bids = self.parse_bids_asks(orderbook[keys['bids']], keys) if (keys['bids'] in list(orderbook.keys())) else []
+        asks = self.parse_bids_asks(orderbook[keys['asks']], keys) if (keys['asks'] in list(orderbook.keys())) else []
+        return {
+            'bids': bids,
+            'asks': asks,
+        }
+
+    def parse_order_book(self, orderbook, keys):
+        timestamp = self.parse_order_book_timestamp(orderbook, keys)
+        if timestamp is None:
+            timestamp = self.parse_httpresponse_date(keys)
+        datetime = self.iso8601(timestamp)
+        orders = self.parse_order_book_orders(orderbook, keys)
+        nonse = self.parse_order_book_nonce(orderbook, keys)
+        return {
+            'bids': self.sort_by(orders['bids'], 0, True),
+            'asks': self.sort_by(orders['asks'], 0),
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'nonce': nonse,
+            'info': orderbook,
+        }
+    
+    #-------------------------End of transpiled code----------------------------
 
     def parse_balance(self, balance):
         currencies = self.omit(balance, 'info').keys()

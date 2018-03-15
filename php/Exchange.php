@@ -1132,23 +1132,153 @@ abstract class Exchange {
         return $this->fetch_l2_order_book ($symbol, $limit, $params);
     }
 
-    public function parse_order_book ($orderbook, $timestamp = null, $bids_key = 'bids', $asks_key = 'asks', $price_key = 0, $amount_key = 1) {
-        $timestamp = $timestamp ? $timestamp : $this->milliseconds ();
+    // --------------------------Transpiled code--------------------------------
+
+    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
+        throw new NotSupported ($this->id . ' performOrderBookRequest not supported yet');
+    }
+
+    public function performOrderBookRequest ($symbol, $limit = null, $params = array ()) {
+        return $this->perform_order_book_request ($symbol, $limit, $params);
+    }
+
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+        $orderbook = $this->perform_order_book_request ($symbol, $limit, $params);
+        $keys = $this->order_book_keys ();
+        return $this->parse_order_book($orderbook, $keys);
+    }
+
+    public function fetchOrderBook ($symbol, $limit = null, $params = array ()) {
+        return $this->fetch_order_book ($symbol, $limit, $params);
+    }
+
+    public function order_book_exchange_keys () {
+        return array ();
+    }
+
+    public function orderBookExchangeKeys () {
+        return $this->order_book_exchange_keys ();
+    }
+
+    public function order_book_keys () {
+        $defaultOrderbookExchangeKeys = array (
+            'bids' => 'bids',
+            'asks' => 'asks',
+            'price' => 0,
+            'amount' => 0,
+            'timestamp' => 'timestamp',
+            'nonce' => 'sec',
+            'responseDate' => 'date',
+        );
+        return array_merge ($defaultOrderbookExchangeKeys, $this->order_book_exchange_keys ());
+    }
+
+    public function orderBookKeys () {
+        return $this->order_book_keys ();
+    }
+
+    public function parse_order_book_nonce ($orderbook, $keys) {
+        $nonce = $this->safe_integer($orderbook, $keys['nonce'], null);
+        if ($nonce === null) {
+            $nonce = $this->safe_integer($orderbook, $keys['timestamp'], null);
+        }
+        return $nonce;
+    }
+
+    public function parseOrderBookNonce ($orderbook, $keys) {
+        return $this->parse_order_book_nonce ($orderbook, $keys);
+    }
+
+    public function parse_order_book_timestamp ($orderbook, $keys) {
+        return $this->safe_integer($orderbook, $keys['timestamp'], null);
+    }
+
+    public function parseOrderBookTimestamp ($orderbook, $keys) {
+        return $this->parse_order_book_timestamp ($orderbook, $keys);
+    }
+
+    public function parse_httpresponse_date ($keys) {
+        $responseDate = null;
+        $headerAttributes = is_array ($this->last_response_headers) ? array_keys ($this->last_response_headers) : array ();
+        for ($i = 0; $i < count ($headerAttributes); $i++) {
+            $key = $headerAttributes[$i];
+            if (strtolower ($key) === $keys['responseDate']) {
+                $responseDate = $this->last_response_headers[$key];
+            }
+        }
+        return $responseDate;
+    }
+
+    public function parseHttpresponseDate ($keys) {
+        return $this->parse_httpresponse_date ($keys);
+    }
+
+    public function parse_bid_ask ($bidask, $priceKey = 0, $amountKey = 1) {
+        $price = floatval ($bidask[$priceKey]);
+        $amount = floatval ($bidask[$amountKey]);
+        return array ( $price, $amount );
+    }
+
+    public function parseBidAsk ($bidasks, $priceKey = 0, $amountKey = 1) {
+        return $this->parse_bid_ask ($bidasks, $priceKey, $amountKey);
+    }
+
+    public function parse_bids_asks ($bidasks, $keys) {
+        $orders = array ();
+        if ($bidasks !== null) {
+            $orders = $bidasks;
+        }
+        $orderKeys = is_array ($orders) ? array_keys ($orders) : array ();
+        $parsedOrders = array ();
+        for ($i = 0; $i < count ($orderKeys); $i++) {
+            $orderKey = $orderKeys[$i];
+            $order = $orders[$orderKey];
+            $parsedBidask = $this->parse_bid_ask($order, $keys['price'], $keys['amount']);
+            $parsedOrders[] = $parsedBidask;
+        }
+        return $parsedOrders;
+    }
+
+    public function parseBidsAsks ($bidasks, $keys) {
+        return $this->parse_bids_asks ($bidasks, $keys);
+    }
+
+    public function parse_order_book_orders ($orderbook, $keys) {
+        $bids = (is_array ($orderbook) && array_key_exists ($keys['bids'], $orderbook)) ? $this->parse_bids_asks($orderbook[$keys['bids']], $keys) : array ();
+        $asks = (is_array ($orderbook) && array_key_exists ($keys['asks'], $orderbook)) ? $this->parse_bids_asks($orderbook[$keys['asks']], $keys) : array ();
         return array (
-            'bids' => is_array ($orderbook) && array_key_exists ($bids_key, $orderbook) ?
-                $this->parse_bids_asks ($orderbook[$bids_key], $price_key, $amount_key) :
-                array (),
-            'asks' => is_array ($orderbook) && array_key_exists ($asks_key, $orderbook) ?
-                $this->parse_bids_asks ($orderbook[$asks_key], $price_key, $amount_key) :
-                array (),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'bids' => $bids,
+            'asks' => $asks,
         );
     }
 
-    public function parseOrderBook ($orderbook, $timestamp = null, $bids_key = 'bids', $asks_key = 'asks', $price_key = 0, $amount_key = 1) {
-        return $this->parse_order_book ($orderbook, $timestamp, $bids_key, $asks_key, $price_key, $amount_key);
+    public function parseOrderBookOrders ($orderbook, $keys) {
+        return $this->parse_order_book_orders ($orderbook, $keys);
     }
+
+    public function parse_order_book ($orderbook, $keys) {
+        $timestamp = $this->parse_order_book_timestamp ($orderbook, $keys);
+        if ($timestamp === null) {
+            $timestamp = $this->parse_httpresponse_date ($keys);
+        }
+        $datetime = $this->iso8601 ($timestamp);
+        $orders = $this->parse_order_book_orders ($orderbook, $keys);
+        $nonse = $this->parse_order_book_nonce ($orderbook, $keys);
+        return array (
+            'bids' => sortBy ($orders['bids'], 0, true),
+            'asks' => sortBy ($orders['asks'], 0),
+            'timestamp' => $timestamp,
+            'datetime' => $datetime,
+            'nonce' => $nonse,
+            'info' => $orderbook,
+        );
+    }
+    
+    public function parseOrderBook ($orderbook, $keys) {
+        return $this->parse_order_book ($orderbook, $keys);
+    }
+
+    // -----------------------End of transpiled code----------------------------
 
     public function parse_balance ($balance) {
         $currencies = array_keys ($this->omit ($balance, 'info'));
