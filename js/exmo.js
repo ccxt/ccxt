@@ -112,16 +112,16 @@ module.exports = class exmo extends Exchange {
                 'quote': quote,
                 'limits': {
                     'amount': {
-                        'min': market['min_quantity'],
-                        'max': market['max_quantity'],
+                        'min': this.safeFloat (market, 'min_quantity'),
+                        'max': this.safeFloat (market, 'max_quantity'),
                     },
                     'price': {
-                        'min': market['min_price'],
-                        'max': market['max_price'],
+                        'min': this.safeFloat (market, 'min_price'),
+                        'max': this.safeFloat (market, 'max_price'),
                     },
                     'cost': {
-                        'min': market['min_amount'],
-                        'max': market['max_amount'],
+                        'min': this.safeFloat (market, 'min_amount'),
+                        'max': this.safeFloat (market, 'max_amount'),
                     },
                 },
                 'precision': {
