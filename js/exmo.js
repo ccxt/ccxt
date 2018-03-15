@@ -336,7 +336,7 @@ module.exports = class exmo extends Exchange {
         await this.loadMarkets ();
         await this.fetchOrders (symbol, undefined, undefined, params);
         if (id in this.orders)
-            return this.orders[id]
+            return this.orders[id];
         throw new OrderNotFound (this.id + ' order id ' + id.toString () + ' is not in "open" state and not found in cache');
     }
 
