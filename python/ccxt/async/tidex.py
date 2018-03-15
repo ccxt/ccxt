@@ -83,28 +83,28 @@ class tidex (liqui):
         result = {}
         for i in range(0, len(currencies)):
             currency = currencies[i]
-            id = currency['Symbol']
-            precision = currency['AmountPoint']
+            id = currency['symbol']
+            precision = currency['amountPoint']
             code = self.common_currency_code(id)
-            active = currency['Visible'] is True
+            active = currency['visible'] is True
             status = 'ok'
             if not active:
                 status = 'disabled'
-            canWithdraw = currency['WithdrawEnable'] is True
-            canDeposit = currency['DepositEnable'] is True
+            canWithdraw = currency['withdrawEnable'] is True
+            canDeposit = currency['depositEnable'] is True
             if not canWithdraw or not canDeposit:
                 active = False
             result[code] = {
                 'id': id,
                 'code': code,
-                'name': currency['Name'],
+                'name': currency['name'],
                 'active': active,
                 'status': status,
                 'precision': precision,
                 'funding': {
                     'withdraw': {
                         'active': canWithdraw,
-                        'fee': currency['WithdrawFee'],
+                        'fee': currency['withdrawFee'],
                     },
                     'deposit': {
                         'active': canDeposit,
@@ -125,11 +125,11 @@ class tidex (liqui):
                         'max': None,
                     },
                     'withdraw': {
-                        'min': currency['WithdrawMinAmout'],
+                        'min': currency['withdrawMinAmout'],
                         'max': None,
                     },
                     'deposit': {
-                        'min': currency['DepositMinAmount'],
+                        'min': currency['depositMinAmount'],
                         'max': None,
                     },
                 },
