@@ -394,13 +394,13 @@ module.exports = class exmo extends Exchange {
         for (let i = 0; i < marketIds.length; i++) {
             let marketId = marketIds[i];
             let market = undefined;
-            let symbol = undefined;
+            let marketSymbol = undefined;
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
+                marketSymbol = market['symbol'];
             }
             let orders = this.parseOrders (response[marketId], market);
-            this.updateCachedOrders (orders, symbol);
+            this.updateCachedOrders (orders, marketSymbol);
         }
         return this.filterBySymbolSinceLimit (this.orders, symbol, since, limit);
     }
