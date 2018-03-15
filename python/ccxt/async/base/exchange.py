@@ -247,8 +247,8 @@ class Exchange(BaseExchange):
         orders = self.parse_order_book_orders(orderbook, keys)
         nonse = self.parse_order_book_nonce(orderbook, keys)
         return {
-            'bids': sortBy(orders['bids'], 0, True),
-            'asks': sortBy(orders['asks'], 0),
+            'bids': self.sort_by(orders['bids'], 0, True),
+            'asks': self.sort_by(orders['asks'], 0),
             'timestamp': timestamp,
             'datetime': datetime,
             'nonce': nonse,
