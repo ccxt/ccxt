@@ -153,7 +153,7 @@ class bibox (Exchange):
             'change': None,
             'percentage': self.safe_string(ticker, 'percent'),
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'vol'),
+            'baseVolume': self.safe_float(ticker, 'vol24H'),
             'quoteVolume': None,
             'info': ticker,
         }
