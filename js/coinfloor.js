@@ -3,7 +3,6 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -65,22 +64,22 @@ module.exports = class coinfloor extends Exchange {
     }
 
     async fetchBalance (params = {}) {
-        let markets = Object.values (this.markets);
         let result = {
-          'info': {}
+            'info': {},
         };
-        for (var i = 0; i < markets.length; i++) {
-            let market = markets[i];
-            if ('symbol' in params && params['symbol'] != market['symbol'])
+        let symbols = Object.keys (this.markets);
+        for (let i = 0; i < symbols.length; i++) {
+            let market = this.markets[symbols[i]];
+            if ('symbol' in params && params['symbol'] !== market['symbol'])
                 continue;
-            if ('id' in params && params['id'] != market['id'])
+            if ('id' in params && params['id'] !== market['id'])
                 continue;
             let info = await this.privatePostIdBalance ({
-                'id': market['id']
+                'id': market['id'],
             });
             result['info'][market['id']] = info;
             // base/quote used for keys e.g. "xbt_reserved"
-            let keys = market['id'].toLowerCase().split('/');
+            let keys = market['id'].toLowerCase ().split ('/');
             result[market['base']] = {
                 'free': parseFloat (info[keys[0] + '_available']),
                 'used': parseFloat (info[keys[0] + '_reserved']),
