@@ -718,7 +718,7 @@ module.exports = class Exchange {
     implodeParams (string, params) {
         for (let property in params)
             string = string.replace ('{' + property + '}', params[property])
-        return string
+        return string;
     }
 
     url (path, params = {}) {
@@ -726,7 +726,7 @@ module.exports = class Exchange {
         let query = this.omit (params, this.extractParams (path))
         if (Object.keys (query).length)
             result += '?' + this.urlencode (query)
-        return result
+        return result;
     }
 
     async performOrderBookRequest (symbol, limit = undefined, params = {}) {
@@ -736,7 +736,7 @@ module.exports = class Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let orderbook = await this.performOrderBookRequest (symbol, limit, params);
         let keys = this.orderBookKeys ();
-        return this.parseOrderBook (orderbook, keys)
+        return this.parseOrderBook (orderbook, keys);
     }
 
     async fetchL2OrderBook (symbol, limit = undefined, params = {}) {
@@ -795,14 +795,15 @@ module.exports = class Exchange {
     }
 
     parseOrderBook (orderbook, keys) {
-        let time = this.parseOrderBookTimestamp (orderbook, keys);
+        let timestamp = this.parseOrderBookTimestamp (orderbook, keys);
+        let datetime = this.iso8601 (timestamp);
         let orders = this.parseOrderBookOrders (orderbook, keys);
         let sec = this.parseOrderBookNonce (orderbook, keys);
         return {
             'bids': sortBy (orders['bids'], 0, true),
             'asks': sortBy (orders['asks'], 0),
-            'timestamp': time,
-            'datetime': this.iso8601 (time),
+            'timestamp': timestamp,
+            'datetime': datetime,
             'nonce': sec,
             'info': orderbook,
         }

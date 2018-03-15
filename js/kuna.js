@@ -29,30 +29,6 @@ module.exports = class kuna extends acx {
                 'doc': 'https://kuna.io/documents/api',
                 'fees': 'https://kuna.io/documents/api',
             },
-            'api': {
-                'public': {
-                    'get': [
-                        'tickers', // all of them at once
-                        'tickers/{market}',
-                        'order_book',
-                        'order_book/{market}',
-                        'trades',
-                        'trades/{market}',
-                        'timestamp',
-                    ],
-                },
-                'private': {
-                    'get': [
-                        'members/me',
-                        'orders',
-                        'trades/my',
-                    ],
-                    'post': [
-                        'orders',
-                        'order/delete',
-                    ],
-                },
-            },
             'fees': {
                 'trading': {
                     'taker': 0.25 / 100,
@@ -140,6 +116,10 @@ module.exports = class kuna extends acx {
             'market': market['id'],
         }, params));
         return orderBook;
+    }
+
+    parseOrderBookTimestamp (orderbook, keys) {
+        return this.safeInteger (orderbook, keys['timestamp'], undefined);
     }
 
     orderBookKeyMap () {

@@ -414,6 +414,15 @@ module.exports = class kraken extends Exchange {
         return orderbook;
     }
 
+    parseOrderBookOrders (orderbook, keys) {
+        let bids = (keys['bids'] in orderbook) ? this.parseBidsAsks (orderbook[keys['bids']], keys) : [];
+        let asks = (keys['asks'] in orderbook) ? this.parseBidsAsks (orderbook[keys['asks']], keys) : [];
+        return {
+            'bids': bids,
+            'asks': asks,
+        };
+    }
+
     parseTicker (ticker, market = undefined) {
         let timestamp = this.milliseconds ();
         let symbol = undefined;

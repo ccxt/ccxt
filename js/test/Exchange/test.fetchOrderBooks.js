@@ -13,13 +13,20 @@ const log       = require ('ololog')
 
 module.exports = async (exchange) => {
 
+    const randomSymbols = exchange.symbols.sort (() => 0.5 - Math.random ()).slice (0, 10)
+    const customExchangeParams = {
+        'yobit': [randomSymbols],
+        'tidex': [randomSymbols],
+    }
+
+    const args = (exchange.id in customExchangeParams) ? customExchangeParams[exchange.id] : []
     const method = 'fetchOrderBooks'
 
     if (exchange.has[method]) {
 
         // log ('fetching order books...')
 
-        let orderbooks = await exchange[method] ()
+        let orderbooks = await exchange[method] (...args)
 
         // log.green (orderbooks)
 
