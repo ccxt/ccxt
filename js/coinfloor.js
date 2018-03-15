@@ -28,7 +28,8 @@ module.exports = class coinfloor extends Exchange {
             },
             'requiredCredentials': {
                 'apiKey': true,
-                'secret': true,
+                'secret': false,
+                'password': true,
                 'uid': true,
             },
             'api': {
