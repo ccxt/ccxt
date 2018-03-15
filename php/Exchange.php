@@ -1100,26 +1100,6 @@ abstract class Exchange {
         return $this->parse_ohlcvs ($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_bid_ask ($bidask, $price_key = 0, $amount_key = 0) {
-        return array (floatval ($bidask[$price_key]), floatval ($bidask[$amount_key]));
-    }
-
-    public function parse_bids_asks ($bidasks, $price_key = 0, $amount_key = 0) {
-        $result = array ();
-        $array = is_array ($bidasks) ? array_values ($bidasks) : array ();
-        foreach ($array as $bidask)
-            $result[] = $this->parse_bid_ask ($bidask, $price_key, $amount_key);
-        return $result;
-    }
-
-    public function parseBidAsk ($bidask, $price_key = 0, $amount_key = 0) {
-        return $this->parse_bid_ask ($bidask, $price_key, $amount_key);
-    }
-
-    public function parseBidsAsks ($bidasks, $price_key = 0, $amount_key = 0) {
-        return $this->parse_bids_asks ($bidasks, $price_key, $amount_key);
-    }
-
     public function fetch_l2_order_book ($symbol, $limit = null, $params = array ()) {
         $orderbook = $this->fetch_order_book ($symbol, $limit, $params);
         return array_merge ($orderbook, array (
@@ -1199,9 +1179,8 @@ abstract class Exchange {
 
     public function parse_httpresponse_date ($keys) {
         $responseDate = null;
-        $headerAttributes = is_array ($this->last_response_headers) ? array_keys ($this->last_response_headers) : array ();
-        for ($i = 0; $i < count ($headerAttributes); $i++) {
-            $key = $headerAttributes[$i];
+        $headerAttributes = is_array ($this->last_response_headers) ? $this->last_response_headers : array ();
+        foreach ($headerAttributes as $key => $value) {
             if (strtolower ($key) === $keys['responseDate']) {
                 $responseDate = $this->parse_date ($this->last_response_headers[$key]);
             }
@@ -1224,15 +1203,9 @@ abstract class Exchange {
     }
 
     public function parse_bids_asks ($bidasks, $keys) {
-        $orders = array ();
-        if ($bidasks !== null) {
-            $orders = $bidasks;
-        }
-        $orderKeys = is_array ($orders) ? array_keys ($orders) : array ();
+        $orders = is_array ($bidasks) ? $bidasks : array ();
         $parsedOrders = array ();
-        for ($i = 0; $i < count ($orderKeys); $i++) {
-            $orderKey = $orderKeys[$i];
-            $order = $orders[$orderKey];
+        foreach ($orders as $order) {
             $parsedBidask = $this->parse_bid_ask($order, $keys['price'], $keys['amount']);
             $parsedOrders[] = $parsedBidask;
         }
@@ -1265,8 +1238,8 @@ abstract class Exchange {
         $orders = $this->parse_order_book_orders ($orderbook, $keys);
         $nonse = $this->parse_order_book_nonce ($orderbook, $keys);
         return array (
-            'bids' => sortBy ($orders['bids'], 0, true),
-            'asks' => sortBy ($orders['asks'], 0),
+            'bids' => $this->sort_by ($orders['bids'], 0, true),
+            'asks' => $this->sort_by ($orders['asks'], 0),
             'timestamp' => $timestamp,
             'datetime' => $datetime,
             'nonce' => $nonse,
@@ -1517,10 +1490,6 @@ abstract class Exchange {
 
 	public function fetch_balance ($params = array ()) {
 		throw new NotSupported ($this->id . ' fetch_balance() not implemented yet');
-	}
-
-    public function fetchOrderBook ($symbol, $limit = null, $params = array ()) {
-        return $this->fetch_order_book ($symbol, $limit, $params);
     }
 
     public function fetchTicker ($symbol, $params = array ()) {
