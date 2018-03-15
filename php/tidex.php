@@ -83,30 +83,30 @@ class tidex extends liqui {
         $result = array ();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
-            $id = $currency['Symbol'];
-            $precision = $currency['AmountPoint'];
+            $id = $currency['symbol'];
+            $precision = $currency['amountPoint'];
             $code = $this->common_currency_code($id);
-            $active = $currency['Visible'] === true;
+            $active = $currency['visible'] === true;
             $status = 'ok';
             if (!$active) {
                 $status = 'disabled';
             }
-            $canWithdraw = $currency['WithdrawEnable'] === true;
-            $canDeposit = $currency['DepositEnable'] === true;
+            $canWithdraw = $currency['withdrawEnable'] === true;
+            $canDeposit = $currency['depositEnable'] === true;
             if (!$canWithdraw || !$canDeposit) {
                 $active = false;
             }
             $result[$code] = array (
                 'id' => $id,
                 'code' => $code,
-                'name' => $currency['Name'],
+                'name' => $currency['name'],
                 'active' => $active,
                 'status' => $status,
                 'precision' => $precision,
                 'funding' => array (
                     'withdraw' => array (
                         'active' => $canWithdraw,
-                        'fee' => $currency['WithdrawFee'],
+                        'fee' => $currency['withdrawFee'],
                     ),
                     'deposit' => array (
                         'active' => $canDeposit,
@@ -127,11 +127,11 @@ class tidex extends liqui {
                         'max' => null,
                     ),
                     'withdraw' => array (
-                        'min' => $currency['WithdrawMinAmout'],
+                        'min' => $currency['withdrawMinAmout'],
                         'max' => null,
                     ),
                     'deposit' => array (
-                        'min' => $currency['DepositMinAmount'],
+                        'min' => $currency['depositMinAmount'],
                         'max' => null,
                     ),
                 ),

@@ -27,7 +27,8 @@ class coinfloor extends Exchange {
             ),
             'requiredCredentials' => array (
                 'apiKey' => true,
-                'secret' => true,
+                'secret' => false,
+                'password' => true,
                 'uid' => true,
             ),
             'api' => array (
@@ -179,7 +180,7 @@ class coinfloor extends Exchange {
             $nonce = $this->nonce ();
             $body = $this->urlencode (array_merge (array ( 'nonce' => $nonce ), $query));
             $auth = $this->uid . '/' . $this->apiKey . ':' . $this->password;
-            $signature = base64_encode ($auth);
+            $signature = $this->decode (base64_encode ($this->encode ($auth)));
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Authorization' => 'Basic ' . $signature,

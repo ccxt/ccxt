@@ -148,7 +148,7 @@ module.exports = class bibox extends Exchange {
             'change': undefined,
             'percentage': this.safeString (ticker, 'percent'),
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'vol'),
+            'baseVolume': this.safeFloat (ticker, 'vol24H'),
             'quoteVolume': undefined,
             'info': ticker,
         };
