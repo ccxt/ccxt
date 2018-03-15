@@ -255,9 +255,10 @@ class bittrex (Exchange):
     def parse_ticker(self, ticker, market=None):
         timestamp = self.safe_string(ticker, 'TimeStamp')
         iso8601 = None
-        if timestamp is not None:
-            timestamp = self.parse8601(timestamp)
-            iso8601 = self.iso8601(timestamp)
+        if isinstance(timestamp, basestring):
+            if len(timestamp) > 0:
+                timestamp = self.parse8601(timestamp)
+                iso8601 = self.iso8601(timestamp)
         symbol = None
         if market:
             symbol = market['symbol']

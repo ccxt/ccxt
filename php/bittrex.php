@@ -248,9 +248,11 @@ class bittrex extends Exchange {
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = $this->safe_string($ticker, 'TimeStamp');
         $iso8601 = null;
-        if ($timestamp !== null) {
-            $timestamp = $this->parse8601 ($timestamp);
-            $iso8601 = $this->iso8601 ($timestamp);
+        if (gettype ($timestamp) == 'string') {
+            if (strlen ($timestamp) > 0) {
+                $timestamp = $this->parse8601 ($timestamp);
+                $iso8601 = $this->iso8601 ($timestamp);
+            }
         }
         $symbol = null;
         if ($market)
