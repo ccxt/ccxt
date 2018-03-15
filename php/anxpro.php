@@ -221,9 +221,10 @@ class anxpro extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (is_array ($response) && array_key_exists ('result', $response))
-            if ($response['result'] === 'success')
-                return $response;
+        if ($response !== null)
+            if (is_array ($response) && array_key_exists ('result', $response))
+                if ($response['result'] === 'success')
+                    return $response;
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
     }
 }
