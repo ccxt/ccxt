@@ -111,16 +111,16 @@ class exmo extends Exchange {
                 'quote' => $quote,
                 'limits' => array (
                     'amount' => array (
-                        'min' => $market['min_quantity'],
-                        'max' => $market['max_quantity'],
+                        'min' => $this->safe_float($market, 'min_quantity'),
+                        'max' => $this->safe_float($market, 'max_quantity'),
                     ),
                     'price' => array (
-                        'min' => $market['min_price'],
-                        'max' => $market['max_price'],
+                        'min' => $this->safe_float($market, 'min_price'),
+                        'max' => $this->safe_float($market, 'max_price'),
                     ),
                     'cost' => array (
-                        'min' => $market['min_amount'],
-                        'max' => $market['max_amount'],
+                        'min' => $this->safe_float($market, 'min_amount'),
+                        'max' => $this->safe_float($market, 'max_amount'),
                     ),
                 ),
                 'precision' => array (
