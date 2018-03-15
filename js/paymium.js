@@ -100,7 +100,7 @@ module.exports = class paymium extends Exchange {
         return orderbook;
     }
 
-    orderBookKeyMap () {
+    orderBookExchangeKeys () {
         return {
             'price': 'price',
             'amount': 'amount',

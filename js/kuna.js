@@ -122,7 +122,7 @@ module.exports = class kuna extends acx {
         return this.safeInteger (orderbook, keys['timestamp'], undefined);
     }
 
-    orderBookKeyMap () {
+    orderBookExchangeKeys () {
         return {
             'price': 'price',
             'amount': 'remaining_volume',

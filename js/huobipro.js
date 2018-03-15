@@ -231,7 +231,7 @@ module.exports = class huobipro extends Exchange {
         throw new ExchangeError (this.id + ' fetchOrderBook() returned unrecognized response: ' + this.json (response));
     }
 
-    orderBookKeyMap () {
+    orderBookExchangeKeys () {
         return {
             'timestamp': 'ts',
         };

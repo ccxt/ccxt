@@ -233,7 +233,7 @@ module.exports = class bitz extends Exchange {
         return orderbook;
     }
 
-    orderBookKeyMap () {
+    orderBookExchangeKeys () {
         return {
             'timestamp': 'date',
         };

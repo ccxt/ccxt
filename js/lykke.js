@@ -333,7 +333,7 @@ module.exports = class lykke extends Exchange {
         return orderbook;
     }
 
-    orderBookKeyMap () {
+    orderBookExchangeKeys () {
         return {
             'price': 'Price',
             'amount': 'Volume',

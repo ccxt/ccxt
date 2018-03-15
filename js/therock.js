@@ -150,7 +150,7 @@ module.exports = class therock extends Exchange {
         return this.parse8601 (orderbook[keys['timestamp']]);
     }
 
-    orderBookKeyMap () {
+    orderBookExchangeKeys () {
         return {
             'price': 'price',
             'amount': 'amount',

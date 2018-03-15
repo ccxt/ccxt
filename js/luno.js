@@ -127,7 +127,7 @@ module.exports = class luno extends Exchange {
         return orderbook;
     }
 
-    orderBookKeyMap () {
+    orderBookExchangeKeys () {
         return {
             'price': 'price',
             'amount': 'volume',

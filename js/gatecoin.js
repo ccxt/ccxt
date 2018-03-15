@@ -264,7 +264,7 @@ module.exports = class gatecoin extends Exchange {
         return orderbook;
     }
 
-    orderBookKeyMap () {
+    orderBookExchangeKeys () {
         return {
             'price': 'price',
             'amount': 'volume',

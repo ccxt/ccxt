@@ -182,7 +182,7 @@ module.exports = class coingi extends Exchange {
         return orderbook;
     }
 
-    orderBookKeyMap () {
+    orderBookExchangeKeys () {
         return {
             'price': 'price',
             'amount': 'baseAmount',

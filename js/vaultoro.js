@@ -109,7 +109,7 @@ module.exports = class vaultoro extends Exchange {
         return orderbook;
     }
 
-    orderBookKeyMap () {
+    orderBookExchangeKeys () {
         return {
             'price': 'Gold_Price',
             'amount': 'Gold_Amount',

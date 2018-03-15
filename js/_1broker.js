@@ -145,7 +145,7 @@ module.exports = class _1broker extends Exchange {
         return response['response'][0];
     }
 
-    orderBookKeyMap () {
+    orderBookExchangeKeys () {
         return {
             'timestamp': 'updated',
         };

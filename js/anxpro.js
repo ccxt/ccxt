@@ -104,7 +104,7 @@ module.exports = class anxpro extends Exchange {
         return orderbook;
     }
 
-    orderBookKeyMap () {
+    orderBookExchangeKeys () {
         return {
             'bids': 'bids',
             'asks': 'asks',

@@ -113,7 +113,7 @@ module.exports = class _1btcxe extends Exchange {
         return response['order-book'];
     }
 
-    orderBookKeyMap () {
+    orderBookExchangeKeys () {
         return {
             'bids': 'bid',
             'asks': 'ask',

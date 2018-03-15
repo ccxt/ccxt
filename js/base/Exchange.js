@@ -729,6 +729,19 @@ module.exports = class Exchange {
         return result;
     }
 
+    async fetchL2OrderBook (symbol, limit = undefined, params = {}) {
+        let orderbook = await this.fetchOrderBook (symbol, limit, params)
+        return extend (orderbook, {
+            'bids': sortBy (aggregate (orderbook.bids), 0, true),
+            'asks': sortBy (aggregate (orderbook.asks), 0),
+        })
+    }
+
+
+    // -------------------------------------------------------------------------
+    //  Base OrderBook Fetching and Parsing
+    // -------------------------------------------------------------------------
+
     async performOrderBookRequest (symbol, limit = undefined, params = {}) {
         throw new NotSupported (this.id + ' performOrderBookRequest not supported yet');
     }
@@ -739,12 +752,21 @@ module.exports = class Exchange {
         return this.parseOrderBook (orderbook, keys);
     }
 
-    async fetchL2OrderBook (symbol, limit = undefined, params = {}) {
-        let orderbook = await this.fetchOrderBook (symbol, limit, params)
-        return extend (orderbook, {
-            'bids': sortBy (aggregate (orderbook.bids), 0, true),
-            'asks': sortBy (aggregate (orderbook.asks), 0),
-        })
+    orderBookExchangeKeys () {
+        return {};
+    }
+
+    orderBookKeys () {
+        let defaultOrderbookExchangeKeys = {
+            'bids': 'bids',
+            'asks': 'asks',
+            'price': 0,
+            'amount': 0,
+            'timestamp': 'timestamp',
+            'nonce': 'sec',
+            'responseDate': 'date',
+        };
+        return this.extend (defaultOrderbookExchangeKeys, this.orderBookExchangeKeys ());
     }
 
     parseOrderBookNonce (orderbook, keys) {
@@ -757,6 +779,16 @@ module.exports = class Exchange {
 
     parseOrderBookTimestamp (orderbook, keys) {
         return this.safeInteger (orderbook, keys['timestamp'], undefined);
+    }
+
+    parseHTTPResponseDate (keys) {
+        let responseDate = undefined;
+        for (let key in this.last_response_headers) {
+            if (key.toLowerCase () === keys['responseDate']) {
+                responseDate = this.last_response_headers[key];
+            }
+        }
+        return responseDate;
     }
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
@@ -778,36 +810,27 @@ module.exports = class Exchange {
         };
     }
 
-    orderBookKeyMap () {
-        return {};
-    }
-
-    orderBookKeys () {
-        let orderBookDefaultKeys = {
-            'bids': 'bids',
-            'asks': 'asks',
-            'price': 0,
-            'amount': 0,
-            'timestamp': 'timestamp',
-            'nonce': 'sec',
-        };
-        return this.extend (orderBookDefaultKeys, this.orderBookKeyMap ());
-    }
-
     parseOrderBook (orderbook, keys) {
         let timestamp = this.parseOrderBookTimestamp (orderbook, keys);
+        if (typeof timestamp === 'undefined') {
+            timestamp = this.parseHTTPResponseDate (keys)
+        }
         let datetime = this.iso8601 (timestamp);
         let orders = this.parseOrderBookOrders (orderbook, keys);
-        let sec = this.parseOrderBookNonce (orderbook, keys);
+        let nonse = this.parseOrderBookNonce (orderbook, keys);
         return {
             'bids': sortBy (orders['bids'], 0, true),
             'asks': sortBy (orders['asks'], 0),
             'timestamp': timestamp,
             'datetime': datetime,
-            'nonce': sec,
+            'nonce': nonse,
             'info': orderbook,
         }
     }
+
+    // -------------------------------------------------------------------------
+    //  End of Base OrderBook Fetching and Parsing
+    // -------------------------------------------------------------------------
 
     getCurrencyUsedOnOpenOrders (currency) {
         return Object.values (this.orders).filter (order => (order['status'] === 'open')).reduce ((total, order) => {

@@ -234,7 +234,7 @@ module.exports = class bitlish extends Exchange {
         return last ? parseInt (last / 1000) : undefined;
     }
 
-    orderBookKeyMap () {
+    orderBookExchangeKeys () {
         return {
             'bids': 'bid',
             'asks': 'ask',

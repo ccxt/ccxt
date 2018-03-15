@@ -225,7 +225,7 @@ module.exports = class bitmex extends Exchange {
         return result;
     }
 
-    orderBookKeyMap () {
+    orderBookExchangeKeys () {
         return {
             'price': 'price',
             'amount': 'size',

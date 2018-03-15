@@ -130,7 +130,7 @@ module.exports = class btctradeua extends Exchange {
         return orderbook;
     }
 
-    orderBookKeyMap () {
+    orderBookExchangeKeys () {
         return {
             'price': 'price',
             'amount': 'currency_trade',

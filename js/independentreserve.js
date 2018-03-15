@@ -132,7 +132,7 @@ module.exports = class independentreserve extends Exchange {
         return this.parse8601 (orderbook[keys['timestamp']]);
     }
 
-    orderBookKeyMap () {
+    orderBookExchangeKeys () {
         return {
             'bids': 'BuyOrders',
             'asks': 'SellOrders',

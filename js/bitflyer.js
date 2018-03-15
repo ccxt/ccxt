@@ -150,7 +150,7 @@ module.exports = class bitflyer extends Exchange {
         return orderbook;
     }
 
-    orderBookKeyMap () {
+    orderBookExchangeKeys () {
         return {
             'price': 'price',
             'amount': 'size',

@@ -148,7 +148,7 @@ module.exports = class btcchina extends Exchange {
         return orderbook;
     }
 
-    orderBookKeyMap () {
+    orderBookExchangeKeys () {
         return {
             'timestamp': 'date',
         };

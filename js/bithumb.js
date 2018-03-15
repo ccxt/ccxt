@@ -147,7 +147,7 @@ module.exports = class bithumb extends Exchange {
         return parseInt (orderbook[keys['timestamp']]);
     }
 
-    orderBookKeyMap () {
+    orderBookExchangeKeys () {
         return {
             'price': 'price',
             'amount': 'quantity',

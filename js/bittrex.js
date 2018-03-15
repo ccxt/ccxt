@@ -246,7 +246,7 @@ module.exports = class bittrex extends Exchange {
         return orderbook;
     }
 
-    orderBookKeyMap () {
+    orderBookExchangeKeys () {
         return {
             'bids': 'buy',
             'asks': 'sell',

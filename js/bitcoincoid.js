@@ -121,7 +121,7 @@ module.exports = class bitcoincoid extends Exchange {
         return orderbook;
     }
 
-    orderBookKeyMap () {
+    orderBookExchangeKeys () {
         return {
             'bids': 'buy',
             'asks': 'sell',

@@ -92,7 +92,7 @@ module.exports = class nova extends Exchange {
         return orderbook;
     }
 
-    orderBookKeyMap () {
+    orderBookExchangeKeys () {
         return {
             'bids': 'buyorders',
             'asks': 'sellorders',

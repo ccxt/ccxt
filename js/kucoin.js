@@ -333,7 +333,7 @@ module.exports = class kucoin extends Exchange {
         return orderbook;
     }
 
-    orderBookKeyMap () {
+    orderBookExchangeKeys () {
         return {
             'bids': 'BUY',
             'asks': 'SELL',

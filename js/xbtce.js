@@ -159,7 +159,7 @@ module.exports = class xbtce extends Exchange {
         return orderbook;
     }
 
-    orderBookKeyMap () {
+    orderBookExchangeKeys () {
         return {
             'bids': 'Bids',
             'asks': 'Asks',

@@ -236,7 +236,7 @@ module.exports = class bibox extends Exchange {
         return response['result'];
     }
 
-    orderBookKeyMap () {
+    orderBookExchangeKeys () {
         return {
             'bids': 'bids',
             'asks': 'asks',

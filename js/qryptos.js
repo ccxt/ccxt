@@ -177,7 +177,7 @@ module.exports = class qryptos extends Exchange {
         return orderbook;
     }
 
-    orderBookKeyMap () {
+    orderBookExchangeKeys () {
         return {
             'bids': 'buy_price_levels',
             'asks': 'sell_price_levels',

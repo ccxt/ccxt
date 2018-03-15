@@ -165,7 +165,7 @@ module.exports = class exmo extends Exchange {
         return result;
     }
 
-    orderBookKeyMap () {
+    orderBookExchangeKeys () {
         return {
             'bids': 'bid',
             'asks': 'ask',

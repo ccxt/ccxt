@@ -204,7 +204,7 @@ module.exports = class coinsecure extends Exchange {
         return orderbook;
     }
 
-    orderBookKeyMap () {
+    orderBookExchangeKeys () {
         return {
             'price': 'rate',
             'amount': 'vol',

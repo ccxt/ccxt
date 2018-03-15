@@ -110,7 +110,7 @@ module.exports = class flowbtc extends Exchange {
         return orderbook;
     }
 
-    orderBookKeyMap () {
+    orderBookExchangeKeys () {
         return {
             'price': 'px',
             'amount': 'qty',

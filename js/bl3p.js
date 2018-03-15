@@ -108,7 +108,7 @@ module.exports = class bl3p extends Exchange {
         return orderbook;
     }
 
-    orderBookKeyMap () {
+    orderBookExchangeKeys () {
         return {
             'price': 'price_int',
             'amount': 'amount_int',

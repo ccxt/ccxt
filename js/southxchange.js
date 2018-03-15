@@ -111,7 +111,7 @@ module.exports = class southxchange extends Exchange {
         return orderbook;
     }
 
-    orderBookKeyMap () {
+    orderBookExchangeKeys () {
         return {
             'bids': 'BuyOrders',
             'asks': 'SellOrders',
