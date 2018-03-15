@@ -1034,7 +1034,7 @@ class Exchange(object):
         responseDate = None
         for key in list(self.last_response_headers.keys()):
             if key.lower() == keys['responseDate']:
-                responseDate = self.last_response_headers[key]
+                responseDate = self.parse_date (self.last_response_headers[key])
         return responseDate
 
     def parse_bid_ask(self, bidask, priceKey=0, amountKey=1):

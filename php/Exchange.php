@@ -1203,7 +1203,7 @@ abstract class Exchange {
         for ($i = 0; $i < count ($headerAttributes); $i++) {
             $key = $headerAttributes[$i];
             if (strtolower ($key) === $keys['responseDate']) {
-                $responseDate = $this->last_response_headers[$key];
+                $responseDate = $this->parse_date ($this->last_response_headers[$key]);
             }
         }
         return $responseDate;

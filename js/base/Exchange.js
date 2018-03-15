@@ -784,7 +784,7 @@ module.exports = class Exchange {
         for (let i = 0; i < headerAttributes.length; i++) {
             let key = headerAttributes[i];
             if (key.toLowerCase () === keys['responseDate']) {
-                responseDate = this.last_response_headers[key];
+                responseDate = this.parseDate (this.last_response_headers[key])
             }
         }
         return responseDate;
