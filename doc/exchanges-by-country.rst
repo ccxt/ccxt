@@ -158,7 +158,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
 +--------------------------+----------------------+--------------------+--------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+
 | Pakistan                 | |urdubit|            | urdubit            | `UrduBit <https://urdubit.com>`__                            | 1   | `API <https://blinktrade.com/docs>`__                                                           |
 +--------------------------+----------------------+--------------------+--------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+
-| Panama                   | |\_1btcxe|           | \_1btcxe           | `1BTCXE <https://1btcxe.com>`__                              | \*  | `API <https://1btcxe.com/api-docs.php>`__                                                       |
+| Panama                   | |_1btcxe|            | _1btcxe            | `1BTCXE <https://1btcxe.com>`__                              | \*  | `API <https://1btcxe.com/api-docs.php>`__                                                       |
 +--------------------------+----------------------+--------------------+--------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+
 | Panama                   | |coingi|             | coingi             | `Coingi <https://coingi.com>`__                              | \*  | `API <http://docs.coingi.apiary.io/>`__                                                         |
 +--------------------------+----------------------+--------------------+--------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+
@@ -254,7 +254,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
 +--------------------------+----------------------+--------------------+--------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+
 | Ukraine                  | |liqui|              | liqui              | `Liqui <https://liqui.io>`__                                 | 3   | `API <https://liqui.io/api>`__                                                                  |
 +--------------------------+----------------------+--------------------+--------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+
-| US                       | |\_1broker|          | \_1broker          | `1Broker <https://1broker.com>`__                            | 2   | `API <https://1broker.com/?c=en/content/api-documentation>`__                                   |
+| US                       | |_1broker|           | _1broker           | `1Broker <https://1broker.com>`__                            | 2   | `API <https://1broker.com/?c=en/content/api-documentation>`__                                   |
 +--------------------------+----------------------+--------------------+--------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+
 | US                       | |bibox|              | bibox              | `Bibox <https://www.bibox.com>`__                            | 1   | `API <https://github.com/Biboxcom/api_reference/wiki/home_en>`__                                |
 +--------------------------+----------------------+--------------------+--------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+
@@ -358,7 +358,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
 .. |cryptopia| image:: https://user-images.githubusercontent.com/1294454/29484394-7b4ea6e2-84c6-11e7-83e5-1fccf4b2dc81.jpg
 .. |wex| image:: https://user-images.githubusercontent.com/1294454/30652751-d74ec8f8-9e31-11e7-98c5-71469fcef03e.jpg
 .. |urdubit| image:: https://user-images.githubusercontent.com/1294454/27991453-156bf3ae-6480-11e7-82eb-7295fe1b5bb4.jpg
-.. |\_1btcxe| image:: https://user-images.githubusercontent.com/1294454/27766049-2b294408-5ecc-11e7-85cc-adaff013dc1a.jpg
+.. |_1btcxe| image:: https://user-images.githubusercontent.com/1294454/27766049-2b294408-5ecc-11e7-85cc-adaff013dc1a.jpg
 .. |btcexchange| image:: https://user-images.githubusercontent.com/1294454/27993052-4c92911a-64aa-11e7-96d8-ec6ac3435757.jpg
 .. |exmo| image:: https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg
 .. |getbtc| image:: https://user-images.githubusercontent.com/1294454/33801902-03c43462-dd7b-11e7-992e-077e4cd015b9.jpg
@@ -386,7 +386,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
 .. |btctradeua| image:: https://user-images.githubusercontent.com/1294454/27941483-79fc7350-62d9-11e7-9f61-ac47f28fcd96.jpg
 .. |kuna| image:: https://user-images.githubusercontent.com/1294454/31697638-912824fa-b3c1-11e7-8c36-cf9606eb94ac.jpg
 .. |liqui| image:: https://user-images.githubusercontent.com/1294454/27982022-75aea828-63a0-11e7-9511-ca584a8edd74.jpg
-.. |\_1broker| image:: https://user-images.githubusercontent.com/1294454/27766021-420bd9fc-5ecb-11e7-8ed6-56d0081efed2.jpg
+.. |_1broker| image:: https://user-images.githubusercontent.com/1294454/27766021-420bd9fc-5ecb-11e7-8ed6-56d0081efed2.jpg
 .. |bittrex| image:: https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg
 .. |coinmarketcap| image:: https://user-images.githubusercontent.com/1294454/28244244-9be6312a-69ed-11e7-99c1-7c1797275265.jpg
 .. |gdax| image:: https://user-images.githubusercontent.com/1294454/27766527-b1be41c6-5edb-11e7-95f6-5b496c469e2c.jpg

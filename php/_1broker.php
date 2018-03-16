@@ -154,7 +154,7 @@ class _1broker extends Exchange {
         return $this->parse8601 ($orderbook[$keys['timestamp']]);
     }
 
-    public function parse_order_book_orders ($orderbook) {
+    public function parse_order_book_orders ($orderbook, $keys) {
         $bidPrice = floatval ($orderbook['bid']);
         $askPrice = floatval ($orderbook['ask']);
         $bid = array ( $bidPrice, null );

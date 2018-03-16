@@ -155,7 +155,7 @@ module.exports = class _1broker extends Exchange {
         return this.parse8601 (orderbook[keys['timestamp']]);
     }
 
-    parseOrderBookOrders (orderbook) {
+    parseOrderBookOrders (orderbook, keys) {
         let bidPrice = parseFloat (orderbook['bid']);
         let askPrice = parseFloat (orderbook['ask']);
         let bid = [ bidPrice, undefined ];

@@ -145,7 +145,7 @@ class _1broker (Exchange):
     def parse_order_book_timestamp(self, orderbook, keys):
         return self.parse8601(orderbook[keys['timestamp']])
 
-    def parse_order_book_orders(self, orderbook):
+    def parse_order_book_orders(self, orderbook, keys):
         bidPrice = float(orderbook['bid'])
         askPrice = float(orderbook['ask'])
         bid = [bidPrice, None]
