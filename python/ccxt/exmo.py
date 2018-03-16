@@ -121,6 +121,7 @@ class exmo (Exchange):
                 '50052': InsufficientFunds,
                 '50173': OrderNotFound,  # "Order with id X was not found."(cancelling non-existent, closed and cancelled order)
                 '50319': InvalidOrder,  # Price by order is less than permissible minimum for self pair
+                '50321': InvalidOrder,  # Price by order is more than permissible maximum for self pair
             },
         })
 
