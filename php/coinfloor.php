@@ -78,11 +78,11 @@ class coinfloor extends Exchange {
         ));
     }
 
-    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $orderbook = $this->publicGetIdOrderBook (array_merge (array (
             'id' => $this->market_id($symbol),
         ), $params));
-        return $orderbook;
+        return $this->parse_order_book($orderbook);
     }
 
     public function parse_ticker ($ticker, $market = null) {

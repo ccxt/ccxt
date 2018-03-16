@@ -95,27 +95,14 @@ class anxpro extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $response = $this->publicGetCurrencyPairMoneyDepthFull (array_merge (array (
             'currency_pair' => $this->market_id($symbol),
         ), $params));
         $orderbook = $response['data'];
-        return $orderbook;
-    }
-
-    public function order_book_exchange_keys () {
-        return array (
-            'bids' => 'bids',
-            'asks' => 'asks',
-            'price' => 'price',
-            'amount' => 'amount',
-            'timestamp' => 'dataUpdateTime',
-        );
-    }
-
-    public function parse_order_book_timestamp ($orderbook, $keys) {
-        $time = intval ($orderbook[$keys['timestamp']]);
-        return intval ($time / 1000);
+        $t = intval ($orderbook['dataUpdateTime']);
+        $timestamp = intval ($t / 1000);
+        return $this->parse_order_book($orderbook, $timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {

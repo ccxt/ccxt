@@ -134,25 +134,14 @@ class bitso extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetOrderBook (array_merge (array (
             'book' => $this->market_id($symbol),
         ), $params));
         $orderbook = $response['payload'];
-        return $orderbook;
-    }
-
-    public function order_book_exchange_keys () {
-        return array (
-            'price' => 'price',
-            'amount' => 'amount',
-            'timestamp' => 'updated_at',
-        );
-    }
-
-    public function parse_order_book_timestamp ($orderbook, $keys) {
-        return $this->parse8601 ($orderbook[$keys['timestamp']]);
+        $timestamp = $this->parse8601 ($orderbook['updated_at']);
+        return $this->parse_order_book($orderbook, $timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {

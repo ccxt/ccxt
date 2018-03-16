@@ -118,19 +118,13 @@ class luno extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $orderbook = $this->publicGetOrderbook (array_merge (array (
             'pair' => $this->market_id($symbol),
         ), $params));
-        return $orderbook;
-    }
-
-    public function order_book_exchange_keys () {
-        return array (
-            'price' => 'price',
-            'amount' => 'volume',
-        );
+        $timestamp = $orderbook['timestamp'];
+        return $this->parse_order_book($orderbook, $timestamp, 'bids', 'asks', 'price', 'volume');
     }
 
     public function parse_order ($order, $market = null) {

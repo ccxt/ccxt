@@ -28,6 +28,30 @@ class kuna extends acx {
                 'doc' => 'https://kuna.io/documents/api',
                 'fees' => 'https://kuna.io/documents/api',
             ),
+            'api' => array (
+                'public' => array (
+                    'get' => array (
+                        'tickers', // all of them at once
+                        'tickers/{market}',
+                        'order_book',
+                        'order_book/{market}',
+                        'trades',
+                        'trades/{market}',
+                        'timestamp',
+                    ),
+                ),
+                'private' => array (
+                    'get' => array (
+                        'members/me',
+                        'orders',
+                        'trades/my',
+                    ),
+                    'post' => array (
+                        'orders',
+                        'order/delete',
+                    ),
+                ),
+            ),
             'fees' => array (
                 'trading' => array (
                     'taker' => 0.25 / 100,
@@ -108,24 +132,13 @@ class kuna extends acx {
         return $markets;
     }
 
-    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $orderBook = $this->publicGetOrderBook (array_merge (array (
             'market' => $market['id'],
         ), $params));
-        return $orderBook;
-    }
-
-    public function parse_order_book_timestamp ($orderbook, $keys) {
-        return $this->safe_integer($orderbook, $keys['timestamp'], null);
-    }
-
-    public function order_book_exchange_keys () {
-        return array (
-            'price' => 'price',
-            'amount' => 'remaining_volume',
-        );
+        return $this->parse_order_book($orderBook, null, 'bids', 'asks', 'price', 'remaining_volume');
     }
 
     public function fetch_l3_order_book ($symbol, $limit = null, $params = array ()) {

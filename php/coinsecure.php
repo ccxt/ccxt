@@ -192,7 +192,7 @@ class coinsecure extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $bids = $this->publicGetExchangeBidOrders ($params);
         $asks = $this->publicGetExchangeAskOrders ($params);
@@ -200,14 +200,7 @@ class coinsecure extends Exchange {
             'bids' => $bids['message'],
             'asks' => $asks['message'],
         );
-        return $orderbook;
-    }
-
-    public function order_book_exchange_keys () {
-        return array (
-            'price' => 'rate',
-            'amount' => 'vol',
-        );
+        return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'rate', 'vol');
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {

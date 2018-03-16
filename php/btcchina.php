@@ -139,23 +139,16 @@ class btcchina extends Exchange {
         return $request;
     }
 
-    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $method = $market['api'] . 'GetOrderbook';
         $request = $this->create_market_request ($market);
         $orderbook = $this->$method (array_merge ($request, $params));
-        return $orderbook;
-    }
-
-    public function order_book_exchange_keys () {
-        return array (
-            'timestamp' => 'date',
-        );
-    }
-
-    public function parse_order_book_timestamp ($orderbook, $keys) {
-        return $orderbook[$keys['timestamp']] * 1000;
+        $timestamp = $orderbook['date'] * 1000;
+        $result = $this->parse_order_book($orderbook, $timestamp);
+        $result['asks'] = $this->sort_by($result['asks'], 0);
+        return $result;
     }
 
     public function parse_ticker ($ticker, $market) {

@@ -704,7 +704,7 @@ class hitbtc2 extends hitbtc {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array (
             'symbol' => $this->market_id($symbol),
@@ -712,16 +712,7 @@ class hitbtc2 extends hitbtc {
         if ($limit !== null)
             $request['limit'] = $limit; // default = 100, 0 = unlimited
         $orderbook = $this->publicGetOrderbookSymbol (array_merge ($request, $params));
-        return $orderbook;
-    }
-
-    public function order_book_default_keys () {
-        return array (
-            'bids' => 'bid',
-            'asks' => 'ask',
-            'price' => 'price',
-            'amount' => 'size',
-        );
+        return $this->parse_order_book($orderbook, null, 'bid', 'ask', 'price', 'size');
     }
 
     public function parse_ticker ($ticker, $market = null) {

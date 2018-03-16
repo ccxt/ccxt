@@ -168,19 +168,12 @@ class qryptos extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $orderbook = $this->publicGetProductsIdPriceLevels (array_merge (array (
             'id' => $this->market_id($symbol),
         ), $params));
-        return $orderbook;
-    }
-
-    public function order_book_exchange_keys () {
-        return array (
-            'bids' => 'buy_price_levels',
-            'asks' => 'sell_price_levels',
-        );
+        return $this->parse_order_book($orderbook, null, 'buy_price_levels', 'sell_price_levels');
     }
 
     public function parse_ticker ($ticker, $market = null) {

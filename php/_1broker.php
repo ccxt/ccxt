@@ -136,30 +136,20 @@ class _1broker extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privateGetMarketQuotes (array_merge (array (
             'symbols' => $this->market_id($symbol),
         ), $params));
-        return $response['response'][0];
-    }
-
-    public function order_book_exchange_keys () {
-        return array (
-            'timestamp' => 'updated',
-        );
-    }
-
-    public function parse_order_book_timestamp ($orderbook, $keys) {
-        return $this->parse8601 ($orderbook[$keys['timestamp']]);
-    }
-
-    public function parse_order_book_orders ($orderbook, $keys) {
+        $orderbook = $response['response'][0];
+        $timestamp = $this->parse8601 ($orderbook['updated']);
         $bidPrice = floatval ($orderbook['bid']);
         $askPrice = floatval ($orderbook['ask']);
         $bid = array ( $bidPrice, null );
         $ask = array ( $askPrice, null );
         return array (
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
             'bids' => array ( $bid ),
             'asks' => array ( $ask ),
         );

@@ -83,7 +83,7 @@ class btcbox extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array ();
@@ -91,7 +91,9 @@ class btcbox extends Exchange {
         if ($numSymbols > 1)
             $request['coin'] = $market['id'];
         $orderbook = $this->publicGetDepth (array_merge ($request, $params));
-        return $orderbook;
+        $result = $this->parse_order_book($orderbook);
+        $result['asks'] = $this->sort_by($result['asks'], 0);
+        return $result;
     }
 
     public function parse_ticker ($ticker, $market = null) {

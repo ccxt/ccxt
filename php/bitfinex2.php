@@ -253,30 +253,29 @@ class bitfinex2 extends bitfinex {
         return $this->parse_balance($result);
     }
 
-    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $orderbook = $this->publicGetBookSymbolPrecision (array_merge (array (
             'symbol' => $this->market_id($symbol),
             'precision' => 'R0',
         ), $params));
-        // result['bids'] = $this->sort_by(result['bids'], 0, true);
-        // result['asks'] = $this->sort_by(result['asks'], 0);
-        return $orderbook;
-    }
-
-    public function parse_order_book_orders ($orderbook, $keys) {
+        $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => array (),
             'asks' => array (),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
         );
         for ($i = 0; $i < count ($orderbook); $i++) {
             $order = $orderbook[$i];
             $price = $order[1];
             $amount = $order[2];
-            $side = ($amount > 0) ? $keys['bids'] : $keys['asks'];
+            $side = ($amount > 0) ? 'bids' : 'asks';
             $amount = abs ($amount);
             $result[$side][] = array ( $price, $amount );
         }
+        $result['bids'] = $this->sort_by($result['bids'], 0, true);
+        $result['asks'] = $this->sort_by($result['asks'], 0);
         return $result;
     }
 

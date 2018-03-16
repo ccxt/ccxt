@@ -254,20 +254,13 @@ class gatecoin extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $orderbook = $this->publicGetPublicMarketDepthCurrencyPair (array_merge (array (
             'CurrencyPair' => $market['id'],
         ), $params));
-        return $orderbook;
-    }
-
-    public function order_book_exchange_keys () {
-        return array (
-            'price' => 'price',
-            'amount' => 'volume',
-        );
+        return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'price', 'volume');
     }
 
     public function parse_ticker ($ticker, $market = null) {

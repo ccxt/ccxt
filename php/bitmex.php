@@ -201,34 +201,28 @@ class bitmex extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $orderbook = $this->publicGetOrderBookL2 (array_merge (array (
             'symbol' => $this->market_id($symbol),
         ), $params));
-        return $orderbook;
-    }
-
-    public function parse_order_book_orders ($orderbook, $keys) {
+        $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => array (),
             'asks' => array (),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
         );
         for ($o = 0; $o < count ($orderbook); $o++) {
             $order = $orderbook[$o];
             $side = ($order['side'] === 'Sell') ? 'asks' : 'bids';
-            $amount = $order[$keys['amount']];
-            $price = $order[$keys['price']];
+            $amount = $order['size'];
+            $price = $order['price'];
             $result[$side][] = array ( $price, $amount );
         }
+        $result['bids'] = $this->sort_by($result['bids'], 0, true);
+        $result['asks'] = $this->sort_by($result['asks'], 0);
         return $result;
-    }
-
-    public function order_book_exchange_keys () {
-        return array (
-            'price' => 'price',
-            'amount' => 'size',
-        );
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {

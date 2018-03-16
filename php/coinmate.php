@@ -89,20 +89,14 @@ class coinmate extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $response = $this->publicGetOrderBook (array_merge (array (
             'currencyPair' => $this->market_id($symbol),
             'groupByPriceLimit' => 'False',
         ), $params));
         $orderbook = $response['data'];
-        return $orderbook;
-    }
-
-    public function order_book_exchange_keys () {
-        return array (
-            'price' => 'price',
-            'amount' => 'amount',
-        );
+        $timestamp = $orderbook['timestamp'] * 1000;
+        return $this->parse_order_book($orderbook, $timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {

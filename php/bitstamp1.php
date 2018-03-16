@@ -74,15 +74,12 @@ class bitstamp1 extends Exchange {
         ));
     }
 
-    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         if ($symbol !== 'BTC/USD')
             throw new ExchangeError ($this->id . ' ' . $this->version . " fetchOrderBook doesn't support " . $symbol . ', use it for BTC/USD only');
         $orderbook = $this->publicGetOrderBook ($params);
-        return $orderbook;
-    }
-
-    public function parse_order_book_timestamp ($orderbook, $keys) {
-        return intval ($orderbook[$keys['timestamp']]) * 1000;
+        $timestamp = intval ($orderbook['timestamp']) * 1000;
+        return $this->parse_order_book($orderbook, $timestamp);
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {

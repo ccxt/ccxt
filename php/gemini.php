@@ -97,19 +97,12 @@ class gemini extends Exchange {
         return $result;
     }
 
-    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $orderbook = $this->publicGetBookSymbol (array_merge (array (
             'symbol' => $this->market_id($symbol),
         ), $params));
-        return $orderbook;
-    }
-
-    public function order_book_exchange_keys () {
-        return array (
-            'price' => 'price',
-            'amount' => 'amount',
-        );
+        return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'price', 'amount');
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {

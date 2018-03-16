@@ -100,20 +100,13 @@ class flowbtc extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $orderbook = $this->publicPostGetOrderBook (array_merge (array (
             'productPair' => $market['id'],
         ), $params));
-        return $orderbook;
-    }
-
-    public function order_book_exchange_keys () {
-        return array (
-            'price' => 'px',
-            'amount' => 'qty',
-        );
+        return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'px', 'qty');
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {

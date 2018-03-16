@@ -214,7 +214,7 @@ class huobipro extends Exchange {
         );
     }
 
-    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->marketGetDepth (array_merge (array (
@@ -225,15 +225,9 @@ class huobipro extends Exchange {
             if (!$response['tick']) {
                 throw new ExchangeError ($this->id . ' fetchOrderBook() returned empty $response => ' . $this->json ($response));
             }
-            return $response['tick'];
+            return $this->parse_order_book($response['tick'], $response['tick']['ts']);
         }
         throw new ExchangeError ($this->id . ' fetchOrderBook() returned unrecognized $response => ' . $this->json ($response));
-    }
-
-    public function order_book_exchange_keys () {
-        return array (
-            'timestamp' => 'ts',
-        );
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {

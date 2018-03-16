@@ -134,17 +134,14 @@ class btcmarkets extends Exchange {
         return $this->parse_ohlcvs($response['ticks'], $market, $timeframe, $since, $limit);
     }
 
-    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $orderbook = $this->publicGetMarketIdOrderbook (array_merge (array (
             'id' => $market['id'],
         ), $params));
-        return $orderbook;
-    }
-
-    public function parse_order_book_timestamp ($orderbook, $keys) {
-        return $orderbook[$keys['timestamp']] * 1000;
+        $timestamp = $orderbook['timestamp'] * 1000;
+        return $this->parse_order_book($orderbook, $timestamp);
     }
 
     public function parse_ticker ($ticker, $market = null) {

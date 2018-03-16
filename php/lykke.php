@@ -306,7 +306,7 @@ class lykke extends Exchange {
         return $this->parse_orders($response, null, $since, $limit);
     }
 
-    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetOrderBooksAssetPairId (array_merge (array (
             'AssetPairId' => $this->market_id($symbol),
@@ -316,6 +316,7 @@ class lykke extends Exchange {
             'bids' => array (),
             'asks' => array (),
         );
+        $timestamp = null;
         for ($i = 0; $i < count ($response); $i++) {
             $side = $response[$i];
             if ($side['IsBuy']) {
@@ -330,14 +331,9 @@ class lykke extends Exchange {
                 $orderbook['timestamp'] = max ($orderbook['timestamp'], $timestamp);
             }
         }
-        return $orderbook;
-    }
-
-    public function order_book_exchange_keys () {
-        return array (
-            'price' => 'Price',
-            'amount' => 'Volume',
-        );
+        if (!$timestamp)
+            $timestamp = $this->milliseconds ();
+        return $this->parse_order_book($orderbook, $orderbook['timestamp'], 'bids', 'asks', 'Price', 'Volume');
     }
 
     public function parse_bid_ask ($bidask, $priceKey = 0, $amountKey = 1) {

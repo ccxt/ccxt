@@ -164,22 +164,13 @@ class cryptopia extends Exchange {
         return $result;
     }
 
-    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetGetMarketOrdersId (array_merge (array (
             'id' => $this->market_id($symbol),
         ), $params));
         $orderbook = $response['Data'];
-        return $orderbook;
-    }
-
-    public function order_book_default_keys () {
-        return array (
-            'bids' => 'Buy',
-            'asks' => 'Sell',
-            'price' => 'Price',
-            'amount' => 'Volume',
-        );
+        return $this->parse_order_book($orderbook, null, 'Buy', 'Sell', 'Price', 'Volume');
     }
 
     public function join_market_ids ($ids, $glue = '-') {
@@ -207,7 +198,6 @@ class cryptopia extends Exchange {
         ), $params));
         $orderbooks = $response['Data'];
         $result = array ();
-        $keys = $this->orderBookKeys ();
         for ($i = 0; $i < count ($orderbooks); $i++) {
             $orderbook = $orderbooks[$i];
             $id = $this->safe_integer($orderbook, 'TradePairId');
@@ -216,7 +206,7 @@ class cryptopia extends Exchange {
                 $market = $this->markets_by_id[$id];
                 $symbol = $market['symbol'];
             }
-            $result[$symbol] = $this->parse_order_book($orderbook, $keys);
+            $result[$symbol] = $this->parse_order_book($orderbook, null, 'Buy', 'Sell', 'Price', 'Volume');
         }
         return $result;
     }

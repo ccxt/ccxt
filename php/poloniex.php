@@ -242,7 +242,7 @@ class poloniex extends Exchange {
         );
     }
 
-    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array (
             'currencyPair' => $this->market_id($symbol),
@@ -250,7 +250,7 @@ class poloniex extends Exchange {
         if ($limit !== null)
             $request['depth'] = $limit; // 100
         $orderbook = $this->publicGetReturnOrderBook (array_merge ($request, $params));
-        return $orderbook;
+        return $this->parse_order_book($orderbook);
     }
 
     public function parse_ticker ($ticker, $market = null) {

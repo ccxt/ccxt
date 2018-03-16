@@ -174,16 +174,13 @@ class cex extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $orderbook = $this->publicGetOrderBookPair (array_merge (array (
             'pair' => $this->market_id($symbol),
         ), $params));
-        return $orderbook;
-    }
-
-    public function parse_order_book_timestamp ($orderbook, $keys) {
-        return intval ($orderbook[$keys['timestamp']] * 1000);
+        $timestamp = $orderbook['timestamp'] * 1000;
+        return $this->parse_order_book($orderbook, $timestamp);
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {

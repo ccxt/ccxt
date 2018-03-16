@@ -220,27 +220,16 @@ class bitlish extends Exchange {
         ), $params));
     }
 
-    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $orderbook = $this->publicGetTradesDepth (array_merge (array (
             'pair_id' => $this->market_id($symbol),
         ), $params));
-        return $orderbook;
-    }
-
-    public function parse_order_book_timestamp ($orderbook, $keys) {
-        $last = $this->safe_integer($orderbook, $keys['timestamp']);
-        return $last ? intval ($last / 1000) : null;
-    }
-
-    public function order_book_exchange_keys () {
-        return array (
-            'bids' => 'bid',
-            'asks' => 'ask',
-            'price' => 'price',
-            'amount' => 'volume',
-            'timestamp' => 'last',
-        );
+        $timestamp = null;
+        $last = $this->safe_integer($orderbook, 'last');
+        if ($last)
+            $timestamp = intval ($last / 1000);
+        return $this->parse_order_book($orderbook, $timestamp, 'bid', 'ask', 'price', 'volume');
     }
 
     public function parse_trade ($trade, $market = null) {

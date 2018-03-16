@@ -118,28 +118,15 @@ class independentreserve extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->publicGetGetOrderBook (array_merge (array (
             'primaryCurrencyCode' => $market['baseId'],
             'secondaryCurrencyCode' => $market['quoteId'],
         ), $params));
-        return $response;
-    }
-
-    public function parse_order_book_timestamp ($orderbook, $keys) {
-        return $this->parse8601 ($orderbook[$keys['timestamp']]);
-    }
-
-    public function order_book_exchange_keys () {
-        return array (
-            'bids' => 'BuyOrders',
-            'asks' => 'SellOrders',
-            'price' => 'Price',
-            'amount' => 'Volume',
-            'timestamp' => 'CreatedTimestampUtc',
-        );
+        $timestamp = $this->parse8601 ($response['CreatedTimestampUtc']);
+        return $this->parse_order_book($response, $timestamp, 'BuyOrders', 'SellOrders', 'Price', 'Volume');
     }
 
     public function parse_ticker ($ticker, $market = null) {

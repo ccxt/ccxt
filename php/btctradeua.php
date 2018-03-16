@@ -106,7 +106,7 @@ class btctradeua extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $market = $this->market ($symbol);
         $bids = $this->publicGetTradesBuySymbol (array_merge (array (
             'symbol' => $market['id'],
@@ -126,14 +126,7 @@ class btctradeua extends Exchange {
             if (is_array ($asks) && array_key_exists ('list', $asks))
                 $orderbook['asks'] = $asks['list'];
         }
-        return $orderbook;
-    }
-
-    public function order_book_exchange_keys () {
-        return array (
-            'price' => 'price',
-            'amount' => 'currency_trade',
-        );
+        return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'price', 'currency_trade');
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {
