@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, OrderNotFound } = require ('./base/errors');
+const { ExchangeError, OrderNotFound, AuthenticationError, InsufficientFunds, InvalidOrder } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -93,6 +93,22 @@ module.exports = class exmo extends Exchange {
                     },
                 },
             },
+            'exceptions': {
+                // '803': InvalidOrder, // "Count could not be less than 0.001." (selling below minAmount)
+                // '804': InvalidOrder, // "Count could not be more than 10000." (buying above maxAmount)
+                // '805': InvalidOrder, // "price could not be less than X." (minPrice violation on buy & sell)
+                // '806': InvalidOrder, // "price could not be more than X." (maxPrice violation on buy & sell)
+                // '807': InvalidOrder, // "cost could not be less than X." (minCost violation on buy & sell)
+                // '831': InsufficientFunds, // "Not enougth X to create buy order." (buying with balance.quote < order.cost)
+                // '832': InsufficientFunds, // "Not enougth X to create sell order." (selling with balance.base < order.amount)
+                '40005': AuthenticationError, // Authorization error, incorrect signature
+                '40015': ExchangeError, // API function do not exist
+                '40017': AuthenticationError, // Wrong API Key
+                '50052': InsufficientFunds,
+                '50173': OrderNotFound, // "Order with id X was not found." (cancelling non-existent, closed and cancelled order)
+                '50319': InvalidOrder, // Price by order is less than permissible minimum for this pair
+            },
+
         });
     }
 
@@ -296,8 +312,6 @@ module.exports = class exmo extends Exchange {
             'price': this.priceToPrecision (symbol, price),
             'type': prefix + side,
         };
-        // console.log (request);
-        // process.exit ()
         let response = await this.privatePostOrderCreate (this.extend (request, params));
         let id = this.safeString (response, 'order_id');
         let timestamp = this.milliseconds ();
@@ -391,17 +405,16 @@ module.exports = class exmo extends Exchange {
         await this.loadMarkets ();
         let response = await this.privatePostUserOpenOrders (params);
         let marketIds = Object.keys (response);
+        let orders = [];
         for (let i = 0; i < marketIds.length; i++) {
             let marketId = marketIds[i];
             let market = undefined;
-            let marketSymbol = undefined;
-            if (marketId in this.markets_by_id) {
+            if (marketId in this.markets_by_id)
                 market = this.markets_by_id[marketId];
-                marketSymbol = market['symbol'];
-            }
-            let orders = this.parseOrders (response[marketId], market);
-            this.updateCachedOrders (orders, marketSymbol);
+            let parsedOrders = this.parseOrders (response[marketId], market);
+            orders = this.arrayConcat (orders, parsedOrders);
         }
+        this.updateCachedOrders (orders);
         return this.filterBySymbolSinceLimit (this.orders, symbol, since, limit);
     }
 
@@ -504,7 +517,7 @@ module.exports = class exmo extends Exchange {
             'timestamp': timestamp,
             'status': status,
             'symbol': symbol,
-            'type': undefined,
+            'type': 'limit',
             'side': side,
             'price': price,
             'cost': cost,
@@ -582,13 +595,45 @@ module.exports = class exmo extends Exchange {
         return this.milliseconds ();
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('result' in response) {
-            if (response['result'])
-                return response;
-            throw new ExchangeError (this.id + ' ' + this.json (response));
+    handleErrors (httpCode, reason, url, method, headers, body) {
+        if (typeof body !== 'string')
+            return; // fallback to default error handler
+        if (body.length < 2)
+            return; // fallback to default error handler
+        if ((body[0] === '{') || (body[0] === '[')) {
+            let response = JSON.parse (body);
+            if ('result' in response) {
+                //
+                //     {"result":false,"error":"Error 50052: Insufficient funds"}
+                //
+                let success = this.safeValue (response, 'result', false);
+                if (typeof success === 'string') {
+                    if ((success === 'true') || (success === '1'))
+                        success = true;
+                    else
+                        success = false;
+                }
+                if (!success) {
+                    let code = undefined;
+                    const message = this.safeString (response, 'error');
+                    const errorParts = message.split (':');
+                    let numParts = errorParts.length;
+                    if (numParts > 1) {
+                        const errorSubParts = errorParts[0].split (' ');
+                        let numSubParts = errorSubParts.length;
+                        if (numSubParts > 1) {
+                            code = errorSubParts[1];
+                        }
+                    }
+                    const feedback = this.id + ' ' + this.json (response);
+                    const exceptions = this.exceptions;
+                    if (code in exceptions) {
+                        throw new exceptions[code] (feedback);
+                    } else {
+                        throw new ExchangeError (this.id + ' ' + this.json (response));
+                    }
+                }
+            }
         }
-        return response;
     }
 };
