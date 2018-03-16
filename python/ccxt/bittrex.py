@@ -232,7 +232,7 @@ class bittrex (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def perform_order_book_request(self, symbol, limit=None, params={}):
         self.load_markets()
         response = self.publicGetOrderbook(self.extend({
             'market': self.market_id(symbol),
@@ -250,7 +250,15 @@ class bittrex (Exchange):
                     'buy': [],
                     'sell': response['result'],
                 }
-        return self.parse_order_book(orderbook, None, 'buy', 'sell', 'Rate', 'Quantity')
+        return orderbook
+
+    def order_book_exchange_keys(self):
+        return {
+            'bids': 'buy',
+            'asks': 'sell',
+            'price': 'Rate',
+            'amount': 'Quantity',
+        }
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.safe_string(ticker, 'TimeStamp')

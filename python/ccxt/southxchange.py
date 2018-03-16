@@ -100,12 +100,20 @@ class southxchange (Exchange):
             result[uppercase] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def perform_order_book_request(self, symbol, limit=None, params={}):
         self.load_markets()
         orderbook = self.publicGetBookSymbol(self.extend({
             'symbol': self.market_id(symbol),
         }, params))
-        return self.parse_order_book(orderbook, None, 'BuyOrders', 'SellOrders', 'Price', 'Amount')
+        return orderbook
+
+    def order_book_exchange_keys(self):
+        return {
+            'bids': 'BuyOrders',
+            'asks': 'SellOrders',
+            'price': 'Price',
+            'amount': 'Amount',
+        }
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()

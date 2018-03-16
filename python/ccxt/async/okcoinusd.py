@@ -222,7 +222,7 @@ class okcoinusd (Exchange):
                 }))
         return result
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def perform_order_book_request(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         method = 'publicGet'
@@ -236,13 +236,7 @@ class okcoinusd (Exchange):
             request['contract_type'] = 'this_week'  # next_week, quarter
         method += 'Depth'
         orderbook = await getattr(self, method)(self.extend(request, params))
-        timestamp = self.milliseconds()
-        return {
-            'bids': orderbook['bids'],
-            'asks': self.sort_by(orderbook['asks'], 0),
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-        }
+        return orderbook
 
     def parse_ticker(self, ticker, market=None):
         timestamp = ticker['timestamp']

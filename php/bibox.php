@@ -223,7 +223,7 @@ class bibox extends Exchange {
         return $this->parse_trades($response['result'], $market, $since, $limit);
     }
 
-    public function fetch_order_book ($symbol, $limit = 200, $params = array ()) {
+    public function perform_order_book_request ($symbol, $limit = 200, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
@@ -232,7 +232,21 @@ class bibox extends Exchange {
         );
         $request['size'] = $limit; // default = 200 ?
         $response = $this->publicGetMdata (array_merge ($request, $params));
-        return $this->parse_order_book($response['result'], $this->safe_float($response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume');
+        return $response['result'];
+    }
+
+    public function order_book_exchange_keys () {
+        return array (
+            'bids' => 'bids',
+            'asks' => 'asks',
+            'price' => 'price',
+            'amount' => 'volume',
+            'timestamp' => 'update_time',
+        );
+    }
+
+    public function parse_order_book_timestamp ($orderbook, $keys) {
+        return $this->safe_float($orderbook, $keys['timestamp']);
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {

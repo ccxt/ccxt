@@ -113,15 +113,26 @@ class independentreserve (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def perform_order_book_request(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         response = await self.publicGetGetOrderBook(self.extend({
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
         }, params))
-        timestamp = self.parse8601(response['CreatedTimestampUtc'])
-        return self.parse_order_book(response, timestamp, 'BuyOrders', 'SellOrders', 'Price', 'Volume')
+        return response
+
+    def parse_order_book_timestamp(self, orderbook, keys):
+        return self.parse8601(orderbook[keys['timestamp']])
+
+    def order_book_exchange_keys(self):
+        return {
+            'bids': 'BuyOrders',
+            'asks': 'SellOrders',
+            'price': 'Price',
+            'amount': 'Volume',
+            'timestamp': 'CreatedTimestampUtc',
+        }
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.parse8601(ticker['CreatedTimestampUtc'])

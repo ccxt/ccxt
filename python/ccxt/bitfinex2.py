@@ -250,28 +250,28 @@ class bitfinex2 (bitfinex):
                 result[uppercase] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def perform_order_book_request(self, symbol, limit=None, params={}):
         self.load_markets()
         orderbook = self.publicGetBookSymbolPrecision(self.extend({
             'symbol': self.market_id(symbol),
             'precision': 'R0',
         }, params))
-        timestamp = self.milliseconds()
+        # result['bids'] = self.sort_by(result['bids'], 0, True)
+        # result['asks'] = self.sort_by(result['asks'], 0)
+        return orderbook
+
+    def parse_order_book_orders(self, orderbook, keys):
         result = {
             'bids': [],
             'asks': [],
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
         }
         for i in range(0, len(orderbook)):
             order = orderbook[i]
             price = order[1]
             amount = order[2]
-            side = 'bids' if (amount > 0) else 'asks'
+            side = keys['bids'] if (amount > 0) else keys['asks']
             amount = abs(amount)
             result[side].append([price, amount])
-        result['bids'] = self.sort_by(result['bids'], 0, True)
-        result['asks'] = self.sort_by(result['asks'], 0)
         return result
 
     def parse_ticker(self, ticker, market=None):

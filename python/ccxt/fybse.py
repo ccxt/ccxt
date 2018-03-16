@@ -72,9 +72,9 @@ class fybse (Exchange):
         result['info'] = balance
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def perform_order_book_request(self, symbol, limit=None, params={}):
         orderbook = self.publicGetOrderbook(params)
-        return self.parse_order_book(orderbook)
+        return orderbook
 
     def fetch_ticker(self, symbol, params={}):
         ticker = self.publicGetTickerdetailed(params)

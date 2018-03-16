@@ -90,7 +90,7 @@ class btcbox (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def perform_order_book_request(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         request = {}
@@ -98,9 +98,7 @@ class btcbox (Exchange):
         if numSymbols > 1:
             request['coin'] = market['id']
         orderbook = await self.publicGetDepth(self.extend(request, params))
-        result = self.parse_order_book(orderbook)
-        result['asks'] = self.sort_by(result['asks'], 0)
-        return result
+        return orderbook
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()

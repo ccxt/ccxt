@@ -676,12 +676,21 @@ class coinexchange extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $orderbook = $this->publicGetGetorderbook (array_merge (array (
             'market_id' => $this->market_id($symbol),
         ), $params));
-        return $this->parse_order_book($orderbook['result'], null, 'BuyOrders', 'SellOrders', 'Price', 'Quantity');
+        return $orderbook['result'];
+    }
+
+    public function order_book_default_keys () {
+        return array (
+            'bids' => 'BuyOrders',
+            'asks' => 'SellOrders',
+            'price' => 'Price',
+            'amount' => 'Quantity',
+        );
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

@@ -232,12 +232,18 @@ class braziliex (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def perform_order_book_request(self, symbol, limit=None, params={}):
         await self.load_markets()
         orderbook = await self.publicGetOrderbookMarket(self.extend({
             'market': self.market_id(symbol),
         }, params))
-        return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'amount')
+        return orderbook
+
+    def order_book_exchange_keys(self):
+        return {
+            'price': 'price',
+            'amount': 'amount',
+        }
 
     def parse_trade(self, trade, market=None):
         timestamp = None

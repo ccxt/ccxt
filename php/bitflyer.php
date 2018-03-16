@@ -141,12 +141,19 @@ class bitflyer extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $orderbook = $this->publicGetGetboard (array_merge (array (
             'product_code' => $this->market_id($symbol),
         ), $params));
-        return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'price', 'size');
+        return $orderbook;
+    }
+
+    public function order_book_exchange_keys () {
+        return array (
+            'price' => 'price',
+            'amount' => 'size',
+        );
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {

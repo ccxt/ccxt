@@ -79,15 +79,21 @@ class coinspot extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
         $market = $this->market ($symbol);
         $orderbook = $this->privatePostOrders (array_merge (array (
             'cointype' => $market['id'],
         ), $params));
-        $result = $this->parse_order_book($orderbook, null, 'buyorders', 'sellorders', 'rate', 'amount');
-        $result['bids'] = $this->sort_by($result['bids'], 0, true);
-        $result['asks'] = $this->sort_by($result['asks'], 0);
-        return $result;
+        return $orderbook;
+    }
+
+    public function order_book_default_keys () {
+        return array (
+            'bids' => 'buyorders',
+            'asks' => 'sellorders',
+            'price' => 'rate',
+            'amount' => 'amount',
+        );
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {

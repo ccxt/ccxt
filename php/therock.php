@@ -137,13 +137,24 @@ class therock extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $orderbook = $this->publicGetFundsIdOrderbook (array_merge (array (
             'id' => $this->market_id($symbol),
         ), $params));
-        $timestamp = $this->parse8601 ($orderbook['date']);
-        return $this->parse_order_book($orderbook, $timestamp, 'bids', 'asks', 'price', 'amount');
+        return $orderbook;
+    }
+
+    public function parse_order_book_timestamp ($orderbook, $keys) {
+        return $this->parse8601 ($orderbook[$keys['timestamp']]);
+    }
+
+    public function order_book_exchange_keys () {
+        return array (
+            'price' => 'price',
+            'amount' => 'amount',
+            'timestamp' => 'date',
+        );
     }
 
     public function parse_ticker ($ticker, $market = null) {

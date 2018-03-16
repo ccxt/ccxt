@@ -73,11 +73,11 @@ class itbit (Exchange):
             },
         })
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def perform_order_book_request(self, symbol, limit=None, params={}):
         orderbook = await self.publicGetMarketsSymbolOrderBook(self.extend({
             'symbol': self.market_id(symbol),
         }, params))
-        return self.parse_order_book(orderbook)
+        return orderbook
 
     async def fetch_ticker(self, symbol, params={}):
         ticker = await self.publicGetMarketsSymbolTicker(self.extend({

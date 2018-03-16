@@ -99,13 +99,20 @@ class bl3p extends Exchange {
         ];
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
         $market = $this->market ($symbol);
         $response = $this->publicGetMarketOrderbook (array_merge (array (
             'market' => $market['id'],
         ), $params));
         $orderbook = $response['data'];
-        return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'price_int', 'amount_int');
+        return $orderbook;
+    }
+
+    public function order_book_exchange_keys () {
+        return array (
+            'price' => 'price_int',
+            'amount' => 'amount_int',
+        );
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {

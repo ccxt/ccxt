@@ -323,14 +323,20 @@ class kucoin (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def perform_order_book_request(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         response = await self.publicGetOpenOrders(self.extend({
             'symbol': market['id'],
         }, params))
         orderbook = response['data']
-        return self.parse_order_book(orderbook, None, 'BUY', 'SELL')
+        return orderbook
+
+    def order_book_exchange_keys(self):
+        return {
+            'bids': 'BUY',
+            'asks': 'SELL',
+        }
 
     def parse_order(self, order, market=None):
         side = self.safe_value(order, 'direction')

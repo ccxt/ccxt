@@ -197,13 +197,13 @@ class gdax (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def perform_order_book_request(self, symbol, limit=None, params={}):
         self.load_markets()
         orderbook = self.publicGetProductsIdBook(self.extend({
             'id': self.market_id(symbol),
             'level': 2,  # 1 best bidask, 2 aggregated, 3 full
         }, params))
-        return self.parse_order_book(orderbook)
+        return orderbook
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()

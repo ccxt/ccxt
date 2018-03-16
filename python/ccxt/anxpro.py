@@ -95,14 +95,25 @@ class anxpro (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def perform_order_book_request(self, symbol, limit=None, params={}):
         response = self.publicGetCurrencyPairMoneyDepthFull(self.extend({
             'currency_pair': self.market_id(symbol),
         }, params))
         orderbook = response['data']
-        t = int(orderbook['dataUpdateTime'])
-        timestamp = int(t / 1000)
-        return self.parse_order_book(orderbook, timestamp, 'bids', 'asks', 'price', 'amount')
+        return orderbook
+
+    def order_book_exchange_keys(self):
+        return {
+            'bids': 'bids',
+            'asks': 'asks',
+            'price': 'price',
+            'amount': 'amount',
+            'timestamp': 'dataUpdateTime',
+        }
+
+    def parse_order_book_timestamp(self, orderbook, keys):
+        time = int(orderbook[keys['timestamp']])
+        return int(time / 1000)
 
     def fetch_ticker(self, symbol, params={}):
         response = self.publicGetCurrencyPairMoneyTicker(self.extend({

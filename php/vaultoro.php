@@ -99,16 +99,21 @@ class vaultoro extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetOrderbook ($params);
         $orderbook = array (
             'bids' => $response['data'][0]['b'],
             'asks' => $response['data'][1]['s'],
         );
-        $result = $this->parse_order_book($orderbook, null, 'bids', 'asks', 'Gold_Price', 'Gold_Amount');
-        $result['bids'] = $this->sort_by($result['bids'], 0, true);
-        return $result;
+        return $orderbook;
+    }
+
+    public function order_book_exchange_keys () {
+        return array (
+            'price' => 'Gold_Price',
+            'amount' => 'Gold_Amount',
+        );
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {

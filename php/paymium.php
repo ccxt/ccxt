@@ -92,13 +92,18 @@ class paymium extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
         $orderbook = $this->publicGetDataIdDepth (array_merge (array (
             'id' => $this->market_id($symbol),
         ), $params));
-        $result = $this->parse_order_book($orderbook, null, 'bids', 'asks', 'price', 'amount');
-        $result['bids'] = $this->sort_by($result['bids'], 0, true);
-        return $result;
+        return $orderbook;
+    }
+
+    public function order_book_exchange_keys () {
+        return array (
+            'price' => 'price',
+            'amount' => 'amount',
+        );
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {

@@ -103,11 +103,19 @@ class _1btcxe (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def perform_order_book_request(self, symbol, limit=None, params={}):
         response = await self.publicGetOrderBook(self.extend({
             'currency': self.market_id(symbol),
         }, params))
-        return self.parse_order_book(response['order-book'], None, 'bid', 'ask', 'price', 'order_amount')
+        return response['order-book']
+
+    def order_book_exchange_keys(self):
+        return {
+            'bids': 'bid',
+            'asks': 'ask',
+            'price': 'price',
+            'amount': 'order_amount',
+        }
 
     async def fetch_ticker(self, symbol, params={}):
         response = await self.publicGetStats(self.extend({

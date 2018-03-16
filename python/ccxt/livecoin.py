@@ -252,7 +252,7 @@ class livecoin (Exchange):
             'taker': commission,
         }
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def perform_order_book_request(self, symbol, limit=None, params={}):
         self.load_markets()
         request = {
             'currencyPair': self.market_id(symbol),
@@ -261,8 +261,7 @@ class livecoin (Exchange):
         if limit is not None:
             request['depth'] = limit  # 100
         orderbook = self.publicGetExchangeOrderBook(self.extend(request, params))
-        timestamp = orderbook['timestamp']
-        return self.parse_order_book(orderbook, timestamp)
+        return orderbook
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()

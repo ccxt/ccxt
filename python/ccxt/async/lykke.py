@@ -289,7 +289,7 @@ class lykke (Exchange):
         }, params))
         return self.parse_orders(response, None, since, limit)
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def perform_order_book_request(self, symbol, limit=None, params={}):
         await self.load_markets()
         response = await self.publicGetOrderBooksAssetPairId(self.extend({
             'AssetPairId': self.market_id(symbol),
@@ -299,7 +299,6 @@ class lykke (Exchange):
             'bids': [],
             'asks': [],
         }
-        timestamp = None
         for i in range(0, len(response)):
             side = response[i]
             if side['IsBuy']:
@@ -311,9 +310,13 @@ class lykke (Exchange):
                 orderbook['timestamp'] = timestamp
             else:
                 orderbook['timestamp'] = max(orderbook['timestamp'], timestamp)
-        if not timestamp:
-            timestamp = self.milliseconds()
-        return self.parse_order_book(orderbook, orderbook['timestamp'], 'bids', 'asks', 'Price', 'Volume')
+        return orderbook
+
+    def order_book_exchange_keys(self):
+        return {
+            'price': 'Price',
+            'amount': 'Volume',
+        }
 
     def parse_bid_ask(self, bidask, priceKey=0, amountKey=1):
         price = float(bidask[priceKey])

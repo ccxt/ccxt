@@ -225,31 +225,14 @@ class zb extends Exchange {
         return 'market';
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $marketFieldName = $this->get_market_field_name ();
         $request = array ();
         $request[$marketFieldName] = $market['id'];
         $orderbook = $this->publicGetDepth (array_merge ($request, $params));
-        $timestamp = $this->milliseconds ();
-        $bids = null;
-        $asks = null;
-        if (is_array ($orderbook) && array_key_exists ('bids', $orderbook))
-            $bids = $orderbook['bids'];
-        if (is_array ($orderbook) && array_key_exists ('asks', $orderbook))
-            $asks = $orderbook['asks'];
-        $result = array (
-            'bids' => $bids,
-            'asks' => $asks,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-        );
-        if ($result['bids'])
-            $result['bids'] = $this->sort_by($result['bids'], 0, true);
-        if ($result['asks'])
-            $result['asks'] = $this->sort_by($result['asks'], 0);
-        return $result;
+        return $orderbook;
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {

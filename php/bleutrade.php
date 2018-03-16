@@ -137,7 +137,7 @@ class bleutrade extends bittrex {
         return 'orderid';
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array (
             'market' => $this->market_id($symbol),
@@ -147,6 +147,15 @@ class bleutrade extends bittrex {
             $request['depth'] = $limit; // 50
         $response = $this->publicGetOrderbook (array_merge ($request, $params));
         $orderbook = $response['result'];
-        return $this->parse_order_book($orderbook, null, 'buy', 'sell', 'Rate', 'Quantity');
+        return $orderbook;
+    }
+
+    public function order_book_default_keys () {
+        return array (
+            'bids' => 'buy',
+            'asks' => 'sell',
+            'price' => 'Rate',
+            'amount' => 'Quantity',
+        );
     }
 }

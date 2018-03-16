@@ -138,7 +138,7 @@ class bleutrade (bittrex):
     def get_order_id_field(self):
         return 'orderid'
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def perform_order_book_request(self, symbol, limit=None, params={}):
         self.load_markets()
         request = {
             'market': self.market_id(symbol),
@@ -148,4 +148,12 @@ class bleutrade (bittrex):
             request['depth'] = limit  # 50
         response = self.publicGetOrderbook(self.extend(request, params))
         orderbook = response['result']
-        return self.parse_order_book(orderbook, None, 'buy', 'sell', 'Rate', 'Quantity')
+        return orderbook
+
+    def order_book_default_keys(self):
+        return {
+            'bids': 'buy',
+            'asks': 'sell',
+            'price': 'Rate',
+            'amount': 'Quantity',
+        }

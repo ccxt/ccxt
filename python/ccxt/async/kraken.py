@@ -400,7 +400,7 @@ class kraken (Exchange):
             'taker': taker,
         }
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def perform_order_book_request(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         if market['darkpool']:
@@ -412,7 +412,7 @@ class kraken (Exchange):
             request['count'] = limit  # 100
         response = await self.publicGetDepth(self.extend(request, params))
         orderbook = response['result'][market['id']]
-        return self.parse_order_book(orderbook)
+        return orderbook
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()

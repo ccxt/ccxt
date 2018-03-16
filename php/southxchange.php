@@ -102,12 +102,21 @@ class southxchange extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $orderbook = $this->publicGetBookSymbol (array_merge (array (
             'symbol' => $this->market_id($symbol),
         ), $params));
-        return $this->parse_order_book($orderbook, null, 'BuyOrders', 'SellOrders', 'Price', 'Amount');
+        return $orderbook;
+    }
+
+    public function order_book_exchange_keys () {
+        return array (
+            'bids' => 'BuyOrders',
+            'asks' => 'SellOrders',
+            'price' => 'Price',
+            'amount' => 'Amount',
+        );
     }
 
     public function parse_ticker ($ticker, $market = null) {

@@ -148,15 +148,24 @@ class xbtce extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $orderbook = $this->privateGetLevel2Filter (array_merge (array (
             'filter' => $market['id'],
         ), $params));
         $orderbook = $orderbook[0];
-        $timestamp = $orderbook['Timestamp'];
-        return $this->parse_order_book($orderbook, $timestamp, 'Bids', 'Asks', 'Price', 'Volume');
+        return $orderbook;
+    }
+
+    public function order_book_exchange_keys () {
+        return array (
+            'bids' => 'Bids',
+            'asks' => 'Asks',
+            'price' => 'Price',
+            'amount' => 'Volume',
+            'timestamp' => 'Timestamp',
+        );
     }
 
     public function parse_ticker ($ticker, $market = null) {

@@ -116,13 +116,18 @@ class luno (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def perform_order_book_request(self, symbol, limit=None, params={}):
         self.load_markets()
         orderbook = self.publicGetOrderbook(self.extend({
             'pair': self.market_id(symbol),
         }, params))
-        timestamp = orderbook['timestamp']
-        return self.parse_order_book(orderbook, timestamp, 'bids', 'asks', 'price', 'volume')
+        return orderbook
+
+    def order_book_exchange_keys(self):
+        return {
+            'price': 'price',
+            'amount': 'volume',
+        }
 
     def parse_order(self, order, market=None):
         timestamp = order['creation_timestamp']

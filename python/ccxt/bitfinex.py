@@ -364,7 +364,7 @@ class bitfinex (Exchange):
                 result[uppercase] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def perform_order_book_request(self, symbol, limit=None, params={}):
         self.load_markets()
         request = {
             'symbol': self.market_id(symbol),
@@ -373,7 +373,13 @@ class bitfinex (Exchange):
             request['limit_bids'] = limit
             request['limit_asks'] = limit
         orderbook = self.publicGetBookSymbol(self.extend(request, params))
-        return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'amount')
+        return orderbook
+
+    def order_book_exchange_keys(self):
+        return {
+            'price': 'price',
+            'amount': 'amount',
+        }
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()

@@ -133,12 +133,12 @@ class zaif (Exchange):
             result[uppercase] = account
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def perform_order_book_request(self, symbol, limit=None, params={}):
         await self.load_markets()
         orderbook = await self.publicGetDepthPair(self.extend({
             'pair': self.market_id(symbol),
         }, params))
-        return self.parse_order_book(orderbook)
+        return orderbook
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()

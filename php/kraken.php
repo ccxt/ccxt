@@ -398,7 +398,7 @@ class kraken extends Exchange {
         );
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         if ($market['darkpool'])
@@ -410,7 +410,7 @@ class kraken extends Exchange {
             $request['count'] = $limit; // 100
         $response = $this->publicGetDepth (array_merge ($request, $params));
         $orderbook = $response['result'][$market['id']];
-        return $this->parse_order_book($orderbook);
+        return $orderbook;
     }
 
     public function parse_ticker ($ticker, $market = null) {

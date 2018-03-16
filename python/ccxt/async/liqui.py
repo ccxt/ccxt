@@ -208,7 +208,7 @@ class liqui (Exchange):
             result[uppercase] = account
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def perform_order_book_request(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -221,10 +221,7 @@ class liqui (Exchange):
         if not market_id_in_reponse:
             raise ExchangeError(self.id + ' ' + market['symbol'] + ' order book is empty or not available')
         orderbook = response[market['id']]
-        result = self.parse_order_book(orderbook)
-        result['bids'] = self.sort_by(result['bids'], 0, True)
-        result['asks'] = self.sort_by(result['asks'], 0)
-        return result
+        return orderbook
 
     async def fetch_order_books(self, symbols=None, params={}):
         await self.load_markets()
@@ -243,13 +240,14 @@ class liqui (Exchange):
         }, params))
         result = {}
         ids = list(response.keys())
+        keys = self.orderBookKeys()
         for i in range(0, len(ids)):
             id = ids[i]
             symbol = id
             if id in self.markets_by_id:
                 market = self.markets_by_id[id]
                 symbol = market['symbol']
-            result[symbol] = self.parse_order_book(response[id])
+            result[symbol] = self.parse_order_book(response[id], keys)
         return result
 
     def parse_ticker(self, ticker, market=None):

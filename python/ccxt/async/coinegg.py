@@ -260,14 +260,14 @@ class coinegg (Exchange):
                 }, market)
         return result
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def perform_order_book_request(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         orderbook = await self.publicGetDepthQuote(self.extend({
             'coin': market['baseId'],
             'quote': market['quoteId'],
         }, params))
-        return self.parse_order_book(orderbook)
+        return orderbook
 
     def parse_trade(self, trade, market=None):
         timestamp = int(trade['date']) * 1000

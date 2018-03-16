@@ -167,13 +167,21 @@ class cryptopia (Exchange):
             })
         return result
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def perform_order_book_request(self, symbol, limit=None, params={}):
         self.load_markets()
         response = self.publicGetGetMarketOrdersId(self.extend({
             'id': self.market_id(symbol),
         }, params))
         orderbook = response['Data']
-        return self.parse_order_book(orderbook, None, 'Buy', 'Sell', 'Price', 'Volume')
+        return orderbook
+
+    def order_book_default_keys(self):
+        return {
+            'bids': 'Buy',
+            'asks': 'Sell',
+            'price': 'Price',
+            'amount': 'Volume',
+        }
 
     def join_market_ids(self, ids, glue='-'):
         result = str(ids[0])
@@ -197,6 +205,7 @@ class cryptopia (Exchange):
         }, params))
         orderbooks = response['Data']
         result = {}
+        keys = self.orderBookKeys()
         for i in range(0, len(orderbooks)):
             orderbook = orderbooks[i]
             id = self.safe_integer(orderbook, 'TradePairId')
@@ -204,7 +213,7 @@ class cryptopia (Exchange):
             if id in self.markets_by_id:
                 market = self.markets_by_id[id]
                 symbol = market['symbol']
-            result[symbol] = self.parse_order_book(orderbook, None, 'Buy', 'Sell', 'Price', 'Volume')
+            result[symbol] = self.parse_order_book(orderbook, keys)
         return result
 
     def parse_ticker(self, ticker, market=None):

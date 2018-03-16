@@ -151,7 +151,7 @@ class exmo extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array_merge (array (
@@ -161,11 +161,14 @@ class exmo extends Exchange {
             $request['limit'] = $limit;
         $response = $this->publicGetOrderBook ($request);
         $result = $response[$market['id']];
-        $orderbook = $this->parse_order_book($result, null, 'bid', 'ask');
-        return array_merge ($orderbook, array (
-            'bids' => $this->sort_by($orderbook['bids'], 0, true),
-            'asks' => $this->sort_by($orderbook['asks'], 0),
-        ));
+        return $result;
+    }
+
+    public function order_book_exchange_keys () {
+        return array (
+            'bids' => 'bid',
+            'asks' => 'ask',
+        );
     }
 
     public function fetch_order_books ($symbols = null, $params = array ()) {
@@ -187,10 +190,11 @@ class exmo extends Exchange {
         ), $params));
         $result = array ();
         $ids = is_array ($response) ? array_keys ($response) : array ();
+        $keys = $this->orderBookKeys ();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $symbol = $this->find_symbol($id);
-            $result[$symbol] = $this->parse_order_book($response[$id], null, 'bid', 'ask');
+            $result[$symbol] = $this->parse_order_book($response[$id], $keys);
         }
         return $result;
     }

@@ -164,11 +164,11 @@ class bitbay (Exchange):
             return self.parse_balance(result)
         raise ExchangeError(self.id + ' empty balance response ' + self.json(response))
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def perform_order_book_request(self, symbol, limit=None, params={}):
         orderbook = self.publicGetIdOrderbook(self.extend({
             'id': self.market_id(symbol),
         }, params))
-        return self.parse_order_book(orderbook)
+        return orderbook
 
     def fetch_ticker(self, symbol, params={}):
         ticker = self.publicGetIdTicker(self.extend({

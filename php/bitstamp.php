@@ -195,13 +195,16 @@ class bitstamp extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $orderbook = $this->publicGetOrderBookPair (array_merge (array (
             'pair' => $this->market_id($symbol),
         ), $params));
-        $timestamp = intval ($orderbook['timestamp']) * 1000;
-        return $this->parse_order_book($orderbook, $timestamp);
+        return $orderbook;
+    }
+
+    public function parse_order_book_timestamp ($orderbook, $keys) {
+        return intval ($orderbook[$keys['timestamp']]) * 1000;
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {

@@ -223,14 +223,23 @@ class bitz extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetDepth (array_merge (array (
             'coin' => $this->market_id($symbol),
         ), $params));
         $orderbook = $response['data'];
-        $timestamp = $orderbook['date'] * 1000;
-        return $this->parse_order_book($orderbook, $timestamp);
+        return $orderbook;
+    }
+
+    public function order_book_exchange_keys () {
+        return array (
+            'timestamp' => 'date',
+        );
+    }
+
+    public function parse_order_book_timestamp ($orderbook, $keys) {
+        return $orderbook[$keys['timestamp']] * 1000;
     }
 
     public function parse_trade ($trade, $market = null) {

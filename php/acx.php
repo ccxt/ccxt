@@ -43,15 +43,17 @@ class acx extends Exchange {
             'api' => array (
                 'public' => array (
                     'get' => array (
+                        'depth', // Get depth or specified market Both asks and bids are sorted from highest price to lowest.
+                        'k_with_pending_trades', // Get K data with pending trades, which are the trades not included in K data yet, because there's delay between trade generated and processed by K data generator
+                        'k', // Get OHLC(k line) of specific market
                         'markets', // Get all available markets
+                        'order_book', // Get the order book of specified market
+                        'order_book/{market}',
                         'tickers', // Get ticker of all markets
                         'tickers/{market}', // Get ticker of specific market
-                        'trades', // Get recent trades on market, each trade is included only once Trades are sorted in reverse creation order.
-                        'order_book', // Get the order book of specified market
-                        'depth', // Get depth or specified market Both asks and bids are sorted from highest price to lowest.
-                        'k', // Get OHLC(k line) of specific market
-                        'k_with_pending_trades', // Get K data with pending trades, which are the trades not included in K data yet, because there's delay between trade generated and processed by K data generator
                         'timestamp', // Get server current time, in seconds since Unix epoch
+                        'trades', // Get recent trades on market, each trade is included only once Trades are sorted in reverse creation order.
+                        'trades/{market}',
                     ),
                 ),
                 'private' => array (
@@ -136,7 +138,7 @@ class acx extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
@@ -145,11 +147,13 @@ class acx extends Exchange {
         if ($limit === null)
             $request['limit'] = $limit; // default = 300
         $orderbook = $this->publicGetDepth (array_merge ($request, $params));
-        $timestamp = $orderbook['timestamp'] * 1000;
-        $result = $this->parse_order_book($orderbook, $timestamp);
-        $result['bids'] = $this->sort_by($result['bids'], 0, true);
-        $result['asks'] = $this->sort_by($result['asks'], 0);
-        return $result;
+        // result['bids'] = $this->sort_by(result['bids'], 0, true);
+        // result['asks'] = $this->sort_by(result['asks'], 0);
+        return $orderbook;
+    }
+
+    public function parse_order_book_timestamp ($orderbook, $keys) {
+        return $orderbook[$keys['timestamp']] * 1000;
     }
 
     public function parse_ticker ($ticker, $market = null) {

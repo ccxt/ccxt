@@ -364,7 +364,7 @@ class bitfinex extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array (
             'symbol' => $this->market_id($symbol),
@@ -374,7 +374,14 @@ class bitfinex extends Exchange {
             $request['limit_asks'] = $limit;
         }
         $orderbook = $this->publicGetBookSymbol (array_merge ($request, $params));
-        return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'price', 'amount');
+        return $orderbook;
+    }
+
+    public function order_book_exchange_keys () {
+        return array (
+            'price' => 'price',
+            'amount' => 'amount',
+        );
     }
 
     public function fetch_tickers ($symbols = null, $params = array ()) {

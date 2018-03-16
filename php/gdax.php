@@ -193,13 +193,13 @@ class gdax extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $orderbook = $this->publicGetProductsIdBook (array_merge (array (
             'id' => $this->market_id($symbol),
             'level' => 2, // 1 best bidask, 2 aggregated, 3 full
         ), $params));
-        return $this->parse_order_book($orderbook);
+        return $orderbook;
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {

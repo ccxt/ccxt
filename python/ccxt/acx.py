@@ -47,15 +47,17 @@ class acx (Exchange):
             'api': {
                 'public': {
                     'get': [
+                        'depth',  # Get depth or specified market Both asks and bids are sorted from highest price to lowest.
+                        'k_with_pending_trades',  # Get K data with pending trades, which are the trades not included in K data yet, because there's delay between trade generated and processed by K data generator
+                        'k',  # Get OHLC(k line) of specific market
                         'markets',  # Get all available markets
+                        'order_book',  # Get the order book of specified market
+                        'order_book/{market}',
                         'tickers',  # Get ticker of all markets
                         'tickers/{market}',  # Get ticker of specific market
-                        'trades',  # Get recent trades on market, each trade is included only once Trades are sorted in reverse creation order.
-                        'order_book',  # Get the order book of specified market
-                        'depth',  # Get depth or specified market Both asks and bids are sorted from highest price to lowest.
-                        'k',  # Get OHLC(k line) of specific market
-                        'k_with_pending_trades',  # Get K data with pending trades, which are the trades not included in K data yet, because there's delay between trade generated and processed by K data generator
                         'timestamp',  # Get server current time, in seconds since Unix epoch
+                        'trades',  # Get recent trades on market, each trade is included only once Trades are sorted in reverse creation order.
+                        'trades/{market}',
                     ],
                 },
                 'private': {
@@ -135,7 +137,7 @@ class acx (Exchange):
             result[uppercase] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def perform_order_book_request(self, symbol, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -144,11 +146,12 @@ class acx (Exchange):
         if limit is None:
             request['limit'] = limit  # default = 300
         orderbook = self.publicGetDepth(self.extend(request, params))
-        timestamp = orderbook['timestamp'] * 1000
-        result = self.parse_order_book(orderbook, timestamp)
-        result['bids'] = self.sort_by(result['bids'], 0, True)
-        result['asks'] = self.sort_by(result['asks'], 0)
-        return result
+        # result['bids'] = self.sort_by(result['bids'], 0, True)
+        # result['asks'] = self.sort_by(result['asks'], 0)
+        return orderbook
+
+    def parse_order_book_timestamp(self, orderbook, keys):
+        return orderbook[keys['timestamp']] * 1000
 
     def parse_ticker(self, ticker, market=None):
         timestamp = ticker['at'] * 1000

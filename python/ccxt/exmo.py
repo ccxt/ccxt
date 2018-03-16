@@ -150,7 +150,7 @@ class exmo (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def perform_order_book_request(self, symbol, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         request = self.extend({
@@ -160,11 +160,13 @@ class exmo (Exchange):
             request['limit'] = limit
         response = self.publicGetOrderBook(request)
         result = response[market['id']]
-        orderbook = self.parse_order_book(result, None, 'bid', 'ask')
-        return self.extend(orderbook, {
-            'bids': self.sort_by(orderbook['bids'], 0, True),
-            'asks': self.sort_by(orderbook['asks'], 0),
-        })
+        return result
+
+    def order_book_exchange_keys(self):
+        return {
+            'bids': 'bid',
+            'asks': 'ask',
+        }
 
     def fetch_order_books(self, symbols=None, params={}):
         self.load_markets()
@@ -183,10 +185,11 @@ class exmo (Exchange):
         }, params))
         result = {}
         ids = list(response.keys())
+        keys = self.orderBookKeys()
         for i in range(0, len(ids)):
             id = ids[i]
             symbol = self.find_symbol(id)
-            result[symbol] = self.parse_order_book(response[id], None, 'bid', 'ask')
+            result[symbol] = self.parse_order_book(response[id], keys)
         return result
 
     def parse_ticker(self, ticker, market=None):

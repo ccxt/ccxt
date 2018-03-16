@@ -254,13 +254,19 @@ class gatecoin (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def perform_order_book_request(self, symbol, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         orderbook = self.publicGetPublicMarketDepthCurrencyPair(self.extend({
             'CurrencyPair': market['id'],
         }, params))
-        return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'volume')
+        return orderbook
+
+    def order_book_exchange_keys(self):
+        return {
+            'price': 'price',
+            'amount': 'volume',
+        }
 
     def parse_ticker(self, ticker, market=None):
         timestamp = int(ticker['createDateTime']) * 1000

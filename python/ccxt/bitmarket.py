@@ -196,17 +196,11 @@ class bitmarket (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def perform_order_book_request(self, symbol, limit=None, params={}):
         orderbook = self.publicGetJsonMarketOrderbook(self.extend({
             'market': self.market_id(symbol),
         }, params))
-        timestamp = self.milliseconds()
-        return {
-            'bids': orderbook['bids'],
-            'asks': orderbook['asks'],
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-        }
+        return orderbook
 
     def fetch_ticker(self, symbol, params={}):
         ticker = self.publicGetJsonMarketTicker(self.extend({

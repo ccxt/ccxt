@@ -108,11 +108,11 @@ class huobi extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
         $market = $this->market ($symbol);
         $method = $market['type'] . 'GetDepthId';
         $orderbook = $this->$method (array_merge (array ( 'id' => $market['id'] ), $params));
-        return $this->parse_order_book($orderbook);
+        return $orderbook;
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {

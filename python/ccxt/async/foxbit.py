@@ -69,13 +69,13 @@ class foxbit (Exchange):
             'BalanceReqID': self.nonce(),
         })
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def perform_order_book_request(self, symbol, limit=None, params={}):
         market = self.market(symbol)
         orderbook = await self.publicGetCurrencyOrderbook(self.extend({
             'currency': market['quote'],
             'crypto_currency': market['base'],
         }, params))
-        return self.parse_order_book(orderbook)
+        return orderbook
 
     async def fetch_ticker(self, symbol, params={}):
         market = self.market(symbol)

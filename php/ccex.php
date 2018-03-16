@@ -143,7 +143,7 @@ class ccex extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array (
             'market' => $this->market_id($symbol),
@@ -153,7 +153,16 @@ class ccex extends Exchange {
             $request['depth'] = $limit; // 100
         $response = $this->publicGetOrderbook (array_merge ($request, $params));
         $orderbook = $response['result'];
-        return $this->parse_order_book($orderbook, null, 'buy', 'sell', 'Rate', 'Quantity');
+        return $orderbook;
+    }
+
+    public function order_book_default_keys () {
+        return array (
+            'bids' => 'buy',
+            'asks' => 'sell',
+            'price' => 'Rate',
+            'amount' => 'Quantity',
+        );
     }
 
     public function fetch_order_books ($symbols = null, $params = array ()) {
@@ -188,9 +197,10 @@ class ccex extends Exchange {
         }
         $result = array ();
         $keys = is_array ($orderbooks) ? array_keys ($orderbooks) : array ();
+        $orderbookKeys = $this->orderBookKeys ();
         for ($k = 0; $k < count ($keys); $k++) {
             $key = $keys[$k];
-            $result[$key] = $this->parse_order_book($orderbooks[$key], null, 'buy', 'sell', 'Rate', 'Quantity');
+            $result[$key] = $this->parse_order_book($orderbooks[$key], $orderbookKeys);
         }
         return $result;
     }

@@ -218,7 +218,7 @@ class okcoinusd extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $method = 'publicGet';
@@ -233,13 +233,7 @@ class okcoinusd extends Exchange {
         }
         $method .= 'Depth';
         $orderbook = $this->$method (array_merge ($request, $params));
-        $timestamp = $this->milliseconds ();
-        return array (
-            'bids' => $orderbook['bids'],
-            'asks' => $this->sort_by($orderbook['asks'], 0),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-        );
+        return $orderbook;
     }
 
     public function parse_ticker ($ticker, $market = null) {

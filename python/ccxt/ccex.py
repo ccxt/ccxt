@@ -140,7 +140,7 @@ class ccex (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def perform_order_book_request(self, symbol, limit=None, params={}):
         self.load_markets()
         request = {
             'market': self.market_id(symbol),
@@ -150,7 +150,15 @@ class ccex (Exchange):
             request['depth'] = limit  # 100
         response = self.publicGetOrderbook(self.extend(request, params))
         orderbook = response['result']
-        return self.parse_order_book(orderbook, None, 'buy', 'sell', 'Rate', 'Quantity')
+        return orderbook
+
+    def order_book_default_keys(self):
+        return {
+            'bids': 'buy',
+            'asks': 'sell',
+            'price': 'Rate',
+            'amount': 'Quantity',
+        }
 
     def fetch_order_books(self, symbols=None, params={}):
         self.load_markets()
@@ -180,9 +188,10 @@ class ccex (Exchange):
                 orderbooks[symbol][side] = bidasksByMarketId[marketId]
         result = {}
         keys = list(orderbooks.keys())
+        orderbookKeys = self.orderBookKeys()
         for k in range(0, len(keys)):
             key = keys[k]
-            result[key] = self.parse_order_book(orderbooks[key], None, 'buy', 'sell', 'Rate', 'Quantity')
+            result[key] = self.parse_order_book(orderbooks[key], orderbookKeys)
         return result
 
     def parse_ticker(self, ticker, market=None):

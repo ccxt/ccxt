@@ -254,7 +254,7 @@ class livecoin extends Exchange {
         );
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array (
             'currencyPair' => $this->market_id($symbol),
@@ -263,8 +263,7 @@ class livecoin extends Exchange {
         if ($limit !== null)
             $request['depth'] = $limit; // 100
         $orderbook = $this->publicGetExchangeOrderBook (array_merge ($request, $params));
-        $timestamp = $orderbook['timestamp'];
-        return $this->parse_order_book($orderbook, $timestamp);
+        return $orderbook;
     }
 
     public function parse_ticker ($ticker, $market = null) {

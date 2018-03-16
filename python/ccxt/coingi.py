@@ -172,7 +172,7 @@ class coingi (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, limit=512, params={}):
+    def perform_order_book_request(self, symbol, limit=512, params={}):
         self.load_markets()
         market = self.market(symbol)
         orderbook = self.currentGetOrderBookPairAskCountBidCountDepth(self.extend({
@@ -181,7 +181,13 @@ class coingi (Exchange):
             'askCount': limit,  # maximum returned number of asks 1-512
             'bidCount': limit,  # maximum returned number of bids 1-512
         }, params))
-        return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'baseAmount')
+        return orderbook
+
+    def order_book_exchange_keys(self):
+        return {
+            'price': 'price',
+            'amount': 'baseAmount',
+        }
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()

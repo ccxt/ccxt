@@ -252,14 +252,14 @@ class coinegg extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $orderbook = $this->publicGetDepthQuote (array_merge (array (
             'coin' => $market['baseId'],
             'quote' => $market['quoteId'],
         ), $params));
-        return $this->parse_order_book($orderbook);
+        return $orderbook;
     }
 
     public function parse_trade ($trade, $market = null) {

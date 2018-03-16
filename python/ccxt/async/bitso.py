@@ -131,14 +131,23 @@ class bitso (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def perform_order_book_request(self, symbol, limit=None, params={}):
         await self.load_markets()
         response = await self.publicGetOrderBook(self.extend({
             'book': self.market_id(symbol),
         }, params))
         orderbook = response['payload']
-        timestamp = self.parse8601(orderbook['updated_at'])
-        return self.parse_order_book(orderbook, timestamp, 'bids', 'asks', 'price', 'amount')
+        return orderbook
+
+    def order_book_exchange_keys(self):
+        return {
+            'price': 'price',
+            'amount': 'amount',
+            'timestamp': 'updated_at',
+        }
+
+    def parse_order_book_timestamp(self, orderbook, keys):
+        return self.parse8601(orderbook[keys['timestamp']])
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()

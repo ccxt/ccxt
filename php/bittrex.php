@@ -222,7 +222,7 @@ class bittrex extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetOrderbook (array_merge (array (
             'market' => $this->market_id($symbol),
@@ -242,7 +242,16 @@ class bittrex extends Exchange {
                 );
             }
         }
-        return $this->parse_order_book($orderbook, null, 'buy', 'sell', 'Rate', 'Quantity');
+        return $orderbook;
+    }
+
+    public function order_book_exchange_keys () {
+        return array (
+            'bids' => 'buy',
+            'asks' => 'sell',
+            'price' => 'Rate',
+            'amount' => 'Quantity',
+        );
     }
 
     public function parse_ticker ($ticker, $market = null) {

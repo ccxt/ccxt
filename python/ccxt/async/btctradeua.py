@@ -103,7 +103,7 @@ class btctradeua (Exchange):
                 }
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, symbol, limit=None, params={}):
+    async def perform_order_book_request(self, symbol, limit=None, params={}):
         market = self.market(symbol)
         bids = await self.publicGetTradesBuySymbol(self.extend({
             'symbol': market['id'],
@@ -121,7 +121,13 @@ class btctradeua (Exchange):
         if asks:
             if 'list' in asks:
                 orderbook['asks'] = asks['list']
-        return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'currency_trade')
+        return orderbook
+
+    def order_book_exchange_keys(self):
+        return {
+            'price': 'price',
+            'amount': 'currency_trade',
+        }
 
     async def fetch_ticker(self, symbol, params={}):
         response = await self.publicGetJapanStatHighSymbol(self.extend({

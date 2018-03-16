@@ -112,12 +112,19 @@ class bitcoincoid extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $orderbook = $this->publicGetPairDepth (array_merge (array (
             'pair' => $this->market_id($symbol),
         ), $params));
-        return $this->parse_order_book($orderbook, null, 'buy', 'sell');
+        return $orderbook;
+    }
+
+    public function order_book_exchange_keys () {
+        return array (
+            'bids' => 'buy',
+            'asks' => 'sell',
+        );
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {

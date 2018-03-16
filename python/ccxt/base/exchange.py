@@ -971,24 +971,6 @@ class Exchange(object):
             result.append(ohlcv)
         return result
 
-    def parse_bid_ask(self, bidask, price_key=0, amount_key=0):
-        return [float(bidask[price_key]), float(bidask[amount_key])]
-
-    def parse_bids_asks(self, bidasks, price_key=0, amount_key=1):
-        result = []
-        if len(bidasks):
-            if type(bidasks[0]) is list:
-                for bidask in bidasks:
-                    if bidask[price_key] and bidask[amount_key]:
-                        result.append(self.parse_bid_ask(bidask, price_key, amount_key))
-            elif type(bidasks[0]) is dict:
-                for bidask in bidasks:
-                    if (price_key in bidask) and (amount_key in bidask) and (bidask[price_key] and bidask[amount_key]):
-                        result.append(self.parse_bid_ask(bidask, price_key, amount_key))
-            else:
-                self.raise_error(ExchangeError, details='unrecognized bidask format: ' + str(bidasks[0]))
-        return result
-
     def fetch_l2_order_book(self, symbol, limit=None, params={}):
         orderbook = self.fetch_order_book(symbol, limit, params)
         return self.extend(orderbook, {
@@ -996,8 +978,7 @@ class Exchange(object):
             'asks': self.sort_by(self.aggregate(orderbook['asks']), 0),
         })
 
-    #----------------------------Transpiled code--------------------------------
-
+    # ---------------------------Transpiled code--------------------------------
     def perform_order_book_request(self, symbol, limit=None, params={}):
         raise NotSupported(self.id + ' performOrderBookRequest not supported yet')
 
@@ -1034,7 +1015,7 @@ class Exchange(object):
         responseDate = None
         for key in list(self.last_response_headers.keys()):
             if key.lower() == keys['responseDate']:
-                responseDate = self.parse_date (self.last_response_headers[key])
+                responseDate = self.parse_date(self.last_response_headers[key])
         return responseDate
 
     def parse_bid_ask(self, bidask, priceKey=0, amountKey=1):
@@ -1073,8 +1054,7 @@ class Exchange(object):
             'nonce': nonse,
             'info': orderbook,
         }
-    
-    #-------------------------End of transpiled code----------------------------
+    # -------------------------End of transpiled code---------------------------
 
     def parse_balance(self, balance):
         currencies = self.omit(balance, 'info').keys()

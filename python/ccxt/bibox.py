@@ -220,7 +220,7 @@ class bibox (Exchange):
         }, params))
         return self.parse_trades(response['result'], market, since, limit)
 
-    def fetch_order_book(self, symbol, limit=200, params={}):
+    def perform_order_book_request(self, symbol, limit=200, params={}):
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -229,7 +229,19 @@ class bibox (Exchange):
         }
         request['size'] = limit  # default = 200 ?
         response = self.publicGetMdata(self.extend(request, params))
-        return self.parse_order_book(response['result'], self.safe_float(response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume')
+        return response['result']
+
+    def order_book_exchange_keys(self):
+        return {
+            'bids': 'bids',
+            'asks': 'asks',
+            'price': 'price',
+            'amount': 'volume',
+            'timestamp': 'update_time',
+        }
+
+    def parse_order_book_timestamp(self, orderbook, keys):
+        return self.safe_float(orderbook, keys['timestamp'])
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return [
