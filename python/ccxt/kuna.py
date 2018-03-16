@@ -30,6 +30,30 @@ class kuna (acx):
                 'doc': 'https://kuna.io/documents/api',
                 'fees': 'https://kuna.io/documents/api',
             },
+            'api': {
+                'public': {
+                    'get': [
+                        'tickers',  # all of them at once
+                        'tickers/{market}',
+                        'order_book',
+                        'order_book/{market}',
+                        'trades',
+                        'trades/{market}',
+                        'timestamp',
+                    ],
+                },
+                'private': {
+                    'get': [
+                        'members/me',
+                        'orders',
+                        'trades/my',
+                    ],
+                    'post': [
+                        'orders',
+                        'order/delete',
+                    ],
+                },
+            },
             'fees': {
                 'trading': {
                     'taker': 0.25 / 100,
@@ -104,22 +128,13 @@ class kuna (acx):
                     })
         return markets
 
-    def perform_order_book_request(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         orderBook = self.publicGetOrderBook(self.extend({
             'market': market['id'],
         }, params))
-        return orderBook
-
-    def parse_order_book_timestamp(self, orderbook, keys):
-        return self.safe_integer(orderbook, keys['timestamp'], None)
-
-    def order_book_exchange_keys(self):
-        return {
-            'price': 'price',
-            'amount': 'remaining_volume',
-        }
+        return self.parse_order_book(orderBook, None, 'bids', 'asks', 'price', 'remaining_volume')
 
     def fetch_l3_order_book(self, symbol, limit=None, params={}):
         return self.fetch_order_book(symbol, limit, params)

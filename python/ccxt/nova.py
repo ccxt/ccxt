@@ -82,20 +82,12 @@ class nova (Exchange):
                 })
         return result
 
-    def perform_order_book_request(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         orderbook = self.publicGetMarketOpenordersPairBoth(self.extend({
             'pair': self.market_id(symbol),
         }, params))
-        return orderbook
-
-    def order_book_exchange_keys(self):
-        return {
-            'bids': 'buyorders',
-            'asks': 'sellorders',
-            'price': 'price',
-            'amount': 'amount',
-        }
+        return self.parse_order_book(orderbook, None, 'buyorders', 'sellorders', 'price', 'amount')
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()

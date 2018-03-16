@@ -209,7 +209,7 @@ class huobipro (Exchange):
             'info': ticker,
         }
 
-    def perform_order_book_request(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         response = self.marketGetDepth(self.extend({
@@ -219,13 +219,8 @@ class huobipro (Exchange):
         if 'tick' in response:
             if not response['tick']:
                 raise ExchangeError(self.id + ' fetchOrderBook() returned empty response: ' + self.json(response))
-            return response['tick']
+            return self.parse_order_book(response['tick'], response['tick']['ts'])
         raise ExchangeError(self.id + ' fetchOrderBook() returned unrecognized response: ' + self.json(response))
-
-    def order_book_exchange_keys(self):
-        return {
-            'timestamp': 'ts',
-        }
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()

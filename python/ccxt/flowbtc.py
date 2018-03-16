@@ -97,19 +97,13 @@ class flowbtc (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    def perform_order_book_request(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         orderbook = self.publicPostGetOrderBook(self.extend({
             'productPair': market['id'],
         }, params))
-        return orderbook
-
-    def order_book_exchange_keys(self):
-        return {
-            'price': 'px',
-            'amount': 'qty',
-        }
+        return self.parse_order_book(orderbook, None, 'bids', 'asks', 'px', 'qty')
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()

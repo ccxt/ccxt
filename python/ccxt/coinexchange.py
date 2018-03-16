@@ -668,20 +668,12 @@ class coinexchange (Exchange):
             result[symbol] = ticker
         return result
 
-    def perform_order_book_request(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         orderbook = self.publicGetGetorderbook(self.extend({
             'market_id': self.market_id(symbol),
         }, params))
-        return orderbook['result']
-
-    def order_book_default_keys(self):
-        return {
-            'bids': 'BuyOrders',
-            'asks': 'SellOrders',
-            'price': 'Price',
-            'amount': 'Quantity',
-        }
+        return self.parse_order_book(orderbook['result'], None, 'BuyOrders', 'SellOrders', 'Price', 'Quantity')
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + path

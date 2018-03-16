@@ -96,20 +96,16 @@ class vaultoro (Exchange):
             result[uppercase] = account
         return self.parse_balance(result)
 
-    def perform_order_book_request(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         response = self.publicGetOrderbook(params)
         orderbook = {
             'bids': response['data'][0]['b'],
             'asks': response['data'][1]['s'],
         }
-        return orderbook
-
-    def order_book_exchange_keys(self):
-        return {
-            'price': 'Gold_Price',
-            'amount': 'Gold_Amount',
-        }
+        result = self.parse_order_book(orderbook, None, 'bids', 'asks', 'Gold_Price', 'Gold_Amount')
+        result['bids'] = self.sort_by(result['bids'], 0, True)
+        return result
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()

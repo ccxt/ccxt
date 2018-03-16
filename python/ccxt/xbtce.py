@@ -148,23 +148,15 @@ class xbtce (Exchange):
             result[uppercase] = account
         return self.parse_balance(result)
 
-    def perform_order_book_request(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         orderbook = self.privateGetLevel2Filter(self.extend({
             'filter': market['id'],
         }, params))
         orderbook = orderbook[0]
-        return orderbook
-
-    def order_book_exchange_keys(self):
-        return {
-            'bids': 'Bids',
-            'asks': 'Asks',
-            'price': 'Price',
-            'amount': 'Volume',
-            'timestamp': 'Timestamp',
-        }
+        timestamp = orderbook['Timestamp']
+        return self.parse_order_book(orderbook, timestamp, 'Bids', 'Asks', 'Price', 'Volume')
 
     def parse_ticker(self, ticker, market=None):
         timestamp = 0

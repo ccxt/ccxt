@@ -237,14 +237,31 @@ class zb (Exchange):
     def get_market_field_name(self):
         return 'market'
 
-    def perform_order_book_request(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         marketFieldName = self.get_market_field_name()
         request = {}
         request[marketFieldName] = market['id']
         orderbook = self.publicGetDepth(self.extend(request, params))
-        return orderbook
+        timestamp = self.milliseconds()
+        bids = None
+        asks = None
+        if 'bids' in orderbook:
+            bids = orderbook['bids']
+        if 'asks' in orderbook:
+            asks = orderbook['asks']
+        result = {
+            'bids': bids,
+            'asks': asks,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
+        if result['bids']:
+            result['bids'] = self.sort_by(result['bids'], 0, True)
+        if result['asks']:
+            result['asks'] = self.sort_by(result['asks'], 0)
+        return result
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()

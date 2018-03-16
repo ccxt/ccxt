@@ -80,20 +80,15 @@ class coinspot (Exchange):
                 result[uppercase] = account
         return self.parse_balance(result)
 
-    def perform_order_book_request(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         market = self.market(symbol)
         orderbook = self.privatePostOrders(self.extend({
             'cointype': market['id'],
         }, params))
-        return orderbook
-
-    def order_book_default_keys(self):
-        return {
-            'bids': 'buyorders',
-            'asks': 'sellorders',
-            'price': 'rate',
-            'amount': 'amount',
-        }
+        result = self.parse_order_book(orderbook, None, 'buyorders', 'sellorders', 'rate', 'amount')
+        result['bids'] = self.sort_by(result['bids'], 0, True)
+        result['asks'] = self.sort_by(result['asks'], 0)
+        return result
 
     def fetch_ticker(self, symbol, params={}):
         response = self.publicGetLatest(params)

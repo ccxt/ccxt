@@ -74,12 +74,12 @@ class mercado (Exchange):
             },
         })
 
-    def perform_order_book_request(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         market = self.market(symbol)
         orderbook = self.publicGetCoinOrderbook(self.extend({
             'coin': market['base'],
         }, params))
-        return orderbook
+        return self.parse_order_book(orderbook)
 
     def fetch_ticker(self, symbol, params={}):
         market = self.market(symbol)

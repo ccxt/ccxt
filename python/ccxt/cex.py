@@ -173,15 +173,13 @@ class cex (Exchange):
                 result[currency] = account
         return self.parse_balance(result)
 
-    def perform_order_book_request(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         orderbook = self.publicGetOrderBookPair(self.extend({
             'pair': self.market_id(symbol),
         }, params))
-        return orderbook
-
-    def parse_order_book_timestamp(self, orderbook, keys):
-        return int(orderbook[keys['timestamp']] * 1000)
+        timestamp = orderbook['timestamp'] * 1000
+        return self.parse_order_book(orderbook, timestamp)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return [

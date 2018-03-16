@@ -213,25 +213,16 @@ class bitlish (Exchange):
             'time_range': interval,
         }, params))
 
-    def perform_order_book_request(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         orderbook = self.publicGetTradesDepth(self.extend({
             'pair_id': self.market_id(symbol),
         }, params))
-        return orderbook
-
-    def parse_order_book_timestamp(self, orderbook, keys):
-        last = self.safe_integer(orderbook, keys['timestamp'])
-        return int(last / 1000) if last else None
-
-    def order_book_exchange_keys(self):
-        return {
-            'bids': 'bid',
-            'asks': 'ask',
-            'price': 'price',
-            'amount': 'volume',
-            'timestamp': 'last',
-        }
+        timestamp = None
+        last = self.safe_integer(orderbook, 'last')
+        if last:
+            timestamp = int(last / 1000)
+        return self.parse_order_book(orderbook, timestamp, 'bid', 'ask', 'price', 'volume')
 
     def parse_trade(self, trade, market=None):
         side = 'buy' if (trade['dir'] == 'bid') else 'sell'

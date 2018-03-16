@@ -200,31 +200,27 @@ class bitmex (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    def perform_order_book_request(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         orderbook = self.publicGetOrderBookL2(self.extend({
             'symbol': self.market_id(symbol),
         }, params))
-        return orderbook
-
-    def parse_order_book_orders(self, orderbook, keys):
+        timestamp = self.milliseconds()
         result = {
             'bids': [],
             'asks': [],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
         }
         for o in range(0, len(orderbook)):
             order = orderbook[o]
             side = 'asks' if (order['side'] == 'Sell') else 'bids'
-            amount = order[keys['amount']]
-            price = order[keys['price']]
+            amount = order['size']
+            price = order['price']
             result[side].append([price, amount])
+        result['bids'] = self.sort_by(result['bids'], 0, True)
+        result['asks'] = self.sort_by(result['asks'], 0)
         return result
-
-    def order_book_exchange_keys(self):
-        return {
-            'price': 'price',
-            'amount': 'size',
-        }
 
     def fetch_order(self, id, symbol=None, params={}):
         filter = {'filter': {'orderID': id}}

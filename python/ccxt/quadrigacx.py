@@ -99,14 +99,12 @@ class quadrigacx (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    def perform_order_book_request(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         orderbook = self.publicGetOrderBook(self.extend({
             'book': self.market_id(symbol),
         }, params))
-        return orderbook
-
-    def parse_order_book_timestamp(self, orderbook, keys):
-        return int(orderbook[keys['timestamp']]) * 1000
+        timestamp = int(orderbook['timestamp']) * 1000
+        return self.parse_order_book(orderbook, timestamp)
 
     def fetch_ticker(self, symbol, params={}):
         ticker = self.publicGetTicker(self.extend({

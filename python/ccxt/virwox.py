@@ -129,7 +129,7 @@ class virwox (Exchange):
             'ask': self.safe_float(result[0], 'bestSellPrice'),
         }
 
-    def perform_order_book_request(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         request = {
             'symbols': [symbol],
@@ -139,13 +139,7 @@ class virwox (Exchange):
             request['sellDepth'] = limit  # 100
         response = self.publicPostGetMarketDepth(self.extend(request, params))
         orderbook = response['result'][0]
-        return orderbook
-
-    def order_book_exchange_keys(self):
-        return {
-            'price': 'price',
-            'amount': 'volume',
-        }
+        return self.parse_order_book(orderbook, None, 'buy', 'sell', 'price', 'volume')
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()

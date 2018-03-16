@@ -243,7 +243,7 @@ class poloniex (Exchange):
             'deposit': {},
         }
 
-    def perform_order_book_request(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         request = {
             'currencyPair': self.market_id(symbol),
@@ -251,7 +251,7 @@ class poloniex (Exchange):
         if limit is not None:
             request['depth'] = limit  # 100
         orderbook = self.publicGetReturnOrderBook(self.extend(request, params))
-        return orderbook
+        return self.parse_order_book(orderbook)
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()

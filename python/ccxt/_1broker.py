@@ -130,27 +130,20 @@ class _1broker (Exchange):
         result['BTC']['total'] = total
         return self.parse_balance(result)
 
-    def perform_order_book_request(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         response = self.privateGetMarketQuotes(self.extend({
             'symbols': self.market_id(symbol),
         }, params))
-        return response['response'][0]
-
-    def order_book_exchange_keys(self):
-        return {
-            'timestamp': 'updated',
-        }
-
-    def parse_order_book_timestamp(self, orderbook, keys):
-        return self.parse8601(orderbook[keys['timestamp']])
-
-    def parse_order_book_orders(self, orderbook, keys):
+        orderbook = response['response'][0]
+        timestamp = self.parse8601(orderbook['updated'])
         bidPrice = float(orderbook['bid'])
         askPrice = float(orderbook['ask'])
         bid = [bidPrice, None]
         ask = [askPrice, None]
         return {
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'bids': [bid],
             'asks': [ask],
         }

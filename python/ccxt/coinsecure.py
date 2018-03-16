@@ -194,7 +194,7 @@ class coinsecure (Exchange):
         }
         return self.parse_balance(result)
 
-    def perform_order_book_request(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         bids = self.publicGetExchangeBidOrders(params)
         asks = self.publicGetExchangeAskOrders(params)
@@ -202,13 +202,7 @@ class coinsecure (Exchange):
             'bids': bids['message'],
             'asks': asks['message'],
         }
-        return orderbook
-
-    def order_book_exchange_keys(self):
-        return {
-            'price': 'rate',
-            'amount': 'vol',
-        }
+        return self.parse_order_book(orderbook, None, 'bids', 'asks', 'rate', 'vol')
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()

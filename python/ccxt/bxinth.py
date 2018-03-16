@@ -118,12 +118,12 @@ class bxinth (Exchange):
             result[code] = account
         return self.parse_balance(result)
 
-    def perform_order_book_request(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         orderbook = self.publicGetOrderbook(self.extend({
             'pairing': self.market_id(symbol),
         }, params))
-        return orderbook
+        return self.parse_order_book(orderbook)
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
