@@ -144,12 +144,14 @@ class gateio (Exchange):
             result[code] = account
         return self.parse_balance(result)
 
-    async def perform_order_book_request(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         orderbook = await self.publicGetOrderBookId(self.extend({
             'id': self.market_id(symbol),
         }, params))
-        return orderbook
+        result = self.parse_order_book(orderbook)
+        result['asks'] = self.sort_by(result['asks'], 0)
+        return result
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()

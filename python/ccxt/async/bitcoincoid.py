@@ -117,18 +117,12 @@ class bitcoincoid (Exchange):
             result[code] = account
         return self.parse_balance(result)
 
-    async def perform_order_book_request(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         orderbook = await self.publicGetPairDepth(self.extend({
             'pair': self.market_id(symbol),
         }, params))
-        return orderbook
-
-    def order_book_exchange_keys(self):
-        return {
-            'bids': 'buy',
-            'asks': 'sell',
-        }
+        return self.parse_order_book(orderbook, None, 'buy', 'sell')
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()

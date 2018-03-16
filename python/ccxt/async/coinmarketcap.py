@@ -84,7 +84,7 @@ class coinmarketcap (Exchange):
             ],
         })
 
-    async def perform_order_book_request(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         raise ExchangeError('Fetching order books is not supported by the API of ' + self.id)
 
     def currency_code(self, base, name):

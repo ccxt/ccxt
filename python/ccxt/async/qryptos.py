@@ -169,18 +169,12 @@ class qryptos (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    async def perform_order_book_request(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         orderbook = await self.publicGetProductsIdPriceLevels(self.extend({
             'id': self.market_id(symbol),
         }, params))
-        return orderbook
-
-    def order_book_exchange_keys(self):
-        return {
-            'bids': 'buy_price_levels',
-            'asks': 'sell_price_levels',
-        }
+        return self.parse_order_book(orderbook, None, 'buy_price_levels', 'sell_price_levels')
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()

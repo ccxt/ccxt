@@ -107,11 +107,11 @@ class huobi (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    async def perform_order_book_request(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         market = self.market(symbol)
         method = market['type'] + 'GetDepthId'
         orderbook = await getattr(self, method)(self.extend({'id': market['id']}, params))
-        return orderbook
+        return self.parse_order_book(orderbook)
 
     async def fetch_ticker(self, symbol, params={}):
         market = self.market(symbol)

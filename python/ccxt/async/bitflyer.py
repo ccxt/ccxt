@@ -136,18 +136,12 @@ class bitflyer (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    async def perform_order_book_request(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         orderbook = await self.publicGetGetboard(self.extend({
             'product_code': self.market_id(symbol),
         }, params))
-        return orderbook
-
-    def order_book_exchange_keys(self):
-        return {
-            'price': 'price',
-            'amount': 'size',
-        }
+        return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'size')
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()

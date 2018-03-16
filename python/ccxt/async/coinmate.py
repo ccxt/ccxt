@@ -87,19 +87,14 @@ class coinmate (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    async def perform_order_book_request(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         response = await self.publicGetOrderBook(self.extend({
             'currencyPair': self.market_id(symbol),
             'groupByPriceLimit': 'False',
         }, params))
         orderbook = response['data']
-        return orderbook
-
-    def order_book_exchange_keys(self):
-        return {
-            'price': 'price',
-            'amount': 'amount',
-        }
+        timestamp = orderbook['timestamp'] * 1000
+        return self.parse_order_book(orderbook, timestamp, 'bids', 'asks', 'price', 'amount')
 
     async def fetch_ticker(self, symbol, params={}):
         response = await self.publicGetTicker(self.extend({

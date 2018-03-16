@@ -76,14 +76,12 @@ class bitstamp1 (Exchange):
             },
         })
 
-    async def perform_order_book_request(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         if symbol != 'BTC/USD':
             raise ExchangeError(self.id + ' ' + self.version + " fetchOrderBook doesn't support " + symbol + ', use it for BTC/USD only')
         orderbook = await self.publicGetOrderBook(params)
-        return orderbook
-
-    def parse_order_book_timestamp(self, orderbook, keys):
-        return int(orderbook[keys['timestamp']]) * 1000
+        timestamp = int(orderbook['timestamp']) * 1000
+        return self.parse_order_book(orderbook, timestamp)
 
     async def fetch_ticker(self, symbol, params={}):
         if symbol != 'BTC/USD':

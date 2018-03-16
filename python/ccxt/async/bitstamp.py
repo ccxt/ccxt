@@ -205,15 +205,13 @@ class bitstamp (Exchange):
             })
         return result
 
-    async def perform_order_book_request(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         orderbook = await self.publicGetOrderBookPair(self.extend({
             'pair': self.market_id(symbol),
         }, params))
-        return orderbook
-
-    def parse_order_book_timestamp(self, orderbook, keys):
-        return int(orderbook[keys['timestamp']]) * 1000
+        timestamp = int(orderbook['timestamp']) * 1000
+        return self.parse_order_book(orderbook, timestamp)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()

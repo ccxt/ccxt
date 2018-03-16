@@ -71,11 +71,11 @@ class mixcoins (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    async def perform_order_book_request(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         response = await self.publicGetDepth(self.extend({
             'market': self.market_id(symbol),
         }, params))
-        return response['result']
+        return self.parse_order_book(response['result'])
 
     async def fetch_ticker(self, symbol, params={}):
         response = await self.publicGetTicker(self.extend({

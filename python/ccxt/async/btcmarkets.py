@@ -138,16 +138,14 @@ class btcmarkets (Exchange):
         response = await self.webGetMarketBTCMarketsIdTickByTime(self.extend(request, params))
         return self.parse_ohlcvs(response['ticks'], market, timeframe, since, limit)
 
-    async def perform_order_book_request(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         orderbook = await self.publicGetMarketIdOrderbook(self.extend({
             'id': market['id'],
         }, params))
-        return orderbook
-
-    def parse_order_book_timestamp(self, orderbook, keys):
-        return orderbook[keys['timestamp']] * 1000
+        timestamp = orderbook['timestamp'] * 1000
+        return self.parse_order_book(orderbook, timestamp)
 
     def parse_ticker(self, ticker, market=None):
         timestamp = ticker['timestamp'] * 1000

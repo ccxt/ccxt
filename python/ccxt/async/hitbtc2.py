@@ -701,7 +701,7 @@ class hitbtc2 (hitbtc):
         response = await self.publicGetCandlesSymbol(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    async def perform_order_book_request(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         request = {
             'symbol': self.market_id(symbol),
@@ -709,15 +709,7 @@ class hitbtc2 (hitbtc):
         if limit is not None:
             request['limit'] = limit  # default = 100, 0 = unlimited
         orderbook = await self.publicGetOrderbookSymbol(self.extend(request, params))
-        return orderbook
-
-    def order_book_default_keys(self):
-        return {
-            'bids': 'bid',
-            'asks': 'ask',
-            'price': 'price',
-            'amount': 'size',
-        }
+        return self.parse_order_book(orderbook, None, 'bid', 'ask', 'price', 'size')
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.parse8601(ticker['timestamp'])

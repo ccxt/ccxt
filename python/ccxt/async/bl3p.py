@@ -92,19 +92,13 @@ class bl3p (Exchange):
             bidask[amountKey] / 100000000.0,
         ]
 
-    async def perform_order_book_request(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         market = self.market(symbol)
         response = await self.publicGetMarketOrderbook(self.extend({
             'market': market['id'],
         }, params))
         orderbook = response['data']
-        return orderbook
-
-    def order_book_exchange_keys(self):
-        return {
-            'price': 'price_int',
-            'amount': 'amount_int',
-        }
+        return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price_int', 'amount_int')
 
     async def fetch_ticker(self, symbol, params={}):
         ticker = await self.publicGetMarketTicker(self.extend({

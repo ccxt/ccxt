@@ -136,21 +136,16 @@ class btcchina (Exchange):
         request[field] = market['id']
         return request
 
-    async def perform_order_book_request(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         method = market['api'] + 'GetOrderbook'
         request = self.create_market_request(market)
         orderbook = await getattr(self, method)(self.extend(request, params))
-        return orderbook
-
-    def order_book_exchange_keys(self):
-        return {
-            'timestamp': 'date',
-        }
-
-    def parse_order_book_timestamp(self, orderbook, keys):
-        return orderbook[keys['timestamp']] * 1000
+        timestamp = orderbook['date'] * 1000
+        result = self.parse_order_book(orderbook, timestamp)
+        result['asks'] = self.sort_by(result['asks'], 0)
+        return result
 
     def parse_ticker(self, ticker, market):
         timestamp = ticker['date'] * 1000

@@ -91,17 +91,13 @@ class paymium (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    async def perform_order_book_request(self, symbol, limit=None, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         orderbook = await self.publicGetDataIdDepth(self.extend({
             'id': self.market_id(symbol),
         }, params))
-        return orderbook
-
-    def order_book_exchange_keys(self):
-        return {
-            'price': 'price',
-            'amount': 'amount',
-        }
+        result = self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'amount')
+        result['bids'] = self.sort_by(result['bids'], 0, True)
+        return result
 
     async def fetch_ticker(self, symbol, params={}):
         ticker = await self.publicGetDataIdTicker(self.extend({
