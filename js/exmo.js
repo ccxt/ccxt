@@ -108,7 +108,6 @@ module.exports = class exmo extends Exchange {
                 '50173': OrderNotFound, // "Order with id X was not found." (cancelling non-existent, closed and cancelled order)
                 '50319': InvalidOrder, // Price by order is less than permissible minimum for this pair
             },
-
         });
     }
 
