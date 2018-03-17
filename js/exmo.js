@@ -198,11 +198,10 @@ module.exports = class exmo extends Exchange {
         }, params));
         let result = {};
         ids = Object.keys (response);
-        let keys = this.orderBookKeys ();
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
             let symbol = this.findSymbol (id);
-            result[symbol] = this.parseOrderBook (response[id], keys);
+            result[symbol] = this.parseOrderBook (response, this.market (symbol), undefined, params);
         }
         return result;
     }

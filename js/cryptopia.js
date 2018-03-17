@@ -148,7 +148,7 @@ module.exports = class cryptopia extends Exchange {
         return response;
     }
 
-    orderBookDefaultKeys () {
+    orderBookExchangeKeys () {
         return {
             'response': 'Data',
             'bids': 'Buy',
@@ -173,7 +173,9 @@ module.exports = class cryptopia extends Exchange {
             let numIds = this.ids.length;
             // max URL length is 2083 characters, including http schema, hostname, tld, etc...
             if (numIds > 2048)
-                throw new ExchangeError (this.id + ' has ' + numIds.toString () + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks');
+                throw new ExchangeError (this.id + ' has ' + numIds.toString () +
+                    ' symbols exceeding max URL length, you are required to specify a list of' +
+                    ' symbols in the first argument to fetchOrderBooks');
             ids = this.joinMarketIds (this.ids);
         } else {
             ids = this.joinMarketIds (this.marketIds (symbols));
@@ -183,7 +185,6 @@ module.exports = class cryptopia extends Exchange {
         }, params));
         let orderbooks = response['Data'];
         let result = {};
-        let keys = this.orderBookKeys ();
         for (let i = 0; i < orderbooks.length; i++) {
             let orderbook = orderbooks[i];
             let id = this.safeInteger (orderbook, 'TradePairId');
@@ -192,7 +193,7 @@ module.exports = class cryptopia extends Exchange {
                 let market = this.markets_by_id[id];
                 symbol = market['symbol'];
             }
-            result[symbol] = this.parseOrderBook (orderbook, keys);
+            result[symbol] = this.parseOrderBook (orderbook, this.market (symbol), undefined, params);
         }
         return result;
     }

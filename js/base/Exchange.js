@@ -853,21 +853,21 @@ module.exports = class Exchange {
         let path = Array.isArray (keys['response']) ? keys['response'] : [keys['response']];
         let orderbook = response;
         for (let i = 0; i < path.length; i++) {
-            let key = path[i] === '__market__' ? market['id'] : path[i];
-            orderbook = orderbook[key];
+            let key = (path[i] === '__market__') ? market['id'] : path[i];
+            orderbook = (typeof orderbook[key] !== 'undefined') ? orderbook[key] : orderbook;
         }
         return orderbook;
     }
 
     parseOrderBook (response, market, limit, params) {
         let orderbook = this.parseOrderBookResponse (response, market, limit, params);
-        let timestamp = this.parseOrderBookTimestamp (orderbook, keys);
+        let timestamp = this.parseOrderBookTimestamp (orderbook);
         if (typeof timestamp === 'undefined') {
-            timestamp = this.parseHTTPResponseDate (keys);
+            timestamp = this.parseHTTPResponseDate ();
         }
         let datetime = this.iso8601 (timestamp);
-        let orders = this.parseOrderBookOrders (orderbook, keys);
-        let nonse = this.parseOrderBookNonce (orderbook, keys);
+        let orders = this.parseOrderBookOrders (orderbook);
+        let nonse = this.parseOrderBookNonce (orderbook);
         return {
             'bids': sortBy (orders['bids'], 0, true),
             'asks': sortBy (orders['asks'], 0),
