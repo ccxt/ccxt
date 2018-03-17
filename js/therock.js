@@ -94,6 +94,11 @@ module.exports = class therock extends Exchange {
                     },
                 },
             },
+            'orderbookKeys': {
+                'price': 'price',
+                'amount': 'amount',
+                'timestamp': 'date',
+            },
         });
     }
 
@@ -146,16 +151,8 @@ module.exports = class therock extends Exchange {
     }
 
     parseOrderBookTimestamp (orderbook) {
-        let keys = this.orderBookKeys ();
+        let keys = this.orderbookKeys;
         return this.parse8601 (orderbook[keys['timestamp']]);
-    }
-
-    orderBookExchangeKeys () {
-        return {
-            'price': 'price',
-            'amount': 'amount',
-            'timestamp': 'date',
-        };
     }
 
     parseTicker (ticker, market = undefined) {

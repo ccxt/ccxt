@@ -123,6 +123,11 @@ module.exports = class cobinhood extends Exchange {
                 'amount': 8,
                 'price': 8,
             },
+            'orderbookKeys': {
+                'response': ['result', 'orderbook'],
+                'price': 0,
+                'amount': 2,
+            },
         });
     }
 
@@ -284,14 +289,6 @@ module.exports = class cobinhood extends Exchange {
             request['limit'] = limit; // 100
         let response = await this.publicGetMarketOrderbooksTradingPairId (this.extend (request, params));
         return response;
-    }
-
-    orderBookExchangeKeys () {
-        return {
-            'response': ['result', 'orderbook'],
-            'price': 0,
-            'amount': 2,
-        };
     }
 
     parseTrade (trade, market = undefined) {

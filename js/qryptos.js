@@ -92,6 +92,10 @@ module.exports = class qryptos extends Exchange {
                     },
                 },
             },
+            'orderbookKeys': {
+                'bids': 'buy_price_levels',
+                'asks': 'sell_price_levels',
+            },
         });
     }
 
@@ -174,13 +178,6 @@ module.exports = class qryptos extends Exchange {
             'id': market['id'],
         }, params));
         return orderbook;
-    }
-
-    orderBookExchangeKeys () {
-        return {
-            'bids': 'buy_price_levels',
-            'asks': 'sell_price_levels',
-        };
     }
 
     parseTicker (ticker, market = undefined) {

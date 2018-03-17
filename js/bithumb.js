@@ -64,6 +64,11 @@ module.exports = class bithumb extends Exchange {
                     'taker': 0.15 / 100,
                 },
             },
+            'orderbookKeys': {
+                'response': 'data',
+                'price': 'price',
+                'amount': 'quantity',
+            },
         });
     }
 
@@ -141,16 +146,8 @@ module.exports = class bithumb extends Exchange {
     }
 
     parseOrderBookTimestamp (orderbook) {
-        let keys = this.orderBookKeys ();
+        let keys = this.orderbookKeys;
         return parseInt (orderbook[keys['timestamp']]);
-    }
-
-    orderBookExchangeKeys () {
-        return {
-            'response': 'data',
-            'price': 'price',
-            'amount': 'quantity',
-        };
     }
 
     parseTicker (ticker, market = undefined) {

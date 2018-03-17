@@ -74,6 +74,14 @@ module.exports = class anxpro extends Exchange {
                     'taker': 0.6 / 100,
                 },
             },
+            'orderbookKeys': {
+                'response': 'data',
+                'bids': 'bids',
+                'asks': 'asks',
+                'price': 'price',
+                'amount': 'amount',
+                'timestamp': 'dataUpdateTime',
+            },
         });
     }
 
@@ -103,19 +111,8 @@ module.exports = class anxpro extends Exchange {
         return orderbook;
     }
 
-    orderBookExchangeKeys () {
-        return {
-            'response': 'data',
-            'bids': 'bids',
-            'asks': 'asks',
-            'price': 'price',
-            'amount': 'amount',
-            'timestamp': 'dataUpdateTime',
-        };
-    }
-
     parseOrderBookTimestamp (orderbook) {
-        let keys = this.orderBookKeys ();
+        let keys = this.orderbookKeys;
         let time = parseInt (orderbook[keys['timestamp']]);
         return parseInt (time / 1000);
     }

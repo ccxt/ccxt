@@ -65,6 +65,10 @@ module.exports = class _1broker extends Exchange {
                     ],
                 },
             },
+            'orderbookKeys': {
+                'response': ['response', 0],
+                'timestamp': 'updated',
+            },
         });
     }
 
@@ -144,15 +148,8 @@ module.exports = class _1broker extends Exchange {
         return orderbook;
     }
 
-    orderBookExchangeKeys () {
-        return {
-            'response': ['response', 0],
-            'timestamp': 'updated',
-        };
-    }
-
     parseOrderBookTimestamp (orderbook) {
-        let keys = this.orderBookKeys ();
+        let keys = this.orderbookKeys;
         return this.parse8601 (orderbook[keys['timestamp']]);
     }
 

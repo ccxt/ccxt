@@ -253,7 +253,7 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     parseOrderBookOrders (orderbook) {
-        let keys = this.orderBookKeys ();
+        let keys = this.orderbookKeys;
         let result = {
             'bids': [],
             'asks': [],

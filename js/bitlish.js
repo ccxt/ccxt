@@ -119,6 +119,13 @@ module.exports = class bitlish extends Exchange {
                 'DSH': 'DASH',
                 'XDG': 'DOGE',
             },
+            'orderbookKeys': {
+                'bids': 'bid',
+                'asks': 'ask',
+                'price': 'price',
+                'amount': 'volume',
+                'timestamp': 'last',
+            },
         });
     }
 
@@ -219,16 +226,6 @@ module.exports = class bitlish extends Exchange {
     parseOrderBookTimestamp (orderbook, keys) {
         let last = this.safeInteger (orderbook, keys['timestamp']);
         return last ? parseInt (last / 1000) : undefined;
-    }
-
-    orderBookExchangeKeys () {
-        return {
-            'bids': 'bid',
-            'asks': 'ask',
-            'price': 'price',
-            'amount': 'volume',
-            'timestamp': 'last',
-        };
     }
 
     parseTrade (trade, market = undefined) {

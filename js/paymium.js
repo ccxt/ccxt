@@ -70,6 +70,10 @@ module.exports = class paymium extends Exchange {
                     'taker': 0.0059,
                 },
             },
+            'orderbookKeys': {
+                'price': 'price',
+                'amount': 'amount',
+            },
         });
     }
 
@@ -98,13 +102,6 @@ module.exports = class paymium extends Exchange {
             'id': market['id'],
         }, params));
         return orderbook;
-    }
-
-    orderBookExchangeKeys () {
-        return {
-            'price': 'price',
-            'amount': 'amount',
-        };
     }
 
     async fetchTicker (symbol, params = {}) {

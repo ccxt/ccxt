@@ -128,6 +128,10 @@ module.exports = class bitmex extends Exchange {
                     ],
                 },
             },
+            'orderbookKeys': {
+                'price': 'price',
+                'amount': 'size',
+            },
         });
     }
 
@@ -210,7 +214,7 @@ module.exports = class bitmex extends Exchange {
     }
 
     parseOrderBookOrders (orderbook) {
-        let keys = this.orderBookKeys ();
+        let keys = this.orderbookKeys;
         let result = {
             'bids': [],
             'asks': [],
@@ -223,13 +227,6 @@ module.exports = class bitmex extends Exchange {
             result[side].push ([ price, amount ]);
         }
         return result;
-    }
-
-    orderBookExchangeKeys () {
-        return {
-            'price': 'price',
-            'amount': 'size',
-        };
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

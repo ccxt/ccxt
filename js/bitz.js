@@ -124,6 +124,10 @@ module.exports = class bitz extends Exchange {
             'options': {
                 'lastNonceTimestamp': 0,
             },
+            'orderbookKeys': {
+                'response': 'data',
+                'timestamp': 'date',
+            },
         });
     }
 
@@ -234,15 +238,8 @@ module.exports = class bitz extends Exchange {
         return orderbook;
     }
 
-    orderBookExchangeKeys () {
-        return {
-            'response': 'data',
-            'timestamp': 'date',
-        };
-    }
-
     parseOrderBookTimestamp (orderbook) {
-        let keys = this.orderBookKeys ();
+        let keys = this.orderbookKeys;
         return orderbook[keys['timestamp']] * 1000;
     }
 

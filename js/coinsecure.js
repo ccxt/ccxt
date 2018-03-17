@@ -168,6 +168,11 @@ module.exports = class coinsecure extends Exchange {
                     'taker': 0.4 / 100,
                 },
             },
+            'orderbookKeys': {
+                'response': 'message',
+                'price': 'rate',
+                'amount': 'vol',
+            },
         });
     }
 
@@ -203,7 +208,7 @@ module.exports = class coinsecure extends Exchange {
     }
 
     parseOrderBookResponse (response, market, limit, params) {
-        let keys = this.orderBookKeys ();
+        let keys = this.orderbookKeys;
         let key = keys['response'];
         let bidsResponse = typeof response['bids'] === 'undefined' ? undefined : response['bids'][key];
         let asksResponse = typeof response['asks'] === 'undefined' ? undefined : response['asks'][key];
@@ -212,14 +217,6 @@ module.exports = class coinsecure extends Exchange {
         return {
             'bids': bids,
             'asks': asks,
-        };
-    }
-
-    orderBookExchangeKeys () {
-        return {
-            'response': 'message',
-            'price': 'rate',
-            'amount': 'vol',
         };
     }
 

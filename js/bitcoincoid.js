@@ -91,6 +91,10 @@ module.exports = class bitcoincoid extends Exchange {
                     'taker': 0.003,
                 },
             },
+            'orderbookKeys': {
+                'bids': 'buy',
+                'asks': 'sell',
+            },
         });
     }
 
@@ -118,13 +122,6 @@ module.exports = class bitcoincoid extends Exchange {
             'pair': market['id'],
         }, params));
         return orderbook;
-    }
-
-    orderBookExchangeKeys () {
-        return {
-            'bids': 'buy',
-            'asks': 'sell',
-        };
     }
 
     async fetchTicker (symbol, params = {}) {

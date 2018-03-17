@@ -143,7 +143,7 @@ module.exports = class btcmarkets extends Exchange {
     }
 
     parseOrderBookTimestamp (orderbook) {
-        let keys = this.orderBookKeys ();
+        let keys = this.orderbookKeys;
         return orderbook[keys['timestamp']] * 1000;
     }
 

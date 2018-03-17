@@ -82,6 +82,9 @@ module.exports = class btcchina extends Exchange {
                 'BCH/CNY': { 'id': 'bcccny', 'symbol': 'BCH/CNY', 'base': 'BCH', 'quote': 'CNY', 'api': 'plus', 'plus': true },
                 'ETH/CNY': { 'id': 'ethcny', 'symbol': 'ETH/CNY', 'base': 'ETH', 'quote': 'CNY', 'api': 'plus', 'plus': true },
             },
+            'orderbookKeys': {
+                'timestamp': 'date',
+            },
         });
     }
 
@@ -146,14 +149,8 @@ module.exports = class btcchina extends Exchange {
         return orderbook;
     }
 
-    orderBookExchangeKeys () {
-        return {
-            'timestamp': 'date',
-        };
-    }
-
     parseOrderBookTimestamp (orderbook) {
-        let keys = this.orderBookKeys ();
+        let keys = this.orderbookKeys;
         return orderbook[keys['timestamp']] * 1000;
     }
 

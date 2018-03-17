@@ -53,6 +53,13 @@ module.exports = class _1btcxe extends Exchange {
                     ],
                 },
             },
+            'orderbookKeys': {
+                'response': 'order-book',
+                'bids': 'bid',
+                'asks': 'ask',
+                'price': 'price',
+                'amount': 'order_amount',
+            },
         });
     }
 
@@ -111,16 +118,6 @@ module.exports = class _1btcxe extends Exchange {
             'currency': market['id'],
         }, params));
         return orderbook;
-    }
-
-    orderBookExchangeKeys () {
-        return {
-            'response': 'order-book',
-            'bids': 'bid',
-            'asks': 'ask',
-            'price': 'price',
-            'amount': 'order_amount',
-        };
     }
 
     async fetchTicker (symbol, params = {}) {

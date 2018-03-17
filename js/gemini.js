@@ -74,6 +74,10 @@ module.exports = class gemini extends Exchange {
                     'taker': 0.0025,
                 },
             },
+            'orderbookKeys': {
+                'price': 'price',
+                'amount': 'amount',
+            },
         });
     }
 
@@ -103,13 +107,6 @@ module.exports = class gemini extends Exchange {
             'symbol': market['id'],
         }, params));
         return orderbook;
-    }
-
-    orderBookExchangeKeys () {
-        return {
-            'price': 'price',
-            'amount': 'amount',
-        };
     }
 
     async fetchTicker (symbol, params = {}) {

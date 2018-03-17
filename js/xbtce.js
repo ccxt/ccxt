@@ -102,6 +102,14 @@ module.exports = class xbtce extends Exchange {
                     ],
                 },
             },
+            'orderbookKeys': {
+                'response': 0,
+                'bids': 'Bids',
+                'asks': 'Asks',
+                'price': 'Price',
+                'amount': 'Volume',
+                'timestamp': 'Timestamp',
+            },
         });
     }
 
@@ -154,17 +162,6 @@ module.exports = class xbtce extends Exchange {
             'filter': market['id'],
         }, params));
         return orderbook;
-    }
-
-    orderBookExchangeKeys () {
-        return {
-            'response': 0,
-            'bids': 'Bids',
-            'asks': 'Asks',
-            'price': 'Price',
-            'amount': 'Volume',
-            'timestamp': 'Timestamp',
-        };
     }
 
     parseTicker (ticker, market = undefined) {

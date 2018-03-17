@@ -183,7 +183,7 @@ module.exports = class cex extends Exchange {
     }
 
     parseOrderBookTimestamp (orderbook) {
-        let keys = this.orderBookKeys ();
+        let keys = this.orderbookKeys;
         return parseInt (orderbook[keys['timestamp']] * 1000);
     }
 

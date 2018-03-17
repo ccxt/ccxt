@@ -148,6 +148,13 @@ module.exports = class bittrex extends Exchange {
                 'UUID_INVALID': OrderNotFound,
                 'RATE_NOT_PROVIDED': InvalidOrder, // createLimitBuyOrder ('ETH/BTC', 1, 0)
             },
+            'orderbookKeys': {
+                'response': 'result',
+                'bids': 'buy',
+                'asks': 'sell',
+                'price': 'Rate',
+                'amount': 'Quantity',
+            },
         });
     }
 
@@ -232,7 +239,7 @@ module.exports = class bittrex extends Exchange {
     }
 
     parseOrderBookResponse (response, market, limit, params) {
-        let keys = this.orderBookKeys ();
+        let keys = this.orderbookKeys;
         let responseKey = keys['response'];
         let requestType = (typeof params !== 'undefined') ? params['type'] : undefined;
         if ((typeof requestType === 'undefined') || (requestType === 'both')) {
@@ -249,16 +256,6 @@ module.exports = class bittrex extends Exchange {
             };
         }
         throw new ExchangeError (this.id + " fetchOrderBook doesn't support orderbook type " + requestType);
-    }
-
-    orderBookExchangeKeys () {
-        return {
-            'response': 'result',
-            'bids': 'buy',
-            'asks': 'sell',
-            'price': 'Rate',
-            'amount': 'Quantity',
-        };
     }
 
     parseTicker (ticker, market = undefined) {

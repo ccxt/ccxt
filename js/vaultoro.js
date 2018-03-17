@@ -52,6 +52,10 @@ module.exports = class vaultoro extends Exchange {
                     ],
                 },
             },
+            'orderbookKeys': {
+                'price': 'Gold_Price',
+                'amount': 'Gold_Amount',
+            },
         });
     }
 
@@ -111,13 +115,6 @@ module.exports = class vaultoro extends Exchange {
             'asks': data[1]['s'],
         };
         return orderbook;
-    }
-
-    orderBookExchangeKeys () {
-        return {
-            'price': 'Gold_Price',
-            'amount': 'Gold_Amount',
-        };
     }
 
     async fetchTicker (symbol, params = {}) {

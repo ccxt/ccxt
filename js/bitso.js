@@ -77,6 +77,12 @@ module.exports = class bitso extends Exchange {
                 '0201': AuthenticationError, // Invalid Nonce or Invalid Credentials
                 '104': InvalidNonce, // Cannot perform request - nonce must be higher than 1520307203724237
             },
+            'orderbookKeys': {
+                'response': 'payload',
+                'price': 'price',
+                'amount': 'amount',
+                'timestamp': 'updated_at',
+            },
         });
     }
 
@@ -146,17 +152,8 @@ module.exports = class bitso extends Exchange {
         return orderbook;
     }
 
-    orderBookExchangeKeys () {
-        return {
-            'response': 'payload',
-            'price': 'price',
-            'amount': 'amount',
-            'timestamp': 'updated_at',
-        };
-    }
-
     parseOrderBookTimestamp (orderbook) {
-        let keys = this.orderBookKeys ();
+        let keys = this.orderbookKeys;
         return this.parse8601 (orderbook[keys['timestamp']]);
     }
 

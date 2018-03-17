@@ -81,6 +81,11 @@ module.exports = class btctradeua extends Exchange {
                     },
                 },
             },
+            'orderbookKeys': {
+                'response': 'list',
+                'price': 'price',
+                'amount': 'currency_trade',
+            },
         });
     }
 
@@ -121,7 +126,7 @@ module.exports = class btctradeua extends Exchange {
     }
 
     parseOrderBookResponse (response, market, limit, params) {
-        let keys = this.orderBookKeys ();
+        let keys = this.orderbookKeys;
         let key = keys['response'];
         let bidsResponse = typeof response['bids'] === 'undefined' ? undefined : response['bids'][key];
         let asksResponse = typeof response['asks'] === 'undefined' ? undefined : response['asks'][key];
@@ -130,14 +135,6 @@ module.exports = class btctradeua extends Exchange {
         return {
             'bids': bids,
             'asks': asks,
-        };
-    }
-
-    orderBookExchangeKeys () {
-        return {
-            'response': 'list',
-            'price': 'price',
-            'amount': 'currency_trade',
         };
     }
 

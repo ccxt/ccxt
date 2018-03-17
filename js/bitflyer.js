@@ -78,6 +78,10 @@ module.exports = class bitflyer extends Exchange {
                     'taker': 0.25 / 100,
                 },
             },
+            'orderbookKeys': {
+                'price': 'price',
+                'amount': 'size',
+            },
         });
     }
 
@@ -147,13 +151,6 @@ module.exports = class bitflyer extends Exchange {
             'product_code': market['id'],
         }, params));
         return orderbook;
-    }
-
-    orderBookExchangeKeys () {
-        return {
-            'price': 'price',
-            'amount': 'size',
-        };
     }
 
     async fetchTicker (symbol, params = {}) {

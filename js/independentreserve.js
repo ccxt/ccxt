@@ -69,6 +69,13 @@ module.exports = class independentreserve extends Exchange {
                     'tierBased': false,
                 },
             },
+            'orderbookKeys': {
+                'bids': 'BuyOrders',
+                'asks': 'SellOrders',
+                'price': 'Price',
+                'amount': 'Volume',
+                'timestamp': 'CreatedTimestampUtc',
+            },
         });
     }
 
@@ -127,18 +134,8 @@ module.exports = class independentreserve extends Exchange {
     }
 
     parseOrderBookTimestamp (orderbook) {
-        let keys = this.orderBookKeys ();
+        let keys = this.orderbookKeys;
         return this.parse8601 (orderbook[keys['timestamp']]);
-    }
-
-    orderBookExchangeKeys () {
-        return {
-            'bids': 'BuyOrders',
-            'asks': 'SellOrders',
-            'price': 'Price',
-            'amount': 'Volume',
-            'timestamp': 'CreatedTimestampUtc',
-        };
     }
 
     parseTicker (ticker, market = undefined) {

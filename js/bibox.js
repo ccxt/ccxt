@@ -79,6 +79,14 @@ module.exports = class bibox extends Exchange {
                     'deposit': {},
                 },
             },
+            'orderbookKeys': {
+                'response': 'result',
+                'bids': 'bids',
+                'asks': 'asks',
+                'price': 'price',
+                'amount': 'volume',
+                'timestamp': 'update_time',
+            },
         });
     }
 
@@ -234,19 +242,8 @@ module.exports = class bibox extends Exchange {
         return orderbook;
     }
 
-    orderBookExchangeKeys () {
-        return {
-            'response': 'result',
-            'bids': 'bids',
-            'asks': 'asks',
-            'price': 'price',
-            'amount': 'volume',
-            'timestamp': 'update_time',
-        };
-    }
-
     parseOrderBookTimestamp (orderbook) {
-        let keys = this.orderBookKeys ();
+        let keys = this.orderbookKeys;
         return this.safeFloat (orderbook, keys['timestamp']);
     }
 

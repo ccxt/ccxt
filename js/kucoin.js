@@ -172,6 +172,11 @@ module.exports = class kucoin extends Exchange {
                 'timeDifference': 0, // the difference between system clock and Kucoin clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
             },
+            'orderbookKeys': {
+                'response': 'data',
+                'bids': 'BUY',
+                'asks': 'SELL',
+            },
         });
     }
 
@@ -328,14 +333,6 @@ module.exports = class kucoin extends Exchange {
             'symbol': market['id'],
         }, params));
         return response;
-    }
-
-    orderBookExchangeKeys () {
-        return {
-            'response': 'data',
-            'bids': 'BUY',
-            'asks': 'SELL',
-        };
     }
 
     parseOrder (order, market = undefined) {

@@ -144,6 +144,15 @@ module.exports = class Exchange {
                 'BCC': 'BCH',
                 'DRK': 'DASH',
             },
+            'orderbookKeys': {
+                'bids': 'bids',
+                'asks': 'asks',
+                'price': 0,
+                'amount': 0,
+                'timestamp': 'timestamp',
+                'nonce': 'sec',
+                'responseDate': 'date',
+            },
         } // return
     } // describe ()
 
@@ -768,25 +777,8 @@ module.exports = class Exchange {
         return this.parseOrderBook (orderbook, market, limit, params);
     }
 
-    orderBookExchangeKeys () {
-        return {};
-    }
-
-    orderBookKeys () {
-        let defaultOrderbookExchangeKeys = {
-            'bids': 'bids',
-            'asks': 'asks',
-            'price': 0,
-            'amount': 0,
-            'timestamp': 'timestamp',
-            'nonce': 'sec',
-            'responseDate': 'date',
-        };
-        return this.extend (defaultOrderbookExchangeKeys, this.orderBookExchangeKeys ());
-    }
-
     parseOrderBookNonce (orderbook) {
-        let keys = this.orderBookKeys ();
+        let keys = this.orderbookKeys;
         let nonce = this.safeInteger (orderbook, keys['nonce'], undefined);
         if (typeof nonce === 'undefined') {
             nonce = this.safeInteger (orderbook, keys['timestamp'], undefined);
@@ -795,12 +787,12 @@ module.exports = class Exchange {
     }
 
     parseOrderBookTimestamp (orderbook) {
-        let keys = this.orderBookKeys ();
+        let keys = this.orderbookKeys;
         return this.safeInteger (orderbook, keys['timestamp'], undefined);
     }
 
     parseHTTPResponseDate () {
-        let keys = this.orderBookKeys ();
+        let keys = this.orderbookKeys;
         let responseDate = undefined;
         let headerAttributes = Object.keys (this.last_response_headers);
         for (let i = 0; i < headerAttributes.length; i++) {
@@ -819,7 +811,7 @@ module.exports = class Exchange {
     }
 
     parseBidsAsks (bidasks) {
-        let keys = this.orderBookKeys ();
+        let keys = this.orderbookKeys;
         let orders = [];
         if (typeof bidasks !== 'undefined') {
             orders = bidasks;
@@ -836,7 +828,7 @@ module.exports = class Exchange {
     }
 
     parseOrderBookOrders (orderbook) {
-        let keys = this.orderBookKeys ();
+        let keys = this.orderbookKeys;
         let bids = (keys['bids'] in orderbook) ? this.parseBidsAsks (orderbook[keys['bids']], keys) : [];
         let asks = (keys['asks'] in orderbook) ? this.parseBidsAsks (orderbook[keys['asks']], keys) : [];
         return {
@@ -846,7 +838,7 @@ module.exports = class Exchange {
     }
 
     parseOrderBookResponse (response, market, limit, params) {
-        let keys = this.orderBookKeys ();
+        let keys = this.orderbookKeys;
         if (typeof keys['response'] === 'undefined') {
             return response;
         }

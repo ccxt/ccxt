@@ -86,6 +86,10 @@ module.exports = class coingi extends Exchange {
                     },
                 },
             },
+            'orderbookKeys': {
+                'price': 'price',
+                'amount': 'baseAmount',
+            },
         });
     }
 
@@ -178,13 +182,6 @@ module.exports = class coingi extends Exchange {
             'bidCount': limit, // maximum returned number of bids 1-512
         }, params));
         return orderbook;
-    }
-
-    orderBookExchangeKeys () {
-        return {
-            'price': 'price',
-            'amount': 'baseAmount',
-        };
     }
 
     parseTicker (ticker, market = undefined) {

@@ -59,6 +59,12 @@ module.exports = class nova extends Exchange {
                     ],
                 },
             },
+            'orderbookKeys': {
+                'bids': 'buyorders',
+                'asks': 'sellorders',
+                'price': 'price',
+                'amount': 'amount',
+            },
         });
     }
 
@@ -89,15 +95,6 @@ module.exports = class nova extends Exchange {
             'pair': market['id'],
         }, params));
         return orderbook;
-    }
-
-    orderBookExchangeKeys () {
-        return {
-            'bids': 'buyorders',
-            'asks': 'sellorders',
-            'price': 'price',
-            'amount': 'amount',
-        };
     }
 
     async fetchTicker (symbol, params = {}) {

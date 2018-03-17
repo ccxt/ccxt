@@ -73,6 +73,10 @@ module.exports = class luno extends Exchange {
                     ],
                 },
             },
+            'orderbookKeys': {
+                'price': 'price',
+                'amount': 'volume',
+            },
         });
     }
 
@@ -124,13 +128,6 @@ module.exports = class luno extends Exchange {
             'pair': market['id'],
         }, params));
         return orderbook;
-    }
-
-    orderBookExchangeKeys () {
-        return {
-            'price': 'price',
-            'amount': 'volume',
-        };
     }
 
     parseOrder (order, market = undefined) {

@@ -61,6 +61,10 @@ module.exports = class braziliex extends Exchange {
                 'amount': 8,
                 'price': 8,
             },
+            'orderbookKeys': {
+                'price': 'price',
+                'amount': 'amount',
+            },
         });
     }
 
@@ -242,13 +246,6 @@ module.exports = class braziliex extends Exchange {
             'market': market['id'],
         }, params));
         return orderbook;
-    }
-
-    orderBookExchangeKeys () {
-        return {
-            'price': 'price',
-            'amount': 'amount',
-        };
     }
 
     parseTrade (trade, market = undefined) {

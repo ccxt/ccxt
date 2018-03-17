@@ -187,6 +187,9 @@ module.exports = class kraken extends Exchange {
                 'cacheDepositMethodsOnFetchDepositAddress': true, // will issue up to two calls in fetchDepositAddress
                 'depositMethods': {},
             },
+            'orderbookKeys': {
+                'response': ['result', '__market__'],
+            },
         });
     }
 
@@ -409,12 +412,6 @@ module.exports = class kraken extends Exchange {
             request['count'] = limit; // 100
         let response = await this.publicGetDepth (this.extend (request, params));
         return response;
-    }
-
-    orderBookExchangeKeys () {
-        return {
-            'response': ['result', '__market__'],
-        };
     }
 
     parseTicker (ticker, market = undefined) {

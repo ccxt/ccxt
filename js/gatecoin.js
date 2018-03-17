@@ -184,6 +184,10 @@ module.exports = class gatecoin extends Exchange {
                     'taker': 0.0035,
                 },
             },
+            'orderbookKeys': {
+                'price': 'price',
+                'amount': 'volume',
+            },
         });
     }
 
@@ -260,13 +264,6 @@ module.exports = class gatecoin extends Exchange {
             'CurrencyPair': market['id'],
         }, params));
         return orderbook;
-    }
-
-    orderBookExchangeKeys () {
-        return {
-            'price': 'price',
-            'amount': 'volume',
-        };
     }
 
     parseTicker (ticker, market = undefined) {

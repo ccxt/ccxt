@@ -60,6 +60,11 @@ module.exports = class bl3p extends Exchange {
                 'BTC/EUR': { 'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'maker': 0.0025, 'taker': 0.0025 },
                 'LTC/EUR': { 'id': 'LTCEUR', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR', 'maker': 0.0025, 'taker': 0.0025 },
             },
+            'orderbookKeys': {
+                'response': 'data',
+                'price': 'price_int',
+                'amount': 'amount_int',
+            },
         });
     }
 
@@ -104,14 +109,6 @@ module.exports = class bl3p extends Exchange {
             'market': market['id'],
         }, params));
         return orderbook;
-    }
-
-    orderBookExchangeKeys () {
-        return {
-            'response': 'data',
-            'price': 'price_int',
-            'amount': 'amount_int',
-        };
     }
 
     async fetchTicker (symbol, params = {}) {

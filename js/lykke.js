@@ -91,6 +91,10 @@ module.exports = class lykke extends Exchange {
                     },
                 },
             },
+            'orderbookKeys': {
+                'price': 'Price',
+                'amount': 'Volume',
+            },
         });
     }
 
@@ -334,13 +338,6 @@ module.exports = class lykke extends Exchange {
             }
         }
         return orderbook;
-    }
-
-    orderBookExchangeKeys () {
-        return {
-            'price': 'Price',
-            'amount': 'Volume',
-        };
     }
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 1) {

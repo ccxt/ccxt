@@ -69,6 +69,11 @@ module.exports = class coinmate extends Exchange {
                     'taker': 0.0035,
                 },
             },
+            'orderbookKeys': {
+                'response': 'data',
+                'price': 'price',
+                'amount': 'amount',
+            },
         });
     }
 
@@ -96,14 +101,6 @@ module.exports = class coinmate extends Exchange {
             'groupByPriceLimit': 'False',
         }, params));
         return orderbook;
-    }
-
-    orderBookExchangeKeys () {
-        return {
-            'response': 'data',
-            'price': 'price',
-            'amount': 'amount',
-        };
     }
 
     async fetchTicker (symbol, params = {}) {

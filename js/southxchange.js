@@ -57,6 +57,12 @@ module.exports = class southxchange extends Exchange {
                     'taker': 0.2 / 100,
                 },
             },
+            'orderbookKeys': {
+                'bids': 'BuyOrders',
+                'asks': 'SellOrders',
+                'price': 'Price',
+                'amount': 'Amount',
+            },
         });
     }
 
@@ -108,15 +114,6 @@ module.exports = class southxchange extends Exchange {
             'symbol': market['id'],
         }, params));
         return orderbook;
-    }
-
-    orderBookExchangeKeys () {
-        return {
-            'bids': 'BuyOrders',
-            'asks': 'SellOrders',
-            'price': 'Price',
-            'amount': 'Amount',
-        };
     }
 
     parseTicker (ticker, market = undefined) {

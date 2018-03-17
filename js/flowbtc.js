@@ -58,6 +58,10 @@ module.exports = class flowbtc extends Exchange {
                     ],
                 },
             },
+            'orderbookKeys': {
+                'price': 'px',
+                'amount': 'qty',
+            },
         });
     }
 
@@ -106,13 +110,6 @@ module.exports = class flowbtc extends Exchange {
             'productPair': market['id'],
         }, params));
         return orderbook;
-    }
-
-    orderBookExchangeKeys () {
-        return {
-            'price': 'px',
-            'amount': 'qty',
-        };
     }
 
     async fetchTicker (symbol, params = {}) {

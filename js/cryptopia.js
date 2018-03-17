@@ -86,6 +86,13 @@ module.exports = class cryptopia extends Exchange {
                 'QBT': 'Cubits',
                 'WRC': 'WarCoin',
             },
+            'orderbookKeys': {
+                'response': 'Data',
+                'bids': 'Buy',
+                'asks': 'Sell',
+                'price': 'Price',
+                'amount': 'Volume',
+            },
         });
     }
 
@@ -146,16 +153,6 @@ module.exports = class cryptopia extends Exchange {
             'id': market['id'],
         }, params));
         return response;
-    }
-
-    orderBookExchangeKeys () {
-        return {
-            'response': 'Data',
-            'bids': 'Buy',
-            'asks': 'Sell',
-            'price': 'Price',
-            'amount': 'Volume',
-        };
     }
 
     joinMarketIds (ids, glue = '-') {

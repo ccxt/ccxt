@@ -78,6 +78,11 @@ module.exports = class virwox extends Exchange {
                     ],
                 },
             },
+            'orderbookKeys': {
+                'response': ['result', 0],
+                'price': 'price',
+                'amount': 'volume',
+            },
         });
     }
 
@@ -143,14 +148,6 @@ module.exports = class virwox extends Exchange {
         }
         let response = await this.publicPostGetMarketDepth (this.extend (request, params));
         return response;
-    }
-
-    orderBookExchangeKeys () {
-        return {
-            'response': ['result', 0],
-            'price': 'price',
-            'amount': 'volume',
-        };
     }
 
     async fetchTicker (symbol, params = {}) {
