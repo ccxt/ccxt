@@ -757,15 +757,15 @@ module.exports = class Exchange {
 
     // -------------------------Transpilable code-------------------------------
 
-    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
+    async performOrderBookRequest (market, limit = undefined, params = {}) {
         throw new NotSupported (this.id + ' performOrderBookRequest not supported yet');
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let marketId = this.marketId (symbol)
-        let orderbook = await this.performOrderBookRequest (marketId, limit, params);
-        return this.parseOrderBook (orderbook, marketId, limit, params);
+        let market = this.market (symbol)
+        let orderbook = await this.performOrderBookRequest (market, limit, params);
+        return this.parseOrderBook (orderbook, market, limit, params);
     }
 
     orderBookExchangeKeys () {
@@ -845,7 +845,7 @@ module.exports = class Exchange {
         };
     }
 
-    parseOrderBookResponse (response, symbol, limit, params) {
+    parseOrderBookResponse (response, market, limit, params) {
         let keys = this.orderBookKeys ();
         if (typeof keys['response'] === 'undefined') {
             return response;
@@ -853,14 +853,14 @@ module.exports = class Exchange {
         let path = Array.isArray (keys['response']) ? keys['response'] : [keys['response']];
         let orderbook = response;
         for (let i = 0; i < path.length; i++) {
-            let key = path[i] === '__symbol__' ? symbol : path[i];
+            let key = path[i] === '__market__' ? market['id'] : path[i];
             orderbook = orderbook[key];
         }
         return orderbook;
     }
 
-    parseOrderBook (response, symbol, limit, params) {
-        let orderbook = this.parseOrderBookResponse (response, symbol, limit, params);
+    parseOrderBook (response, market, limit, params) {
+        let orderbook = this.parseOrderBookResponse (response, market, limit, params);
         let timestamp = this.parseOrderBookTimestamp (orderbook, keys);
         if (typeof timestamp === 'undefined') {
             timestamp = this.parseHTTPResponseDate (keys);

@@ -671,16 +671,16 @@ module.exports = class coinexchange extends Exchange {
         return result;
     }
 
-    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
+    async performOrderBookRequest (market, limit = undefined, params = {}) {
         let orderbook = await this.publicGetGetorderbook (this.extend ({
-            'market_id': this.marketId (symbol),
+            'market_id': market['id'],
         }, params));
-        return orderbook['result'];
+        return orderbook;
     }
 
     orderBookDefaultKeys () {
         return {
+            'response': 'result',
             'bids': 'BuyOrders',
             'asks': 'SellOrders',
             'price': 'Price',

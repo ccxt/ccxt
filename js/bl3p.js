@@ -99,17 +99,16 @@ module.exports = class bl3p extends Exchange {
         ];
     }
 
-    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
-        let market = this.market (symbol);
-        let response = await this.publicGetMarketOrderbook (this.extend ({
+    async performOrderBookRequest (market, limit = undefined, params = {}) {
+        let orderbook = await this.publicGetMarketOrderbook (this.extend ({
             'market': market['id'],
         }, params));
-        let orderbook = response['data'];
         return orderbook;
     }
 
     orderBookExchangeKeys () {
         return {
+            'response': 'data',
             'price': 'price_int',
             'amount': 'amount_int',
         };

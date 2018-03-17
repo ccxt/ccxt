@@ -118,10 +118,9 @@ module.exports = class bxinth extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
+    async performOrderBookRequest (market, limit = undefined, params = {}) {
         let orderbook = await this.publicGetOrderbook (this.extend ({
-            'pairing': this.marketId (symbol),
+            'pairing': market['id'],
         }, params));
         return orderbook;
     }

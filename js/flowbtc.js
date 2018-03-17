@@ -101,9 +101,7 @@ module.exports = class flowbtc extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
+    async performOrderBookRequest (market, limit = undefined, params = {}) {
         let orderbook = await this.publicPostGetOrderBook (this.extend ({
             'productPair': market['id'],
         }, params));

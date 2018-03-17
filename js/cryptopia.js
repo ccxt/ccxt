@@ -141,17 +141,16 @@ module.exports = class cryptopia extends Exchange {
         return result;
     }
 
-    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
+    async performOrderBookRequest (market, limit = undefined, params = {}) {
         let response = await this.publicGetGetMarketOrdersId (this.extend ({
-            'id': this.marketId (symbol),
+            'id': market['id'],
         }, params));
-        let orderbook = response['Data'];
-        return orderbook;
+        return response;
     }
 
     orderBookDefaultKeys () {
         return {
+            'response': 'Data',
             'bids': 'Buy',
             'asks': 'Sell',
             'price': 'Price',

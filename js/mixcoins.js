@@ -73,11 +73,17 @@ module.exports = class mixcoins extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
+    async performOrderBookRequest (market, limit = undefined, params = {}) {
         let response = await this.publicGetDepth (this.extend ({
-            'market': this.marketId (symbol),
+            'market': market['id'],
         }, params));
-        return response['result'];
+        return response;
+    }
+
+    orderBookExchangeKeys () {
+        return {
+            'response': 'result',
+        };
     }
 
     async fetchTicker (symbol, params = {}) {

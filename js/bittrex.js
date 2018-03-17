@@ -223,31 +223,37 @@ module.exports = class bittrex extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let response = await this.publicGetOrderbook (this.extend ({
-            'market': this.marketId (symbol),
+    async performOrderBookRequest (market, limit = undefined, params = {}) {
+        let orderbook = await this.publicGetOrderbook (this.extend ({
+            'market': market['id'],
             'type': 'both',
         }, params));
-        let orderbook = response['result'];
-        if ('type' in params) {
-            if (params['type'] === 'buy') {
-                orderbook = {
-                    'buy': response['result'],
-                    'sell': [],
-                };
-            } else if (params['type'] === 'sell') {
-                orderbook = {
-                    'buy': [],
-                    'sell': response['result'],
-                };
-            }
-        }
         return orderbook;
+    }
+
+    parseOrderBookResponse (response, market, limit, params) {
+        let keys = this.orderBookKeys ();
+        let responseKey = keys['response'];
+        let requestType = (typeof params !== 'undefined') ? params['type'] : undefined;
+        if ((typeof requestType === 'undefined') || (requestType === 'both')) {
+            return response[responseKey];
+        } else if (requestType === 'buy') {
+            return {
+                'buy': response[responseKey],
+                'sell': [],
+            };
+        } else if (requestType === 'sell') {
+            return {
+                'buy': [],
+                'sell': response[responseKey],
+            };
+        }
+        throw new ExchangeError (this.id + " fetchOrderBook doesn't support orderbook type " + requestType);
     }
 
     orderBookExchangeKeys () {
         return {
+            'response': 'result',
             'bids': 'buy',
             'asks': 'sell',
             'price': 'Rate',

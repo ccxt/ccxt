@@ -306,11 +306,14 @@ module.exports = class lykke extends Exchange {
         return this.parseOrders (response, undefined, since, limit);
     }
 
-    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
+    async performOrderBookRequest (market, limit = undefined, params = {}) {
         let response = await this.publicGetOrderBooksAssetPairId (this.extend ({
-            'AssetPairId': this.marketId (symbol),
+            'AssetPairId': market['id'],
         }, params));
+        return response;
+    }
+
+    parseOrderBookResponse (response, market, limit, params) {
         let orderbook = {
             'timestamp': undefined,
             'bids': [],

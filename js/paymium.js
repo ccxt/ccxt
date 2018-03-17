@@ -93,9 +93,9 @@ module.exports = class paymium extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
+    async performOrderBookRequest (market, limit = undefined, params = {}) {
         let orderbook = await this.publicGetDataIdDepth (this.extend ({
-            'id': this.marketId (symbol),
+            'id': market['id'],
         }, params));
         return orderbook;
     }

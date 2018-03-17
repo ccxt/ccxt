@@ -193,19 +193,31 @@ module.exports = class coinsecure extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
+    async performOrderBookRequest (market, limit = undefined, params = {}) {
         let bids = await this.publicGetExchangeBidOrders (params);
         let asks = await this.publicGetExchangeAskOrders (params);
-        let orderbook = {
-            'bids': bids['message'],
-            'asks': asks['message'],
+        return {
+            'bids': bids,
+            'asks': asks,
         };
-        return orderbook;
+    }
+
+    parseOrderBookResponse (response, market, limit, params) {
+        let keys = this.orderBookKeys ();
+        let key = keys['response'];
+        let bidsResponse = typeof response['bids'] === 'undefined' ? undefined : response['bids'][key];
+        let asksResponse = typeof response['asks'] === 'undefined' ? undefined : response['asks'][key];
+        let bids = Array.isArray (bidsResponse) ? bidsResponse : [];
+        let asks = Array.isArray (asksResponse) ? asksResponse : [];
+        return {
+            'bids': bids,
+            'asks': asks,
+        };
     }
 
     orderBookExchangeKeys () {
         return {
+            'response': 'message',
             'price': 'rate',
             'amount': 'vol',
         };

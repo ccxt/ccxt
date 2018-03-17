@@ -139,24 +139,24 @@ module.exports = class bitso extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let response = await this.publicGetOrderBook (this.extend ({
-            'book': this.marketId (symbol),
+    async performOrderBookRequest (market, limit = undefined, params = {}) {
+        let orderbook = await this.publicGetOrderBook (this.extend ({
+            'book': market['id'],
         }, params));
-        let orderbook = response['payload'];
         return orderbook;
     }
 
     orderBookExchangeKeys () {
         return {
+            'response': 'payload',
             'price': 'price',
             'amount': 'amount',
             'timestamp': 'updated_at',
         };
     }
 
-    parseOrderBookTimestamp (orderbook, keys) {
+    parseOrderBookTimestamp (orderbook) {
+        let keys = this.orderBookKeys ();
         return this.parse8601 (orderbook[keys['timestamp']]);
     }
 

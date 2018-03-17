@@ -272,9 +272,7 @@ module.exports = class coinegg extends Exchange {
         return result;
     }
 
-    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
+    async performOrderBookRequest (market, limit = undefined, params = {}) {
         let orderbook = await this.publicGetDepthQuote (this.extend ({
             'coin': market['baseId'],
             'quote': market['quoteId'],

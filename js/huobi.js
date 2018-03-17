@@ -109,8 +109,7 @@ module.exports = class huobi extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
-        let market = this.market (symbol);
+    async performOrderBookRequest (market, limit = undefined, params = {}) {
         let method = market['type'] + 'GetDepthId';
         let orderbook = await this[method] (this.extend ({ 'id': market['id'] }, params));
         return orderbook;

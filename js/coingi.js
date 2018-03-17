@@ -170,9 +170,7 @@ module.exports = class coingi extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (symbol, limit = 512, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
+    async performOrderBookRequest (market, limit = 512, params = {}) {
         let orderbook = await this.currentGetOrderBookPairAskCountBidCountDepth (this.extend ({
             'pair': market['id'],
             'depth': 32, // maximum number of depth range steps 1-32

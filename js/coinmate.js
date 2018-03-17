@@ -90,17 +90,17 @@ module.exports = class coinmate extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
-        let response = await this.publicGetOrderBook (this.extend ({
-            'currencyPair': this.marketId (symbol),
+    async performOrderBookRequest (market, limit = undefined, params = {}) {
+        let orderbook = await this.publicGetOrderBook (this.extend ({
+            'currencyPair': market['id'],
             'groupByPriceLimit': 'False',
         }, params));
-        let orderbook = response['data'];
         return orderbook;
     }
 
     orderBookExchangeKeys () {
         return {
+            'response': 'data',
             'price': 'price',
             'amount': 'amount',
         };

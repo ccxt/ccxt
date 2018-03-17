@@ -361,10 +361,9 @@ module.exports = class bitfinex extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
+    async performOrderBookRequest (market, limit = undefined, params = {}) {
         let request = {
-            'symbol': this.marketId (symbol),
+            'symbol': market['id'],
         };
         if (typeof limit !== 'undefined') {
             request['limit_bids'] = limit;

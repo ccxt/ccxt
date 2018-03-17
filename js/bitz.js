@@ -227,22 +227,22 @@ module.exports = class bitz extends Exchange {
         return result;
     }
 
-    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let response = await this.publicGetDepth (this.extend ({
-            'coin': this.marketId (symbol),
+    async performOrderBookRequest (market, limit = undefined, params = {}) {
+        let orderbook = await this.publicGetDepth (this.extend ({
+            'coin': market['id'],
         }, params));
-        let orderbook = response['data'];
         return orderbook;
     }
 
     orderBookExchangeKeys () {
         return {
+            'response': 'data',
             'timestamp': 'date',
         };
     }
 
-    parseOrderBookTimestamp (orderbook, keys) {
+    parseOrderBookTimestamp (orderbook) {
+        let keys = this.orderBookKeys ();
         return orderbook[keys['timestamp']] * 1000;
     }
 

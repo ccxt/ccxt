@@ -118,9 +118,7 @@ module.exports = class independentreserve extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
+    async performOrderBookRequest (market, limit = undefined, params = {}) {
         let response = await this.publicGetGetOrderBook (this.extend ({
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
@@ -128,7 +126,8 @@ module.exports = class independentreserve extends Exchange {
         return response;
     }
 
-    parseOrderBookTimestamp (orderbook, keys) {
+    parseOrderBookTimestamp (orderbook) {
+        let keys = this.orderBookKeys ();
         return this.parse8601 (orderbook[keys['timestamp']]);
     }
 

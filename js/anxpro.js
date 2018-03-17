@@ -96,16 +96,16 @@ module.exports = class anxpro extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
-        let response = await this.publicGetCurrencyPairMoneyDepthFull (this.extend ({
-            'currency_pair': this.marketId (symbol),
+    async performOrderBookRequest (market, limit = undefined, params = {}) {
+        let orderbook = await this.publicGetCurrencyPairMoneyDepthFull (this.extend ({
+            'currency_pair': market['id'],
         }, params));
-        let orderbook = response['data'];
         return orderbook;
     }
 
     orderBookExchangeKeys () {
         return {
+            'response': 'data',
             'bids': 'bids',
             'asks': 'asks',
             'price': 'price',
@@ -114,7 +114,8 @@ module.exports = class anxpro extends Exchange {
         };
     }
 
-    parseOrderBookTimestamp (orderbook, keys) {
+    parseOrderBookTimestamp (orderbook) {
+        let keys = this.orderBookKeys ();
         let time = parseInt (orderbook[keys['timestamp']]);
         return parseInt (time / 1000);
     }

@@ -692,10 +692,9 @@ module.exports = class hitbtc2 extends hitbtc {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
+    async performOrderBookRequest (market, limit = undefined, params = {}) {
         let request = {
-            'symbol': this.marketId (symbol),
+            'symbol': market['id'],
         };
         if (typeof limit !== 'undefined')
             request['limit'] = limit; // default = 100, 0 = unlimited

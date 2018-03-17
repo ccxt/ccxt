@@ -142,10 +142,9 @@ module.exports = class bitflyer extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
+    async performOrderBookRequest (market, limit = undefined, params = {}) {
         let orderbook = await this.publicGetGetboard (this.extend ({
-            'product_code': this.marketId (symbol),
+            'product_code': market['id'],
         }, params));
         return orderbook;
     }

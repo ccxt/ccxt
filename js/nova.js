@@ -84,10 +84,9 @@ module.exports = class nova extends Exchange {
         return result;
     }
 
-    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
+    async performOrderBookRequest (market, limit = undefined, params = {}) {
         let orderbook = await this.publicGetMarketOpenordersPairBoth (this.extend ({
-            'pair': this.marketId (symbol),
+            'pair': market['id'],
         }, params));
         return orderbook;
     }

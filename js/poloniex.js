@@ -231,10 +231,9 @@ module.exports = class poloniex extends Exchange {
         };
     }
 
-    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
+    async performOrderBookRequest (market, limit = undefined, params = {}) {
         let request = {
-            'currencyPair': this.marketId (symbol),
+            'currencyPair': market['id'],
         };
         if (typeof limit !== 'undefined')
             request['depth'] = limit; // 100

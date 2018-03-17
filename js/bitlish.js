@@ -209,10 +209,9 @@ module.exports = class bitlish extends Exchange {
         }, params));
     }
 
-    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
+    async performOrderBookRequest (market, limit = undefined, params = {}) {
         let orderbook = await this.publicGetTradesDepth (this.extend ({
-            'pair_id': this.marketId (symbol),
+            'pair_id': market['id'],
         }, params));
         return orderbook;
     }

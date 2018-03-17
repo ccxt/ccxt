@@ -161,21 +161,19 @@ module.exports = class exmo extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
+    async performOrderBookRequest (market, limit = undefined, params = {}) {
         let request = this.extend ({
             'pair': market['id'],
         }, params);
         if (typeof limit !== 'undefined')
             request['limit'] = limit;
         let response = await this.publicGetOrderBook (request);
-        let result = response[market['id']];
-        return result;
+        return response;
     }
 
     orderBookExchangeKeys () {
         return {
+            'response': '__market__',
             'bids': 'bid',
             'asks': 'ask',
         };

@@ -139,9 +139,7 @@ module.exports = class btcchina extends Exchange {
         return request;
     }
 
-    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
+    async performOrderBookRequest (market, limit = undefined, params = {}) {
         let method = market['api'] + 'GetOrderbook';
         let request = this.createMarketRequest (market);
         let orderbook = await this[method] (this.extend (request, params));
@@ -154,7 +152,8 @@ module.exports = class btcchina extends Exchange {
         };
     }
 
-    parseOrderBookTimestamp (orderbook, keys) {
+    parseOrderBookTimestamp (orderbook) {
+        let keys = this.orderBookKeys ();
         return orderbook[keys['timestamp']] * 1000;
     }
 
