@@ -93,13 +93,6 @@ class exmo extends Exchange {
                 ),
             ),
             'exceptions' => array (
-                // '803' => '\\ccxt\\InvalidOrder', // "Count could not be less than 0.001." (selling below minAmount)
-                // '804' => '\\ccxt\\InvalidOrder', // "Count could not be more than 10000." (buying above maxAmount)
-                // '805' => '\\ccxt\\InvalidOrder', // "price could not be less than X." (minPrice violation on buy & sell)
-                // '806' => '\\ccxt\\InvalidOrder', // "price could not be more than X." (maxPrice violation on buy & sell)
-                // '807' => '\\ccxt\\InvalidOrder', // "cost could not be less than X." (minCost violation on buy & sell)
-                // '831' => '\\ccxt\\InsufficientFunds', // "Not enougth X to create buy order." (buying with balance.quote < order.cost)
-                // '832' => '\\ccxt\\InsufficientFunds', // "Not enougth X to create sell order." (selling with balance.base < order.amount)
                 '40005' => '\\ccxt\\AuthenticationError', // Authorization error, incorrect signature
                 '40015' => '\\ccxt\\ExchangeError', // API function do not exist
                 '40017' => '\\ccxt\\AuthenticationError', // Wrong API Key
@@ -629,7 +622,7 @@ class exmo extends Exchange {
                     if (is_array ($exceptions) && array_key_exists ($code, $exceptions)) {
                         throw new $exceptions[$code] ($feedback);
                     } else {
-                        throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+                        throw new ExchangeError ($feedback);
                     }
                 }
             }
