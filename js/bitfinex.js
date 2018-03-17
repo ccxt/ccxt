@@ -529,6 +529,10 @@ module.exports = class bitfinex extends Exchange {
         return this.parseOrder (result);
     }
 
+    priceToPrecision (symbol, price) {
+            return parseFloat (price).toPrecision (this.markets[symbol].precision.price)
+    }
+
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privatePostOrderCancel ({ 'order_id': parseInt (id) });
