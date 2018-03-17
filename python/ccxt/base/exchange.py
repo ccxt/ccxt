@@ -1039,12 +1039,11 @@ class Exchange(object):
 
     def build_ohlcv(self, trades, timeframe='1m', since=None, limit=None):
         ms = self.parse_timeframe(timeframe) * 1000
-        print(type(ms), ms)
         ohlcvs = []
         (high, low, close, volume) = (2, 3, 4, 5)
         num_trades = len(trades)
         oldest = (num_trades - 1) if limit is None else min(num_trades - 1, limit)
-        for i in range(oldest, 0, -1):
+        for i in range(0, oldest):
             trade = trades[i]
             if (since is not None) and (trade['timestamp'] < since):
                 continue
