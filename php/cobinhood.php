@@ -75,6 +75,7 @@ class cobinhood extends Exchange {
                 ),
                 'public' => array (
                     'get' => array (
+                        'market/tickers',
                         'market/currencies',
                         'market/trading_pairs',
                         'market/orderbooks/{trading_pair_id}',
@@ -222,36 +223,34 @@ class cobinhood extends Exchange {
     }
 
     public function parse_ticker ($ticker, $market = null) {
-        $symbol = $market['symbol'];
-        $timestamp = null;
-        if (is_array ($ticker) && array_key_exists ('timestamp', $ticker)) {
-            $timestamp = $ticker['timestamp'];
-        } else {
-            $timestamp = $this->milliseconds ();
+        if ($market === null) {
+            $marketId = $this->safe_string($ticker, 'trading_pair_id');
+            $market = $this->find_market($marketId);
         }
-        $info = $ticker;
-        // from fetchTicker
-        if (is_array ($ticker) && array_key_exists ('info', $ticker))
-            $info = $ticker['info'];
+        $symbol = null;
+        if ($market !== null)
+            $symbol = $market['symbol'];
+        $timestamp = $this->safe_integer($ticker, 'timestamp');
+        $last = $this->safe_float($ticker, 'last_trade_price');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['high_24hr']),
-            'low' => floatval ($ticker['low_24hr']),
+            'high' => floatval ($ticker['24h_high']),
+            'low' => floatval ($ticker['24h_low']),
             'bid' => floatval ($ticker['highest_bid']),
             'ask' => floatval ($ticker['lowest_ask']),
             'vwap' => null,
             'open' => null,
-            'close' => null,
-            'first' => null,
-            'last' => $this->safe_float($ticker, 'last_price'),
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
             'change' => $this->safe_float($ticker, 'percentChanged24hr'),
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($ticker['base_volume']),
+            'baseVolume' => floatval ($ticker['24h_volume']),
             'quoteVolume' => $this->safe_float($ticker, 'quote_volume'),
-            'info' => $info,
+            'info' => $ticker,
         );
     }
 
@@ -262,33 +261,18 @@ class cobinhood extends Exchange {
             'trading_pair_id' => $market['id'],
         ), $params));
         $ticker = $response['result']['ticker'];
-        $ticker = array (
-            'last_price' => $ticker['last_trade_price'],
-            'highest_bid' => $ticker['highest_bid'],
-            'lowest_ask' => $ticker['lowest_ask'],
-            'base_volume' => $ticker['24h_volume'],
-            'high_24hr' => $ticker['24h_high'],
-            'low_24hr' => $ticker['24h_low'],
-            'timestamp' => $ticker['timestamp'],
-            'info' => $response,
-        );
         return $this->parse_ticker($ticker, $market);
     }
 
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->publicGetMarketStats ($params);
-        $tickers = $response['result'];
-        $ids = is_array ($tickers) ? array_keys ($tickers) : array ();
+        $response = $this->publicGetMarketTickers ($params);
+        $tickers = $response['result']['tickers'];
         $result = array ();
-        for ($i = 0; $i < count ($ids); $i++) {
-            $id = $ids[$i];
-            $market = $this->markets_by_id[$id];
-            $symbol = $market['symbol'];
-            $ticker = $tickers[$id];
-            $result[$symbol] = $this->parse_ticker($ticker, $market);
+        for ($i = 0; $i < count ($tickers); $i++) {
+            $result[] = $this->parse_ticker($tickers[$i]);
         }
-        return $result;
+        return $this->index_by($result, 'symbol');
     }
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {

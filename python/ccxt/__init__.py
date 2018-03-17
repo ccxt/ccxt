@@ -28,7 +28,7 @@ SOFTWARE.
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.11.94'
+__version__ = '1.11.117'
 
 # ----------------------------------------------------------------------------
 
@@ -103,6 +103,7 @@ from ccxt.coinspot import coinspot                          # noqa: F401
 from ccxt.coolcoin import coolcoin                          # noqa: F401
 from ccxt.cryptopia import cryptopia                        # noqa: F401
 from ccxt.dsx import dsx                                    # noqa: F401
+from ccxt.ethfinex import ethfinex                          # noqa: F401
 from ccxt.exmo import exmo                                  # noqa: F401
 from ccxt.flowbtc import flowbtc                            # noqa: F401
 from ccxt.foxbit import foxbit                              # noqa: F401
@@ -207,6 +208,7 @@ exchanges = [
     'coolcoin',
     'cryptopia',
     'dsx',
+    'ethfinex',
     'exmo',
     'flowbtc',
     'foxbit',

@@ -121,6 +121,9 @@ module.exports = class bitz extends Exchange {
                 'amount': 8,
                 'price': 8,
             },
+            'options': {
+                'lastNonceTimestamp': 0,
+            },
         });
     }
 
@@ -351,8 +354,13 @@ module.exports = class bitz extends Exchange {
     }
 
     nonce () {
-        let milliseconds = this.milliseconds ();
-        return (milliseconds % 1000000);
+        let currentTimestamp = this.seconds ();
+        if (currentTimestamp > this.options['lastNonceTimestamp']) {
+            this.options['lastNonceTimestamp'] = currentTimestamp;
+            this.options['lastNonce'] = 100000;
+        }
+        this.options['lastNonce'] += 1;
+        return this.options['lastNonce'];
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

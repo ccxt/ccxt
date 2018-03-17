@@ -139,6 +139,11 @@ module.exports = class Exchange {
             // still, some exchanges report number of open orders together with balance
             // if you set the following flag to 'true' ccxt will leave 'used' funds undefined in case of discrepancy
             'dontGetUsedBalanceFromStaleCache': false,
+            'commonCurrencies': { // gets extended/overwritten in subclasses
+                'XBT': 'BTC',
+                'BCC': 'BCH',
+                'DRK': 'DASH',
+            },
         } // return
     } // describe ()
 
@@ -565,6 +570,15 @@ module.exports = class Exchange {
         throw new NotSupported (this.id + ' fetchBidsAsks not supported yet')
     }
 
+    async fetchOHLCVC (symbol, timeframe = '1m', since = undefined, limits = undefined, params = {}) {
+        if (!this.has['fetchTrades'])
+            throw new NotSupported (this.id + ' fetchOHLCV() not supported yet')
+        await this.loadMarkets ()
+        let trades = await this.fetchTrades (symbol, since, limits, params)
+        let ohlcvc = buildOHLCVC (trades, timeframe, since, limits)
+        return ohlcvc
+    }
+
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limits = undefined, params = {}) {
         if (!this.has['fetchTrades'])
             throw new NotSupported (this.id + ' fetchOHLCV() not supported yet')
@@ -632,13 +646,17 @@ module.exports = class Exchange {
     commonCurrencyCode (currency) {
         if (!this.substituteCommonCurrencyCodes)
             return currency
-        if (currency === 'XBT')
-            return 'BTC'
-        if (currency === 'BCC')
-            return 'BCH'
-        if (currency === 'DRK')
-            return 'DASH'
-        return currency
+        return this.safeString (this.commonCurrencies, currency, currency)
+    }
+
+    currencyId (commonCode) {
+        let currencyIds = {}
+        let distinct = Object.keys (this.commonCurrencies)
+        for (let i = 0; i < distinct.length; i++) {
+            let k = distinct[i]
+            currencyIds[this.commonCurrencies[k]] = k
+        }
+        return this.safeString (currencyIds, commonCode, commonCode)
     }
 
     currency (code) {
@@ -837,12 +855,12 @@ module.exports = class Exchange {
 
         // single-pass filter for both symbol and since
         if (symbolIsDefined || sinceIsDefined)
-            array = array.filter (entry =>
+            array = Object.values (array).filter (entry =>
                 ((symbolIsDefined ? (entry.symbol === symbol)  : true) &&
                  (sinceIsDefined  ? (entry.timestamp >= since) : true)))
 
         if (typeof limit !== 'undefined')
-            array = array.slice (0, limit)
+            array = Object.values (array).slice (0, limit)
 
         return array
     }

@@ -362,9 +362,13 @@ module.exports = class bitcoincoid extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response = undefined) {
         // { success: 0, error: "invalid order." }
+        // or
+        // [{ data, ... }, { ... }, ... ]
         if (typeof response === 'undefined')
-            if (body[0] === '{')
+            if (body[0] === '{' || body[0] === '[')
                 response = JSON.parse (body);
+        if (Array.isArray (response))
+            return; // public endpoints may return []-arrays
         if (!('success' in response))
             return; // no 'success' property on public responses
         if (response['success'] === 1) {

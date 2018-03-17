@@ -216,6 +216,14 @@ module.exports = class bitfinex extends Exchange {
                     },
                 },
             },
+            'commonCurrencies': {
+                'DSH': 'DASH', // Bitfinex names Dash as DSH, instead of DASH
+                'QTM': 'QTUM',
+                'BCC': 'CST_BCC',
+                'BCU': 'CST_BCU',
+                'IOT': 'IOTA',
+                'DAT': 'DATA',
+            },
             'exceptions': {
                 'exact': {
                     'Order could not be cancelled.': OrderNotFound, // non-existent order
@@ -235,18 +243,6 @@ module.exports = class bitfinex extends Exchange {
                 },
             },
         });
-    }
-
-    commonCurrencyCode (currency) {
-        const currencies = {
-            'DSH': 'DASH', // Bitfinex names Dash as DSH, instead of DASH
-            'QTM': 'QTUM',
-            'BCC': 'CST_BCC',
-            'BCU': 'CST_BCU',
-            'IOT': 'IOTA',
-            'DAT': 'DATA',
-        };
-        return (currency in currencies) ? currencies[currency] : currency;
     }
 
     async fetchFundingFees (params = {}) {
@@ -384,18 +380,9 @@ module.exports = class bitfinex extends Exchange {
         let result = {};
         for (let i = 0; i < tickers.length; i++) {
             let ticker = tickers[i];
-            if ('pair' in ticker) {
-                let id = ticker['pair'];
-                if (id in this.markets_by_id) {
-                    let market = this.markets_by_id[id];
-                    let symbol = market['symbol'];
-                    result[symbol] = this.parseTicker (ticker, market);
-                } else {
-                    throw new ExchangeError (this.id + ' fetchTickers() failed to recognize symbol ' + id + ' ' + this.json (ticker));
-                }
-            } else {
-                throw new ExchangeError (this.id + ' fetchTickers() response not recognized ' + this.json (tickers));
-            }
+            let parsedTicker = this.parseTicker (ticker);
+            let symbol = parsedTicker['symbol'];
+            result[symbol] = parsedTicker;
         }
         return result;
     }
@@ -416,11 +403,15 @@ module.exports = class bitfinex extends Exchange {
             symbol = market['symbol'];
         } else if ('pair' in ticker) {
             let id = ticker['pair'];
-            if (id in this.markets_by_id) {
-                market = this.markets_by_id[id];
+            let market = this.findMarket (ticker['pair']);
+            if (typeof market !== 'undefined') {
                 symbol = market['symbol'];
             } else {
-                throw new ExchangeError (this.id + ' unrecognized ticker symbol ' + id + ' ' + this.json (ticker));
+                let baseId = id.slice (0, 3);
+                let quoteId = id.slice (3, 6);
+                let base = this.commonCurrencyCode (baseId);
+                let quote = this.commonCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
             }
         }
         return {

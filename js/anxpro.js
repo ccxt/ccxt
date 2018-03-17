@@ -222,9 +222,10 @@ module.exports = class anxpro extends Exchange {
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('result' in response)
-            if (response['result'] === 'success')
-                return response;
+        if (typeof response !== 'undefined')
+            if ('result' in response)
+                if (response['result'] === 'success')
+                    return response;
         throw new ExchangeError (this.id + ' ' + this.json (response));
     }
 };

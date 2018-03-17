@@ -27,7 +27,8 @@ module.exports = class coinfloor extends Exchange {
             },
             'requiredCredentials': {
                 'apiKey': true,
-                'secret': true,
+                'secret': false,
+                'password': true,
                 'uid': true,
             },
             'api': {
@@ -196,7 +197,7 @@ module.exports = class coinfloor extends Exchange {
             let nonce = this.nonce ();
             body = this.urlencode (this.extend ({ 'nonce': nonce }, query));
             let auth = this.uid + '/' + this.apiKey + ':' + this.password;
-            let signature = this.stringToBase64 (auth);
+            let signature = this.decode (this.stringToBase64 (this.encode (auth)));
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Authorization': 'Basic ' + signature,

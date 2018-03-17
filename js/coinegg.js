@@ -48,10 +48,8 @@ module.exports = class coinegg extends Exchange {
                     ],
                 },
                 'private': {
-                    'get': [
-                        'balance',
-                    ],
                     'post': [
+                        'balance',
                         'trade_add/{quote}',
                         'trade_cancel/{quote}',
                         'trade_view/{quote}',
@@ -121,6 +119,27 @@ module.exports = class coinegg extends Exchange {
                 '202': InvalidOrder,
                 '203': OrderNotFound,
                 '402': DDoSProtection,
+            },
+            'errorMessages': {
+                '100': 'Required parameters can not be empty',
+                '101': 'Illegal parameter',
+                '102': 'coin does not exist',
+                '103': 'Key does not exist',
+                '104': 'Signature does not match',
+                '105': 'Insufficient permissions',
+                '106': 'Request expired(nonce error)',
+                '200': 'Lack of balance',
+                '201': 'Too small for the number of trading',
+                '202': 'Price must be in 0 - 1000000',
+                '203': 'Order does not exist',
+                '204': 'Pending order amount must be above 0.001 BTC',
+                '205': 'Restrict pending order prices',
+                '206': 'Decimal place error',
+                '401': 'System error',
+                '402': 'Requests are too frequent',
+                '403': 'Non-open API',
+                '404': 'IP restriction does not request the resource',
+                '405': 'Currency transactions are temporarily closed',
             },
         });
     }
@@ -297,7 +316,7 @@ module.exports = class coinegg extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let balances = await this.privateGetBalance (params);
+        let balances = await this.privatePostBalance (params);
         let result = { 'info': balances };
         balances = this.omit (balances['data'], 'uid');
         let rows = Object.keys (balances);
@@ -470,43 +489,31 @@ module.exports = class coinegg extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body) {
-        let errorMessages = {
-            '100': 'Required parameters can not be empty',
-            '101': 'Illegal parameter',
-            '102': 'coin does not exist',
-            '103': 'Key does not exist',
-            '104': 'Signature does not match',
-            '105': 'Insufficient permissions',
-            '106': 'Request expired(nonce error)',
-            '200': 'Lack of balance',
-            '201': 'Too small for the number of trading',
-            '202': 'Price must be in 0 - 1000000',
-            '203': 'Order does not exist',
-            '204': 'Pending order amount must be above 0.001 BTC',
-            '205': 'Restrict pending order prices',
-            '206': 'Decimal place error',
-            '401': 'System error',
-            '402': 'Requests are too frequent',
-            '403': 'Non-open API',
-            '404': 'IP restriction does not request the resource',
-            '405': 'Currency transactions are temporarily closed',
-        };
         // checks against error codes
-        if (typeof body === 'string') {
-            if (body.length > 0) {
-                if (body[0] === '{') {
-                    let response = JSON.parse (body);
-                    let error = this.safeString (response, 'code');
-                    let message = this.safeString (errorMessages, code, 'Error');
-                    if (typeof error !== 'undefined') {
-                        if (error in this.exceptions) {
-                            throw new this.exceptions[error] (this.id + ' ' + message);
-                        } else {
-                            throw new ExchangeError (this.id + message);
-                        }
-                    }
-                }
-            }
+        if (typeof body !== 'string')
+            return;
+        if (body.length === 0)
+            return;
+        if (body[0] !== '{')
+            return;
+        let response = JSON.parse (body);
+        // private endpoints return the following structure:
+        // {"result":true,"data":{...}} - success
+        // {"result":false,"code":"103"} - failure
+        let result = this.safeValue (response, 'result');
+        if (typeof result === 'undefined')
+            // public endpoint
+            return;
+        if (result === true)
+            // success
+            return;
+        const errorCode = this.safeString (response, 'code');
+        const errorMessages = this.errorMessages;
+        const message = this.safeString (errorMessages, errorCode, 'Unknown Error');
+        if (errorCode in this.exceptions) {
+            throw new this.exceptions[errorCode] (this.id + ' ' + message);
+        } else {
+            throw new ExchangeError (this.id + ' ' + message);
         }
     }
 };

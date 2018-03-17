@@ -73,6 +73,9 @@ class liqui extends Exchange {
                     'deposit' => array (),
                 ),
             ),
+            'commonCurrencies' => array (
+                'DSH' => 'DASH',
+            ),
             'exceptions' => array (
                 '803' => '\\ccxt\\InvalidOrder', // "Count could not be less than 0.001." (selling below minAmount)
                 '804' => '\\ccxt\\InvalidOrder', // "Count could not be more than 10000." (buying above maxAmount)
@@ -102,21 +105,6 @@ class liqui extends Exchange {
             'rate' => $rate,
             'cost' => $cost,
         );
-    }
-
-    public function common_currency_code ($currency) {
-        if (!$this->substituteCommonCurrencyCodes)
-            return $currency;
-        if ($currency === 'XBT')
-            return 'BTC';
-        if ($currency === 'BCC')
-            return 'BCH';
-        if ($currency === 'DRK')
-            return 'DASH';
-        // they misspell DASH as dsh :/
-        if ($currency === 'DSH')
-            return 'DASH';
-        return $currency;
     }
 
     public function get_base_quote_from_market_id ($id) {

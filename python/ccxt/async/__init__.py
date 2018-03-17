@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.11.94'
+__version__ = '1.11.117'
 
 # -----------------------------------------------------------------------------
 
@@ -79,6 +79,7 @@ from ccxt.async.coinspot import coinspot                        # noqa: F401
 from ccxt.async.coolcoin import coolcoin                        # noqa: F401
 from ccxt.async.cryptopia import cryptopia                      # noqa: F401
 from ccxt.async.dsx import dsx                                  # noqa: F401
+from ccxt.async.ethfinex import ethfinex                        # noqa: F401
 from ccxt.async.exmo import exmo                                # noqa: F401
 from ccxt.async.flowbtc import flowbtc                          # noqa: F401
 from ccxt.async.foxbit import foxbit                            # noqa: F401
@@ -183,6 +184,7 @@ exchanges = [
     'coolcoin',
     'cryptopia',
     'dsx',
+    'ethfinex',
     'exmo',
     'flowbtc',
     'foxbit',

@@ -361,9 +361,13 @@ class bitcoincoid extends Exchange {
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
         // array ( success => 0, error => "invalid order." )
+        // or
+        // [array ( data, ... ), array ( ... ), ... ]
         if ($response === null)
-            if ($body[0] === '{')
+            if ($body[0] === '{' || $body[0] === '[')
                 $response = json_decode ($body, $as_associative_array = true);
+        if (gettype ($response) === 'array' && count (array_filter (array_keys ($response), 'is_string')) == 0)
+            return; // public endpoints may return array ()-arrays
         if (!(is_array ($response) && array_key_exists ('success', $response)))
             return; // no 'success' property on public responses
         if ($response['success'] === 1) {

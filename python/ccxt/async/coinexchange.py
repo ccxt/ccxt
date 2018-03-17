@@ -539,18 +539,13 @@ class coinexchange (Exchange):
                 'amount': 8,
                 'price': 8,
             },
+            'commonCurrencies': {
+                'BON': 'BonPeKaO',
+                'ETN': 'Ethernex',
+                'HNC': 'Huncoin',
+                'MARS': 'MarsBux',
+            },
         })
-
-    def common_currency_code(self, currency):
-        substitutions = {
-            'BON': 'BonPeKaO',
-            'ETN': 'Ethernex',
-            'HNC': 'Huncoin',
-            'MARS': 'MarsBux',
-        }
-        if currency in substitutions:
-            return substitutions[currency]
-        return currency
 
     async def fetch_currencies(self, params={}):
         response = await self.publicGetGetcurrencies(params)

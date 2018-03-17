@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.11.94';
+$version = '1.11.117';
 
 abstract class Exchange {
 
@@ -86,6 +86,7 @@ abstract class Exchange {
         'coolcoin',
         'cryptopia',
         'dsx',
+        'ethfinex',
         'exmo',
         'flowbtc',
         'foxbit',
@@ -237,7 +238,7 @@ abstract class Exchange {
         $ms = static::parse_timeframe ($timeframe) * 1000;
         $ohlcvs = [];
         list(/* $timestamp */, /* $open */, $high, $low, $close, $volume) = [0, 1, 2, 3, 4, 5];
-        for ($i = min (count($trades) - 1, $limits); $i >= 0; $i--) {
+        for ($i = 0; $i < min (count($trades), $limits); $i++) {
             $trade = $trades[$i];
             if ($trade['timestamp'] < $since)
                 continue;
@@ -654,6 +655,12 @@ abstract class Exchange {
         $this->last_http_response = null;
         $this->last_json_response = null;
         $this->last_response_headers = null;
+
+        $this->commonCurrencies = array (
+            'XBT' => 'BTC',
+            'BCC' => 'BCH',
+            'DRK' => 'DASH'
+        );
 
         $options = array_replace_recursive ($this->describe(), $options);
 
@@ -1197,6 +1204,7 @@ abstract class Exchange {
 
     public function filter_by_since_limit ($array, $since = null, $limit = null) {
         $result = array ();
+        $array = array_values ($array);
         foreach ($array as $entry)
             if ($entry['timestamp'] > $since)
                 $result[] = $entry;
@@ -1252,6 +1260,7 @@ abstract class Exchange {
     }
 
     public function filter_by_symbol_since_limit ($array, $symbol = null, $since = null, $limit = null) {
+        $array = array_values ($array);
         $symbolIsSet = isset ($symbol);
         $sinceIsSet = isset ($since);
         $array = array_filter ($array, function ($element) use ($symbolIsSet, $symbol, $sinceIsSet, $since) {
@@ -1526,13 +1535,17 @@ abstract class Exchange {
     public function common_currency_code ($currency) {
         if (!$this->substituteCommonCurrencyCodes)
             return $currency;
-        if ($currency == 'XBT')
-            return 'BTC';
-        if ($currency == 'BCC')
-            return 'BCH';
-        if ($currency == 'DRK')
-            return 'DASH';
-        return $currency;
+        return $this->safe_string($this->commonCurrencies, $currency, $currency);
+    }
+
+    public function currency_id ($commonCode) {
+        $currencyIds = array ();
+        $distinct = is_array ($this->commonCurrencies) ? array_keys ($this->commonCurrencies) : array ();
+        for ($i = 0; $i < count ($distinct); $i++) {
+            $k = $distinct[$i];
+            $currencyIds[$this->commonCurrencies[$k]] = $k;
+        }
+        return $this->safe_string($currencyIds, $commonCode, $commonCode);
     }
 
     public function precision_from_string ($string) {
@@ -1591,6 +1604,10 @@ abstract class Exchange {
 
     public function commonCurrencyCode ($currency) {
         return $this->common_currency_code ($currency);
+    }
+
+    public function currencyId ($commonCode) {
+        return $this->currency_id ($commonCode);
     }
 
     public function currency ($code) {

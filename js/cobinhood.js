@@ -76,6 +76,7 @@ module.exports = class cobinhood extends Exchange {
                 },
                 'public': {
                     'get': [
+                        'market/tickers',
                         'market/currencies',
                         'market/trading_pairs',
                         'market/orderbooks/{trading_pair_id}',
@@ -223,36 +224,34 @@ module.exports = class cobinhood extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        let symbol = market['symbol'];
-        let timestamp = undefined;
-        if ('timestamp' in ticker) {
-            timestamp = ticker['timestamp'];
-        } else {
-            timestamp = this.milliseconds ();
+        if (typeof market === 'undefined') {
+            let marketId = this.safeString (ticker, 'trading_pair_id');
+            market = this.findMarket (marketId);
         }
-        let info = ticker;
-        // from fetchTicker
-        if ('info' in ticker)
-            info = ticker['info'];
+        let symbol = undefined;
+        if (typeof market !== 'undefined')
+            symbol = market['symbol'];
+        let timestamp = this.safeInteger (ticker, 'timestamp');
+        let last = this.safeFloat (ticker, 'last_trade_price');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high_24hr']),
-            'low': parseFloat (ticker['low_24hr']),
+            'high': parseFloat (ticker['24h_high']),
+            'low': parseFloat (ticker['24h_low']),
             'bid': parseFloat (ticker['highest_bid']),
             'ask': parseFloat (ticker['lowest_ask']),
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': this.safeFloat (ticker, 'last_price'),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': this.safeFloat (ticker, 'percentChanged24hr'),
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': parseFloat (ticker['base_volume']),
+            'baseVolume': parseFloat (ticker['24h_volume']),
             'quoteVolume': this.safeFloat (ticker, 'quote_volume'),
-            'info': info,
+            'info': ticker,
         };
     }
 
@@ -263,33 +262,18 @@ module.exports = class cobinhood extends Exchange {
             'trading_pair_id': market['id'],
         }, params));
         let ticker = response['result']['ticker'];
-        ticker = {
-            'last_price': ticker['last_trade_price'],
-            'highest_bid': ticker['highest_bid'],
-            'lowest_ask': ticker['lowest_ask'],
-            'base_volume': ticker['24h_volume'],
-            'high_24hr': ticker['24h_high'],
-            'low_24hr': ticker['24h_low'],
-            'timestamp': ticker['timestamp'],
-            'info': response,
-        };
         return this.parseTicker (ticker, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetMarketStats (params);
-        let tickers = response['result'];
-        let ids = Object.keys (tickers);
-        let result = {};
-        for (let i = 0; i < ids.length; i++) {
-            let id = ids[i];
-            let market = this.markets_by_id[id];
-            let symbol = market['symbol'];
-            let ticker = tickers[id];
-            result[symbol] = this.parseTicker (ticker, market);
+        let response = await this.publicGetMarketTickers (params);
+        let tickers = response['result']['tickers'];
+        let result = [];
+        for (let i = 0; i < tickers.length; i++) {
+            result.push (this.parseTicker (tickers[i]));
         }
-        return result;
+        return this.indexBy (result, 'symbol');
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
