@@ -223,7 +223,8 @@ module.exports = class bitlish extends Exchange {
         return orderbook;
     }
 
-    parseOrderBookTimestamp (orderbook, keys) {
+    parseOrderBookTimestamp (orderbook) {
+        let keys = this.orderbookKeys;
         let last = this.safeInteger (orderbook, keys['timestamp']);
         return last ? parseInt (last / 1000) : undefined;
     }

@@ -212,8 +212,12 @@ module.exports = class coinsecure extends Exchange {
         let key = keys['response'];
         let bidsResponse = typeof response['bids'] === 'undefined' ? undefined : response['bids'][key];
         let asksResponse = typeof response['asks'] === 'undefined' ? undefined : response['asks'][key];
-        let bids = Array.isArray (bidsResponse) ? bidsResponse : [];
-        let asks = Array.isArray (asksResponse) ? asksResponse : [];
+        let bids = [];
+        if (Array.isArray (bidsResponse))
+            bids = bidsResponse;
+        let asks = [];
+        if (Array.isArray (asksResponse))
+            asks = asksResponse;
         return {
             'bids': bids,
             'asks': asks,

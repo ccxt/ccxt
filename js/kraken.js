@@ -404,7 +404,7 @@ module.exports = class kraken extends Exchange {
 
     async performOrderBookRequest (market, limit = undefined, params = {}) {
         if (market['darkpool'])
-            throw new ExchangeError (this.id + ' does not provide an order book for darkpool symbol ' + symbol);
+            throw new ExchangeError (this.id + ' does not provide an order book for darkpool symbol ' + market['symbol']);
         let request = {
             'pair': market['id'],
         };
