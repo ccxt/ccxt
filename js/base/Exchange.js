@@ -828,13 +828,13 @@ module.exports = class Exchange {
         }
         let datetime = this.iso8601 (timestamp);
         let orders = this.parseOrderBookOrders (orderbook, keys);
-        let nonse = this.parseOrderBookNonce (orderbook, keys);
+        let nonce = this.parseOrderBookNonce (orderbook, keys);
         return {
             'bids': sortBy (orders['bids'], 0, true),
             'asks': sortBy (orders['asks'], 0),
             'timestamp': timestamp,
             'datetime': datetime,
-            'nonce': nonse,
+            'nonce': nonce,
             'info': orderbook,
         };
     }

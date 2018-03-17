@@ -1236,17 +1236,17 @@ abstract class Exchange {
         }
         $datetime = $this->iso8601 ($timestamp);
         $orders = $this->parse_order_book_orders ($orderbook, $keys);
-        $nonse = $this->parse_order_book_nonce ($orderbook, $keys);
+        $nonce = $this->parse_order_book_nonce ($orderbook, $keys);
         return array (
             'bids' => $this->sort_by ($orders['bids'], 0, true),
             'asks' => $this->sort_by ($orders['asks'], 0),
             'timestamp' => $timestamp,
             'datetime' => $datetime,
-            'nonce' => $nonse,
+            'nonce' => $nonce,
             'info' => $orderbook,
         );
     }
-    
+
     public function parseOrderBook ($orderbook, $keys) {
         return $this->parse_order_book ($orderbook, $keys);
     }
