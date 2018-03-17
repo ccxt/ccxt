@@ -341,6 +341,7 @@ declare module 'ccxt' {
     export class coolcoin extends coinegg {}
     export class cryptopia extends Exchange {}
     export class dsx extends liqui {}
+    export class ethfinex extends bitfinex {}
     export class exmo extends Exchange {}
     export class flowbtc extends Exchange {}
     export class foxbit extends Exchange {}
