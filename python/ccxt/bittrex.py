@@ -581,11 +581,6 @@ class bittrex (Exchange):
         orders = self.fetch_orders(symbol, since, limit, params)
         return self.filter_by(orders, 'status', 'closed')
 
-    def currency_id(self, currency):
-        if currency == 'BCH':
-            return 'BCC'
-        return currency
-
     def fetch_deposit_address(self, code, params={}):
         self.load_markets()
         currency = self.currency(code)
@@ -610,11 +605,11 @@ class bittrex (Exchange):
             'info': response,
         }
 
-    def withdraw(self, currency, amount, address, tag=None, params={}):
+    def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
-        currencyId = self.currency_id(currency)
+        currency = self.currency(code)
         request = {
-            'currency': currencyId,
+            'currency': currency['id'],
             'quantity': amount,
             'address': address,
         }

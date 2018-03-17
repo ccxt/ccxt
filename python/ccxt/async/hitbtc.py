@@ -484,19 +484,14 @@ class hitbtc (Exchange):
                     },
                 },
             },
+            'commonCurrencies': {
+                'XBT': 'BTC',
+                'DRK': 'DASH',
+                'CAT': 'BitClave',
+                'USD': 'USDT',
+                'EMGO': 'MGO',
+            },
         })
-
-    def common_currency_code(self, currency):
-        currencies = {
-            'XBT': 'BTC',
-            'DRK': 'DASH',
-            'CAT': 'BitClave',
-            'USD': 'USDT',
-            'EMGO': 'MGO',
-        }
-        if currency in currencies:
-            return currencies[currency]
-        return currency
 
     async def fetch_markets(self):
         markets = await self.publicGetSymbols()
