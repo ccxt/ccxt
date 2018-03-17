@@ -94,13 +94,6 @@ module.exports = class exmo extends Exchange {
                 },
             },
             'exceptions': {
-                // '803': InvalidOrder, // "Count could not be less than 0.001." (selling below minAmount)
-                // '804': InvalidOrder, // "Count could not be more than 10000." (buying above maxAmount)
-                // '805': InvalidOrder, // "price could not be less than X." (minPrice violation on buy & sell)
-                // '806': InvalidOrder, // "price could not be more than X." (maxPrice violation on buy & sell)
-                // '807': InvalidOrder, // "cost could not be less than X." (minCost violation on buy & sell)
-                // '831': InsufficientFunds, // "Not enougth X to create buy order." (buying with balance.quote < order.cost)
-                // '832': InsufficientFunds, // "Not enougth X to create sell order." (selling with balance.base < order.amount)
                 '40005': AuthenticationError, // Authorization error, incorrect signature
                 '40015': ExchangeError, // API function do not exist
                 '40017': AuthenticationError, // Wrong API Key
