@@ -479,20 +479,14 @@ class hitbtc extends Exchange {
                     ),
                 ),
             ),
+            'commonCurrencies' => array (
+                'XBT' => 'BTC',
+                'DRK' => 'DASH',
+                'CAT' => 'BitClave',
+                'USD' => 'USDT',
+                'EMGO' => 'MGO',
+            ),
         ));
-    }
-
-    public function common_currency_code ($currency) {
-        $currencies = array (
-            'XBT' => 'BTC',
-            'DRK' => 'DASH',
-            'CAT' => 'BitClave',
-            'USD' => 'USDT',
-            'EMGO' => 'MGO',
-        );
-        if (is_array ($currencies) && array_key_exists ($currency, $currencies))
-            return $currencies[$currency];
-        return $currency;
     }
 
     public function fetch_markets () {

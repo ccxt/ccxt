@@ -298,6 +298,11 @@ class binance extends Exchange {
                     ),
                 ),
             ),
+            'commonCurrencies' => array (
+                'YOYO' => 'YOYOW',
+                'BCC' => 'BCH',
+                'NANO' => 'XRB',
+            ),
             // exchange-specific options
             'options' => array (
                 'warnOnFetchOpenOrdersWithoutSymbol' => true,
@@ -746,17 +751,6 @@ class binance extends Exchange {
             $request['limit'] = $limit;
         $response = $this->privateGetMyTrades (array_merge ($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
-    }
-
-    public function common_currency_code ($currency) {
-        $currencies = array (
-            'YOYO' => 'YOYOW',
-            'BCC' => 'BCH',
-            'NANO' => 'XRB',
-        );
-        if (is_array ($currencies) && array_key_exists ($currency, $currencies))
-            return $currencies[$currency];
-        return $currency;
     }
 
     public function fetch_deposit_address ($code, $params = array ()) {

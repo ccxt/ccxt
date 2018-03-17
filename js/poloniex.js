@@ -121,6 +121,10 @@ module.exports = class poloniex extends Exchange {
                 'amount': 8,
                 'price': 8,
             },
+            'commonCurrencies': {
+                'BTM': 'Bitmark',
+                'STR': 'XLM',
+            },
         });
     }
 
@@ -140,22 +144,6 @@ module.exports = class poloniex extends Exchange {
             'rate': rate,
             'cost': parseFloat (this.feeToPrecision (symbol, cost)),
         };
-    }
-
-    commonCurrencyCode (currency) {
-        if (currency === 'BTM')
-            return 'Bitmark';
-        if (currency === 'STR')
-            return 'XLM';
-        return currency;
-    }
-
-    currencyId (currency) {
-        if (currency === 'Bitmark')
-            return 'BTM';
-        if (currency === 'XLM')
-            return 'STR';
-        return currency;
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
@@ -483,13 +471,16 @@ module.exports = class poloniex extends Exchange {
         if (market)
             symbol = market['symbol'];
         let price = this.safeFloat (order, 'price');
-        let cost = this.safeFloat (order, 'total', 0.0);
         let remaining = this.safeFloat (order, 'amount');
         let amount = this.safeFloat (order, 'startingAmount', remaining);
         let filled = undefined;
+        let cost = 0;
         if (typeof amount !== 'undefined') {
-            if (typeof remaining !== 'undefined')
+            if (typeof remaining !== 'undefined') {
                 filled = amount - remaining;
+                if (typeof price !== 'undefined')
+                    cost = filled * price;
+            }
         }
         if (typeof filled === 'undefined') {
             if (typeof trades !== 'undefined') {
@@ -731,43 +722,44 @@ module.exports = class poloniex extends Exchange {
         return this.parseTrades (trades);
     }
 
-    async createDepositAddress (currency, params = {}) {
-        let currencyId = this.currencyId (currency);
+    async createDepositAddress (code, params = {}) {
+        let currency = this.currency (code);
         let response = await this.privatePostGenerateNewAddress ({
-            'currency': currencyId,
+            'currency': currency['id'],
         });
         let address = undefined;
         if (response['success'] === 1)
             address = this.safeString (response, 'response');
         this.checkAddress (address);
         return {
-            'currency': currency,
+            'currency': code,
             'address': address,
             'status': 'ok',
             'info': response,
         };
     }
 
-    async fetchDepositAddress (currency, params = {}) {
+    async fetchDepositAddress (code, params = {}) {
+        let currency = this.currency (code);
         let response = await this.privatePostReturnDepositAddresses ();
-        let currencyId = this.currencyId (currency);
+        let currencyId = currency['id'];
         let address = this.safeString (response, currencyId);
         this.checkAddress (address);
         let status = address ? 'ok' : 'none';
         return {
-            'currency': currency,
+            'currency': code,
             'address': address,
             'status': status,
             'info': response,
         };
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
-        let currencyId = this.currencyId (currency);
+        let currency = this.currency (code);
         let request = {
-            'currency': currencyId,
+            'currency': currency['id'],
             'amount': amount,
             'address': address,
         };

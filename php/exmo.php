@@ -92,6 +92,15 @@ class exmo extends Exchange {
                     ),
                 ),
             ),
+            'exceptions' => array (
+                '40005' => '\\ccxt\\AuthenticationError', // Authorization error, incorrect signature
+                '40015' => '\\ccxt\\ExchangeError', // API function do not exist
+                '40017' => '\\ccxt\\AuthenticationError', // Wrong API Key
+                '50052' => '\\ccxt\\InsufficientFunds',
+                '50173' => '\\ccxt\\OrderNotFound', // "Order with id X was not found." (cancelling non-existent, closed and cancelled order)
+                '50319' => '\\ccxt\\InvalidOrder', // Price by order is less than permissible minimum for this pair
+                '50321' => '\\ccxt\\InvalidOrder', // Price by order is more than permissible maximum for this pair
+            ),
         ));
     }
 
@@ -299,8 +308,6 @@ class exmo extends Exchange {
             'price' => $this->price_to_precision($symbol, $price),
             'type' => $prefix . $side,
         );
-        // var_dump ($request);
-        // exit ()
         $response = $this->privatePostOrderCreate (array_merge ($request, $params));
         $id = $this->safe_string($response, 'order_id');
         $timestamp = $this->milliseconds ();
@@ -394,17 +401,16 @@ class exmo extends Exchange {
         $this->load_markets();
         $response = $this->privatePostUserOpenOrders ($params);
         $marketIds = is_array ($response) ? array_keys ($response) : array ();
+        $orders = array ();
         for ($i = 0; $i < count ($marketIds); $i++) {
             $marketId = $marketIds[$i];
             $market = null;
-            $marketSymbol = null;
-            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
                 $market = $this->markets_by_id[$marketId];
-                $marketSymbol = $market['symbol'];
-            }
-            $orders = $this->parse_orders($response[$marketId], $market);
-            $this->update_cached_orders ($orders, $marketSymbol);
+            $parsedOrders = $this->parse_orders($response[$marketId], $market);
+            $orders = $this->array_concat($orders, $parsedOrders);
         }
+        $this->update_cached_orders ($orders);
         return $this->filter_by_symbol_since_limit($this->orders, $symbol, $since, $limit);
     }
 
@@ -507,7 +513,7 @@ class exmo extends Exchange {
             'timestamp' => $timestamp,
             'status' => $status,
             'symbol' => $symbol,
-            'type' => null,
+            'type' => 'limit',
             'side' => $side,
             'price' => $price,
             'cost' => $cost,
@@ -585,13 +591,45 @@ class exmo extends Exchange {
         return $this->milliseconds ();
     }
 
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (is_array ($response) && array_key_exists ('result', $response)) {
-            if ($response['result'])
-                return $response;
-            throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body) {
+        if (gettype ($body) != 'string')
+            return; // fallback to default error handler
+        if (strlen ($body) < 2)
+            return; // fallback to default error handler
+        if (($body[0] === '{') || ($body[0] === '[')) {
+            $response = json_decode ($body, $as_associative_array = true);
+            if (is_array ($response) && array_key_exists ('result', $response)) {
+                //
+                //     array ("result":false,"error":"Error 50052 => Insufficient funds")
+                //
+                $success = $this->safe_value($response, 'result', false);
+                if (gettype ($success) == 'string') {
+                    if (($success === 'true') || ($success === '1'))
+                        $success = true;
+                    else
+                        $success = false;
+                }
+                if (!$success) {
+                    $code = null;
+                    $message = $this->safe_string($response, 'error');
+                    $errorParts = explode (':', $message);
+                    $numParts = is_array ($errorParts) ? count ($errorParts) : 0;
+                    if ($numParts > 1) {
+                        $errorSubParts = explode (' ', $errorParts[0]);
+                        $numSubParts = is_array ($errorSubParts) ? count ($errorSubParts) : 0;
+                        if ($numSubParts > 1) {
+                            $code = $errorSubParts[1];
+                        }
+                    }
+                    $feedback = $this->id . ' ' . $this->json ($response);
+                    $exceptions = $this->exceptions;
+                    if (is_array ($exceptions) && array_key_exists ($code, $exceptions)) {
+                        throw new $exceptions[$code] ($feedback);
+                    } else {
+                        throw new ExchangeError ($feedback);
+                    }
+                }
+            }
         }
-        return $response;
     }
 }

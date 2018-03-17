@@ -61,60 +61,29 @@ class yobit extends liqui {
                     'withdraw' => array (),
                 ),
             ),
+            'commonCurrencies' => array (
+                'AIR' => 'AirCoin',
+                'ANI' => 'ANICoin',
+                'ANT' => 'AntsCoin',
+                'ATM' => 'Autumncoin',
+                'BCC' => 'BCH',
+                'BCS' => 'BitcoinStake',
+                'BTS' => 'Bitshares2',
+                'DCT' => 'Discount',
+                'DGD' => 'DarkGoldCoin',
+                'ICN' => 'iCoin',
+                'LIZI' => 'LiZi',
+                'LUN' => 'LunarCoin',
+                'MDT' => 'Midnight',
+                'NAV' => 'NavajoCoin',
+                'OMG' => 'OMGame',
+                'PAY' => 'EPAY',
+                'REP' => 'Republicoin',
+            ),
             'options' => array (
                 'fetchOrdersRequiresSymbol' => true,
             ),
         ));
-    }
-
-    public function common_currency_code ($currency) {
-        $substitutions = array (
-            'AIR' => 'AirCoin',
-            'ANI' => 'ANICoin',
-            'ANT' => 'AntsCoin',
-            'ATM' => 'Autumncoin',
-            'BCC' => 'BCH',
-            'BCS' => 'BitcoinStake',
-            'BTS' => 'Bitshares2',
-            'DCT' => 'Discount',
-            'DGD' => 'DarkGoldCoin',
-            'ICN' => 'iCoin',
-            'LIZI' => 'LiZi',
-            'LUN' => 'LunarCoin',
-            'MDT' => 'Midnight',
-            'NAV' => 'NavajoCoin',
-            'OMG' => 'OMGame',
-            'PAY' => 'EPAY',
-            'REP' => 'Republicoin',
-        );
-        if (is_array ($substitutions) && array_key_exists ($currency, $substitutions))
-            return $substitutions[$currency];
-        return $currency;
-    }
-
-    public function currency_id ($commonCode) {
-        $substitutions = array (
-            'AirCoin' => 'AIR',
-            'ANICoin' => 'ANI',
-            'AntsCoin' => 'ANT',
-            'Autumncoin' => 'ATM',
-            'BCH' => 'BCC',
-            'BitcoinStake' => 'BCS',
-            'Bitshares2' => 'BTS',
-            'Discount' => 'DCT',
-            'DarkGoldCoin' => 'DGD',
-            'iCoin' => 'ICN',
-            'LiZi' => 'LIZI',
-            'LunarCoin' => 'LUN',
-            'Midnight' => 'MDT',
-            'NavajoCoin' => 'NAV',
-            'OMGame' => 'OMG',
-            'EPAY' => 'PAY',
-            'Republicoin' => 'REP',
-        );
-        if (is_array ($substitutions) && array_key_exists ($commonCode, $substitutions))
-            return $substitutions[$commonCode];
-        return $commonCode;
     }
 
     public function parse_order_status ($status) {
@@ -161,31 +130,31 @@ class yobit extends liqui {
         return $this->parse_balance($result);
     }
 
-    public function create_deposit_address ($currency, $params = array ()) {
-        $response = $this->fetch_deposit_address ($currency, array_merge (array (
+    public function create_deposit_address ($code, $params = array ()) {
+        $response = $this->fetch_deposit_address ($code, array_merge (array (
             'need_new' => 1,
         ), $params));
         $address = $this->safe_string($response, 'address');
         $this->check_address($address);
         return array (
-            'currency' => $currency,
+            'currency' => $code,
             'address' => $address,
             'status' => 'ok',
             'info' => $response['info'],
         );
     }
 
-    public function fetch_deposit_address ($currency, $params = array ()) {
-        $currencyId = $this->currency_id ($currency);
+    public function fetch_deposit_address ($code, $params = array ()) {
+        $currency = $this->currency ($code);
         $request = array (
-            'coinName' => $currencyId,
+            'coinName' => $currency['id'],
             'need_new' => 0,
         );
         $response = $this->privatePostGetDepositAddress (array_merge ($request, $params));
         $address = $this->safe_string($response['return'], 'address');
         $this->check_address($address);
         return array (
-            'currency' => $currency,
+            'currency' => $code,
             'address' => $address,
             'status' => 'ok',
             'info' => $response,

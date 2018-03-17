@@ -68,17 +68,12 @@ class ccex extends Exchange {
                     'maker' => 0.2 / 100,
                 ),
             ),
+            'commonCurrencies' => array (
+                'IOT' => 'IoTcoin',
+                'BLC' => 'Cryptobullcoin',
+                'XID' => 'InternationalDiamond',
+            ),
         ));
-    }
-
-    public function common_currency_code ($currency) {
-        if ($currency === 'IOT')
-            return 'IoTcoin';
-        if ($currency === 'BLC')
-            return 'Cryptobullcoin';
-        if ($currency === 'XID')
-            return 'InternationalDiamond';
-        return $currency;
     }
 
     public function fetch_markets () {

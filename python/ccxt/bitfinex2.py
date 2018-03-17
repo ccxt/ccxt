@@ -158,15 +158,6 @@ class bitfinex2 (bitfinex):
             },
         })
 
-    def common_currency_code(self, currency):
-        currencies = {
-            'DSH': 'DASH',  # Bitfinex names Dash as DSH, instead of DASH
-            'QTM': 'QTUM',
-            'IOT': 'IOTA',
-            'DAT': 'DATA',
-        }
-        return currencies[currency] if (currency in list(currencies.keys())) else currency
-
     def is_fiat(self, code):
         fiat = {
             'USD': 'USD',

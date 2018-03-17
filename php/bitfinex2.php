@@ -153,16 +153,6 @@ class bitfinex2 extends bitfinex {
         ));
     }
 
-    public function common_currency_code ($currency) {
-        $currencies = array (
-            'DSH' => 'DASH', // Bitfinex names Dash as DSH, instead of DASH
-            'QTM' => 'QTUM',
-            'IOT' => 'IOTA',
-            'DAT' => 'DATA',
-        );
-        return (is_array ($currencies) && array_key_exists ($currency, $currencies)) ? $currencies[$currency] : $currency;
-    }
-
     public function is_fiat ($code) {
         $fiat = array (
             'USD' => 'USD',

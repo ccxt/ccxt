@@ -315,6 +315,11 @@ class binance (Exchange):
                     },
                 },
             },
+            'commonCurrencies': {
+                'YOYO': 'YOYOW',
+                'BCC': 'BCH',
+                'NANO': 'XRB',
+            },
             # exchange-specific options
             'options': {
                 'warnOnFetchOpenOrdersWithoutSymbol': True,
@@ -727,16 +732,6 @@ class binance (Exchange):
             request['limit'] = limit
         response = self.privateGetMyTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
-
-    def common_currency_code(self, currency):
-        currencies = {
-            'YOYO': 'YOYOW',
-            'BCC': 'BCH',
-            'NANO': 'XRB',
-        }
-        if currency in currencies:
-            return currencies[currency]
-        return currency
 
     def fetch_deposit_address(self, code, params={}):
         self.load_markets()

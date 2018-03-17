@@ -69,6 +69,10 @@ class bxinth (Exchange):
                     'maker': 0.25 / 100,
                 },
             },
+            'commonCurrencies': {
+                'DAS': 'DASH',
+                'DOG': 'DOGE',
+            },
         })
 
     async def fetch_markets(self):
@@ -91,14 +95,6 @@ class bxinth (Exchange):
                 'info': market,
             })
         return result
-
-    def common_currency_code(self, currency):
-        # why would they use three letters instead of four for currency codes
-        if currency == 'DAS':
-            return 'DASH'
-        if currency == 'DOG':
-            return 'DOGE'
-        return currency
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
