@@ -381,16 +381,9 @@ class bitfinex (Exchange):
         result = {}
         for i in range(0, len(tickers)):
             ticker = tickers[i]
-            if 'pair' in ticker:
-                id = ticker['pair']
-                if id in self.markets_by_id:
-                    market = self.markets_by_id[id]
-                    symbol = market['symbol']
-                    result[symbol] = self.parse_ticker(ticker, market)
-                else:
-                    raise ExchangeError(self.id + ' fetchTickers() failed to recognize symbol ' + id + ' ' + self.json(ticker))
-            else:
-                raise ExchangeError(self.id + ' fetchTickers() response not recognized ' + self.json(tickers))
+            parsedTicker = self.parse_ticker(ticker)
+            symbol = parsedTicker['symbol']
+            result[symbol] = parsedTicker
         return result
 
     async def fetch_ticker(self, symbol, params={}):
@@ -408,11 +401,15 @@ class bitfinex (Exchange):
             symbol = market['symbol']
         elif 'pair' in ticker:
             id = ticker['pair']
-            if id in self.markets_by_id:
-                market = self.markets_by_id[id]
+            market = self.find_market(ticker['pair'])
+            if market is not None:
                 symbol = market['symbol']
             else:
-                raise ExchangeError(self.id + ' unrecognized ticker symbol ' + id + ' ' + self.json(ticker))
+                baseId = id[0:3]
+                quoteId = id[3:6]
+                base = self.common_currency_code(baseId)
+                quote = self.common_currency_code(quoteId)
+                symbol = base + '/' + quote
         return {
             'symbol': symbol,
             'timestamp': timestamp,
