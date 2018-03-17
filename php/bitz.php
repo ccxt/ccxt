@@ -120,6 +120,9 @@ class bitz extends Exchange {
                 'amount' => 8,
                 'price' => 8,
             ),
+            'options' => array (
+                'lastNonceTimestamp' => 0,
+            ),
         ));
     }
 
@@ -350,8 +353,13 @@ class bitz extends Exchange {
     }
 
     public function nonce () {
-        $milliseconds = $this->milliseconds ();
-        return (fmod ($milliseconds, 1000000));
+        $currentTimestamp = $this->seconds ();
+        if ($currentTimestamp > $this->options['lastNonceTimestamp']) {
+            $this->options['lastNonceTimestamp'] = $currentTimestamp;
+            $this->options['lastNonce'] = 100000;
+        }
+        $this->options['lastNonce'] .= 1;
+        return $this->options['lastNonce'];
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
