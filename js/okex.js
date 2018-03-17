@@ -28,20 +28,14 @@ module.exports = class okex extends okcoinusd {
                 'doc': 'https://www.okex.com/rest_getStarted.html',
                 'fees': 'https://www.okex.com/fees.html',
             },
+            'commonCurrencies': {
+                'FAIR': 'FairGame',
+                'HMC': 'Hi Mutual Society',
+                'MAG': 'Maggie',
+                'NANO': 'XRB',
+                'YOYO': 'YOYOW',
+            },
         });
-    }
-
-    commonCurrencyCode (currency) {
-        const currencies = {
-            'FAIR': 'FairGame',
-            'HMC': 'Hi Mutual Society',
-            'MAG': 'Maggie',
-            'NANO': 'XRB',
-            'YOYO': 'YOYOW',
-        };
-        if (currency in currencies)
-            return currencies[currency];
-        return currency;
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {

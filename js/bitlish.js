@@ -115,23 +115,11 @@ module.exports = class bitlish extends Exchange {
                     ],
                 },
             },
+            'commonCurrencies': {
+                'DSH': 'DASH',
+                'XDG': 'DOGE',
+            },
         });
-    }
-
-    commonCurrencyCode (currency) {
-        if (!this.substituteCommonCurrencyCodes)
-            return currency;
-        if (currency === 'XBT')
-            return 'BTC';
-        if (currency === 'BCC')
-            return 'BCH';
-        if (currency === 'DRK')
-            return 'DASH';
-        if (currency === 'DSH')
-            currency = 'DASH';
-        if (currency === 'XDG')
-            currency = 'DOGE';
-        return currency;
     }
 
     async fetchMarkets () {

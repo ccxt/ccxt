@@ -216,6 +216,14 @@ module.exports = class bitfinex extends Exchange {
                     },
                 },
             },
+            'commonCurrencies': {
+                'DSH': 'DASH', // Bitfinex names Dash as DSH, instead of DASH
+                'QTM': 'QTUM',
+                'BCC': 'CST_BCC',
+                'BCU': 'CST_BCU',
+                'IOT': 'IOTA',
+                'DAT': 'DATA',
+            },
             'exceptions': {
                 'exact': {
                     'Order could not be cancelled.': OrderNotFound, // non-existent order
@@ -235,18 +243,6 @@ module.exports = class bitfinex extends Exchange {
                 },
             },
         });
-    }
-
-    commonCurrencyCode (currency) {
-        const currencies = {
-            'DSH': 'DASH', // Bitfinex names Dash as DSH, instead of DASH
-            'QTM': 'QTUM',
-            'BCC': 'CST_BCC',
-            'BCU': 'CST_BCU',
-            'IOT': 'IOTA',
-            'DAT': 'DATA',
-        };
-        return (currency in currencies) ? currencies[currency] : currency;
     }
 
     async fetchFundingFees (params = {}) {

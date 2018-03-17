@@ -72,44 +72,20 @@ class cryptopia extends Exchange {
                     ),
                 ),
             ),
+            'commonCurrencies' => array (
+                'ACC' => 'AdCoin',
+                'BAT' => 'BatCoin',
+                'BLZ' => 'BlazeCoin',
+                'CC' => 'CCX',
+                'CMT' => 'Comet',
+                'FCN' => 'Facilecoin',
+                'NET' => 'NetCoin',
+                'BTG' => 'Bitgem',
+                'FUEL' => 'FC2', // FuelCoin != FUEL
+                'QBT' => 'Cubits',
+                'WRC' => 'WarCoin',
+            ),
         ));
-    }
-
-    public function common_currency_code ($currency) {
-        $currencies = array (
-            'ACC' => 'AdCoin',
-            'BAT' => 'BatCoin',
-            'BLZ' => 'BlazeCoin',
-            'CC' => 'CCX',
-            'CMT' => 'Comet',
-            'FCN' => 'Facilecoin',
-            'NET' => 'NetCoin',
-            'BTG' => 'Bitgem',
-            'FUEL' => 'FC2', // FuelCoin != FUEL
-            'QBT' => 'Cubits',
-            'WRC' => 'WarCoin',
-        );
-        if (is_array ($currencies) && array_key_exists ($currency, $currencies))
-            return $currencies[$currency];
-        return $currency;
-    }
-
-    public function currency_id ($currency) {
-        $currencies = array (
-            'AdCoin' => 'ACC',
-            'BatCoin' => 'BAT',
-            'BlazeCoin' => 'BLZ',
-            'CCX' => 'CC',
-            'Comet' => 'CMT',
-            'Cubits' => 'QBT',
-            'Facilecoin' => 'FCN',
-            'NetCoin' => 'NET',
-            'Bitgem' => 'BTG',
-            'FC2' => 'FUEL',
-        );
-        if (is_array ($currencies) && array_key_exists ($currency, $currencies))
-            return $currencies[$currency];
-        return $currency;
     }
 
     public function fetch_markets () {
@@ -604,28 +580,28 @@ class cryptopia extends Exchange {
         return $result;
     }
 
-    public function fetch_deposit_address ($currency, $params = array ()) {
-        $currencyId = $this->currency_id ($currency);
+    public function fetch_deposit_address ($code, $params = array ()) {
+        $currency = $this->currency ($code);
         $response = $this->privatePostGetDepositAddress (array_merge (array (
-            'Currency' => $currencyId,
+            'Currency' => $currency['id'],
         ), $params));
         $address = $this->safe_string($response['Data'], 'BaseAddress');
         if (!$address)
             $address = $this->safe_string($response['Data'], 'Address');
         $this->check_address($address);
         return array (
-            'currency' => $currency,
+            'currency' => $code,
             'address' => $address,
             'status' => 'ok',
             'info' => $response,
         );
     }
 
-    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+        $currency = $this->currency ($code);
         $this->check_address($address);
-        $currencyId = $this->currency_id ($currency);
         $request = array (
-            'Currency' => $currencyId,
+            'Currency' => $currency['id'],
             'Amount' => $amount,
             'Address' => $address, // Address must exist in you AddressBook in security settings
         );

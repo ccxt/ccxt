@@ -215,6 +215,14 @@ class bitfinex extends Exchange {
                     ),
                 ),
             ),
+            'commonCurrencies' => array (
+                'DSH' => 'DASH', // Bitfinex names Dash as DSH, instead of DASH
+                'QTM' => 'QTUM',
+                'BCC' => 'CST_BCC',
+                'BCU' => 'CST_BCU',
+                'IOT' => 'IOTA',
+                'DAT' => 'DATA',
+            ),
             'exceptions' => array (
                 'exact' => array (
                     'Order could not be cancelled.' => '\\ccxt\\OrderNotFound', // non-existent order
@@ -234,18 +242,6 @@ class bitfinex extends Exchange {
                 ),
             ),
         ));
-    }
-
-    public function common_currency_code ($currency) {
-        $currencies = array (
-            'DSH' => 'DASH', // Bitfinex names Dash as DSH, instead of DASH
-            'QTM' => 'QTUM',
-            'BCC' => 'CST_BCC',
-            'BCU' => 'CST_BCU',
-            'IOT' => 'IOTA',
-            'DAT' => 'DATA',
-        );
-        return (is_array ($currencies) && array_key_exists ($currency, $currencies)) ? $currencies[$currency] : $currency;
     }
 
     public function fetch_funding_fees ($params = array ()) {
