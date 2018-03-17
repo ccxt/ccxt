@@ -537,19 +537,13 @@ module.exports = class coinexchange extends Exchange {
                 'amount': 8,
                 'price': 8,
             },
+            'commonCurrencies': {
+                'BON': 'BonPeKaO',
+                'ETN': 'Ethernex',
+                'HNC': 'Huncoin',
+                'MARS': 'MarsBux',
+            },
         });
-    }
-
-    commonCurrencyCode (currency) {
-        let substitutions = {
-            'BON': 'BonPeKaO',
-            'ETN': 'Ethernex',
-            'HNC': 'Huncoin',
-            'MARS': 'MarsBux',
-        };
-        if (currency in substitutions)
-            return substitutions[currency];
-        return currency;
     }
 
     async fetchCurrencies (params = {}) {
