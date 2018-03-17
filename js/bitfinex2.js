@@ -154,16 +154,6 @@ module.exports = class bitfinex2 extends bitfinex {
         });
     }
 
-    commonCurrencyCode (currency) {
-        const currencies = {
-            'DSH': 'DASH', // Bitfinex names Dash as DSH, instead of DASH
-            'QTM': 'QTUM',
-            'IOT': 'IOTA',
-            'DAT': 'DATA',
-        };
-        return (currency in currencies) ? currencies[currency] : currency;
-    }
-
     isFiat (code) {
         let fiat = {
             'USD': 'USD',

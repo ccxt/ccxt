@@ -299,6 +299,11 @@ module.exports = class binance extends Exchange {
                     },
                 },
             },
+            'commonCurrencies': {
+                'YOYO': 'YOYOW',
+                'BCC': 'BCH',
+                'NANO': 'XRB',
+            },
             // exchange-specific options
             'options': {
                 'warnOnFetchOpenOrdersWithoutSymbol': true,
@@ -747,17 +752,6 @@ module.exports = class binance extends Exchange {
             request['limit'] = limit;
         let response = await this.privateGetMyTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
-    }
-
-    commonCurrencyCode (currency) {
-        const currencies = {
-            'YOYO': 'YOYOW',
-            'BCC': 'BCH',
-            'NANO': 'XRB',
-        };
-        if (currency in currencies)
-            return currencies[currency];
-        return currency;
     }
 
     async fetchDepositAddress (code, params = {}) {

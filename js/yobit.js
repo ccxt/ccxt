@@ -62,60 +62,29 @@ module.exports = class yobit extends liqui {
                     'withdraw': {},
                 },
             },
+            'commonCurrencies': {
+                'AIR': 'AirCoin',
+                'ANI': 'ANICoin',
+                'ANT': 'AntsCoin',
+                'ATM': 'Autumncoin',
+                'BCC': 'BCH',
+                'BCS': 'BitcoinStake',
+                'BTS': 'Bitshares2',
+                'DCT': 'Discount',
+                'DGD': 'DarkGoldCoin',
+                'ICN': 'iCoin',
+                'LIZI': 'LiZi',
+                'LUN': 'LunarCoin',
+                'MDT': 'Midnight',
+                'NAV': 'NavajoCoin',
+                'OMG': 'OMGame',
+                'PAY': 'EPAY',
+                'REP': 'Republicoin',
+            },
             'options': {
                 'fetchOrdersRequiresSymbol': true,
             },
         });
-    }
-
-    commonCurrencyCode (currency) {
-        let substitutions = {
-            'AIR': 'AirCoin',
-            'ANI': 'ANICoin',
-            'ANT': 'AntsCoin',
-            'ATM': 'Autumncoin',
-            'BCC': 'BCH',
-            'BCS': 'BitcoinStake',
-            'BTS': 'Bitshares2',
-            'DCT': 'Discount',
-            'DGD': 'DarkGoldCoin',
-            'ICN': 'iCoin',
-            'LIZI': 'LiZi',
-            'LUN': 'LunarCoin',
-            'MDT': 'Midnight',
-            'NAV': 'NavajoCoin',
-            'OMG': 'OMGame',
-            'PAY': 'EPAY',
-            'REP': 'Republicoin',
-        };
-        if (currency in substitutions)
-            return substitutions[currency];
-        return currency;
-    }
-
-    currencyId (commonCode) {
-        let substitutions = {
-            'AirCoin': 'AIR',
-            'ANICoin': 'ANI',
-            'AntsCoin': 'ANT',
-            'Autumncoin': 'ATM',
-            'BCH': 'BCC',
-            'BitcoinStake': 'BCS',
-            'Bitshares2': 'BTS',
-            'Discount': 'DCT',
-            'DarkGoldCoin': 'DGD',
-            'iCoin': 'ICN',
-            'LiZi': 'LIZI',
-            'LunarCoin': 'LUN',
-            'Midnight': 'MDT',
-            'NavajoCoin': 'NAV',
-            'OMGame': 'OMG',
-            'EPAY': 'PAY',
-            'Republicoin': 'REP',
-        };
-        if (commonCode in substitutions)
-            return substitutions[commonCode];
-        return commonCode;
     }
 
     parseOrderStatus (status) {

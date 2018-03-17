@@ -121,6 +121,10 @@ module.exports = class poloniex extends Exchange {
                 'amount': 8,
                 'price': 8,
             },
+            'commonCurrencies': {
+                'BTM': 'Bitmark',
+                'STR': 'XLM',
+            },
         });
     }
 
@@ -140,22 +144,6 @@ module.exports = class poloniex extends Exchange {
             'rate': rate,
             'cost': parseFloat (this.feeToPrecision (symbol, cost)),
         };
-    }
-
-    commonCurrencyCode (currency) {
-        if (currency === 'BTM')
-            return 'Bitmark';
-        if (currency === 'STR')
-            return 'XLM';
-        return currency;
-    }
-
-    currencyId (currency) {
-        if (currency === 'Bitmark')
-            return 'BTM';
-        if (currency === 'XLM')
-            return 'STR';
-        return currency;
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {

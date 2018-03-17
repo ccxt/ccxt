@@ -611,12 +611,6 @@ module.exports = class bittrex extends Exchange {
         return this.filterBy (orders, 'status', 'closed');
     }
 
-    currencyId (currency) {
-        if (currency === 'BCH')
-            return 'BCC';
-        return currency;
-    }
-
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
         let currency = this.currency (code);

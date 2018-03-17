@@ -655,6 +655,12 @@ abstract class Exchange {
         $this->last_json_response = null;
         $this->last_response_headers = null;
 
+        $this->commonCurrencies = array (
+            'XBT' => 'BTC',
+            'BCC' => 'BCH',
+            'DRK' => 'DASH'
+        );
+
         $options = array_replace_recursive ($this->describe(), $options);
 
         if ($options)
@@ -1528,13 +1534,17 @@ abstract class Exchange {
     public function common_currency_code ($currency) {
         if (!$this->substituteCommonCurrencyCodes)
             return $currency;
-        if ($currency == 'XBT')
-            return 'BTC';
-        if ($currency == 'BCC')
-            return 'BCH';
-        if ($currency == 'DRK')
-            return 'DASH';
-        return $currency;
+        return $this->safe_string($this->commonCurrencies, $currency, $currency);
+    }
+
+    public function currency_id ($commonCode) {
+        $currencyIds = array ();
+        $distinct = is_array ($this->commonCurrencies) ? array_keys ($this->commonCurrencies) : array ();
+        for ($i = 0; $i < count ($distinct); $i++) {
+            $k = $distinct[$i];
+            $currencyIds[$this->commonCurrencies[$k]] = $k;
+        }
+        return $this->safe_string($currencyIds, $commonCode, $commonCode);
     }
 
     public function precision_from_string ($string) {
@@ -1593,6 +1603,10 @@ abstract class Exchange {
 
     public function commonCurrencyCode ($currency) {
         return $this->common_currency_code ($currency);
+    }
+
+    public function currencyId ($commonCode) {
+        return $this->currency_id ($commonCode);
     }
 
     public function currency ($code) {

@@ -139,6 +139,11 @@ module.exports = class Exchange {
             // still, some exchanges report number of open orders together with balance
             // if you set the following flag to 'true' ccxt will leave 'used' funds undefined in case of discrepancy
             'dontGetUsedBalanceFromStaleCache': false,
+            'commonCurrencies': { // gets extended/overwritten in subclasses
+                'XBT': 'BTC',
+                'BCC': 'BCH',
+                'DRK': 'DASH',
+            },
         } // return
     } // describe ()
 
@@ -632,13 +637,17 @@ module.exports = class Exchange {
     commonCurrencyCode (currency) {
         if (!this.substituteCommonCurrencyCodes)
             return currency
-        if (currency === 'XBT')
-            return 'BTC'
-        if (currency === 'BCC')
-            return 'BCH'
-        if (currency === 'DRK')
-            return 'DASH'
-        return currency
+        return this.safeString (this.commonCurrencies, currency, currency)
+    }
+
+    currencyId (commonCode) {
+        let currencyIds = {}
+        let distinct = Object.keys (this.commonCurrencies)
+        for (let i = 0; i < distinct.length; i++) {
+            let k = distinct[i]
+            currencyIds[this.commonCurrencies[k]] = k
+        }
+        return this.safeString (currencyIds, commonCode, commonCode)
     }
 
     currency (code) {

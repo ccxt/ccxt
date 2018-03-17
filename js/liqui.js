@@ -70,6 +70,9 @@ module.exports = class liqui extends Exchange {
                     'deposit': {},
                 },
             },
+            'commonCurrencies': {
+                'DSH': 'DASH',
+            },
             'exceptions': {
                 '803': InvalidOrder, // "Count could not be less than 0.001." (selling below minAmount)
                 '804': InvalidOrder, // "Count could not be more than 10000." (buying above maxAmount)
@@ -99,21 +102,6 @@ module.exports = class liqui extends Exchange {
             'rate': rate,
             'cost': cost,
         };
-    }
-
-    commonCurrencyCode (currency) {
-        if (!this.substituteCommonCurrencyCodes)
-            return currency;
-        if (currency === 'XBT')
-            return 'BTC';
-        if (currency === 'BCC')
-            return 'BCH';
-        if (currency === 'DRK')
-            return 'DASH';
-        // they misspell DASH as dsh :/
-        if (currency === 'DSH')
-            return 'DASH';
-        return currency;
     }
 
     getBaseQuoteFromMarketId (id) {

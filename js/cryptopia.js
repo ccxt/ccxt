@@ -73,44 +73,20 @@ module.exports = class cryptopia extends Exchange {
                     ],
                 },
             },
+            'commonCurrencies': {
+                'ACC': 'AdCoin',
+                'BAT': 'BatCoin',
+                'BLZ': 'BlazeCoin',
+                'CC': 'CCX',
+                'CMT': 'Comet',
+                'FCN': 'Facilecoin',
+                'NET': 'NetCoin',
+                'BTG': 'Bitgem',
+                'FUEL': 'FC2', // FuelCoin != FUEL
+                'QBT': 'Cubits',
+                'WRC': 'WarCoin',
+            },
         });
-    }
-
-    commonCurrencyCode (currency) {
-        const currencies = {
-            'ACC': 'AdCoin',
-            'BAT': 'BatCoin',
-            'BLZ': 'BlazeCoin',
-            'CC': 'CCX',
-            'CMT': 'Comet',
-            'FCN': 'Facilecoin',
-            'NET': 'NetCoin',
-            'BTG': 'Bitgem',
-            'FUEL': 'FC2', // FuelCoin != FUEL
-            'QBT': 'Cubits',
-            'WRC': 'WarCoin',
-        };
-        if (currency in currencies)
-            return currencies[currency];
-        return currency;
-    }
-
-    currencyId (currency) {
-        const currencies = {
-            'AdCoin': 'ACC',
-            'BatCoin': 'BAT',
-            'BlazeCoin': 'BLZ',
-            'CCX': 'CC',
-            'Comet': 'CMT',
-            'Cubits': 'QBT',
-            'Facilecoin': 'FCN',
-            'NetCoin': 'NET',
-            'Bitgem': 'BTG',
-            'FC2': 'FUEL',
-        };
-        if (currency in currencies)
-            return currencies[currency];
-        return currency;
     }
 
     async fetchMarkets () {
