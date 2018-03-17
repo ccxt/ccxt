@@ -978,7 +978,6 @@ class Exchange(object):
             'asks': self.sort_by(self.aggregate(orderbook['asks']), 0),
         })
 
-    # ---------------------------Transpiled code--------------------------------
     def perform_order_book_request(self, symbol, limit=None, params={}):
         raise NotSupported(self.id + ' performOrderBookRequest not supported yet')
 
@@ -1054,7 +1053,6 @@ class Exchange(object):
             'nonce': nonce,
             'info': orderbook,
         }
-    # -------------------------End of transpiled code---------------------------
 
     def parse_balance(self, balance):
         currencies = self.omit(balance, 'info').keys()

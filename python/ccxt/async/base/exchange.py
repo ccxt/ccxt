@@ -177,7 +177,6 @@ class Exchange(BaseExchange):
             'asks': self.sort_by(self.aggregate(orderbook['asks']), 0),
         })
 
-    # ---------------------------Transpiled code--------------------------------
     async def perform_order_book_request(self, symbol, limit=None, params={}):
         raise NotSupported(self.id + ' performOrderBookRequest not supported yet')
 
@@ -253,7 +252,6 @@ class Exchange(BaseExchange):
             'nonce': nonce,
             'info': orderbook,
         }
-    # -------------------------End of transpiled code---------------------------
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         if not self.has['fetchTrades']:

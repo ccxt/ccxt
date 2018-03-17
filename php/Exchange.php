@@ -1112,8 +1112,6 @@ abstract class Exchange {
         return $this->fetch_l2_order_book ($symbol, $limit, $params);
     }
 
-    // --------------------------Transpiled code--------------------------------
-
     public function perform_order_book_request ($symbol, $limit = null, $params = array ()) {
         throw new NotSupported ($this->id . ' performOrderBookRequest not supported yet');
     }
@@ -1250,8 +1248,6 @@ abstract class Exchange {
     public function parseOrderBook ($orderbook, $keys) {
         return $this->parse_order_book ($orderbook, $keys);
     }
-
-    // -----------------------End of transpiled code----------------------------
 
     public function parse_balance ($balance) {
         $currencies = array_keys ($this->omit ($balance, 'info'));
