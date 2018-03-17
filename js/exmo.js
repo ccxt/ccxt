@@ -630,7 +630,7 @@ module.exports = class exmo extends Exchange {
                     if (code in exceptions) {
                         throw new exceptions[code] (feedback);
                     } else {
-                        throw new ExchangeError (this.id + ' ' + this.json (response));
+                        throw new ExchangeError (feedback);
                     }
                 }
             }

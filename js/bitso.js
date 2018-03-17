@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, InvalidNonce, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -72,6 +72,22 @@ module.exports = class bitso extends Exchange {
                         'orders/all',
                     ],
                 },
+            },
+            'exceptions': {
+                // '803': InvalidOrder, // "Count could not be less than 0.001." (selling below minAmount)
+                // '804': InvalidOrder, // "Count could not be more than 10000." (buying above maxAmount)
+                // '805': InvalidOrder, // "price could not be less than X." (minPrice violation on buy & sell)
+                // '806': InvalidOrder, // "price could not be more than X." (maxPrice violation on buy & sell)
+                // '807': InvalidOrder, // "cost could not be less than X." (minCost violation on buy & sell)
+                // '831': InsufficientFunds, // "Not enougth X to create buy order." (buying with balance.quote < order.cost)
+                // '832': InsufficientFunds, // "Not enougth X to create sell order." (selling with balance.base < order.amount)
+                '0201': AuthenticationError, // Invalid Nonce or Invalid Credentials
+                '104': InvalidNonce, // Cannot perform request - nonce must be higher than 1520307203724237
+                // '40017': AuthenticationError, // Wrong API Key
+                // '50052': InsufficientFunds,
+                // '50173': OrderNotFound, // "Order with id X was not found." (cancelling non-existent, closed and cancelled order)
+                // '50319': InvalidOrder, // Price by order is less than permissible minimum for this pair
+                // '50321': InvalidOrder, // Price by order is more than permissible maximum for this pair
             },
         });
     }
@@ -383,6 +399,41 @@ module.exports = class bitso extends Exchange {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (httpCode, reason, url, method, headers, body) {
+        if (typeof body !== 'string')
+            return; // fallback to default error handler
+        if (body.length < 2)
+            return; // fallback to default error handler
+        if ((body[0] === '{') || (body[0] === '[')) {
+            let response = JSON.parse (body);
+            if ('success' in response) {
+                //
+                //     {"success":false,"error":{"code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"}}
+                //
+                let success = this.safeValue (response, 'success', false);
+                if (typeof success === 'string') {
+                    if ((success === 'true') || (success === '1'))
+                        success = true;
+                    else
+                        success = false;
+                }
+                if (!success) {
+                    const feedback = this.id + ' ' + this.json (response);
+                    const error = this.safeValue (response, 'error');
+                    if (typeof error === 'undefined')
+                        throw new ExchangeError (feedback);
+                    const code = this.safeString (error, 'code');
+                    const exceptions = this.exceptions;
+                    if (code in exceptions) {
+                        throw new exceptions[code] (feedback);
+                    } else {
+                        throw new ExchangeError (feedback);
+                    }
+                }
+            }
+        }
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
