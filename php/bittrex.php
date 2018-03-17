@@ -610,12 +610,6 @@ class bittrex extends Exchange {
         return $this->filter_by($orders, 'status', 'closed');
     }
 
-    public function currency_id ($currency) {
-        if ($currency === 'BCH')
-            return 'BCC';
-        return $currency;
-    }
-
     public function fetch_deposit_address ($code, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency ($code);
@@ -642,11 +636,11 @@ class bittrex extends Exchange {
         );
     }
 
-    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
-        $currencyId = $this->currency_id ($currency);
+        $currency = $this->currency ($code);
         $request = array (
-            'currency' => $currencyId,
+            'currency' => $currency['id'],
             'quantity' => $amount,
             'address' => $address,
         );

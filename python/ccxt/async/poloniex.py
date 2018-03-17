@@ -133,6 +133,10 @@ class poloniex (Exchange):
                 'amount': 8,
                 'price': 8,
             },
+            'commonCurrencies': {
+                'BTM': 'Bitmark',
+                'STR': 'XLM',
+            },
         })
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
@@ -150,20 +154,6 @@ class poloniex (Exchange):
             'rate': rate,
             'cost': float(self.fee_to_precision(symbol, cost)),
         }
-
-    def common_currency_code(self, currency):
-        if currency == 'BTM':
-            return 'Bitmark'
-        if currency == 'STR':
-            return 'XLM'
-        return currency
-
-    def currency_id(self, currency):
-        if currency == 'Bitmark':
-            return 'BTM'
-        if currency == 'XLM':
-            return 'STR'
-        return currency
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):
         return [
@@ -678,41 +668,42 @@ class poloniex (Exchange):
         }, params))
         return self.parse_trades(trades)
 
-    async def create_deposit_address(self, currency, params={}):
-        currencyId = self.currency_id(currency)
+    async def create_deposit_address(self, code, params={}):
+        currency = self.currency(code)
         response = await self.privatePostGenerateNewAddress({
-            'currency': currencyId,
+            'currency': currency['id'],
         })
         address = None
         if response['success'] == 1:
             address = self.safe_string(response, 'response')
         self.check_address(address)
         return {
-            'currency': currency,
+            'currency': code,
             'address': address,
             'status': 'ok',
             'info': response,
         }
 
-    async def fetch_deposit_address(self, currency, params={}):
+    async def fetch_deposit_address(self, code, params={}):
+        currency = self.currency(code)
         response = await self.privatePostReturnDepositAddresses()
-        currencyId = self.currency_id(currency)
+        currencyId = currency['id']
         address = self.safe_string(response, currencyId)
         self.check_address(address)
         status = 'ok' if address else 'none'
         return {
-            'currency': currency,
+            'currency': code,
             'address': address,
             'status': status,
             'info': response,
         }
 
-    async def withdraw(self, currency, amount, address, tag=None, params={}):
+    async def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
         await self.load_markets()
-        currencyId = self.currency_id(currency)
+        currency = self.currency(code)
         request = {
-            'currency': currencyId,
+            'currency': currency['id'],
             'amount': amount,
             'address': address,
         }

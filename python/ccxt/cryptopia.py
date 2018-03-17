@@ -80,42 +80,20 @@ class cryptopia (Exchange):
                     ],
                 },
             },
+            'commonCurrencies': {
+                'ACC': 'AdCoin',
+                'BAT': 'BatCoin',
+                'BLZ': 'BlazeCoin',
+                'CC': 'CCX',
+                'CMT': 'Comet',
+                'FCN': 'Facilecoin',
+                'NET': 'NetCoin',
+                'BTG': 'Bitgem',
+                'FUEL': 'FC2',  # FuelCoin != FUEL
+                'QBT': 'Cubits',
+                'WRC': 'WarCoin',
+            },
         })
-
-    def common_currency_code(self, currency):
-        currencies = {
-            'ACC': 'AdCoin',
-            'BAT': 'BatCoin',
-            'BLZ': 'BlazeCoin',
-            'CC': 'CCX',
-            'CMT': 'Comet',
-            'FCN': 'Facilecoin',
-            'NET': 'NetCoin',
-            'BTG': 'Bitgem',
-            'FUEL': 'FC2',  # FuelCoin != FUEL
-            'QBT': 'Cubits',
-            'WRC': 'WarCoin',
-        }
-        if currency in currencies:
-            return currencies[currency]
-        return currency
-
-    def currency_id(self, currency):
-        currencies = {
-            'AdCoin': 'ACC',
-            'BatCoin': 'BAT',
-            'BlazeCoin': 'BLZ',
-            'CCX': 'CC',
-            'Comet': 'CMT',
-            'Cubits': 'QBT',
-            'Facilecoin': 'FCN',
-            'NetCoin': 'NET',
-            'Bitgem': 'BTG',
-            'FC2': 'FUEL',
-        }
-        if currency in currencies:
-            return currencies[currency]
-        return currency
 
     def fetch_markets(self):
         response = self.publicGetGetTradePairs()
@@ -558,27 +536,27 @@ class cryptopia (Exchange):
                 result.append(orders[i])
         return result
 
-    def fetch_deposit_address(self, currency, params={}):
-        currencyId = self.currency_id(currency)
+    def fetch_deposit_address(self, code, params={}):
+        currency = self.currency(code)
         response = self.privatePostGetDepositAddress(self.extend({
-            'Currency': currencyId,
+            'Currency': currency['id'],
         }, params))
         address = self.safe_string(response['Data'], 'BaseAddress')
         if not address:
             address = self.safe_string(response['Data'], 'Address')
         self.check_address(address)
         return {
-            'currency': currency,
+            'currency': code,
             'address': address,
             'status': 'ok',
             'info': response,
         }
 
-    def withdraw(self, currency, amount, address, tag=None, params={}):
+    def withdraw(self, code, amount, address, tag=None, params={}):
+        currency = self.currency(code)
         self.check_address(address)
-        currencyId = self.currency_id(currency)
         request = {
-            'Currency': currencyId,
+            'Currency': currency['id'],
             'Amount': amount,
             'Address': address,  # Address must exist in you AddressBook in security settings
         }

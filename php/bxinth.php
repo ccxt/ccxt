@@ -67,6 +67,10 @@ class bxinth extends Exchange {
                     'maker' => 0.25 / 100,
                 ),
             ),
+            'commonCurrencies' => array (
+                'DAS' => 'DASH',
+                'DOG' => 'DOGE',
+            ),
         ));
     }
 
@@ -91,15 +95,6 @@ class bxinth extends Exchange {
             );
         }
         return $result;
-    }
-
-    public function common_currency_code ($currency) {
-        // why would they use three letters instead of four for $currency codes
-        if ($currency === 'DAS')
-            return 'DASH';
-        if ($currency === 'DOG')
-            return 'DOGE';
-        return $currency;
     }
 
     public function fetch_balance ($params = array ()) {

@@ -71,16 +71,12 @@ class ccex (Exchange):
                     'maker': 0.2 / 100,
                 },
             },
+            'commonCurrencies': {
+                'IOT': 'IoTcoin',
+                'BLC': 'Cryptobullcoin',
+                'XID': 'InternationalDiamond',
+            },
         })
-
-    def common_currency_code(self, currency):
-        if currency == 'IOT':
-            return 'IoTcoin'
-        if currency == 'BLC':
-            return 'Cryptobullcoin'
-        if currency == 'XID':
-            return 'InternationalDiamond'
-        return currency
 
     def fetch_markets(self):
         result = {}

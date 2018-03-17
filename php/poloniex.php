@@ -120,6 +120,10 @@ class poloniex extends Exchange {
                 'amount' => 8,
                 'price' => 8,
             ),
+            'commonCurrencies' => array (
+                'BTM' => 'Bitmark',
+                'STR' => 'XLM',
+            ),
         ));
     }
 
@@ -139,22 +143,6 @@ class poloniex extends Exchange {
             'rate' => $rate,
             'cost' => floatval ($this->fee_to_precision($symbol, $cost)),
         );
-    }
-
-    public function common_currency_code ($currency) {
-        if ($currency === 'BTM')
-            return 'Bitmark';
-        if ($currency === 'STR')
-            return 'XLM';
-        return $currency;
-    }
-
-    public function currency_id ($currency) {
-        if ($currency === 'Bitmark')
-            return 'BTM';
-        if ($currency === 'XLM')
-            return 'STR';
-        return $currency;
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '5m', $since = null, $limit = null) {
@@ -730,43 +718,44 @@ class poloniex extends Exchange {
         return $this->parse_trades($trades);
     }
 
-    public function create_deposit_address ($currency, $params = array ()) {
-        $currencyId = $this->currency_id ($currency);
+    public function create_deposit_address ($code, $params = array ()) {
+        $currency = $this->currency ($code);
         $response = $this->privatePostGenerateNewAddress (array (
-            'currency' => $currencyId,
+            'currency' => $currency['id'],
         ));
         $address = null;
         if ($response['success'] === 1)
             $address = $this->safe_string($response, 'response');
         $this->check_address($address);
         return array (
-            'currency' => $currency,
+            'currency' => $code,
             'address' => $address,
             'status' => 'ok',
             'info' => $response,
         );
     }
 
-    public function fetch_deposit_address ($currency, $params = array ()) {
+    public function fetch_deposit_address ($code, $params = array ()) {
+        $currency = $this->currency ($code);
         $response = $this->privatePostReturnDepositAddresses ();
-        $currencyId = $this->currency_id ($currency);
+        $currencyId = $currency['id'];
         $address = $this->safe_string($response, $currencyId);
         $this->check_address($address);
         $status = $address ? 'ok' : 'none';
         return array (
-            'currency' => $currency,
+            'currency' => $code,
             'address' => $address,
             'status' => $status,
             'info' => $response,
         );
     }
 
-    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
-        $currencyId = $this->currency_id ($currency);
+        $currency = $this->currency ($code);
         $request = array (
-            'currency' => $currencyId,
+            'currency' => $currency['id'],
             'amount' => $amount,
             'address' => $address,
         );
