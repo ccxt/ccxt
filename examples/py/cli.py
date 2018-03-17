@@ -101,8 +101,7 @@ args = argv.args
 # unpack json objects (mostly for extra params)
 args = [exchange.unjson(arg) if arg[0] == '{' else arg for arg in args]
 
-# parse floats (mostly for amount argument and price argument)
-args = [arg if re.match(r"[^\d\.]", arg) else float(arg) for arg in args]
+args = [arg if re.match(r"[^\\d\\.]", arg) else float(arg) for arg in args]
 
 method = getattr(exchange, argv.method)
 
