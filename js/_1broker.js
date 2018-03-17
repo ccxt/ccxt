@@ -138,24 +138,24 @@ module.exports = class _1broker extends Exchange {
     }
 
     async performOrderBookRequest (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let response = await this.privateGetMarketQuotes (this.extend ({
-            'symbols': this.marketId (symbol),
+        return await this.privateGetMarketQuotes (this.extend ({
+            'symbols': symbol,
         }, params));
-        return response['response'][0];
     }
 
     orderBookExchangeKeys () {
         return {
+            'response': ['response', 0],
             'timestamp': 'updated',
         };
     }
 
-    parseOrderBookTimestamp (orderbook, keys) {
+    parseOrderBookTimestamp (orderbook) {
+        let keys = this.orderBookKeys ();
         return this.parse8601 (orderbook[keys['timestamp']]);
     }
 
-    parseOrderBookOrders (orderbook, keys) {
+    parseOrderBookOrders (orderbook) {
         let bidPrice = parseFloat (orderbook['bid']);
         let askPrice = parseFloat (orderbook['ask']);
         let bid = [ bidPrice, undefined ];

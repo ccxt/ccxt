@@ -737,16 +737,17 @@ module.exports = class Exchange {
         })
     }
 
-    //--------------------------Transpilable code-------------------------------
+    // -------------------------Transpilable code-------------------------------
 
     async performOrderBookRequest (symbol, limit = undefined, params = {}) {
         throw new NotSupported (this.id + ' performOrderBookRequest not supported yet');
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        let orderbook = await this.performOrderBookRequest (symbol, limit, params);
-        let keys = this.orderBookKeys ();
-        return this.parseOrderBook (orderbook, keys);
+        await this.loadMarkets ();
+        let marketId = this.marketId (symbol)
+        let orderbook = await this.performOrderBookRequest (marketId, limit, params);
+        return this.parseOrderBook (orderbook, marketId, limit, params);
     }
 
     orderBookExchangeKeys () {
@@ -766,7 +767,8 @@ module.exports = class Exchange {
         return this.extend (defaultOrderbookExchangeKeys, this.orderBookExchangeKeys ());
     }
 
-    parseOrderBookNonce (orderbook, keys) {
+    parseOrderBookNonce (orderbook) {
+        let keys = this.orderBookKeys ();
         let nonce = this.safeInteger (orderbook, keys['nonce'], undefined);
         if (typeof nonce === 'undefined') {
             nonce = this.safeInteger (orderbook, keys['timestamp'], undefined);
@@ -774,11 +776,13 @@ module.exports = class Exchange {
         return nonce;
     }
 
-    parseOrderBookTimestamp (orderbook, keys) {
+    parseOrderBookTimestamp (orderbook) {
+        let keys = this.orderBookKeys ();
         return this.safeInteger (orderbook, keys['timestamp'], undefined);
     }
 
-    parseHTTPResponseDate (keys) {
+    parseHTTPResponseDate () {
+        let keys = this.orderBookKeys ();
         let responseDate = undefined;
         let headerAttributes = Object.keys (this.last_response_headers);
         for (let i = 0; i < headerAttributes.length; i++) {
@@ -796,7 +800,8 @@ module.exports = class Exchange {
         return [ price, amount ];
     }
 
-    parseBidsAsks (bidasks, keys) {
+    parseBidsAsks (bidasks) {
+        let keys = this.orderBookKeys ();
         let orders = [];
         if (typeof bidasks !== 'undefined') {
             orders = bidasks;
@@ -812,7 +817,8 @@ module.exports = class Exchange {
         return parsedOrders;
     }
 
-    parseOrderBookOrders (orderbook, keys) {
+    parseOrderBookOrders (orderbook) {
+        let keys = this.orderBookKeys ();
         let bids = (keys['bids'] in orderbook) ? this.parseBidsAsks (orderbook[keys['bids']], keys) : [];
         let asks = (keys['asks'] in orderbook) ? this.parseBidsAsks (orderbook[keys['asks']], keys) : [];
         return {
@@ -821,7 +827,22 @@ module.exports = class Exchange {
         };
     }
 
-    parseOrderBook (orderbook, keys) {
+    parseOrderBookResponse (response, symbol, limit, params) {
+        let keys = this.orderBookKeys ();
+        if (typeof keys['response'] === 'undefined') {
+            return response;
+        }
+        let path = Array.isArray (keys['response']) ? keys['response'] : [keys['response']];
+        let orderbook = response;
+        for (let i = 0; i < path.length; i++) {
+            let key = path[i] === '__symbol__' ? symbol : path[i];
+            orderbook = orderbook[key];
+        }
+        return orderbook;
+    }
+
+    parseOrderBook (response, symbol, limit, params) {
+        let orderbook = this.parseOrderBookResponse (response, symbol, limit, params);
         let timestamp = this.parseOrderBookTimestamp (orderbook, keys);
         if (typeof timestamp === 'undefined') {
             timestamp = this.parseHTTPResponseDate (keys);

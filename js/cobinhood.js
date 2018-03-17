@@ -303,7 +303,7 @@ module.exports = class cobinhood extends Exchange {
         return response['result']['orderbook'];
     }
 
-    orderBookDefaultKeys () {
+    orderBookExchangeKeys () {
         return {
             'price': 0,
             'amount': 2,

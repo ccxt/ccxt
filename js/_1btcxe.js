@@ -107,14 +107,14 @@ module.exports = class _1btcxe extends Exchange {
     }
 
     async performOrderBookRequest (symbol, limit = undefined, params = {}) {
-        let response = await this.publicGetOrderBook (this.extend ({
-            'currency': this.marketId (symbol),
+        return await this.publicGetOrderBook (this.extend ({
+            'currency': symbol,
         }, params));
-        return response['order-book'];
     }
 
     orderBookExchangeKeys () {
         return {
+            'response': 'order-book',
             'bids': 'bid',
             'asks': 'ask',
             'price': 'price',
