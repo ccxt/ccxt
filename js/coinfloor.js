@@ -3,6 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
+const { NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -65,33 +66,31 @@ module.exports = class coinfloor extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        let market = undefined;
+        if ('symbol' in params)
+            market = this.findMarket (params['symbol']);
+        if ('id' in params)
+            market = this.findMarket (params['id']);
+        if (!market)
+            throw new NotSupported (this.id + ' fetchBalance requires a symbol param');
+        let info = await this.privatePostIdBalance ({
+            'id': market['id'],
+        });
         let result = {
-            'info': {},
+            'info': info,
         };
-        let symbols = Object.keys (this.markets);
-        for (let i = 0; i < symbols.length; i++) {
-            let market = this.markets[symbols[i]];
-            if ('symbol' in params && params['symbol'] !== market['symbol'])
-                continue;
-            if ('id' in params && params['id'] !== market['id'])
-                continue;
-            let info = await this.privatePostIdBalance ({
-                'id': market['id'],
-            });
-            result['info'][market['id']] = info;
-            // base/quote used for keys e.g. "xbt_reserved"
-            let keys = market['id'].toLowerCase ().split ('/');
-            result[market['base']] = {
-                'free': parseFloat (info[keys[0] + '_available']),
-                'used': parseFloat (info[keys[0] + '_reserved']),
-                'total': parseFloat (info[keys[0] + '_balance']),
-            };
-            result[market['quote']] = {
-                'free': parseFloat (info[keys[1] + '_available']),
-                'used': parseFloat (info[keys[1] + '_reserved']),
-                'total': parseFloat (info[keys[1] + '_balance']),
-            };
-        }
+        // base/quote used for keys e.g. "xbt_reserved"
+        let keys = market['id'].toLowerCase ().split ('/');
+        result[market['base']] = {
+            'free': parseFloat (info[keys[0] + '_available']),
+            'used': parseFloat (info[keys[0] + '_reserved']),
+            'total': parseFloat (info[keys[0] + '_balance']),
+        };
+        result[market['quote']] = {
+            'free': parseFloat (info[keys[1] + '_available']),
+            'used': parseFloat (info[keys[1] + '_reserved']),
+            'total': parseFloat (info[keys[1] + '_balance']),
+        };
         return this.parseBalance (result);
     }
 
