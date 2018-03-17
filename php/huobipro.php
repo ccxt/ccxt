@@ -17,7 +17,7 @@ class huobipro extends Exchange {
             'version' => 'v1',
             'accounts' => null,
             'accountsById' => null,
-            'hostname' => 'api.huobi.pro',
+            'hostname' => 'api.huobipro.com',
             'has' => array (
                 'CORS' => false,
                 'fetchOHCLV' => true,
@@ -40,10 +40,10 @@ class huobipro extends Exchange {
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
-                'api' => 'https://api.huobi.pro',
-                'www' => 'https://www.huobi.pro',
+                'api' => 'https://api.huobipro.com',
+                'www' => 'https://www.huobipro.com',
                 'doc' => 'https://github.com/huobiapi/API_Docs/wiki/REST_api_reference',
-                'fees' => 'https://www.huobi.pro/about/fee/',
+                'fees' => 'https://www.huobipro.com/about/fee/',
             ),
             'api' => array (
                 'market' => array (
@@ -255,17 +255,6 @@ class huobipro extends Exchange {
         );
     }
 
-    public function parse_trades_data ($data, $market, $since = null, $limit = null) {
-        $result = array ();
-        for ($i = 0; $i < count ($data); $i++) {
-            $trades = $this->parse_trades($data[$i]['data'], $market, $since, $limit);
-            for ($k = 0; $k < count ($trades); $k++) {
-                $result[] = $trades[$k];
-            }
-        }
-        return $result;
-    }
-
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -273,7 +262,17 @@ class huobipro extends Exchange {
             'symbol' => $market['id'],
             'size' => 2000,
         ), $params));
-        return $this->parse_trades_data($response['data'], $market, $since, $limit);
+        $data = $response['data'];
+        $result = array ();
+        for ($i = 0; $i < count ($data); $i++) {
+            $trades = $data[$i]['data'];
+            for ($j = 0; $j < count ($trades); $j++) {
+                $trade = $this->parse_trade($trades[$j], $market);
+                $result[] = $trade;
+            }
+        }
+        $result = $this->sort_by($result, 'timestamp');
+        return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
@@ -480,6 +479,7 @@ class huobipro extends Exchange {
             'currency' => strtolower ($currency['id']),
         ), $params));
         $address = $this->safe_string($response, 'data');
+        $this->check_address($address);
         return array (
             'currency' => $code,
             'status' => 'ok',
@@ -507,6 +507,7 @@ class huobipro extends Exchange {
     }
 
     public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+        $this->check_address($address);
         $request = array (
             'address' => $address, // only supports existing addresses in your withdraw $address list
             'amount' => $amount,

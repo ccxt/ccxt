@@ -73,6 +73,9 @@ class liqui extends Exchange {
                     'deposit' => array (),
                 ),
             ),
+            'commonCurrencies' => array (
+                'DSH' => 'DASH',
+            ),
             'exceptions' => array (
                 '803' => '\\ccxt\\InvalidOrder', // "Count could not be less than 0.001." (selling below minAmount)
                 '804' => '\\ccxt\\InvalidOrder', // "Count could not be more than 10000." (buying above maxAmount)
@@ -102,21 +105,6 @@ class liqui extends Exchange {
             'rate' => $rate,
             'cost' => $cost,
         );
-    }
-
-    public function common_currency_code ($currency) {
-        if (!$this->substituteCommonCurrencyCodes)
-            return $currency;
-        if ($currency === 'XBT')
-            return 'BTC';
-        if ($currency === 'BCC')
-            return 'BCH';
-        if ($currency === 'DRK')
-            return 'DASH';
-        // they misspell DASH as dsh :/
-        if ($currency === 'DSH')
-            return 'DASH';
-        return $currency;
     }
 
     public function get_base_quote_from_market_id ($id) {
@@ -432,16 +420,23 @@ class liqui extends Exchange {
         return $response;
     }
 
+    public function parse_order_status ($status) {
+        $statuses = array (
+            '0' => 'open',
+            '1' => 'closed',
+            '2' => 'canceled',
+            '3' => 'canceled', // or partially-filled and still open? https://github.com/ccxt/ccxt/issues/1594
+        );
+        if (is_array ($statuses) && array_key_exists ($status, $statuses))
+            return $statuses[$status];
+        return $status;
+    }
+
     public function parse_order ($order, $market = null) {
         $id = (string) $order['id'];
-        $status = $this->safe_integer($order, 'status');
-        if ($status === 0) {
-            $status = 'open';
-        } else if ($status === 1) {
-            $status = 'closed';
-        } else if (($status === 2) || ($status === 3)) {
-            $status = 'canceled';
-        }
+        $status = $this->safe_string($order, 'status');
+        if ($status !== 'null')
+            $status = $this->parse_order_status($status);
         $timestamp = intval ($order['timestamp_created']) * 1000;
         $symbol = null;
         if (!$market)
@@ -560,7 +555,7 @@ class liqui extends Exchange {
         $this->load_markets();
         $request = array ();
         $market = null;
-        if ($symbol) {
+        if ($symbol !== null) {
             $market = $this->market ($symbol);
             $request['pair'] = $market['id'];
         }
@@ -570,7 +565,7 @@ class liqui extends Exchange {
         if (is_array ($response) && array_key_exists ('return', $response))
             $openOrders = $this->parse_orders($response['return'], $market);
         $allOrders = $this->update_cached_orders ($openOrders, $symbol);
-        $result = $this->filter_orders_by_symbol($allOrders, $symbol);
+        $result = $this->filter_by_symbol($allOrders, $symbol);
         return $this->filter_by_since_limit($result, $since, $limit);
     }
 
@@ -613,6 +608,7 @@ class liqui extends Exchange {
     }
 
     public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+        $this->check_address($address);
         $this->load_markets();
         $response = $this->privatePostWithdrawCoin (array_merge (array (
             'coinName' => $currency,

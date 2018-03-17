@@ -288,6 +288,7 @@ module.exports = class bithumb extends Exchange {
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
         let request = {
             'units': amount,
             'address': address,

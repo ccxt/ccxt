@@ -31,7 +31,10 @@ module.exports = class gateio extends Exchange {
                 },
                 'www': 'https://gate.io/',
                 'doc': 'https://gate.io/api2',
-                'fees': 'https://gate.io/fee',
+                'fees': [
+                    'https://gate.io/fee',
+                    'https://support.gate.io/hc/en-us/articles/115003577673',
+                ],
             },
             'api': {
                 'public': {
@@ -62,6 +65,14 @@ module.exports = class gateio extends Exchange {
                         'tradeHistory',
                         'withdraw',
                     ],
+                },
+            },
+            'fees': {
+                'trading': {
+                    'tierBased': true,
+                    'percentage': true,
+                    'maker': 0.002,
+                    'taker': 0.002,
                 },
             },
         });
@@ -273,15 +284,16 @@ module.exports = class gateio extends Exchange {
         };
     }
 
-    async createDepositAddress (currency, params = {}) {
+    async createDepositAddress (currency, params = {}) { // CHANGE
         return await this.queryDepositAddress ('New', currency, params);
     }
 
-    async fetchDepositAddress (currency, params = {}) {
+    async fetchDepositAddress (currency, params = {}) {  // CHANGE
         return await this.queryDepositAddress ('Deposit', currency, params);
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
         await this.loadMarkets ();
         let response = await this.privatePostWithdraw (this.extend ({
             'currency': currency.toLowerCase (),

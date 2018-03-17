@@ -284,6 +284,7 @@ class zaif (Exchange):
         return self.parse_orders(response['return'], market, since, limit)
 
     async def withdraw(self, currency, amount, address, tag=None, params={}):
+        self.check_address(address)
         await self.load_markets()
         if currency == 'JPY':
             raise ExchangeError(self.id + ' does not allow ' + currency + ' withdrawals')
@@ -299,6 +300,10 @@ class zaif (Exchange):
             'id': result['return']['txid'],
             'fee': result['return']['fee'],
         }
+
+    def nonce(self):
+        nonce = float(self.milliseconds() / 1000)
+        return '{:.8f}'.format(nonce)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/'

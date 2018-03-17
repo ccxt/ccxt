@@ -187,6 +187,7 @@ class quadrigacx extends Exchange {
             $address = $response;
             $status = 'ok';
         }
+        $this->check_address($address);
         return array (
             'currency' => $currency,
             'address' => $address,
@@ -207,6 +208,7 @@ class quadrigacx extends Exchange {
     }
 
     public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+        $this->check_address($address);
         $this->load_markets();
         $request = array (
             'amount' => $amount,

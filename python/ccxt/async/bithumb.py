@@ -273,6 +273,7 @@ class bithumb (Exchange):
         })
 
     async def withdraw(self, currency, amount, address, tag=None, params={}):
+        self.check_address(address)
         request = {
             'units': amount,
             'address': address,

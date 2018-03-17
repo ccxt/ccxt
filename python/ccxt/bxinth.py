@@ -69,6 +69,10 @@ class bxinth (Exchange):
                     'maker': 0.25 / 100,
                 },
             },
+            'commonCurrencies': {
+                'DAS': 'DASH',
+                'DOG': 'DOGE',
+            },
         })
 
     def fetch_markets(self):
@@ -91,14 +95,6 @@ class bxinth (Exchange):
                 'info': market,
             })
         return result
-
-    def common_currency_code(self, currency):
-        # why would they use three letters instead of four for currency codes
-        if currency == 'DAS':
-            return 'DASH'
-        if currency == 'DOG':
-            return 'DOGE'
-        return currency
 
     def fetch_balance(self, params={}):
         self.load_markets()
@@ -252,7 +248,7 @@ class bxinth (Exchange):
             request['pairing'] = market['id']
         response = self.privatePostGetorders(self.extend(request, params))
         orders = self.parse_orders(response['orders'], market, since, limit)
-        return self.filter_orders_by_symbol(orders, symbol)
+        return self.filter_by_symbol(orders, symbol)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/'

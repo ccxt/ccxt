@@ -302,6 +302,7 @@ module.exports = class zaif extends Exchange {
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
         await this.loadMarkets ();
         if (currency === 'JPY')
             throw new ExchangeError (this.id + ' does not allow ' + currency + ' withdrawals');
@@ -317,6 +318,11 @@ module.exports = class zaif extends Exchange {
             'id': result['return']['txid'],
             'fee': result['return']['fee'],
         };
+    }
+
+    nonce () {
+        let nonce = parseFloat (this.milliseconds () / 1000);
+        return nonce.toFixed (8);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

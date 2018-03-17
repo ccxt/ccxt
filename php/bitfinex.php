@@ -215,6 +215,14 @@ class bitfinex extends Exchange {
                     ),
                 ),
             ),
+            'commonCurrencies' => array (
+                'DSH' => 'DASH', // Bitfinex names Dash as DSH, instead of DASH
+                'QTM' => 'QTUM',
+                'BCC' => 'CST_BCC',
+                'BCU' => 'CST_BCU',
+                'IOT' => 'IOTA',
+                'DAT' => 'DATA',
+            ),
             'exceptions' => array (
                 'exact' => array (
                     'Order could not be cancelled.' => '\\ccxt\\OrderNotFound', // non-existent order
@@ -234,18 +242,6 @@ class bitfinex extends Exchange {
                 ),
             ),
         ));
-    }
-
-    public function common_currency_code ($currency) {
-        $currencies = array (
-            'DSH' => 'DASH', // Bitfinex names Dash as DSH, instead of DASH
-            'QTM' => 'QTUM',
-            'BCC' => 'CST_BCC',
-            'BCU' => 'CST_BCU',
-            'IOT' => 'IOTA',
-            'DAT' => 'DATA',
-        );
-        return (is_array ($currencies) && array_key_exists ($currency, $currencies)) ? $currencies[$currency] : $currency;
     }
 
     public function fetch_funding_fees ($params = array ()) {
@@ -383,18 +379,9 @@ class bitfinex extends Exchange {
         $result = array ();
         for ($i = 0; $i < count ($tickers); $i++) {
             $ticker = $tickers[$i];
-            if (is_array ($ticker) && array_key_exists ('pair', $ticker)) {
-                $id = $ticker['pair'];
-                if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
-                    $market = $this->markets_by_id[$id];
-                    $symbol = $market['symbol'];
-                    $result[$symbol] = $this->parse_ticker($ticker, $market);
-                } else {
-                    throw new ExchangeError ($this->id . ' fetchTickers() failed to recognize $symbol ' . $id . ' ' . $this->json ($ticker));
-                }
-            } else {
-                throw new ExchangeError ($this->id . ' fetchTickers() response not recognized ' . $this->json ($tickers));
-            }
+            $parsedTicker = $this->parse_ticker($ticker);
+            $symbol = $parsedTicker['symbol'];
+            $result[$symbol] = $parsedTicker;
         }
         return $result;
     }
@@ -415,11 +402,15 @@ class bitfinex extends Exchange {
             $symbol = $market['symbol'];
         } else if (is_array ($ticker) && array_key_exists ('pair', $ticker)) {
             $id = $ticker['pair'];
-            if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$id];
+            $market = $this->find_market($ticker['pair']);
+            if ($market !== null) {
                 $symbol = $market['symbol'];
             } else {
-                throw new ExchangeError ($this->id . ' unrecognized $ticker $symbol ' . $id . ' ' . $this->json ($ticker));
+                $baseId = mb_substr ($id, 0, 3);
+                $quoteId = mb_substr ($id, 3, 6);
+                $base = $this->common_currency_code($baseId);
+                $quote = $this->common_currency_code($quoteId);
+                $symbol = $base . '/' . $quote;
             }
         }
         return array (
@@ -570,10 +561,10 @@ class bitfinex extends Exchange {
             'type' => $orderType,
             'side' => $side,
             'price' => $this->safe_float($order, 'price'),
-            'average' => floatval ($order['avg_execution_price']),
-            'amount' => floatval ($order['original_amount']),
-            'remaining' => floatval ($order['remaining_amount']),
-            'filled' => floatval ($order['executed_amount']),
+            'average' => $this->safe_float($order, 'avg_execution_price'),
+            'amount' => $this->safe_float($order, 'original_amount'),
+            'remaining' => $this->safe_float($order, 'remaining_amount'),
+            'filled' => $this->safe_float($order, 'executed_amount'),
             'status' => $status,
             'fee' => null,
         );
@@ -667,9 +658,11 @@ class bitfinex extends Exchange {
         $response = $this->fetch_deposit_address ($currency, array_merge (array (
             'renew' => 1,
         ), $params));
+        $address = $this->safe_string($response, 'address');
+        $this->check_address($address);
         return array (
             'currency' => $currency,
-            'address' => $response['address'],
+            'address' => $address,
             'status' => 'ok',
             'info' => $response['info'],
         );
@@ -689,6 +682,7 @@ class bitfinex extends Exchange {
             $tag = $address;
             $address = $response['address_pool'];
         }
+        $this->check_address($address);
         return array (
             'currency' => $currency,
             'address' => $address,
@@ -699,6 +693,7 @@ class bitfinex extends Exchange {
     }
 
     public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+        $this->check_address($address);
         $name = $this->get_currency_name ($currency);
         $request = array (
             'withdraw_type' => $name,

@@ -79,6 +79,7 @@ class hitbtc (Exchange):
                     ],
                 },
             },
+            # hardcoded fees are deprecated and should only be used when there's no other way to get fee info
             'fees': {
                 'trading': {
                     'tierBased': False,
@@ -483,19 +484,14 @@ class hitbtc (Exchange):
                     },
                 },
             },
+            'commonCurrencies': {
+                'XBT': 'BTC',
+                'DRK': 'DASH',
+                'CAT': 'BitClave',
+                'USD': 'USDT',
+                'EMGO': 'MGO',
+            },
         })
-
-    def common_currency_code(self, currency):
-        currencies = {
-            'XBT': 'BTC',
-            'DRK': 'DASH',
-            'CAT': 'BitClave',
-            'USD': 'USDT',
-            'EMGO': 'MGO',
-        }
-        if currency in currencies:
-            return currencies[currency]
-        return currency
 
     def fetch_markets(self):
         markets = self.publicGetSymbols()
@@ -836,6 +832,7 @@ class hitbtc (Exchange):
         return self.parse_trades(response['trades'], market, since, limit)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
         request = {

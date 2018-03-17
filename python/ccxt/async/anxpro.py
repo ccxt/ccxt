@@ -170,6 +170,7 @@ class anxpro (Exchange):
         return 100
 
     async def withdraw(self, currency, amount, address, tag=None, params={}):
+        self.check_address(address)
         await self.load_markets()
         multiplier = self.get_amount_multiplier(currency)
         response = await self.privatePostMoneyCurrencySendSimple(self.extend({
@@ -208,7 +209,8 @@ class anxpro (Exchange):
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = await self.fetch2(path, api, method, params, headers, body)
-        if 'result' in response:
-            if response['result'] == 'success':
-                return response
+        if response is not None:
+            if 'result' in response:
+                if response['result'] == 'success':
+                    return response
         raise ExchangeError(self.id + ' ' + self.json(response))

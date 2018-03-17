@@ -433,7 +433,7 @@ class gatecoin (Exchange):
         response = await self.privateGetTradeOrders()
         orders = self.parse_orders(response['orders'], None, since, limit)
         if symbol is not None:
-            return self.filter_orders_by_symbol(orders, symbol)
+            return self.filter_by_symbol(orders, symbol)
         return orders
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

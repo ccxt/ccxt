@@ -80,6 +80,7 @@ class bitstamp (Exchange):
                         'xrp_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
+                        'withdrawal-requests/',
                         'withdrawal/open/',
                         'withdrawal/status/',
                         'withdrawal/cancel/',
@@ -250,9 +251,12 @@ class bitstamp (Exchange):
             'tid',
             'type',
             'order_id',
+            'side',
         ])
         currencyIds = list(trade.keys())
         numCurrencyIds = len(currencyIds)
+        if numCurrencyIds > 2:
+            raise ExchangeError(self.id + ' getMarketFromTrade too many keys: ' + self.json(currencyIds) + ' in the trade: ' + self.json(trade))
         if numCurrencyIds == 2:
             marketId = currencyIds[0] + currencyIds[1]
             if marketId in self.markets_by_id:
@@ -528,15 +532,19 @@ class bitstamp (Exchange):
         method += 'Deposit' if v1 else ''
         method += 'Address'
         response = getattr(self, method)(params)
+        address = response if v1 else self.safe_string(response, 'address')
+        tag = None if v1 else self.safe_string(response, 'destination_tag')
+        self.check_address(address)
         return {
             'currency': code,
             'status': 'ok',
-            'address': self.safe_string(response, 'address'),
-            'tag': self.safe_string(response, 'destination_tag'),
+            'address': address,
+            'tag': tag,
             'info': response,
         }
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        self.check_address(address)
         if self.is_fiat(code):
             raise NotSupported(self.id + ' fiat withdraw() for ' + code + ' is not implemented yet')
         name = self.get_currency_name(code)

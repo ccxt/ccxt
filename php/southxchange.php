@@ -268,6 +268,7 @@ class southxchange extends Exchange {
         $parts = explode ('|', $response);
         $numParts = is_array ($parts) ? count ($parts) : 0;
         $address = $parts[0];
+        $this->check_address($address);
         $tag = null;
         if ($numParts > 1)
             $tag = $parts[1];
@@ -281,6 +282,7 @@ class southxchange extends Exchange {
     }
 
     public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+        $this->check_address($address);
         $request = array (
             'currency' => $currency,
             'address' => $address,

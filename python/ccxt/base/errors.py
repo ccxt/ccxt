@@ -31,6 +31,7 @@ __all__ = [
     'ExchangeError',
     'NotSupported',
     'AuthenticationError',
+    'PermissionDenied',
     'InsufficientFunds',
     'InvalidOrder',
     'OrderNotFound',
@@ -40,6 +41,7 @@ __all__ = [
     'RequestTimeout',
     'ExchangeNotAvailable',
     'InvalidNonce',
+    'InvalidAddress'
 ]
 
 # -----------------------------------------------------------------------------
@@ -65,6 +67,11 @@ class AuthenticationError(ExchangeError):
     pass
 
 
+class PermissionDenied(AuthenticationError):
+    """Raised when API credentials are required but missing or wrong"""
+    pass
+
+
 class InsufficientFunds(ExchangeError):
     """Raised when you don't have enough currency on your account balance to place an order"""
     pass
@@ -72,6 +79,11 @@ class InsufficientFunds(ExchangeError):
 
 class InvalidOrder(ExchangeError):
     """"Base class for all exceptions related to the unified order API"""
+    pass
+
+
+class InvalidAddress(ExchangeError):
+    """Raised on invalid funding address"""
     pass
 
 
@@ -113,5 +125,6 @@ class ExchangeNotAvailable(NetworkError):
 class InvalidNonce(NetworkError):
     """Raised in case of a wrong or conflicting nonce number in private requests"""
     pass
+
 
 # =============================================================================

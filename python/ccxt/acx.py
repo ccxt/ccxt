@@ -314,6 +314,7 @@ class acx (Exchange):
         return order
 
     def withdraw(self, currency, amount, address, tag=None, params={}):
+        self.check_address(address)
         self.load_markets()
         result = self.privatePostWithdraw(self.extend({
             'currency': currency.lower(),

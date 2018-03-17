@@ -448,7 +448,7 @@ class gatecoin extends Exchange {
         $response = $this->privateGetTradeOrders ();
         $orders = $this->parse_orders($response['orders'], null, $since, $limit);
         if ($symbol !== null)
-            return $this->filter_orders_by_symbol($orders, $symbol);
+            return $this->filter_by_symbol($orders, $symbol);
         return $orders;
     }
 

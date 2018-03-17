@@ -504,7 +504,8 @@ class okcoinusd (Exchange):
         method += 'OrderInfo'
         response = await getattr(self, method)(self.extend(request, params))
         ordersField = self.get_orders_field()
-        if len(response[ordersField]) > 0:
+        numOrders = len(response[ordersField])
+        if numOrders > 0:
             return self.parse_order(response[ordersField][0])
         raise OrderNotFound(self.id + ' order ' + id + ' not found')
 
@@ -563,6 +564,7 @@ class okcoinusd (Exchange):
         return self.filter_by(orders, 'status', 'closed')
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        self.check_address(address)
         await self.load_markets()
         currency = self.currency(code)
         # if amount < 0.01:

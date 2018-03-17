@@ -18,7 +18,7 @@ module.exports = class huobipro extends Exchange {
             'version': 'v1',
             'accounts': undefined,
             'accountsById': undefined,
-            'hostname': 'api.huobi.pro',
+            'hostname': 'api.huobipro.com',
             'has': {
                 'CORS': false,
                 'fetchOHCLV': true,
@@ -41,10 +41,10 @@ module.exports = class huobipro extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
-                'api': 'https://api.huobi.pro',
-                'www': 'https://www.huobi.pro',
+                'api': 'https://api.huobipro.com',
+                'www': 'https://www.huobipro.com',
                 'doc': 'https://github.com/huobiapi/API_Docs/wiki/REST_api_reference',
-                'fees': 'https://www.huobi.pro/about/fee/',
+                'fees': 'https://www.huobipro.com/about/fee/',
             },
             'api': {
                 'market': {
@@ -256,17 +256,6 @@ module.exports = class huobipro extends Exchange {
         };
     }
 
-    parseTradesData (data, market, since = undefined, limit = undefined) {
-        let result = [];
-        for (let i = 0; i < data.length; i++) {
-            let trades = this.parseTrades (data[i]['data'], market, since, limit);
-            for (let k = 0; k < trades.length; k++) {
-                result.push (trades[k]);
-            }
-        }
-        return result;
-    }
-
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -274,7 +263,17 @@ module.exports = class huobipro extends Exchange {
             'symbol': market['id'],
             'size': 2000,
         }, params));
-        return this.parseTradesData (response['data'], market, since, limit);
+        let data = response['data'];
+        let result = [];
+        for (let i = 0; i < data.length; i++) {
+            let trades = data[i]['data'];
+            for (let j = 0; j < trades.length; j++) {
+                let trade = this.parseTrade (trades[j], market);
+                result.push (trade);
+            }
+        }
+        result = this.sortBy (result, 'timestamp');
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
@@ -481,6 +480,7 @@ module.exports = class huobipro extends Exchange {
             'currency': currency['id'].toLowerCase (),
         }, params));
         let address = this.safeString (response, 'data');
+        this.checkAddress (address);
         return {
             'currency': code,
             'status': 'ok',
@@ -508,6 +508,7 @@ module.exports = class huobipro extends Exchange {
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
         let request = {
             'address': address, // only supports existing addresses in your withdraw address list
             'amount': amount,

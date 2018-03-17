@@ -70,6 +70,9 @@ module.exports = class liqui extends Exchange {
                     'deposit': {},
                 },
             },
+            'commonCurrencies': {
+                'DSH': 'DASH',
+            },
             'exceptions': {
                 '803': InvalidOrder, // "Count could not be less than 0.001." (selling below minAmount)
                 '804': InvalidOrder, // "Count could not be more than 10000." (buying above maxAmount)
@@ -99,21 +102,6 @@ module.exports = class liqui extends Exchange {
             'rate': rate,
             'cost': cost,
         };
-    }
-
-    commonCurrencyCode (currency) {
-        if (!this.substituteCommonCurrencyCodes)
-            return currency;
-        if (currency === 'XBT')
-            return 'BTC';
-        if (currency === 'BCC')
-            return 'BCH';
-        if (currency === 'DRK')
-            return 'DASH';
-        // they misspell DASH as dsh :/
-        if (currency === 'DSH')
-            return 'DASH';
-        return currency;
     }
 
     getBaseQuoteFromMarketId (id) {
@@ -429,16 +417,23 @@ module.exports = class liqui extends Exchange {
         return response;
     }
 
+    parseOrderStatus (status) {
+        let statuses = {
+            '0': 'open',
+            '1': 'closed',
+            '2': 'canceled',
+            '3': 'canceled', // or partially-filled and still open? https://github.com/ccxt/ccxt/issues/1594
+        };
+        if (status in statuses)
+            return statuses[status];
+        return status;
+    }
+
     parseOrder (order, market = undefined) {
         let id = order['id'].toString ();
-        let status = this.safeInteger (order, 'status');
-        if (status === 0) {
-            status = 'open';
-        } else if (status === 1) {
-            status = 'closed';
-        } else if ((status === 2) || (status === 3)) {
-            status = 'canceled';
-        }
+        let status = this.safeString (order, 'status');
+        if (status !== 'undefined')
+            status = this.parseOrderStatus (status);
         let timestamp = parseInt (order['timestamp_created']) * 1000;
         let symbol = undefined;
         if (!market)
@@ -557,7 +552,7 @@ module.exports = class liqui extends Exchange {
         await this.loadMarkets ();
         let request = {};
         let market = undefined;
-        if (symbol) {
+        if (typeof symbol !== 'undefined') {
             let market = this.market (symbol);
             request['pair'] = market['id'];
         }
@@ -567,7 +562,7 @@ module.exports = class liqui extends Exchange {
         if ('return' in response)
             openOrders = this.parseOrders (response['return'], market);
         let allOrders = this.updateCachedOrders (openOrders, symbol);
-        let result = this.filterOrdersBySymbol (allOrders, symbol);
+        let result = this.filterBySymbol (allOrders, symbol);
         return this.filterBySinceLimit (result, since, limit);
     }
 
@@ -610,6 +605,7 @@ module.exports = class liqui extends Exchange {
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
         await this.loadMarkets ();
         let response = await this.privatePostWithdrawCoin (this.extend ({
             'coinName': currency,

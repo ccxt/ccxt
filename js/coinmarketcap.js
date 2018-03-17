@@ -100,6 +100,7 @@ module.exports = class coinmarketcap extends Exchange {
             // we change just the Coinmarketcap instead of changing them all
             'MIOTA': 'IOTA',
             'Maggie': 'Maggie',
+            'BlazeCoin': 'BlazeCoin',
         };
         if (name in currencies)
             return currencies[name];
@@ -120,7 +121,7 @@ module.exports = class coinmarketcap extends Exchange {
                 let baseId = market['id'];
                 let base = this.currencyCode (market['symbol'], market['name']);
                 let symbol = base + '/' + quote;
-                let id = baseId + '/' + quote;
+                let id = baseId + '/' + quoteId;
                 result.push ({
                     'id': id,
                     'symbol': symbol,
@@ -199,7 +200,8 @@ module.exports = class coinmarketcap extends Exchange {
         let tickers = {};
         for (let t = 0; t < response.length; t++) {
             let ticker = response[t];
-            let id = ticker['id'] + '/' + currency;
+            let currencyId = (currency in this.currencies) ? this.currencies[currency]['id'] : currency.toLowerCase ();
+            let id = ticker['id'] + '/' + currencyId;
             let symbol = id;
             let market = undefined;
             if (id in this.markets_by_id) {

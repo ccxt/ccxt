@@ -529,7 +529,8 @@ class okcoinusd extends Exchange {
         $method .= 'OrderInfo';
         $response = $this->$method (array_merge ($request, $params));
         $ordersField = $this->get_orders_field ();
-        if (strlen ($response[$ordersField]) > 0)
+        $numOrders = is_array ($response[$ordersField]) ? count ($response[$ordersField]) : 0;
+        if ($numOrders > 0)
             return $this->parse_order($response[$ordersField][0]);
         throw new OrderNotFound ($this->id . ' order ' . $id . ' not found');
     }
@@ -595,6 +596,7 @@ class okcoinusd extends Exchange {
     }
 
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+        $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency ($code);
         // if ($amount < 0.01)

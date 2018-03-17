@@ -33,7 +33,10 @@ class gateio (Exchange):
                 },
                 'www': 'https://gate.io/',
                 'doc': 'https://gate.io/api2',
-                'fees': 'https://gate.io/fee',
+                'fees': [
+                    'https://gate.io/fee',
+                    'https://support.gate.io/hc/en-us/articles/115003577673',
+                ],
             },
             'api': {
                 'public': {
@@ -64,6 +67,14 @@ class gateio (Exchange):
                         'tradeHistory',
                         'withdraw',
                     ],
+                },
+            },
+            'fees': {
+                'trading': {
+                    'tierBased': True,
+                    'percentage': True,
+                    'maker': 0.002,
+                    'taker': 0.002,
                 },
             },
         })
@@ -263,6 +274,7 @@ class gateio (Exchange):
         return self.query_deposit_address('Deposit', currency, params)
 
     def withdraw(self, currency, amount, address, tag=None, params={}):
+        self.check_address(address)
         self.load_markets()
         response = self.privatePostWithdraw(self.extend({
             'currency': currency.lower(),

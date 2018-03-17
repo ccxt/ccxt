@@ -122,7 +122,7 @@ The ccxt library currently supports the following 102 cryptocurrency exchange ma
 |![hitbtc2](https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg)            | hitbtc2            | [HitBTC v2](https://hitbtc.com)                           | 2   | [API](https://api.hitbtc.com)                                                                | UK                                      |
 |![huobi](https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg)              | huobi              | [Huobi](https://www.huobi.com)                            | 3   | [API](https://github.com/huobiapi/API_Docs_en/wiki)                                          | China                                   |
 |![huobicny](https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg)           | huobicny           | [Huobi CNY](https://www.huobi.com)                        | 1   | [API](https://github.com/huobiapi/API_Docs/wiki/REST_api_reference)                          | China                                   |
-|![huobipro](https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg)           | huobipro           | [Huobi Pro](https://www.huobi.pro)                        | 1   | [API](https://github.com/huobiapi/API_Docs/wiki/REST_api_reference)                          | China                                   |
+|![huobipro](https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg)           | huobipro           | [Huobi Pro](https://www.huobipro.com)                     | 1   | [API](https://github.com/huobiapi/API_Docs/wiki/REST_api_reference)                          | China                                   |
 |![independentreserve](https://user-images.githubusercontent.com/1294454/30521662-cf3f477c-9bcb-11e7-89bc-d1ac85012eda.jpg) | independentreserve | [Independent Reserve](https://www.independentreserve.com) | *   | [API](https://www.independentreserve.com/API)                                                | Australia, New Zealand                  |
 |![itbit](https://user-images.githubusercontent.com/1294454/27822159-66153620-60ad-11e7-89e7-005f6d7f3de0.jpg)              | itbit              | [itBit](https://www.itbit.com)                            | 1   | [API](https://api.itbit.com/docs)                                                            | US                                      |
 |![jubi](https://user-images.githubusercontent.com/1294454/27766581-9d397d9a-5edd-11e7-8fb9-5d8236c0e692.jpg)               | jubi               | [jubi.com](https://www.jubi.com)                          | 1   | [API](https://www.jubi.com/help/api.html)                                                    | China                                   |
@@ -219,7 +219,8 @@ $bitfinex = new \ccxt\bitfinex (); // default id
 $bitfinex1 = new \ccxt\bitfinex (array ('id' => 'bitfinex1'));
 $bitfinex2 = new \ccxt\bitfinex (array ('id' => 'bitfinex2'));
 $id = 'kraken';
-$kraken = new \ccxt\$id ();
+$exchange = '\\ccxt\\' . $id
+$kraken = new $exchange ();
 ```
 
 ## Exchange Structure
@@ -538,7 +539,8 @@ print (okcoin.id, markets)
 ```PHP
 // PHP
 $id = 'huobi';
-$huobi = new \ccxt\$id ();
+$exchange = '\\ccxt\\' . $id;
+$huobi = new $exchange ();
 $markets = $huobi.load_markets ();
 var_dump ($huobi->id, $markets);
 ```
@@ -893,7 +895,7 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 - `fetchClosedOrders ([symbol[, params]])`
 - ...
 
-Note, that most of methods of the unified API accept an optional `params` parameter. It is an associative array (a dictionary, empty by default) containing the params you want to override. Use the `params` dictionary if you need to pass a custom setting or an optional parameter to your unified query.
+Note, that most of methods of the unified API accept an optional `params` parameter. It is an associative array (a dictionary, empty by default) containing the params you want to override. The contents of `params` are exchange-specific, consult the exchanges' API documentation for supported fields and values. Use the `params` dictionary if you need to pass a custom setting or an optional parameter to your unified query.
 
 # Market Data
 
@@ -1054,9 +1056,9 @@ A price ticker contains statistics for a particular market/symbol for some perio
     'high':          float, // highest price
     'low':           float, // lowest price
     'bid':           float, // current best bid (buy) price
-    'bidVolume':     float, // current best bid (buy) amount
+    'bidVolume':     float, // current best bid (buy) amount (may be missing or undefined)
     'ask':           float, // current best ask (sell) price
-    'askVolume':     float, // current best ask (sell) amount
+    'askVolume':     float, // current best ask (sell) amount (may be missing or undefined)
     'vwap':          float, // volume weighed average price
     'open':          float, // opening price
     'close':         float, // price of last trade (closing price for current period)
@@ -1197,9 +1199,11 @@ if ($exchange->has['fetchOHLCV'])
     }
 ```
 
-To get the list of available timeframes for your exchange see the `timeframes` property. Note that it is only populated when `has['fetchTickers']`  is true as well.
+To get the list of available timeframes for your exchange see the `timeframes` property. Note that it is only populated when `has['fetchTickers']` is true as well.
 
  **There's a limit on how far back in time your requests can go.** Most of exchanges will not allow to query detailed candlestick history (like those for 1-minute and 5-minute timeframes) too far in the past. They usually keep a reasonable amount of most recent candles, like 1000 last candles for any timeframe is more than enough for most of needs. You can work around that limitation by continuously fetching (aka *REST polling*) latest OHLCVs and storing them in a CSV file or in a database.
+
+ **Note that the info from the last (current) candle may be incomplete until the candle is closed (until the next candle starts).**
 
 The fetchOHLCV method shown above returns a list (a flat array) of OHLCV candles represented by the following structure:
 
@@ -1216,6 +1220,8 @@ The fetchOHLCV method shown above returns a list (a flat array) of OHLCV candles
     ...
 ]
 ```
+
+Like with most other unified and implicit methods, the `fetchOHLCV` method accepts as its last argument an associative array (a dictionary) of extra `params`, which is used to override default values that are sent in requests to the exchanges. The contents of `params` are exchange-specific, consult the exchanges' API documentation for supported fields and values.
 
 ### OHLCV Emulation
 
@@ -1777,8 +1783,6 @@ As such, `cancelOrder()` can throw an `OrderNotFound` exception in these cases:
 
 ## Personal Trades
 
-
-
 ```
 - this part of the unified API is currenty a work in progress
 - there may be some issues and missing implementations here and there
@@ -1888,10 +1892,13 @@ createDepositAddress (code, params = {})
 {
     'currency': currency, // currency code
     'address': address,   // address in terms of requested currency
+    'tag': tag,           // tag / memo / paymentId for particular currencies (XRP, XMR, ...)
     'status': status,     // 'ok' or other
     'info': response,     // raw unparsed data as returned from the exchange
 }
 ```
+
+With certain currencies, like AEON, BTS, GXS, NXT, SBD, STEEM, STR, XEM, XLM, XMR, XRP, an additional argument `tag` is usually required by exchanges. The tag is a memo or a message or a payment id that is attached to a withdrawal transaction. The tag is mandatory for those currencies and it identifies the recipient user account.
 
 ### Withdraw
 
@@ -1907,8 +1914,6 @@ The withdraw method returns a dictionary containing the withdrawal id, which is 
     'id': '12345567890', // string withdrawal id, if any
 }
 ```
-
-With certain currencies, like AEON, BTS, GXS, NXT, SBD, STEEM, STR, XEM, XLM, XMR, XRP, an additional argument `tag` is usually required by exchanges. The tag is a memo or a message or a payment id that is attached to a withdrawal transaction.
 
 Some exchanges require a manual approval of each withdrawal by means of 2FA (2-factor authentication). In order to approve your withdrawal you usually have to either click their secret link in your email inbox or enter a Google Authenticator code or an Authy code on their website to verify that withdrawal transaction was requested intentionally.
 
@@ -2043,8 +2048,12 @@ Below is an outline of exception inheritance hierarchy:
 |   +---+ NotSupported
 |   |
 |   +---+ AuthenticationError
+|   |   |
+|   |   +---+ PermissionDenied
 |   |
 |   +---+ InsufficientFunds
+|   |
+|   +---+ InvalidAddress
 |   |
 |   +---+ InvalidOrder
 |       |
@@ -2077,7 +2086,9 @@ Other exceptions derived from `ExchangeError`:
 
   - `NotSupported`: This exception is raised if the endpoint is not offered/not supported by the exchange API.
   - `AuthenticationError`: Raised when an exchange requires one of the API credentials that you've missed to specify, or when there's a mistake in the keypair or an outdated nonce. Most of the time you need `apiKey` and `secret`, sometimes you also need `uid` and/or `password`.
+  - `PermissionDenied`: Raised when there's no access for specified action or insufficient permissions on the specified `apiKey`.
   - `InsufficientFunds`: This exception is raised when you don't have enough currency on your account balance to place an order.
+  - `InvalidAddress`: This exception is raised upon encountering a bad funding address or a funding address shorter than `.minFundingAddressLength` (10 characters by default) in a call to `fetchDepositAddress`, `createDepositAddress` or `withdraw`.
   - `InvalidOrder`: This exception is the base class for all exceptions related to the unified order API.
   - `OrderNotFound`: Raised when you are trying to fetch or cancel a non-existent order.
 
@@ -2091,6 +2102,8 @@ This exception is thrown whenever Cloudflare or Incapsula rate limiter restricti
 
   - `cloudflare`
   - `incapsula`
+  - `overload`
+  - `ddos`
 
 ### RequestTimeout
 
@@ -2132,6 +2145,7 @@ Raised when your nonce is less than the previous nonce used with your keypair, a
 
 In case you experience any difficulty connecting to a particular exchange, do the following in order of precedence:
 
+- Make sure that you have the most recent version of ccxt.
 - Check the [CHANGELOG](https://github.com/ccxt/ccxt/blob/master/CHANGELOG.md) for recent updates.
 - Turn `verbose = true` to get more detail about it.
 - Python people can turn on DEBUG logging level with a standard pythonic logger, by adding these two lines to the beginning of their code:

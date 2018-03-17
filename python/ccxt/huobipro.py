@@ -21,7 +21,7 @@ class huobipro (Exchange):
             'version': 'v1',
             'accounts': None,
             'accountsById': None,
-            'hostname': 'api.huobi.pro',
+            'hostname': 'api.huobipro.com',
             'has': {
                 'CORS': False,
                 'fetchOHCLV': True,
@@ -44,10 +44,10 @@ class huobipro (Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
-                'api': 'https://api.huobi.pro',
-                'www': 'https://www.huobi.pro',
+                'api': 'https://api.huobipro.com',
+                'www': 'https://www.huobipro.com',
                 'doc': 'https://github.com/huobiapi/API_Docs/wiki/REST_api_reference',
-                'fees': 'https://www.huobi.pro/about/fee/',
+                'fees': 'https://www.huobipro.com/about/fee/',
             },
             'api': {
                 'market': {
@@ -245,14 +245,6 @@ class huobipro (Exchange):
             'amount': trade['amount'],
         }
 
-    def parse_trades_data(self, data, market, since=None, limit=None):
-        result = []
-        for i in range(0, len(data)):
-            trades = self.parse_trades(data[i]['data'], market, since, limit)
-            for k in range(0, len(trades)):
-                result.append(trades[k])
-        return result
-
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
@@ -260,7 +252,15 @@ class huobipro (Exchange):
             'symbol': market['id'],
             'size': 2000,
         }, params))
-        return self.parse_trades_data(response['data'], market, since, limit)
+        data = response['data']
+        result = []
+        for i in range(0, len(data)):
+            trades = data[i]['data']
+            for j in range(0, len(trades)):
+                trade = self.parse_trade(trades[j], market)
+                result.append(trade)
+        result = self.sort_by(result, 'timestamp')
+        return self.filter_by_symbol_since_limit(result, symbol, since, limit)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return [
@@ -444,6 +444,7 @@ class huobipro (Exchange):
             'currency': currency['id'].lower(),
         }, params))
         address = self.safe_string(response, 'data')
+        self.check_address(address)
         return {
             'currency': code,
             'status': 'ok',
@@ -468,6 +469,7 @@ class huobipro (Exchange):
         }
 
     def withdraw(self, currency, amount, address, tag=None, params={}):
+        self.check_address(address)
         request = {
             'address': address,  # only supports existing addresses in your withdraw address list
             'amount': amount,

@@ -301,6 +301,7 @@ class zaif extends Exchange {
     }
 
     public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+        $this->check_address($address);
         $this->load_markets();
         if ($currency === 'JPY')
             throw new ExchangeError ($this->id . ' does not allow ' . $currency . ' withdrawals');
@@ -316,6 +317,11 @@ class zaif extends Exchange {
             'id' => $result['return']['txid'],
             'fee' => $result['return']['fee'],
         );
+    }
+
+    public function nonce () {
+        $nonce = floatval ($this->milliseconds () / 1000);
+        return sprintf ('%.8f', $nonce);
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

@@ -68,6 +68,10 @@ module.exports = class bxinth extends Exchange {
                     'maker': 0.25 / 100,
                 },
             },
+            'commonCurrencies': {
+                'DAS': 'DASH',
+                'DOG': 'DOGE',
+            },
         });
     }
 
@@ -92,15 +96,6 @@ module.exports = class bxinth extends Exchange {
             });
         }
         return result;
-    }
-
-    commonCurrencyCode (currency) {
-        // why would they use three letters instead of four for currency codes
-        if (currency === 'DAS')
-            return 'DASH';
-        if (currency === 'DOG')
-            return 'DOGE';
-        return currency;
     }
 
     async fetchBalance (params = {}) {
@@ -269,7 +264,7 @@ module.exports = class bxinth extends Exchange {
         }
         let response = this.privatePostGetorders (this.extend (request, params));
         let orders = this.parseOrders (response['orders'], market, since, limit);
-        return this.filterOrdersBySymbol (orders, symbol);
+        return this.filterBySymbol (orders, symbol);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

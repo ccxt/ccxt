@@ -67,6 +67,7 @@ class bitstamp extends Exchange {
                         'xrp_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
+                        'withdrawal-requests/',
                         'withdrawal/open/',
                         'withdrawal/status/',
                         'withdrawal/cancel/',
@@ -242,9 +243,12 @@ class bitstamp extends Exchange {
             'tid',
             'type',
             'order_id',
+            'side',
         ));
         $currencyIds = is_array ($trade) ? array_keys ($trade) : array ();
         $numCurrencyIds = is_array ($currencyIds) ? count ($currencyIds) : 0;
+        if ($numCurrencyIds > 2)
+            throw new ExchangeError ($this->id . ' getMarketFromTrade too many keys => ' . $this->json ($currencyIds) . ' in the $trade => ' . $this->json ($trade));
         if ($numCurrencyIds === 2) {
             $marketId = $currencyIds[0] . $currencyIds[1];
             if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
@@ -554,16 +558,20 @@ class bitstamp extends Exchange {
         $method .= $v1 ? 'Deposit' : '';
         $method .= 'Address';
         $response = $this->$method ($params);
+        $address = $v1 ? $response : $this->safe_string($response, 'address');
+        $tag = $v1 ? null : $this->safe_string($response, 'destination_tag');
+        $this->check_address($address);
         return array (
             'currency' => $code,
             'status' => 'ok',
-            'address' => $this->safe_string($response, 'address'),
-            'tag' => $this->safe_string($response, 'destination_tag'),
+            'address' => $address,
+            'tag' => $tag,
             'info' => $response,
         );
     }
 
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+        $this->check_address($address);
         if ($this->is_fiat ($code))
             throw new NotSupported ($this->id . ' fiat withdraw() for ' . $code . ' is not implemented yet');
         $name = $this->get_currency_name ($code);

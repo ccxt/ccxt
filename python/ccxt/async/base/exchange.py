@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.11.2'
+__version__ = '1.11.116'
 
 # -----------------------------------------------------------------------------
 
@@ -137,6 +137,9 @@ class Exchange(BaseExchange):
 
         except concurrent.futures._base.TimeoutError as e:
             self.raise_error(RequestTimeout, method, url, e, None)
+
+        except aiohttp.client_exceptions.ClientConnectionError as e:
+            self.raise_error(ExchangeNotAvailable, url, method, e, None)
 
         except aiohttp.client_exceptions.ClientError as e:
             self.raise_error(ExchangeError, url, method, e, None)

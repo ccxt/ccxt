@@ -415,8 +415,7 @@ module.exports = class braziliex extends Exchange {
             'currency': currency['id'],
         }, params));
         let address = this.safeString (response, 'deposit_address');
-        if (!address)
-            throw new ExchangeError (this.id + ' fetchDepositAddress failed: ' + this.last_http_response);
+        this.checkAddress (address);
         let tag = this.safeString (response, 'payment_id');
         return {
             'currency': code,

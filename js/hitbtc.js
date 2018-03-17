@@ -75,6 +75,7 @@ module.exports = class hitbtc extends Exchange {
                     ],
                 },
             },
+            // hardcoded fees are deprecated and should only be used when there's no other way to get fee info
             'fees': {
                 'trading': {
                     'tierBased': false,
@@ -479,20 +480,14 @@ module.exports = class hitbtc extends Exchange {
                     },
                 },
             },
+            'commonCurrencies': {
+                'XBT': 'BTC',
+                'DRK': 'DASH',
+                'CAT': 'BitClave',
+                'USD': 'USDT',
+                'EMGO': 'MGO',
+            },
         });
-    }
-
-    commonCurrencyCode (currency) {
-        let currencies = {
-            'XBT': 'BTC',
-            'DRK': 'DASH',
-            'CAT': 'BitClave',
-            'USD': 'USDT',
-            'EMGO': 'MGO',
-        };
-        if (currency in currencies)
-            return currencies[currency];
-        return currency;
     }
 
     async fetchMarkets () {
@@ -862,6 +857,7 @@ module.exports = class hitbtc extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
         await this.loadMarkets ();
         let currency = this.currency (code);
         let request = {

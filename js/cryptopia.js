@@ -73,42 +73,20 @@ module.exports = class cryptopia extends Exchange {
                     ],
                 },
             },
+            'commonCurrencies': {
+                'ACC': 'AdCoin',
+                'BAT': 'BatCoin',
+                'BLZ': 'BlazeCoin',
+                'CC': 'CCX',
+                'CMT': 'Comet',
+                'FCN': 'Facilecoin',
+                'NET': 'NetCoin',
+                'BTG': 'Bitgem',
+                'FUEL': 'FC2', // FuelCoin != FUEL
+                'QBT': 'Cubits',
+                'WRC': 'WarCoin',
+            },
         });
-    }
-
-    commonCurrencyCode (currency) {
-        const currencies = {
-            'ACC': 'AdCoin',
-            'BAT': 'BatCoin',
-            'CC': 'CCX',
-            'CMT': 'Comet',
-            'FCN': 'Facilecoin',
-            'NET': 'NetCoin',
-            'BTG': 'Bitgem',
-            'FUEL': 'FC2', // FuelCoin != FUEL
-            'QBT': 'Cubits',
-            'WRC': 'WarCoin',
-        };
-        if (currency in currencies)
-            return currencies[currency];
-        return currency;
-    }
-
-    currencyId (currency) {
-        const currencies = {
-            'AdCoin': 'ACC',
-            'BatCoin': 'BAT',
-            'CCX': 'CC',
-            'Comet': 'CMT',
-            'Cubits': 'QBT',
-            'Facilecoin': 'FCN',
-            'NetCoin': 'NET',
-            'Bitgem': 'BTG',
-            'FC2': 'FUEL',
-        };
-        if (currency in currencies)
-            return currencies[currency];
-        return currency;
     }
 
     async fetchMarkets () {
@@ -272,7 +250,7 @@ module.exports = class cryptopia extends Exchange {
             let symbol = market['symbol'];
             result[symbol] = this.parseTicker (ticker, market);
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     parseTrade (trade, market = undefined) {
@@ -326,7 +304,7 @@ module.exports = class cryptopia extends Exchange {
         if (typeof since !== 'undefined') {
             let elapsed = this.milliseconds () - since;
             let hour = 1000 * 60 * 60;
-            hours = parseInt (elapsed / hour);
+            hours = parseInt (Math.ceil (elapsed / hour));
         }
         let request = {
             'id': market['id'],
@@ -603,26 +581,28 @@ module.exports = class cryptopia extends Exchange {
         return result;
     }
 
-    async fetchDepositAddress (currency, params = {}) {
-        let currencyId = this.currencyId (currency);
+    async fetchDepositAddress (code, params = {}) {
+        let currency = this.currency (code);
         let response = await this.privatePostGetDepositAddress (this.extend ({
-            'Currency': currencyId,
+            'Currency': currency['id'],
         }, params));
         let address = this.safeString (response['Data'], 'BaseAddress');
         if (!address)
             address = this.safeString (response['Data'], 'Address');
+        this.checkAddress (address);
         return {
-            'currency': currency,
+            'currency': code,
             'address': address,
             'status': 'ok',
             'info': response,
         };
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
-        let currencyId = this.currencyId (currency);
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        let currency = this.currency (code);
+        this.checkAddress (address);
         let request = {
-            'Currency': currencyId,
+            'Currency': currency['id'],
             'Amount': amount,
             'Address': address, // Address must exist in you AddressBook in security settings
         };

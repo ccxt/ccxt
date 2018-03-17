@@ -449,7 +449,7 @@ module.exports = class gatecoin extends Exchange {
         let response = await this.privateGetTradeOrders ();
         let orders = this.parseOrders (response['orders'], undefined, since, limit);
         if (typeof symbol !== 'undefined')
-            return this.filterOrdersBySymbol (orders, symbol);
+            return this.filterBySymbol (orders, symbol);
         return orders;
     }
 

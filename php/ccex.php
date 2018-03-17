@@ -21,7 +21,7 @@ class ccex extends Exchange {
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766433-16881f90-5ed8-11e7-92f8-3d92cc747a6c.jpg',
                 'api' => array (
-                    'tickers' => 'https://c-cex.com/t',
+                    'web' => 'https://c-cex.com/t',
                     'public' => 'https://c-cex.com/t/api_pub.html',
                     'private' => 'https://c-cex.com/t/api.html',
                 ),
@@ -29,7 +29,7 @@ class ccex extends Exchange {
                 'doc' => 'https://c-cex.com/?id=api',
             ),
             'api' => array (
-                'tickers' => array (
+                'web' => array (
                     'get' => array (
                         'coinnames',
                         '{market}',
@@ -68,38 +68,54 @@ class ccex extends Exchange {
                     'maker' => 0.2 / 100,
                 ),
             ),
+            'commonCurrencies' => array (
+                'IOT' => 'IoTcoin',
+                'BLC' => 'Cryptobullcoin',
+                'XID' => 'InternationalDiamond',
+            ),
         ));
     }
 
-    public function common_currency_code ($currency) {
-        if ($currency === 'IOT')
-            return 'IoTcoin';
-        if ($currency === 'BLC')
-            return 'Cryptobullcoin';
-        if ($currency === 'XID')
-            return 'InternationalDiamond';
-        return $currency;
-    }
-
     public function fetch_markets () {
-        $markets = $this->publicGetMarkets ();
         $result = array ();
-        for ($p = 0; $p < count ($markets['result']); $p++) {
-            $market = $markets['result'][$p];
-            $id = $market['MarketName'];
-            $base = $market['MarketCurrency'];
-            $quote = $market['BaseCurrency'];
+        $response = $this->webGetPairs ();
+        $markets = $response['pairs'];
+        for ($i = 0; $i < count ($markets); $i++) {
+            $id = $markets[$i];
+            list ($baseId, $quoteId) = explode ('-', $id);
+            $base = strtoupper ($baseId);
+            $quote = strtoupper ($quoteId);
             $base = $this->common_currency_code($base);
             $quote = $this->common_currency_code($quote);
             $symbol = $base . '/' . $quote;
-            $result[] = array (
+            $result[$symbol] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
-                'info' => $market,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
+                'info' => $id,
             );
         }
+        // an alternative documented parser
+        //     $markets = $this->publicGetMarkets ();
+        //     for ($p = 0; $p < count ($markets['result']); $p++) {
+        //         $market = $markets['result'][$p];
+        //         $id = $market['MarketName'];
+        //         $base = $market['MarketCurrency'];
+        //         $quote = $market['BaseCurrency'];
+        //         $base = $this->common_currency_code($base);
+        //         $quote = $this->common_currency_code($quote);
+        //         $symbol = $base . '/' . $quote;
+        //         $result[] = array (
+        //             'id' => $id,
+        //             'symbol' => $symbol,
+        //             'base' => $base,
+        //             'quote' => $quote,
+        //             'info' => $market,
+        //         );
+        //     }
         return $result;
     }
 
@@ -203,7 +219,7 @@ class ccex extends Exchange {
 
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
-        $tickers = $this->tickersGetPrices ($params);
+        $tickers = $this->webGetPrices ($params);
         $result = array ( 'info' => $tickers );
         $ids = is_array ($tickers) ? array_keys ($tickers) : array ();
         for ($i = 0; $i < count ($ids); $i++) {
@@ -229,7 +245,7 @@ class ccex extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->tickersGetMarket (array_merge (array (
+        $response = $this->webGetMarket (array_merge (array (
             'market' => strtolower ($market['id']),
         ), $params));
         $ticker = $response['ticker'];
@@ -306,7 +322,7 @@ class ccex extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if ($api === 'tickers')
+        if ($api === 'web')
             return $response;
         if (is_array ($response) && array_key_exists ('success', $response))
             if ($response['success'])

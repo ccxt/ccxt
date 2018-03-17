@@ -64,20 +64,20 @@ module.exports = class flowbtc extends Exchange {
     async fetchMarkets () {
         let response = await this.publicPostGetProductPairs ();
         let markets = response['productPairs'];
-        let result = [];
+        let result = {};
         for (let p = 0; p < markets.length; p++) {
             let market = markets[p];
             let id = market['name'];
             let base = market['product1Label'];
             let quote = market['product2Label'];
             let symbol = base + '/' + quote;
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'info': market,
-            });
+            };
         }
         return result;
     }

@@ -147,7 +147,7 @@ class bibox extends Exchange {
             'change' => null,
             'percentage' => $this->safe_string($ticker, 'percent'),
             'average' => null,
-            'baseVolume' => $this->safe_float($ticker, 'vol'),
+            'baseVolume' => $this->safe_float($ticker, 'vol24H'),
             'quoteVolume' => null,
             'info' => $ticker,
         );
@@ -163,21 +163,19 @@ class bibox extends Exchange {
         return $this->parse_ticker($response['result'], $market);
     }
 
+    public function parse_tickers ($rawTickers, $symbols = null) {
+        $tickers = array ();
+        for ($i = 0; $i < count ($rawTickers); $i++) {
+            $tickers[] = $this->parse_ticker($rawTickers[$i]);
+        }
+        return $this->filter_by_array($tickers, 'symbol', $symbols);
+    }
+
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $response = $this->publicGetMdata (array_merge (array (
             'cmd' => 'marketAll',
         ), $params));
-        $tickers = $response['result'];
-        $result = array ();
-        for ($t = 0; $t < count ($tickers); $t++) {
-            $ticker = $this->parse_ticker($tickers[$t]);
-            $symbol = $ticker['symbol'];
-            if ($symbols && (!(is_array ($symbols) && array_key_exists ($symbol, $symbols)))) {
-                continue;
-            }
-            $result[$symbol] = $ticker;
-        }
-        return $result;
+        return $this->parse_tickers ($response['result'], $symbols);
     }
 
     public function parse_trade ($trade, $market = null) {
@@ -492,19 +490,21 @@ class bibox extends Exchange {
         $this->load_markets();
         $currency = $this->currency ($code);
         $response = $this->privatePostTransfer (array (
-            'cmd' => 'transfer/transferOutInfo',
+            'cmd' => 'transfer/transferIn',
             'body' => array_merge (array (
                 'coin_symbol' => $currency['id'],
             ), $params),
         ));
+        $address = $this->safe_string($response, 'result');
         $result = array (
             'info' => $response,
-            'address' => null,
+            'address' => $address,
         );
         return $result;
     }
 
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+        $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency ($code);
         if ($this->password === null)
@@ -568,7 +568,9 @@ class bibox extends Exchange {
                     // The number of orders can not be less than
                     throw new InvalidOrder ($message);
                 else if ($code === '3012')
-                    throw new AuthenticationError ($message); // invalid $api key
+                    throw new AuthenticationError ($message); // invalid apiKey
+                else if ($code === '3024')
+                    throw new PermissionDenied ($message); // insufficient apiKey permissions
                 else if ($code === '3025')
                     throw new AuthenticationError ($message); // signature failed
                 else if ($code === '4000')

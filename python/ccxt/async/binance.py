@@ -315,6 +315,11 @@ class binance (Exchange):
                     },
                 },
             },
+            'commonCurrencies': {
+                'YOYO': 'YOYOW',
+                'BCC': 'BCH',
+                'NANO': 'XRB',
+            },
             # exchange-specific options
             'options': {
                 'warnOnFetchOpenOrdersWithoutSymbol': True,
@@ -332,14 +337,13 @@ class binance (Exchange):
             },
         })
 
-    def milliseconds(self):
-        return super(binance, self).milliseconds() - self.options['timeDifference']
+    def nonce(self):
+        return self.milliseconds() - self.options['timeDifference']
 
     async def load_time_difference(self):
-        before = self.milliseconds()
         response = await self.publicGetTime()
         after = self.milliseconds()
-        self.options['timeDifference'] = int((before + after) / 2 - response['serverTime'])
+        self.options['timeDifference'] = int(after - response['serverTime'])
         return self.options['timeDifference']
 
     async def fetch_markets(self):
@@ -501,17 +505,7 @@ class binance (Exchange):
         tickers = []
         for i in range(0, len(rawTickers)):
             tickers.append(self.parse_ticker(rawTickers[i]))
-        tickersBySymbol = self.index_by(tickers, 'symbol')
-        # return all of them if no symbols were passed in the first argument
-        if symbols is None:
-            return tickersBySymbol
-        # otherwise filter by symbol
-        result = {}
-        for i in range(0, len(symbols)):
-            symbol = symbols[i]
-            if symbol in tickersBySymbol:
-                result[symbol] = tickersBySymbol[symbol]
-        return result
+        return self.filter_by_array(tickers, 'symbol', symbols)
 
     async def fetch_bid_asks(self, symbols=None, params={}):
         await self.load_markets()
@@ -739,16 +733,6 @@ class binance (Exchange):
         response = await self.privateGetMyTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def common_currency_code(self, currency):
-        currencies = {
-            'YOYO': 'YOYOW',
-            'BCC': 'BCH',
-            'NANO': 'XRB',
-        }
-        if currency in currencies:
-            return currencies[currency]
-        return currency
-
     async def fetch_deposit_address(self, code, params={}):
         await self.load_markets()
         currency = self.currency(code)
@@ -761,7 +745,7 @@ class binance (Exchange):
                 tag = self.safe_string(response, 'addressTag')
                 return {
                     'currency': code,
-                    'address': address,
+                    'address': self.check_address(address),
                     'tag': tag,
                     'status': 'ok',
                     'info': response,
@@ -769,6 +753,7 @@ class binance (Exchange):
         raise ExchangeError(self.id + ' fetchDepositAddress failed: ' + self.last_http_response)
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        self.check_address(address)
         await self.load_markets()
         currency = self.currency(code)
         name = address[0:20]
@@ -801,7 +786,7 @@ class binance (Exchange):
         elif (api == 'private') or (api == 'wapi'):
             self.check_required_credentials()
             query = self.urlencode(self.extend({
-                'timestamp': self.milliseconds(),
+                'timestamp': self.nonce(),
                 'recvWindow': self.options['recvWindow'],
             }, params))
             signature = self.hmac(self.encode(query), self.encode(self.secret))
@@ -847,7 +832,7 @@ class binance (Exchange):
             if len(body) > 0:
                 if body[0] == '{':
                     response = json.loads(body)
-                    error = self.safe_value(response, 'code')
+                    error = self.safe_string(response, 'code')
                     if error is not None:
                         exceptions = self.exceptions
                         if error in exceptions:

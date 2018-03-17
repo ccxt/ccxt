@@ -14,12 +14,14 @@ module.exports = class bitflyer extends Exchange {
             'name': 'bitFlyer',
             'countries': 'JP',
             'version': 'v1',
-            'rateLimit': 500,
+            'rateLimit': 1000, // their nonce-timestamp is in seconds...
             'has': {
                 'CORS': false,
                 'withdraw': true,
                 'fetchOrders': true,
                 'fetchOrder': true,
+                'fetchOpenOrders': 'emulated',
+                'fetchClosedOrders': 'emulated',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg',
@@ -298,22 +300,33 @@ module.exports = class bitflyer extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = 100, params = {}) {
         if (typeof symbol === 'undefined')
-            throw new ExchangeError (this.id + ' cancelOrder() requires a symbol argument');
+            throw new ExchangeError (this.id + ' fetchOrders() requires a symbol argument');
         await this.loadMarkets ();
+        let market = this.market (symbol);
         let request = {
-            'product_code': this.marketId (symbol),
+            'product_code': market['id'],
             'count': limit,
         };
         let response = await this.privateGetGetchildorders (this.extend (request, params));
-        let orders = this.parseOrders (response, symbol, since, limit);
+        let orders = this.parseOrders (response, market, since, limit);
         if (symbol)
             orders = this.filterBy (orders, 'symbol', symbol);
         return orders;
     }
 
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = 100, params = {}) {
+        params['child_order_state'] = 'ACTIVE';
+        return this.fetchOrders (symbol, since, limit, params);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = 100, params = {}) {
+        params['child_order_state'] = 'COMPLETED';
+        return this.fetchOrders (symbol, since, limit, params);
+    }
+
     async fetchOrder (id, symbol = undefined, params = {}) {
         if (typeof symbol === 'undefined')
-            throw new ExchangeError (this.id + ' cancelOrder() requires a symbol argument');
+            throw new ExchangeError (this.id + ' fetchOrder() requires a symbol argument');
         let orders = await this.fetchOrders (symbol);
         let ordersById = this.indexBy (orders, 'id');
         if (id in ordersById)
@@ -322,6 +335,7 @@ module.exports = class bitflyer extends Exchange {
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
         await this.loadMarkets ();
         let response = await this.privatePostWithdraw (this.extend ({
             'currency_code': currency,
@@ -349,9 +363,10 @@ module.exports = class bitflyer extends Exchange {
             let nonce = this.nonce ().toString ();
             let auth = [ nonce, method, request ].join ('');
             if (Object.keys (params).length) {
-                body = this.json (params);
-                if (method !== 'GET')
+                if (method !== 'GET') {
+                    body = this.json (params);
                     auth += body;
+                }
             }
             headers = {
                 'ACCESS-KEY': this.apiKey,

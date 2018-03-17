@@ -536,19 +536,13 @@ class coinexchange extends Exchange {
                 'amount' => 8,
                 'price' => 8,
             ),
+            'commonCurrencies' => array (
+                'BON' => 'BonPeKaO',
+                'ETN' => 'Ethernex',
+                'HNC' => 'Huncoin',
+                'MARS' => 'MarsBux',
+            ),
         ));
-    }
-
-    public function common_currency_code ($currency) {
-        $substitutions = array (
-            'BON' => 'BonPeKaO',
-            'ETN' => 'Ethernex',
-            'HNC' => 'Huncoin',
-            'MARS' => 'MarsBux',
-        );
-        if (is_array ($substitutions) && array_key_exists ($currency, $substitutions))
-            return $substitutions[$currency];
-        return $currency;
     }
 
     public function fetch_currencies ($params = array ()) {

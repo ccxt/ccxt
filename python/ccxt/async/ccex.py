@@ -24,7 +24,7 @@ class ccex (Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766433-16881f90-5ed8-11e7-92f8-3d92cc747a6c.jpg',
                 'api': {
-                    'tickers': 'https://c-cex.com/t',
+                    'web': 'https://c-cex.com/t',
                     'public': 'https://c-cex.com/t/api_pub.html',
                     'private': 'https://c-cex.com/t/api.html',
                 },
@@ -32,7 +32,7 @@ class ccex (Exchange):
                 'doc': 'https://c-cex.com/?id=api',
             },
             'api': {
-                'tickers': {
+                'web': {
                     'get': [
                         'coinnames',
                         '{market}',
@@ -71,35 +71,52 @@ class ccex (Exchange):
                     'maker': 0.2 / 100,
                 },
             },
+            'commonCurrencies': {
+                'IOT': 'IoTcoin',
+                'BLC': 'Cryptobullcoin',
+                'XID': 'InternationalDiamond',
+            },
         })
 
-    def common_currency_code(self, currency):
-        if currency == 'IOT':
-            return 'IoTcoin'
-        if currency == 'BLC':
-            return 'Cryptobullcoin'
-        if currency == 'XID':
-            return 'InternationalDiamond'
-        return currency
-
     async def fetch_markets(self):
-        markets = await self.publicGetMarkets()
-        result = []
-        for p in range(0, len(markets['result'])):
-            market = markets['result'][p]
-            id = market['MarketName']
-            base = market['MarketCurrency']
-            quote = market['BaseCurrency']
+        result = {}
+        response = await self.webGetPairs()
+        markets = response['pairs']
+        for i in range(0, len(markets)):
+            id = markets[i]
+            baseId, quoteId = id.split('-')
+            base = baseId.upper()
+            quote = quoteId.upper()
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
-            result.append({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'info': market,
-            })
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'info': id,
+            }
+        # an alternative documented parser
+        #     markets = await self.publicGetMarkets()
+        #     for p in range(0, len(markets['result'])):
+        #         market = markets['result'][p]
+        #         id = market['MarketName']
+        #         base = market['MarketCurrency']
+        #         quote = market['BaseCurrency']
+        #         base = self.common_currency_code(base)
+        #         quote = self.common_currency_code(quote)
+        #         symbol = base + '/' + quote
+        #         result.append({
+        #             'id': id,
+        #             'symbol': symbol,
+        #             'base': base,
+        #             'quote': quote,
+        #             'info': market,
+        #         })
+        #     }
         return result
 
     async def fetch_balance(self, params={}):
@@ -192,7 +209,7 @@ class ccex (Exchange):
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
-        tickers = await self.tickersGetPrices(params)
+        tickers = await self.webGetPrices(params)
         result = {'info': tickers}
         ids = list(tickers.keys())
         for i in range(0, len(ids)):
@@ -215,7 +232,7 @@ class ccex (Exchange):
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.tickersGetMarket(self.extend({
+        response = await self.webGetMarket(self.extend({
             'market': market['id'].lower(),
         }, params))
         ticker = response['ticker']
@@ -285,7 +302,7 @@ class ccex (Exchange):
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = await self.fetch2(path, api, method, params, headers, body)
-        if api == 'tickers':
+        if api == 'web':
             return response
         if 'success' in response:
             if response['success']:
