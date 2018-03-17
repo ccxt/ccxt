@@ -4,7 +4,17 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
+import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import InvalidNonce
 
 
 class bitso (Exchange):
@@ -73,6 +83,10 @@ class bitso (Exchange):
                         'orders/all',
                     ],
                 },
+            },
+            'exceptions': {
+                '0201': AuthenticationError,  # Invalid Nonce or Invalid Credentials
+                '104': InvalidNonce,  # Cannot perform request - nonce must be higher than 1520307203724237
             },
         })
 
@@ -361,6 +375,35 @@ class bitso (Exchange):
                 'Content-Type': 'application/json',
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def handle_errors(self, httpCode, reason, url, method, headers, body):
+        if not isinstance(body, basestring):
+            return  # fallback to default error handler
+        if len(body) < 2:
+            return  # fallback to default error handler
+        if (body[0] == '{') or (body[0] == '['):
+            response = json.loads(body)
+            if 'success' in response:
+                #
+                #     {"success":false,"error":{"code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"}}
+                #
+                success = self.safe_value(response, 'success', False)
+                if isinstance(success, basestring):
+                    if (success == 'true') or (success == '1'):
+                        success = True
+                    else:
+                        success = False
+                if not success:
+                    feedback = self.id + ' ' + self.json(response)
+                    error = self.safe_value(response, 'error')
+                    if error is None:
+                        raise ExchangeError(feedback)
+                    code = self.safe_string(error, 'code')
+                    exceptions = self.exceptions
+                    if code in exceptions:
+                        raise exceptions[code](feedback)
+                    else:
+                        raise ExchangeError(feedback)
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = await self.fetch2(path, api, method, params, headers, body)
