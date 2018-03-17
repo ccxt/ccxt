@@ -511,10 +511,6 @@ abstract class Exchange {
         return $input;
     }
 
-    public function nonce () {
-        return $this->seconds ();
-    }
-
     public function check_required_credentials () {
         $keys = array_keys ($this->requiredCredentials);
         foreach ($this->requiredCredentials as $key => $value) {
@@ -548,6 +544,9 @@ abstract class Exchange {
     public function __construct ($options = array ()) {
 
         $this->curl        = curl_init ();
+        $this->nonce       = function () {
+           return $this->seconds ();
+        };
         $this->id          = null;
 
         // rate limiter params
@@ -663,6 +662,9 @@ abstract class Exchange {
                     (property_exists ($this, $key) && is_array ($this->{$key}) && is_array ($value)) ?
                         array_replace_recursive ($this->{$key}, $value) :
                         $value;
+
+        if (array_key_exists ('nonce', $options))
+            $this->nonce_override = true;
 
         if ($this->api)
             $this->define_rest_api ($this->api, 'request');
@@ -849,7 +851,7 @@ abstract class Exchange {
 
         // we probably only need to set it once on startup
         if ($this->curlopt_interface) {
-			curl_setopt ($this->curl, CURLOPT_INTERFACE, $this->curlopt_interface);
+            curl_setopt ($this->curl, CURLOPT_INTERFACE, $this->curlopt_interface);
         }
 
         /*
@@ -1676,6 +1678,9 @@ abstract class Exchange {
 
     public function __wakeup () {
         $this->curl = curl_init ();
+        $this->nonce = function () {
+           return $this->seconds ();
+        };
         if ($this->api)
             $this->define_rest_api ($this->api, 'request');
     }

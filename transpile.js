@@ -562,8 +562,13 @@ const pythonRegexes = [
             // compile signature + body for PHP
             php.push ('');
             php.push ('    public function ' + method + ' (' + phpArgs + ') {');
+            if (method === 'nonce') {
+                php.push ('        if (!empty ($this->nonce_override))');
+                php.push ('            return call_user_func_array ("parent::nonce", func_get_args ());');
+                php.push ('');
+            }
             php.push (phpBody);
-            php.push ('    }')
+            php.push ('    }');
 
         }
 
