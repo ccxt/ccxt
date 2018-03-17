@@ -4,8 +4,19 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import hashlib
+import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 
 
@@ -95,6 +106,22 @@ class exmo (Exchange):
                         'KICK': 50,
                     },
                 },
+            },
+            'exceptions': {
+                # '803': InvalidOrder,  # "Count could not be less than 0.001."(selling below minAmount)
+                # '804': InvalidOrder,  # "Count could not be more than 10000."(buying above maxAmount)
+                # '805': InvalidOrder,  # "price could not be less than X."(minPrice violation on buy & sell)
+                # '806': InvalidOrder,  # "price could not be more than X."(maxPrice violation on buy & sell)
+                # '807': InvalidOrder,  # "cost could not be less than X."(minCost violation on buy & sell)
+                # '831': InsufficientFunds,  # "Not enougth X to create buy order."(buying with balance.quote < order.cost)
+                # '832': InsufficientFunds,  # "Not enougth X to create sell order."(selling with balance.base < order.amount)
+                '40005': AuthenticationError,  # Authorization error, incorrect signature
+                '40015': ExchangeError,  # API function do not exist
+                '40017': AuthenticationError,  # Wrong API Key
+                '50052': InsufficientFunds,
+                '50173': OrderNotFound,  # "Order with id X was not found."(cancelling non-existent, closed and cancelled order)
+                '50319': InvalidOrder,  # Price by order is less than permissible minimum for self pair
+                '50321': InvalidOrder,  # Price by order is more than permissible maximum for self pair
             },
         })
 
@@ -281,8 +308,6 @@ class exmo (Exchange):
             'price': self.price_to_precision(symbol, price),
             'type': prefix + side,
         }
-        # print(request)
-        # sys.exit()
         response = self.privatePostOrderCreate(self.extend(request, params))
         id = self.safe_string(response, 'order_id')
         timestamp = self.milliseconds()
@@ -366,15 +391,15 @@ class exmo (Exchange):
         self.load_markets()
         response = self.privatePostUserOpenOrders(params)
         marketIds = list(response.keys())
+        orders = []
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             market = None
-            marketSymbol = None
             if marketId in self.markets_by_id:
                 market = self.markets_by_id[marketId]
-                marketSymbol = market['symbol']
-            orders = self.parse_orders(response[marketId], market)
-            self.update_cached_orders(orders, marketSymbol)
+            parsedOrders = self.parse_orders(response[marketId], market)
+            orders = self.array_concat(orders, parsedOrders)
+        self.update_cached_orders(orders)
         return self.filter_by_symbol_since_limit(self.orders, symbol, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -466,7 +491,7 @@ class exmo (Exchange):
             'timestamp': timestamp,
             'status': status,
             'symbol': symbol,
-            'type': None,
+            'type': 'limit',
             'side': side,
             'price': price,
             'cost': cost,
@@ -536,10 +561,36 @@ class exmo (Exchange):
     def nonce(self):
         return self.milliseconds()
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
-        if 'result' in response:
-            if response['result']:
-                return response
-            raise ExchangeError(self.id + ' ' + self.json(response))
-        return response
+    def handle_errors(self, httpCode, reason, url, method, headers, body):
+        if not isinstance(body, basestring):
+            return  # fallback to default error handler
+        if len(body) < 2:
+            return  # fallback to default error handler
+        if (body[0] == '{') or (body[0] == '['):
+            response = json.loads(body)
+            if 'result' in response:
+                #
+                #     {"result":false,"error":"Error 50052: Insufficient funds"}
+                #
+                success = self.safe_value(response, 'result', False)
+                if isinstance(success, basestring):
+                    if (success == 'true') or (success == '1'):
+                        success = True
+                    else:
+                        success = False
+                if not success:
+                    code = None
+                    message = self.safe_string(response, 'error')
+                    errorParts = message.split(':')
+                    numParts = len(errorParts)
+                    if numParts > 1:
+                        errorSubParts = errorParts[0].split(' ')
+                        numSubParts = len(errorSubParts)
+                        if numSubParts > 1:
+                            code = errorSubParts[1]
+                    feedback = self.id + ' ' + self.json(response)
+                    exceptions = self.exceptions
+                    if code in exceptions:
+                        raise exceptions[code](feedback)
+                    else:
+                        raise ExchangeError(self.id + ' ' + self.json(response))
