@@ -642,6 +642,7 @@ module.exports = class kucoin extends Exchange {
         let change = this.safeFloat (ticker, 'changeRate');
         if (typeof change !== 'undefined')
             change *= 100;
+        let last = this.safeFloat (ticker, 'lastDealPrice');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -649,12 +650,14 @@ module.exports = class kucoin extends Exchange {
             'high': this.safeFloat (ticker, 'high'),
             'low': this.safeFloat (ticker, 'low'),
             'bid': this.safeFloat (ticker, 'buy'),
+            'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'sell'),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': this.safeFloat (ticker, 'lastDealPrice'),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': change,
             'percentage': undefined,
             'average': undefined,
