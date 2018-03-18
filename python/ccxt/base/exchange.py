@@ -194,6 +194,7 @@ class Exchange(object):
         'amount': 0,
         'timestamp': 'timestamp',
         'nonce': 'sec',
+        'response': None,
         'responseDate': 'date',
     }
 
@@ -1031,16 +1032,15 @@ class Exchange(object):
         if bidasks is not None:
             orders = bidasks
         parsedOrders = []
-        for orderKey in list(orders.keys()):
-            order = orders[orderKey]
+        for order in orders:
             parsedBidask = self.parse_bid_ask(order, keys['price'], keys['amount'])
             parsedOrders.append(parsedBidask)
         return parsedOrders
 
     def parse_order_book_orders(self, orderbook):
         keys = self.orderbookKeys
-        bids = self.parse_bids_asks(orderbook[keys['bids']], keys) if (keys['bids'] in list(orderbook.keys())) else []
-        asks = self.parse_bids_asks(orderbook[keys['asks']], keys) if (keys['asks'] in list(orderbook.keys())) else []
+        bids = self.parse_bids_asks(orderbook[keys['bids']]) if (keys['bids'] in list(orderbook.keys())) else []
+        asks = self.parse_bids_asks(orderbook[keys['asks']]) if (keys['asks'] in list(orderbook.keys())) else []
         return {
             'bids': bids,
             'asks': asks,

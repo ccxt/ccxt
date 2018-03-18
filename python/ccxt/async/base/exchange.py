@@ -216,8 +216,7 @@ class Exchange(BaseExchange):
         if bidasks is not None:
             orders = bidasks
         parsedOrders = []
-        for orderKey in list(orders.keys()):
-            order = orders[orderKey]
+        for order in orders:
             parsedBidask = self.parse_bid_ask(order, keys['price'], keys['amount'])
             parsedOrders.append(parsedBidask)
         return parsedOrders

@@ -814,11 +814,9 @@ module.exports = class Exchange {
         if (typeof bidasks !== 'undefined') {
             orders = bidasks;
         }
-        let orderKeys = Object.keys (orders);
         let parsedOrders = [];
-        for (let i = 0; i < orderKeys.length; i++) {
-            let orderKey = orderKeys[i];
-            let order = orders[orderKey];
+        for (let i = 0; i < orders.length; i++) {
+            let order = orders[i];
             let parsedBidask = this.parseBidAsk (order, keys['price'], keys['amount']);
             parsedOrders.push (parsedBidask);
         }
@@ -827,8 +825,8 @@ module.exports = class Exchange {
 
     parseOrderBookOrders (orderbook) {
         let keys = this.orderbookKeys;
-        let bids = (keys['bids'] in orderbook) ? this.parseBidsAsks (orderbook[keys['bids']], keys) : [];
-        let asks = (keys['asks'] in orderbook) ? this.parseBidsAsks (orderbook[keys['asks']], keys) : [];
+        let bids = (keys['bids'] in orderbook) ? this.parseBidsAsks (orderbook[keys['bids']]) : [];
+        let asks = (keys['asks'] in orderbook) ? this.parseBidsAsks (orderbook[keys['asks']]) : [];
         return {
             'bids': bids,
             'asks': asks,
