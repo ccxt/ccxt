@@ -4,7 +4,8 @@ const fs   = require ('fs')
     , path = require ('path')
     , log  = require ('ololog')
     , ansi = require ('ansicolor').nice
-    , { capitalize } = require ('./js/base/functions.js')
+    , { unCamelCase,
+        capitalize } = require ('./js/base/functions.js')
     , errors = require ('./js/base/errors.js')
 
 // ---------------------------------------------------------------------------
@@ -417,9 +418,10 @@ const pythonRegexes = [
     // ----------------------------------------------------------------------------
 
     function convertMethodNameToUnderscoreNotation (method) {
-        return (method
-            .replace (/[A-Z]+/g, match => capitalize (match.toLowerCase ()))
-            .replace (/[A-Z]/g, match => '_' + match.toLowerCase ()))
+        return unCamelCase (method)
+        // return (method
+        //     .replace (/[A-Z]+/g, match => capitalize (match.toLowerCase ()))
+        //     .replace (/[A-Z]/g, match => '_' + match.toLowerCase ()))
     }
 
     // ----------------------------------------------------------------------------
