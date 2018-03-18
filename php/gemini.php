@@ -114,6 +114,7 @@ class gemini extends Exchange {
         $timestamp = $ticker['volume']['timestamp'];
         $baseVolume = $market['base'];
         $quoteVolume = $market['quote'];
+        $last = floatval ($ticker['last']);
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -121,12 +122,14 @@ class gemini extends Exchange {
             'high' => null,
             'low' => null,
             'bid' => floatval ($ticker['bid']),
+            'bidVolume' => null,
             'ask' => floatval ($ticker['ask']),
+            'askVolume' => null,
             'vwap' => null,
             'open' => null,
-            'close' => null,
-            'first' => null,
-            'last' => floatval ($ticker['last']),
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
