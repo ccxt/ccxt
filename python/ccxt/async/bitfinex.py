@@ -394,11 +394,12 @@ class bitfinex (Exchange):
     def parse_ticker(self, ticker, market=None):
         timestamp = float(ticker['timestamp']) * 1000
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
         elif 'pair' in ticker:
             id = ticker['pair']
-            market = self.find_market(ticker['pair'])
+            if id in self.markets_by_id:
+                market = self.markets_by_id[id]
             if market is not None:
                 symbol = market['symbol']
             else:
@@ -407,6 +408,7 @@ class bitfinex (Exchange):
                 base = self.common_currency_code(baseId)
                 quote = self.common_currency_code(quoteId)
                 symbol = base + '/' + quote
+        last = float(ticker['last_price'])
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -414,12 +416,14 @@ class bitfinex (Exchange):
             'high': float(ticker['high']),
             'low': float(ticker['low']),
             'bid': float(ticker['bid']),
+            'bidVolume': None,
             'ask': float(ticker['ask']),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['last_price']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': float(ticker['mid']),

@@ -422,6 +422,7 @@ class kraken (Exchange):
         baseVolume = float(ticker['v'][1])
         vwap = float(ticker['p'][1])
         quoteVolume = baseVolume * vwap
+        last = float(ticker['c'][0])
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -429,12 +430,14 @@ class kraken (Exchange):
             'high': float(ticker['h'][1]),
             'low': float(ticker['l'][1]),
             'bid': float(ticker['b'][0]),
+            'bidVolume': None,
             'ask': float(ticker['a'][0]),
+            'askVolume': None,
             'vwap': vwap,
             'open': float(ticker['o']),
-            'close': None,
-            'first': None,
-            'last': float(ticker['c'][0]),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
