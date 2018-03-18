@@ -641,6 +641,7 @@ class kucoin extends Exchange {
         $change = $this->safe_float($ticker, 'changeRate');
         if ($change !== null)
             $change *= 100;
+        $last = $this->safe_float($ticker, 'lastDealPrice');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -648,12 +649,14 @@ class kucoin extends Exchange {
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => $this->safe_float($ticker, 'buy'),
+            'bidVolume' => null,
             'ask' => $this->safe_float($ticker, 'sell'),
+            'askVolume' => null,
             'vwap' => null,
             'open' => null,
-            'close' => null,
-            'first' => null,
-            'last' => $this->safe_float($ticker, 'lastDealPrice'),
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
             'change' => $change,
             'percentage' => null,
             'average' => null,
