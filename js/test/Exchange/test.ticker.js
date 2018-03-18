@@ -65,10 +65,10 @@ module.exports = (exchange, ticker, method, symbol) => {
     if (quoteVolume && vwap)
         assert (baseVolume)
 
-    log (symbol.green, 'ticker',
-        ticker['datetime'],
-        ... (keys.map (key =>
-            key + ': ' + ticker[key])))
+    // log (symbol.green, 'ticker',
+    //     ticker['datetime'],
+    //     ... (keys.map (key =>
+    //         key + ': ' + ticker[key])))
 
     if ((exchange.id !== 'coinmarketcap') && (exchange.id !== 'xbtce'))
         if (ticker['bid'] && ticker['ask'])
