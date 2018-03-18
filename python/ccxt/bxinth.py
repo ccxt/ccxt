@@ -126,6 +126,7 @@ class bxinth (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
+        last = float(ticker['last_price'])
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -138,10 +139,9 @@ class bxinth (Exchange):
             'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
+            'close': last,
+            'last': last,
             'previousClose': None,
-            'last': float(ticker['last_price']),
             'change': float(ticker['change']),
             'percentage': None,
             'average': None,

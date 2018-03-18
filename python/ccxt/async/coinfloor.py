@@ -96,6 +96,7 @@ class coinfloor (Exchange):
         quoteVolume = None
         if vwap is not None:
             quoteVolume = baseVolume * vwap
+        last = float(ticker['last'])
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -108,9 +109,8 @@ class coinfloor (Exchange):
             'askVolume': None,
             'vwap': vwap,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['last']),
+            'close': last,
+            'last': last,
             'previousClose': None,
             'change': None,
             'percentage': None,

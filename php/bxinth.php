@@ -130,6 +130,7 @@ class bxinth extends Exchange {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
+        $last = floatval ($ticker['last_price']);
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -142,10 +143,9 @@ class bxinth extends Exchange {
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
-            'close' => null,
-            'first' => null,
+            'close' => $last,
+            'last' => $last,
             'previousClose' => null,
-            'last' => floatval ($ticker['last_price']),
             'change' => floatval ($ticker['change']),
             'percentage' => null,
             'average' => null,
