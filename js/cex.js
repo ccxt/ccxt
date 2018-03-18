@@ -19,6 +19,7 @@ module.exports = class cex extends Exchange {
                 'fetchTickers': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
                 'fetchOrders': true,
             },
             'timeframes': {
@@ -444,13 +445,13 @@ module.exports = class cex extends Exchange {
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let method = 'privatePostArchivedOrdersPair';
-        if (!symbol) {
-            throw new NotSupported ('Symbol pair is required to fetch closed orders');
+        if (typeof symbol === 'undefined') {
+            throw new NotSupported (this.id + ' fetchClosedOrders requires a symbol argument');
         }
         let market = this.market (symbol);
         let request = { 'pair': market['id'] };
-        let orders = await this[method] (this.extend (request, params));
-        return this.parseOrders (orders, market, since, limit);
+        let response = await this[method] (this.extend (request, params));
+        return this.parseOrders (response, market, since, limit);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
