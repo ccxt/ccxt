@@ -98,6 +98,7 @@ module.exports = class coinfloor extends Exchange {
         if (typeof vwap !== 'undefined') {
             quoteVolume = baseVolume * vwap;
         }
+        let last = parseFloat (ticker['last']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -110,9 +111,8 @@ module.exports = class coinfloor extends Exchange {
             'askVolume': undefined,
             'vwap': vwap,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last']),
+            'close': last,
+            'last': last,
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
