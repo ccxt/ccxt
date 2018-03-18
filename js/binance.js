@@ -27,6 +27,7 @@ module.exports = class binance extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'withdraw': true,
+                'fetchFundingFees': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -78,6 +79,7 @@ module.exports = class binance extends Exchange {
                         'depositAddress',
                         'accountStatus',
                         'systemStatus',
+                        'withdrawFee',
                     ],
                 },
                 'v3': {
@@ -129,7 +131,7 @@ module.exports = class binance extends Exchange {
                     'taker': 0.001,
                     'maker': 0.001,
                 },
-                'funding': {
+                'funding': {  // should be deleted, these are outdated and inaccurate
                     'tierBased': false,
                     'percentage': false,
                     'withdraw': {
@@ -243,60 +245,7 @@ module.exports = class binance extends Exchange {
                         'ZEC': 0.005,
                         'ZRX': 5.7,
                     },
-                    'deposit': {
-                        'ARK': 0,
-                        'AST': 0,
-                        'BCH': 0,
-                        'BNB': 0,
-                        'BNT': 0,
-                        'BQX': 0,
-                        'BTC': 0,
-                        'BTG': 0,
-                        'CTR': 0,
-                        'DASH': 0,
-                        'DNT': 0,
-                        'ENG': 0,
-                        'ENJ': 0,
-                        'EOS': 0,
-                        'ETC': 0,
-                        'ETH': 0,
-                        'EVX': 0,
-                        'FUN': 0,
-                        'GAS': 0,
-                        'HSR': 0,
-                        'ICN': 0,
-                        'IOTA': 0,
-                        'KNC': 0,
-                        'LINK': 0,
-                        'LRC': 0,
-                        'LTC': 0,
-                        'MCO': 0,
-                        'MDA': 0,
-                        'MOD': 0,
-                        'MTH': 0,
-                        'MTL': 0,
-                        'NEO': 0,
-                        'OAX': 0,
-                        'OMG': 0,
-                        'POWR': 0,
-                        'QTUM': 0,
-                        'REQ': 0,
-                        'SALT': 0,
-                        'SNGLS': 0,
-                        'SNM': 0,
-                        'SNT': 0,
-                        'STORJ': 0,
-                        'STRAT': 0,
-                        'SUB': 0,
-                        'TRX': 0,
-                        'USDT': 0,
-                        'VIB': 0,
-                        'WTC': 0,
-                        'XRP': 0,
-                        'XVG': 0,
-                        'YOYOW': 0,
-                        'ZRX': 0,
-                    },
+                    'deposit': {},
                 },
             },
             'commonCurrencies': {
@@ -773,7 +722,30 @@ module.exports = class binance extends Exchange {
                 };
             }
         }
-        throw new ExchangeError (this.id + ' fetchDepositAddress failed: ' + this.last_http_response);
+    }
+
+    async fetchFundingFees (params = {}) {
+        // by default it will try load withdrawal fees of all currencies (with separate requests)
+        // however if you define { 'currencies': [ 'ETH', 'BTC' ] } in params it will only load those
+        await this.loadMarkets ();
+        let withdrawFees = {};
+        let info = {};
+        let fallback = Object.keys (this.currencies);
+        let currencies = this.safeValue (params, 'currencies', fallback);
+        for (let i = 0; i < currencies.length; i++) {
+            let code = currencies[i];
+            let currency = this.currency (code);
+            let response = await this.wapiGetWithdrawFee ({
+                'asset': currency['id'],
+            });
+            withdrawFees[code] = this.safeFloat (response, 'withdrawFee');
+            info[code] = response;
+        }
+        return {
+            'withdraw': withdrawFees,
+            'deposit': {},
+            'info': info,
+        };
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
