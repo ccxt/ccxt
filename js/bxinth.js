@@ -131,6 +131,7 @@ module.exports = class bxinth extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        let last = parseFloat (ticker['last_price']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -143,10 +144,9 @@ module.exports = class bxinth extends Exchange {
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
+            'close': last,
+            'last': last,
             'previousClose': undefined,
-            'last': parseFloat (ticker['last_price']),
             'change': parseFloat (ticker['change']),
             'percentage': undefined,
             'average': undefined,
