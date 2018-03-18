@@ -138,6 +138,7 @@ class _1btcxe extends Exchange {
             'average' => null,
             'baseVolume' => null,
             'quoteVolume' => floatval ($ticker['total_btc_traded']),
+            'info' => $ticker,
         );
     }
 

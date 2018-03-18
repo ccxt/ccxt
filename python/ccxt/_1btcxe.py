@@ -135,6 +135,7 @@ class _1btcxe (Exchange):
             'average': None,
             'baseVolume': None,
             'quoteVolume': float(ticker['total_btc_traded']),
+            'info': ticker,
         }
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1d', since=None, limit=None):
