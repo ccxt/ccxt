@@ -559,7 +559,7 @@ Market Structure
             },
             'price': { ... }, // same min/max limits for the price of the order
             'cost':  { ... }, // same limits for order cost = price * amount
-        }
+        },
         'info':      { ... }, // the original unparsed market info from the exchange
     }
 
