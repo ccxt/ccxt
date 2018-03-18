@@ -395,7 +395,7 @@ class Exchange(object):
         elif http_status_code in [401, 511]:
             error = AuthenticationError
         if error:
-            self.raise_error(error, method, url, exception if exception else http_status_code, response)
+            self.raise_error(error, url, method, exception if exception else http_status_code, response)
 
     def handle_rest_response(self, response, url, method='GET', request_headers=None, request_body=None):
         json_response = None
