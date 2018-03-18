@@ -156,6 +156,7 @@ module.exports = class bitflyer extends Exchange {
             'product_code': this.marketId (symbol),
         }, params));
         let timestamp = this.parse8601 (ticker['timestamp']);
+        let last = parseFloat (ticker['ltp']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -163,12 +164,14 @@ module.exports = class bitflyer extends Exchange {
             'high': undefined,
             'low': undefined,
             'bid': parseFloat (ticker['best_bid']),
+            'bidVolume': undefined,
             'ask': parseFloat (ticker['best_ask']),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['ltp']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
