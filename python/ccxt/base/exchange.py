@@ -152,7 +152,8 @@ class Exchange(object):
         'fetchClosedOrders': False,
         'fetchCurrencies': False,
         'fetchDepositAddress': False,
-        'fetchFees': False,
+        'fetchFundingFees': False,
+        'fetchTradingFees': False,
         'fetchL2OrderBook': True,
         'fetchMarkets': True,
         'fetchMyTrades': False,
@@ -876,7 +877,7 @@ class Exchange(object):
     def load_fees(self):
         self.load_markets()
         self.populate_fees()
-        if not self.has['fetchFees']:
+        if not (self.has['fetchFundingFees'] or self.has['fetchTradingFees']):
             return self.fees
 
         fetched_fees = self.fetch_fees()
