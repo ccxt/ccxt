@@ -120,6 +120,7 @@ class exmo extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'active' => true,
                 'limits' => array (
                     'amount' => array (
                         'min' => $this->safe_float($market, 'min_quantity'),

@@ -135,6 +135,7 @@ class exmo (Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'active': True,
                 'limits': {
                     'amount': {
                         'min': self.safe_float(market, 'min_quantity'),
