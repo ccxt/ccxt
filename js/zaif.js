@@ -155,6 +155,7 @@ module.exports = class zaif extends Exchange {
         let vwap = ticker['vwap'];
         let baseVolume = ticker['volume'];
         let quoteVolume = baseVolume * vwap;
+        let last = ticker['last'];
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -162,12 +163,14 @@ module.exports = class zaif extends Exchange {
             'high': ticker['high'],
             'low': ticker['low'],
             'bid': ticker['bid'],
+            'bidVolume': undefined,
             'ask': ticker['ask'],
+            'askVolume': undefined,
             'vwap': vwap,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': ticker['last'],
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
