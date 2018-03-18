@@ -399,11 +399,12 @@ module.exports = class bitfinex extends Exchange {
     parseTicker (ticker, market = undefined) {
         let timestamp = parseFloat (ticker['timestamp']) * 1000;
         let symbol = undefined;
-        if (market) {
+        if (typeof market !== 'undefined') {
             symbol = market['symbol'];
         } else if ('pair' in ticker) {
             let id = ticker['pair'];
-            let market = this.findMarket (ticker['pair']);
+            if (id in this.markets_by_id)
+                market = this.markets_by_id[id];
             if (typeof market !== 'undefined') {
                 symbol = market['symbol'];
             } else {
@@ -414,6 +415,7 @@ module.exports = class bitfinex extends Exchange {
                 symbol = base + '/' + quote;
             }
         }
+        let last = parseFloat (ticker['last_price']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -421,12 +423,14 @@ module.exports = class bitfinex extends Exchange {
             'high': parseFloat (ticker['high']),
             'low': parseFloat (ticker['low']),
             'bid': parseFloat (ticker['bid']),
+            'bidVolume': undefined,
             'ask': parseFloat (ticker['ask']),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last_price']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': parseFloat (ticker['mid']),
