@@ -131,7 +131,8 @@ module.exports = class binance extends Exchange {
                     'taker': 0.001,
                     'maker': 0.001,
                 },
-                'funding': {  // should be deleted, these are outdated and inaccurate
+                // should be deleted, these are outdated and inaccurate
+                'funding': {
                     'tierBased': false,
                     'percentage': false,
                     'withdraw': {
