@@ -18,6 +18,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import InvalidNonce
 
 
 class exmo (Exchange):
@@ -109,9 +110,11 @@ class exmo (Exchange):
             },
             'exceptions': {
                 '40005': AuthenticationError,  # Authorization error, incorrect signature
+                '40009': InvalidNonce,  #
                 '40015': ExchangeError,  # API function do not exist
                 '40017': AuthenticationError,  # Wrong API Key
                 '50052': InsufficientFunds,
+                '50054': InsufficientFunds,
                 '50173': OrderNotFound,  # "Order with id X was not found."(cancelling non-existent, closed and cancelled order)
                 '50319': InvalidOrder,  # Price by order is less than permissible minimum for self pair
                 '50321': InvalidOrder,  # Price by order is more than permissible maximum for self pair
@@ -579,8 +582,7 @@ class exmo (Exchange):
                     if numParts > 1:
                         errorSubParts = errorParts[0].split(' ')
                         numSubParts = len(errorSubParts)
-                        if numSubParts > 1:
-                            code = errorSubParts[1]
+                        code = errorSubParts[1] if (numSubParts > 1) else errorSubParts[0]
                     feedback = self.id + ' ' + self.json(response)
                     exceptions = self.exceptions
                     if code in exceptions:

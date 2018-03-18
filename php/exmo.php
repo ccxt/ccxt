@@ -94,9 +94,11 @@ class exmo extends Exchange {
             ),
             'exceptions' => array (
                 '40005' => '\\ccxt\\AuthenticationError', // Authorization error, incorrect signature
+                '40009' => '\\ccxt\\InvalidNonce', //
                 '40015' => '\\ccxt\\ExchangeError', // API function do not exist
                 '40017' => '\\ccxt\\AuthenticationError', // Wrong API Key
                 '50052' => '\\ccxt\\InsufficientFunds',
+                '50054' => '\\ccxt\\InsufficientFunds',
                 '50173' => '\\ccxt\\OrderNotFound', // "Order with id X was not found." (cancelling non-existent, closed and cancelled order)
                 '50319' => '\\ccxt\\InvalidOrder', // Price by order is less than permissible minimum for this pair
                 '50321' => '\\ccxt\\InvalidOrder', // Price by order is more than permissible maximum for this pair
@@ -613,9 +615,7 @@ class exmo extends Exchange {
                     if ($numParts > 1) {
                         $errorSubParts = explode (' ', $errorParts[0]);
                         $numSubParts = is_array ($errorSubParts) ? count ($errorSubParts) : 0;
-                        if ($numSubParts > 1) {
-                            $code = $errorSubParts[1];
-                        }
+                        $code = ($numSubParts > 1) ? $errorSubParts[1] : $errorSubParts[0];
                     }
                     $feedback = $this->id . ' ' . $this->json ($response);
                     $exceptions = $this->exceptions;
