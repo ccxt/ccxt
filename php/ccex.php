@@ -195,6 +195,7 @@ class ccex extends Exchange {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
+        $last = floatval ($ticker['lastprice']);
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -207,9 +208,8 @@ class ccex extends Exchange {
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
-            'close' => null,
-            'first' => null,
-            'last' => floatval ($ticker['lastprice']),
+            'close' => $last,
+            'last' => $last,
             'previousClose' => null,
             'change' => null,
             'percentage' => null,

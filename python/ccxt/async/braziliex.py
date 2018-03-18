@@ -182,6 +182,7 @@ class braziliex (Exchange):
         symbol = market['symbol']
         timestamp = ticker['date']
         ticker = ticker['ticker']
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -194,9 +195,8 @@ class braziliex (Exchange):
             'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': self.safe_float(ticker, 'last'),
+            'close': last,
+            'last': last,
             'previousClose': None,
             'change': self.safe_float(ticker, 'percentChange'),
             'percentage': None,

@@ -186,6 +186,7 @@ class ccex (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
+        last = float(ticker['lastprice'])
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -198,9 +199,8 @@ class ccex (Exchange):
             'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['lastprice']),
+            'close': last,
+            'last': last,
             'previousClose': None,
             'change': None,
             'percentage': None,
