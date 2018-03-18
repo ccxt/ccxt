@@ -725,8 +725,8 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchFundingFees (params = {}) {
-        // by default it will try load withdrawal fees of all currencies (with separate requests)
-        // however if you define { 'currencies': [ 'ETH', 'BTC' ] } in params it will only load those
+        //  by default it will try load withdrawal fees of all currencies (with separate requests)
+        //  however if you define { 'currencies': [ 'ETH', 'BTC' ] } in params it will only load those
         await this.loadMarkets ();
         let withdrawFees = {};
         let info = {};
