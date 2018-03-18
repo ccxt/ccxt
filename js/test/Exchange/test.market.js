@@ -40,12 +40,9 @@ module.exports = (exchange, market, method) => {
         'info': {}, // the original unparsed market info from the exchange
     }
 
-    expect (market).to.have.all.keys (format)
-
-    assert (!('lot' in market), '`lot` field leftover in ' + exchange.id + ' ' + market['symbol'])
+    expect (market).to.deep.include.all.keys (format)
+    expect (market).to.not.have.key ('lot')
 
     // log (market)
-
-    const { high, low, vwap, baseVolume, quoteVolume } = ticker
 
 }

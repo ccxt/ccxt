@@ -97,10 +97,14 @@ let countryName = function (code) {
 
 let testSymbol = async (exchange, symbol) => {
 
-    await tests['fetchTicker']  (exchange, symbol)
-    await tests['fetchTickers'] (exchange, symbol)
-    await tests['fetchOHLCV']   (exchange, symbol)
-    await tests['fetchTrades']  (exchange, symbol)
+    // await tests['fetchMarkets']    (exchange)
+    // await tests['fetchCurrencies'] (exchange)
+    // process.exit ()
+
+    await tests['fetchTicker']     (exchange, symbol)
+    await tests['fetchTickers']    (exchange, symbol)
+    await tests['fetchOHLCV']      (exchange, symbol)
+    await tests['fetchTrades']     (exchange, symbol)
 
     if (exchange.id === 'coinmarketcap') {
 
