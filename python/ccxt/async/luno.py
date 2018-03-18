@@ -171,6 +171,7 @@ class luno (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
+        last = float(ticker['last_trade'])
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -178,12 +179,14 @@ class luno (Exchange):
             'high': None,
             'low': None,
             'bid': float(ticker['bid']),
+            'bidVolume': None,
             'ask': float(ticker['ask']),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['last_trade']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,

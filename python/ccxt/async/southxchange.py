@@ -112,6 +112,7 @@ class southxchange (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
+        last = self.safe_float(ticker, 'Last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -119,12 +120,14 @@ class southxchange (Exchange):
             'high': None,
             'low': None,
             'bid': self.safe_float(ticker, 'Bid'),
+            'bidVolume': None,
             'ask': self.safe_float(ticker, 'Ask'),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': self.safe_float(ticker, 'Last'),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': self.safe_float(ticker, 'Variation24Hr'),
             'percentage': None,
             'average': None,
