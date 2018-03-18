@@ -270,7 +270,7 @@ module.exports = class Exchange {
     }
 
     checkRequiredCredentials () {
-        Object.keys (this.requiredCredentials).map (key => {
+        Object.keys (this.requiredCredentials).forEach ((key) => {
             if (this.requiredCredentials[key] && !this[key])
                 throw new AuthenticationError (this.id + ' requires `' + key + '`')
         })
@@ -429,13 +429,13 @@ module.exports = class Exchange {
 
             if (e instanceof SyntaxError) {
 
-                let error = ExchangeNotAvailable
+                let ExceptionClass = ExchangeNotAvailable
                 let details = 'not accessible from this location at the moment'
                 if (maintenance)
                     details = 'offline, on maintenance or unreachable from this location at the moment'
                 if (ddosProtection)
-                    error = DDoSProtection
-                throw new error ([ this.id, method, url, response.status, title, details ].join (' '))
+                    ExceptionClass = DDoSProtection
+                throw new ExceptionClass ([ this.id, method, url, response.status, title, details ].join (' '))
             }
 
             throw e
@@ -486,7 +486,7 @@ module.exports = class Exchange {
 
     handleRestResponse (response, url, method = 'GET', requestHeaders = undefined, requestBody = undefined) {
 
-        return response.text ().then (responseBody => {
+        return response.text ().then ((responseBody) => {
 
             let jsonRequired = this.parseJsonResponse && !this.skipJsonOnStatusCodes.includes (response.status)
             let json = jsonRequired ? this.parseJson (response, responseBody, url, method) : undefined
@@ -794,7 +794,7 @@ module.exports = class Exchange {
 
         const currencies = Object.keys (this.omit (balance, 'info'));
 
-        currencies.forEach (currency => {
+        currencies.forEach ((currency) => {
 
             if (typeof balance[currency].used === 'undefined') {
                 // exchange reports only 'free' balance -> try to derive 'used' funds from open orders cache
@@ -814,7 +814,7 @@ module.exports = class Exchange {
                 }
             }
 
-            [ 'free', 'used', 'total' ].forEach (account => {
+            [ 'free', 'used', 'total' ].forEach ((account) => {
                 balance[account] = balance[account] || {}
                 balance[account][currency] = balance[currency][account]
             })
