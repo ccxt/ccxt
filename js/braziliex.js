@@ -183,6 +183,7 @@ module.exports = class braziliex extends Exchange {
         let symbol = market['symbol'];
         let timestamp = ticker['date'];
         ticker = ticker['ticker'];
+        let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -195,9 +196,8 @@ module.exports = class braziliex extends Exchange {
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': this.safeFloat (ticker, 'last'),
+            'close': last,
+            'last': last,
             'previousClose': undefined,
             'change': this.safeFloat (ticker, 'percentChange'),
             'percentage': undefined,
