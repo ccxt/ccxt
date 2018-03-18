@@ -101,6 +101,7 @@ class btcbox extends Exchange {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
+        $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -108,12 +109,14 @@ class btcbox extends Exchange {
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => $this->safe_float($ticker, 'buy'),
+            'bidVolume' => null,
             'ask' => $this->safe_float($ticker, 'sell'),
+            'askVolume' => null,
             'vwap' => null,
             'open' => null,
-            'close' => null,
-            'first' => null,
-            'last' => $this->safe_float($ticker, 'last'),
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
