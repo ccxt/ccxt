@@ -662,6 +662,16 @@ abstract class Exchange {
             'DRK' => 'DASH'
         );
 
+        $this->orderbookKeys = array (
+            'bids' => 'bids',
+            'asks' => 'asks',
+            'price' => 0,
+            'amount' => 0,
+            'timestamp' => 'timestamp',
+            'nonce' => 'sec',
+            'responseDate' => 'date',
+        );
+
         $options = array_replace_recursive ($this->describe(), $options);
 
         if ($options)
