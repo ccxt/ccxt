@@ -121,6 +121,7 @@ module.exports = class exmo extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'active': true,
                 'limits': {
                     'amount': {
                         'min': this.safeFloat (market, 'min_quantity'),
