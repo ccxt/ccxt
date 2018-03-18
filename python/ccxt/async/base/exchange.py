@@ -245,7 +245,7 @@ class Exchange(BaseExchange):
         orderbook = self.parse_order_book_response(response, market, limit, params)
         timestamp = self.parse_order_book_timestamp(orderbook)
         if timestamp is None:
-            timestamp = self.parse_httpresponse_date()
+            timestamp = self.parse_http_response_date()
         datetime = self.iso8601(timestamp)
         orders = self.parse_order_book_orders(orderbook)
         nonce = self.parse_order_book_nonce(orderbook)
