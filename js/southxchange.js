@@ -116,6 +116,7 @@ module.exports = class southxchange extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        let last = this.safeFloat (ticker, 'Last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -123,12 +124,14 @@ module.exports = class southxchange extends Exchange {
             'high': undefined,
             'low': undefined,
             'bid': this.safeFloat (ticker, 'Bid'),
+            'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'Ask'),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': this.safeFloat (ticker, 'Last'),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': this.safeFloat (ticker, 'Variation24Hr'),
             'percentage': undefined,
             'average': undefined,
