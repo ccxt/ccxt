@@ -1216,7 +1216,7 @@ abstract class Exchange {
         $orderbook = $this->parse_order_book_response ($response, $market, $limit, $params);
         $timestamp = $this->parse_order_book_timestamp ($orderbook);
         if ($timestamp === null) {
-            $timestamp = $this->parse_httpresponse_date ();
+            $timestamp = $this->parse_http_response_date ();
         }
         $datetime = $this->iso8601 ($timestamp);
         $orders = $this->parse_order_book_orders ($orderbook);
