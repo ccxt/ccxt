@@ -807,7 +807,7 @@ module.exports = class binance extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body) {
+    handleErrors (code, reason, url, method, headers, body, response = undefined) {
         // in case of error binance sets http status code >= 400
         if (code < 300)
             // status code ok, proceed with request
