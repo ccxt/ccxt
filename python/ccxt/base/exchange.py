@@ -1053,8 +1053,8 @@ class Exchange(object):
         if timestamp is None:
             timestamp = self.parse_httpresponse_date()
         datetime = self.iso8601(timestamp)
-        orders = self.parse_order_book_orders(orderbook, keys)
-        nonce = self.parse_order_book_nonce(orderbook, keys)
+        orders = self.parse_order_book_orders(orderbook)
+        nonce = self.parse_order_book_nonce(orderbook)
         return {
             'bids': self.sort_by(orders['bids'], 0, True),
             'asks': self.sort_by(orders['asks'], 0),
