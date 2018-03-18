@@ -242,7 +242,7 @@ module.exports = class bittrex extends Exchange {
         let keys = this.orderbookKeys;
         let responseKey = keys['response'];
         let requestType = undefined;
-        if ((typeof params !== 'undefined') && (typeof params['type'] !== 'undefined')) {
+        if ((typeof params !== 'undefined') && ('type' in params)) {
             requestType = params['type'];
         }
         if ((typeof requestType === 'undefined') || (requestType === 'both')) {
