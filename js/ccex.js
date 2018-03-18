@@ -196,6 +196,7 @@ module.exports = class ccex extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        let last = parseFloat (ticker['lastprice']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -208,9 +209,8 @@ module.exports = class ccex extends Exchange {
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['lastprice']),
+            'close': last,
+            'last': last,
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
