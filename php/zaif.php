@@ -100,11 +100,31 @@ class zaif extends Exchange {
             $id = $market['currency_pair'];
             $symbol = $market['name'];
             list ($base, $quote) = explode ('/', $symbol);
+            $precision = array (
+                'amount' => -log10 ($market['item_unit_step']),
+                'price' => $market['aux_unit_point'],
+            );
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'active' => true, // can trade or not
+                'precision' => $precision,
+                'limits' => array (
+                    'amount' => array (
+                        'min' => floatval ($market['item_unit_min']),
+                        'max' => null,
+                    ),
+                    'price' => array (
+                        'min' => floatval ($market['aux_unit_min']),
+                        'max' => null,
+                    ),
+                    'cost' => array (
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
                 'info' => $market,
             );
         }
