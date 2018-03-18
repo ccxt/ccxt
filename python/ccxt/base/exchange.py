@@ -1013,7 +1013,7 @@ class Exchange(object):
         keys = self.orderbookKeys
         return self.safe_integer(orderbook, keys['timestamp'], None)
 
-    def parse_httpresponse_date(self):
+    def parse_http_response_date(self):
         keys = self.orderbookKeys
         responseDate = None
         for key in list(self.last_response_headers.keys()):
