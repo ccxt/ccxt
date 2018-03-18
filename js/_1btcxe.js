@@ -139,6 +139,7 @@ module.exports = class _1btcxe extends Exchange {
             'average': undefined,
             'baseVolume': undefined,
             'quoteVolume': parseFloat (ticker['total_btc_traded']),
+            'info': ticker,
         };
     }
 
