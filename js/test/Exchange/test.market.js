@@ -43,6 +43,13 @@ module.exports = (exchange, market, method) => {
     expect (market).to.deep.include.all.keys (format)
     expect (market).to.not.have.key ('lot')
 
+    expect (market['precision']['amount']).to.not.be.undefined
+    expect (market['precision']['price']).to.not.be.undefined
+
+    expect (market['limits']['amount']['min']).to.not.be.undefined
+    expect (market['limits']['price']['min']).to.not.be.undefined
+    expect (market['limits']['cost']['min']).to.not.be.undefined
+
     // log (market)
 
 }
