@@ -261,6 +261,7 @@ class zb extends Exchange {
         $response = $this->publicGetTicker (array_merge ($request, $params));
         $ticker = $response['ticker'];
         $timestamp = $this->milliseconds ();
+        $last = floatval ($ticker['last']);
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -268,12 +269,14 @@ class zb extends Exchange {
             'high' => floatval ($ticker['high']),
             'low' => floatval ($ticker['low']),
             'bid' => floatval ($ticker['buy']),
+            'bidVolume' => null,
             'ask' => floatval ($ticker['sell']),
+            'askVolume' => null,
             'vwap' => null,
             'open' => null,
-            'close' => null,
-            'first' => null,
-            'last' => floatval ($ticker['last']),
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
