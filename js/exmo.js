@@ -1,9 +1,11 @@
+import { InvalidNonce } from 'ccxt';
+
 'use strict';
 
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, OrderNotFound, AuthenticationError, InsufficientFunds, InvalidOrder } = require ('./base/errors');
+const { ExchangeError, OrderNotFound, AuthenticationError, InsufficientFunds, InvalidOrder, InvalidNonce } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -95,9 +97,11 @@ module.exports = class exmo extends Exchange {
             },
             'exceptions': {
                 '40005': AuthenticationError, // Authorization error, incorrect signature
+                '40009': InvalidNonce, //
                 '40015': ExchangeError, // API function do not exist
                 '40017': AuthenticationError, // Wrong API Key
                 '50052': InsufficientFunds,
+                '50054': InsufficientFunds,
                 '50173': OrderNotFound, // "Order with id X was not found." (cancelling non-existent, closed and cancelled order)
                 '50319': InvalidOrder, // Price by order is less than permissible minimum for this pair
                 '50321': InvalidOrder, // Price by order is more than permissible maximum for this pair
@@ -614,9 +618,7 @@ module.exports = class exmo extends Exchange {
                     if (numParts > 1) {
                         const errorSubParts = errorParts[0].split (' ');
                         let numSubParts = errorSubParts.length;
-                        if (numSubParts > 1) {
-                            code = errorSubParts[1];
-                        }
+                        code = (numSubParts > 1) ? errorSubParts[1] : errorSubParts[0];
                     }
                     const feedback = this.id + ' ' + this.json (response);
                     const exceptions = this.exceptions;
