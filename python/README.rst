@@ -23,7 +23,7 @@ Current feature list:
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 102 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 103 cryptocurrency exchange markets and trading APIs:
 
 +----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | id                   | name                                                           | ver   | doc                                                                                               | countries                                  |
@@ -129,6 +129,8 @@ The ccxt library currently supports the following 102 cryptocurrency exchange ma
 | cryptopia            | `Cryptopia <https://www.cryptopia.co.nz>`__                    | \*    | `API <https://www.cryptopia.co.nz/Forum/Category/45>`__                                           | New Zealand                                |
 +----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | dsx                  | `DSX <https://dsx.uk>`__                                       | 3     | `API <https://api.dsx.uk>`__                                                                      | UK                                         |
++----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
+| ethfinex             | `Ethfinex <https://www.ethfinex.com>`__                        | 1     | `API <https://bitfinex.readme.io/v1/docs>`__                                                      | British Virgin Islands                     |
 +----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | exmo                 | `EXMO <https://exmo.me>`__                                     | 1     | `API <https://exmo.me/en/api_doc>`__                                                              | Spain, Russia                              |
 +----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -537,7 +539,7 @@ Thank you!
    :target: https://nodesecurity.io/orgs/ccxt/projects/856d3088-8b46-4515-9324-6b7cd2470522
 .. |Gitter| image:: https://badges.gitter.im/ccxt-dev/ccxt.svg
    :target: https://gitter.im/ccxt-dev/ccxt?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge
-.. |Supported Exchanges| image:: https://img.shields.io/badge/exchanges-102-blue.svg
+.. |Supported Exchanges| image:: https://img.shields.io/badge/exchanges-103-blue.svg
    :target: https://github.com/ccxt/ccxt/wiki/Exchange-Markets
 .. |Open Collective| image:: https://opencollective.com/ccxt/backers/badge.svg
    :target: https://opencollective.com/ccxt
@@ -592,6 +594,7 @@ Thank you!
 .. |coolcoin| image:: https://user-images.githubusercontent.com/1294454/36770529-be7b1a04-1c5b-11e8-9600-d11f1996b539.jpg
 .. |cryptopia| image:: https://user-images.githubusercontent.com/1294454/29484394-7b4ea6e2-84c6-11e7-83e5-1fccf4b2dc81.jpg
 .. |dsx| image:: https://user-images.githubusercontent.com/1294454/27990275-1413158a-645a-11e7-931c-94717f7510e3.jpg
+.. |ethfinex| image:: https://user-images.githubusercontent.com/1294454/37555526-7018a77c-29f9-11e8-8835-8e415c038a18.jpg
 .. |exmo| image:: https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg
 .. |flowbtc| image:: https://user-images.githubusercontent.com/1294454/28162465-cd815d4c-67cf-11e7-8e57-438bea0523a2.jpg
 .. |foxbit| image:: https://user-images.githubusercontent.com/1294454/27991413-11b40d42-647f-11e7-91ee-78ced874dd09.jpg
