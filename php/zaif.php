@@ -154,6 +154,7 @@ class zaif extends Exchange {
         $vwap = $ticker['vwap'];
         $baseVolume = $ticker['volume'];
         $quoteVolume = $baseVolume * $vwap;
+        $last = $ticker['last'];
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -161,12 +162,14 @@ class zaif extends Exchange {
             'high' => $ticker['high'],
             'low' => $ticker['low'],
             'bid' => $ticker['bid'],
+            'bidVolume' => null,
             'ask' => $ticker['ask'],
+            'askVolume' => null,
             'vwap' => $vwap,
             'open' => null,
-            'close' => null,
-            'first' => null,
-            'last' => $ticker['last'],
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,

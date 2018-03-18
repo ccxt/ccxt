@@ -149,6 +149,7 @@ class zaif (Exchange):
         vwap = ticker['vwap']
         baseVolume = ticker['volume']
         quoteVolume = baseVolume * vwap
+        last = ticker['last']
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -156,12 +157,14 @@ class zaif (Exchange):
             'high': ticker['high'],
             'low': ticker['low'],
             'bid': ticker['bid'],
+            'bidVolume': None,
             'ask': ticker['ask'],
+            'askVolume': None,
             'vwap': vwap,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': ticker['last'],
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
