@@ -116,9 +116,8 @@ class Exchange(BaseExchange):
         encoded_body = body.encode() if body else None
         session_method = getattr(self.session, method.lower())
         http_status_code = None
-        model = requests.models.Response
-        del model.text  # remove property
-        standard_response = model()
+
+        standard_response = requests.models.Response()
 
         try:
             async with session_method(yarl.URL(url, encoded=True),
@@ -127,13 +126,14 @@ class Exchange(BaseExchange):
                                       timeout=(self.timeout / 1000),
                                       proxy=self.aiohttp_proxy) as response:
                 standard_response.status_code = response.status
-                standard_response.text = await response.text()
+                standard_response._content = await response.content.read()  # may break in the future
+                standard_response.headers = response.headers
                 self.last_http_response = standard_response.text  # remove in future
-                self.last_response_headers = response.headers
+                self.last_response_headers = standard_response.headers
                 if self.verbose:
-                    print("\nResponse:", method, url, str(http_status_code), str(response.headers), self.last_http_response)
-                self.logger.debug("%s %s, Response: %s %s %s", method, url, response.status, response.headers, self.last_http_response)
-                await response.raise_for_status()
+                    print("\nResponse:", method, url, str(standard_response.status_code), str(standard_response.headers), standard_response.text)
+                self.logger.debug("%s %s, Response: %s %s %s", method, url, standard_response.status_code, str(standard_response.headers), standard_response.text)
+                response.raise_for_status()
 
         except socket.gaierror as e:
             self.raise_error(ExchangeNotAvailable, url, method, e, None)
