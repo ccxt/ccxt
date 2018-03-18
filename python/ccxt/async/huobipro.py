@@ -201,6 +201,7 @@ class huobipro (Exchange):
             'open': open,
             'close': close,
             'last': close,
+            'previousClose': None,
             'change': change,
             'percentage': percentage,
             'average': average,

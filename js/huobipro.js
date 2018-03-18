@@ -210,6 +210,7 @@ module.exports = class huobipro extends Exchange {
             'open': open,
             'close': close,
             'last': close,
+            'previousClose': undefined,
             'change': change,
             'percentage': percentage,
             'average': average,

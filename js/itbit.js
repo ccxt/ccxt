@@ -90,6 +90,7 @@ module.exports = class itbit extends Exchange {
         let vwap = parseFloat (ticker['vwap24h']);
         let baseVolume = parseFloat (ticker['volume24h']);
         let quoteVolume = baseVolume * vwap;
+        let last = parseFloat (ticker['lastPrice']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -97,12 +98,14 @@ module.exports = class itbit extends Exchange {
             'high': parseFloat (ticker['high24h']),
             'low': parseFloat (ticker['low24h']),
             'bid': this.safeFloat (ticker, 'bid'),
+            'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'ask'),
+            'askVolume': undefined,
             'vwap': vwap,
             'open': parseFloat (ticker['openToday']),
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['lastPrice']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,

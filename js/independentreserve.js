@@ -143,6 +143,7 @@ module.exports = class independentreserve extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        let last = ticker['LastPrice'];
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -150,12 +151,14 @@ module.exports = class independentreserve extends Exchange {
             'high': ticker['DayHighestPrice'],
             'low': ticker['DayLowestPrice'],
             'bid': ticker['CurrentHighestBidPrice'],
+            'bidVolume': undefined,
             'ask': ticker['CurrentLowestOfferPrice'],
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': ticker['LastPrice'],
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': ticker['DayAvgPrice'],

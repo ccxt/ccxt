@@ -97,6 +97,7 @@ class coinfloor extends Exchange {
         if ($vwap !== null) {
             $quoteVolume = $baseVolume * $vwap;
         }
+        $last = floatval ($ticker['last']);
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -104,12 +105,14 @@ class coinfloor extends Exchange {
             'high' => floatval ($ticker['high']),
             'low' => floatval ($ticker['low']),
             'bid' => floatval ($ticker['bid']),
+            'bidVolume' => null,
             'ask' => floatval ($ticker['ask']),
+            'askVolume' => null,
             'vwap' => $vwap,
             'open' => null,
-            'close' => null,
-            'first' => null,
-            'last' => floatval ($ticker['last']),
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,

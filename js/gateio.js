@@ -163,6 +163,7 @@ module.exports = class gateio extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        let last = parseFloat (ticker['last']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -170,12 +171,14 @@ module.exports = class gateio extends Exchange {
             'high': parseFloat (ticker['high24hr']),
             'low': parseFloat (ticker['low24hr']),
             'bid': parseFloat (ticker['highestBid']),
+            'bidVolume': undefined,
             'ask': parseFloat (ticker['lowestAsk']),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': parseFloat (ticker['percentChange']),
             'percentage': undefined,
             'average': undefined,

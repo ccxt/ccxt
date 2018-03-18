@@ -96,6 +96,7 @@ class nova (Exchange):
         }, params))
         ticker = response['markets'][0]
         timestamp = self.milliseconds()
+        last = float(ticker['last_price'])
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -103,12 +104,14 @@ class nova (Exchange):
             'high': float(ticker['high24h']),
             'low': float(ticker['low24h']),
             'bid': self.safe_float(ticker, 'bid'),
+            'bidVolume': None,
             'ask': self.safe_float(ticker, 'ask'),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['last_price']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': float(ticker['change24h']),
             'percentage': None,
             'average': None,

@@ -160,6 +160,7 @@ module.exports = class acx extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        let last = this.safeFloat (ticker, 'last', undefined);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -167,12 +168,14 @@ module.exports = class acx extends Exchange {
             'high': this.safeFloat (ticker, 'high', undefined),
             'low': this.safeFloat (ticker, 'low', undefined),
             'bid': this.safeFloat (ticker, 'buy', undefined),
+            'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'sell', undefined),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': this.safeFloat (ticker, 'last', undefined),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
