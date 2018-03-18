@@ -165,6 +165,7 @@ class gateio extends Exchange {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
+        $last = floatval ($ticker['last']);
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -172,12 +173,14 @@ class gateio extends Exchange {
             'high' => floatval ($ticker['high24hr']),
             'low' => floatval ($ticker['low24hr']),
             'bid' => floatval ($ticker['highestBid']),
+            'bidVolume' => null,
             'ask' => floatval ($ticker['lowestAsk']),
+            'askVolume' => null,
             'vwap' => null,
             'open' => null,
-            'close' => null,
-            'first' => null,
-            'last' => floatval ($ticker['last']),
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
             'change' => floatval ($ticker['percentChange']),
             'percentage' => null,
             'average' => null,

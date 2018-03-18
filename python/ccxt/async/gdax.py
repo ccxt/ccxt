@@ -219,6 +219,7 @@ class gdax (Exchange):
             bid = self.safe_float(ticker, 'bid')
         if 'ask' in ticker:
             ask = self.safe_float(ticker, 'ask')
+        last = self.safe_float(ticker, 'price')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -226,12 +227,14 @@ class gdax (Exchange):
             'high': None,
             'low': None,
             'bid': bid,
+            'bidVolume': None,
             'ask': ask,
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': self.safe_float(ticker, 'price'),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
