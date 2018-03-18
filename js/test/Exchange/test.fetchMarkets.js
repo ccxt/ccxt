@@ -26,7 +26,7 @@ module.exports = async (exchange) => {
         // log ('fetching markets...')
 
         const method = 'fetchMarkets'
-        const markets = = await exchange[method] ()
+        const markets = await exchange[method] ()
         return markets
 
     } else {
