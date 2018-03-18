@@ -89,6 +89,7 @@ class itbit extends Exchange {
         $vwap = floatval ($ticker['vwap24h']);
         $baseVolume = floatval ($ticker['volume24h']);
         $quoteVolume = $baseVolume * $vwap;
+        $last = floatval ($ticker['lastPrice']);
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -96,12 +97,14 @@ class itbit extends Exchange {
             'high' => floatval ($ticker['high24h']),
             'low' => floatval ($ticker['low24h']),
             'bid' => $this->safe_float($ticker, 'bid'),
+            'bidVolume' => null,
             'ask' => $this->safe_float($ticker, 'ask'),
+            'askVolume' => null,
             'vwap' => $vwap,
             'open' => floatval ($ticker['openToday']),
-            'close' => null,
-            'first' => null,
-            'last' => floatval ($ticker['lastPrice']),
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,

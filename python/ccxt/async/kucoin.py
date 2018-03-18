@@ -611,6 +611,7 @@ class kucoin (Exchange):
         change = self.safe_float(ticker, 'changeRate')
         if change is not None:
             change *= 100
+        last = self.safe_float(ticker, 'lastDealPrice')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -618,12 +619,14 @@ class kucoin (Exchange):
             'high': self.safe_float(ticker, 'high'),
             'low': self.safe_float(ticker, 'low'),
             'bid': self.safe_float(ticker, 'buy'),
+            'bidVolume': None,
             'ask': self.safe_float(ticker, 'sell'),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': self.safe_float(ticker, 'lastDealPrice'),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': change,
             'percentage': None,
             'average': None,
