@@ -207,9 +207,12 @@ module.exports = class bitmex extends Exchange {
     }
 
     async performOrderBookRequest (market, limit = undefined, params = {}) {
-        let orderbook = await this.publicGetOrderBookL2 (this.extend ({
+        let request = {
             'symbol': market['id'],
-        }, params));
+        };
+        if (typeof limit !== 'undefined')
+            request['depth'] = limit;
+        let orderbook = await this.publicGetOrderBookL2 (this.extend (request, params));
         return orderbook;
     }
 
