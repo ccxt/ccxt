@@ -132,7 +132,7 @@ module.exports = class flowbtc extends Exchange {
             'open': undefined,
             'close': last,
             'last': last,
-            'previousClose': undefined
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
