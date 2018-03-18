@@ -265,7 +265,7 @@ module.exports = class virwox extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body) {
+    handleErrors (code, reason, url, method, headers, body, response = undefined) {
         if (code === 200) {
             if ((body[0] === '{') || (body[0] === '[')) {
                 let response = JSON.parse (body);
