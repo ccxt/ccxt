@@ -91,6 +91,10 @@ module.exports = class lykke extends Exchange {
                     },
                 },
             },
+            'orderbookKeys': {
+                'price': 'Price',
+                'amount': 'Volume',
+            },
         });
     }
 
@@ -306,11 +310,14 @@ module.exports = class lykke extends Exchange {
         return this.parseOrders (response, undefined, since, limit);
     }
 
-    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
+    async performOrderBookRequest (market, limit = undefined, params = {}) {
         let response = await this.publicGetOrderBooksAssetPairId (this.extend ({
-            'AssetPairId': this.marketId (symbol),
+            'AssetPairId': market['id'],
         }, params));
+        return response;
+    }
+
+    parseOrderBookResponse (response, market, limit, params) {
         let orderbook = {
             'timestamp': undefined,
             'bids': [],
@@ -331,13 +338,6 @@ module.exports = class lykke extends Exchange {
             }
         }
         return orderbook;
-    }
-
-    orderBookExchangeKeys () {
-        return {
-            'price': 'Price',
-            'amount': 'Volume',
-        };
     }
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 1) {

@@ -175,15 +175,15 @@ module.exports = class cex extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
+    async performOrderBookRequest (market, limit = undefined, params = {}) {
         let orderbook = await this.publicGetOrderBookPair (this.extend ({
-            'pair': this.marketId (symbol),
+            'pair': market['id'],
         }, params));
         return orderbook;
     }
 
-    parseOrderBookTimestamp (orderbook, keys) {
+    parseOrderBookTimestamp (orderbook) {
+        let keys = this.orderbookKeys;
         return parseInt (orderbook[keys['timestamp']] * 1000);
     }
 

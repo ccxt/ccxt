@@ -451,13 +451,15 @@ class poloniex (Exchange):
         if market:
             symbol = market['symbol']
         price = self.safe_float(order, 'price')
-        cost = self.safe_float(order, 'total', 0.0)
         remaining = self.safe_float(order, 'amount')
         amount = self.safe_float(order, 'startingAmount', remaining)
         filled = None
+        cost = 0
         if amount is not None:
             if remaining is not None:
                 filled = amount - remaining
+                if price is not None:
+                    cost = filled * price
         if filled is None:
             if trades is not None:
                 filled = 0

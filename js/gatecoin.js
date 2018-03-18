@@ -184,6 +184,10 @@ module.exports = class gatecoin extends Exchange {
                     'taker': 0.0035,
                 },
             },
+            'orderbookKeys': {
+                'price': 'price',
+                'amount': 'volume',
+            },
         });
     }
 
@@ -255,20 +259,11 @@ module.exports = class gatecoin extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
+    async performOrderBookRequest (market, limit = undefined, params = {}) {
         let orderbook = await this.publicGetPublicMarketDepthCurrencyPair (this.extend ({
             'CurrencyPair': market['id'],
         }, params));
         return orderbook;
-    }
-
-    orderBookExchangeKeys () {
-        return {
-            'price': 'price',
-            'amount': 'volume',
-        };
     }
 
     parseTicker (ticker, market = undefined) {

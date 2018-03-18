@@ -79,6 +79,14 @@ module.exports = class bibox extends Exchange {
                     'deposit': {},
                 },
             },
+            'orderbookKeys': {
+                'response': 'result',
+                'bids': 'bids',
+                'asks': 'asks',
+                'price': 'price',
+                'amount': 'volume',
+                'timestamp': 'update_time',
+            },
         });
     }
 
@@ -224,29 +232,18 @@ module.exports = class bibox extends Exchange {
         return this.parseTrades (response['result'], market, since, limit);
     }
 
-    async performOrderBookRequest (symbol, limit = 200, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
+    async performOrderBookRequest (market, limit = 200, params = {}) {
         let request = {
             'cmd': 'depth',
             'pair': market['id'],
         };
         request['size'] = limit; // default = 200 ?
-        let response = await this.publicGetMdata (this.extend (request, params));
-        return response['result'];
+        let orderbook = await this.publicGetMdata (this.extend (request, params));
+        return orderbook;
     }
 
-    orderBookExchangeKeys () {
-        return {
-            'bids': 'bids',
-            'asks': 'asks',
-            'price': 'price',
-            'amount': 'volume',
-            'timestamp': 'update_time',
-        };
-    }
-
-    parseOrderBookTimestamp (orderbook, keys) {
+    parseOrderBookTimestamp (orderbook) {
+        let keys = this.orderbookKeys;
         return this.safeFloat (orderbook, keys['timestamp']);
     }
 

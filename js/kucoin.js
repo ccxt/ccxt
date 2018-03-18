@@ -172,6 +172,11 @@ module.exports = class kucoin extends Exchange {
                 'timeDifference': 0, // the difference between system clock and Kucoin clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
             },
+            'orderbookKeys': {
+                'response': 'data',
+                'bids': 'BUY',
+                'asks': 'SELL',
+            },
         });
     }
 
@@ -323,21 +328,11 @@ module.exports = class kucoin extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
+    async performOrderBookRequest (market, limit = undefined, params = {}) {
         let response = await this.publicGetOpenOrders (this.extend ({
             'symbol': market['id'],
         }, params));
-        let orderbook = response['data'];
-        return orderbook;
-    }
-
-    orderBookExchangeKeys () {
-        return {
-            'bids': 'BUY',
-            'asks': 'SELL',
-        };
+        return response;
     }
 
     parseOrder (order, market = undefined) {

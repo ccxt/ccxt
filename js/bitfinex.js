@@ -242,6 +242,10 @@ module.exports = class bitfinex extends Exchange {
                     'Invalid order': InvalidOrder, // ?
                 },
             },
+            'orderbookKeys': {
+                'price': 'price',
+                'amount': 'amount',
+            },
         });
     }
 
@@ -361,10 +365,9 @@ module.exports = class bitfinex extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
+    async performOrderBookRequest (market, limit = undefined, params = {}) {
         let request = {
-            'symbol': this.marketId (symbol),
+            'symbol': market['id'],
         };
         if (typeof limit !== 'undefined') {
             request['limit_bids'] = limit;
@@ -372,13 +375,6 @@ module.exports = class bitfinex extends Exchange {
         }
         let orderbook = await this.publicGetBookSymbol (this.extend (request, params));
         return orderbook;
-    }
-
-    orderBookExchangeKeys () {
-        return {
-            'price': 'price',
-            'amount': 'amount',
-        };
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

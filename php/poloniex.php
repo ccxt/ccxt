@@ -470,13 +470,16 @@ class poloniex extends Exchange {
         if ($market)
             $symbol = $market['symbol'];
         $price = $this->safe_float($order, 'price');
-        $cost = $this->safe_float($order, 'total', 0.0);
         $remaining = $this->safe_float($order, 'amount');
         $amount = $this->safe_float($order, 'startingAmount', $remaining);
         $filled = null;
+        $cost = 0;
         if ($amount !== null) {
-            if ($remaining !== null)
+            if ($remaining !== null) {
                 $filled = $amount - $remaining;
+                if ($price !== null)
+                    $cost = $filled * $price;
+            }
         }
         if ($filled === null) {
             if ($trades !== null) {

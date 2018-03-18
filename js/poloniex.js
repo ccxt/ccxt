@@ -231,10 +231,9 @@ module.exports = class poloniex extends Exchange {
         };
     }
 
-    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
+    async performOrderBookRequest (market, limit = undefined, params = {}) {
         let request = {
-            'currencyPair': this.marketId (symbol),
+            'currencyPair': market['id'],
         };
         if (typeof limit !== 'undefined')
             request['depth'] = limit; // 100
@@ -471,13 +470,16 @@ module.exports = class poloniex extends Exchange {
         if (market)
             symbol = market['symbol'];
         let price = this.safeFloat (order, 'price');
-        let cost = this.safeFloat (order, 'total', 0.0);
         let remaining = this.safeFloat (order, 'amount');
         let amount = this.safeFloat (order, 'startingAmount', remaining);
         let filled = undefined;
+        let cost = 0;
         if (typeof amount !== 'undefined') {
-            if (typeof remaining !== 'undefined')
+            if (typeof remaining !== 'undefined') {
                 filled = amount - remaining;
+                if (typeof price !== 'undefined')
+                    cost = filled * price;
+            }
         }
         if (typeof filled === 'undefined') {
             if (typeof trades !== 'undefined') {

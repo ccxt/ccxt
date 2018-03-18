@@ -65,6 +65,10 @@ module.exports = class _1broker extends Exchange {
                     ],
                 },
             },
+            'orderbookKeys': {
+                'response': ['response', 0],
+                'timestamp': 'updated',
+            },
         });
     }
 
@@ -137,25 +141,19 @@ module.exports = class _1broker extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let response = await this.privateGetMarketQuotes (this.extend ({
-            'symbols': this.marketId (symbol),
+    async performOrderBookRequest (market, limit = undefined, params = {}) {
+        let orderbook = await this.privateGetMarketQuotes (this.extend ({
+            'symbols': market['id'],
         }, params));
-        return response['response'][0];
+        return orderbook;
     }
 
-    orderBookExchangeKeys () {
-        return {
-            'timestamp': 'updated',
-        };
-    }
-
-    parseOrderBookTimestamp (orderbook, keys) {
+    parseOrderBookTimestamp (orderbook) {
+        let keys = this.orderbookKeys;
         return this.parse8601 (orderbook[keys['timestamp']]);
     }
 
-    parseOrderBookOrders (orderbook, keys) {
+    parseOrderBookOrders (orderbook) {
         let bidPrice = parseFloat (orderbook['bid']);
         let askPrice = parseFloat (orderbook['ask']);
         let bid = [ bidPrice, undefined ];

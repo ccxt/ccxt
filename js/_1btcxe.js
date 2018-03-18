@@ -53,6 +53,13 @@ module.exports = class _1btcxe extends Exchange {
                     ],
                 },
             },
+            'orderbookKeys': {
+                'response': 'order-book',
+                'bids': 'bid',
+                'asks': 'ask',
+                'price': 'price',
+                'amount': 'order_amount',
+            },
         });
     }
 
@@ -106,20 +113,11 @@ module.exports = class _1btcxe extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
-        let response = await this.publicGetOrderBook (this.extend ({
-            'currency': this.marketId (symbol),
+    async performOrderBookRequest (market, limit = undefined, params = {}) {
+        let orderbook = await this.publicGetOrderBook (this.extend ({
+            'currency': market['id'],
         }, params));
-        return response['order-book'];
-    }
-
-    orderBookExchangeKeys () {
-        return {
-            'bids': 'bid',
-            'asks': 'ask',
-            'price': 'price',
-            'amount': 'order_amount',
-        };
+        return orderbook;
     }
 
     async fetchTicker (symbol, params = {}) {

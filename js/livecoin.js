@@ -255,10 +255,9 @@ module.exports = class livecoin extends Exchange {
         };
     }
 
-    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
+    async performOrderBookRequest (market, limit = undefined, params = {}) {
         let request = {
-            'currencyPair': this.marketId (symbol),
+            'currencyPair': market['id'],
             'groupByPrice': 'false',
         };
         if (typeof limit !== 'undefined')

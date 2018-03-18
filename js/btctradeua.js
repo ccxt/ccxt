@@ -81,6 +81,11 @@ module.exports = class btctradeua extends Exchange {
                     },
                 },
             },
+            'orderbookKeys': {
+                'response': 'list',
+                'price': 'price',
+                'amount': 'currency_trade',
+            },
         });
     }
 
@@ -107,33 +112,33 @@ module.exports = class btctradeua extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
-        let market = this.market (symbol);
+    async performOrderBookRequest (market, limit = undefined, params = {}) {
         let bids = await this.publicGetTradesBuySymbol (this.extend ({
             'symbol': market['id'],
         }, params));
         let asks = await this.publicGetTradesSellSymbol (this.extend ({
             'symbol': market['id'],
         }, params));
-        let orderbook = {
-            'bids': [],
-            'asks': [],
+        return {
+            'bids': bids,
+            'asks': asks,
         };
-        if (bids) {
-            if ('list' in bids)
-                orderbook['bids'] = bids['list'];
-        }
-        if (asks) {
-            if ('list' in asks)
-                orderbook['asks'] = asks['list'];
-        }
-        return orderbook;
     }
 
-    orderBookExchangeKeys () {
+    parseOrderBookResponse (response, market, limit, params) {
+        let keys = this.orderbookKeys;
+        let key = keys['response'];
+        let bidsResponse = typeof response['bids'] === 'undefined' ? undefined : response['bids'][key];
+        let asksResponse = typeof response['asks'] === 'undefined' ? undefined : response['asks'][key];
+        let bids = [];
+        if (Array.isArray (bidsResponse))
+            bids = bidsResponse;
+        let asks = [];
+        if (Array.isArray (asksResponse))
+            asks = asksResponse;
         return {
-            'price': 'price',
-            'amount': 'currency_trade',
+            'bids': bids,
+            'asks': asks,
         };
     }
 

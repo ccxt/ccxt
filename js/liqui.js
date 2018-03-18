@@ -187,15 +187,17 @@ module.exports = class liqui extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
+    async performOrderBookRequest (market, limit = undefined, params = {}) {
         let request = {
             'pair': market['id'],
         };
         if (typeof limit !== 'undefined')
             request['limit'] = limit; // default = 150, max = 2000
         let response = await this.publicGetDepthPair (this.extend (request, params));
+        return response;
+    }
+
+    parseOrderBookResponse (response, market, limit, params) {
         let market_id_in_reponse = (market['id'] in response);
         if (!market_id_in_reponse)
             throw new ExchangeError (this.id + ' ' + market['symbol'] + ' order book is empty or not available');
@@ -222,7 +224,6 @@ module.exports = class liqui extends Exchange {
         }, params));
         let result = {};
         ids = Object.keys (response);
-        let keys = this.orderBookKeys ();
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
             let symbol = id;
@@ -230,7 +231,7 @@ module.exports = class liqui extends Exchange {
                 let market = this.markets_by_id[id];
                 symbol = market['symbol'];
             }
-            result[symbol] = this.parseOrderBook (response[id], keys);
+            result[symbol] = this.parseOrderBook (response, this.market (symbol), undefined, params);
         }
         return result;
     }

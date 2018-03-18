@@ -128,6 +128,10 @@ module.exports = class bitmex extends Exchange {
                     ],
                 },
             },
+            'orderbookKeys': {
+                'price': 'price',
+                'amount': 'size',
+            },
         });
     }
 
@@ -202,15 +206,15 @@ module.exports = class bitmex extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
+    async performOrderBookRequest (market, limit = undefined, params = {}) {
         let orderbook = await this.publicGetOrderBookL2 (this.extend ({
-            'symbol': this.marketId (symbol),
+            'symbol': market['id'],
         }, params));
         return orderbook;
     }
 
-    parseOrderBookOrders (orderbook, keys) {
+    parseOrderBookOrders (orderbook) {
+        let keys = this.orderbookKeys;
         let result = {
             'bids': [],
             'asks': [],
@@ -223,13 +227,6 @@ module.exports = class bitmex extends Exchange {
             result[side].push ([ price, amount ]);
         }
         return result;
-    }
-
-    orderBookExchangeKeys () {
-        return {
-            'price': 'price',
-            'amount': 'size',
-        };
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

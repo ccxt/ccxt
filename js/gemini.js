@@ -74,6 +74,10 @@ module.exports = class gemini extends Exchange {
                     'taker': 0.0025,
                 },
             },
+            'orderbookKeys': {
+                'price': 'price',
+                'amount': 'amount',
+            },
         });
     }
 
@@ -98,19 +102,11 @@ module.exports = class gemini extends Exchange {
         return result;
     }
 
-    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
+    async performOrderBookRequest (market, limit = undefined, params = {}) {
         let orderbook = await this.publicGetBookSymbol (this.extend ({
-            'symbol': this.marketId (symbol),
+            'symbol': market['id'],
         }, params));
         return orderbook;
-    }
-
-    orderBookExchangeKeys () {
-        return {
-            'price': 'price',
-            'amount': 'amount',
-        };
     }
 
     async fetchTicker (symbol, params = {}) {

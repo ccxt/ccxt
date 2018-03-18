@@ -244,18 +244,16 @@ module.exports = class bitfinex2 extends bitfinex {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
+    async performOrderBookRequest (market, limit = undefined, params = {}) {
         let orderbook = await this.publicGetBookSymbolPrecision (this.extend ({
-            'symbol': this.marketId (symbol),
+            'symbol': market['id'],
             'precision': 'R0',
         }, params));
-        // result['bids'] = this.sortBy (result['bids'], 0, true);
-        // result['asks'] = this.sortBy (result['asks'], 0);
         return orderbook;
     }
 
-    parseOrderBookOrders (orderbook, keys) {
+    parseOrderBookOrders (orderbook) {
+        let keys = this.orderbookKeys;
         let result = {
             'bids': [],
             'asks': [],

@@ -70,6 +70,10 @@ module.exports = class paymium extends Exchange {
                     'taker': 0.0059,
                 },
             },
+            'orderbookKeys': {
+                'price': 'price',
+                'amount': 'amount',
+            },
         });
     }
 
@@ -93,18 +97,11 @@ module.exports = class paymium extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
+    async performOrderBookRequest (market, limit = undefined, params = {}) {
         let orderbook = await this.publicGetDataIdDepth (this.extend ({
-            'id': this.marketId (symbol),
+            'id': market['id'],
         }, params));
         return orderbook;
-    }
-
-    orderBookExchangeKeys () {
-        return {
-            'price': 'price',
-            'amount': 'amount',
-        };
     }
 
     async fetchTicker (symbol, params = {}) {

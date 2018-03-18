@@ -102,6 +102,11 @@ module.exports = class exmo extends Exchange {
                 '50319': InvalidOrder, // Price by order is less than permissible minimum for this pair
                 '50321': InvalidOrder, // Price by order is more than permissible maximum for this pair
             },
+            'orderbookKeys': {
+                'response': '__market__',
+                'bids': 'bid',
+                'asks': 'ask',
+            },
         });
     }
 
@@ -161,24 +166,14 @@ module.exports = class exmo extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
+    async performOrderBookRequest (market, limit = undefined, params = {}) {
         let request = this.extend ({
             'pair': market['id'],
         }, params);
         if (typeof limit !== 'undefined')
             request['limit'] = limit;
         let response = await this.publicGetOrderBook (request);
-        let result = response[market['id']];
-        return result;
-    }
-
-    orderBookExchangeKeys () {
-        return {
-            'bids': 'bid',
-            'asks': 'ask',
-        };
+        return response;
     }
 
     async fetchOrderBooks (symbols = undefined, params = {}) {
@@ -200,11 +195,10 @@ module.exports = class exmo extends Exchange {
         }, params));
         let result = {};
         ids = Object.keys (response);
-        let keys = this.orderBookKeys ();
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
             let symbol = this.findSymbol (id);
-            result[symbol] = this.parseOrderBook (response[id], keys);
+            result[symbol] = this.parseOrderBook (response, this.market (symbol), undefined, params);
         }
         return result;
     }

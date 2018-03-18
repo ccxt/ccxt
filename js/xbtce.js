@@ -102,6 +102,14 @@ module.exports = class xbtce extends Exchange {
                     ],
                 },
             },
+            'orderbookKeys': {
+                'response': 0,
+                'bids': 'Bids',
+                'asks': 'Asks',
+                'price': 'Price',
+                'amount': 'Volume',
+                'timestamp': 'Timestamp',
+            },
         });
     }
 
@@ -149,24 +157,11 @@ module.exports = class xbtce extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
+    async performOrderBookRequest (market, limit = undefined, params = {}) {
         let orderbook = await this.privateGetLevel2Filter (this.extend ({
             'filter': market['id'],
         }, params));
-        orderbook = orderbook[0];
         return orderbook;
-    }
-
-    orderBookExchangeKeys () {
-        return {
-            'bids': 'Bids',
-            'asks': 'Asks',
-            'price': 'Price',
-            'amount': 'Volume',
-            'timestamp': 'Timestamp',
-        };
     }
 
     parseTicker (ticker, market = undefined) {

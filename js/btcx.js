@@ -48,6 +48,10 @@ module.exports = class btcx extends Exchange {
                 'BTC/USD': { 'id': 'btc/usd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },
                 'BTC/EUR': { 'id': 'btc/eur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
             },
+            'orderbookKeys': {
+                'price': 'price',
+                'amount': 'amount',
+            },
         });
     }
 
@@ -68,21 +72,14 @@ module.exports = class btcx extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
+    async performOrderBookRequest (market, limit = undefined, params = {}) {
         let request = {
-            'id': this.marketId (symbol),
+            'id': market['id'],
         };
         if (typeof limit !== 'undefined')
             request['limit'] = limit; // 1000
         let orderbook = await this.publicGetDepthIdLimit (this.extend (request, params));
         return orderbook;
-    }
-
-    orderBookExchangeKeys () {
-        return {
-            'price': 'price',
-            'amount': 'amount',
-        };
     }
 
     async fetchTicker (symbol, params = {}) {

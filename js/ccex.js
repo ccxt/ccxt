@@ -139,21 +139,20 @@ module.exports = class ccex extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
+    async performOrderBookRequest (market, limit = undefined, params = {}) {
         let request = {
-            'market': this.marketId (symbol),
+            'market': market['id'],
             'type': 'both',
         };
         if (typeof limit !== 'undefined')
             request['depth'] = limit; // 100
-        let response = await this.publicGetOrderbook (this.extend (request, params));
-        let orderbook = response['result'];
+        let orderbook = await this.publicGetOrderbook (this.extend (request, params));
         return orderbook;
     }
 
     orderBookDefaultKeys () {
         return {
+            'response': 'result',
             'bids': 'buy',
             'asks': 'sell',
             'price': 'Rate',
@@ -193,10 +192,9 @@ module.exports = class ccex extends Exchange {
         }
         let result = {};
         let keys = Object.keys (orderbooks);
-        let orderbookKeys = this.orderBookKeys ();
         for (let k = 0; k < keys.length; k++) {
             let key = keys[k];
-            result[key] = this.parseOrderBook (orderbooks[key], orderbookKeys);
+            result[key] = this.parseOrderBook (orderbooks[key], this.market (key), undefined, params);
         }
         return result;
     }

@@ -226,9 +226,7 @@ module.exports = class zb extends Exchange {
         return 'market';
     }
 
-    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
+    async performOrderBookRequest (market, limit = undefined, params = {}) {
         let marketFieldName = this.getMarketFieldName ();
         let request = {};
         request[marketFieldName] = market['id'];

@@ -168,6 +168,11 @@ module.exports = class coinsecure extends Exchange {
                     'taker': 0.4 / 100,
                 },
             },
+            'orderbookKeys': {
+                'response': 'message',
+                'price': 'rate',
+                'amount': 'vol',
+            },
         });
     }
 
@@ -193,21 +198,29 @@ module.exports = class coinsecure extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
+    async performOrderBookRequest (market, limit = undefined, params = {}) {
         let bids = await this.publicGetExchangeBidOrders (params);
         let asks = await this.publicGetExchangeAskOrders (params);
-        let orderbook = {
-            'bids': bids['message'],
-            'asks': asks['message'],
+        return {
+            'bids': bids,
+            'asks': asks,
         };
-        return orderbook;
     }
 
-    orderBookExchangeKeys () {
+    parseOrderBookResponse (response, market, limit, params) {
+        let keys = this.orderbookKeys;
+        let key = keys['response'];
+        let bidsResponse = typeof response['bids'] === 'undefined' ? undefined : response['bids'][key];
+        let asksResponse = typeof response['asks'] === 'undefined' ? undefined : response['asks'][key];
+        let bids = [];
+        if (Array.isArray (bidsResponse))
+            bids = bidsResponse;
+        let asks = [];
+        if (Array.isArray (asksResponse))
+            asks = asksResponse;
         return {
-            'price': 'rate',
-            'amount': 'vol',
+            'bids': bids,
+            'asks': asks,
         };
     }
 
