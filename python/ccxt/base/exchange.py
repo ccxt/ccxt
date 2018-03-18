@@ -365,8 +365,7 @@ class Exchange(object):
             self.raise_error(ExchangeError, url, method, e)
 
         except HTTPError as e:
-            self.handle_errors(response.status_code, response.reason, url, method, response.headers, response.text)
-            self.default_error_handler(e, response.status_code, response.text, url, method)
+            self.handle_rest_response(response, url, method, headers, body)
             self.raise_error(ExchangeError, url, method, e, response.text)
 
         except RequestException as e:  # base exception class
