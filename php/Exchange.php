@@ -1158,11 +1158,12 @@ abstract class Exchange {
     public function parse_http_response_date () {
         $keys = $this->orderbookKeys;
         $responseDate = null;
-        $headerAttributes = is_array ($this->last_response_headers) ? array_keys ($this->last_response_headers) : array ();
-        for ($i = 0; $i < count ($headerAttributes); $i++) {
-            $key = $headerAttributes[$i];
+        foreach ($this->last_response_headers as $key => $value) {
             if (strtolower ($key) === $keys['responseDate']) {
-                $responseDate = $this->parse_date($this->last_response_headers[$key]);
+                if (is_array($value)) {
+                    $value = array_pop($value);
+                }
+                $responseDate = $this->parse_date($value);
             }
         }
         return $responseDate;
