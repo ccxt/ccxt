@@ -351,8 +351,8 @@ class Exchange(object):
             self.last_http_response = response.text  # Remove in future
             self.last_response_headers = response.headers  # Once all classes have switched to handle_errors
             if self.verbose:
-                print("\nResponse:", method, url, str(response.status_code), str(response.headers), self.last_http_response)
-            self.logger.debug("%s %s, Response: %s %s %s", method, url, response.status_code, response.headers, self.last_http_response)
+                print("\nResponse:", method, url, str(response.status_code), str(response.headers), response.text)
+            self.logger.debug("%s %s, Response: %s %s %s", method, url, response.status_code, response.headers, response.text)
             response.raise_for_status()
 
         except Timeout as e:
@@ -365,11 +365,12 @@ class Exchange(object):
             self.raise_error(ExchangeError, url, method, e)
 
         except HTTPError as e:
-            self.default_error_handler(e, response.status_code, self.last_http_response, url, method)
-            self.raise_error(ExchangeError, url, method, e, self.last_http_response)
+            self.handle_errors(response.status_code, response.reason, url, method, response.headers, response.text)
+            self.default_error_handler(e, response.status_code, response.text, url, method)
+            self.raise_error(ExchangeError, url, method, e, response.text)
 
         except RequestException as e:  # base exception class
-            self.raise_error(ExchangeError, url, method, e, self.last_http_response)
+            self.raise_error(ExchangeError, url, method, e, response.text)
 
         return self.handle_rest_response(response, url, method, headers, body)
 
@@ -393,33 +394,35 @@ class Exchange(object):
         elif http_status_code in [401, 511]:
             error = AuthenticationError
         if error:
-            self.raise_error(error, url, method, exception if exception else http_status_code, response)
+            self.raise_error(error, method, url, exception if exception else http_status_code, response)
 
     def handle_rest_response(self, response, url, method='GET', request_headers=None, request_body=None):
-        last_response = None
         json_response = None
         if self.parseJsonResponse:
-            try:
-                json_response = response.json()
-                last_response = json_response
-            except ValueError as e:  # ValueError == JsonDecodeError
-                ddos_protection = re.search('(cloudflare|incapsula|overload|ddos)', response, flags=re.IGNORECASE)
-                exchange_not_available = re.search(
-                    '(offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing)', response,
-                    flags=re.IGNORECASE)
-                if ddos_protection:
-                    self.raise_error(DDoSProtection, method, url, None, response.text)
-                if exchange_not_available:
-                    message = response.text + ' exchange downtime, exchange closed for maintenance or offline, DDoS protection or rate-limiting in effect'
-                    self.raise_error(ExchangeNotAvailable, method, url, None, message)
-                self.raise_error(ExchangeError, method, url, e, response.text)  # badly formatted json
+            json_response = self.parse_json(response, url, method)  # will raise error on badly formatted json
+            last_response = json_response
         else:
             last_response = response.text
 
         self.last_json_response = json_response  # remove once we have switched to handleErrors completely
-        self.handle_errors(response.status_code, response.reason, url, method, self.last_response_headers, response.text, response=json_response)
+        self.handle_errors(response.status_code, response.reason, url, method, response.headers, response.text, response=json_response)
+        self.default_error_handler(None, response.status_code, response.text, url, method)
 
         return last_response
+
+    def parse_json(self, response, url, method):
+        try:
+            return response.json()
+        except ValueError as e:  # ValueError == JsonDecodeError
+            self.default_error_handler(e, response.status_code, response.text, url, method)
+
+            message = response.text + '\nExchange downtime, exchange closed for maintenance or offline, DDoS protection or rate-limiting in effect.'
+            if re.search('(cloudflare|incapsula|overload|ddos)', response, flags=re.IGNORECASE):
+                self.raise_error(DDoSProtection, method, url, None, message)
+            if re.search('(offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing)', response, flags=re.IGNORECASE):
+                self.raise_error(ExchangeNotAvailable, method, url, None, message)
+            message = response.text + '\nExchange sent malformed JSON'
+            self.raise_error(ExchangeError, method, url, None, message)
 
     @staticmethod
     def safe_float(dictionary, key, default_value=None):
