@@ -193,12 +193,6 @@ module.exports = class ccex extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         let timestamp = ticker['updated'] * 1000;
-        if (typeof market === 'undefined') {
-            let [ base, quote ] = uppercase.split ('-');
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
-            symbol = base + '/' + quote;
-        }
         let symbol = undefined;
         if (typeof market !== 'undefined')
             symbol = market['symbol'];
