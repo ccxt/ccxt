@@ -346,16 +346,15 @@ module.exports = class exmo extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        await this.fetchOrders (symbol, undefined, undefined, params);
-        if (id in this.orders)
-            return this.orders[id];
-        throw new OrderNotFound (this.id + ' order id ' + id.toString () + ' is not in "open" state and not found in cache');
+        let response = await this.privatePostOrderTrades ({
+            'order_id': id.toString (),
+        });
+        return this.parseOrder (response);
     }
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const order = await this.fetchOrder (id, symbol, params);
-        // todo: filter by symbol, since and limit
-        return order['trades'];
+        return this.filterBySymbolSinceLimit (order['trades'], symbol, since, limit);
     }
 
     updateCachedOrders (openOrders, symbol) {
