@@ -117,20 +117,37 @@ class Exchange(BaseExchange):
         http_status_code = None
 
         try:
-            async with session_method(yarl.URL(url, encoded=True),
+            kwargs = {}
+            if self.aiohttp_proxy:
+                kwargs['proxy'] = self.aiohttp_proxy
+
+            response = await session_method(str(yarl.URL(url, encoded=True)),
                                       data=encoded_body,
                                       headers=headers,
                                       timeout=(self.timeout / 1000),
-                                      proxy=self.aiohttp_proxy) as response:
-                http_status_code = response.status
-                text = await response.text()
+                                      **kwargs)
+
+            async def do(response):
+                http_status_code = response.status_code if hasattr(response, 'status_code') else response.status
+                if callable(response.text):
+                    text = await response.text()
+                else:
+                    text = response.text
                 self.last_http_response = text
                 self.last_response_headers = response.headers
                 self.handle_errors(http_status_code, text, url, method, self.last_response_headers, text)
                 self.handle_rest_errors(None, http_status_code, text, url, method)
                 if self.verbose:
                     print("\nResponse:", method, url, str(http_status_code), str(response.headers), self.last_http_response)
-                self.logger.debug("%s %s, Response: %s %s %s", method, url, response.status, response.headers, self.last_http_response)
+                self.logger.debug("%s %s, Response: %s %s %s", method, url, http_status_code, response.headers, self.last_http_response)
+                return text
+
+
+            if hasattr(response, '__aenter__'):
+                async with response as response:
+                    text = await do(response)
+            else:
+                text = await do(response)
 
         except socket.gaierror as e:
             self.raise_error(ExchangeNotAvailable, url, method, e, None)
