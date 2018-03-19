@@ -345,16 +345,15 @@ class exmo extends Exchange {
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $this->fetch_orders($symbol, null, null, $params);
-        if (is_array ($this->orders) && array_key_exists ($id, $this->orders))
-            return $this->orders[$id];
-        throw new OrderNotFound ($this->id . ' order $id ' . (string) $id . ' is not in "open" state and not found in cache');
+        $response = $this->privatePostOrderTrades (array (
+            'order_id' => (string) $id,
+        ));
+        return $this->parse_order($response);
     }
 
     public function fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
         $order = $this->fetch_order($id, $symbol, $params);
-        // todo => filter by $symbol, $since and $limit
-        return $order['trades'];
+        return $this->filter_by_symbol_since_limit($order['trades'], $symbol, $since, $limit);
     }
 
     public function update_cached_orders ($openOrders, $symbol) {
