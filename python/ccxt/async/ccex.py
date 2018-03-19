@@ -184,7 +184,7 @@ class ccex (Exchange):
     def parse_ticker(self, ticker, market=None):
         timestamp = ticker['updated'] * 1000
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
         last = float(ticker['lastprice'])
         return {
@@ -218,13 +218,13 @@ class ccex (Exchange):
         for i in range(0, len(ids)):
             id = ids[i]
             ticker = tickers[id]
-            uppercase = id.upper()
             market = None
             symbol = None
-            if uppercase in self.markets_by_id:
-                market = self.markets_by_id[uppercase]
+            if id in self.markets_by_id:
+                market = self.markets_by_id[id]
                 symbol = market['symbol']
             else:
+                uppercase = id.upper()
                 base, quote = uppercase.split('-')
                 base = self.common_currency_code(base)
                 quote = self.common_currency_code(quote)

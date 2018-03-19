@@ -224,6 +224,7 @@ class bitflyer extends Exchange {
             'size' => $amount,
         );
         $result = $this->privatePostSendchildorder (array_merge ($order, $params));
+        // array ( "status" => - 200, "error_message" => "Insufficient funds", "data" => null )
         return array (
             'info' => $result,
             'id' => $result['child_order_acceptance_id'],
