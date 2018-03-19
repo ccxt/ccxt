@@ -225,6 +225,7 @@ module.exports = class bitflyer extends Exchange {
             'size': amount,
         };
         let result = await this.privatePostSendchildorder (this.extend (order, params));
+        // { "status": - 200, "error_message": "Insufficient funds", "data": null }
         return {
             'info': result,
             'id': result['child_order_acceptance_id'],
