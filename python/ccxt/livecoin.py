@@ -131,6 +131,7 @@ class livecoin (Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'active': True,
                 'precision': precision,
                 'limits': limits,
                 'info': market,
