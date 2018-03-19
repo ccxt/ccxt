@@ -142,8 +142,8 @@ class gemini extends Exchange {
     public function parse_trade ($trade, $market) {
         $timestamp = $trade['timestampms'];
         $order = null;
-        if (is_array ($trade) && array_key_exists ('orderId', $trade))
-            $order = (string) $trade['orderId'];
+        if (is_array ($trade) && array_key_exists ('order_id', $trade))
+            $order = (string) $trade['order_id'];
         $fee = $this->safe_float($trade, 'fee_amount');
         if ($fee !== null) {
             $currency = $this->safe_string($trade, 'fee_currency');
