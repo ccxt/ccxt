@@ -765,7 +765,6 @@ module.exports = class binance extends Exchange {
     // recvWindow  LONG    NO
     // timestamp   LONG    YES
     async fetchDeposits (currency = undefined, since = undefined, limit = undefined, params = {}) {
-        debugger;
         await this.loadMarkets ();
         let para = {};
         if (currency !== undefined) {
