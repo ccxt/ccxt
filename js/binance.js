@@ -809,7 +809,7 @@ module.exports = class binance extends Exchange {
     }
 
     parseTransactionStatus (status, side) {
-        if (side !== 'deposit' && side !== 'withdraw')
+        if (!(side === 'deposit' || side === 'withdraw'))
             throw new ExchangeError (this.id + 'deposit/withdraw side set incorrectly: ' + side);
         if (side === 'deposit') {
             let statuses = {
