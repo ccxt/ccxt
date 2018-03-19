@@ -90,6 +90,7 @@ module.exports = class livecoin extends Exchange {
     }
 
     async fetchMarkets () {
+        const log = require ('ololog');
         let markets = await this.publicGetExchangeTicker ();
         let restrictions = await this.publicGetExchangeRestrictions ();
         let restrictionsById = this.indexBy (restrictions['restrictions'], 'currencyPair');
@@ -124,6 +125,7 @@ module.exports = class livecoin extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'active': true,
                 'precision': precision,
                 'limits': limits,
                 'info': market,
