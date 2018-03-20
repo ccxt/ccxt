@@ -4,7 +4,7 @@ const ccxt      = require ('../../ccxt.js')
 const asTable   = require ('as-table')
 const log       = require ('ololog').configure ({ locate: false })
 
-require ('ansicolor').nice;
+require ('ansicolor').nice
 
 //-----------------------------------------------------------------------------
 
@@ -14,21 +14,21 @@ process.on ('unhandledRejection', e => { log.bright.red.error (e); process.exit 
 //-----------------------------------------------------------------------------
 
 let human_value = function (price) {
-    return typeof price == 'undefined' ? 'N/A' : price
+    return typeof price === 'undefined' ? 'N/A' : price
 }
 
 //-----------------------------------------------------------------------------
 
 let test = async function (exchange, symbol) {
-    
+
     try {
 
         await exchange.loadMarkets ()
-        
+
         if (symbol in exchange.markets) {
-        
+
             let ticker = await exchange.fetchTicker (symbol)
-        
+
             log (exchange.id.green, symbol.green, 'ticker',
                 ticker['datetime'],
                 'high: '    + human_value (ticker['high']),
@@ -57,7 +57,7 @@ let test = async function (exchange, symbol) {
         } else if (e instanceof ccxt.NetworkError) {
             log.bright.yellow (exchange.id, '[Network Error]')
         } else {
-            throw e;
+            throw e
         }
     }
 }
@@ -69,7 +69,7 @@ const symbol = 'BTC/USD'
 //-----------------------------------------------------------------------------
 
 async function main () {
-    
+
     let exchanges = []
 
     // instantiate all exchanges

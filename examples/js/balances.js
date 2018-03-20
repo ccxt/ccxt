@@ -4,11 +4,11 @@ const ccxt      = require ('../../ccxt.js')
 const asTable   = require ('as-table')
 const log       = require ('ololog').configure ({ locate: false })
 
-require ('ansicolor').nice;
+require ('ansicolor').nice
 
-let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms));
+let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms))
 
-(async () => {
+;(async () => {
 
     // instantiate the exchange
     let gdax = new ccxt.gdax  ({ // ... or new ccxt.gdax ()
