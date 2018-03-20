@@ -358,7 +358,7 @@ module.exports = class exmo extends Exchange {
                     return this.orders[id];
             }
         }
-        throw new OrderNotFound (this.id + ' fetchOrder order id ' + id.toString () + ' not found in cache.')
+        throw new OrderNotFound (this.id + ' fetchOrder order id ' + id.toString () + ' not found in cache.');
     }
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
