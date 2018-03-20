@@ -346,7 +346,7 @@ module.exports = class bitstamp extends Exchange {
         let market = this.market (symbol);
         let response = await this.publicGetTransactionsPair (this.extend ({
             'pair': market['id'],
-            'time': 'minute',
+            'time': 'hour',
         }, params));
         return this.parseTrades (response, market, since, limit);
     }
