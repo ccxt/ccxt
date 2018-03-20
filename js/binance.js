@@ -833,14 +833,6 @@ module.exports = class binance extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body) {
-        // in case of error binance sets http status code >= 400
-        if (code < 300)
-            // status code ok, proceed with request
-            return;
-        if (code < 400)
-            // should not normally happen, reserve for redirects in case
-            // we'll want to scrape some info from web pages
-            return;
         // code >= 400
         if ((code === 418) || (code === 429))
             throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
@@ -855,22 +847,26 @@ module.exports = class binance extends Exchange {
             throw new InvalidOrder (this.id + ' order price exceeds allowed price precision or invalid, use this.priceToPrecision (symbol, amount) ' + body);
         if (body.indexOf ('Order does not exist') >= 0)
             throw new OrderNotFound (this.id + ' ' + body);
+        let response = JSON.parse (body);
         // checks against error codes
-        if (typeof body === 'string') {
+        if (typeof body === 'string') {  // is this necessary?
             if (body.length > 0) {
                 if (body[0] === '{') {
-                    let response = JSON.parse (body);
                     let error = this.safeString (response, 'code');
                     if (typeof error !== 'undefined') {
                         const exceptions = this.exceptions;
                         if (error in exceptions) {
-                            throw new exceptions[error] (this.id + ' ' + this.json (response));
+                            throw new exceptions[error] (this.id + ' ' + body);
                         } else {
-                            throw new ExchangeError (this.id + ': unknown error code: ' + this.json (response));
+                            throw new ExchangeError (this.id + ': unknown error code: ' + body);
                         }
                     }
                 }
             }
+        }
+        let success = this.safeString (response, 'success', 'true');
+        if (success === 'false') {
+            throw new ExchangeError (this.id + ': unknown error code: ' + body);
         }
     }
 };
