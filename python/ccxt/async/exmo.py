@@ -341,15 +341,14 @@ class exmo (Exchange):
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        await self.fetch_orders(symbol, None, None, params)
-        if id in self.orders:
-            return self.orders[id]
-        raise OrderNotFound(self.id + ' order id ' + str(id) + ' is not in "open" state and not found in cache')
+        response = await self.privatePostOrderTrades({
+            'order_id': str(id),
+        })
+        return self.parse_order(response)
 
     async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
         order = await self.fetch_order(id, symbol, params)
-        # todo: filter by symbol, since and limit
-        return order['trades']
+        return self.filter_by_symbol_since_limit(order['trades'], symbol, since, limit)
 
     def update_cached_orders(self, openOrders, symbol):
         # update local cache with open orders
