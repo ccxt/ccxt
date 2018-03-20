@@ -345,7 +345,7 @@ class bitstamp extends Exchange {
         $market = $this->market ($symbol);
         $response = $this->publicGetTransactionsPair (array_merge (array (
             'pair' => $market['id'],
-            'time' => 'minute',
+            'time' => 'hour',
         ), $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
