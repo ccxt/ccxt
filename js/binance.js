@@ -849,21 +849,21 @@ module.exports = class binance extends Exchange {
             throw new OrderNotFound (this.id + ' ' + body);
         let response = JSON.parse (body);
         // checks against error codes
-        if (typeof body === 'string') {  // is this necessary?
-            if (body.length > 0) {
-                if (body[0] === '{') {
-                    let error = this.safeString (response, 'code');
-                    if (typeof error !== 'undefined') {
-                        const exceptions = this.exceptions;
-                        if (error in exceptions) {
-                            throw new exceptions[error] (this.id + ' ' + body);
-                        } else {
-                            throw new ExchangeError (this.id + ': unknown error code: ' + body);
-                        }
+        if (body.length > 0) {
+            if (body[0] === '{') {
+                let error = this.safeString (response, 'code');
+                if (typeof error !== 'undefined') {
+                    const exceptions = this.exceptions;
+                    if (error in exceptions) {
+                        throw new exceptions[error] (this.id + ' ' + body);
+                    } else {
+                        throw new ExchangeError (this.id + ': unknown error code: ' + body);
                     }
                 }
             }
         }
+        // check success value for wapi endpoints
+        // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         let success = this.safeString (response, 'success', 'true');
         if (success === 'false') {
             throw new ExchangeError (this.id + ': unknown error code: ' + body);
