@@ -908,6 +908,8 @@ module.exports = class kucoin extends Exchange {
                 throw new InvalidOrder (feedback); // amount < limits.amount.min
             if (message.indexOf ('Min price:') >= 0)
                 throw new InvalidOrder (feedback); // price < limits.price.min
+            if (message.indexOf ('Max price:') >= 0)
+                throw new InvalidOrder (feedback); // price > limits.price.max
             if (message.indexOf ('The precision of price') >= 0)
                 throw new InvalidOrder (feedback); // price violates precision.price
         } else if (code === 'NO_BALANCE') {
