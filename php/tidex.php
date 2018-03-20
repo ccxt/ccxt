@@ -68,7 +68,8 @@ class tidex extends liqui {
             $currency = $currencies[$i];
             $id = $currency['symbol'];
             $precision = $currency['amountPoint'];
-            $code = $this->common_currency_code($id);
+            $code = strtoupper ($id);
+            $code = $this->common_currency_code($code);
             $active = $currency['visible'] === true;
             $status = 'ok';
             if (!$active) {

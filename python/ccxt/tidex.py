@@ -69,7 +69,8 @@ class tidex (liqui):
             currency = currencies[i]
             id = currency['symbol']
             precision = currency['amountPoint']
-            code = self.common_currency_code(id)
+            code = id.upper()
+            code = self.common_currency_code(code)
             active = currency['visible'] is True
             status = 'ok'
             if not active:
