@@ -847,26 +847,26 @@ module.exports = class binance extends Exchange {
             throw new InvalidOrder (this.id + ' order price exceeds allowed price precision or invalid, use this.priceToPrecision (symbol, amount) ' + body);
         if (body.indexOf ('Order does not exist') >= 0)
             throw new OrderNotFound (this.id + ' ' + body);
-        let response = JSON.parse (body);
-        // checks against error codes
         if (body.length > 0) {
             if (body[0] === '{') {
+                let response = JSON.parse (body);
+                // checks against error codes
                 let error = this.safeString (response, 'code');
                 if (typeof error !== 'undefined') {
                     const exceptions = this.exceptions;
                     if (error in exceptions) {
                         throw new exceptions[error] (this.id + ' ' + body);
                     } else {
-                        throw new ExchangeError (this.id + ': unknown error code: ' + body);
+                        throw new ExchangeError (this.id + ': unknown error code: ' + body + ' ' + error);
                     }
                 }
+                // check success value for wapi endpoints
+                // response in format {'msg': 'The coin does not exist.', 'success': true/false}
+                let success = this.safeString (response, 'success', 'true');
+                if (success === 'false') {
+                    throw new ExchangeError (this.id + ': unknown error code: ' + body);
+                }
             }
-        }
-        // check success value for wapi endpoints
-        // response in format {'msg': 'The coin does not exist.', 'success': true/false}
-        let success = this.safeString (response, 'success', 'true');
-        if (success === 'false') {
-            throw new ExchangeError (this.id + ': unknown error code: ' + body);
         }
     }
 };
