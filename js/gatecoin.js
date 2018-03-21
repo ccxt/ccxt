@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, InvalidAddress } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -551,14 +551,14 @@ module.exports = class gatecoin extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
-        // this.checkAddress (address);
+        this.checkAddress (address);
         await this.loadMarkets ();
         let currency = this.currency (code);
         let request = {
             'DigiCurrency': currency['id'],
             'Address': address,
             'Amount': amount,
-            'ValidationCode': this.safeString(params, 'ValidationCode'),
+            'ValidationCode': this.safeString (params, 'ValidationCode'),
         };
         let response = await this.privatePostElectronicWalletWithdrawalsDigiCurrency (this.extend (request, params));
         if (!response)
@@ -581,7 +581,7 @@ module.exports = class gatecoin extends Exchange {
         if (numResults < 1)
             throw new InvalidAddress (this.id + ' privateGetElectronicWalletDepositWalletsDigiCurrency() returned no addresses');
         let address = this.safeString (result[0], 'address');
-        // this.checkAddress (address);
+        this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
