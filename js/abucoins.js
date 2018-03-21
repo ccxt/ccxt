@@ -21,6 +21,8 @@ module.exports = class abucoins extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchMyTrades': true,
+                'withdraw': true,
+                'fetchDepositAddress': true,
             },
             'urls': {
                 'logo': 'https://abucoins.com/dist/assets/84e018a.png',
@@ -51,10 +53,13 @@ module.exports = class abucoins extends Exchange {
                         'orders',
                         'orders/{id}',
                         'fills',
+                        'payment-methods',
                     ],
                     'post': [
                         'deposits/coinbase-account',
                         'orders',
+                        'withdrawals/make',
+                        'deposits/make',
                     ],
                     'delete': [
                         'orders/{id}',
@@ -78,6 +83,10 @@ module.exports = class abucoins extends Exchange {
                         'BTC': 0,
                     },
                 },
+            },
+            'options': {
+                'cacheDepositMethodsOnFetchDepositAddress': true, // will issue up to two calls in fetchDepositAddress
+                'depositMethods': {},
             },
         });
     }
@@ -477,5 +486,78 @@ module.exports = class abucoins extends Exchange {
             throw new ExchangeError (this.id + ' ' + this.json (response));
         }
         return response;
+    }
+
+    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
+        await this.loadMarkets ();
+        let request = {
+            'currency': currency,
+            'amount': amount,
+            'address': address,
+            'tag': tag,
+            'method': this.safeString (params, 'method'),
+        };
+        let response = await this.privatePostWithdrawalsMake (this.extend (request, params));
+        if (!response)
+            throw new ExchangeError (this.id + ' withdraw() error: ' + this.json (response));
+        return {
+            'info': response,
+            'id': response['payoutId'],
+        };
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        // eslint-disable-next-line quotes
+        let method = this.safeString (params, 'method');
+        if (typeof method === 'undefined') {
+            if (this.options['cacheDepositMethodsOnFetchDepositAddress']) {
+                // cache depositMethods
+                if (!(code in this.options['depositMethods']))
+                    this.options['depositMethods'][code] = this.fetchDepositMethods (code);
+                method = this.options['depositMethods'][code][0]['id'];
+            } else {
+                throw new ExchangeError (this.id + ' fetchDepositAddress() requires an extra `method` parameter. Use fetchDepositMethods ("' + code + '") to get a list of available deposit methods or enable the exchange property .options["cacheDepositMethodsOnFetchDepositAddress"] = true');
+            }
+        }
+        let request = {
+            'asset': currency['id'],
+            'method': method,
+        };
+        let response = await this.privatePostDepositsMake (this.extend (request, params)); // overwrite methods
+        let result = response['result'];
+        let numResults = result.length;
+        if (numResults < 1)
+            throw new InvalidAddress (this.id + ' privatePostDepositsMake() returned no addresses');
+        let address = this.safeString (result[0], 'address');
+        this.checkAddress (address);
+        let tag = this.safeString (result[0], 'tag');
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'status': 'ok',
+            'info': response,
+        };
+    }
+
+    async fetchDepositMethods (code, params = {}) {
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let ret;
+        let response = await this.privateGetPaymentMethods (this.extend (params));
+        console.log(response);
+        if (this.options['cacheDepositMethodsOnFetchDepositAddress']) {
+            for (let p = 0; p < response.length; p++) {
+                let method = response[p];
+                this.options['depositMethods'][method['id']] = method;
+                if (method['currency'] === currency) {
+                    ret = method;
+                }
+            }
+        }
+        return ret;
     }
 };
