@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { InsufficientFunds, ExchangeError, InvalidOrder, AuthenticationError, OrderNotFound } = require ('./base/errors');
+const { InsufficientFunds, ExchangeError, InvalidOrder, AuthenticationError, OrderNotFound, InvalidAddress } = require ('./base/errors');
 
 // ----------------------------------------------------------------------------
 
@@ -546,9 +546,8 @@ module.exports = class abucoins extends Exchange {
     async fetchDepositMethods (code, params = {}) {
         await this.loadMarkets ();
         let currency = this.currency (code);
-        let ret;
+        let ret = undefined;
         let response = await this.privateGetPaymentMethods (this.extend (params));
-        console.log(response);
         if (this.options['cacheDepositMethodsOnFetchDepositAddress']) {
             for (let p = 0; p < response.length; p++) {
                 let method = response[p];
