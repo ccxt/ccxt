@@ -833,20 +833,8 @@ module.exports = class binance extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body) {
-        // code >= 400
         if ((code === 418) || (code === 429))
             throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
-        // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
-        // following block cointains legacy checks against message patterns in "msg" property
-        // will switch "code" checks eventually, when we know all of them
-        if (body.indexOf ('Price * QTY is zero or less') >= 0)
-            throw new InvalidOrder (this.id + ' order cost = amount * price is zero or less ' + body);
-        if (body.indexOf ('LOT_SIZE') >= 0)
-            throw new InvalidOrder (this.id + ' order amount should be evenly divisible by lot size, use this.amountToLots (symbol, amount) ' + body);
-        if (body.indexOf ('PRICE_FILTER') >= 0)
-            throw new InvalidOrder (this.id + ' order price exceeds allowed price precision or invalid, use this.priceToPrecision (symbol, amount) ' + body);
-        if (body.indexOf ('Order does not exist') >= 0)
-            throw new OrderNotFound (this.id + ' ' + body);
         if (body.length > 0) {
             if (body[0] === '{') {
                 let response = JSON.parse (body);
@@ -862,11 +850,24 @@ module.exports = class binance extends Exchange {
                 }
                 // check success value for wapi endpoints
                 // response in format {'msg': 'The coin does not exist.', 'success': true/false}
-                let success = this.safeString (response, 'success', 'true');
-                if (success === 'false') {
-                    throw new ExchangeError (this.id + ': unknown error code: ' + body);
+                let success = this.safeValue (response, 'success', true);
+                if (!success) {
+                    throw new ExchangeError (this.id + ': success value false: ' + body);
                 }
             }
+        }
+        // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
+        // following block cointains legacy checks against message patterns in "msg" property
+        // will switch "code" checks eventually, when we know all of them
+        if (code >= 400) {
+            if (body.indexOf ('Price * QTY is zero or less') >= 0)
+                throw new InvalidOrder (this.id + ' order cost = amount * price is zero or less ' + body);
+            if (body.indexOf ('LOT_SIZE') >= 0)
+                throw new InvalidOrder (this.id + ' order amount should be evenly divisible by lot size, use this.amountToLots (symbol, amount) ' + body);
+            if (body.indexOf ('PRICE_FILTER') >= 0)
+                throw new InvalidOrder (this.id + ' order price exceeds allowed price precision or invalid, use this.priceToPrecision (symbol, amount) ' + body);
+            if (body.indexOf ('Order does not exist') >= 0)
+                throw new OrderNotFound (this.id + ' ' + body);
         }
     }
 };
