@@ -21,6 +21,8 @@ module.exports = class gatecoin extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchTickers': true,
+                'withdraw': true,
+                'fetchDepositAddress': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -546,5 +548,45 @@ module.exports = class gatecoin extends Exchange {
                 if (response['responseStatus']['message'] === 'OK')
                     return response;
         throw new ExchangeError (this.id + ' ' + this.json (response));
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        // this.checkAddress (address);
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let request = {
+            'DigiCurrency': currency['id'],
+            'Address': address,
+            'Amount': amount,
+            'ValidationCode': this.safeString(params, 'ValidationCode'),
+        };
+        let response = await this.privatePostElectronicWalletWithdrawalsDigiCurrency (this.extend (request, params));
+        if (!response)
+            throw new ExchangeError (this.id + ' withdraw() error: ' + this.json (response));
+        return {
+            'info': response,
+            'id': response['id'],
+        };
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let request = {
+            'DigiCurrency': currency['id'],
+        };
+        let response = await this.privateGetElectronicWalletDepositWalletsDigiCurrency (this.extend (request, params)); // overwrite methods
+        let result = response['addresses'];
+        let numResults = result.length;
+        if (numResults < 1)
+            throw new InvalidAddress (this.id + ' privateGetElectronicWalletDepositWalletsDigiCurrency() returned no addresses');
+        let address = this.safeString (result[0], 'address');
+        // this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'status': 'ok',
+            'info': response,
+        };
     }
 };
