@@ -13,7 +13,7 @@ import ccxt.async as ccxt  # noqa: E402
 async def test_gdax():
     gdax = ccxt.gdax()
     markets = await gdax.load_markets()
-    await gdax.close ()
+    await gdax.close()
     return markets
 
 
