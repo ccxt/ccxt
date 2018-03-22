@@ -923,15 +923,4 @@ module.exports = class kucoin extends Exchange {
             this.throwExceptionOnError (JSON.parse (body));
         }
     }
-
-    loadPrecision () {  // TODO: call as an option from base class (not yet implemented) load
-        let markets = Object.keys (this.markets);
-        for (let i = 0; i < markets.length; i++) {
-            let k = markets[i];
-            let base = this.markets[k]['base'];
-            let quote = this.markets[k]['quote'];
-            this.markets[k]['precision']['amount'] = this.currencies[base]['precision'];
-            this.markets[k]['precision']['price'] = this.currencies[quote]['precision'];
-        }
-    }
 };
