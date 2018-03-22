@@ -343,6 +343,7 @@ declare module 'ccxt' {
     export class dsx extends liqui {}
     export class ethfinex extends bitfinex {}
     export class exmo extends Exchange {}
+    export class exx extends Exchange {}
     export class flowbtc extends Exchange {}
     export class foxbit extends Exchange {}
     export class fybse extends Exchange {}

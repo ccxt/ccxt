@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.11.152';
+$version = '1.11.153';
 
 abstract class Exchange {
 
@@ -88,6 +88,7 @@ abstract class Exchange {
         'dsx',
         'ethfinex',
         'exmo',
+        'exx',
         'flowbtc',
         'foxbit',
         'fybse',
