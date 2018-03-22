@@ -517,11 +517,12 @@ class kucoin (Exchange):
             raise ExchangeError(self.id + ' allows limit orders only')
         await self.load_markets()
         market = self.market(symbol)
+        quote = market['quote']
         base = market['base']
         request = {
             'symbol': market['id'],
             'type': side.upper(),
-            'price': self.price_to_precision(symbol, price),
+            'price': self.truncate(price, self.currencies[quote]['precision']),
             'amount': self.truncate(amount, self.currencies[base]['precision']),
         }
         price = float(price)

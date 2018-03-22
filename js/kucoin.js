@@ -539,11 +539,12 @@ module.exports = class kucoin extends Exchange {
             throw new ExchangeError (this.id + ' allows limit orders only');
         await this.loadMarkets ();
         let market = this.market (symbol);
+        let quote = market['quote'];
         let base = market['base'];
         let request = {
             'symbol': market['id'],
             'type': side.toUpperCase (),
-            'price': this.priceToPrecision (symbol, price),
+            'price': this.truncate (price, this.currencies[quote]['precision']),
             'amount': this.truncate (amount, this.currencies[base]['precision']),
         };
         price = parseFloat (price);
