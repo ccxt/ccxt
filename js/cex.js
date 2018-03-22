@@ -21,6 +21,7 @@ module.exports = class cex extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchOrders': true,
+                'fetchDepositAddress': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -505,5 +506,22 @@ module.exports = class cex extends Exchange {
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         }
         return response;
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let request = {
+            'currency': currency['id'],
+        };
+        let response = await this.privatePostGetAddress (this.extend (request, params));
+        let address = this.safeString (response, 'data');
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'status': 'ok',
+            'info': response,
+        };
     }
 };
