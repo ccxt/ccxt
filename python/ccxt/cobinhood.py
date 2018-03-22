@@ -475,7 +475,10 @@ class cobinhood (Exchange):
         response = self.privateGetWalletDepositAddresses(self.extend({
             'currency': currency['id'],
         }, params))
-        address = self.safe_string(response['result']['deposit_addresses'], 'address')
+        addresses = self.safe_value(response['result'], 'deposit_addresses', [])
+        address = None
+        if len(addresses) > 0:
+            address = self.safe_string(addresses[0], 'address')
         self.check_address(address)
         return {
             'currency': code,

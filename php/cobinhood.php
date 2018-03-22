@@ -498,7 +498,11 @@ class cobinhood extends Exchange {
         $response = $this->privateGetWalletDepositAddresses (array_merge (array (
             'currency' => $currency['id'],
         ), $params));
-        $address = $this->safe_string($response['result']['deposit_addresses'], 'address');
+        $addresses = $this->safe_value($response['result'], 'deposit_addresses', array ());
+        $address = null;
+        if (strlen ($addresses) > 0) {
+            $address = $this->safe_string($addresses[0], 'address');
+        }
         $this->check_address($address);
         return array (
             'currency' => $code,
