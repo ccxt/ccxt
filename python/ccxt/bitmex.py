@@ -245,7 +245,10 @@ class bitmex (Exchange):
         # why the hassle? urlencode in python is kinda broken for nested dicts.
         # E.g. self.urlencode({"filter": {"open": True}}) will return "filter={'open':+True}"
         # Bitmex doesn't like that. Hence resorting to self hack.
-        request['filter'] = self.json(request['filter'])
+        
+        # There would be no 'filter' key in request when you call self.fetch_closed_orders or fetch_orders directly.
+        if 'filter' in request:
+            request['filter'] = self.json(request['filter'])
         response = self.privateGetOrder(request)
         return self.parse_orders(response, market, since, limit)
 
@@ -255,6 +258,7 @@ class bitmex (Exchange):
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         # Bitmex barfs if you set 'open': False in the filter...
+        # fetch_closed_orders doesn't set a 'filter' param.
         orders = self.fetch_orders(symbol, since, limit, params)
         return self.filter_by(orders, 'status', 'closed')
 
