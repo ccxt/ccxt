@@ -135,6 +135,7 @@ module.exports = class exx extends Exchange {
         let symbol = market['symbol'];
         let timestamp = parseInt (ticker['date']);
         ticker = ticker['ticker'];
+        let last = parseFloat (ticker['last']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -142,12 +143,14 @@ module.exports = class exx extends Exchange {
             'high': parseFloat (ticker['high']),
             'low': parseFloat (ticker['low']),
             'bid': parseFloat (ticker['buy']),
+            'bidVolume': undefined,
             'ask': parseFloat (ticker['sell']),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': parseFloat (ticker['riseRate']),
             'percentage': undefined,
             'average': undefined,
