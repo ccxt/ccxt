@@ -204,9 +204,13 @@ module.exports = class bitmex extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let orderbook = await this.publicGetOrderBookL2 (this.extend ({
-            'symbol': this.marketId (symbol),
-        }, params));
+        let market = this.market (symbol);
+        let request = {
+            'symbol': market['id'],
+        };
+        if (typeof limit !== 'undefined')
+            request['depth'] = limit;
+        let orderbook = await this.publicGetOrderBookL2 (this.extend (request, params));
         let timestamp = this.milliseconds ();
         let result = {
             'bids': [],
