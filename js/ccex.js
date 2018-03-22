@@ -74,6 +74,7 @@ module.exports = class ccex extends Exchange {
                 'BLC': 'Cryptobullcoin',
                 'XID': 'InternationalDiamond',
                 'LUX': 'Luxmi',
+                'CRC': 'CoreCoin',
             },
         });
     }
