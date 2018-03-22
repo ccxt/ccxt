@@ -414,9 +414,6 @@ module.exports = class coinegg extends Exchange {
             'coin': market['baseId'],
             'quote': market['quoteId'],
         }, params));
-        if (!response['status']) {
-            throw new ExchangeError (this.json (response));
-        }
         return response;
     }
 
