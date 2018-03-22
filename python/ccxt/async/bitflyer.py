@@ -20,6 +20,7 @@ class bitflyer (Exchange):
             'has': {
                 'CORS': False,
                 'withdraw': True,
+                'fetchMyTrades': True,
                 'fetchOrders': True,
                 'fetchOrder': True,
                 'fetchOpenOrders': 'emulated',
@@ -315,6 +316,19 @@ class bitflyer (Exchange):
         if id in ordersById:
             return ordersById[id]
         raise OrderNotFound(self.id + ' No order found with id ' + id)
+
+    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ExchangeError(self.id + ' fetchMyTrades requires a symbol argument')
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'product_code': market['id'],
+        }
+        if limit:
+            request['count'] = limit
+        response = await self.privateGetGetexecutions(self.extend(request, params))
+        return self.parse_trades(response, market, since, limit)
 
     async def withdraw(self, currency, amount, address, tag=None, params={}):
         self.check_address(address)
