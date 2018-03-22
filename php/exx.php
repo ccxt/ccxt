@@ -18,7 +18,7 @@ class exx extends Exchange {
                 'fetchOpenOrders' => true,
             ),
             'urls' => array (
-                'logo' => 'https://www.exx.com/src/images/icohome/exxlogo.png',
+                'logo' => 'https://user-images.githubusercontent.com/1294454/37770292-fbf613d0-2de4-11e8-9f79-f2dc451b8ccb.jpg',
                 'api' => array (
                     'public' => 'https://api.exx.com/data/v1',
                     'private' => 'https://trade.exx.com/api',
