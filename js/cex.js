@@ -509,6 +509,10 @@ module.exports = class cex extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
+        if (code === 'XRP') {
+            // https://github.com/ccxt/ccxt/pull/2327#issuecomment-375204856
+            throw new NotSupported (this.id + ' fetchDepositAddress does not support XRP addresses yet (awaiting docs from CEX.io)');
+        }
         await this.loadMarkets ();
         let currency = this.currency (code);
         let request = {
@@ -520,6 +524,7 @@ module.exports = class cex extends Exchange {
         return {
             'currency': code,
             'address': address,
+            'tag': undefined,
             'status': 'ok',
             'info': response,
         };
