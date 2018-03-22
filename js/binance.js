@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -27,6 +27,9 @@ module.exports = class binance extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'withdraw': true,
+                'createTimeInForceOrder': {
+                    'gtc': true, 'ioc': true, 'fok': true,
+                },
             },
             'timeframes': {
                 '1m': '1m',
@@ -672,6 +675,18 @@ module.exports = class binance extends Exchange {
         }
         let response = await this.privatePostOrder (this.extend (order, params));
         return this.parseOrder (response);
+    }
+
+    async createTimeInForceOrder (symbol, type, side, amount, price = undefined, timeInForce = undefined, params = {}) {
+        if (timeInForce === 'ioc') {
+            params['timeInForce'] = 'IOC';
+        } else if (timeInForce === 'fok') {
+            params['timeInForce'] = 'FOK';
+        } else if (timeInForce !== 'gtc') {
+            throw new NotSupported (this.id + ' createTimeInForceOrder does not support ' + timeInForce);
+        }
+        let order = await this.createOrder (symbol, type, side, amount, price, params);
+        return order;
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
