@@ -18,6 +18,7 @@ module.exports = class bitflyer extends Exchange {
             'has': {
                 'CORS': false,
                 'withdraw': true,
+                'fetchMyTrades': true,
                 'fetchOrders': true,
                 'fetchOrder': true,
                 'fetchOpenOrders': 'emulated',
@@ -336,6 +337,20 @@ module.exports = class bitflyer extends Exchange {
         if (id in ordersById)
             return ordersById[id];
         throw new OrderNotFound (this.id + ' No order found with id ' + id);
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (!symbol)
+            throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol argument');
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'product_code': market['id'],
+        };
+        if (limit)
+            request['count'] = limit;
+        let response = await this.privateGetGetexecutions (this.extend (request, params));
+        return this.parseTrades (response, market, since, limit);
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
