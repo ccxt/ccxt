@@ -203,9 +203,13 @@ class bitmex extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $orderbook = $this->publicGetOrderBookL2 (array_merge (array (
-            'symbol' => $this->market_id($symbol),
-        ), $params));
+        $market = $this->market ($symbol);
+        $request = array (
+            'symbol' => $market['id'],
+        );
+        if ($limit !== null)
+            $request['depth'] = $limit;
+        $orderbook = $this->publicGetOrderBookL2 (array_merge ($request, $params));
         $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => array (),

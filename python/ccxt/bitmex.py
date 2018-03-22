@@ -202,9 +202,13 @@ class bitmex (Exchange):
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
-        orderbook = self.publicGetOrderBookL2(self.extend({
-            'symbol': self.market_id(symbol),
-        }, params))
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        if limit is not None:
+            request['depth'] = limit
+        orderbook = self.publicGetOrderBookL2(self.extend(request, params))
         timestamp = self.milliseconds()
         result = {
             'bids': [],
