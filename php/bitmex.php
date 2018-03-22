@@ -250,7 +250,8 @@ class bitmex extends Exchange {
         // why the hassle? urlencode in python is kinda broken for nested dicts.
         // E.g. self.urlencode(array ("filter" => array ("open" => True))) will return "filter=array ('open':+True)"
         // Bitmex doesn't like that. Hence resorting to this hack.
-        $request['filter'] = $this->json ($request['filter']);
+        if (is_array ($request) && array_key_exists ('filter', $request))
+            $request['filter'] = $this->json ($request['filter']);
         $response = $this->privateGetOrder ($request);
         return $this->parse_orders($response, $market, $since, $limit);
     }
