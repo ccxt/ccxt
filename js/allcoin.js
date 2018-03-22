@@ -95,7 +95,7 @@ module.exports = class allcoin extends okcoinusd {
                             'min': market['MinOrderPrice'],
                             'max': market['MaxOrderPrice'],
                         },
-                        'cost':  {
+                        'cost': {
                             'min': undefined,
                             'max': undefined,
                         },
