@@ -542,8 +542,10 @@ class coinexchange (Exchange):
             'commonCurrencies': {
                 'BON': 'BonPeKaO',
                 'ETN': 'Ethernex',
+                'GDC': 'GoldenCryptoCoin',
                 'HNC': 'Huncoin',
                 'MARS': 'MarsBux',
+                'RUB': 'RubbleCoin',
             },
         })
 
