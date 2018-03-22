@@ -73,6 +73,7 @@ module.exports = class ccex extends Exchange {
                 'IOT': 'IoTcoin',
                 'BLC': 'Cryptobullcoin',
                 'XID': 'InternationalDiamond',
+                'LUX': 'Luxmi',
             },
         });
     }
