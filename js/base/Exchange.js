@@ -37,7 +37,7 @@ const {
     , RequestTimeout
     , ExchangeNotAvailable } = require ('./errors')
 
-const defaultFetch = isNode ? require ('fetch-ponyfill') ().fetch : fetch
+const defaultFetch = typeof XMLHttpRequest === "undefined" ? require ('fetch-ponyfill') ().fetch : fetch
 
 const journal = undefined // isNode && require ('./journal') // stub until we get a better solution for Webpack and React
 
