@@ -370,10 +370,12 @@ class cobinhood (Exchange):
 
     def parse_order(self, order, market=None):
         symbol = None
-        if not market:
-            marketId = order['trading_pair']
+        if market is None:
+            marketId = self.safe_string(order, 'trading_pair')
+            if marketId is None:
+                marketId = self.safe_string(order, 'trading_pair_id')
             market = self.markets_by_id[marketId]
-        if market:
+        if market is not None:
             symbol = market['symbol']
         timestamp = order['timestamp']
         price = float(order['price'])
