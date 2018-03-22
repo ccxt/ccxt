@@ -75,6 +75,8 @@ class ccex (Exchange):
                 'IOT': 'IoTcoin',
                 'BLC': 'Cryptobullcoin',
                 'XID': 'InternationalDiamond',
+                'LUX': 'Luxmi',
+                'CRC': 'CoreCoin',
             },
         })
 
