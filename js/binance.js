@@ -725,16 +725,16 @@ module.exports = class binance extends Exchange {
         }
     }
 
-    async fetchFundingFees (params = {}) {
+    async fetchFundingFees (codes = undefined, params = {}) {
         //  by default it will try load withdrawal fees of all currencies (with separate requests)
-        //  however if you define { 'currencies': [ 'ETH', 'BTC' ] } in params it will only load those
+        //  however if you define codes = [ 'ETH', 'BTC' ] in args it will only load those
         await this.loadMarkets ();
         let withdrawFees = {};
         let info = {};
-        let fallback = Object.keys (this.currencies);
-        let currencies = this.safeValue (params, 'currencies', fallback);
-        for (let i = 0; i < currencies.length; i++) {
-            let code = currencies[i];
+        if (typeof codes === 'undefined')
+            codes = Object.keys (this.currencies);
+        for (let i = 0; i < codes.length; i++) {
+            let code = codes[i];
             let currency = this.currency (code);
             let response = await this.wapiGetWithdrawFee ({
                 'asset': currency['id'],
