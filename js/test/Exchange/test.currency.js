@@ -15,7 +15,6 @@ module.exports = (exchange, currency, method) => {
     const format = {
         'id':     'btc',      // string literal for referencing within an exchange
         'code':   'BTC',      // uppercase string literal of a pair of currencies
-
         //----------------------------------------------------------------------
         // commented temporarily to bring currencies to consistency first
         // 'name':   'Bitcoin',  // uppercase string, base currency, 3 or more letters
@@ -39,9 +38,8 @@ module.exports = (exchange, currency, method) => {
         //         'max': 1000,  // order cost should be < max
         //     },
         // },
-        //---------------------------------------------------------------------
-
-        'info': {}, // the original unparsed market info from the exchange
+        // 'info': {}, // the original unparsed market info from the exchange
+        //----------------------------------------------------------------------
     }
 
     expect (currency).to.deep.include.all.keys (format)

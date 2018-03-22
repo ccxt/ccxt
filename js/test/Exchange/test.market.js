@@ -17,10 +17,9 @@ module.exports = (exchange, market, method) => {
         'symbol': 'BTC/USD',  // uppercase string literal of a pair of currencies
         'base':   'BTC',      // uppercase string, base currency, 3 or more letters
         'quote':  'USD',      // uppercase string, quote currency, 3 or more letters
-        'active': true,       // boolean, market status
-
         //---------------------------------------------------------------------
         // commented temporarily to bring markets to consistency first
+        // 'active': true,       // boolean, market status
         // 'precision': {        // number of decimal digits "after the dot"
         //     'price': 8,       // integer
         //     'amount': 8,      // integer
@@ -40,9 +39,9 @@ module.exports = (exchange, market, method) => {
         //         'max': 1000,  // order cost should be < max
         //     },
         // },
+        // 'info': {}, // the original unparsed market info from the exchange
         //---------------------------------------------------------------------
 
-        'info': {}, // the original unparsed market info from the exchange
     }
 
     expect (market).to.deep.include.all.keys (format)
