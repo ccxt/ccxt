@@ -543,6 +543,7 @@ module.exports = class coinexchange extends Exchange {
                 'GDC': 'GoldenCryptoCoin',
                 'HNC': 'Huncoin',
                 'MARS': 'MarsBux',
+                'RUB': 'RubbleCoin',
             },
         });
     }
