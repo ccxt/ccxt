@@ -64,20 +64,20 @@ module.exports = class flowbtc extends Exchange {
     async fetchMarkets () {
         let response = await this.publicPostGetProductPairs ();
         let markets = response['productPairs'];
-        let result = [];
+        let result = {};
         for (let p = 0; p < markets.length; p++) {
             let market = markets[p];
             let id = market['name'];
             let base = market['product1Label'];
             let quote = market['product2Label'];
             let symbol = base + '/' + quote;
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'info': market,
-            });
+            };
         }
         return result;
     }
@@ -117,6 +117,7 @@ module.exports = class flowbtc extends Exchange {
             'productPair': market['id'],
         }, params));
         let timestamp = this.milliseconds ();
+        let last = parseFloat (ticker['last']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -124,12 +125,14 @@ module.exports = class flowbtc extends Exchange {
             'high': parseFloat (ticker['high']),
             'low': parseFloat (ticker['low']),
             'bid': parseFloat (ticker['bid']),
+            'bidVolume': undefined,
             'ask': parseFloat (ticker['ask']),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,

@@ -182,6 +182,10 @@ class kraken extends Exchange {
                     ),
                 ),
             ),
+            'options' => array (
+                'cacheDepositMethodsOnFetchDepositAddress' => true, // will issue up to two calls in fetchDepositAddress
+                'depositMethods' => array (),
+            ),
         ));
     }
 
@@ -263,8 +267,7 @@ class kraken extends Exchange {
                 'amount' => $market['lot_decimals'],
                 'price' => $market['pair_decimals'],
             );
-            $lot = pow (10, -$precision['amount']);
-            $minAmount = $lot;
+            $minAmount = pow (10, -$precision['amount']);
             if (is_array ($limits) && array_key_exists ($base, $limits))
                 $minAmount = $limits[$base];
             $result[] = array (
@@ -277,7 +280,6 @@ class kraken extends Exchange {
                 'altname' => $market['altname'],
                 'maker' => $maker,
                 'taker' => floatval ($market['fees'][0][1]) / 100,
-                'lot' => $lot,
                 'active' => true,
                 'precision' => $precision,
                 'limits' => array (
@@ -312,7 +314,6 @@ class kraken extends Exchange {
             'info' => null,
             'maker' => null,
             'taker' => null,
-            'lot' => $amountLimits['min'],
             'active' => false,
             'precision' => $precision,
             'limits' => $limits,
@@ -417,6 +418,7 @@ class kraken extends Exchange {
         $baseVolume = floatval ($ticker['v'][1]);
         $vwap = floatval ($ticker['p'][1]);
         $quoteVolume = $baseVolume * $vwap;
+        $last = floatval ($ticker['c'][0]);
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -424,12 +426,14 @@ class kraken extends Exchange {
             'high' => floatval ($ticker['h'][1]),
             'low' => floatval ($ticker['l'][1]),
             'bid' => floatval ($ticker['b'][0]),
+            'bidVolume' => null,
             'ask' => floatval ($ticker['a'][0]),
+            'askVolume' => null,
             'vwap' => $vwap,
             'open' => floatval ($ticker['o']),
-            'close' => null,
-            'first' => null,
-            'last' => floatval ($ticker['c'][0]),
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
@@ -565,7 +569,7 @@ class kraken extends Exchange {
         $response = $this->publicGetTrades (array_merge (array (
             'pair' => $id,
         ), $params));
-        // array ( $result => {marketid => [...trades]), last => "last_trade_id"}
+        // array ( $result => { marketid => array ( ... $trades ) ), last => "last_trade_id"}
         $result = $response['result'];
         $trades = $result[$id];
         // $trades is a sorted array => last (most recent trade) goes last
@@ -756,7 +760,7 @@ class kraken extends Exchange {
             $request['start'] = intval ($since / 1000);
         $response = $this->privatePostOpenOrders (array_merge ($request, $params));
         $orders = $this->parse_orders($response['result']['open'], null, $since, $limit);
-        return $this->filter_orders_by_symbol($orders, $symbol);
+        return $this->filter_by_symbol($orders, $symbol);
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -766,49 +770,59 @@ class kraken extends Exchange {
             $request['start'] = intval ($since / 1000);
         $response = $this->privatePostClosedOrders (array_merge ($request, $params));
         $orders = $this->parse_orders($response['result']['closed'], null, $since, $limit);
-        return $this->filter_orders_by_symbol($orders, $symbol);
+        return $this->filter_by_symbol($orders, $symbol);
     }
 
-    public function fetch_deposit_methods ($code = null, $params = array ()) {
+    public function fetch_deposit_methods ($code, $params = array ()) {
         $this->load_markets();
-        $request = array ();
-        if ($code) {
-            $currency = $this->currency ($code);
-            $request['asset'] = $currency['id'];
-        }
-        $response = $this->privatePostDepositMethods (array_merge ($request, $params));
+        $currency = $this->currency ($code);
+        $response = $this->privatePostDepositMethods (array_merge (array (
+            'asset' => $currency['id'],
+        ), $params));
         return $response['result'];
     }
 
-    public function create_deposit_address ($currency, $params = array ()) {
+    public function create_deposit_address ($code, $params = array ()) {
         $request = array (
             'new' => 'true',
         );
-        $response = $this->fetch_deposit_address ($currency, array_merge ($request, $params));
+        $response = $this->fetch_deposit_address ($code, array_merge ($request, $params));
+        $address = $this->safe_string($response, 'address');
+        $this->check_address($address);
         return array (
-            'currency' => $currency,
-            'address' => $response['address'],
+            'currency' => $code,
+            'address' => $address,
             'status' => 'ok',
             'info' => $response,
         );
     }
 
     public function fetch_deposit_address ($code, $params = array ()) {
-        $method = $this->safe_value($params, 'method');
-        if (!$method)
-            throw new ExchangeError ($this->id . ' fetchDepositAddress() requires an extra `$method` parameter');
         $this->load_markets();
         $currency = $this->currency ($code);
+        // eslint-disable-next-line quotes
+        $method = $this->safe_string($params, 'method');
+        if ($method === null) {
+            if ($this->options['cacheDepositMethodsOnFetchDepositAddress']) {
+                // cache depositMethods
+                if (!(is_array ($this->options['depositMethods']) && array_key_exists ($code, $this->options['depositMethods'])))
+                    $this->options['depositMethods'][$code] = $this->fetch_deposit_methods ($code);
+                $method = $this->options['depositMethods'][$code][0]['method'];
+            } else {
+                throw new ExchangeError ($this->id . ' fetchDepositAddress() requires an extra `$method` parameter. Use fetchDepositMethods ("' . $code . '") to get a list of available deposit methods or enable the exchange property .options["cacheDepositMethodsOnFetchDepositAddress"] = true');
+            }
+        }
         $request = array (
             'asset' => $currency['id'],
             'method' => $method,
         );
-        $response = $this->privatePostDepositAddresses (array_merge ($request, $params));
+        $response = $this->privatePostDepositAddresses (array_merge ($request, $params)); // overwrite methods
         $result = $response['result'];
         $numResults = is_array ($result) ? count ($result) : 0;
         if ($numResults < 1)
-            throw new ExchangeError ($this->id . ' privatePostDepositAddresses() returned no addresses');
+            throw new InvalidAddress ($this->id . ' privatePostDepositAddresses() returned no addresses');
         $address = $this->safe_string($result[0], 'address');
+        $this->check_address($address);
         return array (
             'currency' => $code,
             'address' => $address,
@@ -818,6 +832,7 @@ class kraken extends Exchange {
     }
 
     public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+        $this->check_address($address);
         if (is_array ($params) && array_key_exists ('key', $params)) {
             $this->load_markets();
             $response = $this->privatePostWithdraw (array_merge (array (
@@ -870,15 +885,18 @@ class kraken extends Exchange {
             if (is_array ($response) && array_key_exists ('error', $response)) {
                 $numErrors = is_array ($response['error']) ? count ($response['error']) : 0;
                 if ($numErrors) {
+                    $message = $this->id . ' ' . $this->json ($response);
                     for ($i = 0; $i < count ($response['error']); $i++) {
+                        if ($response['error'][$i] === 'EFunding:Unknown withdraw key')
+                            throw new ExchangeError ($message);
                         if ($response['error'][$i] === 'EService:Unavailable')
-                            throw new ExchangeNotAvailable ($this->id . ' ' . $this->json ($response));
+                            throw new ExchangeNotAvailable ($message);
                         if ($response['error'][$i] === 'EDatabase:Internal error')
-                            throw new ExchangeNotAvailable ($this->id . ' ' . $this->json ($response));
+                            throw new ExchangeNotAvailable ($message);
                         if ($response['error'][$i] === 'EService:Busy')
-                            throw new DDoSProtection ($this->id . ' ' . $this->json ($response));
+                            throw new DDoSProtection ($message);
                     }
-                    throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+                    throw new ExchangeError ($message);
                 }
             }
         return $response;

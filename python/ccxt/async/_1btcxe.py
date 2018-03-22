@@ -122,7 +122,9 @@ class _1btcxe (Exchange):
             'high': float(ticker['max']),
             'low': float(ticker['min']),
             'bid': float(ticker['bid']),
+            'bidVolume': None,
             'ask': float(ticker['ask']),
+            'askVolume': None,
             'vwap': None,
             'open': float(ticker['open']),
             'close': last,
@@ -133,6 +135,7 @@ class _1btcxe (Exchange):
             'average': None,
             'baseVolume': None,
             'quoteVolume': float(ticker['total_btc_traded']),
+            'info': ticker,
         }
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1d', since=None, limit=None):
@@ -196,6 +199,7 @@ class _1btcxe (Exchange):
         return await self.privatePostOrdersCancel({'id': id})
 
     async def withdraw(self, currency, amount, address, tag=None, params={}):
+        self.check_address(address)
         await self.load_markets()
         response = await self.privatePostWithdrawalsNew(self.extend({
             'currency': currency,

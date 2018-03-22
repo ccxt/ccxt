@@ -197,12 +197,14 @@ module.exports = class qryptos extends Exchange {
             'high': this.safeFloat (ticker, 'high_market_ask'),
             'low': this.safeFloat (ticker, 'low_market_bid'),
             'bid': this.safeFloat (ticker, 'market_bid'),
+            'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'market_ask'),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
+            'close': last,
             'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
@@ -361,6 +363,8 @@ module.exports = class qryptos extends Exchange {
                 request['status'] = 'cancelled';
             }
         }
+        if (typeof limit !== 'undefined')
+            request['limit'] = limit;
         let result = await this.privateGetOrders (this.extend (request, params));
         let orders = result['models'];
         return this.parseOrders (orders, market, since, limit);

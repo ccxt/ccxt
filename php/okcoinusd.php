@@ -254,6 +254,7 @@ class okcoinusd extends Exchange {
         }
         if ($market)
             $symbol = $market['symbol'];
+        $last = floatval ($ticker['last']);
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -261,12 +262,14 @@ class okcoinusd extends Exchange {
             'high' => floatval ($ticker['high']),
             'low' => floatval ($ticker['low']),
             'bid' => floatval ($ticker['buy']),
+            'bidVolume' => null,
             'ask' => floatval ($ticker['sell']),
+            'askVolume' => null,
             'vwap' => null,
             'open' => null,
-            'close' => null,
-            'first' => null,
-            'last' => floatval ($ticker['last']),
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
@@ -529,7 +532,8 @@ class okcoinusd extends Exchange {
         $method .= 'OrderInfo';
         $response = $this->$method (array_merge ($request, $params));
         $ordersField = $this->get_orders_field ();
-        if (strlen ($response[$ordersField]) > 0)
+        $numOrders = is_array ($response[$ordersField]) ? count ($response[$ordersField]) : 0;
+        if ($numOrders > 0)
             return $this->parse_order($response[$ordersField][0]);
         throw new OrderNotFound ($this->id . ' order ' . $id . ' not found');
     }
@@ -595,6 +599,7 @@ class okcoinusd extends Exchange {
     }
 
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+        $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency ($code);
         // if ($amount < 0.01)

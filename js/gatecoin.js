@@ -188,20 +188,45 @@ module.exports = class gatecoin extends Exchange {
     }
 
     async fetchMarkets () {
-        let response = await this.publicGetPublicLiveTickers ();
-        let markets = response['tickers'];
+        let response = await this.publicGetReferenceCurrencyPairs ();
+        let markets = response['currencyPairs'];
         let result = [];
-        for (let p = 0; p < markets.length; p++) {
-            let market = markets[p];
-            let id = market['currencyPair'];
-            let base = id.slice (0, 3);
-            let quote = id.slice (3, 6);
+        for (let i = 0; i < markets.length; i++) {
+            let market = markets[i];
+            let id = market['tradingCode'];
+            let baseId = market['baseCurrency'];
+            let quoteId = market['quoteCurrency'];
+            let base = baseId;
+            let quote = quoteId;
             let symbol = base + '/' + quote;
+            let precision = {
+                'amount': 8,
+                'price': market['priceDecimalPlaces'],
+            };
+            let limits = {
+                'amount': {
+                    'min': Math.pow (10, -precision['amount']),
+                    'max': undefined,
+                },
+                'price': {
+                    'min': Math.pow (10, -precision['amount']),
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            };
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': true,
+                'precision': precision,
+                'limits': limits,
                 'info': market,
             });
         }
@@ -247,6 +272,7 @@ module.exports = class gatecoin extends Exchange {
         let baseVolume = parseFloat (ticker['volume']);
         let vwap = parseFloat (ticker['vwap']);
         let quoteVolume = baseVolume * vwap;
+        let last = parseFloat (ticker['last']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -254,12 +280,14 @@ module.exports = class gatecoin extends Exchange {
             'high': parseFloat (ticker['high']),
             'low': parseFloat (ticker['low']),
             'bid': parseFloat (ticker['bid']),
+            'bidVolume': undefined,
             'ask': parseFloat (ticker['ask']),
+            'askVolume': undefined,
             'vwap': vwap,
             'open': parseFloat (ticker['open']),
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
@@ -424,7 +452,7 @@ module.exports = class gatecoin extends Exchange {
         let response = await this.privateGetTradeOrders ();
         let orders = this.parseOrders (response['orders'], undefined, since, limit);
         if (typeof symbol !== 'undefined')
-            return this.filterOrdersBySymbol (orders, symbol);
+            return this.filterBySymbol (orders, symbol);
         return orders;
     }
 

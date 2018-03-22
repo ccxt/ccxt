@@ -33,6 +33,7 @@ class livecoin (Exchange):
                 'fetchOrders': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
+                'withdraw': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27980768-f22fc424-638a-11e7-89c9-6010a54ff9be.jpg',
@@ -130,6 +131,7 @@ class livecoin (Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'active': True,
                 'precision': precision,
                 'limits': limits,
                 'info': market,
@@ -271,6 +273,7 @@ class livecoin (Exchange):
         vwap = float(ticker['vwap'])
         baseVolume = float(ticker['volume'])
         quoteVolume = baseVolume * vwap
+        last = float(ticker['last'])
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -278,12 +281,14 @@ class livecoin (Exchange):
             'high': float(ticker['high']),
             'low': float(ticker['low']),
             'bid': float(ticker['best_bid']),
+            'bidVolume': None,
             'ask': float(ticker['best_ask']),
+            'askVolume': None,
             'vwap': float(ticker['vwap']),
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
@@ -465,6 +470,25 @@ class livecoin (Exchange):
                     raise OrderNotFound(message)
         raise ExchangeError(self.id + ' cancelOrder() failed: ' + self.json(response))
 
+    async def withdraw(self, currency, amount, address, tag=None, params={}):
+        # Sometimes the response with be {key: null} for all keys.
+        # An example is if you attempt to withdraw more than is allowed when withdrawal fees are considered.
+        await self.load_markets()
+        self.check_address(address)
+        wallet = address
+        if tag is not None:
+            wallet += '::' + tag
+        withdrawal = {
+            'amount': amount,
+            'currency': self.common_currency_code(currency),
+            'wallet': wallet,
+        }
+        response = await self.privatePostPaymentOutCoin(self.extend(withdrawal, params))
+        return {
+            'info': response,
+            'id': self.safe_integer(response, 'id'),
+        }
+
     async def fetch_deposit_address(self, currency, params={}):
         request = {
             'currency': currency,
@@ -476,6 +500,7 @@ class livecoin (Exchange):
             parts = address.split(':')
             address = parts[0]
             tag = parts[2]
+        self.check_address(address)
         return {
             'currency': currency,
             'address': address,

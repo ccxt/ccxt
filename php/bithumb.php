@@ -160,7 +160,9 @@ class bithumb extends Exchange {
             'high' => $this->safe_float($ticker, 'max_price'),
             'low' => $this->safe_float($ticker, 'min_price'),
             'bid' => $this->safe_float($ticker, 'buy_price'),
+            'bidVolume' => null,
             'ask' => $this->safe_float($ticker, 'sell_price'),
+            'askVolume' => null,
             'vwap' => $vwap,
             'open' => $open,
             'close' => $close,
@@ -287,6 +289,7 @@ class bithumb extends Exchange {
     }
 
     public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+        $this->check_address($address);
         $request = array (
             'units' => $amount,
             'address' => $address,

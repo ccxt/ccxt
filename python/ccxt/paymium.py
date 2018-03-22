@@ -107,6 +107,7 @@ class paymium (Exchange):
         vwap = float(ticker['vwap'])
         baseVolume = float(ticker['volume'])
         quoteVolume = baseVolume * vwap
+        last = self.safe_float(ticker, 'price')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -114,12 +115,14 @@ class paymium (Exchange):
             'high': self.safe_float(ticker, 'high'),
             'low': self.safe_float(ticker, 'low'),
             'bid': self.safe_float(ticker, 'bid'),
+            'bidVolume': None,
             'ask': self.safe_float(ticker, 'ask'),
+            'askVolume': None,
             'vwap': vwap,
             'open': self.safe_float(ticker, 'open'),
-            'close': None,
-            'first': None,
-            'last': self.safe_float(ticker, 'price'),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': self.safe_float(ticker, 'variation'),
             'average': None,
@@ -184,7 +187,7 @@ class paymium (Exchange):
             auth = nonce + url + body
             headers = {
                 'Api-Key': self.apiKey,
-                'Api-Signature': self.hmac(self.encode(auth), self.secret),
+                'Api-Signature': self.hmac(self.encode(auth), self.encode(self.secret)),
                 'Api-Nonce': nonce,
                 'Content-Type': 'application/json',
             }

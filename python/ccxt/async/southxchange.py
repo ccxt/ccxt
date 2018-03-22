@@ -112,6 +112,7 @@ class southxchange (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
+        last = self.safe_float(ticker, 'Last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -119,12 +120,14 @@ class southxchange (Exchange):
             'high': None,
             'low': None,
             'bid': self.safe_float(ticker, 'Bid'),
+            'bidVolume': None,
             'ask': self.safe_float(ticker, 'Ask'),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': self.safe_float(ticker, 'Last'),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': self.safe_float(ticker, 'Variation24Hr'),
             'percentage': None,
             'average': None,
@@ -253,6 +256,7 @@ class southxchange (Exchange):
         parts = response.split('|')
         numParts = len(parts)
         address = parts[0]
+        self.check_address(address)
         tag = None
         if numParts > 1:
             tag = parts[1]
@@ -265,13 +269,14 @@ class southxchange (Exchange):
         }
 
     async def withdraw(self, currency, amount, address, tag=None, params={}):
+        self.check_address(address)
         request = {
             'currency': currency,
             'address': address,
             'amount': amount,
         }
         if tag is not None:
-            request['currency'] = address + '|' + tag
+            request['address'] = address + '|' + tag
         response = await self.privatePostWithdraw(self.extend(request, params))
         return {
             'info': response,

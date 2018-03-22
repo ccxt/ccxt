@@ -158,6 +158,7 @@ class acx extends Exchange {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
+        $last = $this->safe_float($ticker, 'last', null);
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -165,12 +166,14 @@ class acx extends Exchange {
             'high' => $this->safe_float($ticker, 'high', null),
             'low' => $this->safe_float($ticker, 'low', null),
             'bid' => $this->safe_float($ticker, 'buy', null),
+            'bidVolume' => null,
             'ask' => $this->safe_float($ticker, 'sell', null),
+            'askVolume' => null,
             'vwap' => null,
             'open' => null,
-            'close' => null,
-            'first' => null,
-            'last' => $this->safe_float($ticker, 'last', null),
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
@@ -332,6 +335,7 @@ class acx extends Exchange {
     }
 
     public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+        $this->check_address($address);
         $this->load_markets();
         $result = $this->privatePostWithdraw (array_merge (array (
             'currency' => strtolower ($currency),

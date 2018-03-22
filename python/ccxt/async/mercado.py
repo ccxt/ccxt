@@ -88,6 +88,7 @@ class mercado (Exchange):
         }, params))
         ticker = response['ticker']
         timestamp = int(ticker['date']) * 1000
+        last = float(ticker['last'])
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -95,12 +96,14 @@ class mercado (Exchange):
             'high': float(ticker['high']),
             'low': float(ticker['low']),
             'bid': float(ticker['buy']),
+            'bidVolume': None,
             'ask': float(ticker['sell']),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
@@ -240,6 +243,7 @@ class mercado (Exchange):
         return self.parse_order(response['response_data']['order'])
 
     async def withdraw(self, currency, amount, address, tag=None, params={}):
+        self.check_address(address)
         await self.load_markets()
         request = {
             'coin': currency,

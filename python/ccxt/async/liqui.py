@@ -89,6 +89,9 @@ class liqui (Exchange):
                     'deposit': {},
                 },
             },
+            'commonCurrencies': {
+                'DSH': 'DASH',
+            },
             'exceptions': {
                 '803': InvalidOrder,  # "Count could not be less than 0.001."(selling below minAmount)
                 '804': InvalidOrder,  # "Count could not be more than 10000."(buying above maxAmount)
@@ -116,20 +119,6 @@ class liqui (Exchange):
             'rate': rate,
             'cost': cost,
         }
-
-    def common_currency_code(self, currency):
-        if not self.substituteCommonCurrencyCodes:
-            return currency
-        if currency == 'XBT':
-            return 'BTC'
-        if currency == 'BCC':
-            return 'BCH'
-        if currency == 'DRK':
-            return 'DASH'
-        # they misspell DASH as dsh :/
-        if currency == 'DSH':
-            return 'DASH'
-        return currency
 
     def get_base_quote_from_market_id(self, id):
         uppercase = id.upper()
@@ -257,6 +246,7 @@ class liqui (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -264,12 +254,14 @@ class liqui (Exchange):
             'high': self.safe_float(ticker, 'high'),
             'low': self.safe_float(ticker, 'low'),
             'bid': self.safe_float(ticker, 'buy'),
+            'bidVolume': None,
             'ask': self.safe_float(ticker, 'sell'),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': self.safe_float(ticker, 'last'),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': self.safe_float(ticker, 'avg'),
@@ -418,15 +410,22 @@ class liqui (Exchange):
             self.orders[id]['status'] = 'canceled'
         return response
 
+    def parse_order_status(self, status):
+        statuses = {
+            '0': 'open',
+            '1': 'closed',
+            '2': 'canceled',
+            '3': 'canceled',  # or partially-filled and still open? https://github.com/ccxt/ccxt/issues/1594
+        }
+        if status in statuses:
+            return statuses[status]
+        return status
+
     def parse_order(self, order, market=None):
         id = str(order['id'])
-        status = self.safe_integer(order, 'status')
-        if status == 0:
-            status = 'open'
-        elif status == 1:
-            status = 'closed'
-        elif (status == 2) or (status == 3):
-            status = 'canceled'
+        status = self.safe_string(order, 'status')
+        if status != 'None':
+            status = self.parse_order_status(status)
         timestamp = int(order['timestamp_created']) * 1000
         symbol = None
         if not market:
@@ -532,7 +531,7 @@ class liqui (Exchange):
         await self.load_markets()
         request = {}
         market = None
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['pair'] = market['id']
         response = await self.privatePostActiveOrders(self.extend(request, params))
@@ -541,7 +540,7 @@ class liqui (Exchange):
         if 'return' in response:
             openOrders = self.parse_orders(response['return'], market)
         allOrders = self.update_cached_orders(openOrders, symbol)
-        result = self.filter_orders_by_symbol(allOrders, symbol)
+        result = self.filter_by_symbol(allOrders, symbol)
         return self.filter_by_since_limit(result, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -579,6 +578,7 @@ class liqui (Exchange):
         return self.parse_trades(trades, market, since, limit)
 
     async def withdraw(self, currency, amount, address, tag=None, params={}):
+        self.check_address(address)
         await self.load_markets()
         response = await self.privatePostWithdrawCoin(self.extend({
             'coinName': currency,

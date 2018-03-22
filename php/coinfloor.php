@@ -27,7 +27,8 @@ class coinfloor extends Exchange {
             ),
             'requiredCredentials' => array (
                 'apiKey' => true,
-                'secret' => true,
+                'secret' => false,
+                'password' => true,
                 'uid' => true,
             ),
             'api' => array (
@@ -96,6 +97,7 @@ class coinfloor extends Exchange {
         if ($vwap !== null) {
             $quoteVolume = $baseVolume * $vwap;
         }
+        $last = floatval ($ticker['last']);
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -103,12 +105,14 @@ class coinfloor extends Exchange {
             'high' => floatval ($ticker['high']),
             'low' => floatval ($ticker['low']),
             'bid' => floatval ($ticker['bid']),
+            'bidVolume' => null,
             'ask' => floatval ($ticker['ask']),
+            'askVolume' => null,
             'vwap' => $vwap,
             'open' => null,
-            'close' => null,
-            'first' => null,
-            'last' => floatval ($ticker['last']),
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
@@ -179,7 +183,7 @@ class coinfloor extends Exchange {
             $nonce = $this->nonce ();
             $body = $this->urlencode (array_merge (array ( 'nonce' => $nonce ), $query));
             $auth = $this->uid . '/' . $this->apiKey . ':' . $this->password;
-            $signature = base64_encode ($auth);
+            $signature = $this->decode (base64_encode ($this->encode ($auth)));
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Authorization' => 'Basic ' . $signature,

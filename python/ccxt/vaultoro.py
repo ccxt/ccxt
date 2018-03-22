@@ -116,6 +116,7 @@ class vaultoro (Exchange):
         response = self.publicGetMarkets(params)
         ticker = response['data']
         timestamp = self.milliseconds()
+        last = float(ticker['LastPrice'])
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -123,12 +124,14 @@ class vaultoro (Exchange):
             'high': float(ticker['24hHigh']),
             'low': float(ticker['24hLow']),
             'bid': bid[0],
+            'bidVolume': None,
             'ask': ask[0],
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['LastPrice']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,

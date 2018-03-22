@@ -54,28 +54,11 @@ module.exports = class tidex extends liqui {
                     'maker': 0.1 / 100,
                 },
             },
+            'commonCurrencies': {
+                'MGO': 'WMGO',
+                'EMGO': 'MGO',
+            },
         });
-    }
-
-    commonCurrencyCode (currency) {
-        if (!this.substituteCommonCurrencyCodes)
-            return currency;
-        if (currency === 'XBT')
-            return 'BTC';
-        if (currency === 'BCC')
-            return 'BCH';
-        if (currency === 'DRK')
-            return 'DASH';
-        // they misspell DASH as DSH? (may not be true)
-        if (currency === 'DSH')
-            return 'DASH';
-        // their MGO stands for MGO on WAVES (aka WMGO), see issue #1487
-        if (currency === 'MGO')
-            return 'WMGO';
-        // the MGO on ETH is called EMGO on Tidex
-        if (currency === 'EMGO')
-            return 'MGO';
-        return currency;
     }
 
     async fetchCurrencies (params = {}) {
@@ -83,30 +66,31 @@ module.exports = class tidex extends liqui {
         let result = {};
         for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];
-            let id = currency['Symbol'];
-            let precision = currency['AmountPoint'];
-            let code = this.commonCurrencyCode (id);
-            let active = currency['Visible'] === true;
+            let id = currency['symbol'];
+            let precision = currency['amountPoint'];
+            let code = id.toUpperCase ();
+            code = this.commonCurrencyCode (code);
+            let active = currency['visible'] === true;
             let status = 'ok';
             if (!active) {
                 status = 'disabled';
             }
-            let canWithdraw = currency['WithdrawEnable'] === true;
-            let canDeposit = currency['DepositEnable'] === true;
+            let canWithdraw = currency['withdrawEnable'] === true;
+            let canDeposit = currency['depositEnable'] === true;
             if (!canWithdraw || !canDeposit) {
                 active = false;
             }
             result[code] = {
                 'id': id,
                 'code': code,
-                'name': currency['Name'],
+                'name': currency['name'],
                 'active': active,
                 'status': status,
                 'precision': precision,
                 'funding': {
                     'withdraw': {
                         'active': canWithdraw,
-                        'fee': currency['WithdrawFee'],
+                        'fee': currency['withdrawFee'],
                     },
                     'deposit': {
                         'active': canDeposit,
@@ -127,11 +111,11 @@ module.exports = class tidex extends liqui {
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': currency['WithdrawMinAmout'],
+                        'min': currency['withdrawMinAmout'],
                         'max': undefined,
                     },
                     'deposit': {
-                        'min': currency['DepositMinAmount'],
+                        'min': currency['depositMinAmount'],
                         'max': undefined,
                     },
                 },

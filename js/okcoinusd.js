@@ -255,6 +255,7 @@ module.exports = class okcoinusd extends Exchange {
         }
         if (market)
             symbol = market['symbol'];
+        let last = parseFloat (ticker['last']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -262,12 +263,14 @@ module.exports = class okcoinusd extends Exchange {
             'high': parseFloat (ticker['high']),
             'low': parseFloat (ticker['low']),
             'bid': parseFloat (ticker['buy']),
+            'bidVolume': undefined,
             'ask': parseFloat (ticker['sell']),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
@@ -530,7 +533,8 @@ module.exports = class okcoinusd extends Exchange {
         method += 'OrderInfo';
         let response = await this[method] (this.extend (request, params));
         let ordersField = this.getOrdersField ();
-        if (response[ordersField].length > 0)
+        let numOrders = response[ordersField].length;
+        if (numOrders > 0)
             return this.parseOrder (response[ordersField][0]);
         throw new OrderNotFound (this.id + ' order ' + id + ' not found');
     }
@@ -596,6 +600,7 @@ module.exports = class okcoinusd extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
         await this.loadMarkets ();
         let currency = this.currency (code);
         // if (amount < 0.01)

@@ -33,7 +33,10 @@ class gateio (Exchange):
                 },
                 'www': 'https://gate.io/',
                 'doc': 'https://gate.io/api2',
-                'fees': 'https://gate.io/fee',
+                'fees': [
+                    'https://gate.io/fee',
+                    'https://support.gate.io/hc/en-us/articles/115003577673',
+                ],
             },
             'api': {
                 'public': {
@@ -64,6 +67,14 @@ class gateio (Exchange):
                         'tradeHistory',
                         'withdraw',
                     ],
+                },
+            },
+            'fees': {
+                'trading': {
+                    'tierBased': True,
+                    'percentage': True,
+                    'maker': 0.002,
+                    'taker': 0.002,
                 },
             },
         })
@@ -147,6 +158,7 @@ class gateio (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
+        last = float(ticker['last'])
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -154,12 +166,14 @@ class gateio (Exchange):
             'high': float(ticker['high24hr']),
             'low': float(ticker['low24hr']),
             'bid': float(ticker['highestBid']),
+            'bidVolume': None,
             'ask': float(ticker['lowestAsk']),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': float(ticker['percentChange']),
             'percentage': None,
             'average': None,
@@ -263,6 +277,7 @@ class gateio (Exchange):
         return await self.query_deposit_address('Deposit', currency, params)
 
     async def withdraw(self, currency, amount, address, tag=None, params={}):
+        self.check_address(address)
         await self.load_markets()
         response = await self.privatePostWithdraw(self.extend({
             'currency': currency.lower(),

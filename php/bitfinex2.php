@@ -153,16 +153,6 @@ class bitfinex2 extends bitfinex {
         ));
     }
 
-    public function common_currency_code ($currency) {
-        $currencies = array (
-            'DSH' => 'DASH', // Bitfinex names Dash as DSH, instead of DASH
-            'QTM' => 'QTUM',
-            'IOT' => 'IOTA',
-            'DAT' => 'DATA',
-        );
-        return (is_array ($currencies) && array_key_exists ($currency, $currencies)) ? $currencies[$currency] : $currency;
-    }
-
     public function is_fiat ($code) {
         $fiat = array (
             'USD' => 'USD',
@@ -285,6 +275,7 @@ class bitfinex2 extends bitfinex {
         if ($market)
             $symbol = $market['symbol'];
         $length = is_array ($ticker) ? count ($ticker) : 0;
+        $last = $ticker[$length - 4];
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -292,12 +283,14 @@ class bitfinex2 extends bitfinex {
             'high' => $ticker[$length - 2],
             'low' => $ticker[$length - 1],
             'bid' => $ticker[$length - 10],
+            'bidVolume' => null,
             'ask' => $ticker[$length - 8],
+            'askVolume' => null,
             'vwap' => null,
             'open' => null,
-            'close' => null,
-            'first' => null,
-            'last' => $ticker[$length - 4],
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
             'change' => $ticker[$length - 6],
             'percentage' => $ticker[$length - 5],
             'average' => null,

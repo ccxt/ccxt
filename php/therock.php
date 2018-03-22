@@ -67,7 +67,7 @@ class therock extends Exchange {
             ),
             'fees' => array (
                 'trading' => array (
-                    'maker' => 0.02 / 100,
+                    'maker' => 0.2 / 100,
                     'taker' => 0.2 / 100,
                 ),
                 'funding' => array (
@@ -159,7 +159,9 @@ class therock extends Exchange {
             'high' => floatval ($ticker['high']),
             'low' => floatval ($ticker['low']),
             'bid' => floatval ($ticker['bid']),
+            'bidVolume' => null,
             'ask' => floatval ($ticker['ask']),
+            'askVolume' => null,
             'vwap' => null,
             'open' => floatval ($ticker['open']),
             'close' => $last,

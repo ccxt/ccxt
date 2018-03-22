@@ -30,7 +30,10 @@ class gateio extends Exchange {
                 ),
                 'www' => 'https://gate.io/',
                 'doc' => 'https://gate.io/api2',
-                'fees' => 'https://gate.io/fee',
+                'fees' => array (
+                    'https://gate.io/fee',
+                    'https://support.gate.io/hc/en-us/articles/115003577673',
+                ),
             ),
             'api' => array (
                 'public' => array (
@@ -61,6 +64,14 @@ class gateio extends Exchange {
                         'tradeHistory',
                         'withdraw',
                     ),
+                ),
+            ),
+            'fees' => array (
+                'trading' => array (
+                    'tierBased' => true,
+                    'percentage' => true,
+                    'maker' => 0.002,
+                    'taker' => 0.002,
                 ),
             ),
         ));
@@ -154,6 +165,7 @@ class gateio extends Exchange {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
+        $last = floatval ($ticker['last']);
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -161,12 +173,14 @@ class gateio extends Exchange {
             'high' => floatval ($ticker['high24hr']),
             'low' => floatval ($ticker['low24hr']),
             'bid' => floatval ($ticker['highestBid']),
+            'bidVolume' => null,
             'ask' => floatval ($ticker['lowestAsk']),
+            'askVolume' => null,
             'vwap' => null,
             'open' => null,
-            'close' => null,
-            'first' => null,
-            'last' => floatval ($ticker['last']),
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
             'change' => floatval ($ticker['percentChange']),
             'percentage' => null,
             'average' => null,
@@ -281,6 +295,7 @@ class gateio extends Exchange {
     }
 
     public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+        $this->check_address($address);
         $this->load_markets();
         $response = $this->privatePostWithdraw (array_merge (array (
             'currency' => strtolower ($currency),

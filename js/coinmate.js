@@ -106,6 +106,7 @@ module.exports = class coinmate extends Exchange {
         }, params));
         let ticker = response['data'];
         let timestamp = ticker['timestamp'] * 1000;
+        let last = parseFloat (ticker['last']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -113,12 +114,14 @@ module.exports = class coinmate extends Exchange {
             'high': parseFloat (ticker['high']),
             'low': parseFloat (ticker['low']),
             'bid': parseFloat (ticker['bid']),
+            'bidVolume': undefined,
             'ask': parseFloat (ticker['ask']),
             'vwap': undefined,
+            'askVolume': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,

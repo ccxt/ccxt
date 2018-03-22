@@ -182,6 +182,7 @@ class braziliex (Exchange):
         symbol = market['symbol']
         timestamp = ticker['date']
         ticker = ticker['ticker']
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -189,12 +190,14 @@ class braziliex (Exchange):
             'high': self.safe_float(ticker, 'highestBid24'),
             'low': self.safe_float(ticker, 'lowestAsk24'),
             'bid': self.safe_float(ticker, 'highestBid'),
+            'bidVolume': None,
             'ask': self.safe_float(ticker, 'lowestAsk'),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': self.safe_float(ticker, 'last'),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': self.safe_float(ticker, 'percentChange'),
             'percentage': None,
             'average': None,
@@ -398,8 +401,7 @@ class braziliex (Exchange):
             'currency': currency['id'],
         }, params))
         address = self.safe_string(response, 'deposit_address')
-        if not address:
-            raise ExchangeError(self.id + ' fetchDepositAddress failed: ' + self.last_http_response)
+        self.check_address(address)
         tag = self.safe_string(response, 'payment_id')
         return {
             'currency': code,

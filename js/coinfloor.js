@@ -28,7 +28,8 @@ module.exports = class coinfloor extends Exchange {
             },
             'requiredCredentials': {
                 'apiKey': true,
-                'secret': true,
+                'secret': false,
+                'password': true,
                 'uid': true,
             },
             'api': {
@@ -97,6 +98,7 @@ module.exports = class coinfloor extends Exchange {
         if (typeof vwap !== 'undefined') {
             quoteVolume = baseVolume * vwap;
         }
+        let last = parseFloat (ticker['last']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -104,12 +106,14 @@ module.exports = class coinfloor extends Exchange {
             'high': parseFloat (ticker['high']),
             'low': parseFloat (ticker['low']),
             'bid': parseFloat (ticker['bid']),
+            'bidVolume': undefined,
             'ask': parseFloat (ticker['ask']),
+            'askVolume': undefined,
             'vwap': vwap,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
@@ -180,7 +184,7 @@ module.exports = class coinfloor extends Exchange {
             let nonce = this.nonce ();
             body = this.urlencode (this.extend ({ 'nonce': nonce }, query));
             let auth = this.uid + '/' + this.apiKey + ':' + this.password;
-            let signature = this.stringToBase64 (auth);
+            let signature = this.decode (this.stringToBase64 (this.encode (auth)));
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Authorization': 'Basic ' + signature,

@@ -171,7 +171,9 @@ module.exports = class virwox extends Exchange {
             'high': parseFloat (ticker['high']),
             'low': parseFloat (ticker['low']),
             'bid': undefined,
+            'bidVolume': undefined,
             'ask': undefined,
+            'askVolume': undefined,
             'vwap': undefined,
             'open': parseFloat (ticker['open']),
             'close': close,
@@ -206,13 +208,14 @@ module.exports = class virwox extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        let market = this.market (symbol);
         let response = await this.publicGetGetRawTradeData (this.extend ({
             'instrument': symbol,
             'timespan': 3600,
         }, params));
         let result = response['result'];
         let trades = result['data'];
-        return this.parseTrades (trades, symbol);
+        return this.parseTrades (trades, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

@@ -115,6 +115,7 @@ class southxchange extends Exchange {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
+        $last = $this->safe_float($ticker, 'Last');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -122,12 +123,14 @@ class southxchange extends Exchange {
             'high' => null,
             'low' => null,
             'bid' => $this->safe_float($ticker, 'Bid'),
+            'bidVolume' => null,
             'ask' => $this->safe_float($ticker, 'Ask'),
+            'askVolume' => null,
             'vwap' => null,
             'open' => null,
-            'close' => null,
-            'first' => null,
-            'last' => $this->safe_float($ticker, 'Last'),
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
             'change' => $this->safe_float($ticker, 'Variation24Hr'),
             'percentage' => null,
             'average' => null,
@@ -268,6 +271,7 @@ class southxchange extends Exchange {
         $parts = explode ('|', $response);
         $numParts = is_array ($parts) ? count ($parts) : 0;
         $address = $parts[0];
+        $this->check_address($address);
         $tag = null;
         if ($numParts > 1)
             $tag = $parts[1];
@@ -281,13 +285,14 @@ class southxchange extends Exchange {
     }
 
     public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+        $this->check_address($address);
         $request = array (
             'currency' => $currency,
             'address' => $address,
             'amount' => $amount,
         );
         if ($tag !== null)
-            $request['currency'] = $address . '|' . $tag;
+            $request['address'] = $address . '|' . $tag;
         $response = $this->privatePostWithdraw (array_merge ($request, $params));
         return array (
             'info' => $response,

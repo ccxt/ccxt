@@ -87,6 +87,7 @@ class mercado extends Exchange {
         ), $params));
         $ticker = $response['ticker'];
         $timestamp = intval ($ticker['date']) * 1000;
+        $last = floatval ($ticker['last']);
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -94,12 +95,14 @@ class mercado extends Exchange {
             'high' => floatval ($ticker['high']),
             'low' => floatval ($ticker['low']),
             'bid' => floatval ($ticker['buy']),
+            'bidVolume' => null,
             'ask' => floatval ($ticker['sell']),
+            'askVolume' => null,
             'vwap' => null,
             'open' => null,
-            'close' => null,
-            'first' => null,
-            'last' => floatval ($ticker['last']),
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
@@ -251,6 +254,7 @@ class mercado extends Exchange {
     }
 
     public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+        $this->check_address($address);
         $this->load_markets();
         $request = array (
             'coin' => $currency,

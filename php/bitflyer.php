@@ -13,12 +13,14 @@ class bitflyer extends Exchange {
             'name' => 'bitFlyer',
             'countries' => 'JP',
             'version' => 'v1',
-            'rateLimit' => 500,
+            'rateLimit' => 1000, // their nonce-timestamp is in seconds...
             'has' => array (
                 'CORS' => false,
                 'withdraw' => true,
                 'fetchOrders' => true,
                 'fetchOrder' => true,
+                'fetchOpenOrders' => 'emulated',
+                'fetchClosedOrders' => 'emulated',
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg',
@@ -153,6 +155,7 @@ class bitflyer extends Exchange {
             'product_code' => $this->market_id($symbol),
         ), $params));
         $timestamp = $this->parse8601 ($ticker['timestamp']);
+        $last = floatval ($ticker['ltp']);
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -160,12 +163,14 @@ class bitflyer extends Exchange {
             'high' => null,
             'low' => null,
             'bid' => floatval ($ticker['best_bid']),
+            'bidVolume' => null,
             'ask' => floatval ($ticker['best_ask']),
+            'askVolume' => null,
             'vwap' => null,
             'open' => null,
-            'close' => null,
-            'first' => null,
-            'last' => floatval ($ticker['ltp']),
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
@@ -219,6 +224,7 @@ class bitflyer extends Exchange {
             'size' => $amount,
         );
         $result = $this->privatePostSendchildorder (array_merge ($order, $params));
+        // array ( "status" => - 200, "error_message" => "Insufficient funds", "data" => null )
         return array (
             'info' => $result,
             'id' => $result['child_order_acceptance_id'],
@@ -297,22 +303,33 @@ class bitflyer extends Exchange {
 
     public function fetch_orders ($symbol = null, $since = null, $limit = 100, $params = array ()) {
         if ($symbol === null)
-            throw new ExchangeError ($this->id . ' cancelOrder() requires a $symbol argument');
+            throw new ExchangeError ($this->id . ' fetchOrders() requires a $symbol argument');
         $this->load_markets();
+        $market = $this->market ($symbol);
         $request = array (
-            'product_code' => $this->market_id($symbol),
+            'product_code' => $market['id'],
             'count' => $limit,
         );
         $response = $this->privateGetGetchildorders (array_merge ($request, $params));
-        $orders = $this->parse_orders($response, $symbol, $since, $limit);
+        $orders = $this->parse_orders($response, $market, $since, $limit);
         if ($symbol)
             $orders = $this->filter_by($orders, 'symbol', $symbol);
         return $orders;
     }
 
+    public function fetch_open_orders ($symbol = null, $since = null, $limit = 100, $params = array ()) {
+        $params['child_order_state'] = 'ACTIVE';
+        return $this->fetch_orders($symbol, $since, $limit, $params);
+    }
+
+    public function fetch_closed_orders ($symbol = null, $since = null, $limit = 100, $params = array ()) {
+        $params['child_order_state'] = 'COMPLETED';
+        return $this->fetch_orders($symbol, $since, $limit, $params);
+    }
+
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         if ($symbol === null)
-            throw new ExchangeError ($this->id . ' cancelOrder() requires a $symbol argument');
+            throw new ExchangeError ($this->id . ' fetchOrder() requires a $symbol argument');
         $orders = $this->fetch_orders($symbol);
         $ordersById = $this->index_by($orders, 'id');
         if (is_array ($ordersById) && array_key_exists ($id, $ordersById))
@@ -321,6 +338,7 @@ class bitflyer extends Exchange {
     }
 
     public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+        $this->check_address($address);
         $this->load_markets();
         $response = $this->privatePostWithdraw (array_merge (array (
             'currency_code' => $currency,
@@ -348,9 +366,10 @@ class bitflyer extends Exchange {
             $nonce = (string) $this->nonce ();
             $auth = implode ('', array ($nonce, $method, $request));
             if ($params) {
-                $body = $this->json ($params);
-                if ($method !== 'GET')
+                if ($method !== 'GET') {
+                    $body = $this->json ($params);
                     $auth .= $body;
+                }
             }
             $headers = array (
                 'ACCESS-KEY' => $this->apiKey,

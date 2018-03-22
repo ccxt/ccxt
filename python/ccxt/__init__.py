@@ -28,7 +28,7 @@ SOFTWARE.
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.10.1273'
+__version__ = '1.11.152'
 
 # ----------------------------------------------------------------------------
 
@@ -39,6 +39,7 @@ from ccxt.base.errors import BaseError                      # noqa: F401
 from ccxt.base.errors import ExchangeError                  # noqa: F401
 from ccxt.base.errors import NotSupported                   # noqa: F401
 from ccxt.base.errors import AuthenticationError            # noqa: F401
+from ccxt.base.errors import PermissionDenied               # noqa: F401
 from ccxt.base.errors import InvalidNonce                   # noqa: F401
 from ccxt.base.errors import InsufficientFunds              # noqa: F401
 from ccxt.base.errors import InvalidOrder                   # noqa: F401
@@ -49,6 +50,7 @@ from ccxt.base.errors import NetworkError                   # noqa: F401
 from ccxt.base.errors import DDoSProtection                 # noqa: F401
 from ccxt.base.errors import RequestTimeout                 # noqa: F401
 from ccxt.base.errors import ExchangeNotAvailable           # noqa: F401
+from ccxt.base.errors import InvalidAddress                 # noqa: F401
 
 from ccxt._1broker import _1broker                          # noqa: F401
 from ccxt._1btcxe import _1btcxe                            # noqa: F401
@@ -101,6 +103,7 @@ from ccxt.coinspot import coinspot                          # noqa: F401
 from ccxt.coolcoin import coolcoin                          # noqa: F401
 from ccxt.cryptopia import cryptopia                        # noqa: F401
 from ccxt.dsx import dsx                                    # noqa: F401
+from ccxt.ethfinex import ethfinex                          # noqa: F401
 from ccxt.exmo import exmo                                  # noqa: F401
 from ccxt.flowbtc import flowbtc                            # noqa: F401
 from ccxt.foxbit import foxbit                              # noqa: F401
@@ -205,6 +208,7 @@ exchanges = [
     'coolcoin',
     'cryptopia',
     'dsx',
+    'ethfinex',
     'exmo',
     'flowbtc',
     'foxbit',

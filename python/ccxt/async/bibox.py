@@ -8,6 +8,7 @@ import hashlib
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
@@ -136,6 +137,7 @@ class bibox (Exchange):
             symbol = market['symbol']
         else:
             symbol = ticker['coin_symbol'] + '/' + ticker['currency_symbol']
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -143,16 +145,18 @@ class bibox (Exchange):
             'high': self.safe_float(ticker, 'high'),
             'low': self.safe_float(ticker, 'low'),
             'bid': self.safe_float(ticker, 'buy'),
+            'bidVolume': None,
             'ask': self.safe_float(ticker, 'sell'),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': self.safe_float(ticker, 'last'),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': self.safe_string(ticker, 'percent'),
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'vol'),
+            'baseVolume': self.safe_float(ticker, 'vol24H'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -166,19 +170,17 @@ class bibox (Exchange):
         }, params))
         return self.parse_ticker(response['result'], market)
 
+    def parse_tickers(self, rawTickers, symbols=None):
+        tickers = []
+        for i in range(0, len(rawTickers)):
+            tickers.append(self.parse_ticker(rawTickers[i]))
+        return self.filter_by_array(tickers, 'symbol', symbols)
+
     async def fetch_tickers(self, symbols=None, params={}):
         response = await self.publicGetMdata(self.extend({
             'cmd': 'marketAll',
         }, params))
-        tickers = response['result']
-        result = {}
-        for t in range(0, len(tickers)):
-            ticker = self.parse_ticker(tickers[t])
-            symbol = ticker['symbol']
-            if symbols and(not(symbol in list(symbols.keys()))):
-                continue
-            result[symbol] = ticker
-        return result
+        return self.parse_tickers(response['result'], symbols)
 
     def parse_trade(self, trade, market=None):
         timestamp = trade['time']
@@ -470,18 +472,20 @@ class bibox (Exchange):
         await self.load_markets()
         currency = self.currency(code)
         response = await self.privatePostTransfer({
-            'cmd': 'transfer/transferOutInfo',
+            'cmd': 'transfer/transferIn',
             'body': self.extend({
                 'coin_symbol': currency['id'],
             }, params),
         })
+        address = self.safe_string(response, 'result')
         result = {
             'info': response,
-            'address': None,
+            'address': address,
         }
         return result
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        self.check_address(address)
         await self.load_markets()
         currency = self.currency(code)
         if self.password is None:
@@ -542,7 +546,9 @@ class bibox (Exchange):
                     # The number of orders can not be less than
                     raise InvalidOrder(message)
                 elif code == '3012':
-                    raise AuthenticationError(message)  # invalid api key
+                    raise AuthenticationError(message)  # invalid apiKey
+                elif code == '3024':
+                    raise PermissionDenied(message)  # insufficient apiKey permissions
                 elif code == '3025':
                     raise AuthenticationError(message)  # signature failed
                 elif code == '4000':

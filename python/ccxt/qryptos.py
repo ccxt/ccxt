@@ -194,12 +194,14 @@ class qryptos (Exchange):
             'high': self.safe_float(ticker, 'high_market_ask'),
             'low': self.safe_float(ticker, 'low_market_bid'),
             'bid': self.safe_float(ticker, 'market_bid'),
+            'bidVolume': None,
             'ask': self.safe_float(ticker, 'market_ask'),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
+            'close': last,
             'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
@@ -341,6 +343,8 @@ class qryptos (Exchange):
                 request['status'] = 'filled'
             elif status == 'canceled':
                 request['status'] = 'cancelled'
+        if limit is not None:
+            request['limit'] = limit
         result = self.privateGetOrders(self.extend(request, params))
         orders = result['models']
         return self.parse_orders(orders, market, since, limit)

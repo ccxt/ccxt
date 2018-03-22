@@ -276,6 +276,7 @@ declare module 'ccxt' {
         fetchOHLCV? (symbol: string, timeframe?: string, since?: number, limit?: number, params?: any): Promise<OHLCV[]>;
         fetchOrders (symbol?: string, since?: number, limit?: number, params?: {}): Promise<Order[]>;
         fetchOpenOrders (symbol?: string, since?: number, limit?: number, params?: {}): Promise<Order[]>;
+        fetchCurrencies (params?: any): Promise<any>;
         cancelOrder (id: string, symbol?: string, params?: {}): Promise<any>;
         deposit (currency: string, amount: string, address: string, params?: {}): Promise<any>;
         fetchDepositAddress (currency: string, params?: {}): Promise<any>;
@@ -340,6 +341,7 @@ declare module 'ccxt' {
     export class coolcoin extends coinegg {}
     export class cryptopia extends Exchange {}
     export class dsx extends liqui {}
+    export class ethfinex extends bitfinex {}
     export class exmo extends Exchange {}
     export class flowbtc extends Exchange {}
     export class foxbit extends Exchange {}

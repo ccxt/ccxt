@@ -55,7 +55,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 Exchanges
 =========
 
-The ccxt library currently supports the following 102 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 103 cryptocurrency exchange markets and trading APIs:
 
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 |                        | id                   | name                                                           | ver   | doc                                                                                               | countries                                  |
@@ -162,6 +162,8 @@ The ccxt library currently supports the following 102 cryptocurrency exchange ma
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |dsx|                  | dsx                  | `DSX <https://dsx.uk>`__                                       | 3     | `API <https://api.dsx.uk>`__                                                                      | UK                                         |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
+| |ethfinex|             | ethfinex             | `Ethfinex <https://www.ethfinex.com>`__                        | 1     | `API <https://bitfinex.readme.io/v1/docs>`__                                                      | British Virgin Islands                     |
++------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |exmo|                 | exmo                 | `EXMO <https://exmo.me>`__                                     | 1     | `API <https://exmo.me/en/api_doc>`__                                                              | Spain, Russia                              |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |flowbtc|              | flowbtc              | `flowBTC <https://trader.flowbtc.com>`__                       | 1     | `API <http://www.flowbtc.com.br/api/>`__                                                          | Brazil                                     |
@@ -190,7 +192,7 @@ The ccxt library currently supports the following 102 cryptocurrency exchange ma
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |huobicny|             | huobicny             | `Huobi CNY <https://www.huobi.com>`__                          | 1     | `API <https://github.com/huobiapi/API_Docs/wiki/REST_api_reference>`__                            | China                                      |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
-| |huobipro|             | huobipro             | `Huobi Pro <https://www.huobi.pro>`__                          | 1     | `API <https://github.com/huobiapi/API_Docs/wiki/REST_api_reference>`__                            | China                                      |
+| |huobipro|             | huobipro             | `Huobi Pro <https://www.huobipro.com>`__                       | 1     | `API <https://github.com/huobiapi/API_Docs/wiki/REST_api_reference>`__                            | China                                      |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |independentreserve|   | independentreserve   | `Independent Reserve <https://www.independentreserve.com>`__   | \*    | `API <https://www.independentreserve.com/API>`__                                                  | Australia, New Zealand                     |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -326,7 +328,8 @@ The ccxt library in PHP uses builtin UTC/GMT time functions, therefore you are r
     $bitfinex1 = new \ccxt\bitfinex (array ('id' => 'bitfinex1'));
     $bitfinex2 = new \ccxt\bitfinex (array ('id' => 'bitfinex2'));
     $id = 'kraken';
-    $kraken = new \ccxt\$id ();
+    $exchange = '\\ccxt\\' . $id
+    $kraken = new $exchange ();
 
 Exchange Structure
 ------------------
@@ -556,7 +559,7 @@ Market Structure
             },
             'price': { ... }, // same min/max limits for the price of the order
             'cost':  { ... }, // same limits for order cost = price * amount
-        }
+        },
         'info':      { ... }, // the original unparsed market info from the exchange
     }
 
@@ -659,7 +662,8 @@ In order to load markets manually beforehand call the ``loadMarkets ()`` / ``loa
 
     // PHP
     $id = 'huobi';
-    $huobi = new \ccxt\$id ();
+    $exchange = '\\ccxt\\' . $id;
+    $huobi = new $exchange ();
     $markets = $huobi.load_markets ();
     var_dump ($huobi->id, $markets);
 
@@ -1033,7 +1037,7 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 -  ``fetchClosedOrders ([symbol[, params]])``
 -  ...
 
-Note, that most of methods of the unified API accept an optional ``params`` parameter. It is an associative array (a dictionary, empty by default) containing the params you want to override. Use the ``params`` dictionary if you need to pass a custom setting or an optional parameter to your unified query.
+Note, that most of methods of the unified API accept an optional ``params`` parameter. It is an associative array (a dictionary, empty by default) containing the params you want to override. The contents of ``params`` are exchange-specific, consult the exchanges' API documentation for supported fields and values. Use the ``params`` dictionary if you need to pass a custom setting or an optional parameter to your unified query.
 
 Market Data
 ===========
@@ -1200,9 +1204,9 @@ A price ticker contains statistics for a particular market/symbol for some perio
         'high':          float, // highest price
         'low':           float, // lowest price
         'bid':           float, // current best bid (buy) price
-        'bidVolume':     float, // current best bid (buy) amount
+        'bidVolume':     float, // current best bid (buy) amount (may be missing or undefined)
         'ask':           float, // current best ask (sell) price
-        'askVolume':     float, // current best ask (sell) amount
+        'askVolume':     float, // current best ask (sell) amount (may be missing or undefined)
         'vwap':          float, // volume weighed average price
         'open':          float, // opening price
         'close':         float, // price of last trade (closing price for current period)
@@ -1350,6 +1354,8 @@ To get the list of available timeframes for your exchange see the ``timeframes``
 
 **There's a limit on how far back in time your requests can go.** Most of exchanges will not allow to query detailed candlestick history (like those for 1-minute and 5-minute timeframes) too far in the past. They usually keep a reasonable amount of most recent candles, like 1000 last candles for any timeframe is more than enough for most of needs. You can work around that limitation by continuously fetching (aka *REST polling*) latest OHLCVs and storing them in a CSV file or in a database.
 
+**Note that the info from the last (current) candle may be incomplete until the candle is closed (until the next candle starts).**
+
 The fetchOHLCV method shown above returns a list (a flat array) of OHLCV candles represented by the following structure:
 
 .. code:: javascript
@@ -1365,6 +1371,8 @@ The fetchOHLCV method shown above returns a list (a flat array) of OHLCV candles
         ],
         ...
     ]
+
+Like with most other unified and implicit methods, the ``fetchOHLCV`` method accepts as its last argument an associative array (a dictionary) of extra ``params``, which is used to override default values that are sent in requests to the exchanges. The contents of ``params`` are exchange-specific, consult the exchanges' API documentation for supported fields and values.
 
 OHLCV Emulation
 ~~~~~~~~~~~~~~~
@@ -2060,9 +2068,12 @@ Deposit
     {
         'currency': currency, // currency code
         'address': address,   // address in terms of requested currency
+        'tag': tag,           // tag / memo / paymentId for particular currencies (XRP, XMR, ...)
         'status': status,     // 'ok' or other
         'info': response,     // raw unparsed data as returned from the exchange
     }
+
+With certain currencies, like AEON, BTS, GXS, NXT, SBD, STEEM, STR, XEM, XLM, XMR, XRP, an additional argument ``tag`` is usually required by exchanges. The tag is a memo or a message or a payment id that is attached to a withdrawal transaction. The tag is mandatory for those currencies and it identifies the recipient user account.
 
 Withdraw
 ~~~~~~~~
@@ -2079,8 +2090,6 @@ The withdraw method returns a dictionary containing the withdrawal id, which is 
         'info' { ... },      // unparsed reply from the exchange, as is
         'id': '12345567890', // string withdrawal id, if any
     }
-
-With certain currencies, like AEON, BTS, GXS, NXT, SBD, STEEM, STR, XEM, XLM, XMR, XRP, an additional argument ``tag`` is usually required by exchanges. The tag is a memo or a message or a payment id that is attached to a withdrawal transaction.
 
 Some exchanges require a manual approval of each withdrawal by means of 2FA (2-factor authentication). In order to approve your withdrawal you usually have to either click their secret link in your email inbox or enter a Google Authenticator code or an Authy code on their website to verify that withdrawal transaction was requested intentionally.
 
@@ -2219,8 +2228,12 @@ Below is an outline of exception inheritance hierarchy:
     |   +---+ NotSupported
     |   |
     |   +---+ AuthenticationError
+    |   |   |
+    |   |   +---+ PermissionDenied
     |   |
     |   +---+ InsufficientFunds
+    |   |
+    |   +---+ InvalidAddress
     |   |
     |   +---+ InvalidOrder
     |       |
@@ -2253,7 +2266,9 @@ Other exceptions derived from ``ExchangeError``:
 
 -  ``NotSupported``: This exception is raised if the endpoint is not offered/not supported by the exchange API.
 -  ``AuthenticationError``: Raised when an exchange requires one of the API credentials that you've missed to specify, or when there's a mistake in the keypair or an outdated nonce. Most of the time you need ``apiKey`` and ``secret``, sometimes you also need ``uid`` and/or ``password``.
+-  ``PermissionDenied``: Raised when there's no access for specified action or insufficient permissions on the specified ``apiKey``.
 -  ``InsufficientFunds``: This exception is raised when you don't have enough currency on your account balance to place an order.
+-  ``InvalidAddress``: This exception is raised upon encountering a bad funding address or a funding address shorter than ``.minFundingAddressLength`` (10 characters by default) in a call to ``fetchDepositAddress``, ``createDepositAddress`` or ``withdraw``.
 -  ``InvalidOrder``: This exception is the base class for all exceptions related to the unified order API.
 -  ``OrderNotFound``: Raised when you are trying to fetch or cancel a non-existent order.
 
@@ -2269,6 +2284,8 @@ This exception is thrown whenever Cloudflare or Incapsula rate limiter restricti
 
 -  ``cloudflare``
 -  ``incapsula``
+-  ``overload``
+-  ``ddos``
 
 RequestTimeout
 ~~~~~~~~~~~~~~
@@ -2314,6 +2331,7 @@ Troubleshooting
 
 In case you experience any difficulty connecting to a particular exchange, do the following in order of precedence:
 
+-  Make sure that you have the most recent version of ccxt.
 -  Check the `CHANGELOG <https://github.com/ccxt/ccxt/blob/master/CHANGELOG.md>`__ for recent updates.
 -  Turn ``verbose = true`` to get more detail about it.
 -  Python people can turn on DEBUG logging level with a standard pythonic logger, by adding these two lines to the beginning of their code:
@@ -2393,6 +2411,7 @@ Notes
 .. |coolcoin| image:: https://user-images.githubusercontent.com/1294454/36770529-be7b1a04-1c5b-11e8-9600-d11f1996b539.jpg
 .. |cryptopia| image:: https://user-images.githubusercontent.com/1294454/29484394-7b4ea6e2-84c6-11e7-83e5-1fccf4b2dc81.jpg
 .. |dsx| image:: https://user-images.githubusercontent.com/1294454/27990275-1413158a-645a-11e7-931c-94717f7510e3.jpg
+.. |ethfinex| image:: https://user-images.githubusercontent.com/1294454/37555526-7018a77c-29f9-11e8-8835-8e415c038a18.jpg
 .. |exmo| image:: https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg
 .. |flowbtc| image:: https://user-images.githubusercontent.com/1294454/28162465-cd815d4c-67cf-11e7-8e57-438bea0523a2.jpg
 .. |foxbit| image:: https://user-images.githubusercontent.com/1294454/27991413-11b40d42-647f-11e7-91ee-78ced874dd09.jpg

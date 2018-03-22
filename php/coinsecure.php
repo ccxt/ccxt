@@ -171,6 +171,7 @@ class coinsecure extends Exchange {
     }
 
     public function fetch_balance ($params = array ()) {
+        $this->load_markets();
         $response = $this->privateGetUserExchangeBankSummary ();
         $balance = $response['message'];
         $coin = array (
@@ -192,6 +193,7 @@ class coinsecure extends Exchange {
     }
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+        $this->load_markets();
         $bids = $this->publicGetExchangeBidOrders ($params);
         $asks = $this->publicGetExchangeAskOrders ($params);
         $orderbook = array (
@@ -202,6 +204,7 @@ class coinsecure extends Exchange {
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {
+        $this->load_markets();
         $response = $this->publicGetExchangeTicker ($params);
         $ticker = $response['message'];
         $timestamp = $ticker['timestamp'];
@@ -212,6 +215,7 @@ class coinsecure extends Exchange {
         }
         $quoteVolume = floatval ($ticker['fiatvolume']) / 100;
         $vwap = $quoteVolume / $baseVolume;
+        $last = floatval ($ticker['lastPrice']) / 100;
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -219,12 +223,14 @@ class coinsecure extends Exchange {
             'high' => floatval ($ticker['high']) / 100,
             'low' => floatval ($ticker['low']) / 100,
             'bid' => floatval ($ticker['bid']) / 100,
+            'bidVolume' => null,
             'ask' => floatval ($ticker['ask']) / 100,
+            'askVolume' => null,
             'vwap' => $vwap,
             'open' => floatval ($ticker['open']) / 100,
-            'close' => null,
-            'first' => null,
-            'last' => floatval ($ticker['lastPrice']) / 100,
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
@@ -253,14 +259,17 @@ class coinsecure extends Exchange {
     }
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
         $result = $this->publicGetExchangeTrades ($params);
         if (is_array ($result) && array_key_exists ('message', $result)) {
             $trades = $result['message'];
-            return $this->parse_trades($trades, $symbol);
+            return $this->parse_trades($trades, $market);
         }
     }
 
     public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+        $this->load_markets();
         $method = 'privatePutUserExchange';
         $order = array ();
         if ($type === 'market') {
@@ -283,6 +292,7 @@ class coinsecure extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
         // $method = 'privateDeleteUserExchangeAskCancelOrderId'; // TODO fixme, have to specify order side here
         // return $this->$method (array ( 'orderID' => $id ));
         throw new NotSupported ($this->id . ' cancelOrder () is not fully implemented yet');

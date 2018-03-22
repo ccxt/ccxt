@@ -216,6 +216,14 @@ module.exports = class bitfinex extends Exchange {
                     },
                 },
             },
+            'commonCurrencies': {
+                'DSH': 'DASH', // Bitfinex names Dash as DSH, instead of DASH
+                'QTM': 'QTUM',
+                'BCC': 'CST_BCC',
+                'BCU': 'CST_BCU',
+                'IOT': 'IOTA',
+                'DAT': 'DATA',
+            },
             'exceptions': {
                 'exact': {
                     'Order could not be cancelled.': OrderNotFound, // non-existent order
@@ -235,18 +243,6 @@ module.exports = class bitfinex extends Exchange {
                 },
             },
         });
-    }
-
-    commonCurrencyCode (currency) {
-        const currencies = {
-            'DSH': 'DASH', // Bitfinex names Dash as DSH, instead of DASH
-            'QTM': 'QTUM',
-            'BCC': 'CST_BCC',
-            'BCU': 'CST_BCU',
-            'IOT': 'IOTA',
-            'DAT': 'DATA',
-        };
-        return (currency in currencies) ? currencies[currency] : currency;
     }
 
     async fetchFundingFees (params = {}) {
@@ -384,18 +380,9 @@ module.exports = class bitfinex extends Exchange {
         let result = {};
         for (let i = 0; i < tickers.length; i++) {
             let ticker = tickers[i];
-            if ('pair' in ticker) {
-                let id = ticker['pair'];
-                if (id in this.markets_by_id) {
-                    let market = this.markets_by_id[id];
-                    let symbol = market['symbol'];
-                    result[symbol] = this.parseTicker (ticker, market);
-                } else {
-                    throw new ExchangeError (this.id + ' fetchTickers() failed to recognize symbol ' + id + ' ' + this.json (ticker));
-                }
-            } else {
-                throw new ExchangeError (this.id + ' fetchTickers() response not recognized ' + this.json (tickers));
-            }
+            let parsedTicker = this.parseTicker (ticker);
+            let symbol = parsedTicker['symbol'];
+            result[symbol] = parsedTicker;
         }
         return result;
     }
@@ -412,17 +399,23 @@ module.exports = class bitfinex extends Exchange {
     parseTicker (ticker, market = undefined) {
         let timestamp = parseFloat (ticker['timestamp']) * 1000;
         let symbol = undefined;
-        if (market) {
+        if (typeof market !== 'undefined') {
             symbol = market['symbol'];
         } else if ('pair' in ticker) {
             let id = ticker['pair'];
-            if (id in this.markets_by_id) {
+            if (id in this.markets_by_id)
                 market = this.markets_by_id[id];
+            if (typeof market !== 'undefined') {
                 symbol = market['symbol'];
             } else {
-                throw new ExchangeError (this.id + ' unrecognized ticker symbol ' + id + ' ' + this.json (ticker));
+                let baseId = id.slice (0, 3);
+                let quoteId = id.slice (3, 6);
+                let base = this.commonCurrencyCode (baseId);
+                let quote = this.commonCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
             }
         }
+        let last = parseFloat (ticker['last_price']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -430,12 +423,14 @@ module.exports = class bitfinex extends Exchange {
             'high': parseFloat (ticker['high']),
             'low': parseFloat (ticker['low']),
             'bid': parseFloat (ticker['bid']),
+            'bidVolume': undefined,
             'ask': parseFloat (ticker['ask']),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last_price']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': parseFloat (ticker['mid']),
@@ -571,10 +566,10 @@ module.exports = class bitfinex extends Exchange {
             'type': orderType,
             'side': side,
             'price': this.safeFloat (order, 'price'),
-            'average': parseFloat (order['avg_execution_price']),
-            'amount': parseFloat (order['original_amount']),
-            'remaining': parseFloat (order['remaining_amount']),
-            'filled': parseFloat (order['executed_amount']),
+            'average': this.safeFloat (order, 'avg_execution_price'),
+            'amount': this.safeFloat (order, 'original_amount'),
+            'remaining': this.safeFloat (order, 'remaining_amount'),
+            'filled': this.safeFloat (order, 'executed_amount'),
             'status': status,
             'fee': undefined,
         };
@@ -668,9 +663,11 @@ module.exports = class bitfinex extends Exchange {
         let response = await this.fetchDepositAddress (currency, this.extend ({
             'renew': 1,
         }, params));
+        let address = this.safeString (response, 'address');
+        this.checkAddress (address);
         return {
             'currency': currency,
-            'address': response['address'],
+            'address': address,
             'status': 'ok',
             'info': response['info'],
         };
@@ -690,6 +687,7 @@ module.exports = class bitfinex extends Exchange {
             tag = address;
             address = response['address_pool'];
         }
+        this.checkAddress (address);
         return {
             'currency': currency,
             'address': address,
@@ -700,6 +698,7 @@ module.exports = class bitfinex extends Exchange {
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
         let name = this.getCurrencyName (currency);
         let request = {
             'withdraw_type': name,

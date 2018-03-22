@@ -116,6 +116,7 @@ module.exports = class southxchange extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        let last = this.safeFloat (ticker, 'Last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -123,12 +124,14 @@ module.exports = class southxchange extends Exchange {
             'high': undefined,
             'low': undefined,
             'bid': this.safeFloat (ticker, 'Bid'),
+            'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'Ask'),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': this.safeFloat (ticker, 'Last'),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': this.safeFloat (ticker, 'Variation24Hr'),
             'percentage': undefined,
             'average': undefined,
@@ -269,6 +272,7 @@ module.exports = class southxchange extends Exchange {
         let parts = response.split ('|');
         let numParts = parts.length;
         let address = parts[0];
+        this.checkAddress (address);
         let tag = undefined;
         if (numParts > 1)
             tag = parts[1];
@@ -282,13 +286,14 @@ module.exports = class southxchange extends Exchange {
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
         let request = {
             'currency': currency,
             'address': address,
             'amount': amount,
         };
         if (typeof tag !== 'undefined')
-            request['currency'] = address + '|' + tag;
+            request['address'] = address + '|' + tag;
         let response = await this.privatePostWithdraw (this.extend (request, params));
         return {
             'info': response,

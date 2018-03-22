@@ -158,15 +158,6 @@ class bitfinex2 (bitfinex):
             },
         })
 
-    def common_currency_code(self, currency):
-        currencies = {
-            'DSH': 'DASH',  # Bitfinex names Dash as DSH, instead of DASH
-            'QTM': 'QTUM',
-            'IOT': 'IOTA',
-            'DAT': 'DATA',
-        }
-        return currencies[currency] if (currency in list(currencies.keys())) else currency
-
     def is_fiat(self, code):
         fiat = {
             'USD': 'USD',
@@ -280,6 +271,7 @@ class bitfinex2 (bitfinex):
         if market:
             symbol = market['symbol']
         length = len(ticker)
+        last = ticker[length - 4]
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -287,12 +279,14 @@ class bitfinex2 (bitfinex):
             'high': ticker[length - 2],
             'low': ticker[length - 1],
             'bid': ticker[length - 10],
+            'bidVolume': None,
             'ask': ticker[length - 8],
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': ticker[length - 4],
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': ticker[length - 6],
             'percentage': ticker[length - 5],
             'average': None,

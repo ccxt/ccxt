@@ -40,6 +40,7 @@ const ccxt        = require ('../../ccxt.js')
             'fetchMyTrades',
             'fetchCurrencies',
             'fetchDepositAddress',
+            'createDepositAddress',
             'withdraw',
 
         ].forEach (key => {

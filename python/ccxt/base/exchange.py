@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.1273'
+__version__ = '1.11.152'
 
 # -----------------------------------------------------------------------------
 
@@ -14,6 +14,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import InvalidAddress
 
 # -----------------------------------------------------------------------------
 
@@ -167,6 +168,7 @@ class Exchange(object):
         'withdraw': False,
     }
 
+    minFundingAddressLength = 10  # used in check_address
     substituteCommonCurrencyCodes = True
     lastRestRequestTimestamp = 0
     lastRestPollTimestamp = 0
@@ -178,6 +180,12 @@ class Exchange(object):
     last_http_response = None
     last_json_response = None
     last_response_headers = None
+
+    commonCurrencies = {
+        'XBT': 'BTC',
+        'BCC': 'BCH',
+        'DRK': 'DASH',
+    }
 
     def __init__(self, config={}):
 
@@ -225,7 +233,6 @@ class Exchange(object):
             'delay': 1.0,
             'capacity': 1.0,
             'defaultCost': 1.0,
-            'maxCapacity': 1000,
         }, getattr(self, 'tokenBucket') if hasattr(self, 'tokenBucket') else {})
 
         self.session = self.session if self.session else Session()
@@ -398,7 +405,7 @@ class Exchange(object):
             else:
                 return response
         except ValueError as e:  # ValueError == JsonDecodeError
-            ddos_protection = re.search('(cloudflare|incapsula)', response, flags=re.IGNORECASE)
+            ddos_protection = re.search('(cloudflare|incapsula|overload|ddos)', response, flags=re.IGNORECASE)
             exchange_not_available = re.search('(offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing)', response, flags=re.IGNORECASE)
             if ddos_protection:
                 self.raise_error(DDoSProtection, method, url, None, response)
@@ -511,8 +518,7 @@ class Exchange(object):
     @staticmethod
     def group_by(array, key):
         result = {}
-        if type(array) is dict:
-            array = list(Exchange.keysort(array).items())
+        array = Exchange.to_array(array)
         array = [entry for entry in array if (key in entry) and (entry[key] is not None)]
         for entry in array:
             if entry[key] not in result:
@@ -772,6 +778,14 @@ class Exchange(object):
             if self.requiredCredentials[key] and not getattr(self, key):
                 self.raise_error(AuthenticationError, details='requires `' + key + '`')
 
+    def check_address(self, address):
+        """Checks an address is not the same character repeated or an empty sequence"""
+        if address is None:
+            self.raise_error(InvalidAddress, details='address is None')
+        if all(letter == address[0] for letter in address) or len(address) < self.minFundingAddressLength or ' ' in address:
+            self.raise_error(InvalidAddress, details='address is invalid or has less than ' + str(self.minFundingAddressLength) + ' characters: "' + str(address) + '"')
+        return address
+
     def account(self):
         return {
             'free': 0.0,
@@ -782,13 +796,11 @@ class Exchange(object):
     def common_currency_code(self, currency):
         if not self.substituteCommonCurrencyCodes:
             return currency
-        if currency == 'XBT':
-            return 'BTC'
-        if currency == 'BCC':
-            return 'BCH'
-        if currency == 'DRK':
-            return 'DASH'
-        return currency
+        return self.safe_string(self.commonCurrencies, currency, currency)
+
+    def currency_id(self, commonCode):
+        currencyIds = {v: k for k, v in self.commonCurrencies.items()}
+        return self.safe_string(currencyIds, commonCode, commonCode)
 
     def precision_from_string(self, string):
         parts = re.sub(r'0+$', '', string).split('.')
@@ -991,8 +1003,8 @@ class Exchange(object):
     def parse_order_book(self, orderbook, timestamp=None, bids_key='bids', asks_key='asks', price_key=0, amount_key=1):
         timestamp = timestamp or self.milliseconds()
         return {
-            'bids': self.parse_bids_asks(orderbook[bids_key], price_key, amount_key) if (bids_key in orderbook) and isinstance(orderbook[bids_key], list) else [],
-            'asks': self.parse_bids_asks(orderbook[asks_key], price_key, amount_key) if (asks_key in orderbook) and isinstance(orderbook[asks_key], list) else [],
+            'bids': self.sort_by(self.parse_bids_asks(orderbook[bids_key], price_key, amount_key) if (bids_key in orderbook) and isinstance(orderbook[bids_key], list) else [], 0, True),
+            'asks': self.sort_by(self.parse_bids_asks(orderbook[asks_key], price_key, amount_key) if (asks_key in orderbook) and isinstance(orderbook[asks_key], list) else [], 0),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
@@ -1027,12 +1039,11 @@ class Exchange(object):
 
     def build_ohlcv(self, trades, timeframe='1m', since=None, limit=None):
         ms = self.parse_timeframe(timeframe) * 1000
-        print(type(ms), ms)
         ohlcvs = []
         (high, low, close, volume) = (2, 3, 4, 5)
         num_trades = len(trades)
         oldest = (num_trades - 1) if limit is None else min(num_trades - 1, limit)
-        for i in range(oldest, 0, -1):
+        for i in range(0, oldest):
             trade = trades[i]
             if (since is not None) and (trade['timestamp'] < since):
                 continue
@@ -1059,8 +1070,12 @@ class Exchange(object):
     def parse_timeframe(self, timeframe):
         amount = int(timeframe[0:-1])
         unit = timeframe[-1]
-        if 'M' in unit:
+        if 'y' in unit:
+            scale = 60 * 60 * 24 * 365
+        elif 'M' in unit:
             scale = 60 * 60 * 24 * 30
+        elif 'w' in unit:
+            scale = 60 * 60 * 24 * 7
         elif 'd' in unit:
             scale = 60 * 60 * 24
         elif 'h' in unit:
@@ -1072,27 +1087,56 @@ class Exchange(object):
     def parse_trades(self, trades, market=None, since=None, limit=None):
         array = self.to_array(trades)
         array = [self.parse_trade(trade, market) for trade in array]
-        return self.filter_by_since_limit(array, since, limit)
+        array = self.sort_by(array, 'timestamp')
+        symbol = market['symbol'] if market else None
+        return self.filter_by_symbol_since_limit(array, symbol, since, limit)
 
     def parse_orders(self, orders, market=None, since=None, limit=None):
         array = self.to_array(orders)
         array = [self.parse_order(order, market) for order in array]
-        return self.filter_by_since_limit(array, since, limit)
+        array = self.sort_by(array, 'timestamp')
+        symbol = market['symbol'] if market else None
+        return self.filter_by_symbol_since_limit(array, symbol, since, limit)
 
-    def filter_by_since_limit(self, array, since=None, limit=None):
+    def filter_by_symbol_since_limit(self, array, symbol=None, since=None, limit=None):
+        array = self.to_array(array)
+        if symbol:
+            array = [entry for entry in array if entry['symbol'] == symbol]
         if since:
-            array = [entry for entry in array if entry['timestamp'] > since]
+            array = [entry for entry in array if entry['timestamp'] >= since]
         if limit:
             array = array[0:limit]
         return array
 
-    def filter_orders_by_symbol(self, orders, symbol=None):
+    def filter_by_since_limit(self, array, since=None, limit=None):
+        array = self.to_array(array)
+        if since:
+            array = [entry for entry in array if entry['timestamp'] >= since]
+        if limit:
+            array = array[0:limit]
+        return array
+
+    def filter_by_symbol(self, array, symbol=None):
+        array = self.to_array(array)
         if symbol:
-            grouped = self.group_by(orders, 'symbol')
-            if symbol in grouped:
-                return grouped[symbol]
-            return []
-        return orders
+            return [entry for entry in array if entry['symbol'] == symbol]
+        return array
+
+    def filter_by_array(self, objects, key, values=None, indexed=True):
+
+        objects = self.to_array(objects)
+
+        # return all of them if no values were passed in
+        if values is None:
+            return self.index_by(objects, key) if indexed else objects
+
+        result = []
+        for i in range(0, len(objects)):
+            value = objects[i][key] if key in objects[i] else None
+            if value in values:
+                result.append(objects[i])
+
+        return self.index_by(result, key) if indexed else result
 
     def currency(self, code):
         if not self.currencies:

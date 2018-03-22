@@ -15,7 +15,6 @@ class bitz extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v1',
             'has' => array (
-                'fetchBalance' => false, // so far the only exchange that has createOrder but not fetchBalance %)
                 'fetchTickers' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
@@ -47,6 +46,7 @@ class bitz extends Exchange {
                 ),
                 'private' => array (
                     'post' => array (
+                        'balances',
                         'tradeAdd',
                         'tradeCancel',
                         'openOrders',
@@ -120,6 +120,9 @@ class bitz extends Exchange {
                 'amount' => 8,
                 'price' => 8,
             ),
+            'options' => array (
+                'lastNonceTimestamp' => 0,
+            ),
         ));
     }
 
@@ -131,8 +134,9 @@ class bitz extends Exchange {
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $market = $markets[$id];
-            $idUpper = strtoupper ($id);
-            list ($base, $quote) = explode ('_', $idUpper);
+            list ($baseId, $quoteId) = explode ('_', $id);
+            $base = strtoupper ($baseId);
+            $quote = strtoupper ($quoteId);
             $base = $this->common_currency_code($base);
             $quote = $this->common_currency_code($quote);
             $symbol = $base . '/' . $quote;
@@ -141,6 +145,8 @@ class bitz extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
                 'active' => true,
                 'info' => $market,
             );
@@ -148,9 +154,33 @@ class bitz extends Exchange {
         return $result;
     }
 
+    public function fetch_balance ($params = array ()) {
+        $this->load_markets();
+        $response = $this->privatePostBalances ($params);
+        $data = $response['data'];
+        $balances = $this->omit ($data, 'uid');
+        $result = array ( 'info' => $response );
+        $keys = is_array ($balances) ? array_keys ($balances) : array ();
+        for ($i = 0; $i < count ($keys); $i++) {
+            $currency = $keys[$i];
+            $balance = floatval ($balances[$currency]);
+            if (is_array ($this->currencies_by_id) && array_key_exists ($currency, $this->currencies_by_id))
+                $currency = $this->currencies_by_id[$currency]['code'];
+            else
+                $currency = strtoupper ($currency);
+            $account = $this->account ();
+            $account['free'] = $balance;
+            $account['used'] = null;
+            $account['total'] = $balance;
+            $result[$currency] = $account;
+        }
+        return $this->parse_balance($result);
+    }
+
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = $ticker['date'] * 1000;
         $symbol = $market['symbol'];
+        $last = floatval ($ticker['last']);
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -158,12 +188,14 @@ class bitz extends Exchange {
             'high' => floatval ($ticker['high']),
             'low' => floatval ($ticker['low']),
             'bid' => floatval ($ticker['buy']),
+            'bidVolume' => null,
             'ask' => floatval ($ticker['sell']),
+            'askVolume' => null,
             'vwap' => null,
             'open' => null,
-            'close' => null,
-            'first' => null,
-            'last' => floatval ($ticker['last']),
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
@@ -250,7 +282,7 @@ class bitz extends Exchange {
             'coin' => $market['id'],
             'type' => $this->timeframes[$timeframe],
         ), $params));
-        $ohlcv = $this->unjson ($response['data']['datas']['data']);
+        $ohlcv = json_decode ($response['data']['datas']['data'], $as_associative_array = true);
         return $this->parse_ohlcvs($ohlcv, $market, $timeframe, $since, $limit);
     }
 
@@ -271,7 +303,7 @@ class bitz extends Exchange {
             'status' => 'open',
             'symbol' => $symbol,
             'type' => 'limit',
-            'side' => $order['type'],
+            'side' => $side,
             'price' => $order['price'],
             'cost' => null,
             'amount' => $order['number'],
@@ -324,8 +356,13 @@ class bitz extends Exchange {
     }
 
     public function nonce () {
-        $milliseconds = $this->milliseconds ();
-        return (fmod ($milliseconds, 1000000));
+        $currentTimestamp = $this->seconds ();
+        if ($currentTimestamp > $this->options['lastNonceTimestamp']) {
+            $this->options['lastNonceTimestamp'] = $currentTimestamp;
+            $this->options['lastNonce'] = 100000;
+        }
+        $this->options['lastNonce'] .= 1;
+        return $this->options['lastNonce'];
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

@@ -125,7 +125,9 @@ class _1btcxe extends Exchange {
             'high' => floatval ($ticker['max']),
             'low' => floatval ($ticker['min']),
             'bid' => floatval ($ticker['bid']),
+            'bidVolume' => null,
             'ask' => floatval ($ticker['ask']),
+            'askVolume' => null,
             'vwap' => null,
             'open' => floatval ($ticker['open']),
             'close' => $last,
@@ -136,6 +138,7 @@ class _1btcxe extends Exchange {
             'average' => null,
             'baseVolume' => null,
             'quoteVolume' => floatval ($ticker['total_btc_traded']),
+            'info' => $ticker,
         );
     }
 
@@ -206,6 +209,7 @@ class _1btcxe extends Exchange {
     }
 
     public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+        $this->check_address($address);
         $this->load_markets();
         $response = $this->privatePostWithdrawalsNew (array_merge (array (
             'currency' => $currency,
