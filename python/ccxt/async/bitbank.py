@@ -395,16 +395,14 @@ class bitbank (Exchange):
                 body = self.json(query)
                 auth += body
             else:
-                url += path
                 query = self.urlencode(query)
                 if len(query):
-                    query += '?' + query
-                    url += query
-                    auth += query
+                    url += '?' + query
+                    auth += '?' + query
             headers = {
                 'Content-Type': 'application/json',
                 'ACCESS-KEY': self.apiKey,
-                'ACCESS-NONCE': self.nonce(),
+                'ACCESS-NONCE': nonce,
                 'ACCESS-SIGNATURE': self.hmac(self.encode(auth), self.encode(self.secret)),
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
