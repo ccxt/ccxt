@@ -190,12 +190,11 @@ module.exports = class exx extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, params = {}) {
-        await this.loadMarkets ();
+    async performOrderBookRequest (market, limit = undefined, params = {}) {
         let orderbook = await this.publicGetDepth (this.extend ({
-            'currency': this.marketId (symbol),
+            'currency': market['id'],
         }, params));
-        return this.parseOrderBook (orderbook, orderbook['timestamp']);
+        return orderbook;
     }
 
     parseTrade (trade, market = undefined) {
