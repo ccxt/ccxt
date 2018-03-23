@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.11.161'
+__version__ = '1.11.162'
 
 # -----------------------------------------------------------------------------
 
@@ -36,6 +36,7 @@ from ccxt.async.anxpro import anxpro                            # noqa: F401
 from ccxt.async.bibox import bibox                              # noqa: F401
 from ccxt.async.binance import binance                          # noqa: F401
 from ccxt.async.bit2c import bit2c                              # noqa: F401
+from ccxt.async.bitbank import bitbank                          # noqa: F401
 from ccxt.async.bitbay import bitbay                            # noqa: F401
 from ccxt.async.bitcoincoid import bitcoincoid                  # noqa: F401
 from ccxt.async.bitfinex import bitfinex                        # noqa: F401
@@ -142,6 +143,7 @@ exchanges = [
     'bibox',
     'binance',
     'bit2c',
+    'bitbank',
     'bitbay',
     'bitcoincoid',
     'bitfinex',

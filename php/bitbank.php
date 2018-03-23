@@ -32,7 +32,7 @@ class bitbank extends Exchange {
                 '1w' => '1week',
             ),
             'urls' => array (
-                'logo' => 'https://bitbank.cc/static-assets/images/bitbank_logo-d509459245.svg',
+                'logo' => 'https://user-images.githubusercontent.com/1294454/37808081-b87f2d9c-2e59-11e8-894d-c1900b7584fe.jpg',
                 'api' => array (
                     'public' => 'https://public.bitbank.cc',
                     'private' => 'https://api.bitbank.cc/v1',
@@ -142,10 +142,11 @@ class bitbank extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $orderbook = $this->publicGetPairDepth (array_merge (array (
+        $response = $this->publicGetPairDepth (array_merge (array (
             'pair' => $this->market_id($symbol),
         ), $params));
-        return $this->parse_order_book($orderbook['data'], $orderbook['timestamp']);
+        $orderbook = $response['data'];
+        return $this->parse_order_book($orderbook, $orderbook['timestamp']);
     }
 
     public function parse_trade ($trade, $market = null) {
