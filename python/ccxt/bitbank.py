@@ -40,7 +40,7 @@ class bitbank (Exchange):
                 '1w': '1week',
             },
             'urls': {
-                'logo': 'https://bitbank.cc/static-assets/images/bitbank_logo-d509459245.svg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/37808081-b87f2d9c-2e59-11e8-894d-c1900b7584fe.jpg',
                 'api': {
                     'public': 'https://public.bitbank.cc',
                     'private': 'https://api.bitbank.cc/v1',
@@ -147,10 +147,11 @@ class bitbank (Exchange):
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
-        orderbook = self.publicGetPairDepth(self.extend({
+        response = self.publicGetPairDepth(self.extend({
             'pair': self.market_id(symbol),
         }, params))
-        return self.parse_order_book(orderbook['data'], orderbook['timestamp'])
+        orderbook = response['data']
+        return self.parse_order_book(orderbook, orderbook['timestamp'])
 
     def parse_trade(self, trade, market=None):
         timestamp = trade['executed_at']

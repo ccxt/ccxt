@@ -298,6 +298,7 @@ declare module 'ccxt' {
     export class bibox extends Exchange {}
     export class binance extends Exchange {}
     export class bit2c extends Exchange {}
+    export class bitbank extends Exchange {}
     export class bitbay extends Exchange {}
     export class bitcoincoid extends Exchange {}
     export class bitfinex extends Exchange {}
