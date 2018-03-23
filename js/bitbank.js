@@ -286,14 +286,15 @@ module.exports = class bitbank extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
+        if (typeof price === 'undefined')
+            throw new InvalidOrder (this.id + ' createOrder requires a price argument for both market and limit orders');
         let request = {
             'pair': market['id'],
+            'amount': this.amountToString (symbol, amount),
+            'price': this.priceToPrecision (symbol, price),
             'side': side,
-            'amount': amount,
             'type': type,
         };
-        if (type === 'limit')
-            request['price'] = price;
         let response = await this.privatePostUserSpotOrder (this.extend (request, params));
         let id = response['data']['order_id'];
         let order = this.parseOrder (response['data'], market);
@@ -407,7 +408,7 @@ module.exports = class bitbank extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
-            let auth = nonce + '/v1/' + path;
+            let auth = nonce;
             if (method === 'POST') {
                 body = this.json (query);
                 auth += body;
@@ -415,7 +416,7 @@ module.exports = class bitbank extends Exchange {
                 query = this.urlencode (query);
                 if (query.length) {
                     url += '?' + query;
-                    auth += '?' + query;
+                    auth += '/v1/' + path + '?' + query;
                 }
             }
             headers = {
