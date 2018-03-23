@@ -529,6 +529,80 @@ module.exports = class cobinhood extends Exchange {
         };
     }
 
+    async fetchDeposits (currency = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let request = {
+            'limit': limit,
+        };
+        if (typeof currency !== 'undefined') {
+            request['currency'] = this.currency (currency);
+        }
+        let response = await this.privateGetWalletDeposits (this.extend (request, params));
+        return this.parseTransactions (response['result']['deposits'], 'deposit');
+    }
+
+    async fetchWithdrawals (currency = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let request = {
+            'limit': limit,
+        };
+        if (typeof currency !== 'undefined') {
+            request['currency'] = this.currency (currency);
+        }
+        let response = await this.privateGetWalletWithdrawals (this.extend (request, params));
+        return this.parseTransactions (response['result']['withdrawals'], 'withdraw');
+    }
+
+    parseTransactions (transactions, side = undefined, market = undefined, since = undefined, limit = undefined) {
+        let result = Object.values (transactions || []).map (transaction => this.parseTransaction (transaction, side));
+        result = this.sortBy (result, 'timestamp');
+        let symbol = (typeof market !== 'undefined') ? market['symbol'] : undefined;
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
+    }
+
+    parseTransactionStatus (status) {
+        if (['tx_pending_two_factor_auth', 'tx_pending_email_auth', 'tx_pending_approval'].indexOf (status) !== -1) {
+            return 'pending_user_action';
+        } else if (status === 'tx_approved') {
+            return 'approved';
+        } else if (['tx_processing', 'tx_pending', 'tx_sent'].indexOf (status) !== -1) {
+            return 'pending';
+        } else if (['tx_timeout', 'tx_invalid', 'tx_cancelled', 'tx_rejected'].indexOf (status) !== -1) {
+            return 'canceled';
+        } else if (status === 'tx_confirmed') {
+            return 'ok';
+        } else {
+            return 'unknown';
+        }
+    }
+
+    parseTransaction (transaction, side = undefined) {
+        let timestamp = this.safeInteger (transaction, 'created_at');
+        let datetime = undefined;
+        if (typeof timestamp !== 'undefined') {
+            datetime = this.iso8601 (timestamp);
+        }
+        let currency = transaction['currency'];
+        if (currency in this.currencies_by_id)
+            currency = this.currencies_by_id[currency]['code'];
+        return {
+            'info': transaction,
+            'id': this.safeString (transaction, 'withdrawal_id'),
+            'txid': this.safeString (transaction, 'txhash'),
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'currency': currency,
+            'status': this.parseTransactionStatus (transaction['status']),
+            'side': side, // direction of the transaction, ('deposit' | 'withdraw')
+            'price': undefined,
+            'amount': this.safeFloat (transaction, 'amount'),
+            'fee': {
+                'cost': this.safeFloat (transaction, 'fee'),
+                'rate': undefined,
+            },
+        };
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api']['web'] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
