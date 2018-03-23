@@ -146,7 +146,7 @@ module.exports = class bitbank extends Exchange {
         let response = await this.publicGetPairDepth (this.extend ({
             'pair': this.marketId (symbol),
         }, params));
-        let orderbook = response['data']
+        let orderbook = response['data'];
         return this.parseOrderBook (orderbook, orderbook['timestamp']);
     }
 
