@@ -333,19 +333,22 @@ class bitbank extends Exchange {
         if ($since)
             $request['since'] = intval ($since / 1000);
         $orders = $this->privateGetUserSpotActiveOrders (array_merge ($request, $params));
-        return $this->parse_orders($orders['data']['order_open'], $market, $since, $limit);
+        return $this->parse_orders($orders['data']['orders'], $market, $since, $limit);
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
-        $market = $this->market ($symbol);
-        $request = array (
-            'pair' => $market['id'],
-        );
-        if ($since) {
-            $request['since'] = $since;
+        $market = null;
+        if ($symbol !== null) {
+            $this->load_markets();
+            $market = $this->market ($symbol);
         }
-        $request['count'] = $limit ? $limit : 50;
+        $request = array ();
+        if ($market !== null)
+            $request['pair'] = $market['id'];
+        if ($limit !== null)
+            $request['count'] = $limit;
+        if ($since !== null)
+            $request['since'] = intval ($since / 1000);
         $trades = $this->privateGetUserSpotTradeHistory (array_merge ($request, $params));
         return $this->parse_trades($trades['data']['trades'], $market, $since, $limit);
     }
@@ -415,9 +418,9 @@ class bitbank extends Exchange {
                 $body = $this->json ($query);
                 $auth .= $body;
             } else {
-                $query = $this->urlencode ($query);
                 $auth .= '/' . $this->version . '/' . $path;
                 if ($query) {
+                    $query = $this->urlencode ($query);
                     $url .= '?' . $query;
                     $auth .= '?' . $query;
                 }

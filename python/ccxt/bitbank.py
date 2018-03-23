@@ -324,17 +324,20 @@ class bitbank (Exchange):
         if since:
             request['since'] = int(since / 1000)
         orders = self.privateGetUserSpotActiveOrders(self.extend(request, params))
-        return self.parse_orders(orders['data']['order_open'], market, since, limit)
+        return self.parse_orders(orders['data']['orders'], market, since, limit)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
-        self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'pair': market['id'],
-        }
-        if since:
-            request['since'] = since
-        request['count'] = limit if limit else 50
+        market = None
+        if symbol is not None:
+            self.load_markets()
+            market = self.market(symbol)
+        request = {}
+        if market is not None:
+            request['pair'] = market['id']
+        if limit is not None:
+            request['count'] = limit
+        if since is not None:
+            request['since'] = int(since / 1000)
         trades = self.privateGetUserSpotTradeHistory(self.extend(request, params))
         return self.parse_trades(trades['data']['trades'], market, since, limit)
 
@@ -400,9 +403,9 @@ class bitbank (Exchange):
                 body = self.json(query)
                 auth += body
             else:
-                query = self.urlencode(query)
                 auth += '/' + self.version + '/' + path
                 if query:
+                    query = self.urlencode(query)
                     url += '?' + query
                     auth += '?' + query
             headers = {
