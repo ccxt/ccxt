@@ -269,6 +269,9 @@ module.exports = class binance extends Exchange {
                 '-2011': OrderNotFound, // cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
                 '-2015': AuthenticationError, // "Invalid API-key, IP, or permissions for action."
             },
+            'orderbookKeys': {
+                'nonce': 'lastUpdateId',
+            },
         });
     }
 
