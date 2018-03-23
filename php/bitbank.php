@@ -12,6 +12,7 @@ class bitbank extends Exchange {
             'id' => 'bitbank',
             'name' => 'bitbank',
             'countries' => 'JP',
+            'version' => 'v1',
             'has' => array (
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
@@ -35,7 +36,7 @@ class bitbank extends Exchange {
                 'logo' => 'https://user-images.githubusercontent.com/1294454/37808081-b87f2d9c-2e59-11e8-894d-c1900b7584fe.jpg',
                 'api' => array (
                     'public' => 'https://public.bitbank.cc',
-                    'private' => 'https://api.bitbank.cc/v1',
+                    'private' => 'https://api.bitbank.cc',
                 ),
                 'www' => 'https://bitbank.cc/',
                 'doc' => 'https://docs.bitbank.cc/',
@@ -400,20 +401,22 @@ class bitbank extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $query = $this->omit ($params, $this->extract_params($path));
-        $url = $this->urls['api'][$api] . '/' . $this->implode_params($path, $params);
+        $url = $this->urls['api'][$api] . '/';
         if ($api === 'public') {
+            $url .= $this->implode_params($path, $params);
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             $auth = $nonce;
+            $url .= $this->version . '/' . $this->implode_params($path, $params);
             if ($method === 'POST') {
                 $body = $this->json ($query);
                 $auth .= $body;
             } else {
                 $query = $this->urlencode ($query);
-                $auth .= '/v1/' . $path;
+                $auth .= '/' . $this->version . '/' . $path;
                 if ($query) {
                     $url .= '?' . $query;
                     $auth .= '?' . $query;
@@ -504,14 +507,19 @@ class bitbank extends Exchange {
                 '40021' => '\\ccxt\\InvalidOrder',
                 '40013' => '\\ccxt\\OrderNotFound',
                 '40014' => '\\ccxt\\OrderNotFound',
+                '50008' => '\\ccxt\\PermissionDenied',
                 '50009' => '\\ccxt\\OrderNotFound',
                 '50010' => '\\ccxt\\OrderNotFound',
                 '60001' => '\\ccxt\\InsufficientFunds',
             );
-            $code = $this->safe_integer($data, 'code');
+            $code = $this->safe_string($data, 'code');
             $message = $this->safe_string($errorMessages, $code, 'Error');
-            $ErrorClass = $this->safe_value($errorClasses, $code, '\\ccxt\\ExchangeError');
-            throw new $ErrorClass ($message);
+            $ErrorClass = $this->safe_value($errorClasses, $code);
+            if ($ErrorClass !== null) {
+                throw new $ErrorClass ($message);
+            } else {
+                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+            }
         }
         return $response;
     }

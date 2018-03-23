@@ -7,6 +7,7 @@ from ccxt.async.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -20,6 +21,7 @@ class bitbank (Exchange):
             'id': 'bitbank',
             'name': 'bitbank',
             'countries': 'JP',
+            'version': 'v1',
             'has': {
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
@@ -43,7 +45,7 @@ class bitbank (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/37808081-b87f2d9c-2e59-11e8-894d-c1900b7584fe.jpg',
                 'api': {
                     'public': 'https://public.bitbank.cc',
-                    'private': 'https://api.bitbank.cc/v1',
+                    'private': 'https://api.bitbank.cc',
                 },
                 'www': 'https://bitbank.cc/',
                 'doc': 'https://docs.bitbank.cc/',
@@ -384,20 +386,22 @@ class bitbank (Exchange):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = self.omit(params, self.extract_params(path))
-        url = self.urls['api'][api] + '/' + self.implode_params(path, params)
+        url = self.urls['api'][api] + '/'
         if api == 'public':
+            url += self.implode_params(path, params)
             if query:
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
             nonce = str(self.nonce())
             auth = nonce
+            url += self.version + '/' + self.implode_params(path, params)
             if method == 'POST':
                 body = self.json(query)
                 auth += body
             else:
                 query = self.urlencode(query)
-                auth += '/v1/' + path
+                auth += '/' + self.version + '/' + path
                 if query:
                     url += '?' + query
                     auth += '?' + query
@@ -484,12 +488,16 @@ class bitbank (Exchange):
                 '40021': InvalidOrder,
                 '40013': OrderNotFound,
                 '40014': OrderNotFound,
+                '50008': PermissionDenied,
                 '50009': OrderNotFound,
                 '50010': OrderNotFound,
                 '60001': InsufficientFunds,
             }
-            code = self.safe_integer(data, 'code')
+            code = self.safe_string(data, 'code')
             message = self.safe_string(errorMessages, code, 'Error')
-            ErrorClass = self.safe_value(errorClasses, code, ExchangeError)
-            raise ErrorClass(message)
+            ErrorClass = self.safe_value(errorClasses, code)
+            if ErrorClass is not None:
+                raise ErrorClass(message)
+            else:
+                raise ExchangeError(self.id + ' ' + self.json(response))
         return response
