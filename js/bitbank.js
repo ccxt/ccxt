@@ -33,7 +33,7 @@ module.exports = class bitbank extends Exchange {
                 '1w': '1week',
             },
             'urls': {
-                'logo': 'https://bitbank.cc/static-assets/images/bitbank_logo-d509459245.svg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/37808081-b87f2d9c-2e59-11e8-894d-c1900b7584fe.jpg',
                 'api': {
                     'public': 'https://public.bitbank.cc',
                     'private': 'https://api.bitbank.cc/v1',
