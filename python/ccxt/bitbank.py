@@ -278,14 +278,15 @@ class bitbank (Exchange):
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         market = self.market(symbol)
+        if price is None:
+            raise InvalidOrder(self.id + ' createOrder requires a price argument for both market and limit orders')
         request = {
             'pair': market['id'],
+            'amount': self.amount_to_string(symbol, amount),
+            'price': self.price_to_precision(symbol, price),
             'side': side,
-            'amount': amount,
             'type': type,
         }
-        if type == 'limit':
-            request['price'] = price
         response = self.privatePostUserSpotOrder(self.extend(request, params))
         id = response['data']['order_id']
         order = self.parse_order(response['data'], market)
@@ -390,7 +391,7 @@ class bitbank (Exchange):
         else:
             self.check_required_credentials()
             nonce = str(self.nonce())
-            auth = nonce + '/v1/' + path
+            auth = nonce
             if method == 'POST':
                 body = self.json(query)
                 auth += body
@@ -398,7 +399,7 @@ class bitbank (Exchange):
                 query = self.urlencode(query)
                 if len(query):
                     url += '?' + query
-                    auth += '?' + query
+                    auth += '/v1/' + path + '?' + query
             headers = {
                 'Content-Type': 'application/json',
                 'ACCESS-KEY': self.apiKey,

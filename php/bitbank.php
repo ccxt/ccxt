@@ -285,14 +285,15 @@ class bitbank extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
+        if ($price === null)
+            throw new InvalidOrder ($this->id . ' createOrder requires a $price argument for both $market and limit orders');
         $request = array (
             'pair' => $market['id'],
+            'amount' => $this->amount_to_string($symbol, $amount),
+            'price' => $this->price_to_precision($symbol, $price),
             'side' => $side,
-            'amount' => $amount,
             'type' => $type,
         );
-        if ($type === 'limit')
-            $request['price'] = $price;
         $response = $this->privatePostUserSpotOrder (array_merge ($request, $params));
         $id = $response['data']['order_id'];
         $order = $this->parse_order($response['data'], $market);
@@ -406,7 +407,7 @@ class bitbank extends Exchange {
         } else {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
-            $auth = $nonce . '/v1/' . $path;
+            $auth = $nonce;
             if ($method === 'POST') {
                 $body = $this->json ($query);
                 $auth .= $body;
@@ -414,7 +415,7 @@ class bitbank extends Exchange {
                 $query = $this->urlencode ($query);
                 if (strlen ($query)) {
                     $url .= '?' . $query;
-                    $auth .= '?' . $query;
+                    $auth .= '/v1/' . $path . '?' . $query;
                 }
             }
             $headers = array (
