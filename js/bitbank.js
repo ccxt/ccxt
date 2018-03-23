@@ -412,18 +412,16 @@ module.exports = class bitbank extends Exchange {
                 body = this.json (query);
                 auth += body;
             } else {
-                url += path;
                 query = this.urlencode (query);
                 if (query.length) {
-                    query += '?' + query;
-                    url += query;
-                    auth += query;
+                    url += '?' + query;
+                    auth += '?' + query;
                 }
             }
             headers = {
                 'Content-Type': 'application/json',
                 'ACCESS-KEY': this.apiKey,
-                'ACCESS-NONCE': this.nonce (),
+                'ACCESS-NONCE': nonce,
                 'ACCESS-SIGNATURE': this.hmac (this.encode (auth), this.encode (this.secret)),
             };
         }
