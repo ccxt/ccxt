@@ -414,9 +414,10 @@ module.exports = class bitbank extends Exchange {
                 auth += body;
             } else {
                 query = this.urlencode (query);
-                if (query.length) {
+                auth += '/v1/' + path;
+                if (Object.keys (query).length) {
                     url += '?' + query;
-                    auth += '/v1/' + path + '?' + query;
+                    auth += '?' + query;
                 }
             }
             headers = {
