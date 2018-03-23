@@ -337,16 +337,19 @@ module.exports = class bitbank extends Exchange {
         return this.parseOrders (orders['data']['orders'], market, since, limit);
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = 10, params = {}) {
-        // this method
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
-            'pair': market['id'],
-            'count': limit,
-        };
-        // if (typeof since !== 'undefined')
-            // request['since'] = since;
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        let market = undefined;
+        if (typeof symbol !== 'undefined') {
+            await this.loadMarkets ();
+            market = this.market (symbol);
+        }
+        let request = {};
+        if (typeof market !== 'undefined')
+            request['pair'] = market['id'];
+        if (typeof limit !== 'undefined')
+            request['count'] = limit;
+        if (typeof since !== 'undefined')
+            request['since'] = parseInt (since / 1000);
         let trades = await this.privateGetUserSpotTradeHistory (this.extend (request, params));
         return this.parseTrades (trades['data']['trades'], market, since, limit);
     }
