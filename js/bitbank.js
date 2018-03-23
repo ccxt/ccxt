@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, InvalidNonce, InsufficientFunds, InvalidOrder, OrderNotFound } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, InvalidNonce, InsufficientFunds, InvalidOrder, OrderNotFound, NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -107,6 +107,7 @@ module.exports = class bitbank extends Exchange {
     parseTicker (ticker, market = undefined) {
         let symbol = market['symbol'];
         let timestamp = ticker['timestamp'];
+        let last = parseFloat (ticker['last']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -114,12 +115,14 @@ module.exports = class bitbank extends Exchange {
             'high': parseFloat (ticker['high']),
             'low': parseFloat (ticker['low']),
             'bid': parseFloat (ticker['buy']),
+            'bidVolume': undefined,
             'ask': parseFloat (ticker['sell']),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
@@ -346,42 +349,48 @@ module.exports = class bitbank extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
-        throw new NotSupported (this.id + ' fetchDepositAddress is not implemented!');
+        //
         // TODO: test
-        await this.loadMarkets ();
-        let currency = this.currency (code);
-        let response = await this.privatePostReturnDepositAddresses (this.extend ({
-            'asset': currency['id'],
-        }, params));
-        // Not sure about this if there could be more accounts...
-        let accounts = response['data']['accounts'];
-        let address = this.safeString (accounts[0], 'address');
-        let status = address ? 'ok' : 'none';
-        return {
-            'currency': currency,
-            'address': address,
-            'tag': undefined,
-            'status': status,
-            'info': response,
-        };
+        //
+        //     await this.loadMarkets ();
+        //     let currency = this.currency (code);
+        //     let response = await this.privatePostReturnDepositAddresses (this.extend ({
+        //         'asset': currency['id'],
+        //     }, params));
+        //     // Not sure about this if there could be more accounts...
+        //     let accounts = response['data']['accounts'];
+        //     let address = this.safeString (accounts[0], 'address');
+        //     let status = address ? 'ok' : 'none';
+        //     return {
+        //         'currency': currency,
+        //         'address': address,
+        //         'tag': undefined,
+        //         'status': status,
+        //         'info': response,
+        //     };
+        //
+        throw new NotSupported (this.id + ' fetchDepositAddress is not implemented!');
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
-        throw new NotSupported (this.id + ' withdraw is not implemented!');
+        //
         // TODO: test
-        if (!('uuid' in params)) {
-            throw new ExchangeError (this.id + ' uuid is required for withdrawal');
-        }
-        await this.loadMarkets ();
-        let currency = this.currency (code);
-        let response = await this.privatePostRequestWithdrawal (this.extend ({
-            'asset': currency['id'],
-            'amount': amount,
-        }, params));
-        return {
-            'info': response,
-            'id': response['data']['txid'],
-        };
+        //
+        //     if (!('uuid' in params)) {
+        //         throw new ExchangeError (this.id + ' uuid is required for withdrawal');
+        //     }
+        //     await this.loadMarkets ();
+        //     let currency = this.currency (code);
+        //     let response = await this.privatePostRequestWithdrawal (this.extend ({
+        //         'asset': currency['id'],
+        //         'amount': amount,
+        //     }, params));
+        //     return {
+        //         'info': response,
+        //         'id': response['data']['txid'],
+        //     };
+        //
+        throw new NotSupported (this.id + ' withdraw is not implemented!');
     }
 
     nonce () {
