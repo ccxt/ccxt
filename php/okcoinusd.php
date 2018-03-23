@@ -292,8 +292,14 @@ class okcoinusd extends Exchange {
         }
         $method .= 'Ticker';
         $response = $this->$method (array_merge ($request, $params));
-        $timestamp = intval ($response['date']) * 1000;
-        $ticker = array_merge ($response['ticker'], array ( 'timestamp' => $timestamp ));
+        $ticker = $this->safe_value($response, 'ticker');
+        if ($ticker === null)
+            throw new ExchangeError ($this->id . ' fetchTicker returned an empty $response => ' . $this->json ($response));
+        $timestamp = $this->safe_integer($response, 'date');
+        if ($timestamp !== null) {
+            $timestamp *= 1000;
+            $ticker = array_merge ($ticker, array ( 'timestamp' => $timestamp ));
+        }
         return $this->parse_ticker($ticker, $market);
     }
 
