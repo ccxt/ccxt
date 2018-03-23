@@ -150,7 +150,7 @@ module.exports = class Exchange {
                 'price': 0,
                 'amount': 0,
                 'timestamp': 'timestamp',
-                'nonce': 'sec',
+                'nonce': undefined,
                 'responseDate': 'date',
             },
         } // return
@@ -777,6 +777,9 @@ module.exports = class Exchange {
 
     parseOrderBookNonce (orderbook) {
         let keys = this.orderbookKeys;
+        if (typeof keys['nonce'] === 'undefined') {
+            return undefined;
+        }
         let nonce = this.safeInteger (orderbook, keys['nonce'], undefined);
         return nonce;
     }
