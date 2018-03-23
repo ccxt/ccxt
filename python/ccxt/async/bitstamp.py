@@ -343,7 +343,7 @@ class bitstamp (Exchange):
         market = self.market(symbol)
         response = await self.publicGetTransactionsPair(self.extend({
             'pair': market['id'],
-            'time': 'minute',
+            'time': 'hour',
         }, params))
         return self.parse_trades(response, market, since, limit)
 

@@ -73,6 +73,8 @@ module.exports = class ccex extends Exchange {
                 'IOT': 'IoTcoin',
                 'BLC': 'Cryptobullcoin',
                 'XID': 'InternationalDiamond',
+                'LUX': 'Luxmi',
+                'CRC': 'CoreCoin',
             },
         });
     }
@@ -202,7 +204,7 @@ module.exports = class ccex extends Exchange {
     parseTicker (ticker, market = undefined) {
         let timestamp = ticker['updated'] * 1000;
         let symbol = undefined;
-        if (market)
+        if (typeof market !== 'undefined')
             symbol = market['symbol'];
         let last = parseFloat (ticker['lastprice']);
         return {
@@ -237,13 +239,13 @@ module.exports = class ccex extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
             let ticker = tickers[id];
-            let uppercase = id.toUpperCase ();
             let market = undefined;
             let symbol = undefined;
-            if (uppercase in this.markets_by_id) {
-                market = this.markets_by_id[uppercase];
+            if (id in this.markets_by_id) {
+                market = this.markets_by_id[id];
                 symbol = market['symbol'];
             } else {
+                let uppercase = id.toUpperCase ();
                 let [ base, quote ] = uppercase.split ('-');
                 base = this.commonCurrencyCode (base);
                 quote = this.commonCurrencyCode (quote);

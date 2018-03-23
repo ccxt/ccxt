@@ -82,11 +82,10 @@ module.exports = class livecoin extends Exchange {
                     'taker': 0.18 / 100,
                 },
             },
+            'commonCurrencies': {
+                'CRC': 'CryCash',
+            },
         });
-    }
-
-    commonCurrencyCode (currency) {
-        return currency;
     }
 
     async fetchMarkets () {
@@ -98,7 +97,9 @@ module.exports = class livecoin extends Exchange {
             let market = markets[p];
             let id = market['symbol'];
             let symbol = id;
-            let [ base, quote ] = symbol.split ('/');
+            let [ baseId, quoteId ] = symbol.split ('/');
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
             let coinRestrictions = this.safeValue (restrictionsById, symbol);
             let precision = {
                 'price': 5,
@@ -124,6 +125,9 @@ module.exports = class livecoin extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': true,
                 'precision': precision,
                 'limits': limits,
                 'info': market,

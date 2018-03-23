@@ -271,8 +271,7 @@ module.exports = class kraken extends Exchange {
                 'amount': market['lot_decimals'],
                 'price': market['pair_decimals'],
             };
-            let lot = Math.pow (10, -precision['amount']);
-            let minAmount = lot;
+            let minAmount = Math.pow (10, -precision['amount']);
             if (base in limits)
                 minAmount = limits[base];
             result.push ({
@@ -285,7 +284,6 @@ module.exports = class kraken extends Exchange {
                 'altname': market['altname'],
                 'maker': maker,
                 'taker': parseFloat (market['fees'][0][1]) / 100,
-                'lot': lot,
                 'active': true,
                 'precision': precision,
                 'limits': {
@@ -320,7 +318,6 @@ module.exports = class kraken extends Exchange {
             'info': undefined,
             'maker': undefined,
             'taker': undefined,
-            'lot': amountLimits['min'],
             'active': false,
             'precision': precision,
             'limits': limits,

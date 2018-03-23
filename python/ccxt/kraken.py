@@ -278,8 +278,7 @@ class kraken (Exchange):
                 'amount': market['lot_decimals'],
                 'price': market['pair_decimals'],
             }
-            lot = math.pow(10, -precision['amount'])
-            minAmount = lot
+            minAmount = math.pow(10, -precision['amount'])
             if base in limits:
                 minAmount = limits[base]
             result.append({
@@ -292,7 +291,6 @@ class kraken (Exchange):
                 'altname': market['altname'],
                 'maker': maker,
                 'taker': float(market['fees'][0][1]) / 100,
-                'lot': lot,
                 'active': True,
                 'precision': precision,
                 'limits': {
@@ -325,7 +323,6 @@ class kraken (Exchange):
             'info': None,
             'maker': None,
             'taker': None,
-            'lot': amountLimits['min'],
             'active': False,
             'precision': precision,
             'limits': limits,

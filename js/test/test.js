@@ -97,6 +97,11 @@ let countryName = function (code) {
 
 let testSymbol = async (exchange, symbol) => {
 
+    if (exchange.id !== 'coinmarketcap') {
+        await tests['fetchMarkets']    (exchange)
+        await tests['fetchCurrencies'] (exchange)
+    }
+
     await tests['fetchTicker']  (exchange, symbol)
     await tests['fetchTickers'] (exchange, symbol)
     await tests['fetchOHLCV']   (exchange, symbol)

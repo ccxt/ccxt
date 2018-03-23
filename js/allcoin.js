@@ -70,14 +70,36 @@ module.exports = class allcoin extends okcoinusd {
                 let quote = market['Secondary'];
                 let id = base.toLowerCase () + '_' + quote.toLowerCase ();
                 let symbol = base + '/' + quote;
+                let active = market['TradeEnabled'] && market['BuyEnabled'] && market['SellEnabled'];
                 result.push ({
                     'id': id,
                     'symbol': symbol,
                     'base': base,
                     'quote': quote,
+                    'active': active,
                     'type': 'spot',
                     'spot': true,
                     'future': false,
+                    'maker': market['AskFeeRate'], // BidFeeRate 0, AskFeeRate 0.002, we use just the AskFeeRate here
+                    'taker': market['AskFeeRate'], // BidFeeRate 0, AskFeeRate 0.002, we use just the AskFeeRate here
+                    'precision': {
+                        'amount': market['PrimaryDigits'],
+                        'price': market['SecondaryDigits'],
+                    },
+                    'limits': {
+                        'amount': {
+                            'min': market['MinTradeAmount'],
+                            'max': market['MaxTradeAmount'],
+                        },
+                        'price': {
+                            'min': market['MinOrderPrice'],
+                            'max': market['MaxOrderPrice'],
+                        },
+                        'cost': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                    },
                     'info': market,
                 });
             }

@@ -146,8 +146,8 @@ module.exports = class gemini extends Exchange {
     parseTrade (trade, market) {
         let timestamp = trade['timestampms'];
         let order = undefined;
-        if ('orderId' in trade)
-            order = trade['orderId'].toString ();
+        if ('order_id' in trade)
+            order = trade['order_id'].toString ();
         let fee = this.safeFloat (trade, 'fee_amount');
         if (typeof fee !== 'undefined') {
             let currency = this.safeString (trade, 'fee_currency');

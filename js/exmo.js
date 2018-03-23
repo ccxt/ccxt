@@ -100,6 +100,7 @@ module.exports = class exmo extends Exchange {
                 '40017': AuthenticationError, // Wrong API Key
                 '50052': InsufficientFunds,
                 '50054': InsufficientFunds,
+                '50304': OrderNotFound, // "Order was not found '123456789'" (fetching order trades for an order that does not have trades yet)
                 '50173': OrderNotFound, // "Order with id X was not found." (cancelling non-existent, closed and cancelled order)
                 '50319': InvalidOrder, // Price by order is less than permissible minimum for this pair
                 '50321': InvalidOrder, // Price by order is more than permissible maximum for this pair
@@ -126,6 +127,7 @@ module.exports = class exmo extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'active': true,
                 'limits': {
                     'amount': {
                         'min': this.safeFloat (market, 'min_quantity'),
@@ -343,16 +345,23 @@ module.exports = class exmo extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        await this.fetchOrders (symbol, undefined, undefined, params);
-        if (id in this.orders)
-            return this.orders[id];
-        throw new OrderNotFound (this.id + ' order id ' + id.toString () + ' is not in "open" state and not found in cache');
+        try {
+            let response = await this.privatePostOrderTrades ({
+                'order_id': id.toString (),
+            });
+            return this.parseOrder (response);
+        } catch (e) {
+            if (e instanceof OrderNotFound) {
+                if (id in this.orders)
+                    return this.orders[id];
+            }
+        }
+        throw new OrderNotFound (this.id + ' fetchOrder order id ' + id.toString () + ' not found in cache.');
     }
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const order = await this.fetchOrder (id, symbol, params);
-        // todo: filter by symbol, since and limit
-        return order['trades'];
+        return this.filterBySymbolSinceLimit (order['trades'], symbol, since, limit);
     }
 
     updateCachedOrders (openOrders, symbol) {

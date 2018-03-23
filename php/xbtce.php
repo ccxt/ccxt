@@ -283,7 +283,7 @@ class xbtce extends Exchange {
         $this->load_markets();
         if ($type === 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
-        $response = $this->tapiPostTrade (array_merge (array (
+        $response = $this->privatePostTrade (array_merge (array (
             'pair' => $this->market_id($symbol),
             'type' => $side,
             'amount' => $amount,
