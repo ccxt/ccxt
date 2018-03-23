@@ -476,7 +476,7 @@ module.exports = class cobinhood extends Exchange {
             'order_id': id,
         }, params));
         let market = (typeof symbol === 'undefined') ? undefined : this.market (symbol);
-        return this.parseTrades (response['result'], market);
+        return this.parseTrades (response['result']['trades'], market);
     }
 
     async createDepositAddress (code, params = {}) {
