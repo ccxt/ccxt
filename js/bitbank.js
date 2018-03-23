@@ -143,10 +143,11 @@ module.exports = class bitbank extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let orderbook = await this.publicGetPairDepth (this.extend ({
+        let response = await this.publicGetPairDepth (this.extend ({
             'pair': this.marketId (symbol),
         }, params));
-        return this.parseOrderBook (orderbook['data'], orderbook['timestamp']);
+        let orderbook = response['data']
+        return this.parseOrderBook (orderbook, orderbook['timestamp']);
     }
 
     parseTrade (trade, market = undefined) {
