@@ -334,19 +334,19 @@ module.exports = class bitbank extends Exchange {
         if (since)
             request['since'] = parseInt (since / 1000);
         let orders = await this.privateGetUserSpotActiveOrders (this.extend (request, params));
-        return this.parseOrders (orders['data']['order_open'], market, since, limit);
+        return this.parseOrders (orders['data']['orders'], market, since, limit);
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = 10, params = {}) {
+        // this method
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
             'pair': market['id'],
+            'count': limit,
         };
-        if (since) {
-            request['since'] = since;
-        }
-        request['count'] = limit ? limit : 50;
+        // if (typeof since !== 'undefined')
+            // request['since'] = since;
         let trades = await this.privateGetUserSpotTradeHistory (this.extend (request, params));
         return this.parseTrades (trades['data']['trades'], market, since, limit);
     }
@@ -416,9 +416,9 @@ module.exports = class bitbank extends Exchange {
                 body = this.json (query);
                 auth += body;
             } else {
-                query = this.urlencode (query);
                 auth += '/' + this.version + '/' + path;
                 if (Object.keys (query).length) {
+                    query = this.urlencode (query);
                     url += '?' + query;
                     auth += '?' + query;
                 }
