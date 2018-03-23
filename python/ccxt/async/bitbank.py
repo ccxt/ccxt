@@ -397,9 +397,10 @@ class bitbank (Exchange):
                 auth += body
             else:
                 query = self.urlencode(query)
-                if len(query):
+                auth += '/v1/' + path
+                if query:
                     url += '?' + query
-                    auth += '/v1/' + path + '?' + query
+                    auth += '?' + query
             headers = {
                 'Content-Type': 'application/json',
                 'ACCESS-KEY': self.apiKey,

@@ -413,9 +413,10 @@ class bitbank extends Exchange {
                 $auth .= $body;
             } else {
                 $query = $this->urlencode ($query);
-                if (strlen ($query)) {
+                $auth .= '/v1/' . $path;
+                if ($query) {
                     $url .= '?' . $query;
-                    $auth .= '/v1/' . $path . '?' . $query;
+                    $auth .= '?' . $query;
                 }
             }
             $headers = array (
