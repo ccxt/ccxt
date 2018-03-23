@@ -778,9 +778,6 @@ module.exports = class Exchange {
     parseOrderBookNonce (orderbook) {
         let keys = this.orderbookKeys;
         let nonce = this.safeInteger (orderbook, keys['nonce'], undefined);
-        if (typeof nonce === 'undefined') {
-            nonce = this.safeInteger (orderbook, keys['timestamp'], undefined);
-        }
         return nonce;
     }
 
