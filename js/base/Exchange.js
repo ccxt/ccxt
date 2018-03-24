@@ -5,6 +5,8 @@
 const functions = require ('./functions')
     , Market    = require ('./Market')
 
+const { AssertionError } = require ('assert')
+
 const {
     isNode
     , keys
@@ -220,6 +222,7 @@ module.exports = class Exchange {
         this.tickers    = {}
         this.orders     = {}
         this.trades     = {}
+        this.precisionTests = {}
 
         this.last_http_response = undefined
         this.last_json_response = undefined
@@ -771,8 +774,32 @@ module.exports = class Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol)
-        let orderbook = await this.performOrderBookRequest (market, limit, params);
-        return this.parseOrderBook (orderbook, market, limit, params);
+        let response = await this.performOrderBookRequest (market, limit, params);
+        let orderbook = this.parseOrderBook (response, market, limit, params);
+        if (symbol in this.precisionTests) {
+            return orderbook;
+        }
+        let precisions = this.getPrecisionsFromOrderbook (orderbook);
+        if (market['precision']['price'] !== precisions['price']) {
+            throw new AssertionError ({
+                'name': 'price precision inconsistency',
+                'message': this.id + ' order price precision does not match market price precision for symbol ' + symbol,
+                'actual': precisions['price'],
+                'expected': market['precision']['price'],
+                'operator': '!==',
+            });
+        }
+        if (market['precision']['amount'] !== precisions['amount']) {
+            throw new AssertionError ({
+                'name': 'amount precision inconsistency',
+                'message': this.id + ' order amount precision does not match market amount precision for symbol ' + symbol,
+                'actual': precisions['price'],
+                'expected': market['precision']['price'],
+                'operator': '!==',
+            });
+        }
+        this.precisionTests[symbol] = true;
+        return orderbook;
     }
 
     parseOrderBookNonce (orderbook) {
@@ -912,15 +939,15 @@ module.exports = class Exchange {
         return Object.values (this.orders).filter (order => (order['status'] === 'open')).reduce ((total, order) => {
             let symbol = order['symbol'];
             let market = this.markets[symbol];
-            let remaining = order['remaining']
+            let remaining = order['remaining'];
             if (currency === market['base'] && order['side'] === 'sell') {
-                return total + remaining
+                return total + remaining;
             } else if (currency === market['quote'] && order['side'] === 'buy') {
-                return total + (order['price'] * remaining)
+                return total + (order['price'] * remaining);
             } else {
-                return total
+                return total;
             }
-        }, 0)
+        }, 0);
     }
 
     parseBalance (balance) {
