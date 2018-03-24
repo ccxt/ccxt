@@ -28,6 +28,9 @@ module.exports = class binance extends Exchange {
                 'fetchClosedOrders': true,
                 'withdraw': true,
                 'fetchFundingFees': true,
+                'fetchDeposits': true,
+                'fetchWithdrawals': true,
+                'fetchTransactions': true,
             },
             'timeframes': {
                 '1m': '1m',
