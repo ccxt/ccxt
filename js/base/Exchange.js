@@ -842,7 +842,7 @@ module.exports = class Exchange {
         let orderbook = response;
         for (let i = 0; i < path.length; i++) {
             let key = (path[i] === '__market__') ? market['id'] : path[i];
-            orderbook = (typeof orderbook[key] !== 'undefined') ? orderbook[key] : orderbook;
+            orderbook = key in orderbook ? orderbook[key] : orderbook;
         }
         return orderbook;
     }
