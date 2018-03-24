@@ -323,7 +323,22 @@ let tryAllProxies = async function (exchange, proxies) {
 
 //-----------------------------------------------------------------------------
 
+const testOrderbookPrecision = (exchange) => {
+    const orderbookMock = {
+        bids: [[0, 100], [0.01, 10.01], [0.002, 1.002], [0.0003, 1.0003], [.00004, 500.00004]],
+        asks: [[100, 0], [.000005, 50.000005], [.0000006, 600.0000006], [7e-7, 7007e-7], [8e-8, 808e-8]],
+    }
+
+    const precision = exchange.getPrecisionsFromOrderbook (orderbookMock)
+    assert (precision.price === 8, 'invalid orederbook price precision calculations')
+    assert (precision.amount === 8, 'invalid orederbook amount precision calculations')
+}
+
+//-----------------------------------------------------------------------------
+
 ;(async function test () {
+
+    testOrderbookPrecision (exchange)
 
     if (exchangeSymbol) {
 

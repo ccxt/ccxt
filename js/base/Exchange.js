@@ -866,6 +866,48 @@ module.exports = class Exchange {
         };
     }
 
+    getPrecisionFromFloat (floatValue) {
+        let string = floatValue.toString ();
+        let expAndPower = string.split ('e');
+        let power = expAndPower[1];
+        if (typeof power !== 'undefined') {
+            return Math.abs (power);
+        }
+        let intAndDecimal = string.split ('.');
+        let decimal = intAndDecimal[1];
+        if (typeof decimal !== 'undefined') {
+            return decimal.length;
+        }
+        return 0;
+    }
+
+    getPrecisionsFromOrder (order) {
+        let pricePrecision = this.getPrecisionFromFloat (order[0]);
+        let amountPrecision = this.getPrecisionFromFloat (order[1]);
+        return {
+            'price': pricePrecision,
+            'amount': amountPrecision,
+        };
+    }
+
+    getPrecisionsFromOrderbook (orderbook) {
+        let bids = orderbook['bids'];
+        let asks = orderbook['asks'];
+        let orders = bids.concat (asks);
+        let maxPricePrecision = 0;
+        let maxAmountPrecision = 0;
+        for (let i = 0; i < orders.length; i++) {
+            let order = orders[i];
+            let precisions = this.getPrecisionsFromOrder (order);
+            maxPricePrecision = Math.max (maxPricePrecision, precisions['price']);
+            maxAmountPrecision = Math.max (maxAmountPrecision, precisions['amount']);
+        }
+        return {
+            'price': maxPricePrecision,
+            'amount': maxAmountPrecision,
+        };
+    }
+
     getCurrencyUsedOnOpenOrders (currency) {
         return Object.values (this.orders).filter (order => (order['status'] === 'open')).reduce ((total, order) => {
             let symbol = order['symbol'];
