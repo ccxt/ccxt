@@ -1054,7 +1054,7 @@ class Exchange(object):
         orderbook = response
         for i in range(0, len(path)):
             key = market['id'] if (path[i] == '__market__') else path[i]
-            orderbook = orderbook[key] if (orderbook[key] is not None) else orderbook
+            orderbook = orderbook[key] if (key in orderbook) else orderbook
         return orderbook
 
     def parse_order_book(self, response, market, limit, params):
