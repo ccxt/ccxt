@@ -757,6 +757,12 @@ module.exports = class binance extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
+    async fetchTransactions (currency = undefined, since = undefined, limit = undefined, params = {}) {
+        let deposits = await this.fetchDeposits (currency, since, limit, params = {});
+        let withdrawals = await this.fetchWithdrawals (currency, since, limit, params = {});
+        return deposits.concat (withdrawals);
+    }
+
     // GET /wapi/v3/depositHistory.html (HMAC SHA256)
     // asset       STRING  NO
     // status      INT     NO 0(0:pending,1:success)
@@ -814,20 +820,21 @@ module.exports = class binance extends Exchange {
         if (side === 'deposit') {
             let statuses = {
                 '0': 'pending',
-                '1': 'complete',
+                '1': 'ok',
             };
             return (status in statuses) ? statuses[status] : status.toLowerCase ();
         } else {
-            let statuses = {
-                '0': 'email sent',
-                '1': 'cancelled',
-                '2': 'awaiting approval',
-                '3': 'rejected',
-                '4': 'processing',
-                '5': 'failure',
-                '6': 'complete',
-            };
-            return (status in statuses) ? statuses[status] : status.toLowerCase ();
+            // '0': 'email sent', '1': 'cancelled', '2': 'awaiting approval', '3': 'rejected',
+            // '4': 'processing', '5': 'failure', '6': 'complete',
+            if (status in [6]) {
+                return 'ok';
+            } else if (status in [0, 2, 4]) {
+                return 'pending';
+            } else if (status in [3, 5]) {
+                return 'error';
+            } else if (status in [1]) {
+                return 'canceled';
+            }
         }
     }
 
@@ -848,9 +855,15 @@ module.exports = class binance extends Exchange {
             throw new ExchangeError (this.id + ' insertTime/applyTime missing: ' + this.json (transaction));
         }
         let amount = parseFloat (transaction['amount']);
+        //
+        // create unique identifiable repeatable synthetic hash id
+        // for use when the exchange does not use id's
+        //
+        let syntheticId = this.hash (timestamp.toString () + currency.id + side + amount + address);
         let result = {
             'info': transaction,                  // the original decoded JSON as is
             'id': null,                           // string transaction id
+            'hashid': syntheticId,
             'address': address,                   // deposit/widthraw address
             'txid': txId,                         // txid in terms of corresponding currency
             'timestamp': timestamp,               // Unix timestamp in milliseconds
