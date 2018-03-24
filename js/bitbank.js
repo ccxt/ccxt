@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, InvalidNonce, InsufficientFunds, InvalidOrder, OrderNotFound, NotSupported } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, InvalidNonce, InsufficientFunds, InvalidOrder, OrderNotFound, NotSupported, PermissionDenied } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -13,6 +13,7 @@ module.exports = class bitbank extends Exchange {
             'id': 'bitbank',
             'name': 'bitbank',
             'countries': 'JP',
+            'version': 'v1',
             'has': {
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
@@ -36,7 +37,7 @@ module.exports = class bitbank extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/1294454/37808081-b87f2d9c-2e59-11e8-894d-c1900b7584fe.jpg',
                 'api': {
                     'public': 'https://public.bitbank.cc',
-                    'private': 'https://api.bitbank.cc/v1',
+                    'private': 'https://api.bitbank.cc',
                 },
                 'www': 'https://bitbank.cc/',
                 'doc': 'https://docs.bitbank.cc/',
@@ -287,14 +288,15 @@ module.exports = class bitbank extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
+        if (typeof price === 'undefined')
+            throw new InvalidOrder (this.id + ' createOrder requires a price argument for both market and limit orders');
         let request = {
             'pair': market['id'],
+            'amount': this.amountToString (symbol, amount),
+            'price': this.priceToPrecision (symbol, price),
             'side': side,
-            'amount': amount,
             'type': type,
         };
-        if (type === 'limit')
-            request['price'] = price;
         let response = await this.privatePostUserSpotOrder (this.extend (request, params));
         let id = response['data']['order_id'];
         let order = this.parseOrder (response['data'], market);
@@ -333,19 +335,22 @@ module.exports = class bitbank extends Exchange {
         if (since)
             request['since'] = parseInt (since / 1000);
         let orders = await this.privateGetUserSpotActiveOrders (this.extend (request, params));
-        return this.parseOrders (orders['data']['order_open'], market, since, limit);
+        return this.parseOrders (orders['data']['orders'], market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
-            'pair': market['id'],
-        };
-        if (since) {
-            request['since'] = since;
+        let market = undefined;
+        if (typeof symbol !== 'undefined') {
+            await this.loadMarkets ();
+            market = this.market (symbol);
         }
-        request['count'] = limit ? limit : 50;
+        let request = {};
+        if (typeof market !== 'undefined')
+            request['pair'] = market['id'];
+        if (typeof limit !== 'undefined')
+            request['count'] = limit;
+        if (typeof since !== 'undefined')
+            request['since'] = parseInt (since / 1000);
         let trades = await this.privateGetUserSpotTradeHistory (this.extend (request, params));
         return this.parseTrades (trades['data']['trades'], market, since, limit);
     }
@@ -401,30 +406,31 @@ module.exports = class bitbank extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let query = this.omit (params, this.extractParams (path));
-        let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
+        let url = this.urls['api'][api] + '/';
         if (api === 'public') {
+            url += this.implodeParams (path, params);
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
-            let auth = nonce + '/v1/' + path;
+            let auth = nonce;
+            url += this.version + '/' + this.implodeParams (path, params);
             if (method === 'POST') {
                 body = this.json (query);
                 auth += body;
             } else {
-                url += path;
-                query = this.urlencode (query);
-                if (query.length) {
-                    query += '?' + query;
-                    url += query;
-                    auth += query;
+                auth += '/' + this.version + '/' + path;
+                if (Object.keys (query).length) {
+                    query = this.urlencode (query);
+                    url += '?' + query;
+                    auth += '?' + query;
                 }
             }
             headers = {
                 'Content-Type': 'application/json',
                 'ACCESS-KEY': this.apiKey,
-                'ACCESS-NONCE': this.nonce (),
+                'ACCESS-NONCE': nonce,
                 'ACCESS-SIGNATURE': this.hmac (this.encode (auth), this.encode (this.secret)),
             };
         }
@@ -506,14 +512,19 @@ module.exports = class bitbank extends Exchange {
                 '40021': InvalidOrder,
                 '40013': OrderNotFound,
                 '40014': OrderNotFound,
+                '50008': PermissionDenied,
                 '50009': OrderNotFound,
                 '50010': OrderNotFound,
                 '60001': InsufficientFunds,
             };
-            let code = this.safeInteger (data, 'code');
+            let code = this.safeString (data, 'code');
             let message = this.safeString (errorMessages, code, 'Error');
-            let ErrorClass = this.safeValue (errorClasses, code, ExchangeError);
-            throw new ErrorClass (message);
+            let ErrorClass = this.safeValue (errorClasses, code);
+            if (typeof ErrorClass !== 'undefined') {
+                throw new ErrorClass (message);
+            } else {
+                throw new ExchangeError (this.id + ' ' + this.json (response));
+            }
         }
         return response;
     }

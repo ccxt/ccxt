@@ -12,6 +12,7 @@ class bitbank extends Exchange {
             'id' => 'bitbank',
             'name' => 'bitbank',
             'countries' => 'JP',
+            'version' => 'v1',
             'has' => array (
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
@@ -35,7 +36,7 @@ class bitbank extends Exchange {
                 'logo' => 'https://user-images.githubusercontent.com/1294454/37808081-b87f2d9c-2e59-11e8-894d-c1900b7584fe.jpg',
                 'api' => array (
                     'public' => 'https://public.bitbank.cc',
-                    'private' => 'https://api.bitbank.cc/v1',
+                    'private' => 'https://api.bitbank.cc',
                 ),
                 'www' => 'https://bitbank.cc/',
                 'doc' => 'https://docs.bitbank.cc/',
@@ -285,14 +286,15 @@ class bitbank extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
+        if ($price === null)
+            throw new InvalidOrder ($this->id . ' createOrder requires a $price argument for both $market and limit orders');
         $request = array (
             'pair' => $market['id'],
+            'amount' => $this->amount_to_string($symbol, $amount),
+            'price' => $this->price_to_precision($symbol, $price),
             'side' => $side,
-            'amount' => $amount,
             'type' => $type,
         );
-        if ($type === 'limit')
-            $request['price'] = $price;
         $response = $this->privatePostUserSpotOrder (array_merge ($request, $params));
         $id = $response['data']['order_id'];
         $order = $this->parse_order($response['data'], $market);
@@ -331,19 +333,22 @@ class bitbank extends Exchange {
         if ($since)
             $request['since'] = intval ($since / 1000);
         $orders = $this->privateGetUserSpotActiveOrders (array_merge ($request, $params));
-        return $this->parse_orders($orders['data']['order_open'], $market, $since, $limit);
+        return $this->parse_orders($orders['data']['orders'], $market, $since, $limit);
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
-        $market = $this->market ($symbol);
-        $request = array (
-            'pair' => $market['id'],
-        );
-        if ($since) {
-            $request['since'] = $since;
+        $market = null;
+        if ($symbol !== null) {
+            $this->load_markets();
+            $market = $this->market ($symbol);
         }
-        $request['count'] = $limit ? $limit : 50;
+        $request = array ();
+        if ($market !== null)
+            $request['pair'] = $market['id'];
+        if ($limit !== null)
+            $request['count'] = $limit;
+        if ($since !== null)
+            $request['since'] = intval ($since / 1000);
         $trades = $this->privateGetUserSpotTradeHistory (array_merge ($request, $params));
         return $this->parse_trades($trades['data']['trades'], $market, $since, $limit);
     }
@@ -399,30 +404,31 @@ class bitbank extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $query = $this->omit ($params, $this->extract_params($path));
-        $url = $this->urls['api'][$api] . '/' . $this->implode_params($path, $params);
+        $url = $this->urls['api'][$api] . '/';
         if ($api === 'public') {
+            $url .= $this->implode_params($path, $params);
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
-            $auth = $nonce . '/v1/' . $path;
+            $auth = $nonce;
+            $url .= $this->version . '/' . $this->implode_params($path, $params);
             if ($method === 'POST') {
                 $body = $this->json ($query);
                 $auth .= $body;
             } else {
-                $url .= $path;
-                $query = $this->urlencode ($query);
-                if (strlen ($query)) {
-                    $query .= '?' . $query;
-                    $url .= $query;
-                    $auth .= $query;
+                $auth .= '/' . $this->version . '/' . $path;
+                if ($query) {
+                    $query = $this->urlencode ($query);
+                    $url .= '?' . $query;
+                    $auth .= '?' . $query;
                 }
             }
             $headers = array (
                 'Content-Type' => 'application/json',
                 'ACCESS-KEY' => $this->apiKey,
-                'ACCESS-NONCE' => $this->nonce (),
+                'ACCESS-NONCE' => $nonce,
                 'ACCESS-SIGNATURE' => $this->hmac ($this->encode ($auth), $this->encode ($this->secret)),
             );
         }
@@ -504,14 +510,19 @@ class bitbank extends Exchange {
                 '40021' => '\\ccxt\\InvalidOrder',
                 '40013' => '\\ccxt\\OrderNotFound',
                 '40014' => '\\ccxt\\OrderNotFound',
+                '50008' => '\\ccxt\\PermissionDenied',
                 '50009' => '\\ccxt\\OrderNotFound',
                 '50010' => '\\ccxt\\OrderNotFound',
                 '60001' => '\\ccxt\\InsufficientFunds',
             );
-            $code = $this->safe_integer($data, 'code');
+            $code = $this->safe_string($data, 'code');
             $message = $this->safe_string($errorMessages, $code, 'Error');
-            $ErrorClass = $this->safe_value($errorClasses, $code, '\\ccxt\\ExchangeError');
-            throw new $ErrorClass ($message);
+            $ErrorClass = $this->safe_value($errorClasses, $code);
+            if ($ErrorClass !== null) {
+                throw new $ErrorClass ($message);
+            } else {
+                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+            }
         }
         return $response;
     }

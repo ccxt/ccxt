@@ -475,7 +475,7 @@ class cobinhood extends Exchange {
             'order_id' => $id,
         ), $params));
         $market = ($symbol === null) ? null : $this->market ($symbol);
-        return $this->parse_trades($response['result'], $market);
+        return $this->parse_trades($response['result']['trades'], $market);
     }
 
     public function create_deposit_address ($code, $params = array ()) {

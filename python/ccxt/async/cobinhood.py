@@ -454,7 +454,7 @@ class cobinhood (Exchange):
             'order_id': id,
         }, params))
         market = None if (symbol is None) else self.market(symbol)
-        return self.parse_trades(response['result'], market)
+        return self.parse_trades(response['result']['trades'], market)
 
     async def create_deposit_address(self, code, params={}):
         await self.load_markets()

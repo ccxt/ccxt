@@ -7,6 +7,7 @@ from ccxt.async.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -20,6 +21,7 @@ class bitbank (Exchange):
             'id': 'bitbank',
             'name': 'bitbank',
             'countries': 'JP',
+            'version': 'v1',
             'has': {
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
@@ -43,7 +45,7 @@ class bitbank (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/37808081-b87f2d9c-2e59-11e8-894d-c1900b7584fe.jpg',
                 'api': {
                     'public': 'https://public.bitbank.cc',
-                    'private': 'https://api.bitbank.cc/v1',
+                    'private': 'https://api.bitbank.cc',
                 },
                 'www': 'https://bitbank.cc/',
                 'doc': 'https://docs.bitbank.cc/',
@@ -278,14 +280,15 @@ class bitbank (Exchange):
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        if price is None:
+            raise InvalidOrder(self.id + ' createOrder requires a price argument for both market and limit orders')
         request = {
             'pair': market['id'],
+            'amount': self.amount_to_string(symbol, amount),
+            'price': self.price_to_precision(symbol, price),
             'side': side,
-            'amount': amount,
             'type': type,
         }
-        if type == 'limit':
-            request['price'] = price
         response = await self.privatePostUserSpotOrder(self.extend(request, params))
         id = response['data']['order_id']
         order = self.parse_order(response['data'], market)
@@ -321,17 +324,20 @@ class bitbank (Exchange):
         if since:
             request['since'] = int(since / 1000)
         orders = await self.privateGetUserSpotActiveOrders(self.extend(request, params))
-        return self.parse_orders(orders['data']['order_open'], market, since, limit)
+        return self.parse_orders(orders['data']['orders'], market, since, limit)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
-        await self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'pair': market['id'],
-        }
-        if since:
-            request['since'] = since
-        request['count'] = limit if limit else 50
+        market = None
+        if symbol is not None:
+            await self.load_markets()
+            market = self.market(symbol)
+        request = {}
+        if market is not None:
+            request['pair'] = market['id']
+        if limit is not None:
+            request['count'] = limit
+        if since is not None:
+            request['since'] = int(since / 1000)
         trades = await self.privateGetUserSpotTradeHistory(self.extend(request, params))
         return self.parse_trades(trades['data']['trades'], market, since, limit)
 
@@ -383,28 +389,29 @@ class bitbank (Exchange):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = self.omit(params, self.extract_params(path))
-        url = self.urls['api'][api] + '/' + self.implode_params(path, params)
+        url = self.urls['api'][api] + '/'
         if api == 'public':
+            url += self.implode_params(path, params)
             if query:
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
             nonce = str(self.nonce())
-            auth = nonce + '/v1/' + path
+            auth = nonce
+            url += self.version + '/' + self.implode_params(path, params)
             if method == 'POST':
                 body = self.json(query)
                 auth += body
             else:
-                url += path
-                query = self.urlencode(query)
-                if len(query):
-                    query += '?' + query
-                    url += query
-                    auth += query
+                auth += '/' + self.version + '/' + path
+                if query:
+                    query = self.urlencode(query)
+                    url += '?' + query
+                    auth += '?' + query
             headers = {
                 'Content-Type': 'application/json',
                 'ACCESS-KEY': self.apiKey,
-                'ACCESS-NONCE': self.nonce(),
+                'ACCESS-NONCE': nonce,
                 'ACCESS-SIGNATURE': self.hmac(self.encode(auth), self.encode(self.secret)),
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
@@ -484,12 +491,16 @@ class bitbank (Exchange):
                 '40021': InvalidOrder,
                 '40013': OrderNotFound,
                 '40014': OrderNotFound,
+                '50008': PermissionDenied,
                 '50009': OrderNotFound,
                 '50010': OrderNotFound,
                 '60001': InsufficientFunds,
             }
-            code = self.safe_integer(data, 'code')
+            code = self.safe_string(data, 'code')
             message = self.safe_string(errorMessages, code, 'Error')
-            ErrorClass = self.safe_value(errorClasses, code, ExchangeError)
-            raise ErrorClass(message)
+            ErrorClass = self.safe_value(errorClasses, code)
+            if ErrorClass is not None:
+                raise ErrorClass(message)
+            else:
+                raise ExchangeError(self.id + ' ' + self.json(response))
         return response
