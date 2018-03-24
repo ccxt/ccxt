@@ -389,9 +389,7 @@ class coinegg (Exchange):
             'amount': amount,
             'price': price,
         }, params))
-        if not response['status']:
-            raise InvalidOrder(self.json(response))
-        id = response['id']
+        id = str(response['id'])
         order = self.parse_order({
             'id': id,
             'datetime': self.ymdhms(self.milliseconds()),
@@ -412,8 +410,6 @@ class coinegg (Exchange):
             'coin': market['baseId'],
             'quote': market['quoteId'],
         }, params))
-        if not response['status']:
-            raise ExchangeError(self.json(response))
         return response
 
     def fetch_order(self, id, symbol=None, params={}):

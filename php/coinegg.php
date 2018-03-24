@@ -391,10 +391,7 @@ class coinegg extends Exchange {
             'amount' => $amount,
             'price' => $price,
         ), $params));
-        if (!$response['status']) {
-            throw new InvalidOrder ($this->json ($response));
-        }
-        $id = $response['id'];
+        $id = (string) $response['id'];
         $order = $this->parse_order(array (
             'id' => $id,
             'datetime' => $this->ymdhms ($this->milliseconds ()),
@@ -416,9 +413,6 @@ class coinegg extends Exchange {
             'coin' => $market['baseId'],
             'quote' => $market['quoteId'],
         ), $params));
-        if (!$response['status']) {
-            throw new ExchangeError ($this->json ($response));
-        }
         return $response;
     }
 

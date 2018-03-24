@@ -293,8 +293,14 @@ module.exports = class okcoinusd extends Exchange {
         }
         method += 'Ticker';
         let response = await this[method] (this.extend (request, params));
-        let timestamp = parseInt (response['date']) * 1000;
-        let ticker = this.extend (response['ticker'], { 'timestamp': timestamp });
+        let ticker = this.safeValue (response, 'ticker');
+        if (typeof ticker === 'undefined')
+            throw new ExchangeError (this.id + ' fetchTicker returned an empty response: ' + this.json (response));
+        let timestamp = this.safeInteger (response, 'date');
+        if (typeof timestamp !== 'undefined') {
+            timestamp *= 1000;
+            ticker = this.extend (ticker, { 'timestamp': timestamp });
+        }
         return this.parseTicker (ticker, market);
     }
 

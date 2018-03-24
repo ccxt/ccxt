@@ -621,7 +621,7 @@ module.exports = class hitbtc2 extends hitbtc {
                 'name': currency['fullName'],
                 'active': active,
                 'status': status,
-                'fee': undefined, // todo: redesign
+                'fee': this.safeFloat (currency, 'payoutFee'), // todo: redesign
                 'precision': precision,
                 'limits': {
                     'amount': {

@@ -115,6 +115,7 @@ class exmo (Exchange):
                 '40017': AuthenticationError,  # Wrong API Key
                 '50052': InsufficientFunds,
                 '50054': InsufficientFunds,
+                '50304': OrderNotFound,  # "Order was not found '123456789'"(fetching order trades for an order that does not have trades yet)
                 '50173': OrderNotFound,  # "Order with id X was not found."(cancelling non-existent, closed and cancelled order)
                 '50319': InvalidOrder,  # Price by order is less than permissible minimum for self pair
                 '50321': InvalidOrder,  # Price by order is more than permissible maximum for self pair
@@ -341,15 +342,20 @@ class exmo (Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
-        self.fetch_orders(symbol, None, None, params)
-        if id in self.orders:
-            return self.orders[id]
-        raise OrderNotFound(self.id + ' order id ' + str(id) + ' is not in "open" state and not found in cache')
+        try:
+            response = self.privatePostOrderTrades({
+                'order_id': str(id),
+            })
+            return self.parse_order(response)
+        except Exception as e:
+            if isinstance(e, OrderNotFound):
+                if id in self.orders:
+                    return self.orders[id]
+        raise OrderNotFound(self.id + ' fetchOrder order id ' + str(id) + ' not found in cache.')
 
     def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
         order = self.fetch_order(id, symbol, params)
-        # todo: filter by symbol, since and limit
-        return order['trades']
+        return self.filter_by_symbol_since_limit(order['trades'], symbol, since, limit)
 
     def update_cached_orders(self, openOrders, symbol):
         # update local cache with open orders

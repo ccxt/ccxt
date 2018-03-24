@@ -284,7 +284,7 @@ module.exports = class xbtce extends Exchange {
         await this.loadMarkets ();
         if (type === 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
-        let response = await this.tapiPostTrade (this.extend ({
+        let response = await this.privatePostTrade (this.extend ({
             'pair': this.marketId (symbol),
             'type': side,
             'amount': amount,

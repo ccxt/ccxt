@@ -99,6 +99,7 @@ class exmo extends Exchange {
                 '40017' => '\\ccxt\\AuthenticationError', // Wrong API Key
                 '50052' => '\\ccxt\\InsufficientFunds',
                 '50054' => '\\ccxt\\InsufficientFunds',
+                '50304' => '\\ccxt\\OrderNotFound', // "Order was not found '123456789'" (fetching order trades for an order that does not have trades yet)
                 '50173' => '\\ccxt\\OrderNotFound', // "Order with id X was not found." (cancelling non-existent, closed and cancelled order)
                 '50319' => '\\ccxt\\InvalidOrder', // Price by order is less than permissible minimum for this pair
                 '50321' => '\\ccxt\\InvalidOrder', // Price by order is more than permissible maximum for this pair
@@ -345,16 +346,23 @@ class exmo extends Exchange {
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $this->fetch_orders($symbol, null, null, $params);
-        if (is_array ($this->orders) && array_key_exists ($id, $this->orders))
-            return $this->orders[$id];
-        throw new OrderNotFound ($this->id . ' order $id ' . (string) $id . ' is not in "open" state and not found in cache');
+        try {
+            $response = $this->privatePostOrderTrades (array (
+                'order_id' => (string) $id,
+            ));
+            return $this->parse_order($response);
+        } catch (Exception $e) {
+            if ($e instanceof OrderNotFound) {
+                if (is_array ($this->orders) && array_key_exists ($id, $this->orders))
+                    return $this->orders[$id];
+            }
+        }
+        throw new OrderNotFound ($this->id . ' fetchOrder order $id ' . (string) $id . ' not found in cache.');
     }
 
     public function fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
         $order = $this->fetch_order($id, $symbol, $params);
-        // todo => filter by $symbol, $since and $limit
-        return $order['trades'];
+        return $this->filter_by_symbol_since_limit($order['trades'], $symbol, $since, $limit);
     }
 
     public function update_cached_orders ($openOrders, $symbol) {

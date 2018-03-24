@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.11.137';
+$version = '1.11.171';
 
 abstract class Exchange {
 
@@ -43,6 +43,7 @@ abstract class Exchange {
         'bibox',
         'binance',
         'bit2c',
+        'bitbank',
         'bitbay',
         'bitcoincoid',
         'bitfinex',
@@ -88,6 +89,7 @@ abstract class Exchange {
         'dsx',
         'ethfinex',
         'exmo',
+        'exx',
         'flowbtc',
         'foxbit',
         'fybse',
@@ -548,8 +550,10 @@ abstract class Exchange {
 
     public function __construct ($options = array ()) {
 
-        $this->curl        = curl_init ();
-        $this->id          = null;
+        $this->curl         = curl_init ();
+        $this->curl_options = array (); // overrideable by user, empty by default
+
+        $this->id           = null;
 
         // rate limiter params
         $this->rateLimit   = 2000;
@@ -888,6 +892,10 @@ abstract class Exchange {
                 return $length;
             }
         );
+
+        // user-defined cURL options (if any)
+        if ($this->curl_options)
+            curl_setopt_array ($this->curl, $this->curl_options);
 
         $result = curl_exec ($this->curl);
 

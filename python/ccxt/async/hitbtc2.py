@@ -624,7 +624,7 @@ class hitbtc2 (hitbtc):
                 'name': currency['fullName'],
                 'active': active,
                 'status': status,
-                'fee': None,  # todo: redesign
+                'fee': self.safe_float(currency, 'payoutFee'),  # todo: redesign
                 'precision': precision,
                 'limits': {
                     'amount': {

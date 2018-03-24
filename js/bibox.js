@@ -25,6 +25,7 @@ module.exports = class bibox extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'createMarketOrder': false, // or they will return https://github.com/ccxt/ccxt/issues/2338
                 'withdraw': true,
             },
             'timeframes': {
@@ -567,6 +568,11 @@ module.exports = class bibox extends Exchange {
                     // operation failed! Orders have been completed or revoked
                     // e.g. trying to cancel a filled order
                     throw new OrderNotFound (message);
+                else if (code === '2067')
+                    // https://github.com/ccxt/ccxt/issues/2338
+                    //  { "error": { "code": "2067", "msg": "暂不支持市价单"}, "cmd": "orderpending/trade" }
+                    // "Does not support market orders"
+                    throw new InvalidOrder (message);
                 else if (code === '2068')
                     // \u4e0b\u5355\u6570\u91cf\u4e0d\u80fd\u4f4e\u4e8e
                     // The number of orders can not be less than

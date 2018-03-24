@@ -370,10 +370,12 @@ class cobinhood (Exchange):
 
     def parse_order(self, order, market=None):
         symbol = None
-        if not market:
-            marketId = order['trading_pair']
+        if market is None:
+            marketId = self.safe_string(order, 'trading_pair')
+            if marketId is None:
+                marketId = self.safe_string(order, 'trading_pair_id')
             market = self.markets_by_id[marketId]
-        if market:
+        if market is not None:
             symbol = market['symbol']
         timestamp = order['timestamp']
         price = float(order['price'])
@@ -452,7 +454,7 @@ class cobinhood (Exchange):
             'order_id': id,
         }, params))
         market = None if (symbol is None) else self.market(symbol)
-        return self.parse_trades(response['result'], market)
+        return self.parse_trades(response['result']['trades'], market)
 
     async def create_deposit_address(self, code, params={}):
         await self.load_markets()
@@ -475,7 +477,10 @@ class cobinhood (Exchange):
         response = await self.privateGetWalletDepositAddresses(self.extend({
             'currency': currency['id'],
         }, params))
-        address = self.safe_string(response['result']['deposit_addresses'], 'address')
+        addresses = self.safe_value(response['result'], 'deposit_addresses', [])
+        address = None
+        if len(addresses) > 0:
+            address = self.safe_string(addresses[0], 'address')
         self.check_address(address)
         return {
             'currency': code,

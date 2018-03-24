@@ -392,10 +392,7 @@ module.exports = class coinegg extends Exchange {
             'amount': amount,
             'price': price,
         }, params));
-        if (!response['status']) {
-            throw new InvalidOrder (this.json (response));
-        }
-        let id = response['id'];
+        let id = response['id'].toString ();
         let order = this.parseOrder ({
             'id': id,
             'datetime': this.ymdhms (this.milliseconds ()),
@@ -417,9 +414,6 @@ module.exports = class coinegg extends Exchange {
             'coin': market['baseId'],
             'quote': market['quoteId'],
         }, params));
-        if (!response['status']) {
-            throw new ExchangeError (this.json (response));
-        }
         return response;
     }
 

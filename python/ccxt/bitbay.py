@@ -284,7 +284,9 @@ class bitbay (Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]
         if api == 'public':
+            query = self.omit(params, self.extract_params(path))
             url += '/' + self.implode_params(path, params) + '.json'
+            url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
             body = self.urlencode(self.extend({
