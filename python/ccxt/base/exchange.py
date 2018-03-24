@@ -1039,8 +1039,8 @@ class Exchange(object):
 
     def parse_order_book_orders(self, orderbook):
         keys = self.orderbookKeys
-        bids = self.parse_bids_asks(orderbook[keys['bids']]) if (keys['bids'] in list(orderbook.keys())) else []
-        asks = self.parse_bids_asks(orderbook[keys['asks']]) if (keys['asks'] in list(orderbook.keys())) else []
+        bids = self.parse_bids_asks(orderbook[keys['bids']]) if (keys['bids'] in orderbook) else []
+        asks = self.parse_bids_asks(orderbook[keys['asks']]) if (keys['asks'] in orderbook) else []
         return {
             'bids': bids,
             'asks': asks,
