@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -170,6 +170,47 @@ module.exports = class coinfloor extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostIdCancelOrder ({ 'id': id });
+    }
+
+    parseOrder (order, market) {
+        let timestamp = this.parseDate (order['datetime']);
+        let datetime = this.iso8601 (timestamp);
+        let parsed = {
+            'info': order,
+            'id': order['id'].toString (),
+            'datetime': datetime,
+            'timestamp': timestamp,
+            'status': undefined,
+            'symbol': market['symbol'],
+            'type': undefined,
+            'price': this.safeFloat (order, 'price'),
+            'amount': this.safeFloat (order, 'amount'),
+        };
+        parsed['cost'] = parsed['price'] * parsed['amount'];
+        if (order['type'] === 0) {
+            parsed['side'] = 'buy';
+        } else if (order['type'] === 1) {
+            parsed['side'] = 'sell';
+        } else {
+            throw new ExchangeError (this.id + ' unknown order side: ' + order['type']);
+        }
+        return parsed;
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (!symbol)
+            throw new NotSupported (this.id + ' fetchOpenOrders requires a symbol param');
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let orders = await this.privatePostIdOpenOrders ({
+            'id': market['id'],
+        });
+        orders = this.parseOrders (orders, market, since, limit);
+        for (let i = 0; i < orders.length; i++) {
+            // Coinfloor open orders would always be limit orders
+            orders[i] = this.extend (orders[i], { 'status': 'open', 'type': 'limit' });
+        }
+        return orders;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
