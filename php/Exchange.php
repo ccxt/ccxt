@@ -1260,7 +1260,7 @@ abstract class Exchange {
                 return $grouped[$symbol];
             return array ();
         }
-        return $orders;
+        return $array;
     }
 
     public function filterBySymbol ($orders, $symbol = null) {
