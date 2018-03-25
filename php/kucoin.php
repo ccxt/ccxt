@@ -490,7 +490,13 @@ class kucoin extends Exchange {
             'symbol' => $market['id'],
         );
         $response = $this->privateGetOrderActiveMap (array_merge ($request, $params));
-        $orders = $this->array_concat($response['data']['SELL'], $response['data']['BUY']);
+        $sell = $response['data']['SELL'];
+        if ($sell === null)
+            $sell = array ();
+        $buy = $response['data']['BUY'];
+        if ($buy === null)
+            $buy = array ();
+        $orders = $this->array_concat($sell, $buy);
         for ($i = 0; $i < count ($orders); $i++) {
             $order = $this->parse_order(array_merge ($orders[$i], array (
                 'status' => 'open',

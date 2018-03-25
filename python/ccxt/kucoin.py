@@ -474,7 +474,13 @@ class kucoin (Exchange):
             'symbol': market['id'],
         }
         response = self.privateGetOrderActiveMap(self.extend(request, params))
-        orders = self.array_concat(response['data']['SELL'], response['data']['BUY'])
+        sell = response['data']['SELL']
+        if sell is None:
+            sell = []
+        buy = response['data']['BUY']
+        if buy is None:
+            buy = []
+        orders = self.array_concat(sell, buy)
         for i in range(0, len(orders)):
             order = self.parse_order(self.extend(orders[i], {
                 'status': 'open',
