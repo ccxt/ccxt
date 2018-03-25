@@ -68,7 +68,9 @@ class allcoin extends okcoinusd {
                 $market = $markets[$k]['Market'];
                 $base = $market['Primary'];
                 $quote = $market['Secondary'];
-                $id = strtolower ($base) . '_' . strtolower ($quote);
+                $baseId = strtolower ($base);
+                $quoteId = strtolower ($quote);
+                $id = $baseId . '_' . $quoteId;
                 $symbol = $base . '/' . $quote;
                 $active = $market['TradeEnabled'] && $market['BuyEnabled'] && $market['SellEnabled'];
                 $result[] = array (
@@ -76,6 +78,8 @@ class allcoin extends okcoinusd {
                     'symbol' => $symbol,
                     'base' => $base,
                     'quote' => $quote,
+                    'baseId' => $baseId,
+                    'quoteId' => $quoteId,
                     'active' => $active,
                     'type' => 'spot',
                     'spot' => true,
