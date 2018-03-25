@@ -214,12 +214,11 @@ module.exports = class coinfloor extends Exchange {
         let orders = await this.privatePostIdOpenOrders ({
             'id': market['id'],
         });
-        orders = this.parseOrders (orders, market, since, limit);
         for (let i = 0; i < orders.length; i++) {
             // Coinfloor open orders would always be limit orders
             orders[i] = this.extend (orders[i], { 'status': 'open' });
         }
-        return orders;
+        return this.parseOrders (orders, market, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
