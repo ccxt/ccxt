@@ -172,29 +172,38 @@ module.exports = class coinfloor extends Exchange {
         return await this.privatePostIdCancelOrder ({ 'id': id });
     }
 
-    parseOrder (order, market) {
+    parseOrder (order, market = undefined) {
         let timestamp = this.parseDate (order['datetime']);
         let datetime = this.iso8601 (timestamp);
-        let parsed = {
+        let price = this.safeFloat (order, 'price');
+        let amount = this.safeFloat (order, 'amount');
+        let cost = price * amount;
+        let side = undefined;
+        let status = this.safeString (order, 'status');
+        if (order['type'] === 0)
+            side = 'buy';
+        else if (order['type'] === 1)
+            side = 'sell';
+        let symbol = undefined;
+        if (typeof market !== 'undefined')
+            symbol = market['symbol'];
+        let id = order['id'].toString ();
+        return {
             'info': order,
-            'id': order['id'].toString (),
+            'id': id,
             'datetime': datetime,
             'timestamp': timestamp,
-            'status': undefined,
-            'symbol': market['symbol'],
-            'type': undefined,
-            'price': this.safeFloat (order, 'price'),
-            'amount': this.safeFloat (order, 'amount'),
+            'status': status,
+            'symbol': symbol,
+            'type': 'limit',
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'filled': undefined,
+            'remaining': undefined,
+            'cost': cost,
+            'fee': undefined,
         };
-        parsed['cost'] = parsed['price'] * parsed['amount'];
-        if (order['type'] === 0) {
-            parsed['side'] = 'buy';
-        } else if (order['type'] === 1) {
-            parsed['side'] = 'sell';
-        } else {
-            throw new ExchangeError (this.id + ' unknown order side: ' + order['type']);
-        }
-        return parsed;
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -208,7 +217,7 @@ module.exports = class coinfloor extends Exchange {
         orders = this.parseOrders (orders, market, since, limit);
         for (let i = 0; i < orders.length; i++) {
             // Coinfloor open orders would always be limit orders
-            orders[i] = this.extend (orders[i], { 'status': 'open', 'type': 'limit' });
+            orders[i] = this.extend (orders[i], { 'status': 'open' });
         }
         return orders;
     }
