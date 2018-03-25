@@ -1,5 +1,5 @@
 {
-    "_1broker":      { "apiKey": "A0f79063a5e91e6d62fbcbbbbdd63258" },
+    "_1broker":      { "skip": true, "apiKey": "A0f79063a5e91e6d62fbcbbbbdd63258" },
     "_1btcxe":       { "apiKey": "7SuUd4B6zfGAojPn", "secret": "392WCRKmGpcXdiVzsyQqwengLTOHkhDa" },
     "allcoin":       { "skip": true },
     "anxpro":        { "skip": true },
