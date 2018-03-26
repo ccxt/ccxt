@@ -332,9 +332,18 @@ class gateio extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (is_array ($response) && array_key_exists ('result', $response))
-            if ($response['result'] !== 'true')
-                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+        if (is_array ($response) && array_key_exists ('result', $response)) {
+            $result = $response['result'];
+            $message = $this->id . ' ' . $this->json ($response);
+            if ($result === null)
+                throw new ExchangeError ($message);
+            if (gettype ($result) == 'string') {
+                if ($result !== 'true')
+                    throw new ExchangeError ($message);
+            } else if (!$result) {
+                throw new ExchangeError ($message);
+            }
+        }
         return $response;
     }
 }

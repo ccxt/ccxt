@@ -4,6 +4,13 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import hashlib
 from ccxt.base.errors import ExchangeError
 
@@ -312,6 +319,13 @@ class gateio (Exchange):
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)
         if 'result' in response:
-            if response['result'] != 'true':
-                raise ExchangeError(self.id + ' ' + self.json(response))
+            result = response['result']
+            message = self.id + ' ' + self.json(response)
+            if result is None:
+                raise ExchangeError(message)
+            if isinstance(result, basestring):
+                if result != 'true':
+                    raise ExchangeError(message)
+            elif not result:
+                raise ExchangeError(message)
         return response
