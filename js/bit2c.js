@@ -84,11 +84,11 @@ module.exports = class bit2c extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (market, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let orderbook = await this.publicGetExchangesPairOrderbook (this.extend ({
-            'pair': market['id'],
+            'pair': this.marketId (symbol),
         }, params));
-        return orderbook;
+        return this.parseOrderBook (orderbook);
     }
 
     async fetchTicker (symbol, params = {}) {

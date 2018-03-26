@@ -80,20 +80,12 @@ module.exports = class coinspot extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (market, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        let market = this.market (symbol);
         let orderbook = await this.privatePostOrders (this.extend ({
             'cointype': market['id'],
         }, params));
-        return orderbook;
-    }
-
-    orderBookDefaultKeys () {
-        return {
-            'bids': 'buyorders',
-            'asks': 'sellorders',
-            'price': 'rate',
-            'amount': 'amount',
-        };
+        return this.parseOrderBook (orderbook, undefined, 'buyorders', 'sellorders', 'rate', 'amount');
     }
 
     async fetchTicker (symbol, params = {}) {

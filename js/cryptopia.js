@@ -86,13 +86,6 @@ module.exports = class cryptopia extends Exchange {
                 'QBT': 'Cubits',
                 'WRC': 'WarCoin',
             },
-            'orderbookKeys': {
-                'response': 'Data',
-                'bids': 'Buy',
-                'asks': 'Sell',
-                'price': 'Price',
-                'amount': 'Volume',
-            },
         });
     }
 
@@ -148,11 +141,13 @@ module.exports = class cryptopia extends Exchange {
         return result;
     }
 
-    async performOrderBookRequest (market, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         let response = await this.publicGetGetMarketOrdersId (this.extend ({
-            'id': market['id'],
+            'id': this.marketId (symbol),
         }, params));
-        return response;
+        let orderbook = response['Data'];
+        return this.parseOrderBook (orderbook, undefined, 'Buy', 'Sell', 'Price', 'Volume');
     }
 
     joinMarketIds (ids, glue = '-') {
@@ -188,7 +183,7 @@ module.exports = class cryptopia extends Exchange {
                 let market = this.markets_by_id[id];
                 symbol = market['symbol'];
             }
-            result[symbol] = this.parseOrderBook (orderbook, this.market (symbol), undefined, params);
+            result[symbol] = this.parseOrderBook (orderbook, undefined, 'Buy', 'Sell', 'Price', 'Volume');
         }
         return result;
     }

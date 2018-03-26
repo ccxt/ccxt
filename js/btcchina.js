@@ -82,9 +82,6 @@ module.exports = class btcchina extends Exchange {
                 'BCH/CNY': { 'id': 'bcccny', 'symbol': 'BCH/CNY', 'base': 'BCH', 'quote': 'CNY', 'api': 'plus', 'plus': true },
                 'ETH/CNY': { 'id': 'ethcny', 'symbol': 'ETH/CNY', 'base': 'ETH', 'quote': 'CNY', 'api': 'plus', 'plus': true },
             },
-            'orderbookKeys': {
-                'timestamp': 'date',
-            },
         });
     }
 
@@ -142,16 +139,14 @@ module.exports = class btcchina extends Exchange {
         return request;
     }
 
-    async performOrderBookRequest (market, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
         let method = market['api'] + 'GetOrderbook';
         let request = this.createMarketRequest (market);
         let orderbook = await this[method] (this.extend (request, params));
-        return orderbook;
-    }
-
-    parseOrderBookTimestamp (orderbook) {
-        let keys = this.orderbookKeys;
-        return orderbook[keys['timestamp']] * 1000;
+        let timestamp = orderbook['date'] * 1000;
+        return this.parseOrderBook (orderbook, timestamp);
     }
 
     parseTicker (ticker, market) {

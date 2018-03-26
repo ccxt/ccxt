@@ -148,13 +148,6 @@ module.exports = class bittrex extends Exchange {
                 'UUID_INVALID': OrderNotFound,
                 'RATE_NOT_PROVIDED': InvalidOrder, // createLimitBuyOrder ('ETH/BTC', 1, 0)
             },
-            'orderbookKeys': {
-                'response': 'result',
-                'bids': 'buy',
-                'asks': 'sell',
-                'price': 'Rate',
-                'amount': 'Quantity',
-            },
         });
     }
 
@@ -230,35 +223,27 @@ module.exports = class bittrex extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (market, limit = undefined, params = {}) {
-        let orderbook = await this.publicGetOrderbook (this.extend ({
-            'market': market['id'],
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.publicGetOrderbook (this.extend ({
+            'market': this.marketId (symbol),
             'type': 'both',
         }, params));
-        return orderbook;
-    }
-
-    parseOrderBookResponse (response, market, limit, params) {
-        let keys = this.orderbookKeys;
-        let responseKey = keys['response'];
-        let requestType = undefined;
-        if ((typeof params !== 'undefined') && ('type' in params)) {
-            requestType = params['type'];
+        let orderbook = response['result'];
+        if ('type' in params) {
+            if (params['type'] === 'buy') {
+                orderbook = {
+                    'buy': response['result'],
+                    'sell': [],
+                };
+            } else if (params['type'] === 'sell') {
+                orderbook = {
+                    'buy': [],
+                    'sell': response['result'],
+                };
+            }
         }
-        if ((typeof requestType === 'undefined') || (requestType === 'both')) {
-            return response[responseKey];
-        } else if (requestType === 'buy') {
-            return {
-                'buy': response[responseKey],
-                'sell': [],
-            };
-        } else if (requestType === 'sell') {
-            return {
-                'buy': [],
-                'sell': response[responseKey],
-            };
-        }
-        throw new ExchangeError (this.id + " fetchOrderBook doesn't support orderbook type " + requestType);
+        return this.parseOrderBook (orderbook, undefined, 'buy', 'sell', 'Rate', 'Quantity');
     }
 
     parseTicker (ticker, market = undefined) {

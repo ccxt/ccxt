@@ -94,11 +94,6 @@ module.exports = class therock extends Exchange {
                     },
                 },
             },
-            'orderbookKeys': {
-                'price': 'price',
-                'amount': 'amount',
-                'timestamp': 'date',
-            },
         });
     }
 
@@ -143,16 +138,13 @@ module.exports = class therock extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (market, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         let orderbook = await this.publicGetFundsIdOrderbook (this.extend ({
-            'id': market['id'],
+            'id': this.marketId (symbol),
         }, params));
-        return orderbook;
-    }
-
-    parseOrderBookTimestamp (orderbook) {
-        let keys = this.orderbookKeys;
-        return this.parse8601 (orderbook[keys['timestamp']]);
+        let timestamp = this.parse8601 (orderbook['date']);
+        return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     parseTicker (ticker, market = undefined) {

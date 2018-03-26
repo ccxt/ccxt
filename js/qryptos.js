@@ -93,10 +93,6 @@ module.exports = class qryptos extends Exchange {
                     },
                 },
             },
-            'orderbookKeys': {
-                'bids': 'buy_price_levels',
-                'asks': 'sell_price_levels',
-            },
         });
     }
 
@@ -174,11 +170,12 @@ module.exports = class qryptos extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (market, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         let orderbook = await this.publicGetProductsIdPriceLevels (this.extend ({
-            'id': market['id'],
+            'id': this.marketId (symbol),
         }, params));
-        return orderbook;
+        return this.parseOrderBook (orderbook, undefined, 'buy_price_levels', 'sell_price_levels');
     }
 
     parseTicker (ticker, market = undefined) {

@@ -58,10 +58,6 @@ module.exports = class flowbtc extends Exchange {
                     ],
                 },
             },
-            'orderbookKeys': {
-                'price': 'px',
-                'amount': 'qty',
-            },
         });
     }
 
@@ -105,11 +101,13 @@ module.exports = class flowbtc extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (market, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
         let orderbook = await this.publicPostGetOrderBook (this.extend ({
             'productPair': market['id'],
         }, params));
-        return orderbook;
+        return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'px', 'qty');
     }
 
     async fetchTicker (symbol, params = {}) {

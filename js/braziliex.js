@@ -61,10 +61,6 @@ module.exports = class braziliex extends Exchange {
                 'amount': 8,
                 'price': 8,
             },
-            'orderbookKeys': {
-                'price': 'price',
-                'amount': 'amount',
-            },
         });
     }
 
@@ -244,11 +240,12 @@ module.exports = class braziliex extends Exchange {
         return result;
     }
 
-    async performOrderBookRequest (market, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         let orderbook = await this.publicGetOrderbookMarket (this.extend ({
-            'market': market['id'],
+            'market': this.marketId (symbol),
         }, params));
-        return orderbook;
+        return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'amount');
     }
 
     parseTrade (trade, market = undefined) {

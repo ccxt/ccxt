@@ -91,10 +91,6 @@ module.exports = class lykke extends Exchange {
                     },
                 },
             },
-            'orderbookKeys': {
-                'price': 'Price',
-                'amount': 'Volume',
-            },
         });
     }
 
@@ -312,19 +308,17 @@ module.exports = class lykke extends Exchange {
         return this.parseOrders (response, undefined, since, limit);
     }
 
-    async performOrderBookRequest (market, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         let response = await this.publicGetOrderBooksAssetPairId (this.extend ({
-            'AssetPairId': market['id'],
+            'AssetPairId': this.marketId (symbol),
         }, params));
-        return response;
-    }
-
-    parseOrderBookResponse (response, market, limit, params) {
         let orderbook = {
             'timestamp': undefined,
             'bids': [],
             'asks': [],
         };
+        let timestamp = undefined;
         for (let i = 0; i < response.length; i++) {
             let side = response[i];
             if (side['IsBuy']) {
@@ -332,6 +326,7 @@ module.exports = class lykke extends Exchange {
             } else {
                 orderbook['asks'] = this.arrayConcat (orderbook['asks'], side['Prices']);
             }
+            // fix this shit
             let timestamp = this.parse8601 (side['Timestamp']);
             if (!orderbook['timestamp']) {
                 orderbook['timestamp'] = timestamp;
@@ -339,7 +334,9 @@ module.exports = class lykke extends Exchange {
                 orderbook['timestamp'] = Math.max (orderbook['timestamp'], timestamp);
             }
         }
-        return orderbook;
+        if (!timestamp)
+            timestamp = this.milliseconds ();
+        return this.parseOrderBook (orderbook, orderbook['timestamp'], 'bids', 'asks', 'Price', 'Volume');
     }
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 1) {

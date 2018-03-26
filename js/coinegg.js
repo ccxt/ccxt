@@ -258,7 +258,7 @@ module.exports = class coinegg extends Exchange {
                 let baseId = baseIds[i];
                 let ticker = tickers[baseId];
                 let id = baseId + quoteId;
-                if (id in this.marketsById) {
+                if (id in this.markets_by_id) {
                     let market = this.marketsById[id];
                     let symbol = market['symbol'];
                     result[symbol] = this.parseTicker ({
@@ -277,12 +277,14 @@ module.exports = class coinegg extends Exchange {
         return result;
     }
 
-    async performOrderBookRequest (market, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
         let orderbook = await this.publicGetDepthQuote (this.extend ({
             'coin': market['baseId'],
             'quote': market['quoteId'],
         }, params));
-        return orderbook;
+        return this.parseOrderBook (orderbook);
     }
 
     parseTrade (trade, market = undefined) {

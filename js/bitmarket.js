@@ -197,11 +197,16 @@ module.exports = class bitmarket extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (market, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let orderbook = await this.publicGetJsonMarketOrderbook (this.extend ({
-            'market': market['id'],
+            'market': this.marketId (symbol),
         }, params));
-        return orderbook;
+        return {
+            'bids': orderbook['bids'],
+            'asks': orderbook['asks'],
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
     }
 
     async fetchTicker (symbol, params = {}) {

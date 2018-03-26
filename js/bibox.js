@@ -80,14 +80,6 @@ module.exports = class bibox extends Exchange {
                     'deposit': {},
                 },
             },
-            'orderbookKeys': {
-                'response': 'result',
-                'bids': 'bids',
-                'asks': 'asks',
-                'price': 'price',
-                'amount': 'volume',
-                'timestamp': 'update_time',
-            },
         });
     }
 
@@ -236,19 +228,16 @@ module.exports = class bibox extends Exchange {
         return this.parseTrades (response['result'], market, since, limit);
     }
 
-    async performOrderBookRequest (market, limit = 200, params = {}) {
+    async fetchOrderBook (symbol, limit = 200, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
         let request = {
             'cmd': 'depth',
             'pair': market['id'],
         };
         request['size'] = limit; // default = 200 ?
-        let orderbook = await this.publicGetMdata (this.extend (request, params));
-        return orderbook;
-    }
-
-    parseOrderBookTimestamp (orderbook) {
-        let keys = this.orderbookKeys;
-        return this.safeFloat (orderbook, keys['timestamp']);
+        let response = await this.publicGetMdata (this.extend (request, params));
+        return this.parseOrderBook (response['result'], this.safeFloat (response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume');
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {

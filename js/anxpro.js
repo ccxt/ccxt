@@ -74,14 +74,6 @@ module.exports = class anxpro extends Exchange {
                     'taker': 0.6 / 100,
                 },
             },
-            'orderbookKeys': {
-                'response': 'data',
-                'bids': 'bids',
-                'asks': 'asks',
-                'price': 'price',
-                'amount': 'amount',
-                'timestamp': 'dataUpdateTime',
-            },
         });
     }
 
@@ -104,17 +96,14 @@ module.exports = class anxpro extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (market, limit = undefined, params = {}) {
-        let orderbook = await this.publicGetCurrencyPairMoneyDepthFull (this.extend ({
-            'currency_pair': market['id'],
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        let response = await this.publicGetCurrencyPairMoneyDepthFull (this.extend ({
+            'currency_pair': this.marketId (symbol),
         }, params));
-        return orderbook;
-    }
-
-    parseOrderBookTimestamp (orderbook) {
-        let keys = this.orderbookKeys;
-        let time = parseInt (orderbook[keys['timestamp']]);
-        return parseInt (time / 1000);
+        let orderbook = response['data'];
+        let t = parseInt (orderbook['dataUpdateTime']);
+        let timestamp = parseInt (t / 1000);
+        return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     async fetchTicker (symbol, params = {}) {

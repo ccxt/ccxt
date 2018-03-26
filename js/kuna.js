@@ -53,10 +53,6 @@ module.exports = class kuna extends acx {
                     },
                 },
             },
-            'orderbookKeys': {
-                'price': 'price',
-                'amount': 'remaining_volume',
-            },
         });
     }
 
@@ -113,16 +109,13 @@ module.exports = class kuna extends acx {
         return markets;
     }
 
-    async performOrderBookRequest (market, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
         let orderBook = await this.publicGetOrderBook (this.extend ({
             'market': market['id'],
         }, params));
-        return orderBook;
-    }
-
-    parseOrderBookTimestamp (orderbook) {
-        let keys = this.orderbookKeys;
-        return this.safeInteger (orderbook, keys['timestamp'], undefined);
+        return this.parseOrderBook (orderBook, undefined, 'bids', 'asks', 'price', 'remaining_volume');
     }
 
     async fetchL3OrderBook (symbol, limit = undefined, params = {}) {

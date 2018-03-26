@@ -70,12 +70,13 @@ module.exports = class foxbit extends Exchange {
         });
     }
 
-    async performOrderBookRequest (market, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        let market = this.market (symbol);
         let orderbook = await this.publicGetCurrencyOrderbook (this.extend ({
             'currency': market['quote'],
             'crypto_currency': market['base'],
         }, params));
-        return orderbook;
+        return this.parseOrderBook (orderbook);
     }
 
     async fetchTicker (symbol, params = {}) {

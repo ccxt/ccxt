@@ -57,12 +57,6 @@ module.exports = class southxchange extends Exchange {
                     'taker': 0.2 / 100,
                 },
             },
-            'orderbookKeys': {
-                'bids': 'BuyOrders',
-                'asks': 'SellOrders',
-                'price': 'Price',
-                'amount': 'Amount',
-            },
             'commonCurrencies': {
                 'SMT': 'SmartNode',
             },
@@ -118,11 +112,12 @@ module.exports = class southxchange extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (market, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         let orderbook = await this.publicGetBookSymbol (this.extend ({
-            'symbol': market['id'],
+            'symbol': this.marketId (symbol),
         }, params));
-        return orderbook;
+        return this.parseOrderBook (orderbook, undefined, 'BuyOrders', 'SellOrders', 'Price', 'Amount');
     }
 
     parseTicker (ticker, market = undefined) {

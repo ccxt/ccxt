@@ -69,11 +69,6 @@ module.exports = class coinmate extends Exchange {
                     'taker': 0.0035,
                 },
             },
-            'orderbookKeys': {
-                'response': 'data',
-                'price': 'price',
-                'amount': 'amount',
-            },
         });
     }
 
@@ -95,12 +90,14 @@ module.exports = class coinmate extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (market, limit = undefined, params = {}) {
-        let orderbook = await this.publicGetOrderBook (this.extend ({
-            'currencyPair': market['id'],
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        let response = await this.publicGetOrderBook (this.extend ({
+            'currencyPair': this.marketId (symbol),
             'groupByPriceLimit': 'False',
         }, params));
-        return orderbook;
+        let orderbook = response['data'];
+        let timestamp = orderbook['timestamp'] * 1000;
+        return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     async fetchTicker (symbol, params = {}) {

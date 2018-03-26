@@ -563,11 +563,12 @@ module.exports = class hitbtc extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (market, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         let orderbook = await this.publicGetSymbolOrderbook (this.extend ({
-            'symbol': market['id'],
+            'symbol': this.marketId (symbol),
         }, params));
-        return orderbook;
+        return this.parseOrderBook (orderbook);
     }
 
     parseTicker (ticker, market = undefined) {

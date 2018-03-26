@@ -75,17 +75,12 @@ module.exports = class bitstamp1 extends Exchange {
         });
     }
 
-    async performOrderBookRequest (market, limit = undefined, params = {}) {
-        let symbol = market['symbol'];
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         if (symbol !== 'BTC/USD')
             throw new ExchangeError (this.id + ' ' + this.version + " fetchOrderBook doesn't support " + symbol + ', use it for BTC/USD only');
         let orderbook = await this.publicGetOrderBook (params);
-        return orderbook;
-    }
-
-    parseOrderBookTimestamp (orderbook) {
-        let keys = this.orderbookKeys;
-        return parseInt (orderbook[keys['timestamp']]) * 1000;
+        let timestamp = parseInt (orderbook['timestamp']) * 1000;
+        return this.parseOrderBook (orderbook, timestamp);
     }
 
     async fetchTicker (symbol, params = {}) {

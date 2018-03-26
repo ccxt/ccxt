@@ -60,11 +60,6 @@ module.exports = class bl3p extends Exchange {
                 'BTC/EUR': { 'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'maker': 0.0025, 'taker': 0.0025 },
                 'LTC/EUR': { 'id': 'LTCEUR', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR', 'maker': 0.0025, 'taker': 0.0025 },
             },
-            'orderbookKeys': {
-                'response': 'data',
-                'price': 'price_int',
-                'amount': 'amount_int',
-            },
         });
     }
 
@@ -104,11 +99,13 @@ module.exports = class bl3p extends Exchange {
         ];
     }
 
-    async performOrderBookRequest (market, limit = undefined, params = {}) {
-        let orderbook = await this.publicGetMarketOrderbook (this.extend ({
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        let market = this.market (symbol);
+        let response = await this.publicGetMarketOrderbook (this.extend ({
             'market': market['id'],
         }, params));
-        return orderbook;
+        let orderbook = response['data'];
+        return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price_int', 'amount_int');
     }
 
     async fetchTicker (symbol, params = {}) {

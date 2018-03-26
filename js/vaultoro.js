@@ -52,10 +52,6 @@ module.exports = class vaultoro extends Exchange {
                     ],
                 },
             },
-            'orderbookKeys': {
-                'price': 'Gold_Price',
-                'amount': 'Gold_Amount',
-            },
         });
     }
 
@@ -103,18 +99,14 @@ module.exports = class vaultoro extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (market, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         let response = await this.publicGetOrderbook (params);
-        return response;
-    }
-
-    parseOrderBookResponse (response, market, limit, params) {
-        let data = response['data'];
         let orderbook = {
-            'bids': data[0]['b'],
-            'asks': data[1]['s'],
+            'bids': response['data'][0]['b'],
+            'asks': response['data'][1]['s'],
         };
-        return orderbook;
+        return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'Gold_Price', 'Gold_Amount');
     }
 
     async fetchTicker (symbol, params = {}) {

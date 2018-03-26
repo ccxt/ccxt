@@ -119,13 +119,6 @@ module.exports = class bitlish extends Exchange {
                 'DSH': 'DASH',
                 'XDG': 'DOGE',
             },
-            'orderbookKeys': {
-                'bids': 'bid',
-                'asks': 'ask',
-                'price': 'price',
-                'amount': 'volume',
-                'timestamp': 'last',
-            },
         });
     }
 
@@ -218,17 +211,16 @@ module.exports = class bitlish extends Exchange {
         }, params));
     }
 
-    async performOrderBookRequest (market, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         let orderbook = await this.publicGetTradesDepth (this.extend ({
-            'pair_id': market['id'],
+            'pair_id': this.marketId (symbol),
         }, params));
-        return orderbook;
-    }
-
-    parseOrderBookTimestamp (orderbook) {
-        let keys = this.orderbookKeys;
-        let last = this.safeInteger (orderbook, keys['timestamp']);
-        return last ? parseInt (last / 1000) : undefined;
+        let timestamp = undefined;
+        let last = this.safeInteger (orderbook, 'last');
+        if (last)
+            timestamp = parseInt (last / 1000);
+        return this.parseOrderBook (orderbook, timestamp, 'bid', 'ask', 'price', 'volume');
     }
 
     parseTrade (trade, market = undefined) {

@@ -77,12 +77,6 @@ module.exports = class bitso extends Exchange {
                 '0201': AuthenticationError, // Invalid Nonce or Invalid Credentials
                 '104': InvalidNonce, // Cannot perform request - nonce must be higher than 1520307203724237
             },
-            'orderbookKeys': {
-                'response': 'payload',
-                'price': 'price',
-                'amount': 'amount',
-                'timestamp': 'updated_at',
-            },
         });
     }
 
@@ -145,16 +139,14 @@ module.exports = class bitso extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (market, limit = undefined, params = {}) {
-        let orderbook = await this.publicGetOrderBook (this.extend ({
-            'book': market['id'],
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.publicGetOrderBook (this.extend ({
+            'book': this.marketId (symbol),
         }, params));
-        return orderbook;
-    }
-
-    parseOrderBookTimestamp (orderbook) {
-        let keys = this.orderbookKeys;
-        return this.parse8601 (orderbook[keys['timestamp']]);
+        let orderbook = response['payload'];
+        let timestamp = this.parse8601 (orderbook['updated_at']);
+        return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     async fetchTicker (symbol, params = {}) {

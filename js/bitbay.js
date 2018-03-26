@@ -163,11 +163,11 @@ module.exports = class bitbay extends Exchange {
         throw new ExchangeError (this.id + ' empty balance response ' + this.json (response));
     }
 
-    async performOrderBookRequest (market, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let orderbook = await this.publicGetIdOrderbook (this.extend ({
-            'id': market['id'],
+            'id': this.marketId (symbol),
         }, params));
-        return orderbook;
+        return this.parseOrderBook (orderbook);
     }
 
     async fetchTicker (symbol, params = {}) {

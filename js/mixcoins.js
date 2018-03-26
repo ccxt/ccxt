@@ -51,9 +51,6 @@ module.exports = class mixcoins extends Exchange {
                 'BCH/USD': { 'id': 'bch_usd', 'symbol': 'BCH/USD', 'base': 'BCH', 'quote': 'USD', 'maker': 0.001, 'taker': 0.0015 },
                 'ETH/USD': { 'id': 'eth_usd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD', 'maker': 0.001, 'taker': 0.0015 },
             },
-            'orderbookKeys': {
-                'response': 'result',
-            },
         });
     }
 
@@ -76,11 +73,11 @@ module.exports = class mixcoins extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (market, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let response = await this.publicGetDepth (this.extend ({
-            'market': market['id'],
+            'market': this.marketId (symbol),
         }, params));
-        return response;
+        return this.parseOrderBook (response['result']);
     }
 
     async fetchTicker (symbol, params = {}) {

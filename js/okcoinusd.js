@@ -219,7 +219,9 @@ module.exports = class okcoinusd extends Exchange {
         return result;
     }
 
-    async performOrderBookRequest (market, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
         let method = 'publicGet';
         let request = {
             'symbol': market['id'],
@@ -232,7 +234,7 @@ module.exports = class okcoinusd extends Exchange {
         }
         method += 'Depth';
         let orderbook = await this[method] (this.extend (request, params));
-        return orderbook;
+        return this.parseOrderBook (orderbook);
     }
 
     parseTicker (ticker, market = undefined) {

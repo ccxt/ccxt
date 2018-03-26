@@ -187,9 +187,6 @@ module.exports = class kraken extends Exchange {
                 'cacheDepositMethodsOnFetchDepositAddress': true, // will issue up to two calls in fetchDepositAddress
                 'depositMethods': {},
             },
-            'orderbookKeys': {
-                'response': ['result', '__market__'],
-            },
         });
     }
 
@@ -399,16 +396,19 @@ module.exports = class kraken extends Exchange {
         };
     }
 
-    async performOrderBookRequest (market, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
         if (market['darkpool'])
-            throw new ExchangeError (this.id + ' does not provide an order book for darkpool symbol ' + market['symbol']);
+            throw new ExchangeError (this.id + ' does not provide an order book for darkpool symbol ' + symbol);
         let request = {
             'pair': market['id'],
         };
         if (typeof limit !== 'undefined')
             request['count'] = limit; // 100
         let response = await this.publicGetDepth (this.extend (request, params));
-        return response;
+        let orderbook = response['result'][market['id']];
+        return this.parseOrderBook (orderbook);
     }
 
     parseTicker (ticker, market = undefined) {

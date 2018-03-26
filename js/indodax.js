@@ -91,10 +91,6 @@ module.exports = class indodax extends Exchange {
                     'taker': 0.003,
                 },
             },
-            'orderbookKeys': {
-                'bids': 'buy',
-                'asks': 'sell',
-            },
         });
     }
 
@@ -117,11 +113,12 @@ module.exports = class indodax extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (market, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         let orderbook = await this.publicGetPairDepth (this.extend ({
-            'pair': market['id'],
+            'pair': this.marketId (symbol),
         }, params));
-        return orderbook;
+        return this.parseOrderBook (orderbook, undefined, 'buy', 'sell');
     }
 
     async fetchTicker (symbol, params = {}) {

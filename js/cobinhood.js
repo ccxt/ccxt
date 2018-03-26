@@ -123,11 +123,6 @@ module.exports = class cobinhood extends Exchange {
                 'amount': 8,
                 'price': 8,
             },
-            'orderbookKeys': {
-                'response': ['result', 'orderbook'],
-                'price': 0,
-                'amount': 2,
-            },
         });
     }
 
@@ -283,14 +278,15 @@ module.exports = class cobinhood extends Exchange {
         return this.indexBy (result, 'symbol');
     }
 
-    async performOrderBookRequest (market, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         let request = {
-            'trading_pair_id': market['id'],
+            'trading_pair_id': this.marketId (symbol),
         };
         if (typeof limit !== 'undefined')
             request['limit'] = limit; // 100
         let response = await this.publicGetMarketOrderbooksTradingPairId (this.extend (request, params));
-        return response;
+        return this.parseOrderBook (response['result']['orderbook'], undefined, 'bids', 'asks', 0, 2);
     }
 
     parseTrade (trade, market = undefined) {

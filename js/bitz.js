@@ -124,10 +124,6 @@ module.exports = class bitz extends Exchange {
             'options': {
                 'lastNonceTimestamp': 0,
             },
-            'orderbookKeys': {
-                'response': 'data',
-                'timestamp': 'date',
-            },
         });
     }
 
@@ -234,16 +230,14 @@ module.exports = class bitz extends Exchange {
         return result;
     }
 
-    async performOrderBookRequest (market, limit = undefined, params = {}) {
-        let orderbook = await this.publicGetDepth (this.extend ({
-            'coin': market['id'],
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.publicGetDepth (this.extend ({
+            'coin': this.marketId (symbol),
         }, params));
-        return orderbook;
-    }
-
-    parseOrderBookTimestamp (orderbook) {
-        let keys = this.orderbookKeys;
-        return orderbook[keys['timestamp']] * 1000;
+        let orderbook = response['data'];
+        let timestamp = orderbook['date'] * 1000;
+        return this.parseOrderBook (orderbook, timestamp);
     }
 
     parseTrade (trade, market = undefined) {

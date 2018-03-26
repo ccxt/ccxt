@@ -73,10 +73,6 @@ module.exports = class luno extends Exchange {
                     ],
                 },
             },
-            'orderbookKeys': {
-                'price': 'price',
-                'amount': 'volume',
-            },
         });
     }
 
@@ -123,11 +119,13 @@ module.exports = class luno extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (market, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         let orderbook = await this.publicGetOrderbook (this.extend ({
-            'pair': market['id'],
+            'pair': this.marketId (symbol),
         }, params));
-        return orderbook;
+        let timestamp = orderbook['timestamp'];
+        return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 'price', 'volume');
     }
 
     parseOrder (order, market = undefined) {

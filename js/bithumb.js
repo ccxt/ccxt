@@ -64,11 +64,6 @@ module.exports = class bithumb extends Exchange {
                     'taker': 0.15 / 100,
                 },
             },
-            'orderbookKeys': {
-                'response': 'data',
-                'price': 'price',
-                'amount': 'quantity',
-            },
         });
     }
 
@@ -135,19 +130,18 @@ module.exports = class bithumb extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (market, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
         let request = {
             'currency': market['base'],
         };
         if (typeof limit !== 'undefined')
             request['count'] = limit; // max = 50
-        let orderbook = await this.publicGetOrderbookCurrency (this.extend (request, params));
-        return orderbook;
-    }
-
-    parseOrderBookTimestamp (orderbook) {
-        let keys = this.orderbookKeys;
-        return parseInt (orderbook[keys['timestamp']]);
+        let response = await this.publicGetOrderbookCurrency (this.extend (request, params));
+        let orderbook = response['data'];
+        let timestamp = parseInt (orderbook['timestamp']);
+        return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 'price', 'quantity');
     }
 
     parseTicker (ticker, market = undefined) {

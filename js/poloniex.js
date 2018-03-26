@@ -125,9 +125,6 @@ module.exports = class poloniex extends Exchange {
                 'BTM': 'Bitmark',
                 'STR': 'XLM',
             },
-            'orderbookKeys': {
-                'nonce': 'sec',
-            },
         });
     }
 
@@ -251,14 +248,15 @@ module.exports = class poloniex extends Exchange {
         };
     }
 
-    async performOrderBookRequest (market, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         let request = {
-            'currencyPair': market['id'],
+            'currencyPair': this.marketId (symbol),
         };
         if (typeof limit !== 'undefined')
             request['depth'] = limit; // 100
         let orderbook = await this.publicGetReturnOrderBook (this.extend (request, params));
-        return orderbook;
+        return this.parseOrderBook (orderbook);
     }
 
     parseTicker (ticker, market = undefined) {

@@ -692,23 +692,15 @@ module.exports = class hitbtc2 extends hitbtc {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    async performOrderBookRequest (market, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         let request = {
-            'symbol': market['id'],
+            'symbol': this.marketId (symbol),
         };
         if (typeof limit !== 'undefined')
             request['limit'] = limit; // default = 100, 0 = unlimited
         let orderbook = await this.publicGetOrderbookSymbol (this.extend (request, params));
-        return orderbook;
-    }
-
-    orderBookDefaultKeys () {
-        return {
-            'bids': 'bid',
-            'asks': 'ask',
-            'price': 'price',
-            'amount': 'size',
-        };
+        return this.parseOrderBook (orderbook, undefined, 'bid', 'ask', 'price', 'size');
     }
 
     parseTicker (ticker, market = undefined) {

@@ -69,13 +69,6 @@ module.exports = class independentreserve extends Exchange {
                     'tierBased': false,
                 },
             },
-            'orderbookKeys': {
-                'bids': 'BuyOrders',
-                'asks': 'SellOrders',
-                'price': 'Price',
-                'amount': 'Volume',
-                'timestamp': 'CreatedTimestampUtc',
-            },
         });
     }
 
@@ -125,17 +118,15 @@ module.exports = class independentreserve extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (market, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
         let response = await this.publicGetGetOrderBook (this.extend ({
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
         }, params));
-        return response;
-    }
-
-    parseOrderBookTimestamp (orderbook) {
-        let keys = this.orderbookKeys;
-        return this.parse8601 (orderbook[keys['timestamp']]);
+        let timestamp = this.parse8601 (response['CreatedTimestampUtc']);
+        return this.parseOrderBook (response, timestamp, 'BuyOrders', 'SellOrders', 'Price', 'Volume');
     }
 
     parseTicker (ticker, market = undefined) {

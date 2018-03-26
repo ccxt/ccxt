@@ -5,8 +5,6 @@
 const functions = require ('./functions')
     , Market    = require ('./Market')
 
-const { AssertionError } = require ('assert')
-
 const {
     isNode
     , keys
@@ -147,15 +145,6 @@ module.exports = class Exchange {
                 'BCC': 'BCH',
                 'DRK': 'DASH',
             },
-            'orderbookKeys': {
-                'bids': 'bids',
-                'asks': 'asks',
-                'price': 0,
-                'amount': 0,
-                'timestamp': 'timestamp',
-                'nonce': undefined,
-                'responseDate': 'date',
-            },
         } // return
     } // describe ()
 
@@ -223,7 +212,6 @@ module.exports = class Exchange {
         this.tickers    = {}
         this.orders     = {}
         this.trades     = {}
-        this.precisionTests = {}
 
         this.last_http_response = undefined
         this.last_json_response = undefined
@@ -749,7 +737,7 @@ module.exports = class Exchange {
     implodeParams (string, params) {
         for (let property in params)
             string = string.replace ('{' + property + '}', params[property])
-        return string;
+        return string
     }
 
     url (path, params = {}) {
@@ -757,7 +745,17 @@ module.exports = class Exchange {
         let query = this.omit (params, this.extractParams (path))
         if (Object.keys (query).length)
             result += '?' + this.urlencode (query)
-        return result;
+        return result
+    }
+
+    parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
+        let price = parseFloat (bidask[priceKey])
+        let amount = parseFloat (bidask[amountKey])
+        return [ price, amount ]
+    }
+
+    parseBidsAsks (bidasks, priceKey = 0, amountKey = 1) {
+        return Object.values (bidasks || []).map (bidask => this.parseBidAsk (bidask, priceKey, amountKey))
     }
 
     async fetchL2OrderBook (symbol, limit = undefined, params = {}) {
@@ -768,187 +766,29 @@ module.exports = class Exchange {
         })
     }
 
-    async performOrderBookRequest (market, limit = undefined, params = {}) {
-        throw new NotSupported (this.id + ' performOrderBookRequest not supported yet');
-    }
-
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol)
-        let response = await this.performOrderBookRequest (market, limit, params);
-        let orderbook = this.parseOrderBook (response, market, limit, params);
-        if (symbol in this.precisionTests) {
-            return orderbook;
-        }
-        let precisions = this.getPrecisionsFromOrderbook (orderbook);
-        if (market['precision']['price'] !== precisions['price']) {
-            throw new AssertionError ({
-                'name': 'price precision inconsistency',
-                'message': this.id + ' order price precision does not match market price precision for symbol ' + symbol,
-                'actual': precisions['price'],
-                'expected': market['precision']['price'],
-                'operator': '!==',
-            });
-        }
-        if (market['precision']['amount'] !== precisions['amount']) {
-            throw new AssertionError ({
-                'name': 'amount precision inconsistency',
-                'message': this.id + ' order amount precision does not match market amount precision for symbol ' + symbol,
-                'actual': precisions['price'],
-                'expected': market['precision']['price'],
-                'operator': '!==',
-            });
-        }
-        this.precisionTests[symbol] = true;
-        return orderbook;
-    }
-
-    parseOrderBookNonce (orderbook) {
-        let keys = this.orderbookKeys;
-        if (typeof keys['nonce'] === 'undefined') {
-            return undefined;
-        }
-        let nonce = this.safeInteger (orderbook, keys['nonce'], undefined);
-        return nonce;
-    }
-
-    parseOrderBookTimestamp (orderbook) {
-        let keys = this.orderbookKeys;
-        return this.safeInteger (orderbook, keys['timestamp'], undefined);
-    }
-
-    parseHTTPResponseDate () {
-        let keys = this.orderbookKeys;
-        let responseDate = undefined;
-        let headerAttributes = Object.keys (this.last_response_headers);
-        for (let i = 0; i < headerAttributes.length; i++) {
-            let key = headerAttributes[i];
-            if (key.toLowerCase () === keys['responseDate']) {
-                responseDate = this.parseDate (this.last_response_headers[key])
-            }
-        }
-        return responseDate;
-    }
-
-    parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
-        let price = parseFloat (bidask[priceKey]);
-        let amount = parseFloat (bidask[amountKey]);
-        return [ price, amount ];
-    }
-
-    parseBidsAsks (bidasks) {
-        let keys = this.orderbookKeys;
-        let orders = [];
-        if (typeof bidasks !== 'undefined') {
-            orders = bidasks;
-        }
-        let parsedOrders = [];
-        for (let i = 0; i < orders.length; i++) {
-            let order = orders[i];
-            let parsedBidask = this.parseBidAsk (order, keys['price'], keys['amount']);
-            parsedOrders.push (parsedBidask);
-        }
-        return parsedOrders;
-    }
-
-    parseOrderBookOrders (orderbook) {
-        let keys = this.orderbookKeys;
-        let bids = (keys['bids'] in orderbook) ? this.parseBidsAsks (orderbook[keys['bids']]) : [];
-        let asks = (keys['asks'] in orderbook) ? this.parseBidsAsks (orderbook[keys['asks']]) : [];
+    parseOrderBook (orderbook, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1) {
+        timestamp = timestamp || this.milliseconds ();
         return {
-            'bids': bids,
-            'asks': asks,
-        };
-    }
-
-    parseOrderBookResponse (response, market, limit, params) {
-        let keys = this.orderbookKeys;
-        if (typeof keys['response'] === 'undefined') {
-            return response;
-        }
-        let path = Array.isArray (keys['response']) ? keys['response'] : [keys['response']];
-        let orderbook = response;
-        for (let i = 0; i < path.length; i++) {
-            let key = (path[i] === '__market__') ? market['id'] : path[i];
-            orderbook = key in orderbook ? orderbook[key] : orderbook;
-        }
-        return orderbook;
-    }
-
-    parseOrderBook (response, market, limit, params) {
-        let orderbook = this.parseOrderBookResponse (response, market, limit, params);
-        let timestamp = this.parseOrderBookTimestamp (orderbook);
-        if (typeof timestamp === 'undefined') {
-            timestamp = this.parseHTTPResponseDate ();
-        }
-        let datetime = this.iso8601 (timestamp);
-        let orders = this.parseOrderBookOrders (orderbook);
-        let nonce = this.parseOrderBookNonce (orderbook);
-        return {
-            'bids': sortBy (orders['bids'], 0, true),
-            'asks': sortBy (orders['asks'], 0),
+            'bids': sortBy ((bidsKey in orderbook) ? this.parseBidsAsks (orderbook[bidsKey], priceKey, amountKey) : [], 0, true),
+            'asks': sortBy ((asksKey in orderbook) ? this.parseBidsAsks (orderbook[asksKey], priceKey, amountKey) : [], 0),
             'timestamp': timestamp,
-            'datetime': datetime,
-            'nonce': nonce,
-            'info': orderbook,
-        };
-    }
-
-    getPrecisionFromFloat (floatValue) {
-        let string = floatValue.toString ();
-        let expAndPower = string.split ('e');
-        let power = expAndPower[1];
-        if (typeof power !== 'undefined') {
-            return Math.abs (power);
+            'datetime': this.iso8601 (timestamp),
         }
-        let intAndDecimal = string.split ('.');
-        let decimal = intAndDecimal[1];
-        if (typeof decimal !== 'undefined') {
-            return decimal.length;
-        }
-        return 0;
-    }
-
-    getPrecisionsFromOrder (order) {
-        let pricePrecision = this.getPrecisionFromFloat (order[0]);
-        let amountPrecision = this.getPrecisionFromFloat (order[1]);
-        return {
-            'price': pricePrecision,
-            'amount': amountPrecision,
-        };
-    }
-
-    getPrecisionsFromOrderbook (orderbook) {
-        let bids = orderbook['bids'];
-        let asks = orderbook['asks'];
-        let orders = bids.concat (asks);
-        let maxPricePrecision = 0;
-        let maxAmountPrecision = 0;
-        for (let i = 0; i < orders.length; i++) {
-            let order = orders[i];
-            let precisions = this.getPrecisionsFromOrder (order);
-            maxPricePrecision = Math.max (maxPricePrecision, precisions['price']);
-            maxAmountPrecision = Math.max (maxAmountPrecision, precisions['amount']);
-        }
-        return {
-            'price': maxPricePrecision,
-            'amount': maxAmountPrecision,
-        };
     }
 
     getCurrencyUsedOnOpenOrders (currency) {
         return Object.values (this.orders).filter (order => (order['status'] === 'open')).reduce ((total, order) => {
             let symbol = order['symbol'];
             let market = this.markets[symbol];
-            let remaining = order['remaining'];
+            let remaining = order['remaining']
             if (currency === market['base'] && order['side'] === 'sell') {
-                return total + remaining;
+                return total + remaining
             } else if (currency === market['quote'] && order['side'] === 'buy') {
-                return total + (order['price'] * remaining);
+                return total + (order['price'] * remaining)
             } else {
-                return total;
+                return total
             }
-        }, 0);
+        }, 0)
     }
 
     parseBalance (balance) {

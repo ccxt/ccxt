@@ -59,12 +59,6 @@ module.exports = class nova extends Exchange {
                     ],
                 },
             },
-            'orderbookKeys': {
-                'bids': 'buyorders',
-                'asks': 'sellorders',
-                'price': 'price',
-                'amount': 'amount',
-            },
         });
     }
 
@@ -90,11 +84,12 @@ module.exports = class nova extends Exchange {
         return result;
     }
 
-    async performOrderBookRequest (market, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         let orderbook = await this.publicGetMarketOpenordersPairBoth (this.extend ({
-            'pair': market['id'],
+            'pair': this.marketId (symbol),
         }, params));
-        return orderbook;
+        return this.parseOrderBook (orderbook, undefined, 'buyorders', 'sellorders', 'price', 'amount');
     }
 
     async fetchTicker (symbol, params = {}) {

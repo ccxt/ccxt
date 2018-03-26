@@ -269,9 +269,6 @@ module.exports = class binance extends Exchange {
                 '-2011': OrderNotFound, // cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
                 '-2015': AuthenticationError, // "Invalid API-key, IP, or permissions for action."
             },
-            'orderbookKeys': {
-                'nonce': 'lastUpdateId',
-            },
         });
     }
 
@@ -403,14 +400,16 @@ module.exports = class binance extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (market, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
         let request = {
             'symbol': market['id'],
         };
         if (typeof limit !== 'undefined')
             request['limit'] = limit; // default = maximum = 100
         let orderbook = await this.publicGetDepth (this.extend (request, params));
-        return orderbook;
+        return this.parseOrderBook (orderbook);
     }
 
     parseTicker (ticker, market = undefined) {

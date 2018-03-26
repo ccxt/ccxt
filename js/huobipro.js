@@ -97,10 +97,6 @@ module.exports = class huobipro extends Exchange {
                     'taker': 0.002,
                 },
             },
-            'orderbookKeys': {
-                'response': 'tick',
-                'timestamp': 'ts',
-            },
         });
     }
 
@@ -220,22 +216,18 @@ module.exports = class huobipro extends Exchange {
         };
     }
 
-    async performOrderBookRequest (market, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
         let response = await this.marketGetDepth (this.extend ({
             'symbol': market['id'],
             'type': 'step0',
         }, params));
-        return response;
-    }
-
-    parseOrderBookResponse (response, market, limit, params) {
-        let keys = this.orderbookKeys;
-        let key = keys['response'];
-        if (key in response) {
-            if (!response[key]) {
+        if ('tick' in response) {
+            if (!response['tick']) {
                 throw new ExchangeError (this.id + ' fetchOrderBook() returned empty response: ' + this.json (response));
             }
-            return response[key];
+            return this.parseOrderBook (response['tick'], response['tick']['ts']);
         }
         throw new ExchangeError (this.id + ' fetchOrderBook() returned unrecognized response: ' + this.json (response));
     }

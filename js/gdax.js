@@ -194,12 +194,13 @@ module.exports = class gdax extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (market, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         let orderbook = await this.publicGetProductsIdBook (this.extend ({
-            'id': market['id'],
+            'id': this.marketId (symbol),
             'level': 2, // 1 best bidask, 2 aggregated, 3 full
         }, params));
-        return orderbook;
+        return this.parseOrderBook (orderbook);
     }
 
     async fetchTicker (symbol, params = {}) {

@@ -84,13 +84,15 @@ module.exports = class btcbox extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (market, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
         let request = {};
         let numSymbols = this.symbols.length;
         if (numSymbols > 1)
             request['coin'] = market['id'];
         let orderbook = await this.publicGetDepth (this.extend (request, params));
-        return orderbook;
+        return this.parseOrderBook (orderbook);
     }
 
     parseTicker (ticker, market = undefined) {
