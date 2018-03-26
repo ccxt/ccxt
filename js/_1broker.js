@@ -153,6 +153,7 @@ module.exports = class _1broker extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'bids': [ bid ],
             'asks': [ ask ],
+            'nonce': undefined,
         };
     }
 

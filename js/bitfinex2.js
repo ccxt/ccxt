@@ -258,6 +258,7 @@ module.exports = class bitfinex2 extends bitfinex {
             'asks': [],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'nonce': undefined,
         };
         for (let i = 0; i < orderbook.length; i++) {
             let order = orderbook[i];

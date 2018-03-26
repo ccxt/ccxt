@@ -334,8 +334,6 @@ module.exports = class lykke extends Exchange {
                 orderbook['timestamp'] = Math.max (orderbook['timestamp'], timestamp);
             }
         }
-        if (!timestamp)
-            timestamp = this.milliseconds ();
         return this.parseOrderBook (orderbook, orderbook['timestamp'], 'bids', 'asks', 'Price', 'Volume');
     }
 

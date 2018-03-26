@@ -211,12 +211,12 @@ module.exports = class bitmex extends Exchange {
         if (typeof limit !== 'undefined')
             request['depth'] = limit;
         let orderbook = await this.publicGetOrderBookL2 (this.extend (request, params));
-        let timestamp = this.milliseconds ();
         let result = {
             'bids': [],
             'asks': [],
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'nonce': undefined,
         };
         for (let o = 0; o < orderbook.length; o++) {
             let order = orderbook[o];
