@@ -353,7 +353,7 @@ module.exports = class bitfinex2 extends bitfinex {
         let market = this.market (symbol);
         let request = {
             'symbol': market['id'],
-            'sort': 1,
+            'sort': '-1',
             'limit': limit, // default = max = 120
         };
         if (typeof since !== 'undefined')
@@ -369,7 +369,7 @@ module.exports = class bitfinex2 extends bitfinex {
         let request = {
             'symbol': market['id'],
             'timeframe': this.timeframes[timeframe],
-            'sort': 1,
+            'sort': '-1',
             'limit': limit,
         };
         if (typeof since !== 'undefined')

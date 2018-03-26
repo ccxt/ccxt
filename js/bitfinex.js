@@ -629,7 +629,7 @@ module.exports = class bitfinex extends Exchange {
         let request = {
             'symbol': v2id,
             'timeframe': this.timeframes[timeframe],
-            'sort': 1,
+            'sort': '-1',
             'limit': limit,
         };
         if (typeof since !== 'undefined')
