@@ -342,7 +342,7 @@ class bitfinex2 (bitfinex):
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
-            'sort': 1,
+            'sort': '-1',
             'limit': limit,  # default = max = 120
         }
         if since is not None:
@@ -354,16 +354,16 @@ class bitfinex2 (bitfinex):
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=100, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        if since is None:
+            since = self.milliseconds() - self.parse_timeframe(timeframe) * limit * 1000
         request = {
             'symbol': market['id'],
             'timeframe': self.timeframes[timeframe],
             'sort': 1,
             'limit': limit,
+            'start': since,
         }
-        if since is not None:
-            request['start'] = since
-        request = self.extend(request, params)
-        response = await self.publicGetCandlesTradeTimeframeSymbolHist(request)
+        response = await self.publicGetCandlesTradeTimeframeSymbolHist(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
