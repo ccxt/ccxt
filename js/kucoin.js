@@ -491,7 +491,13 @@ module.exports = class kucoin extends Exchange {
             'symbol': market['id'],
         };
         let response = await this.privateGetOrderActiveMap (this.extend (request, params));
-        let orders = this.arrayConcat (response['data']['SELL'], response['data']['BUY']);
+        let sell = response['data']['SELL'];
+        if (typeof sell === 'undefined')
+            sell = [];
+        let buy = response['data']['BUY'];
+        if (typeof buy === 'undefined')
+            buy = [];
+        let orders = this.arrayConcat (sell, buy);
         for (let i = 0; i < orders.length; i++) {
             let order = this.parseOrder (this.extend (orders[i], {
                 'status': 'open',
@@ -539,11 +545,12 @@ module.exports = class kucoin extends Exchange {
             throw new ExchangeError (this.id + ' allows limit orders only');
         await this.loadMarkets ();
         let market = this.market (symbol);
+        let quote = market['quote'];
         let base = market['base'];
         let request = {
             'symbol': market['id'],
             'type': side.toUpperCase (),
-            'price': this.priceToPrecision (symbol, price),
+            'price': this.truncate (price, this.currencies[quote]['precision']),
             'amount': this.truncate (amount, this.currencies[base]['precision']),
         };
         price = parseFloat (price);
@@ -642,6 +649,7 @@ module.exports = class kucoin extends Exchange {
         let change = this.safeFloat (ticker, 'changeRate');
         if (typeof change !== 'undefined')
             change *= 100;
+        let last = this.safeFloat (ticker, 'lastDealPrice');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -649,12 +657,14 @@ module.exports = class kucoin extends Exchange {
             'high': this.safeFloat (ticker, 'high'),
             'low': this.safeFloat (ticker, 'low'),
             'bid': this.safeFloat (ticker, 'buy'),
+            'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'sell'),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': this.safeFloat (ticker, 'lastDealPrice'),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': change,
             'percentage': undefined,
             'average': undefined,

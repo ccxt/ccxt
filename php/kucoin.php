@@ -490,7 +490,13 @@ class kucoin extends Exchange {
             'symbol' => $market['id'],
         );
         $response = $this->privateGetOrderActiveMap (array_merge ($request, $params));
-        $orders = $this->array_concat($response['data']['SELL'], $response['data']['BUY']);
+        $sell = $response['data']['SELL'];
+        if ($sell === null)
+            $sell = array ();
+        $buy = $response['data']['BUY'];
+        if ($buy === null)
+            $buy = array ();
+        $orders = $this->array_concat($sell, $buy);
         for ($i = 0; $i < count ($orders); $i++) {
             $order = $this->parse_order(array_merge ($orders[$i], array (
                 'status' => 'open',
@@ -538,11 +544,12 @@ class kucoin extends Exchange {
             throw new ExchangeError ($this->id . ' allows limit orders only');
         $this->load_markets();
         $market = $this->market ($symbol);
+        $quote = $market['quote'];
         $base = $market['base'];
         $request = array (
             'symbol' => $market['id'],
             'type' => strtoupper ($side),
-            'price' => $this->price_to_precision($symbol, $price),
+            'price' => $this->truncate ($price, $this->currencies[$quote]['precision']),
             'amount' => $this->truncate ($amount, $this->currencies[$base]['precision']),
         );
         $price = floatval ($price);
@@ -641,6 +648,7 @@ class kucoin extends Exchange {
         $change = $this->safe_float($ticker, 'changeRate');
         if ($change !== null)
             $change *= 100;
+        $last = $this->safe_float($ticker, 'lastDealPrice');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -648,12 +656,14 @@ class kucoin extends Exchange {
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => $this->safe_float($ticker, 'buy'),
+            'bidVolume' => null,
             'ask' => $this->safe_float($ticker, 'sell'),
+            'askVolume' => null,
             'vwap' => null,
             'open' => null,
-            'close' => null,
-            'first' => null,
-            'last' => $this->safe_float($ticker, 'lastDealPrice'),
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
             'change' => $change,
             'percentage' => null,
             'average' => null,

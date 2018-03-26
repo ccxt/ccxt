@@ -213,6 +213,7 @@ class bitstamp extends Exchange {
         $vwap = floatval ($ticker['vwap']);
         $baseVolume = floatval ($ticker['volume']);
         $quoteVolume = $baseVolume * $vwap;
+        $last = floatval ($ticker['last']);
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -220,12 +221,14 @@ class bitstamp extends Exchange {
             'high' => floatval ($ticker['high']),
             'low' => floatval ($ticker['low']),
             'bid' => floatval ($ticker['bid']),
+            'bidVolume' => null,
             'ask' => floatval ($ticker['ask']),
+            'askVolume' => null,
             'vwap' => $vwap,
             'open' => floatval ($ticker['open']),
-            'close' => null,
-            'first' => null,
-            'last' => floatval ($ticker['last']),
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
@@ -342,7 +345,7 @@ class bitstamp extends Exchange {
         $market = $this->market ($symbol);
         $response = $this->publicGetTransactionsPair (array_merge (array (
             'pair' => $market['id'],
-            'time' => 'minute',
+            'time' => 'hour',
         ), $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }

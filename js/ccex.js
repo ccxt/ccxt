@@ -69,17 +69,14 @@ module.exports = class ccex extends Exchange {
                     'maker': 0.2 / 100,
                 },
             },
+            'commonCurrencies': {
+                'IOT': 'IoTcoin',
+                'BLC': 'Cryptobullcoin',
+                'XID': 'InternationalDiamond',
+                'LUX': 'Luxmi',
+                'CRC': 'CoreCoin',
+            },
         });
-    }
-
-    commonCurrencyCode (currency) {
-        if (currency === 'IOT')
-            return 'IoTcoin';
-        if (currency === 'BLC')
-            return 'Cryptobullcoin';
-        if (currency === 'XID')
-            return 'InternationalDiamond';
-        return currency;
     }
 
     async fetchMarkets () {
@@ -199,8 +196,9 @@ module.exports = class ccex extends Exchange {
     parseTicker (ticker, market = undefined) {
         let timestamp = ticker['updated'] * 1000;
         let symbol = undefined;
-        if (market)
+        if (typeof market !== 'undefined')
             symbol = market['symbol'];
+        let last = parseFloat (ticker['lastprice']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -208,12 +206,14 @@ module.exports = class ccex extends Exchange {
             'high': parseFloat (ticker['high']),
             'low': parseFloat (ticker['low']),
             'bid': parseFloat (ticker['buy']),
+            'bidVolume': undefined,
             'ask': parseFloat (ticker['sell']),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['lastprice']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': parseFloat (ticker['avg']),
@@ -226,18 +226,18 @@ module.exports = class ccex extends Exchange {
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         let tickers = await this.webGetPrices (params);
-        let result = { 'info': tickers };
+        let result = {};
         let ids = Object.keys (tickers);
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
             let ticker = tickers[id];
-            let uppercase = id.toUpperCase ();
             let market = undefined;
             let symbol = undefined;
-            if (uppercase in this.markets_by_id) {
-                market = this.markets_by_id[uppercase];
+            if (id in this.markets_by_id) {
+                market = this.markets_by_id[id];
                 symbol = market['symbol'];
             } else {
+                let uppercase = id.toUpperCase ();
                 let [ base, quote ] = uppercase.split ('-');
                 base = this.commonCurrencyCode (base);
                 quote = this.commonCurrencyCode (quote);

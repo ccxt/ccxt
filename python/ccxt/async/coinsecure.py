@@ -215,6 +215,7 @@ class coinsecure (Exchange):
             baseVolume = baseVolume * satoshi
         quoteVolume = float(ticker['fiatvolume']) / 100
         vwap = quoteVolume / baseVolume
+        last = float(ticker['lastPrice']) / 100
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -222,12 +223,14 @@ class coinsecure (Exchange):
             'high': float(ticker['high']) / 100,
             'low': float(ticker['low']) / 100,
             'bid': float(ticker['bid']) / 100,
+            'bidVolume': None,
             'ask': float(ticker['ask']) / 100,
+            'askVolume': None,
             'vwap': vwap,
             'open': float(ticker['open']) / 100,
-            'close': None,
-            'first': None,
-            'last': float(ticker['lastPrice']) / 100,
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,

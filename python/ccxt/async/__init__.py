@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.11.99'
+__version__ = '1.11.180'
 
 # -----------------------------------------------------------------------------
 
@@ -36,6 +36,7 @@ from ccxt.async.anxpro import anxpro                            # noqa: F401
 from ccxt.async.bibox import bibox                              # noqa: F401
 from ccxt.async.binance import binance                          # noqa: F401
 from ccxt.async.bit2c import bit2c                              # noqa: F401
+from ccxt.async.bitbank import bitbank                          # noqa: F401
 from ccxt.async.bitbay import bitbay                            # noqa: F401
 from ccxt.async.bitcoincoid import bitcoincoid                  # noqa: F401
 from ccxt.async.bitfinex import bitfinex                        # noqa: F401
@@ -79,7 +80,9 @@ from ccxt.async.coinspot import coinspot                        # noqa: F401
 from ccxt.async.coolcoin import coolcoin                        # noqa: F401
 from ccxt.async.cryptopia import cryptopia                      # noqa: F401
 from ccxt.async.dsx import dsx                                  # noqa: F401
+from ccxt.async.ethfinex import ethfinex                        # noqa: F401
 from ccxt.async.exmo import exmo                                # noqa: F401
+from ccxt.async.exx import exx                                  # noqa: F401
 from ccxt.async.flowbtc import flowbtc                          # noqa: F401
 from ccxt.async.foxbit import foxbit                            # noqa: F401
 from ccxt.async.fybse import fybse                              # noqa: F401
@@ -140,6 +143,7 @@ exchanges = [
     'bibox',
     'binance',
     'bit2c',
+    'bitbank',
     'bitbay',
     'bitcoincoid',
     'bitfinex',
@@ -183,7 +187,9 @@ exchanges = [
     'coolcoin',
     'cryptopia',
     'dsx',
+    'ethfinex',
     'exmo',
+    'exx',
     'flowbtc',
     'foxbit',
     'fybse',

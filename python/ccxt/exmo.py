@@ -4,9 +4,21 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import hashlib
+import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import InvalidNonce
 
 
 class exmo (Exchange):
@@ -96,6 +108,18 @@ class exmo (Exchange):
                     },
                 },
             },
+            'exceptions': {
+                '40005': AuthenticationError,  # Authorization error, incorrect signature
+                '40009': InvalidNonce,  #
+                '40015': ExchangeError,  # API function do not exist
+                '40017': AuthenticationError,  # Wrong API Key
+                '50052': InsufficientFunds,
+                '50054': InsufficientFunds,
+                '50304': OrderNotFound,  # "Order was not found '123456789'"(fetching order trades for an order that does not have trades yet)
+                '50173': OrderNotFound,  # "Order with id X was not found."(cancelling non-existent, closed and cancelled order)
+                '50319': InvalidOrder,  # Price by order is less than permissible minimum for self pair
+                '50321': InvalidOrder,  # Price by order is more than permissible maximum for self pair
+            },
         })
 
     def fetch_markets(self):
@@ -112,18 +136,19 @@ class exmo (Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'active': True,
                 'limits': {
                     'amount': {
-                        'min': market['min_quantity'],
-                        'max': market['max_quantity'],
+                        'min': self.safe_float(market, 'min_quantity'),
+                        'max': self.safe_float(market, 'max_quantity'),
                     },
                     'price': {
-                        'min': market['min_price'],
-                        'max': market['max_price'],
+                        'min': self.safe_float(market, 'min_price'),
+                        'max': self.safe_float(market, 'max_price'),
                     },
                     'cost': {
-                        'min': market['min_amount'],
-                        'max': market['max_amount'],
+                        'min': self.safe_float(market, 'min_amount'),
+                        'max': self.safe_float(market, 'max_amount'),
                     },
                 },
                 'precision': {
@@ -202,7 +227,9 @@ class exmo (Exchange):
             'high': float(ticker['high']),
             'low': float(ticker['low']),
             'bid': float(ticker['buy_price']),
+            'bidVolume': None,
             'ask': float(ticker['sell_price']),
+            'askVolume': None,
             'vwap': None,
             'open': None,
             'close': last,
@@ -281,8 +308,6 @@ class exmo (Exchange):
             'price': self.price_to_precision(symbol, price),
             'type': prefix + side,
         }
-        # print(request)
-        # sys.exit()
         response = self.privatePostOrderCreate(self.extend(request, params))
         id = self.safe_string(response, 'order_id')
         timestamp = self.milliseconds()
@@ -317,15 +342,20 @@ class exmo (Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
-        self.fetch_orders(symbol, None, None, params)
-        if id in self.orders:
-            return self.orders[id]
-        raise OrderNotFound(self.id + ' order id ' + str(id) + ' is not in "open" state and not found in cache')
+        try:
+            response = self.privatePostOrderTrades({
+                'order_id': str(id),
+            })
+            return self.parse_order(response)
+        except Exception as e:
+            if isinstance(e, OrderNotFound):
+                if id in self.orders:
+                    return self.orders[id]
+        raise OrderNotFound(self.id + ' fetchOrder order id ' + str(id) + ' not found in cache.')
 
     def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
         order = self.fetch_order(id, symbol, params)
-        # todo: filter by symbol, since and limit
-        return order['trades']
+        return self.filter_by_symbol_since_limit(order['trades'], symbol, since, limit)
 
     def update_cached_orders(self, openOrders, symbol):
         # update local cache with open orders
@@ -366,15 +396,15 @@ class exmo (Exchange):
         self.load_markets()
         response = self.privatePostUserOpenOrders(params)
         marketIds = list(response.keys())
+        orders = []
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             market = None
-            symbol = None
             if marketId in self.markets_by_id:
                 market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-            orders = self.parse_orders(response[marketId], market)
-            self.update_cached_orders(orders, symbol)
+            parsedOrders = self.parse_orders(response[marketId], market)
+            orders = self.array_concat(orders, parsedOrders)
+        self.update_cached_orders(orders)
         return self.filter_by_symbol_since_limit(self.orders, symbol, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -466,7 +496,7 @@ class exmo (Exchange):
             'timestamp': timestamp,
             'status': status,
             'symbol': symbol,
-            'type': None,
+            'type': 'limit',
             'side': side,
             'price': price,
             'cost': cost,
@@ -536,10 +566,35 @@ class exmo (Exchange):
     def nonce(self):
         return self.milliseconds()
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
-        if 'result' in response:
-            if response['result']:
-                return response
-            raise ExchangeError(self.id + ' ' + self.json(response))
-        return response
+    def handle_errors(self, httpCode, reason, url, method, headers, body):
+        if not isinstance(body, basestring):
+            return  # fallback to default error handler
+        if len(body) < 2:
+            return  # fallback to default error handler
+        if (body[0] == '{') or (body[0] == '['):
+            response = json.loads(body)
+            if 'result' in response:
+                #
+                #     {"result":false,"error":"Error 50052: Insufficient funds"}
+                #
+                success = self.safe_value(response, 'result', False)
+                if isinstance(success, basestring):
+                    if (success == 'true') or (success == '1'):
+                        success = True
+                    else:
+                        success = False
+                if not success:
+                    code = None
+                    message = self.safe_string(response, 'error')
+                    errorParts = message.split(':')
+                    numParts = len(errorParts)
+                    if numParts > 1:
+                        errorSubParts = errorParts[0].split(' ')
+                        numSubParts = len(errorSubParts)
+                        code = errorSubParts[1] if (numSubParts > 1) else errorSubParts[0]
+                    feedback = self.id + ' ' + self.json(response)
+                    exceptions = self.exceptions
+                    if code in exceptions:
+                        raise exceptions[code](feedback)
+                    else:
+                        raise ExchangeError(feedback)

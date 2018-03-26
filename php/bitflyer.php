@@ -17,6 +17,7 @@ class bitflyer extends Exchange {
             'has' => array (
                 'CORS' => false,
                 'withdraw' => true,
+                'fetchMyTrades' => true,
                 'fetchOrders' => true,
                 'fetchOrder' => true,
                 'fetchOpenOrders' => 'emulated',
@@ -155,6 +156,7 @@ class bitflyer extends Exchange {
             'product_code' => $this->market_id($symbol),
         ), $params));
         $timestamp = $this->parse8601 ($ticker['timestamp']);
+        $last = floatval ($ticker['ltp']);
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -162,12 +164,14 @@ class bitflyer extends Exchange {
             'high' => null,
             'low' => null,
             'bid' => floatval ($ticker['best_bid']),
+            'bidVolume' => null,
             'ask' => floatval ($ticker['best_ask']),
+            'askVolume' => null,
             'vwap' => null,
             'open' => null,
-            'close' => null,
-            'first' => null,
-            'last' => floatval ($ticker['ltp']),
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
@@ -221,6 +225,7 @@ class bitflyer extends Exchange {
             'size' => $amount,
         );
         $result = $this->privatePostSendchildorder (array_merge ($order, $params));
+        // array ( "status" => - 200, "error_message" => "Insufficient funds", "data" => null )
         return array (
             'info' => $result,
             'id' => $result['child_order_acceptance_id'],
@@ -331,6 +336,20 @@ class bitflyer extends Exchange {
         if (is_array ($ordersById) && array_key_exists ($id, $ordersById))
             return $ordersById[$id];
         throw new OrderNotFound ($this->id . ' No order found with $id ' . $id);
+    }
+
+    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null)
+            throw new ExchangeError ($this->id . ' fetchMyTrades requires a $symbol argument');
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array (
+            'product_code' => $market['id'],
+        );
+        if ($limit)
+            $request['count'] = $limit;
+        $response = $this->privateGetGetexecutions (array_merge ($request, $params));
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {

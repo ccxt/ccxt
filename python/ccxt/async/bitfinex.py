@@ -228,6 +228,19 @@ class bitfinex (Exchange):
                     },
                 },
             },
+            'commonCurrencies': {
+                'BCC': 'CST_BCC',
+                'BCU': 'CST_BCU',
+                'DAT': 'DATA',
+                'DSH': 'DASH',  # Bitfinex names Dash as DSH, instead of DASH
+                'IOT': 'IOTA',
+                'MNA': 'MANA',
+                'QSH': 'QASH',
+                'QTM': 'QTUM',
+                'SNG': 'SNGLS',
+                'SPK': 'SPANK',
+                'YYW': 'YOYOW',
+            },
             'exceptions': {
                 'exact': {
                     'Order could not be cancelled.': OrderNotFound,  # non-existent order
@@ -247,17 +260,6 @@ class bitfinex (Exchange):
                 },
             },
         })
-
-    def common_currency_code(self, currency):
-        currencies = {
-            'DSH': 'DASH',  # Bitfinex names Dash as DSH, instead of DASH
-            'QTM': 'QTUM',
-            'BCC': 'CST_BCC',
-            'BCU': 'CST_BCU',
-            'IOT': 'IOTA',
-            'DAT': 'DATA',
-        }
-        return currencies[currency] if (currency in list(currencies.keys())) else currency
 
     async def fetch_funding_fees(self, params={}):
         await self.load_markets()
@@ -381,16 +383,9 @@ class bitfinex (Exchange):
         result = {}
         for i in range(0, len(tickers)):
             ticker = tickers[i]
-            if 'pair' in ticker:
-                id = ticker['pair']
-                if id in self.markets_by_id:
-                    market = self.markets_by_id[id]
-                    symbol = market['symbol']
-                    result[symbol] = self.parse_ticker(ticker, market)
-                else:
-                    raise ExchangeError(self.id + ' fetchTickers() failed to recognize symbol ' + id + ' ' + self.json(ticker))
-            else:
-                raise ExchangeError(self.id + ' fetchTickers() response not recognized ' + self.json(tickers))
+            parsedTicker = self.parse_ticker(ticker)
+            symbol = parsedTicker['symbol']
+            result[symbol] = parsedTicker
         return result
 
     async def fetch_ticker(self, symbol, params={}):
@@ -404,15 +399,21 @@ class bitfinex (Exchange):
     def parse_ticker(self, ticker, market=None):
         timestamp = float(ticker['timestamp']) * 1000
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
         elif 'pair' in ticker:
             id = ticker['pair']
             if id in self.markets_by_id:
                 market = self.markets_by_id[id]
+            if market is not None:
                 symbol = market['symbol']
             else:
-                raise ExchangeError(self.id + ' unrecognized ticker symbol ' + id + ' ' + self.json(ticker))
+                baseId = id[0:3]
+                quoteId = id[3:6]
+                base = self.common_currency_code(baseId)
+                quote = self.common_currency_code(quoteId)
+                symbol = base + '/' + quote
+        last = float(ticker['last_price'])
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -420,12 +421,14 @@ class bitfinex (Exchange):
             'high': float(ticker['high']),
             'low': float(ticker['low']),
             'bid': float(ticker['bid']),
+            'bidVolume': None,
             'ask': float(ticker['ask']),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['last_price']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': float(ticker['mid']),

@@ -130,6 +130,7 @@ class bitcoincoid extends Exchange {
         $timestamp = floatval ($ticker['server_time']) * 1000;
         $baseVolume = 'vol_' . strtolower ($market['baseId']);
         $quoteVolume = 'vol_' . strtolower ($market['quoteId']);
+        $last = floatval ($ticker['last']);
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -137,12 +138,14 @@ class bitcoincoid extends Exchange {
             'high' => floatval ($ticker['high']),
             'low' => floatval ($ticker['low']),
             'bid' => floatval ($ticker['buy']),
+            'bidVolume' => null,
             'ask' => floatval ($ticker['sell']),
+            'askVolume' => null,
             'vwap' => null,
             'open' => null,
-            'close' => null,
-            'first' => null,
-            'last' => floatval ($ticker['last']),
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
@@ -361,9 +364,13 @@ class bitcoincoid extends Exchange {
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
         // array ( success => 0, error => "invalid order." )
+        // or
+        // [array ( data, ... ), array ( ... ), ... ]
         if ($response === null)
-            if ($body[0] === '{')
+            if ($body[0] === '{' || $body[0] === '[')
                 $response = json_decode ($body, $as_associative_array = true);
+        if (gettype ($response) === 'array' && count (array_filter (array_keys ($response), 'is_string')) == 0)
+            return; // public endpoints may return array ()-arrays
         if (!(is_array ($response) && array_key_exists ('success', $response)))
             return; // no 'success' property on public responses
         if ($response['success'] === 1) {

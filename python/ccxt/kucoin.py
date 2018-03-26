@@ -474,7 +474,13 @@ class kucoin (Exchange):
             'symbol': market['id'],
         }
         response = self.privateGetOrderActiveMap(self.extend(request, params))
-        orders = self.array_concat(response['data']['SELL'], response['data']['BUY'])
+        sell = response['data']['SELL']
+        if sell is None:
+            sell = []
+        buy = response['data']['BUY']
+        if buy is None:
+            buy = []
+        orders = self.array_concat(sell, buy)
         for i in range(0, len(orders)):
             order = self.parse_order(self.extend(orders[i], {
                 'status': 'open',
@@ -517,11 +523,12 @@ class kucoin (Exchange):
             raise ExchangeError(self.id + ' allows limit orders only')
         self.load_markets()
         market = self.market(symbol)
+        quote = market['quote']
         base = market['base']
         request = {
             'symbol': market['id'],
             'type': side.upper(),
-            'price': self.price_to_precision(symbol, price),
+            'price': self.truncate(price, self.currencies[quote]['precision']),
             'amount': self.truncate(amount, self.currencies[base]['precision']),
         }
         price = float(price)
@@ -611,6 +618,7 @@ class kucoin (Exchange):
         change = self.safe_float(ticker, 'changeRate')
         if change is not None:
             change *= 100
+        last = self.safe_float(ticker, 'lastDealPrice')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -618,12 +626,14 @@ class kucoin (Exchange):
             'high': self.safe_float(ticker, 'high'),
             'low': self.safe_float(ticker, 'low'),
             'bid': self.safe_float(ticker, 'buy'),
+            'bidVolume': None,
             'ask': self.safe_float(ticker, 'sell'),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': self.safe_float(ticker, 'lastDealPrice'),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': change,
             'percentage': None,
             'average': None,

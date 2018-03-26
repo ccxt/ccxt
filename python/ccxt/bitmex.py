@@ -202,9 +202,13 @@ class bitmex (Exchange):
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
-        orderbook = self.publicGetOrderBookL2(self.extend({
-            'symbol': self.market_id(symbol),
-        }, params))
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        if limit is not None:
+            request['depth'] = limit
+        orderbook = self.publicGetOrderBookL2(self.extend(request, params))
         timestamp = self.milliseconds()
         result = {
             'bids': [],
@@ -245,7 +249,8 @@ class bitmex (Exchange):
         # why the hassle? urlencode in python is kinda broken for nested dicts.
         # E.g. self.urlencode({"filter": {"open": True}}) will return "filter={'open':+True}"
         # Bitmex doesn't like that. Hence resorting to self hack.
-        request['filter'] = self.json(request['filter'])
+        if 'filter' in request:
+            request['filter'] = self.json(request['filter'])
         response = self.privateGetOrder(request)
         return self.parse_orders(response, market, since, limit)
 
@@ -286,7 +291,9 @@ class bitmex (Exchange):
             'high': float(ticker['high']),
             'low': float(ticker['low']),
             'bid': float(quote['bidPrice']),
+            'bidVolume': None,
             'ask': float(quote['askPrice']),
+            'askVolume': None,
             'vwap': float(ticker['vwap']),
             'open': open,
             'close': close,

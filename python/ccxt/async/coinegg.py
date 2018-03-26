@@ -65,10 +65,8 @@ class coinegg (Exchange):
                     ],
                 },
                 'private': {
-                    'get': [
-                        'balance',
-                    ],
                     'post': [
+                        'balance',
                         'trade_add/{quote}',
                         'trade_cancel/{quote}',
                         'trade_view/{quote}',
@@ -139,6 +137,27 @@ class coinegg (Exchange):
                 '203': OrderNotFound,
                 '402': DDoSProtection,
             },
+            'errorMessages': {
+                '100': 'Required parameters can not be empty',
+                '101': 'Illegal parameter',
+                '102': 'coin does not exist',
+                '103': 'Key does not exist',
+                '104': 'Signature does not match',
+                '105': 'Insufficient permissions',
+                '106': 'Request expired(nonce error)',
+                '200': 'Lack of balance',
+                '201': 'Too small for the number of trading',
+                '202': 'Price must be in 0 - 1000000',
+                '203': 'Order does not exist',
+                '204': 'Pending order amount must be above 0.001 BTC',
+                '205': 'Restrict pending order prices',
+                '206': 'Decimal place error',
+                '401': 'System error',
+                '402': 'Requests are too frequent',
+                '403': 'Non-open API',
+                '404': 'IP restriction does not request the resource',
+                '405': 'Currency transactions are temporarily closed',
+            },
         })
 
     async def fetch_markets(self):
@@ -200,6 +219,7 @@ class coinegg (Exchange):
     def parse_ticker(self, ticker, market=None):
         symbol = market['symbol']
         timestamp = self.milliseconds()
+        last = float(ticker['last'])
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -207,12 +227,14 @@ class coinegg (Exchange):
             'high': float(ticker['high']),
             'low': float(ticker['low']),
             'bid': float(ticker['buy']),
+            'bidVolume': None,
             'ask': float(ticker['sell']),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': self.safe_float(ticker, 'change'),
             'percentage': None,
             'average': None,
@@ -301,7 +323,7 @@ class coinegg (Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        balances = await self.privateGetBalance(params)
+        balances = await self.privatePostBalance(params)
         result = {'info': balances}
         balances = self.omit(balances['data'], 'uid')
         rows = list(balances.keys())
@@ -367,9 +389,7 @@ class coinegg (Exchange):
             'amount': amount,
             'price': price,
         }, params))
-        if not response['status']:
-            raise InvalidOrder(self.json(response))
-        id = response['id']
+        id = str(response['id'])
         order = self.parse_order({
             'id': id,
             'datetime': self.ymdhms(self.milliseconds()),
@@ -390,8 +410,6 @@ class coinegg (Exchange):
             'coin': market['baseId'],
             'quote': market['quoteId'],
         }, params))
-        if not response['status']:
-            raise ExchangeError(self.json(response))
         return response
 
     async def fetch_order(self, id, symbol=None, params={}):
@@ -455,36 +473,28 @@ class coinegg (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body):
-        errorMessages = {
-            '100': 'Required parameters can not be empty',
-            '101': 'Illegal parameter',
-            '102': 'coin does not exist',
-            '103': 'Key does not exist',
-            '104': 'Signature does not match',
-            '105': 'Insufficient permissions',
-            '106': 'Request expired(nonce error)',
-            '200': 'Lack of balance',
-            '201': 'Too small for the number of trading',
-            '202': 'Price must be in 0 - 1000000',
-            '203': 'Order does not exist',
-            '204': 'Pending order amount must be above 0.001 BTC',
-            '205': 'Restrict pending order prices',
-            '206': 'Decimal place error',
-            '401': 'System error',
-            '402': 'Requests are too frequent',
-            '403': 'Non-open API',
-            '404': 'IP restriction does not request the resource',
-            '405': 'Currency transactions are temporarily closed',
-        }
         # checks against error codes
-        if isinstance(body, basestring):
-            if len(body) > 0:
-                if body[0] == '{':
-                    response = json.loads(body)
-                    error = self.safe_string(response, 'code')
-                    message = self.safe_string(errorMessages, code, 'Error')
-                    if error is not None:
-                        if error in self.exceptions:
-                            raise self.exceptions[error](self.id + ' ' + message)
-                        else:
-                            raise ExchangeError(self.id + message)
+        if not isinstance(body, basestring):
+            return
+        if len(body) == 0:
+            return
+        if body[0] != '{':
+            return
+        response = json.loads(body)
+        # private endpoints return the following structure:
+        # {"result":true,"data":{...}} - success
+        # {"result":false,"code":"103"} - failure
+        result = self.safe_value(response, 'result')
+        if result is None:
+            # public endpoint
+            return
+        if result is True:
+            # success
+            return
+        errorCode = self.safe_string(response, 'code')
+        errorMessages = self.errorMessages
+        message = self.safe_string(errorMessages, errorCode, 'Unknown Error')
+        if errorCode in self.exceptions:
+            raise self.exceptions[errorCode](self.id + ' ' + message)
+        else:
+            raise ExchangeError(self.id + ' ' + message)

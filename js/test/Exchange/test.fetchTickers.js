@@ -7,6 +7,7 @@ const log       = require ('ololog')
     , chai      = require ('chai')
     , expect    = chai.expect
     , assert    = chai.assert
+    , testTicker = require ('./test.ticker.js')
 
 /*  ------------------------------------------------------------------------ */
 
@@ -25,19 +26,23 @@ module.exports = async (exchange, symbol) => {
 
         // log ('fetching all tickers at once...')
 
+        const method = 'fetchTickers'
         let tickers = undefined
 
         try {
 
-            tickers = await exchange.fetchTickers ()
+            tickers = await exchange[method] ()
             log ('fetched all', Object.keys (tickers).length.toString ().green, 'tickers')
 
         } catch (e) {
 
             log ('failed to fetch all tickers, fetching multiple tickers at once...')
-            tickers = await exchange.fetchTickers ([ symbol ])
+            tickers = await exchange[method] ([ symbol ])
             log ('fetched', Object.keys (tickers).length.toString ().green, 'tickers')
         }
+
+        Object.values (tickers).forEach (ticker => testTicker (exchange, ticker, method, symbol))
+        return tickers
 
     } else {
 

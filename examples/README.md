@@ -53,6 +53,18 @@ php -f path/to/example.php # substitute for actual filename here
 
 [Let’s write a cryptocurrency bot](https://medium.com/@joeldg/an-advanced-tutorial-a-new-crypto-currency-trading-bot-boilerplate-framework-e777733607ae) – A multi-part advanced tutorial on a new cryptocurrency trading framework also integrating ccxt.
 
+[Chasing fake volume: a crypto-plague](https://medium.com/@sylvainartplayribes/chasing-fake-volume-a-crypto-plague-ea1a3c1e0b5e) – An article @ Medium on trading volumes analysis.
+
+[CCXTが便利な理由！CCXTライブラリをインストールしよう](https://ryota-trade.com/?p=476) – An article in Japanese on getting CCXT up and runining.
+
+[Bitflyerや各取引所の個別APIをCCXTライブラリ経由で直接利用する方法](https://ryota-trade.com/?p=629) – How to use Bitflyer and individual API of each exchange directly via the CCXT library.
+
+[CCXTライブラリでBitflyerに注文を出す方法をマスターする](https://ryota-trade.com/?p=662) – Master placing orders on Bitflyer with the CCXT library.
+
+[CCXTでBitflyerに出した注文を管理・キャンセルする方法](https://ryota-trade.com/?p=759) – How to manage and cancel orders placed on Bitflyer with CCXT
+
+[Bitflyerの未約定の全注文をCCXTで一括でキャンセルする方法](https://ryota-trade.com/?p=833) – How to cancel all uncommitted orders of Bitflyer in bulk with CCXT
+
 [Python3とCCXTライブラリを用いたBitMEX自動売買bot作成Tips](https://note.mu/akagami/n/n0af0a96c261f) – An article in Japanese on getting started with CCXT and a few bot tips.
 
 [ccxtを使って裁定取引botを作ってみたらなぜか虚しくなった件](https://qiita.com/reon777/items/21ed87f19cdd50f08bd9) – An article in Japanese explaining the basics of programming an arbitrage bot with CCXT.

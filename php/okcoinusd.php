@@ -254,6 +254,7 @@ class okcoinusd extends Exchange {
         }
         if ($market)
             $symbol = $market['symbol'];
+        $last = floatval ($ticker['last']);
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -261,12 +262,14 @@ class okcoinusd extends Exchange {
             'high' => floatval ($ticker['high']),
             'low' => floatval ($ticker['low']),
             'bid' => floatval ($ticker['buy']),
+            'bidVolume' => null,
             'ask' => floatval ($ticker['sell']),
+            'askVolume' => null,
             'vwap' => null,
             'open' => null,
-            'close' => null,
-            'first' => null,
-            'last' => floatval ($ticker['last']),
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
@@ -289,8 +292,14 @@ class okcoinusd extends Exchange {
         }
         $method .= 'Ticker';
         $response = $this->$method (array_merge ($request, $params));
-        $timestamp = intval ($response['date']) * 1000;
-        $ticker = array_merge ($response['ticker'], array ( 'timestamp' => $timestamp ));
+        $ticker = $this->safe_value($response, 'ticker');
+        if ($ticker === null)
+            throw new ExchangeError ($this->id . ' fetchTicker returned an empty $response => ' . $this->json ($response));
+        $timestamp = $this->safe_integer($response, 'date');
+        if ($timestamp !== null) {
+            $timestamp *= 1000;
+            $ticker = array_merge ($ticker, array ( 'timestamp' => $timestamp ));
+        }
         return $this->parse_ticker($ticker, $market);
     }
 

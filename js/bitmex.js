@@ -204,9 +204,13 @@ module.exports = class bitmex extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let orderbook = await this.publicGetOrderBookL2 (this.extend ({
-            'symbol': this.marketId (symbol),
-        }, params));
+        let market = this.market (symbol);
+        let request = {
+            'symbol': market['id'],
+        };
+        if (typeof limit !== 'undefined')
+            request['depth'] = limit;
+        let orderbook = await this.publicGetOrderBookL2 (this.extend (request, params));
         let timestamp = this.milliseconds ();
         let result = {
             'bids': [],
@@ -251,7 +255,8 @@ module.exports = class bitmex extends Exchange {
         // why the hassle? urlencode in python is kinda broken for nested dicts.
         // E.g. self.urlencode({"filter": {"open": True}}) will return "filter={'open':+True}"
         // Bitmex doesn't like that. Hence resorting to this hack.
-        request['filter'] = this.json (request['filter']);
+        if ('filter' in request)
+            request['filter'] = this.json (request['filter']);
         let response = await this.privateGetOrder (request);
         return this.parseOrders (response, market, since, limit);
     }
@@ -295,7 +300,9 @@ module.exports = class bitmex extends Exchange {
             'high': parseFloat (ticker['high']),
             'low': parseFloat (ticker['low']),
             'bid': parseFloat (quote['bidPrice']),
+            'bidVolume': undefined,
             'ask': parseFloat (quote['askPrice']),
+            'askVolume': undefined,
             'vwap': parseFloat (ticker['vwap']),
             'open': open,
             'close': close,

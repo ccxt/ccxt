@@ -24,6 +24,7 @@ class bibox extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'createMarketOrder' => false, // or they will return https://github.com/ccxt/ccxt/issues/2338
                 'withdraw' => true,
             ),
             'timeframes' => array (
@@ -131,6 +132,7 @@ class bibox extends Exchange {
         } else {
             $symbol = $ticker['coin_symbol'] . '/' . $ticker['currency_symbol'];
         }
+        $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -138,12 +140,14 @@ class bibox extends Exchange {
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => $this->safe_float($ticker, 'buy'),
+            'bidVolume' => null,
             'ask' => $this->safe_float($ticker, 'sell'),
+            'askVolume' => null,
             'vwap' => null,
             'open' => null,
-            'close' => null,
-            'first' => null,
-            'last' => $this->safe_float($ticker, 'last'),
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
             'change' => null,
             'percentage' => $this->safe_string($ticker, 'percent'),
             'average' => null,
@@ -563,6 +567,11 @@ class bibox extends Exchange {
                     // operation failed! Orders have been completed or revoked
                     // e.g. trying to cancel a filled order
                     throw new OrderNotFound ($message);
+                else if ($code === '2067')
+                    // https://github.com/ccxt/ccxt/issues/2338
+                    //  array ( "error" => { "$code" => "2067", "msg" => "暂不支持市价单"), "cmd" => "orderpending/trade" }
+                    // "Does not support market orders"
+                    throw new InvalidOrder ($message);
                 else if ($code === '2068')
                     // \u4e0b\u5355\u6570\u91cf\u4e0d\u80fd\u4f4e\u4e8e
                     // The number of orders can not be less than

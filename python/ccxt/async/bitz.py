@@ -128,6 +128,9 @@ class bitz (Exchange):
                 'amount': 8,
                 'price': 8,
             },
+            'options': {
+                'lastNonceTimestamp': 0,
+            },
         })
 
     async def fetch_markets(self):
@@ -180,6 +183,7 @@ class bitz (Exchange):
     def parse_ticker(self, ticker, market=None):
         timestamp = ticker['date'] * 1000
         symbol = market['symbol']
+        last = float(ticker['last'])
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -187,12 +191,14 @@ class bitz (Exchange):
             'high': float(ticker['high']),
             'low': float(ticker['low']),
             'bid': float(ticker['buy']),
+            'bidVolume': None,
             'ask': float(ticker['sell']),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
@@ -340,8 +346,12 @@ class bitz (Exchange):
         return self.parse_orders(response['data'], market)
 
     def nonce(self):
-        milliseconds = self.milliseconds()
-        return(milliseconds % 1000000)
+        currentTimestamp = self.seconds()
+        if currentTimestamp > self.options['lastNonceTimestamp']:
+            self.options['lastNonceTimestamp'] = currentTimestamp
+            self.options['lastNonce'] = 100000
+        self.options['lastNonce'] += 1
+        return self.options['lastNonce']
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + path

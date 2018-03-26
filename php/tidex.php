@@ -54,28 +54,11 @@ class tidex extends liqui {
                     'maker' => 0.1 / 100,
                 ),
             ),
+            'commonCurrencies' => array (
+                'MGO' => 'WMGO',
+                'EMGO' => 'MGO',
+            ),
         ));
-    }
-
-    public function common_currency_code ($currency) {
-        if (!$this->substituteCommonCurrencyCodes)
-            return $currency;
-        if ($currency === 'XBT')
-            return 'BTC';
-        if ($currency === 'BCC')
-            return 'BCH';
-        if ($currency === 'DRK')
-            return 'DASH';
-        // they misspell DASH as DSH? (may not be true)
-        if ($currency === 'DSH')
-            return 'DASH';
-        // their MGO stands for MGO on WAVES (aka WMGO), see issue #1487
-        if ($currency === 'MGO')
-            return 'WMGO';
-        // the MGO on ETH is called EMGO on Tidex
-        if ($currency === 'EMGO')
-            return 'MGO';
-        return $currency;
     }
 
     public function fetch_currencies ($params = array ()) {
@@ -85,7 +68,8 @@ class tidex extends liqui {
             $currency = $currencies[$i];
             $id = $currency['symbol'];
             $precision = $currency['amountPoint'];
-            $code = $this->common_currency_code($id);
+            $code = strtoupper ($id);
+            $code = $this->common_currency_code($code);
             $active = $currency['visible'] === true;
             $status = 'ok';
             if (!$active) {

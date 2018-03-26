@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, OrderNotFound } = require ('./base/errors');
+const { ExchangeError, OrderNotFound, AuthenticationError, InsufficientFunds, InvalidOrder, InvalidNonce } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -93,6 +93,18 @@ module.exports = class exmo extends Exchange {
                     },
                 },
             },
+            'exceptions': {
+                '40005': AuthenticationError, // Authorization error, incorrect signature
+                '40009': InvalidNonce, //
+                '40015': ExchangeError, // API function do not exist
+                '40017': AuthenticationError, // Wrong API Key
+                '50052': InsufficientFunds,
+                '50054': InsufficientFunds,
+                '50304': OrderNotFound, // "Order was not found '123456789'" (fetching order trades for an order that does not have trades yet)
+                '50173': OrderNotFound, // "Order with id X was not found." (cancelling non-existent, closed and cancelled order)
+                '50319': InvalidOrder, // Price by order is less than permissible minimum for this pair
+                '50321': InvalidOrder, // Price by order is more than permissible maximum for this pair
+            },
         });
     }
 
@@ -110,18 +122,19 @@ module.exports = class exmo extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'active': true,
                 'limits': {
                     'amount': {
-                        'min': market['min_quantity'],
-                        'max': market['max_quantity'],
+                        'min': this.safeFloat (market, 'min_quantity'),
+                        'max': this.safeFloat (market, 'max_quantity'),
                     },
                     'price': {
-                        'min': market['min_price'],
-                        'max': market['max_price'],
+                        'min': this.safeFloat (market, 'min_price'),
+                        'max': this.safeFloat (market, 'max_price'),
                     },
                     'cost': {
-                        'min': market['min_amount'],
-                        'max': market['max_amount'],
+                        'min': this.safeFloat (market, 'min_amount'),
+                        'max': this.safeFloat (market, 'max_amount'),
                     },
                 },
                 'precision': {
@@ -209,7 +222,9 @@ module.exports = class exmo extends Exchange {
             'high': parseFloat (ticker['high']),
             'low': parseFloat (ticker['low']),
             'bid': parseFloat (ticker['buy_price']),
+            'bidVolume': undefined,
             'ask': parseFloat (ticker['sell_price']),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
             'close': last,
@@ -296,8 +311,6 @@ module.exports = class exmo extends Exchange {
             'price': this.priceToPrecision (symbol, price),
             'type': prefix + side,
         };
-        // console.log (request);
-        // process.exit ()
         let response = await this.privatePostOrderCreate (this.extend (request, params));
         let id = this.safeString (response, 'order_id');
         let timestamp = this.milliseconds ();
@@ -334,16 +347,23 @@ module.exports = class exmo extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        await this.fetchOrders (symbol, undefined, undefined, params);
-        if (id in this.orders)
-            return this.orders[id];
-        throw new OrderNotFound (this.id + ' order id ' + id.toString () + ' is not in "open" state and not found in cache');
+        try {
+            let response = await this.privatePostOrderTrades ({
+                'order_id': id.toString (),
+            });
+            return this.parseOrder (response);
+        } catch (e) {
+            if (e instanceof OrderNotFound) {
+                if (id in this.orders)
+                    return this.orders[id];
+            }
+        }
+        throw new OrderNotFound (this.id + ' fetchOrder order id ' + id.toString () + ' not found in cache.');
     }
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const order = await this.fetchOrder (id, symbol, params);
-        // todo: filter by symbol, since and limit
-        return order['trades'];
+        return this.filterBySymbolSinceLimit (order['trades'], symbol, since, limit);
     }
 
     updateCachedOrders (openOrders, symbol) {
@@ -391,17 +411,16 @@ module.exports = class exmo extends Exchange {
         await this.loadMarkets ();
         let response = await this.privatePostUserOpenOrders (params);
         let marketIds = Object.keys (response);
+        let orders = [];
         for (let i = 0; i < marketIds.length; i++) {
             let marketId = marketIds[i];
             let market = undefined;
-            let symbol = undefined;
-            if (marketId in this.markets_by_id) {
+            if (marketId in this.markets_by_id)
                 market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            }
-            let orders = this.parseOrders (response[marketId], market);
-            this.updateCachedOrders (orders, symbol);
+            let parsedOrders = this.parseOrders (response[marketId], market);
+            orders = this.arrayConcat (orders, parsedOrders);
         }
+        this.updateCachedOrders (orders);
         return this.filterBySymbolSinceLimit (this.orders, symbol, since, limit);
     }
 
@@ -504,7 +523,7 @@ module.exports = class exmo extends Exchange {
             'timestamp': timestamp,
             'status': status,
             'symbol': symbol,
-            'type': undefined,
+            'type': 'limit',
             'side': side,
             'price': price,
             'cost': cost,
@@ -582,13 +601,43 @@ module.exports = class exmo extends Exchange {
         return this.milliseconds ();
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('result' in response) {
-            if (response['result'])
-                return response;
-            throw new ExchangeError (this.id + ' ' + this.json (response));
+    handleErrors (httpCode, reason, url, method, headers, body) {
+        if (typeof body !== 'string')
+            return; // fallback to default error handler
+        if (body.length < 2)
+            return; // fallback to default error handler
+        if ((body[0] === '{') || (body[0] === '[')) {
+            let response = JSON.parse (body);
+            if ('result' in response) {
+                //
+                //     {"result":false,"error":"Error 50052: Insufficient funds"}
+                //
+                let success = this.safeValue (response, 'result', false);
+                if (typeof success === 'string') {
+                    if ((success === 'true') || (success === '1'))
+                        success = true;
+                    else
+                        success = false;
+                }
+                if (!success) {
+                    let code = undefined;
+                    const message = this.safeString (response, 'error');
+                    const errorParts = message.split (':');
+                    let numParts = errorParts.length;
+                    if (numParts > 1) {
+                        const errorSubParts = errorParts[0].split (' ');
+                        let numSubParts = errorSubParts.length;
+                        code = (numSubParts > 1) ? errorSubParts[1] : errorSubParts[0];
+                    }
+                    const feedback = this.id + ' ' + this.json (response);
+                    const exceptions = this.exceptions;
+                    if (code in exceptions) {
+                        throw new exceptions[code] (feedback);
+                    } else {
+                        throw new ExchangeError (feedback);
+                    }
+                }
+            }
         }
-        return response;
     }
 };

@@ -17,18 +17,20 @@ module.exports = class bitfinex2 extends bitfinex {
             // new metainfo interface
             'has': {
                 'CORS': true,
-                'createOrder': false,
-                'createMarketOrder': false,
                 'createLimitOrder': false,
+                'createMarketOrder': false,
+                'createOrder': false,
+                'deposit': false,
                 'editOrder': false,
+                'fetchClosedOrders': false,
+                'fetchFundingFees': false,
                 'fetchMyTrades': false,
                 'fetchOHLCV': true,
-                'fetchTickers': true,
-                'fetchOrder': true,
                 'fetchOpenOrders': false,
-                'fetchClosedOrders': false,
+                'fetchOrder': true,
+                'fetchTickers': true,
+                'fetchTradingFees': false,
                 'withdraw': true,
-                'deposit': false,
             },
             'timeframes': {
                 '1m': '1m',
@@ -154,16 +156,6 @@ module.exports = class bitfinex2 extends bitfinex {
         });
     }
 
-    commonCurrencyCode (currency) {
-        const currencies = {
-            'DSH': 'DASH', // Bitfinex names Dash as DSH, instead of DASH
-            'QTM': 'QTUM',
-            'IOT': 'IOTA',
-            'DAT': 'DATA',
-        };
-        return (currency in currencies) ? currencies[currency] : currency;
-    }
-
     isFiat (code) {
         let fiat = {
             'USD': 'USD',
@@ -286,6 +278,7 @@ module.exports = class bitfinex2 extends bitfinex {
         if (market)
             symbol = market['symbol'];
         let length = ticker.length;
+        let last = ticker[length - 4];
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -293,12 +286,14 @@ module.exports = class bitfinex2 extends bitfinex {
             'high': ticker[length - 2],
             'low': ticker[length - 1],
             'bid': ticker[length - 10],
+            'bidVolume': undefined,
             'ask': ticker[length - 8],
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': ticker[length - 4],
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': ticker[length - 6],
             'percentage': ticker[length - 5],
             'average': undefined,

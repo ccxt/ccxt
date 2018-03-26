@@ -254,6 +254,7 @@ class okcoinusd (Exchange):
                     market = self.markets_by_id[marketId]
         if market:
             symbol = market['symbol']
+        last = float(ticker['last'])
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -261,12 +262,14 @@ class okcoinusd (Exchange):
             'high': float(ticker['high']),
             'low': float(ticker['low']),
             'bid': float(ticker['buy']),
+            'bidVolume': None,
             'ask': float(ticker['sell']),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
@@ -287,8 +290,13 @@ class okcoinusd (Exchange):
             request['contract_type'] = 'this_week'  # next_week, quarter
         method += 'Ticker'
         response = await getattr(self, method)(self.extend(request, params))
-        timestamp = int(response['date']) * 1000
-        ticker = self.extend(response['ticker'], {'timestamp': timestamp})
+        ticker = self.safe_value(response, 'ticker')
+        if ticker is None:
+            raise ExchangeError(self.id + ' fetchTicker returned an empty response: ' + self.json(response))
+        timestamp = self.safe_integer(response, 'date')
+        if timestamp is not None:
+            timestamp *= 1000
+            ticker = self.extend(ticker, {'timestamp': timestamp})
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market=None):
