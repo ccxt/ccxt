@@ -558,17 +558,21 @@ module.exports = class cobinhood extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        if (['tx_pending_two_factor_auth', 'tx_pending_email_auth', 'tx_pending_approval', 'tx_approved', 'tx_processing', 'tx_pending', 'tx_sent'].indexOf (status) !== -1) {
-            return 'pending';
-        } else if (status === 'tx_cancelled') {
-            return 'canceled';
-        } else if (['tx_timeout', 'tx_invalid', 'tx_cancelled', 'tx_rejected'].indexOf (status) !== -1) {
-            return 'error';
-        } else if (status === 'tx_confirmed') {
-            return 'ok';
-        } else {
-            return 'error';
-        }
+        let statuses = {
+            'tx_pending_two_factor_auth': 'pending',
+            'tx_pending_email_auth': 'pending',
+            'tx_pending_approval': 'pending',
+            'tx_approved': 'pending',
+            'tx_processing': 'pending',
+            'tx_pending': 'pending',
+            'tx_sent': 'pending',
+            'tx_cancelled': 'canceled',
+            'tx_timeout': 'error',
+            'tx_invalid': 'error',
+            'tx_rejected': 'error',
+            'tx_confirmed': 'ok',
+        };
+        return (status in statuses) ? statuses[status] : status.toLowerCase ();
     }
 
     parseTransaction (transaction, side = undefined) {
