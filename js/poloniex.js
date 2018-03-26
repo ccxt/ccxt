@@ -257,7 +257,7 @@ module.exports = class poloniex extends Exchange {
             request['depth'] = limit; // 100
         let response = await this.publicGetReturnOrderBook (this.extend (request, params));
         let orderbook = this.parseOrderBook (response);
-        orderbook['nonce'] = response['sec'];
+        orderbook['nonce'] = this.safeInteger (response, 'sec');
         return orderbook;
     }
 
