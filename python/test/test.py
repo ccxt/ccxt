@@ -314,9 +314,6 @@ def try_all_proxies(exchange, proxies=['']):
     for num_retries in range(0, max_retries):
         try:
             exchange.proxy = proxies[current_proxy]
-            # add random origin to proxied requests
-            if len(exchange.proxy) > 0:
-                exchange.origin = exchange.uuid()
             dump(green(exchange.id), 'using proxy', '`' + exchange.proxy + '`')
             current_proxy = (current_proxy + 1) % len(proxies)
             load_exchange(exchange)
