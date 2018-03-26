@@ -22,7 +22,7 @@ module.exports = class _1broker extends Exchange {
                 'fetchOHLCV': true,
             },
             'timeframes': {
-                '1m': '60',
+                '1m': '60', // not working for some reason, returns {"server_time":"2018-03-26T03:52:27.912Z","error":true,"warning":false,"response":null,"error_code":-1,"error_message":"Error while trying to fetch historical market data. An invalid resolution was probably used."}
                 '15m': '900',
                 '1h': '3600',
                 '1d': '86400',
@@ -64,10 +64,6 @@ module.exports = class _1broker extends Exchange {
                         'user/transaction_log',
                     ],
                 },
-            },
-            'orderbookKeys': {
-                'response': ['response', 0],
-                'timestamp': 'updated',
             },
         });
     }
@@ -141,24 +137,20 @@ module.exports = class _1broker extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (market, limit = undefined, params = {}) {
-        let orderbook = await this.privateGetMarketQuotes (this.extend ({
-            'symbols': market['id'],
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privateGetMarketQuotes (this.extend ({
+            'symbols': this.marketId (symbol),
         }, params));
-        return orderbook;
-    }
-
-    parseOrderBookTimestamp (orderbook) {
-        let keys = this.orderbookKeys;
-        return this.parse8601 (orderbook[keys['timestamp']]);
-    }
-
-    parseOrderBookOrders (orderbook) {
+        let orderbook = response['response'][0];
+        let timestamp = this.parse8601 (orderbook['updated']);
         let bidPrice = parseFloat (orderbook['bid']);
         let askPrice = parseFloat (orderbook['ask']);
         let bid = [ bidPrice, undefined ];
         let ask = [ askPrice, undefined ];
         return {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'bids': [ bid ],
             'asks': [ ask ],
         };

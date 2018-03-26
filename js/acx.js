@@ -139,19 +139,17 @@ module.exports = class acx extends Exchange {
         return this.parseBalance (result);
     }
 
-    async performOrderBookRequest (market, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
         let request = {
             'market': market['id'],
         };
         if (typeof limit === 'undefined')
             request['limit'] = limit; // default = 300
         let orderbook = await this.publicGetDepth (this.extend (request, params));
-        return orderbook;
-    }
-
-    parseOrderBookTimestamp (orderbook) {
-        let keys = this.orderbookKeys;
-        return orderbook[keys['timestamp']] * 1000;
+        let timestamp = orderbook['timestamp'] * 1000;
+        return this.parseOrderBook (orderbook, timestamp);
     }
 
     parseTicker (ticker, market = undefined) {
