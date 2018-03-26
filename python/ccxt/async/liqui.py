@@ -210,10 +210,7 @@ class liqui (Exchange):
         if not market_id_in_reponse:
             raise ExchangeError(self.id + ' ' + market['symbol'] + ' order book is empty or not available')
         orderbook = response[market['id']]
-        result = self.parse_order_book(orderbook)
-        result['bids'] = self.sort_by(result['bids'], 0, True)
-        result['asks'] = self.sort_by(result['asks'], 0)
-        return result
+        return self.parse_order_book(orderbook)
 
     async def fetch_order_books(self, symbols=None, params={}):
         await self.load_markets()

@@ -412,8 +412,9 @@ class binance (Exchange):
         }
         if limit is not None:
             request['limit'] = limit  # default = maximum = 100
-        orderbook = await self.publicGetDepth(self.extend(request, params))
-        return self.parse_order_book(orderbook)
+        response = await self.publicGetDepth(self.extend(request, params))
+        orderbook = self.parse_order_book(response)
+        orderbook['nonce'] = self.safe_integer(response, 'lastUpdateId')
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.safe_integer(ticker, 'closeTime')

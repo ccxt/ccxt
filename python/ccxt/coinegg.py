@@ -268,18 +268,19 @@ class coinegg (Exchange):
                 baseId = baseIds[i]
                 ticker = tickers[baseId]
                 id = baseId + quoteId
-                market = self.marketsById[id]
-                symbol = market['symbol']
-                result[symbol] = self.parse_ticker({
-                    'high': ticker[4],
-                    'low': ticker[5],
-                    'buy': ticker[2],
-                    'sell': ticker[3],
-                    'last': ticker[1],
-                    'change': ticker[8],
-                    'vol': ticker[6],
-                    'quoteVol': ticker[7],
-                }, market)
+                if id in self.markets_by_id:
+                    market = self.marketsById[id]
+                    symbol = market['symbol']
+                    result[symbol] = self.parse_ticker({
+                        'high': ticker[4],
+                        'low': ticker[5],
+                        'buy': ticker[2],
+                        'sell': ticker[3],
+                        'last': ticker[1],
+                        'change': ticker[8],
+                        'vol': ticker[6],
+                        'quoteVol': ticker[7],
+                    }, market)
         return result
 
     def fetch_order_book(self, symbol, limit=None, params={}):

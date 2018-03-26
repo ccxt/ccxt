@@ -209,12 +209,12 @@ class bitmex (Exchange):
         if limit is not None:
             request['depth'] = limit
         orderbook = await self.publicGetOrderBookL2(self.extend(request, params))
-        timestamp = self.milliseconds()
         result = {
             'bids': [],
             'asks': [],
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
+            'nonce': None,
         }
         for o in range(0, len(orderbook)):
             order = orderbook[o]

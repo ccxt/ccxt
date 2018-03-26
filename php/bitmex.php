@@ -210,12 +210,12 @@ class bitmex extends Exchange {
         if ($limit !== null)
             $request['depth'] = $limit;
         $orderbook = $this->publicGetOrderBookL2 (array_merge ($request, $params));
-        $timestamp = $this->milliseconds ();
         $result = array (
             'bids' => array (),
             'asks' => array (),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
+            'nonce' => null,
         );
         for ($o = 0; $o < count ($orderbook); $o++) {
             $order = $orderbook[$o];

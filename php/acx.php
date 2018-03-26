@@ -144,14 +144,11 @@ class acx extends Exchange {
         $request = array (
             'market' => $market['id'],
         );
-        if ($limit === null)
+        if ($limit !== null)
             $request['limit'] = $limit; // default = 300
         $orderbook = $this->publicGetDepth (array_merge ($request, $params));
         $timestamp = $orderbook['timestamp'] * 1000;
-        $result = $this->parse_order_book($orderbook, $timestamp);
-        $result['bids'] = $this->sort_by($result['bids'], 0, true);
-        $result['asks'] = $this->sort_by($result['asks'], 0);
-        return $result;
+        return $this->parse_order_book($orderbook, $timestamp);
     }
 
     public function parse_ticker ($ticker, $market = null) {

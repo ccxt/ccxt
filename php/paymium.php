@@ -96,9 +96,7 @@ class paymium extends Exchange {
         $orderbook = $this->publicGetDataIdDepth (array_merge (array (
             'id' => $this->market_id($symbol),
         ), $params));
-        $result = $this->parse_order_book($orderbook, null, 'bids', 'asks', 'price', 'amount');
-        $result['bids'] = $this->sort_by($result['bids'], 0, true);
-        return $result;
+        return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'price', 'amount');
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {

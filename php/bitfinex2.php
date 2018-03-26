@@ -257,6 +257,7 @@ class bitfinex2 extends bitfinex {
             'asks' => array (),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
+            'nonce' => null,
         );
         for ($i = 0; $i < count ($orderbook); $i++) {
             $order = $orderbook[$i];

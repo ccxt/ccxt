@@ -143,14 +143,11 @@ class acx (Exchange):
         request = {
             'market': market['id'],
         }
-        if limit is None:
+        if limit is not None:
             request['limit'] = limit  # default = 300
         orderbook = await self.publicGetDepth(self.extend(request, params))
         timestamp = orderbook['timestamp'] * 1000
-        result = self.parse_order_book(orderbook, timestamp)
-        result['bids'] = self.sort_by(result['bids'], 0, True)
-        result['asks'] = self.sort_by(result['asks'], 0)
-        return result
+        return self.parse_order_book(orderbook, timestamp)
 
     def parse_ticker(self, ticker, market=None):
         timestamp = ticker['at'] * 1000

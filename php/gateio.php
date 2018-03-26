@@ -155,9 +155,7 @@ class gateio extends Exchange {
         $orderbook = $this->publicGetOrderBookId (array_merge (array (
             'id' => $this->market_id($symbol),
         ), $params));
-        $result = $this->parse_order_book($orderbook);
-        $result['asks'] = $this->sort_by($result['asks'], 0);
-        return $result;
+        return $this->parse_order_book($orderbook);
     }
 
     public function parse_ticker ($ticker, $market = null) {

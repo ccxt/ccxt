@@ -174,11 +174,7 @@ class exmo extends Exchange {
             $request['limit'] = $limit;
         $response = $this->publicGetOrderBook ($request);
         $result = $response[$market['id']];
-        $orderbook = $this->parse_order_book($result, null, 'bid', 'ask');
-        return array_merge ($orderbook, array (
-            'bids' => $this->sort_by($orderbook['bids'], 0, true),
-            'asks' => $this->sort_by($orderbook['asks'], 0),
-        ));
+        return $this->parse_order_book($result, null, 'bid', 'ask');
     }
 
     public function fetch_order_books ($symbols = null, $params = array ()) {

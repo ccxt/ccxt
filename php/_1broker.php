@@ -152,6 +152,7 @@ class _1broker extends Exchange {
             'datetime' => $this->iso8601 ($timestamp),
             'bids' => array ( $bid ),
             'asks' => array ( $ask ),
+            'nonce' => null,
         );
     }
 

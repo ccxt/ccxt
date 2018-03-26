@@ -143,9 +143,7 @@ class btcchina (Exchange):
         request = self.create_market_request(market)
         orderbook = getattr(self, method)(self.extend(request, params))
         timestamp = orderbook['date'] * 1000
-        result = self.parse_order_book(orderbook, timestamp)
-        result['asks'] = self.sort_by(result['asks'], 0)
-        return result
+        return self.parse_order_book(orderbook, timestamp)
 
     def parse_ticker(self, ticker, market):
         timestamp = ticker['date'] * 1000

@@ -106,9 +106,7 @@ class vaultoro extends Exchange {
             'bids' => $response['data'][0]['b'],
             'asks' => $response['data'][1]['s'],
         );
-        $result = $this->parse_order_book($orderbook, null, 'bids', 'asks', 'Gold_Price', 'Gold_Amount');
-        $result['bids'] = $this->sort_by($result['bids'], 0, true);
-        return $result;
+        return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'Gold_Price', 'Gold_Amount');
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {

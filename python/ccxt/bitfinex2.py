@@ -255,6 +255,7 @@ class bitfinex2 (bitfinex):
             'asks': [],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'nonce': None,
         }
         for i in range(0, len(orderbook)):
             order = orderbook[i]

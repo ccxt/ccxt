@@ -257,8 +257,10 @@ class poloniex (Exchange):
         }
         if limit is not None:
             request['depth'] = limit  # 100
-        orderbook = await self.publicGetReturnOrderBook(self.extend(request, params))
-        return self.parse_order_book(orderbook)
+        response = await self.publicGetReturnOrderBook(self.extend(request, params))
+        orderbook = self.parse_order_book(response)
+        orderbook['nonce'] = self.safe_integer(response, 'sec')
+        return orderbook
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()

@@ -741,7 +741,7 @@ class kucoin (Exchange):
         response = self.privateGetDealOrders(self.extend(request, params))
         return self.parse_trades(response['data']['datas'], market, since, limit)
 
-    def parse_trading_view_ohlcvs(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
+    def parse_trading_view_ohlc_vs(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
         result = []
         for i in range(0, len(ohlcvs['t'])):
             result.append([
@@ -787,7 +787,7 @@ class kucoin (Exchange):
             'to': end,
         }
         response = self.publicGetOpenChartHistory(self.extend(request, params))
-        return self.parse_trading_view_ohlcvs(response, market, timeframe, since, limit)
+        return self.parse_trading_view_ohlc_vs(response, market, timeframe, since, limit)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
