@@ -625,7 +625,7 @@ module.exports = class bitfinex extends Exchange {
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 100, params = {}) {
         await this.loadMarkets ();
         if (typeof since === 'undefined')
-            since = this.milliseconds() - this.parseTimeframe (timeframe) * limit * 1000;
+            since = this.milliseconds () - this.parseTimeframe (timeframe) * limit * 1000;
         let market = this.market (symbol);
         let v2id = 't' + market['id'];
         let request = {

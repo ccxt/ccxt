@@ -367,7 +367,7 @@ module.exports = class bitfinex2 extends bitfinex {
         await this.loadMarkets ();
         let market = this.market (symbol);
         if (typeof since === 'undefined')
-            since = this.milliseconds() - this.parseTimeframe (timeframe) * limit * 1000;
+            since = this.milliseconds () - this.parseTimeframe (timeframe) * limit * 1000;
         let request = {
             'symbol': market['id'],
             'timeframe': this.timeframes[timeframe],
