@@ -84,6 +84,7 @@ module.exports = class livecoin extends Exchange {
             },
             'commonCurrencies': {
                 'CRC': 'CryCash',
+                'XBT': 'Bricktox',
             },
         });
     }
