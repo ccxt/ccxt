@@ -668,7 +668,7 @@ In order to load markets manually beforehand call the ``loadMarkets ()`` / ``loa
     $id = 'huobi';
     $exchange = '\\ccxt\\' . $id;
     $huobi = new $exchange ();
-    $markets = $huobi.load_markets ();
+    $markets = $huobi->load_markets ();
     var_dump ($huobi->id, $markets);
 
 Symbols And Market Ids
