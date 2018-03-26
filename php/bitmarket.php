@@ -200,13 +200,7 @@ class bitmarket extends Exchange {
         $orderbook = $this->publicGetJsonMarketOrderbook (array_merge (array (
             'market' => $this->market_id($symbol),
         ), $params));
-        $timestamp = $this->milliseconds ();
-        return array (
-            'bids' => $orderbook['bids'],
-            'asks' => $orderbook['asks'],
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-        );
+        return $this->parse_order_book($orderbook);
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {

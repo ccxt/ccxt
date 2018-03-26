@@ -84,10 +84,7 @@ class coinspot extends Exchange {
         $orderbook = $this->privatePostOrders (array_merge (array (
             'cointype' => $market['id'],
         ), $params));
-        $result = $this->parse_order_book($orderbook, null, 'buyorders', 'sellorders', 'rate', 'amount');
-        $result['bids'] = $this->sort_by($result['bids'], 0, true);
-        $result['asks'] = $this->sort_by($result['asks'], 0);
-        return $result;
+        return $this->parse_order_book($orderbook, null, 'buyorders', 'sellorders', 'rate', 'amount');
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {

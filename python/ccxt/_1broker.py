@@ -146,6 +146,7 @@ class _1broker (Exchange):
             'datetime': self.iso8601(timestamp),
             'bids': [bid],
             'asks': [ask],
+            'nonce': None,
         }
 
     def fetch_trades(self, symbol):
