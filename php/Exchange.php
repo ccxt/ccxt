@@ -668,6 +668,17 @@ abstract class Exchange {
             'DRK' => 'DASH'
         );
 
+        $this->orderbookKeys = array (
+            'bids' => 'bids',
+            'asks' => 'asks',
+            'price' => 0,
+            'amount' => 0,
+            'timestamp' => 'timestamp',
+            'nonce' => 'sec',
+            'response' => null,
+            'responseDate' => 'date',
+        );
+
         $options = array_replace_recursive ($this->describe(), $options);
 
         if ($options)
@@ -1154,14 +1165,15 @@ abstract class Exchange {
         return $this->safe_integer($orderbook, $keys['timestamp'], null);
     }
 
-    public function parse_httpresponse_date () {
+    public function parse_http_response_date () {
         $keys = $this->orderbookKeys;
         $responseDate = null;
-        $headerAttributes = is_array ($this->last_response_headers) ? array_keys ($this->last_response_headers) : array ();
-        for ($i = 0; $i < count ($headerAttributes); $i++) {
-            $key = $headerAttributes[$i];
+        foreach ($this->last_response_headers as $key => $value) {
             if (strtolower ($key) === $keys['responseDate']) {
-                $responseDate = $this->parse_date($this->last_response_headers[$key]);
+                if (is_array($value)) {
+                    $value = array_pop($value);
+                }
+                $responseDate = $this->parse_date($value);
             }
         }
         return $responseDate;
@@ -1179,11 +1191,8 @@ abstract class Exchange {
         if ($bidasks !== null) {
             $orders = $bidasks;
         }
-        $orderKeys = is_array ($orders) ? array_keys ($orders) : array ();
         $parsedOrders = array ();
-        for ($i = 0; $i < count ($orderKeys); $i++) {
-            $orderKey = $orderKeys[$i];
-            $order = $orders[$orderKey];
+        foreach ($orders as $order) {
             $parsedBidask = $this->parse_bid_ask($order, $keys['price'], $keys['amount']);
             $parsedOrders[] = $parsedBidask;
         }
@@ -1192,8 +1201,8 @@ abstract class Exchange {
 
     public function parse_order_book_orders ($orderbook) {
         $keys = $this->orderbookKeys;
-        $bids = (is_array ($orderbook) && array_key_exists ($keys['bids'], $orderbook)) ? $this->parse_bids_asks($orderbook[$keys['bids']], $keys) : array ();
-        $asks = (is_array ($orderbook) && array_key_exists ($keys['asks'], $orderbook)) ? $this->parse_bids_asks($orderbook[$keys['asks']], $keys) : array ();
+        $bids = (is_array ($orderbook) && array_key_exists ($keys['bids'], $orderbook)) ? $this->parse_bids_asks($orderbook[$keys['bids']]) : array ();
+        $asks = (is_array ($orderbook) && array_key_exists ($keys['asks'], $orderbook)) ? $this->parse_bids_asks($orderbook[$keys['asks']]) : array ();
         return array (
             'bids' => $bids,
             'asks' => $asks,
@@ -1218,7 +1227,7 @@ abstract class Exchange {
         $orderbook = $this->parse_order_book_response ($response, $market, $limit, $params);
         $timestamp = $this->parse_order_book_timestamp ($orderbook);
         if ($timestamp === null) {
-            $timestamp = $this->parse_httpresponse_date ();
+            $timestamp = $this->parse_http_response_date ();
         }
         $datetime = $this->iso8601 ($timestamp);
         $orders = $this->parse_order_book_orders ($orderbook);
@@ -1233,8 +1242,6 @@ abstract class Exchange {
         );
     }
 
-    // TODO: fix/remove references to $keys below...
-
     public function performOrderBookRequest ($symbol, $limit = null, $params = array ()) {
         return $this->perform_order_book_request ($symbol, $limit, $params);
     }
@@ -1243,36 +1250,36 @@ abstract class Exchange {
         return $this->fetch_order_book ($symbol, $limit, $params);
     }
 
-    public function parseOrderBookNonce ($orderbook, $keys) {
-        return $this->parse_order_book_nonce ($orderbook, $keys);
+    public function parseOrderBookNonce ($orderbook) {
+        return $this->parse_order_book_nonce ($orderbook);
     }
 
-    public function parseOrderBookTimestamp ($orderbook, $keys) {
-        return $this->parse_order_book_timestamp ($orderbook, $keys);
+    public function parseOrderBookTimestamp ($orderbook) {
+        return $this->parse_order_book_timestamp ($orderbook);
     }
 
-    public function parseHttpresponseDate ($keys) {
-        return $this->parse_httpresponse_date ($keys);
+    public function parseHTTPResponseDate () {
+        return $this->parse_http_response_date ();
     }
 
     public function parseBidAsk ($bidasks, $priceKey = 0, $amountKey = 1) {
         return $this->parse_bid_ask ($bidasks, $priceKey, $amountKey);
     }
 
-    public function parseBidsAsks ($bidasks, $keys) {
-        return $this->parse_bids_asks ($bidasks, $keys);
+    public function parseBidsAsks ($bidasks) {
+        return $this->parse_bids_asks ($bidasks);
     }
 
-    public function parseOrderBookOrders ($orderbook, $keys) {
-        return $this->parse_order_book_orders ($orderbook, $keys);
+    public function parseOrderBookOrders ($orderbook) {
+        return $this->parse_order_book_orders ($orderbook);
     }
 
     public function parseOrderBookResponce ($response, $market, $limit, $params) {
         return $this->parse_order_book_response ($response, $market, $limit, $params);
     }
 
-    public function parseOrderBook ($orderbook, $keys) {
-        return $this->parse_order_book ($orderbook, $keys);
+    public function parseOrderBook ($orderbook) {
+        return $this->parse_order_book ($orderbook);
     }
 
     public function parse_balance ($balance) {

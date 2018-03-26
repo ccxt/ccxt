@@ -189,6 +189,17 @@ class Exchange(object):
         'DRK': 'DASH',
     }
 
+    orderbookKeys = {
+        'bids': 'bids',
+        'asks': 'asks',
+        'price': 0,
+        'amount': 0,
+        'timestamp': 'timestamp',
+        'nonce': 'sec',
+        'response': None,
+        'responseDate': 'date',
+    }
+
     def __init__(self, config={}):
 
         self.precision = {} if self.precision is None else self.precision
@@ -1004,7 +1015,7 @@ class Exchange(object):
         keys = self.orderbookKeys
         return self.safe_integer(orderbook, keys['timestamp'], None)
 
-    def parse_httpresponse_date(self):
+    def parse_http_response_date(self):
         keys = self.orderbookKeys
         responseDate = None
         for key in list(self.last_response_headers.keys()):
@@ -1023,16 +1034,15 @@ class Exchange(object):
         if bidasks is not None:
             orders = bidasks
         parsedOrders = []
-        for orderKey in list(orders.keys()):
-            order = orders[orderKey]
+        for order in orders:
             parsedBidask = self.parse_bid_ask(order, keys['price'], keys['amount'])
             parsedOrders.append(parsedBidask)
         return parsedOrders
 
     def parse_order_book_orders(self, orderbook):
         keys = self.orderbookKeys
-        bids = self.parse_bids_asks(orderbook[keys['bids']], keys) if (keys['bids'] in list(orderbook.keys())) else []
-        asks = self.parse_bids_asks(orderbook[keys['asks']], keys) if (keys['asks'] in list(orderbook.keys())) else []
+        bids = self.parse_bids_asks(orderbook[keys['bids']]) if (keys['bids'] in orderbook) else []
+        asks = self.parse_bids_asks(orderbook[keys['asks']]) if (keys['asks'] in orderbook) else []
         return {
             'bids': bids,
             'asks': asks,
@@ -1046,14 +1056,14 @@ class Exchange(object):
         orderbook = response
         for i in range(0, len(path)):
             key = market['id'] if (path[i] == '__market__') else path[i]
-            orderbook = orderbook[key] if (orderbook[key] is not None) else orderbook
+            orderbook = orderbook[key] if (key in orderbook) else orderbook
         return orderbook
 
     def parse_order_book(self, response, market, limit, params):
         orderbook = self.parse_order_book_response(response, market, limit, params)
         timestamp = self.parse_order_book_timestamp(orderbook)
         if timestamp is None:
-            timestamp = self.parse_httpresponse_date()
+            timestamp = self.parse_http_response_date()
         datetime = self.iso8601(timestamp)
         orders = self.parse_order_book_orders(orderbook)
         nonce = self.parse_order_book_nonce(orderbook)

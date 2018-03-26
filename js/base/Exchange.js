@@ -5,6 +5,8 @@
 const functions = require ('./functions')
     , Market    = require ('./Market')
 
+const { AssertionError } = require ('assert')
+
 const {
     isNode
     , keys
@@ -151,7 +153,7 @@ module.exports = class Exchange {
                 'price': 0,
                 'amount': 0,
                 'timestamp': 'timestamp',
-                'nonce': 'sec',
+                'nonce': undefined,
                 'responseDate': 'date',
             },
         } // return
@@ -221,6 +223,7 @@ module.exports = class Exchange {
         this.tickers    = {}
         this.orders     = {}
         this.trades     = {}
+        this.precisionTests = {}
 
         this.last_http_response = undefined
         this.last_json_response = undefined
@@ -772,16 +775,40 @@ module.exports = class Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol)
-        let orderbook = await this.performOrderBookRequest (market, limit, params);
-        return this.parseOrderBook (orderbook, market, limit, params);
+        let response = await this.performOrderBookRequest (market, limit, params);
+        let orderbook = this.parseOrderBook (response, market, limit, params);
+        if (symbol in this.precisionTests) {
+            return orderbook;
+        }
+        let precisions = this.getPrecisionsFromOrderbook (orderbook);
+        if (market['precision']['price'] !== precisions['price']) {
+            throw new AssertionError ({
+                'name': 'price precision inconsistency',
+                'message': this.id + ' order price precision does not match market price precision for symbol ' + symbol,
+                'actual': precisions['price'],
+                'expected': market['precision']['price'],
+                'operator': '!==',
+            });
+        }
+        if (market['precision']['amount'] !== precisions['amount']) {
+            throw new AssertionError ({
+                'name': 'amount precision inconsistency',
+                'message': this.id + ' order amount precision does not match market amount precision for symbol ' + symbol,
+                'actual': precisions['price'],
+                'expected': market['precision']['price'],
+                'operator': '!==',
+            });
+        }
+        this.precisionTests[symbol] = true;
+        return orderbook;
     }
 
     parseOrderBookNonce (orderbook) {
         let keys = this.orderbookKeys;
-        let nonce = this.safeInteger (orderbook, keys['nonce'], undefined);
-        if (typeof nonce === 'undefined') {
-            nonce = this.safeInteger (orderbook, keys['timestamp'], undefined);
+        if (typeof keys['nonce'] === 'undefined') {
+            return undefined;
         }
+        let nonce = this.safeInteger (orderbook, keys['nonce'], undefined);
         return nonce;
     }
 
@@ -815,11 +842,9 @@ module.exports = class Exchange {
         if (typeof bidasks !== 'undefined') {
             orders = bidasks;
         }
-        let orderKeys = Object.keys (orders);
         let parsedOrders = [];
-        for (let i = 0; i < orderKeys.length; i++) {
-            let orderKey = orderKeys[i];
-            let order = orders[orderKey];
+        for (let i = 0; i < orders.length; i++) {
+            let order = orders[i];
             let parsedBidask = this.parseBidAsk (order, keys['price'], keys['amount']);
             parsedOrders.push (parsedBidask);
         }
@@ -828,8 +853,8 @@ module.exports = class Exchange {
 
     parseOrderBookOrders (orderbook) {
         let keys = this.orderbookKeys;
-        let bids = (keys['bids'] in orderbook) ? this.parseBidsAsks (orderbook[keys['bids']], keys) : [];
-        let asks = (keys['asks'] in orderbook) ? this.parseBidsAsks (orderbook[keys['asks']], keys) : [];
+        let bids = (keys['bids'] in orderbook) ? this.parseBidsAsks (orderbook[keys['bids']]) : [];
+        let asks = (keys['asks'] in orderbook) ? this.parseBidsAsks (orderbook[keys['asks']]) : [];
         return {
             'bids': bids,
             'asks': asks,
@@ -845,7 +870,7 @@ module.exports = class Exchange {
         let orderbook = response;
         for (let i = 0; i < path.length; i++) {
             let key = (path[i] === '__market__') ? market['id'] : path[i];
-            orderbook = (typeof orderbook[key] !== 'undefined') ? orderbook[key] : orderbook;
+            orderbook = key in orderbook ? orderbook[key] : orderbook;
         }
         return orderbook;
     }
@@ -869,19 +894,61 @@ module.exports = class Exchange {
         };
     }
 
+    getPrecisionFromFloat (floatValue) {
+        let string = floatValue.toString ();
+        let expAndPower = string.split ('e');
+        let power = expAndPower[1];
+        if (typeof power !== 'undefined') {
+            return Math.abs (power);
+        }
+        let intAndDecimal = string.split ('.');
+        let decimal = intAndDecimal[1];
+        if (typeof decimal !== 'undefined') {
+            return decimal.length;
+        }
+        return 0;
+    }
+
+    getPrecisionsFromOrder (order) {
+        let pricePrecision = this.getPrecisionFromFloat (order[0]);
+        let amountPrecision = this.getPrecisionFromFloat (order[1]);
+        return {
+            'price': pricePrecision,
+            'amount': amountPrecision,
+        };
+    }
+
+    getPrecisionsFromOrderbook (orderbook) {
+        let bids = orderbook['bids'];
+        let asks = orderbook['asks'];
+        let orders = bids.concat (asks);
+        let maxPricePrecision = 0;
+        let maxAmountPrecision = 0;
+        for (let i = 0; i < orders.length; i++) {
+            let order = orders[i];
+            let precisions = this.getPrecisionsFromOrder (order);
+            maxPricePrecision = Math.max (maxPricePrecision, precisions['price']);
+            maxAmountPrecision = Math.max (maxAmountPrecision, precisions['amount']);
+        }
+        return {
+            'price': maxPricePrecision,
+            'amount': maxAmountPrecision,
+        };
+    }
+
     getCurrencyUsedOnOpenOrders (currency) {
         return Object.values (this.orders).filter (order => (order['status'] === 'open')).reduce ((total, order) => {
             let symbol = order['symbol'];
             let market = this.markets[symbol];
-            let remaining = order['remaining']
+            let remaining = order['remaining'];
             if (currency === market['base'] && order['side'] === 'sell') {
-                return total + remaining
+                return total + remaining;
             } else if (currency === market['quote'] && order['side'] === 'buy') {
-                return total + (order['price'] * remaining)
+                return total + (order['price'] * remaining);
             } else {
-                return total
+                return total;
             }
-        }, 0)
+        }, 0);
     }
 
     parseBalance (balance) {

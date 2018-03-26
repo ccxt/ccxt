@@ -102,6 +102,9 @@ module.exports = class bitbank extends Exchange {
                 'price': 8,
                 'amount': 8,
             },
+            'orderbookKeys': {
+                'response': 'data',
+            },
         });
     }
 
@@ -142,13 +145,11 @@ module.exports = class bitbank extends Exchange {
         return this.parseTicker (response['data'], market);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
+    async performOrderBookRequest (market, limit = undefined, params = {}) {
         let response = await this.publicGetPairDepth (this.extend ({
-            'pair': this.marketId (symbol),
+            'pair': market['id'],
         }, params));
-        let orderbook = response['data'];
-        return this.parseOrderBook (orderbook, orderbook['timestamp']);
+        return response['data'];
     }
 
     parseTrade (trade, market = undefined) {

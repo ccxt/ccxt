@@ -125,6 +125,9 @@ module.exports = class poloniex extends Exchange {
                 'BTM': 'Bitmark',
                 'STR': 'XLM',
             },
+            'orderbookKeys': {
+                'nonce': 'sec',
+            },
         });
     }
 
