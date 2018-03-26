@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.12.1'
+__version__ = '1.12.3'
 
 # -----------------------------------------------------------------------------
 
@@ -187,17 +187,6 @@ class Exchange(object):
         'XBT': 'BTC',
         'BCC': 'BCH',
         'DRK': 'DASH',
-    }
-
-    orderbookKeys = {
-        'bids': 'bids',
-        'asks': 'asks',
-        'price': 0,
-        'amount': 0,
-        'timestamp': 'timestamp',
-        'nonce': 'sec',
-        'response': None,
-        'responseDate': 'date',
     }
 
     def __init__(self, config={}):
@@ -988,6 +977,24 @@ class Exchange(object):
             result.append(ohlcv)
         return result
 
+    def parse_bid_ask(self, bidask, price_key=0, amount_key=0):
+        return [float(bidask[price_key]), float(bidask[amount_key])]
+
+    def parse_bids_asks(self, bidasks, price_key=0, amount_key=1):
+        result = []
+        if len(bidasks):
+            if type(bidasks[0]) is list:
+                for bidask in bidasks:
+                    if bidask[price_key] and bidask[amount_key]:
+                        result.append(self.parse_bid_ask(bidask, price_key, amount_key))
+            elif type(bidasks[0]) is dict:
+                for bidask in bidasks:
+                    if (price_key in bidask) and (amount_key in bidask) and (bidask[price_key] and bidask[amount_key]):
+                        result.append(self.parse_bid_ask(bidask, price_key, amount_key))
+            else:
+                self.raise_error(ExchangeError, details='unrecognized bidask format: ' + str(bidasks[0]))
+        return result
+
     def fetch_l2_order_book(self, symbol, limit=None, params={}):
         orderbook = self.fetch_order_book(symbol, limit, params)
         return self.extend(orderbook, {
@@ -995,85 +1002,14 @@ class Exchange(object):
             'asks': self.sort_by(self.aggregate(orderbook['asks']), 0),
         })
 
-    def perform_order_book_request(self, market, limit=None, params={}):
-        raise NotSupported(self.id + ' performOrderBookRequest not supported yet')
-
-    def fetch_order_book(self, symbol, limit=None, params={}):
-        self.load_markets()
-        market = self.market(symbol)
-        orderbook = self.perform_order_book_request(market, limit, params)
-        return self.parse_order_book(orderbook, market, limit, params)
-
-    def parse_order_book_nonce(self, orderbook):
-        keys = self.orderbookKeys
-        nonce = self.safe_integer(orderbook, keys['nonce'], None)
-        if nonce is None:
-            nonce = self.safe_integer(orderbook, keys['timestamp'], None)
-        return nonce
-
-    def parse_order_book_timestamp(self, orderbook):
-        keys = self.orderbookKeys
-        return self.safe_integer(orderbook, keys['timestamp'], None)
-
-    def parse_http_response_date(self):
-        keys = self.orderbookKeys
-        responseDate = None
-        for key in list(self.last_response_headers.keys()):
-            if key.lower() == keys['responseDate']:
-                responseDate = self.parse_date(self.last_response_headers[key])
-        return responseDate
-
-    def parse_bid_ask(self, bidask, priceKey=0, amountKey=1):
-        price = float(bidask[priceKey])
-        amount = float(bidask[amountKey])
-        return [price, amount]
-
-    def parse_bids_asks(self, bidasks):
-        keys = self.orderbookKeys
-        orders = []
-        if bidasks is not None:
-            orders = bidasks
-        parsedOrders = []
-        for order in orders:
-            parsedBidask = self.parse_bid_ask(order, keys['price'], keys['amount'])
-            parsedOrders.append(parsedBidask)
-        return parsedOrders
-
-    def parse_order_book_orders(self, orderbook):
-        keys = self.orderbookKeys
-        bids = self.parse_bids_asks(orderbook[keys['bids']]) if (keys['bids'] in orderbook) else []
-        asks = self.parse_bids_asks(orderbook[keys['asks']]) if (keys['asks'] in orderbook) else []
+    def parse_order_book(self, orderbook, timestamp=None, bids_key='bids', asks_key='asks', price_key=0, amount_key=1):
+        timestamp = timestamp or self.milliseconds()
         return {
-            'bids': bids,
-            'asks': asks,
-        }
-
-    def parse_order_book_response(self, response, market, limit, params):
-        keys = self.orderbookKeys
-        if keys['response'] is None:
-            return response
-        path = keys['response'] if isinstance(keys['response'], list) else [keys['response']]
-        orderbook = response
-        for i in range(0, len(path)):
-            key = market['id'] if (path[i] == '__market__') else path[i]
-            orderbook = orderbook[key] if (key in orderbook) else orderbook
-        return orderbook
-
-    def parse_order_book(self, response, market, limit, params):
-        orderbook = self.parse_order_book_response(response, market, limit, params)
-        timestamp = self.parse_order_book_timestamp(orderbook)
-        if timestamp is None:
-            timestamp = self.parse_http_response_date()
-        datetime = self.iso8601(timestamp)
-        orders = self.parse_order_book_orders(orderbook)
-        nonce = self.parse_order_book_nonce(orderbook)
-        return {
-            'bids': self.sort_by(orders['bids'], 0, True),
-            'asks': self.sort_by(orders['asks'], 0),
+            'bids': self.sort_by(self.parse_bids_asks(orderbook[bids_key], price_key, amount_key) if (bids_key in orderbook) and isinstance(orderbook[bids_key], list) else [], 0, True),
+            'asks': self.sort_by(self.parse_bids_asks(orderbook[asks_key], price_key, amount_key) if (asks_key in orderbook) and isinstance(orderbook[asks_key], list) else [], 0),
             'timestamp': timestamp,
-            'datetime': datetime,
-            'nonce': nonce,
-            'info': orderbook,
+            'datetime': self.iso8601(timestamp),
+            'nonce': None,
         }
 
     def parse_balance(self, balance):
