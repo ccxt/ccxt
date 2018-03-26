@@ -411,6 +411,7 @@ module.exports = class binance extends Exchange {
         let response = await this.publicGetDepth (this.extend (request, params));
         let orderbook = this.parseOrderBook (response);
         orderbook['nonce'] = this.safeInteger (response, 'lastUpdateId');
+        return orderbook;
     }
 
     parseTicker (ticker, market = undefined) {
