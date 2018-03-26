@@ -624,18 +624,18 @@ module.exports = class bitfinex extends Exchange {
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 100, params = {}) {
         await this.loadMarkets ();
+        if (typeof since === 'undefined')
+            since = this.milliseconds() - this.parseTimeframe (timeframe) * limit * 1000;
         let market = this.market (symbol);
         let v2id = 't' + market['id'];
         let request = {
             'symbol': v2id,
             'timeframe': this.timeframes[timeframe],
-            'sort': 1,
+            'sort': '-1',
             'limit': limit,
+            'start': since,
         };
-        if (typeof since !== 'undefined')
-            request['start'] = since;
-        request = this.extend (request, params);
-        let response = await this.v2GetCandlesTradeTimeframeSymbolHist (request);
+        let response = await this.v2GetCandlesTradeTimeframeSymbolHist (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
