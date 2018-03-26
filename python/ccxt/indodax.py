@@ -13,12 +13,12 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 
 
-class bitcoincoid (Exchange):
+class indodax (Exchange):
 
     def describe(self):
-        return self.deep_extend(super(bitcoincoid, self).describe(), {
-            'id': 'bitcoincoid',
-            'name': 'Bitcoin.co.id',
+        return self.deep_extend(super(indodax, self).describe(), {
+            'id': 'indodax',
+            'name': 'INDODAX',
             'countries': 'ID',  # Indonesia
             'has': {
                 'CORS': False,
@@ -34,12 +34,12 @@ class bitcoincoid (Exchange):
             },
             'version': '1.7',  # as of 6 November 2017
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766138-043c7786-5ecf-11e7-882b-809c14f38b53.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/37443283-2fddd0e4-281c-11e8-9741-b4f1419001b5.jpg',
                 'api': {
                     'public': 'https://vip.bitcoin.co.id/api',
                     'private': 'https://vip.bitcoin.co.id/tapi',
                 },
-                'www': 'https://www.bitcoin.co.id',
+                'www': 'https://www.indodax.com',
                 'doc': [
                     'https://vip.bitcoin.co.id/downloads/BITCOINCOID-API-DOCUMENTATION.pdf',
                 ],

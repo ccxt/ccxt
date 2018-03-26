@@ -124,9 +124,9 @@ The ccxt library currently supports the following cryptocurrency exchange market
 +----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | India                      | |coinsecure|           | coinsecure           | `Coinsecure <https://coinsecure.in>`__                         | 1     | `API <https://api.coinsecure.in>`__                                                               |
 +----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
-| Indonesia                  | |bitcoincoid|          | bitcoincoid          | `Bitcoin.co.id <https://www.bitcoin.co.id>`__                  | 1.7   | `API <https://vip.bitcoin.co.id/downloads/BITCOINCOID-API-DOCUMENTATION.pdf>`__                   |
-+----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | Indonesia                  | |coincheck|            | coincheck            | `coincheck <https://coincheck.com>`__                          | \*    | `API <https://coincheck.com/documents/exchange/api>`__                                            |
++----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
+| Indonesia                  | |indodax|              | indodax              | `INDODAX <https://www.indodax.com>`__                          | 1.7   | `API <https://vip.bitcoin.co.id/downloads/BITCOINCOID-API-DOCUMENTATION.pdf>`__                   |
 +----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | Israel                     | |bit2c|                | bit2c                | `Bit2C <https://www.bit2c.co.il>`__                            | \*    | `API <https://www.bit2c.co.il/home/api>`__                                                        |
 +----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
@@ -353,8 +353,8 @@ The ccxt library currently supports the following cryptocurrency exchange market
 .. |mixcoins| image:: https://user-images.githubusercontent.com/1294454/30237212-ed29303c-9535-11e7-8af8-fcd381cfa20c.jpg
 .. |coinexchange| image:: https://user-images.githubusercontent.com/1294454/34842303-29c99fca-f71c-11e7-83c1-09d900cb2334.jpg
 .. |coinsecure| image:: https://user-images.githubusercontent.com/1294454/27766472-9cbd200a-5ed9-11e7-9551-2267ad7bac08.jpg
-.. |bitcoincoid| image:: https://user-images.githubusercontent.com/1294454/27766138-043c7786-5ecf-11e7-882b-809c14f38b53.jpg
 .. |coincheck| image:: https://user-images.githubusercontent.com/1294454/27766464-3b5c3c74-5ed9-11e7-840e-31b32968e1da.jpg
+.. |indodax| image:: https://user-images.githubusercontent.com/1294454/37443283-2fddd0e4-281c-11e8-9741-b4f1419001b5.jpg
 .. |bit2c| image:: https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg
 .. |binance| image:: https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg
 .. |bitbank| image:: https://user-images.githubusercontent.com/1294454/37808081-b87f2d9c-2e59-11e8-894d-c1900b7584fe.jpg

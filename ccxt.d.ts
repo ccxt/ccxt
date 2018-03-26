@@ -300,7 +300,6 @@ declare module 'ccxt' {
     export class bit2c extends Exchange {}
     export class bitbank extends Exchange {}
     export class bitbay extends Exchange {}
-    export class bitcoincoid extends Exchange {}
     export class bitfinex extends Exchange {}
     export class bitfinex2 extends bitfinex {}
     export class bitflyer extends Exchange {}
@@ -360,6 +359,7 @@ declare module 'ccxt' {
     export class huobicny extends huobipro {}
     export class huobipro extends Exchange {}
     export class independentreserve extends Exchange {}
+    export class indodax extends Exchange {}
     export class itbit extends Exchange {}
     export class jubi extends btcbox {}
     export class kraken extends Exchange {}

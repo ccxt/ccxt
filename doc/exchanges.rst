@@ -26,8 +26,6 @@ The ccxt library currently supports the following 105 cryptocurrency exchange ma
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |bitbay|               | bitbay               | `BitBay <https://bitbay.net>`__                                | \*    | `API <https://bitbay.net/public-api>`__                                                           | Poland, EU                                 |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
-| |bitcoincoid|          | bitcoincoid          | `Bitcoin.co.id <https://www.bitcoin.co.id>`__                  | 1.7   | `API <https://vip.bitcoin.co.id/downloads/BITCOINCOID-API-DOCUMENTATION.pdf>`__                   | Indonesia                                  |
-+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |bitfinex|             | bitfinex             | `Bitfinex <https://www.bitfinex.com>`__                        | 1     | `API <https://bitfinex.readme.io/v1/docs>`__                                                      | British Virgin Islands                     |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |bitfinex2|            | bitfinex2            | `Bitfinex v2 <https://www.bitfinex.com>`__                     | 2     | `API <https://bitfinex.readme.io/v2/docs>`__                                                      | British Virgin Islands                     |
@@ -146,6 +144,8 @@ The ccxt library currently supports the following 105 cryptocurrency exchange ma
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |independentreserve|   | independentreserve   | `Independent Reserve <https://www.independentreserve.com>`__   | \*    | `API <https://www.independentreserve.com/API>`__                                                  | Australia, New Zealand                     |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
+| |indodax|              | indodax              | `INDODAX <https://www.indodax.com>`__                          | 1.7   | `API <https://vip.bitcoin.co.id/downloads/BITCOINCOID-API-DOCUMENTATION.pdf>`__                   | Indonesia                                  |
++------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |itbit|                | itbit                | `itBit <https://www.itbit.com>`__                              | 1     | `API <https://api.itbit.com/docs>`__                                                              | US                                         |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |jubi|                 | jubi                 | `jubi.com <https://www.jubi.com>`__                            | 1     | `API <https://www.jubi.com/help/api.html>`__                                                      | China                                      |
@@ -227,7 +227,6 @@ The ccxt library currently supports the following 105 cryptocurrency exchange ma
 .. |bit2c| image:: https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg
 .. |bitbank| image:: https://user-images.githubusercontent.com/1294454/37808081-b87f2d9c-2e59-11e8-894d-c1900b7584fe.jpg
 .. |bitbay| image:: https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg
-.. |bitcoincoid| image:: https://user-images.githubusercontent.com/1294454/27766138-043c7786-5ecf-11e7-882b-809c14f38b53.jpg
 .. |bitfinex| image:: https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg
 .. |bitfinex2| image:: https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg
 .. |bitflyer| image:: https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg
@@ -287,6 +286,7 @@ The ccxt library currently supports the following 105 cryptocurrency exchange ma
 .. |huobicny| image:: https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg
 .. |huobipro| image:: https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg
 .. |independentreserve| image:: https://user-images.githubusercontent.com/1294454/30521662-cf3f477c-9bcb-11e7-89bc-d1ac85012eda.jpg
+.. |indodax| image:: https://user-images.githubusercontent.com/1294454/37443283-2fddd0e4-281c-11e8-9741-b4f1419001b5.jpg
 .. |itbit| image:: https://user-images.githubusercontent.com/1294454/27822159-66153620-60ad-11e7-89e7-005f6d7f3de0.jpg
 .. |jubi| image:: https://user-images.githubusercontent.com/1294454/27766581-9d397d9a-5edd-11e7-8fb9-5d8236c0e692.jpg
 .. |kraken| image:: https://user-images.githubusercontent.com/1294454/27766599-22709304-5ede-11e7-9de1-9f33732e1509.jpg

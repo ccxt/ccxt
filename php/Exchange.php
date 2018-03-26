@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.11.180';
+$version = '1.12.1';
 
 abstract class Exchange {
 
@@ -45,7 +45,6 @@ abstract class Exchange {
         'bit2c',
         'bitbank',
         'bitbay',
-        'bitcoincoid',
         'bitfinex',
         'bitfinex2',
         'bitflyer',
@@ -105,6 +104,7 @@ abstract class Exchange {
         'huobicny',
         'huobipro',
         'independentreserve',
+        'indodax',
         'itbit',
         'jubi',
         'kraken',
