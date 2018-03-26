@@ -335,7 +335,7 @@ module.exports = class gateio extends Exchange {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('result' in response) {
             let result = response['result'];
-            let message = this.id + ' ' + this.json (response)
+            let message = this.id + ' ' + this.json (response);
             if (typeof result === 'undefined')
                 throw new ExchangeError (message);
             if (typeof result === 'string') {
