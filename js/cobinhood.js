@@ -567,7 +567,7 @@ module.exports = class cobinhood extends Exchange {
     parseTransactionStatus (status) {
         if (['tx_pending_two_factor_auth', 'tx_pending_email_auth', 'tx_pending_approval', 'tx_approved', 'tx_processing', 'tx_pending', 'tx_sent'].indexOf (status) !== -1) {
             return 'pending';
-        } else if (status === 'tx_cancelled' !== -1) {
+        } else if (status === 'tx_cancelled') {
             return 'canceled';
         } else if (['tx_timeout', 'tx_invalid', 'tx_cancelled', 'tx_rejected'].indexOf (status) !== -1) {
             return 'error';
