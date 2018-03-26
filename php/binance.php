@@ -410,6 +410,7 @@ class binance extends Exchange {
         $response = $this->publicGetDepth (array_merge ($request, $params));
         $orderbook = $this->parse_order_book($response);
         $orderbook['nonce'] = $this->safe_integer($response, 'lastUpdateId');
+        return $orderbook;
     }
 
     public function parse_ticker ($ticker, $market = null) {
