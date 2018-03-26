@@ -215,7 +215,7 @@ class ccex (Exchange):
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
         tickers = self.webGetPrices(params)
-        result = {'info': tickers}
+        result = {}
         ids = list(tickers.keys())
         for i in range(0, len(ids)):
             id = ids[i]
