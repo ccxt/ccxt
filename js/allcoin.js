@@ -68,16 +68,42 @@ module.exports = class allcoin extends okcoinusd {
                 let market = markets[k]['Market'];
                 let base = market['Primary'];
                 let quote = market['Secondary'];
-                let id = base.toLowerCase () + '_' + quote.toLowerCase ();
+                let baseId = base.toLowerCase ();
+                let quoteId = quote.toLowerCase ();
+                let id = baseId + '_' + quoteId;
                 let symbol = base + '/' + quote;
+                let active = market['TradeEnabled'] && market['BuyEnabled'] && market['SellEnabled'];
                 result.push ({
                     'id': id,
                     'symbol': symbol,
                     'base': base,
                     'quote': quote,
+                    'baseId': baseId,
+                    'quoteId': quoteId,
+                    'active': active,
                     'type': 'spot',
                     'spot': true,
                     'future': false,
+                    'maker': market['AskFeeRate'], // BidFeeRate 0, AskFeeRate 0.002, we use just the AskFeeRate here
+                    'taker': market['AskFeeRate'], // BidFeeRate 0, AskFeeRate 0.002, we use just the AskFeeRate here
+                    'precision': {
+                        'amount': market['PrimaryDigits'],
+                        'price': market['SecondaryDigits'],
+                    },
+                    'limits': {
+                        'amount': {
+                            'min': market['MinTradeAmount'],
+                            'max': market['MaxTradeAmount'],
+                        },
+                        'price': {
+                            'min': market['MinOrderPrice'],
+                            'max': market['MaxOrderPrice'],
+                        },
+                        'cost': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                    },
                     'info': market,
                 });
             }

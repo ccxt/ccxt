@@ -19,7 +19,7 @@ class cex extends Exchange {
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
-                'fetchOrders' => true,
+                'fetchDepositAddress' => true,
             ),
             'timeframes' => array (
                 '1m' => '1m',
@@ -504,5 +504,27 @@ class cex extends Exchange {
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         }
         return $response;
+    }
+
+    public function fetch_deposit_address ($code, $params = array ()) {
+        if ($code === 'XRP') {
+            // https://github.com/ccxt/ccxt/pull/2327#issuecomment-375204856
+            throw new NotSupported ($this->id . ' fetchDepositAddress does not support XRP addresses yet (awaiting docs from CEX.io)');
+        }
+        $this->load_markets();
+        $currency = $this->currency ($code);
+        $request = array (
+            'currency' => $currency['id'],
+        );
+        $response = $this->privatePostGetAddress (array_merge ($request, $params));
+        $address = $this->safe_string($response, 'data');
+        $this->check_address($address);
+        return array (
+            'currency' => $code,
+            'address' => $address,
+            'tag' => null,
+            'status' => 'ok',
+            'info' => $response,
+        );
     }
 }

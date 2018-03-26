@@ -75,6 +75,7 @@ class gemini (Exchange):
             'fees': {
                 'trading': {
                     'taker': 0.0025,
+                    'maker': 0.0025,
                 },
             },
         })
@@ -141,8 +142,8 @@ class gemini (Exchange):
     def parse_trade(self, trade, market):
         timestamp = trade['timestampms']
         order = None
-        if 'orderId' in trade:
-            order = str(trade['orderId'])
+        if 'order_id' in trade:
+            order = str(trade['order_id'])
         fee = self.safe_float(trade, 'fee_amount')
         if fee is not None:
             currency = self.safe_string(trade, 'fee_currency')

@@ -81,11 +81,10 @@ class livecoin extends Exchange {
                     'taker' => 0.18 / 100,
                 ),
             ),
+            'commonCurrencies' => array (
+                'CRC' => 'CryCash',
+            ),
         ));
-    }
-
-    public function common_currency_code ($currency) {
-        return $currency;
     }
 
     public function fetch_markets () {
@@ -97,7 +96,9 @@ class livecoin extends Exchange {
             $market = $markets[$p];
             $id = $market['symbol'];
             $symbol = $id;
-            list ($base, $quote) = explode ('/', $symbol);
+            list ($baseId, $quoteId) = explode ('/', $symbol);
+            $base = $this->common_currency_code($baseId);
+            $quote = $this->common_currency_code($quoteId);
             $coinRestrictions = $this->safe_value($restrictionsById, $symbol);
             $precision = array (
                 'price' => 5,
@@ -123,6 +124,9 @@ class livecoin extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
+                'active' => true,
                 'precision' => $precision,
                 'limits' => $limits,
                 'info' => $market,

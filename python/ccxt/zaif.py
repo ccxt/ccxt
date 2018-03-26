@@ -5,6 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
+import math
 from ccxt.base.errors import ExchangeError
 
 
@@ -102,11 +103,31 @@ class zaif (Exchange):
             id = market['currency_pair']
             symbol = market['name']
             base, quote = symbol.split('/')
+            precision = {
+                'amount': -math.log10(market['item_unit_step']),
+                'price': market['aux_unit_point'],
+            }
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'active': True,  # can trade or not
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': float(market['item_unit_min']),
+                        'max': None,
+                    },
+                    'price': {
+                        'min': float(market['aux_unit_min']),
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
                 'info': market,
             })
         return result

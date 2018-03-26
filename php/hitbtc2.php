@@ -620,7 +620,7 @@ class hitbtc2 extends hitbtc {
                 'name' => $currency['fullName'],
                 'active' => $active,
                 'status' => $status,
-                'fee' => null, // todo => redesign
+                'fee' => $this->safe_float($currency, 'payoutFee'), // todo => redesign
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (

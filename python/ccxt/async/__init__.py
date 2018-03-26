@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.11.135'
+__version__ = '1.12.1'
 
 # -----------------------------------------------------------------------------
 
@@ -36,8 +36,8 @@ from ccxt.async.anxpro import anxpro                            # noqa: F401
 from ccxt.async.bibox import bibox                              # noqa: F401
 from ccxt.async.binance import binance                          # noqa: F401
 from ccxt.async.bit2c import bit2c                              # noqa: F401
+from ccxt.async.bitbank import bitbank                          # noqa: F401
 from ccxt.async.bitbay import bitbay                            # noqa: F401
-from ccxt.async.bitcoincoid import bitcoincoid                  # noqa: F401
 from ccxt.async.bitfinex import bitfinex                        # noqa: F401
 from ccxt.async.bitfinex2 import bitfinex2                      # noqa: F401
 from ccxt.async.bitflyer import bitflyer                        # noqa: F401
@@ -81,6 +81,7 @@ from ccxt.async.cryptopia import cryptopia                      # noqa: F401
 from ccxt.async.dsx import dsx                                  # noqa: F401
 from ccxt.async.ethfinex import ethfinex                        # noqa: F401
 from ccxt.async.exmo import exmo                                # noqa: F401
+from ccxt.async.exx import exx                                  # noqa: F401
 from ccxt.async.flowbtc import flowbtc                          # noqa: F401
 from ccxt.async.foxbit import foxbit                            # noqa: F401
 from ccxt.async.fybse import fybse                              # noqa: F401
@@ -96,6 +97,7 @@ from ccxt.async.huobi import huobi                              # noqa: F401
 from ccxt.async.huobicny import huobicny                        # noqa: F401
 from ccxt.async.huobipro import huobipro                        # noqa: F401
 from ccxt.async.independentreserve import independentreserve    # noqa: F401
+from ccxt.async.indodax import indodax                          # noqa: F401
 from ccxt.async.itbit import itbit                              # noqa: F401
 from ccxt.async.jubi import jubi                                # noqa: F401
 from ccxt.async.kraken import kraken                            # noqa: F401
@@ -141,8 +143,8 @@ exchanges = [
     'bibox',
     'binance',
     'bit2c',
+    'bitbank',
     'bitbay',
-    'bitcoincoid',
     'bitfinex',
     'bitfinex2',
     'bitflyer',
@@ -186,6 +188,7 @@ exchanges = [
     'dsx',
     'ethfinex',
     'exmo',
+    'exx',
     'flowbtc',
     'foxbit',
     'fybse',
@@ -201,6 +204,7 @@ exchanges = [
     'huobicny',
     'huobipro',
     'independentreserve',
+    'indodax',
     'itbit',
     'jubi',
     'kraken',

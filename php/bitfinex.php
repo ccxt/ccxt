@@ -216,12 +216,17 @@ class bitfinex extends Exchange {
                 ),
             ),
             'commonCurrencies' => array (
-                'DSH' => 'DASH', // Bitfinex names Dash as DSH, instead of DASH
-                'QTM' => 'QTUM',
                 'BCC' => 'CST_BCC',
                 'BCU' => 'CST_BCU',
-                'IOT' => 'IOTA',
                 'DAT' => 'DATA',
+                'DSH' => 'DASH', // Bitfinex names Dash as DSH, instead of DASH
+                'IOT' => 'IOTA',
+                'MNA' => 'MANA',
+                'QSH' => 'QASH',
+                'QTM' => 'QTUM',
+                'SNG' => 'SNGLS',
+                'SPK' => 'SPANK',
+                'YYW' => 'YOYOW',
             ),
             'exceptions' => array (
                 'exact' => array (

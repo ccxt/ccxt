@@ -493,7 +493,13 @@ module.exports = class kucoin extends Exchange {
             'symbol': market['id'],
         };
         let response = await this.privateGetOrderActiveMap (this.extend (request, params));
-        let orders = this.arrayConcat (response['data']['SELL'], response['data']['BUY']);
+        let sell = response['data']['SELL'];
+        if (typeof sell === 'undefined')
+            sell = [];
+        let buy = response['data']['BUY'];
+        if (typeof buy === 'undefined')
+            buy = [];
+        let orders = this.arrayConcat (sell, buy);
         for (let i = 0; i < orders.length; i++) {
             let order = this.parseOrder (this.extend (orders[i], {
                 'status': 'open',
@@ -541,11 +547,12 @@ module.exports = class kucoin extends Exchange {
             throw new ExchangeError (this.id + ' allows limit orders only');
         await this.loadMarkets ();
         let market = this.market (symbol);
+        let quote = market['quote'];
         let base = market['base'];
         let request = {
             'symbol': market['id'],
             'type': side.toUpperCase (),
-            'price': this.priceToPrecision (symbol, price),
+            'price': this.truncate (price, this.currencies[quote]['precision']),
             'amount': this.truncate (amount, this.currencies[base]['precision']),
         };
         price = parseFloat (price);

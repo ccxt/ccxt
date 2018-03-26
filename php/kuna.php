@@ -28,30 +28,6 @@ class kuna extends acx {
                 'doc' => 'https://kuna.io/documents/api',
                 'fees' => 'https://kuna.io/documents/api',
             ),
-            'api' => array (
-                'public' => array (
-                    'get' => array (
-                        'tickers', // all of them at once
-                        'tickers/{market}',
-                        'order_book',
-                        'order_book/{market}',
-                        'trades',
-                        'trades/{market}',
-                        'timestamp',
-                    ),
-                ),
-                'private' => array (
-                    'get' => array (
-                        'members/me',
-                        'orders',
-                        'trades/my',
-                    ),
-                    'post' => array (
-                        'orders',
-                        'order/delete',
-                    ),
-                ),
-            ),
             'fees' => array (
                 'trading' => array (
                     'taker' => 0.25 / 100,

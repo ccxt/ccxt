@@ -474,7 +474,13 @@ class kucoin (Exchange):
             'symbol': market['id'],
         }
         response = await self.privateGetOrderActiveMap(self.extend(request, params))
-        orders = self.array_concat(response['data']['SELL'], response['data']['BUY'])
+        sell = response['data']['SELL']
+        if sell is None:
+            sell = []
+        buy = response['data']['BUY']
+        if buy is None:
+            buy = []
+        orders = self.array_concat(sell, buy)
         for i in range(0, len(orders)):
             order = self.parse_order(self.extend(orders[i], {
                 'status': 'open',
@@ -517,11 +523,12 @@ class kucoin (Exchange):
             raise ExchangeError(self.id + ' allows limit orders only')
         await self.load_markets()
         market = self.market(symbol)
+        quote = market['quote']
         base = market['base']
         request = {
             'symbol': market['id'],
             'type': side.upper(),
-            'price': self.price_to_precision(symbol, price),
+            'price': self.truncate(price, self.currencies[quote]['precision']),
             'amount': self.truncate(amount, self.currencies[base]['precision']),
         }
         price = float(price)

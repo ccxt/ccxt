@@ -29,6 +29,7 @@ class qryptos (Exchange):
                 'fetchOrders': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
+                'fetchMyTrades': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30953915-b1611dc0-a436-11e7-8947-c95bd5a42086.jpg',
@@ -255,6 +256,17 @@ class qryptos (Exchange):
         if limit is not None:
             request['limit'] = limit
         response = self.publicGetExecutions(self.extend(request, params))
+        return self.parse_trades(response['models'], market, since, limit)
+
+    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'product_id': market['id'],
+        }
+        if limit is not None:
+            request['limit'] = limit
+        response = self.privateGetExecutionsMe(self.extend(request, params))
         return self.parse_trades(response['models'], market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
