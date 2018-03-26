@@ -102,6 +102,7 @@ declare module 'ccxt' {
         bids: [number, number][];
         datetime: string;
         timestamp: number;
+        nonce: number;
     }
 
     export interface Trade {
