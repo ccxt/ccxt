@@ -94,6 +94,7 @@ class livecoin (Exchange):
             },
             'commonCurrencies': {
                 'CRC': 'CryCash',
+                'XBT': 'Bricktox',
             },
         })
 
