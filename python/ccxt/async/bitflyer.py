@@ -330,11 +330,14 @@ class bitflyer (Exchange):
         response = await self.privateGetGetexecutions(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    async def withdraw(self, currency, amount, address, tag=None, params={}):
+    async def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
         await self.load_markets()
+        if code != 'JPY' and code != 'USD' and code != 'EUR':
+            raise ExchangeError(self.id + ' allows withdrawing JPY, USD, EUR only, ' + code + ' is not supported')
+        currency = self.currency(code)
         response = await self.privatePostWithdraw(self.extend({
-            'currency_code': currency,
+            'currency_code': currency['id'],
             'amount': amount,
             # 'bank_account_id': 1234,
         }, params))
