@@ -636,6 +636,7 @@ abstract class Exchange {
             'fetchClosedOrders' => false,
             'fetchCurrencies' => false,
             'fetchDepositAddress' => false,
+            'fetchFundingFees' => false,
             'fetchL2OrderBook' => true,
             'fetchMarkets' => true,
             'fetchMyTrades' => false,
@@ -648,6 +649,7 @@ abstract class Exchange {
             'fetchTicker' => true,
             'fetchTickers' => false,
             'fetchTrades' => true,
+            'fetchTradingFees' => false,
             'withdraw' => false,
         );
 

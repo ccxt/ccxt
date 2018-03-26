@@ -97,6 +97,7 @@ module.exports = class Exchange {
                 'fetchTicker': true,
                 'fetchTickers': false,
                 'fetchTrades': true,
+                'fetchTradingFees': false,
                 'withdraw': false,
             },
             'urls': {
