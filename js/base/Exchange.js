@@ -889,6 +889,13 @@ module.exports = class Exchange {
         return this.filterBySymbolSinceLimit (result, symbol, since, limit)
     }
 
+    parseTransactions (transactions, side = undefined, market = undefined, since = undefined, limit = undefined) {
+        let result = Object.values (transactions || []).map (transaction => this.parseTransaction (transaction, side));
+        result = this.sortBy (result, 'timestamp');
+        let symbol = (typeof market !== 'undefined') ? market['symbol'] : undefined;
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
+    }
+
     parseOrders (orders, market = undefined, since = undefined, limit = undefined) {
         let result = Object.values (orders).map (order => this.parseOrder (order, market))
         result = sortBy (result, 'timestamp')

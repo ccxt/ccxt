@@ -557,13 +557,6 @@ module.exports = class cobinhood extends Exchange {
         return this.parseTransactions (response['result']['withdrawals'], 'withdraw');
     }
 
-    parseTransactions (transactions, side = undefined, market = undefined, since = undefined, limit = undefined) {
-        let result = Object.values (transactions || []).map (transaction => this.parseTransaction (transaction, side));
-        result = this.sortBy (result, 'timestamp');
-        let symbol = (typeof market !== 'undefined') ? market['symbol'] : undefined;
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
-    }
-
     parseTransactionStatus (status) {
         if (['tx_pending_two_factor_auth', 'tx_pending_email_auth', 'tx_pending_approval', 'tx_approved', 'tx_processing', 'tx_pending', 'tx_sent'].indexOf (status) !== -1) {
             return 'pending';

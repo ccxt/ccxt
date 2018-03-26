@@ -1091,6 +1091,13 @@ class Exchange(object):
         symbol = market['symbol'] if market else None
         return self.filter_by_symbol_since_limit(array, symbol, since, limit)
 
+    def parse_transactions(self, transactions, side=None, market=None, since=None, limit=None):
+        array = self.to_array(transactions)
+        array = [self.parse_transaction(transaction, market) for transaction in array]
+        array = self.sort_by(array, 'timestamp')
+        symbol = market['symbol'] if market else None
+        return self.filter_by_symbol_since_limit(array, symbol, since, limit)
+
     def parse_orders(self, orders, market=None, since=None, limit=None):
         array = self.to_array(orders)
         array = [self.parse_order(order, market) for order in array]
