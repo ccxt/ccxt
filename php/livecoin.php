@@ -83,6 +83,7 @@ class livecoin extends Exchange {
             ),
             'commonCurrencies' => array (
                 'CRC' => 'CryCash',
+                'XBT' => 'Bricktox',
             ),
         ));
     }
