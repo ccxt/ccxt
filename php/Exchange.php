@@ -1160,6 +1160,7 @@ abstract class Exchange {
                 array (),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
+            'nonce' => null,
         );
     }
 

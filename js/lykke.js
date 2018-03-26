@@ -326,16 +326,10 @@ module.exports = class lykke extends Exchange {
             } else {
                 orderbook['asks'] = this.arrayConcat (orderbook['asks'], side['Prices']);
             }
-            let timestamp = this.parse8601 (side['Timestamp']);
-            if (!orderbook['timestamp']) {
-                orderbook['timestamp'] = timestamp;
-            } else {
-                orderbook['timestamp'] = Math.max (orderbook['timestamp'], timestamp);
-            }
+            let sideTimestamp = this.parse8601 (side['Timestamp']);
+            timestamp = (typeof timestamp === 'undefined') ? sideTimestamp : Math.max (timestamp, sideTimestamp);
         }
-        if (!timestamp)
-            timestamp = this.milliseconds ();
-        return this.parseOrderBook (orderbook, orderbook['timestamp'], 'bids', 'asks', 'Price', 'Volume');
+        return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 'Price', 'Volume');
     }
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 1) {

@@ -53,7 +53,7 @@
     "indodax":       { "skip": true, "apiKey": "OEJGH4SX-5AKKDJUL-FXS0WTM8-NLLGG0FK-S52DHUJJ", "secret": "9c0d8c88c3d4f121cfe6279ca4276f2519b59a39369781b378034d608460a9c2591ea6e64e604807" },
     "jubi":          { "skip": true, "apiKey": "icbh6-v163t-6ravj-7ezbg-1yab2-pun37-qmj25", "secret": "W&b%~-(5Xi(-pytmY-.nVaO-X,Cx^-RaHhd-S(6;." },
     "kraken":        { "skip": true },
-    "kucoin":        { "apiKey": "5a5712a29e13a25bfb18e501", "secret": "b849b80e-db41-44f5-99de-fd400e1d0aac" },
+    "kucoin":        { },
     "kuna":          { "skip": true },
     "lakebtc":       { "skip": true },
     "liqui":         { },

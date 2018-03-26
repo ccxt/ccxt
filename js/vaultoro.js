@@ -106,9 +106,7 @@ module.exports = class vaultoro extends Exchange {
             'bids': response['data'][0]['b'],
             'asks': response['data'][1]['s'],
         };
-        let result = this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'Gold_Price', 'Gold_Amount');
-        result['bids'] = this.sortBy (result['bids'], 0, true);
-        return result;
+        return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'Gold_Price', 'Gold_Amount');
     }
 
     async fetchTicker (symbol, params = {}) {
