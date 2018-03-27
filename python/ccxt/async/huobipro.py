@@ -337,9 +337,9 @@ class huobipro (Exchange):
         else:
             raise ExchangeError(self.id + ' fetchOrders() requires a type param or status param for spot market ' + symbol + '(0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)')
         if (status == 0) or (status == 'open'):
-            status = 'submitted,partial-filled'
+            status = 'pre-submitted,submitted,partial-filled'
         elif (status == 1) or (status == 'closed'):
-            status = 'filled,partial-canceled'
+            status = 'filled,partial-canceled,canceled'
         else:
             raise ExchangeError(self.id + ' fetchOrders() wrong type param or status param for spot market ' + symbol + '(0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)')
         response = await self.privateGetOrderOrders(self.extend({
