@@ -563,6 +563,7 @@ module.exports = class kucoin extends Exchange {
             'id': orderId,
             'timestamp': undefined,
             'datetime': undefined,
+            'symbol': market['id'],
             'type': type,
             'side': side,
             'amount': amount,
