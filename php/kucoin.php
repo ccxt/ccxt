@@ -353,7 +353,7 @@ class kucoin extends Exchange {
             }
         }
         $symbol = null;
-        if ($market) {
+        if ($market !== null) {
             $symbol = $market['symbol'];
         } else {
             $symbol = $order['coinType'] . '/' . $order['coinTypePair'];
@@ -421,7 +421,7 @@ class kucoin extends Exchange {
                         $cost = $amount * $price;
         }
         $feeCurrency = null;
-        if ($market) {
+        if ($market !== null) {
             $feeCurrency = ($side === 'sell') ? $market['quote'] : $market['base'];
         } else {
             $feeCurrencyField = ($side === 'sell') ? 'coinTypePair' : 'coinType';
@@ -490,10 +490,10 @@ class kucoin extends Exchange {
             'symbol' => $market['id'],
         );
         $response = $this->privateGetOrderActiveMap (array_merge ($request, $params));
-        $sell = $response['data']['SELL'];
+        $sell = $this->safe_value($response['data'], 'SELL');
         if ($sell === null)
             $sell = array ();
-        $buy = $response['data']['BUY'];
+        $buy = $this->safe_value($response['data'], 'BUY');
         if ($buy === null)
             $buy = array ();
         $orders = $this->array_concat($sell, $buy);
@@ -562,6 +562,7 @@ class kucoin extends Exchange {
             'id' => $orderId,
             'timestamp' => null,
             'datetime' => null,
+            'symbol' => $market['id'],
             'type' => $type,
             'side' => $side,
             'amount' => $amount,

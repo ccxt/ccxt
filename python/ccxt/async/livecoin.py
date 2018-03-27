@@ -406,12 +406,10 @@ class livecoin (Exchange):
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         market = None
-        if symbol:
-            market = self.market(symbol)
-        pair = market['id'] if market else None
         request = {}
-        if pair:
-            request['currencyPair'] = pair
+        if symbol is not None:
+            market = self.market(symbol)
+            request['currencyPair'] = market['id']
         if since is not None:
             request['issuedFrom'] = int(since)
         if limit is not None:

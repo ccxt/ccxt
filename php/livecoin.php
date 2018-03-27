@@ -418,12 +418,11 @@ class livecoin extends Exchange {
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
-        if ($symbol)
-            $market = $this->market ($symbol);
-        $pair = $market ? $market['id'] : null;
         $request = array ();
-        if ($pair)
-            $request['currencyPair'] = $pair;
+        if ($symbol !== null) {
+            $market = $this->market ($symbol);
+            $request['currencyPair'] = $market['id'];
+        }
         if ($since !== null)
             $request['issuedFrom'] = intval ($since);
         if ($limit !== null)

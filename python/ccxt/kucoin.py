@@ -351,7 +351,7 @@ class kucoin (Exchange):
                 trades[i]['side'] = side
                 trades[i]['order'] = orderId
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
         else:
             symbol = order['coinType'] + '/' + order['coinTypePair']
@@ -409,7 +409,7 @@ class kucoin (Exchange):
                     if amount is not None:
                         cost = amount * price
         feeCurrency = None
-        if market:
+        if market is not None:
             feeCurrency = market['quote'] if (side == 'sell') else market['base']
         else:
             feeCurrencyField = 'coinTypePair' if (side == 'sell') else 'coinType'
@@ -474,10 +474,10 @@ class kucoin (Exchange):
             'symbol': market['id'],
         }
         response = self.privateGetOrderActiveMap(self.extend(request, params))
-        sell = response['data']['SELL']
+        sell = self.safe_value(response['data'], 'SELL')
         if sell is None:
             sell = []
-        buy = response['data']['BUY']
+        buy = self.safe_value(response['data'], 'BUY')
         if buy is None:
             buy = []
         orders = self.array_concat(sell, buy)
@@ -541,6 +541,7 @@ class kucoin (Exchange):
             'id': orderId,
             'timestamp': None,
             'datetime': None,
+            'symbol': market['id'],
             'type': type,
             'side': side,
             'amount': amount,
