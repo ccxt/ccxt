@@ -419,12 +419,11 @@ module.exports = class livecoin extends Exchange {
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
-        if (symbol)
-            market = this.market (symbol);
-        let pair = market ? market['id'] : undefined;
         let request = {};
-        if (pair)
-            request['currencyPair'] = pair;
+        if (typeof symbol !== 'undefined') {
+            market = this.market (symbol);
+            request['currencyPair'] = market['id'];
+        }
         if (typeof since !== 'undefined')
             request['issuedFrom'] = parseInt (since);
         if (typeof limit !== 'undefined')
