@@ -360,9 +360,9 @@ module.exports = class huobipro extends Exchange {
             throw new ExchangeError (this.id + ' fetchOrders() requires a type param or status param for spot market ' + symbol + ' (0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)');
         }
         if ((status === 0) || (status === 'open')) {
-            status = 'submitted,partial-filled';
+            status = 'pre-submitted,submitted,partial-filled';
         } else if ((status === 1) || (status === 'closed')) {
-            status = 'filled,partial-canceled';
+            status = 'filled,partial-canceled,canceled';
         } else {
             throw new ExchangeError (this.id + ' fetchOrders() wrong type param or status param for spot market ' + symbol + ' (0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)');
         }
