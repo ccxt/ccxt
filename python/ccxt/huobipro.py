@@ -341,7 +341,7 @@ class huobipro (Exchange):
         elif (status == 1) or (status == 'closed'):
             status = 'filled,partial-canceled,canceled'
         else:
-            raise ExchangeError(self.id + ' fetchOrders() wrong type param or status param for spot market ' + symbol + '(0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)')
+            status = 'pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled'
         response = self.privateGetOrderOrders(self.extend({
             'symbol': market['id'],
             'states': status,

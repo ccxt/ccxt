@@ -363,7 +363,7 @@ class huobipro extends Exchange {
         } else if (($status === 1) || ($status === 'closed')) {
             $status = 'filled,partial-canceled,canceled';
         } else {
-            throw new ExchangeError ($this->id . ' fetchOrders() wrong type param or $status param for spot $market ' . $symbol . ' (0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)');
+            $status = 'pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled';
         }
         $response = $this->privateGetOrderOrders (array_merge (array (
             'symbol' => $market['id'],
