@@ -25,8 +25,8 @@ class negociecoins extends Exchange {
                 ),
                 'www' => 'https://www.negociecoins.com.br',
                 'doc' => array (
-                    'https://www.negociecoins.com.br/documentacao-api',
                     'https://www.negociecoins.com.br/documentacao-tradeapi',
+                    'https://www.negociecoins.com.br/documentacao-api',
                 ),
                 'fees' => 'https://www.negociecoins.com.br/comissoes',
             ),
@@ -56,10 +56,11 @@ class negociecoins extends Exchange {
             ),
             'markets' => array (
                 'B2X/BRL' => array ( 'id' => 'b2xbrl', 'symbol' => 'B2X/BRL', 'base' => 'B2X', 'quote' => 'BRL' ),
-                'BTC/BRL' => array ( 'id' => 'btcbrl', 'symbol' => 'BTC/BRL', 'base' => 'BTC', 'quote' => 'BRL' ),
-                'LTC/BRL' => array ( 'id' => 'ltcbrl', 'symbol' => 'LTC/BRL', 'base' => 'LTC', 'quote' => 'BRL' ),
                 'BCH/BRL' => array ( 'id' => 'bchbrl', 'symbol' => 'BCH/BRL', 'base' => 'BCH', 'quote' => 'BRL' ),
+                'BTC/BRL' => array ( 'id' => 'btcbrl', 'symbol' => 'BTC/BRL', 'base' => 'BTC', 'quote' => 'BRL' ),
                 'BTG/BRL' => array ( 'id' => 'btgbrl', 'symbol' => 'BTG/BRL', 'base' => 'BTG', 'quote' => 'BRL' ),
+                'DASH/BRL' => array ( 'id' => 'dashbrl', 'symbol' => 'DASH/BRL', 'base' => 'DASH', 'quote' => 'BRL' ),
+                'LTC/BRL' => array ( 'id' => 'ltcbrl', 'symbol' => 'LTC/BRL', 'base' => 'LTC', 'quote' => 'BRL' ),
             ),
             'fees' => array (
                 'trading' => array (
