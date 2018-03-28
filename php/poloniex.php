@@ -254,8 +254,10 @@ class poloniex extends Exchange {
         );
         if ($limit !== null)
             $request['depth'] = $limit; // 100
-        $orderbook = $this->publicGetReturnOrderBook (array_merge ($request, $params));
-        return $this->parse_order_book($orderbook);
+        $response = $this->publicGetReturnOrderBook (array_merge ($request, $params));
+        $orderbook = $this->parse_order_book($response);
+        $orderbook['nonce'] = $this->safe_integer($response, 'sec');
+        return $orderbook;
     }
 
     public function parse_ticker ($ticker, $market = null) {

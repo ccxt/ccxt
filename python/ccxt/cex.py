@@ -32,7 +32,6 @@ class cex (Exchange):
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
-                'fetchOrders': True,
                 'fetchDepositAddress': True,
             },
             'timeframes': {

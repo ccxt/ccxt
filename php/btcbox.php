@@ -91,9 +91,7 @@ class btcbox extends Exchange {
         if ($numSymbols > 1)
             $request['coin'] = $market['id'];
         $orderbook = $this->publicGetDepth (array_merge ($request, $params));
-        $result = $this->parse_order_book($orderbook);
-        $result['asks'] = $this->sort_by($result['asks'], 0);
-        return $result;
+        return $this->parse_order_book($orderbook);
     }
 
     public function parse_ticker ($ticker, $market = null) {

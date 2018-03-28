@@ -19,7 +19,7 @@ module.exports = class livecoin extends Exchange {
                 'CORS': false,
                 'fetchTickers': true,
                 'fetchCurrencies': true,
-                'fetchFees': true,
+                'fetchTradingFees': true,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
@@ -84,6 +84,7 @@ module.exports = class livecoin extends Exchange {
             },
             'commonCurrencies': {
                 'CRC': 'CryCash',
+                'XBT': 'Bricktox',
             },
         });
     }
@@ -239,13 +240,6 @@ module.exports = class livecoin extends Exchange {
             result[currency] = account;
         }
         return this.parseBalance (result);
-    }
-
-    async fetchFees (params = {}) {
-        let tradingFees = await this.fetchTradingFees (params);
-        return this.extend (tradingFees, {
-            'withdraw': {},
-        });
     }
 
     async fetchTradingFees (params = {}) {
@@ -418,12 +412,11 @@ module.exports = class livecoin extends Exchange {
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
-        if (symbol)
-            market = this.market (symbol);
-        let pair = market ? market['id'] : undefined;
         let request = {};
-        if (pair)
-            request['currencyPair'] = pair;
+        if (typeof symbol !== 'undefined') {
+            market = this.market (symbol);
+            request['currencyPair'] = market['id'];
+        }
         if (typeof since !== 'undefined')
             request['issuedFrom'] = parseInt (since);
         if (typeof limit !== 'undefined')

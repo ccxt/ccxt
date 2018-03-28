@@ -95,9 +95,7 @@ class paymium (Exchange):
         orderbook = await self.publicGetDataIdDepth(self.extend({
             'id': self.market_id(symbol),
         }, params))
-        result = self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'amount')
-        result['bids'] = self.sort_by(result['bids'], 0, True)
-        return result
+        return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'amount')
 
     async def fetch_ticker(self, symbol, params={}):
         ticker = await self.publicGetDataIdTicker(self.extend({

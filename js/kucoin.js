@@ -354,7 +354,7 @@ module.exports = class kucoin extends Exchange {
             }
         }
         let symbol = undefined;
-        if (market) {
+        if (typeof market !== 'undefined') {
             symbol = market['symbol'];
         } else {
             symbol = order['coinType'] + '/' + order['coinTypePair'];
@@ -422,7 +422,7 @@ module.exports = class kucoin extends Exchange {
                         cost = amount * price;
         }
         let feeCurrency = undefined;
-        if (market) {
+        if (typeof market !== 'undefined') {
             feeCurrency = (side === 'sell') ? market['quote'] : market['base'];
         } else {
             let feeCurrencyField = (side === 'sell') ? 'coinTypePair' : 'coinType';
@@ -491,7 +491,13 @@ module.exports = class kucoin extends Exchange {
             'symbol': market['id'],
         };
         let response = await this.privateGetOrderActiveMap (this.extend (request, params));
-        let orders = this.arrayConcat (response['data']['SELL'], response['data']['BUY']);
+        let sell = this.safeValue (response['data'], 'SELL');
+        if (typeof sell === 'undefined')
+            sell = [];
+        let buy = this.safeValue (response['data'], 'BUY');
+        if (typeof buy === 'undefined')
+            buy = [];
+        let orders = this.arrayConcat (sell, buy);
         for (let i = 0; i < orders.length; i++) {
             let order = this.parseOrder (this.extend (orders[i], {
                 'status': 'open',
@@ -557,6 +563,7 @@ module.exports = class kucoin extends Exchange {
             'id': orderId,
             'timestamp': undefined,
             'datetime': undefined,
+            'symbol': market['id'],
             'type': type,
             'side': side,
             'amount': amount,

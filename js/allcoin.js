@@ -68,7 +68,9 @@ module.exports = class allcoin extends okcoinusd {
                 let market = markets[k]['Market'];
                 let base = market['Primary'];
                 let quote = market['Secondary'];
-                let id = base.toLowerCase () + '_' + quote.toLowerCase ();
+                let baseId = base.toLowerCase ();
+                let quoteId = quote.toLowerCase ();
+                let id = baseId + '_' + quoteId;
                 let symbol = base + '/' + quote;
                 let active = market['TradeEnabled'] && market['BuyEnabled'] && market['SellEnabled'];
                 result.push ({
@@ -76,6 +78,8 @@ module.exports = class allcoin extends okcoinusd {
                     'symbol': symbol,
                     'base': base,
                     'quote': quote,
+                    'baseId': baseId,
+                    'quoteId': quoteId,
                     'active': active,
                     'type': 'spot',
                     'spot': true,

@@ -34,14 +34,13 @@ class bitfinex (Exchange):
                 'deposit': True,
                 'fetchClosedOrders': True,
                 'fetchDepositAddress': True,
-                'fetchFees': True,
+                'fetchTradingFees': True,
                 'fetchFundingFees': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchTickers': True,
-                'fetchTradingFees': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -288,21 +287,6 @@ class bitfinex (Exchange):
             'maker': self.safe_float(response, 'maker_fee'),
             'taker': self.safe_float(response, 'taker_fee'),
         }
-
-    def load_fees(self):
-        #  # PHP does flat copying for arrays
-        #  # setting fees on the exchange instance isn't portable, unfortunately...
-        #  # self should probably go into the base class as well
-        # funding = self.fees['funding']
-        # fees = self.fetch_funding_fees()
-        # funding = self.deep_extend(funding, fees)
-        # return funding
-        raise NotSupported(self.id + ' loadFees() not implemented yet')
-
-    def fetch_fees(self):
-        fundingFees = self.fetch_funding_fees()
-        tradingFees = self.fetch_trading_fees()
-        return self.deep_extend(fundingFees, tradingFees)
 
     def fetch_markets(self):
         markets = self.publicGetSymbolsDetails()
@@ -600,18 +584,18 @@ class bitfinex (Exchange):
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=100, params={}):
         self.load_markets()
+        if since is None:
+            since = self.milliseconds() - self.parse_timeframe(timeframe) * limit * 1000
         market = self.market(symbol)
         v2id = 't' + market['id']
         request = {
             'symbol': v2id,
             'timeframe': self.timeframes[timeframe],
-            'sort': 1,
+            'sort': '-1',
             'limit': limit,
+            'start': since,
         }
-        if since is not None:
-            request['start'] = since
-        request = self.extend(request, params)
-        response = self.v2GetCandlesTradeTimeframeSymbolHist(request)
+        response = self.v2GetCandlesTradeTimeframeSymbolHist(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def get_currency_name(self, currency):

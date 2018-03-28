@@ -98,9 +98,7 @@ class btcbox (Exchange):
         if numSymbols > 1:
             request['coin'] = market['id']
         orderbook = self.publicGetDepth(self.extend(request, params))
-        result = self.parse_order_book(orderbook)
-        result['asks'] = self.sort_by(result['asks'], 0)
-        return result
+        return self.parse_order_book(orderbook)
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()

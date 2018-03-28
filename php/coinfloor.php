@@ -171,6 +171,55 @@ class coinfloor extends Exchange {
         return $this->privatePostIdCancelOrder (array ( 'id' => $id ));
     }
 
+    public function parse_order ($order, $market = null) {
+        $timestamp = $this->parse_date($order['datetime']);
+        $datetime = $this->iso8601 ($timestamp);
+        $price = $this->safe_float($order, 'price');
+        $amount = $this->safe_float($order, 'amount');
+        $cost = $price * $amount;
+        $side = null;
+        $status = $this->safe_string($order, 'status');
+        if ($order['type'] === 0)
+            $side = 'buy';
+        else if ($order['type'] === 1)
+            $side = 'sell';
+        $symbol = null;
+        if ($market !== null)
+            $symbol = $market['symbol'];
+        $id = (string) $order['id'];
+        return array (
+            'info' => $order,
+            'id' => $id,
+            'datetime' => $datetime,
+            'timestamp' => $timestamp,
+            'status' => $status,
+            'symbol' => $symbol,
+            'type' => 'limit',
+            'side' => $side,
+            'price' => $price,
+            'amount' => $amount,
+            'filled' => null,
+            'remaining' => null,
+            'cost' => $cost,
+            'fee' => null,
+        );
+    }
+
+    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if (!$symbol)
+            throw new NotSupported ($this->id . ' fetchOpenOrders requires a $symbol param');
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $orders = $this->privatePostIdOpenOrders (array (
+            'id' => $market['id'],
+        ));
+        for ($i = 0; $i < count ($orders); $i++) {
+            // Coinfloor open $orders would always be $limit $orders
+            $orders[$i] = array_merge ($orders[$i], array ( 'status' => 'open' ));
+        }
+        return $this->parse_orders($orders, $market, $since, $limit);
+    }
+
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         // curl -k -u '[User ID]/[API key]:[Passphrase]' https://webapi.coinfloor.co.uk:8090/bist/XBT/GBP/balance/
         $url = $this->urls['api'] . '/' . $this->implode_params($path, $params);

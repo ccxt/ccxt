@@ -156,9 +156,7 @@ module.exports = class gateio extends Exchange {
         let orderbook = await this.publicGetOrderBookId (this.extend ({
             'id': this.marketId (symbol),
         }, params));
-        let result = this.parseOrderBook (orderbook);
-        result['asks'] = this.sortBy (result['asks'], 0);
-        return result;
+        return this.parseOrderBook (orderbook);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -333,9 +331,18 @@ module.exports = class gateio extends Exchange {
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('result' in response)
-            if (response['result'] !== 'true')
-                throw new ExchangeError (this.id + ' ' + this.json (response));
+        if ('result' in response) {
+            let result = response['result'];
+            let message = this.id + ' ' + this.json (response);
+            if (typeof result === 'undefined')
+                throw new ExchangeError (message);
+            if (typeof result === 'string') {
+                if (result !== 'true')
+                    throw new ExchangeError (message);
+            } else if (!result) {
+                throw new ExchangeError (message);
+            }
+        }
         return response;
     }
 };

@@ -191,6 +191,8 @@ class bitflyer extends Exchange {
                 if (is_array ($trade) && array_key_exists ($id, $trade))
                     $order = $trade[$id];
             }
+        if ($order === null)
+            $order = $this->safe_string($trade, 'child_order_acceptance_id');
         $timestamp = $this->parse8601 ($trade['exec_date']);
         return array (
             'id' => (string) $trade['id'],
@@ -352,11 +354,14 @@ class bitflyer extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
+        if ($code !== 'JPY' && $code !== 'USD' && $code !== 'EUR')
+            throw new ExchangeError ($this->id . ' allows withdrawing JPY, USD, EUR only, ' . $code . ' is not supported');
+        $currency = $this->currency ($code);
         $response = $this->privatePostWithdraw (array_merge (array (
-            'currency_code' => $currency,
+            'currency_code' => $currency['id'],
             'amount' => $amount,
             // 'bank_account_id' => 1234,
         ), $params));

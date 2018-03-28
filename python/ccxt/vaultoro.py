@@ -103,9 +103,7 @@ class vaultoro (Exchange):
             'bids': response['data'][0]['b'],
             'asks': response['data'][1]['s'],
         }
-        result = self.parse_order_book(orderbook, None, 'bids', 'asks', 'Gold_Price', 'Gold_Amount')
-        result['bids'] = self.sort_by(result['bids'], 0, True)
-        return result
+        return self.parse_order_book(orderbook, None, 'bids', 'asks', 'Gold_Price', 'Gold_Amount')
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()

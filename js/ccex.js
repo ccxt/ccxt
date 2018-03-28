@@ -226,7 +226,7 @@ module.exports = class ccex extends Exchange {
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         let tickers = await this.webGetPrices (params);
-        let result = { 'info': tickers };
+        let result = {};
         let ids = Object.keys (tickers);
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];

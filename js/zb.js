@@ -233,24 +233,7 @@ module.exports = class zb extends Exchange {
         let request = {};
         request[marketFieldName] = market['id'];
         let orderbook = await this.publicGetDepth (this.extend (request, params));
-        let timestamp = this.milliseconds ();
-        let bids = undefined;
-        let asks = undefined;
-        if ('bids' in orderbook)
-            bids = orderbook['bids'];
-        if ('asks' in orderbook)
-            asks = orderbook['asks'];
-        let result = {
-            'bids': bids,
-            'asks': asks,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-        };
-        if (result['bids'])
-            result['bids'] = this.sortBy (result['bids'], 0, true);
-        if (result['asks'])
-            result['asks'] = this.sortBy (result['asks'], 0);
-        return result;
+        return this.parseOrderBook (orderbook);
     }
 
     async fetchTicker (symbol, params = {}) {

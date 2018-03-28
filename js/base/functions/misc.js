@@ -1,7 +1,7 @@
 'use strict';
 
 //-------------------------------------------------------------------------
-// converts timeframe to ms
+// converts timeframe to seconds
 const parseTimeframe = (timeframe) => {
 
     let amount = timeframe.slice (0, -1)

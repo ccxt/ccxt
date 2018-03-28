@@ -29,7 +29,7 @@ class livecoin (Exchange):
                 'CORS': False,
                 'fetchTickers': True,
                 'fetchCurrencies': True,
-                'fetchFees': True,
+                'fetchTradingFees': True,
                 'fetchOrders': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
@@ -94,6 +94,7 @@ class livecoin (Exchange):
             },
             'commonCurrencies': {
                 'CRC': 'CryCash',
+                'XBT': 'Bricktox',
             },
         })
 
@@ -240,12 +241,6 @@ class livecoin (Exchange):
                 account['used'] = float(balance['value'])
             result[currency] = account
         return self.parse_balance(result)
-
-    def fetch_fees(self, params={}):
-        tradingFees = self.fetch_trading_fees(params)
-        return self.extend(tradingFees, {
-            'withdraw': {},
-        })
 
     def fetch_trading_fees(self, params={}):
         self.load_markets()
@@ -405,12 +400,10 @@ class livecoin (Exchange):
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         market = None
-        if symbol:
-            market = self.market(symbol)
-        pair = market['id'] if market else None
         request = {}
-        if pair:
-            request['currencyPair'] = pair
+        if symbol is not None:
+            market = self.market(symbol)
+            request['currencyPair'] = market['id']
         if since is not None:
             request['issuedFrom'] = int(since)
         if limit is not None:

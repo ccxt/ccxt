@@ -351,7 +351,7 @@ class kucoin (Exchange):
                 trades[i]['side'] = side
                 trades[i]['order'] = orderId
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
         else:
             symbol = order['coinType'] + '/' + order['coinTypePair']
@@ -409,7 +409,7 @@ class kucoin (Exchange):
                     if amount is not None:
                         cost = amount * price
         feeCurrency = None
-        if market:
+        if market is not None:
             feeCurrency = market['quote'] if (side == 'sell') else market['base']
         else:
             feeCurrencyField = 'coinTypePair' if (side == 'sell') else 'coinType'
@@ -474,7 +474,13 @@ class kucoin (Exchange):
             'symbol': market['id'],
         }
         response = self.privateGetOrderActiveMap(self.extend(request, params))
-        orders = self.array_concat(response['data']['SELL'], response['data']['BUY'])
+        sell = self.safe_value(response['data'], 'SELL')
+        if sell is None:
+            sell = []
+        buy = self.safe_value(response['data'], 'BUY')
+        if buy is None:
+            buy = []
+        orders = self.array_concat(sell, buy)
         for i in range(0, len(orders)):
             order = self.parse_order(self.extend(orders[i], {
                 'status': 'open',
@@ -535,6 +541,7 @@ class kucoin (Exchange):
             'id': orderId,
             'timestamp': None,
             'datetime': None,
+            'symbol': market['id'],
             'type': type,
             'side': side,
             'amount': amount,
@@ -735,7 +742,7 @@ class kucoin (Exchange):
         response = self.privateGetDealOrders(self.extend(request, params))
         return self.parse_trades(response['data']['datas'], market, since, limit)
 
-    def parse_trading_view_ohlcvs(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
+    def parse_trading_view_ohlc_vs(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
         result = []
         for i in range(0, len(ohlcvs['t'])):
             result.append([
@@ -781,7 +788,7 @@ class kucoin (Exchange):
             'to': end,
         }
         response = self.publicGetOpenChartHistory(self.extend(request, params))
-        return self.parse_trading_view_ohlcvs(response, market, timeframe, since, limit)
+        return self.parse_trading_view_ohlc_vs(response, market, timeframe, since, limit)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)

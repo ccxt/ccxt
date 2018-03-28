@@ -4,9 +4,18 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import hashlib
 import math
+import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import InvalidOrder
 
 
 class huobipro (Exchange):
@@ -99,6 +108,9 @@ class huobipro (Exchange):
                     'maker': 0.002,
                     'taker': 0.002,
                 },
+            },
+            'exceptions': {
+                'order-limitorder-amount-min-error': InvalidOrder,  # limit order amount error, min: `0.001`
             },
         })
 
@@ -337,11 +349,11 @@ class huobipro (Exchange):
         else:
             raise ExchangeError(self.id + ' fetchOrders() requires a type param or status param for spot market ' + symbol + '(0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)')
         if (status == 0) or (status == 'open'):
-            status = 'submitted,partial-filled'
+            status = 'pre-submitted,submitted,partial-filled'
         elif (status == 1) or (status == 'closed'):
-            status = 'filled,partial-canceled'
+            status = 'filled,partial-canceled,canceled'
         else:
-            raise ExchangeError(self.id + ' fetchOrders() wrong type param or status param for spot market ' + symbol + '(0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)')
+            status = 'pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled'
         response = await self.privateGetOrderOrders(self.extend({
             'symbol': market['id'],
             'states': status,
@@ -526,9 +538,23 @@ class huobipro (Exchange):
         url = self.urls['api'] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = await self.fetch2(path, api, method, params, headers, body)
-        if 'status' in response:
-            if response['status'] == 'error':
-                raise ExchangeError(self.id + ' ' + self.json(response))
-        return response
+    def handle_errors(self, httpCode, reason, url, method, headers, body):
+        if not isinstance(body, basestring):
+            return  # fallback to default error handler
+        if len(body) < 2:
+            return  # fallback to default error handler
+        if (body[0] == '{') or (body[0] == '['):
+            response = json.loads(body)
+            if 'status' in response:
+                #
+                #     {"status":"error","err-code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
+                #
+                status = self.safe_string(response, 'status')
+                if status == 'error':
+                    code = self.safe_string(response, 'err-code')
+                    feedback = self.id + ' ' + self.json(response)
+                    message = self.safe_string(response, 'err-msg', feedback)
+                    exceptions = self.exceptions
+                    if code in exceptions:
+                        raise exceptions[code](message)
+                    raise ExchangeError(message)

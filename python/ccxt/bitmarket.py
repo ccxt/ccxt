@@ -200,13 +200,7 @@ class bitmarket (Exchange):
         orderbook = self.publicGetJsonMarketOrderbook(self.extend({
             'market': self.market_id(symbol),
         }, params))
-        timestamp = self.milliseconds()
-        return {
-            'bids': orderbook['bids'],
-            'asks': orderbook['asks'],
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-        }
+        return self.parse_order_book(orderbook)
 
     def fetch_ticker(self, symbol, params={}):
         ticker = self.publicGetJsonMarketTicker(self.extend({

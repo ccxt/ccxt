@@ -22,11 +22,19 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.11.171'
+__version__ = '1.12.30'
 
 # ----------------------------------------------------------------------------
 
 from ccxt.base.exchange import Exchange                     # noqa: F401
+
+from ccxt.base.decimal_to_precision import decimal_to_precision  # noqa: F401
+from ccxt.base.decimal_to_precision import TRUNCATE              # noqa: F401
+from ccxt.base.decimal_to_precision import ROUND                 # noqa: F401
+from ccxt.base.decimal_to_precision import AFTER_DOT             # noqa: F401
+from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS    # noqa: F401
+from ccxt.base.decimal_to_precision import NO_PADDING            # noqa: F401
+from ccxt.base.decimal_to_precision import PAD_WITH_ZERO         # noqa: F401
 
 from ccxt.base import errors                                # noqa: F401
 from ccxt.base.errors import BaseError                      # noqa: F401
@@ -56,7 +64,6 @@ from ccxt.binance import binance                            # noqa: F401
 from ccxt.bit2c import bit2c                                # noqa: F401
 from ccxt.bitbank import bitbank                            # noqa: F401
 from ccxt.bitbay import bitbay                              # noqa: F401
-from ccxt.bitcoincoid import bitcoincoid                    # noqa: F401
 from ccxt.bitfinex import bitfinex                          # noqa: F401
 from ccxt.bitfinex2 import bitfinex2                        # noqa: F401
 from ccxt.bitflyer import bitflyer                          # noqa: F401
@@ -88,11 +95,13 @@ from ccxt.chilebit import chilebit                          # noqa: F401
 from ccxt.cobinhood import cobinhood                        # noqa: F401
 from ccxt.coincheck import coincheck                        # noqa: F401
 from ccxt.coinegg import coinegg                            # noqa: F401
+from ccxt.coinex import coinex                              # noqa: F401
 from ccxt.coinexchange import coinexchange                  # noqa: F401
 from ccxt.coinfloor import coinfloor                        # noqa: F401
 from ccxt.coingi import coingi                              # noqa: F401
 from ccxt.coinmarketcap import coinmarketcap                # noqa: F401
 from ccxt.coinmate import coinmate                          # noqa: F401
+from ccxt.coinone import coinone                            # noqa: F401
 from ccxt.coinsecure import coinsecure                      # noqa: F401
 from ccxt.coinspot import coinspot                          # noqa: F401
 from ccxt.coolcoin import coolcoin                          # noqa: F401
@@ -115,7 +124,9 @@ from ccxt.hitbtc2 import hitbtc2                            # noqa: F401
 from ccxt.huobi import huobi                                # noqa: F401
 from ccxt.huobicny import huobicny                          # noqa: F401
 from ccxt.huobipro import huobipro                          # noqa: F401
+from ccxt.ice3x import ice3x                                # noqa: F401
 from ccxt.independentreserve import independentreserve      # noqa: F401
+from ccxt.indodax import indodax                            # noqa: F401
 from ccxt.itbit import itbit                                # noqa: F401
 from ccxt.jubi import jubi                                  # noqa: F401
 from ccxt.kraken import kraken                              # noqa: F401
@@ -128,6 +139,7 @@ from ccxt.luno import luno                                  # noqa: F401
 from ccxt.lykke import lykke                                # noqa: F401
 from ccxt.mercado import mercado                            # noqa: F401
 from ccxt.mixcoins import mixcoins                          # noqa: F401
+from ccxt.negociecoins import negociecoins                  # noqa: F401
 from ccxt.nova import nova                                  # noqa: F401
 from ccxt.okcoincny import okcoincny                        # noqa: F401
 from ccxt.okcoinusd import okcoinusd                        # noqa: F401
@@ -163,7 +175,6 @@ exchanges = [
     'bit2c',
     'bitbank',
     'bitbay',
-    'bitcoincoid',
     'bitfinex',
     'bitfinex2',
     'bitflyer',
@@ -195,11 +206,13 @@ exchanges = [
     'cobinhood',
     'coincheck',
     'coinegg',
+    'coinex',
     'coinexchange',
     'coinfloor',
     'coingi',
     'coinmarketcap',
     'coinmate',
+    'coinone',
     'coinsecure',
     'coinspot',
     'coolcoin',
@@ -222,7 +235,9 @@ exchanges = [
     'huobi',
     'huobicny',
     'huobipro',
+    'ice3x',
     'independentreserve',
+    'indodax',
     'itbit',
     'jubi',
     'kraken',
@@ -235,6 +250,7 @@ exchanges = [
     'lykke',
     'mercado',
     'mixcoins',
+    'negociecoins',
     'nova',
     'okcoincny',
     'okcoinusd',
@@ -263,6 +279,7 @@ exchanges = [
 base = [
     'Exchange',
     'exchanges',
+    'decimal_to_precision',
 ]
 
 __all__ = base + errors.__all__ + exchanges

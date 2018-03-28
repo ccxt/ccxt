@@ -407,8 +407,10 @@ class binance extends Exchange {
         );
         if ($limit !== null)
             $request['limit'] = $limit; // default = maximum = 100
-        $orderbook = $this->publicGetDepth (array_merge ($request, $params));
-        return $this->parse_order_book($orderbook);
+        $response = $this->publicGetDepth (array_merge ($request, $params));
+        $orderbook = $this->parse_order_book($response);
+        $orderbook['nonce'] = $this->safe_integer($response, 'lastUpdateId');
+        return $orderbook;
     }
 
     public function parse_ticker ($ticker, $market = null) {

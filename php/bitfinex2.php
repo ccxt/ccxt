@@ -16,18 +16,20 @@ class bitfinex2 extends bitfinex {
             // new metainfo interface
             'has' => array (
                 'CORS' => true,
-                'createOrder' => false,
-                'createMarketOrder' => false,
                 'createLimitOrder' => false,
+                'createMarketOrder' => false,
+                'createOrder' => false,
+                'deposit' => false,
                 'editOrder' => false,
+                'fetchClosedOrders' => false,
+                'fetchFundingFees' => false,
                 'fetchMyTrades' => false,
                 'fetchOHLCV' => true,
-                'fetchTickers' => true,
-                'fetchOrder' => true,
                 'fetchOpenOrders' => false,
-                'fetchClosedOrders' => false,
+                'fetchOrder' => true,
+                'fetchTickers' => true,
+                'fetchTradingFees' => false,
                 'withdraw' => true,
-                'deposit' => false,
             ),
             'timeframes' => array (
                 '1m' => '1m',
@@ -255,6 +257,7 @@ class bitfinex2 extends bitfinex {
             'asks' => array (),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
+            'nonce' => null,
         );
         for ($i = 0; $i < count ($orderbook); $i++) {
             $order = $orderbook[$i];
@@ -349,7 +352,7 @@ class bitfinex2 extends bitfinex {
         $market = $this->market ($symbol);
         $request = array (
             'symbol' => $market['id'],
-            'sort' => 1,
+            'sort' => '-1',
             'limit' => $limit, // default = max = 120
         );
         if ($since !== null)
@@ -362,16 +365,16 @@ class bitfinex2 extends bitfinex {
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = 100, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
+        if ($since === null)
+            $since = $this->milliseconds () - $this->parse_timeframe($timeframe) * $limit * 1000;
         $request = array (
             'symbol' => $market['id'],
             'timeframe' => $this->timeframes[$timeframe],
             'sort' => 1,
             'limit' => $limit,
+            'start' => $since,
         );
-        if ($since !== null)
-            $request['start'] = $since;
-        $request = array_merge ($request, $params);
-        $response = $this->publicGetCandlesTradeTimeframeSymbolHist ($request);
+        $response = $this->publicGetCandlesTradeTimeframeSymbolHist (array_merge ($request, $params));
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 

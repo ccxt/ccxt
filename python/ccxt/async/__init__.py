@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.11.171'
+__version__ = '1.12.30'
 
 # -----------------------------------------------------------------------------
 
@@ -38,7 +38,6 @@ from ccxt.async.binance import binance                          # noqa: F401
 from ccxt.async.bit2c import bit2c                              # noqa: F401
 from ccxt.async.bitbank import bitbank                          # noqa: F401
 from ccxt.async.bitbay import bitbay                            # noqa: F401
-from ccxt.async.bitcoincoid import bitcoincoid                  # noqa: F401
 from ccxt.async.bitfinex import bitfinex                        # noqa: F401
 from ccxt.async.bitfinex2 import bitfinex2                      # noqa: F401
 from ccxt.async.bitflyer import bitflyer                        # noqa: F401
@@ -70,11 +69,13 @@ from ccxt.async.chilebit import chilebit                        # noqa: F401
 from ccxt.async.cobinhood import cobinhood                      # noqa: F401
 from ccxt.async.coincheck import coincheck                      # noqa: F401
 from ccxt.async.coinegg import coinegg                          # noqa: F401
+from ccxt.async.coinex import coinex                            # noqa: F401
 from ccxt.async.coinexchange import coinexchange                # noqa: F401
 from ccxt.async.coinfloor import coinfloor                      # noqa: F401
 from ccxt.async.coingi import coingi                            # noqa: F401
 from ccxt.async.coinmarketcap import coinmarketcap              # noqa: F401
 from ccxt.async.coinmate import coinmate                        # noqa: F401
+from ccxt.async.coinone import coinone                          # noqa: F401
 from ccxt.async.coinsecure import coinsecure                    # noqa: F401
 from ccxt.async.coinspot import coinspot                        # noqa: F401
 from ccxt.async.coolcoin import coolcoin                        # noqa: F401
@@ -97,7 +98,9 @@ from ccxt.async.hitbtc2 import hitbtc2                          # noqa: F401
 from ccxt.async.huobi import huobi                              # noqa: F401
 from ccxt.async.huobicny import huobicny                        # noqa: F401
 from ccxt.async.huobipro import huobipro                        # noqa: F401
+from ccxt.async.ice3x import ice3x                              # noqa: F401
 from ccxt.async.independentreserve import independentreserve    # noqa: F401
+from ccxt.async.indodax import indodax                          # noqa: F401
 from ccxt.async.itbit import itbit                              # noqa: F401
 from ccxt.async.jubi import jubi                                # noqa: F401
 from ccxt.async.kraken import kraken                            # noqa: F401
@@ -110,6 +113,7 @@ from ccxt.async.luno import luno                                # noqa: F401
 from ccxt.async.lykke import lykke                              # noqa: F401
 from ccxt.async.mercado import mercado                          # noqa: F401
 from ccxt.async.mixcoins import mixcoins                        # noqa: F401
+from ccxt.async.negociecoins import negociecoins                # noqa: F401
 from ccxt.async.nova import nova                                # noqa: F401
 from ccxt.async.okcoincny import okcoincny                      # noqa: F401
 from ccxt.async.okcoinusd import okcoinusd                      # noqa: F401
@@ -145,7 +149,6 @@ exchanges = [
     'bit2c',
     'bitbank',
     'bitbay',
-    'bitcoincoid',
     'bitfinex',
     'bitfinex2',
     'bitflyer',
@@ -177,11 +180,13 @@ exchanges = [
     'cobinhood',
     'coincheck',
     'coinegg',
+    'coinex',
     'coinexchange',
     'coinfloor',
     'coingi',
     'coinmarketcap',
     'coinmate',
+    'coinone',
     'coinsecure',
     'coinspot',
     'coolcoin',
@@ -204,7 +209,9 @@ exchanges = [
     'huobi',
     'huobicny',
     'huobipro',
+    'ice3x',
     'independentreserve',
+    'indodax',
     'itbit',
     'jubi',
     'kraken',
@@ -217,6 +224,7 @@ exchanges = [
     'lykke',
     'mercado',
     'mixcoins',
+    'negociecoins',
     'nova',
     'okcoincny',
     'okcoinusd',

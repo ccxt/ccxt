@@ -102,6 +102,7 @@ declare module 'ccxt' {
         bids: [number, number][];
         datetime: string;
         timestamp: number;
+        nonce: number;
     }
 
     export interface Trade {
@@ -300,7 +301,6 @@ declare module 'ccxt' {
     export class bit2c extends Exchange {}
     export class bitbank extends Exchange {}
     export class bitbay extends Exchange {}
-    export class bitcoincoid extends Exchange {}
     export class bitfinex extends Exchange {}
     export class bitfinex2 extends bitfinex {}
     export class bitflyer extends Exchange {}
@@ -332,11 +332,13 @@ declare module 'ccxt' {
     export class cobinhood extends Exchange {}
     export class coincheck extends Exchange {}
     export class coinegg extends Exchange {}
+    export class coinex extends Exchange {}
     export class coinexchange extends Exchange {}
     export class coinfloor extends Exchange {}
     export class coingi extends Exchange {}
     export class coinmarketcap extends Exchange {}
     export class coinmate extends Exchange {}
+    export class coinone extends Exchange {}
     export class coinsecure extends Exchange {}
     export class coinspot extends Exchange {}
     export class coolcoin extends coinegg {}
@@ -359,7 +361,9 @@ declare module 'ccxt' {
     export class huobi extends Exchange {}
     export class huobicny extends huobipro {}
     export class huobipro extends Exchange {}
+    export class ice3x extends Exchange {}
     export class independentreserve extends Exchange {}
+    export class indodax extends Exchange {}
     export class itbit extends Exchange {}
     export class jubi extends btcbox {}
     export class kraken extends Exchange {}
@@ -372,6 +376,7 @@ declare module 'ccxt' {
     export class lykke extends Exchange {}
     export class mercado extends Exchange {}
     export class mixcoins extends Exchange {}
+    export class negociecoins extends Exchange {}
     export class nova extends Exchange {}
     export class okcoincny extends okcoinusd {}
     export class okcoinusd extends Exchange {}

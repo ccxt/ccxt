@@ -17,6 +17,7 @@ class kraken extends Exchange {
             'has' => array (
                 'createDepositAddress' => true,
                 'fetchDepositAddress' => true,
+                'fetchTradingFees' => true,
                 'CORS' => false,
                 'fetchCurrencies' => true,
                 'fetchTickers' => true,
@@ -44,7 +45,7 @@ class kraken extends Exchange {
                 'api' => array (
                     'public' => 'https://api.kraken.com',
                     'private' => 'https://api.kraken.com',
-                    'zendesk' => 'https://kraken.zendesk.com/hc/en-us/articles',
+                    'zendesk' => 'https://support.kraken.com/hc/en-us/articles',
                 ),
                 'www' => 'https://www.kraken.com',
                 'doc' => array (

@@ -258,18 +258,20 @@ module.exports = class coinegg extends Exchange {
                 let baseId = baseIds[i];
                 let ticker = tickers[baseId];
                 let id = baseId + quoteId;
-                let market = this.marketsById[id];
-                let symbol = market['symbol'];
-                result[symbol] = this.parseTicker ({
-                    'high': ticker[4],
-                    'low': ticker[5],
-                    'buy': ticker[2],
-                    'sell': ticker[3],
-                    'last': ticker[1],
-                    'change': ticker[8],
-                    'vol': ticker[6],
-                    'quoteVol': ticker[7],
-                }, market);
+                if (id in this.markets_by_id) {
+                    let market = this.marketsById[id];
+                    let symbol = market['symbol'];
+                    result[symbol] = this.parseTicker ({
+                        'high': ticker[4],
+                        'low': ticker[5],
+                        'buy': ticker[2],
+                        'sell': ticker[3],
+                        'last': ticker[1],
+                        'change': ticker[8],
+                        'vol': ticker[6],
+                        'quoteVol': ticker[7],
+                    }, market);
+                }
             }
         }
         return result;
