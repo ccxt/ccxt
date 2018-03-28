@@ -16,6 +16,7 @@ class coinone extends Exchange {
             'version' => 'v2',
             'has' => array (
                 'CORS' => false,
+                'createMarketOrder' => false,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg',
@@ -211,7 +212,7 @@ class coinone extends Exchange {
             'currency' => $this->market_id($symbol),
             'qty' => $amount,
         );
-        $method = 'privatePostOrderLimit' . $this->capitalize ($side);
+        $method = 'privatePostOrder' . $this->capitalize ($type) . $this->capitalize ($side);
         $response = $this->$method (array_merge ($order, $params));
         // todo => return the full $order structure
         // return $this->parse_order($response, market);

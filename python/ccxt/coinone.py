@@ -21,6 +21,7 @@ class coinone (Exchange):
             'version': 'v2',
             'has': {
                 'CORS': False,
+                'createMarketOrder': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg',
@@ -207,7 +208,7 @@ class coinone (Exchange):
             'currency': self.market_id(symbol),
             'qty': amount,
         }
-        method = 'privatePostOrderLimit' + self.capitalize(side)
+        method = 'privatePostOrder' + self.capitalize(type) + self.capitalize(side)
         response = getattr(self, method)(self.extend(order, params))
         # todo: return the full order structure
         # return self.parse_order(response, market)
