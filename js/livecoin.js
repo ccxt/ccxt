@@ -19,7 +19,7 @@ module.exports = class livecoin extends Exchange {
                 'CORS': false,
                 'fetchTickers': true,
                 'fetchCurrencies': true,
-                'fetchFees': true,
+                'fetchTradingFees': true,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
@@ -240,13 +240,6 @@ module.exports = class livecoin extends Exchange {
             result[currency] = account;
         }
         return this.parseBalance (result);
-    }
-
-    async fetchFees (params = {}) {
-        let tradingFees = await this.fetchTradingFees (params);
-        return this.extend (tradingFees, {
-            'withdraw': {},
-        });
     }
 
     async fetchTradingFees (params = {}) {

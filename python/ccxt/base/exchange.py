@@ -152,7 +152,6 @@ class Exchange(object):
         'fetchClosedOrders': False,
         'fetchCurrencies': False,
         'fetchDepositAddress': False,
-        'fetchFees': False,
         'fetchFundingFees': False,
         'fetchL2OrderBook': True,
         'fetchMarkets': True,

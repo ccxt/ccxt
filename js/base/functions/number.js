@@ -54,18 +54,6 @@ function numberToString (x) { // avoids scientific notation for too large and to
 //-----------------------------------------------------------------------------
 // expects non-scientific notation
 
-const truncate_regExpCache = []
-    , truncate_to_string = (num, precision = 0) => {
-        num = toFixed (num)
-        if (precision > 0) {
-            const re = truncate_regExpCache[precision] || (truncate_regExpCache[precision] = new RegExp("([-]*\\d+\\.\\d{" + precision + "})(\\d)"))
-            const [,result] = num.toString ().match (re) || [null, num]
-            return result.toString ()
-        }
-        return parseInt (num).toString ()
-    }
-    , truncate = (num, precision = 0) => parseFloat (truncate_to_string (num, precision))
-
 function precisionFromString (string) {
     const split = string.replace (/0+$/g, '').split ('.')
     return (split.length > 1) ? (split[1].length) : 0
@@ -220,9 +208,6 @@ module.exports = {
     numberToString,
     precisionFromString,
     decimalToPrecision,
-    truncate_to_string,
-    truncate,
-    toFixed,
 
     TRUNCATE,
     ROUND,
