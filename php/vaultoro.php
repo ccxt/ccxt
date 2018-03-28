@@ -106,9 +106,7 @@ class vaultoro extends Exchange {
             'bids' => $response['data'][0]['b'],
             'asks' => $response['data'][1]['s'],
         );
-        $result = $this->parse_order_book($orderbook, null, 'bids', 'asks', 'Gold_Price', 'Gold_Amount');
-        $result['bids'] = $this->sort_by($result['bids'], 0, true);
-        return $result;
+        return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'Gold_Price', 'Gold_Amount');
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {
@@ -120,6 +118,7 @@ class vaultoro extends Exchange {
         $response = $this->publicGetMarkets ($params);
         $ticker = $response['data'];
         $timestamp = $this->milliseconds ();
+        $last = floatval ($ticker['LastPrice']);
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -127,12 +126,14 @@ class vaultoro extends Exchange {
             'high' => floatval ($ticker['24hHigh']),
             'low' => floatval ($ticker['24hLow']),
             'bid' => $bid[0],
+            'bidVolume' => null,
             'ask' => $ask[0],
+            'askVolume' => null,
             'vwap' => null,
             'open' => null,
-            'close' => null,
-            'first' => null,
-            'last' => floatval ($ticker['LastPrice']),
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,

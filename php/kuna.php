@@ -28,30 +28,6 @@ class kuna extends acx {
                 'doc' => 'https://kuna.io/documents/api',
                 'fees' => 'https://kuna.io/documents/api',
             ),
-            'api' => array (
-                'public' => array (
-                    'get' => array (
-                        'tickers', // all of them at once
-                        'tickers/{market}',
-                        'order_book',
-                        'order_book/{market}',
-                        'trades',
-                        'trades/{market}',
-                        'timestamp',
-                    ),
-                ),
-                'private' => array (
-                    'get' => array (
-                        'members/me',
-                        'orders',
-                        'trades/my',
-                    ),
-                    'post' => array (
-                        'orders',
-                        'order/delete',
-                    ),
-                ),
-            ),
             'fees' => array (
                 'trading' => array (
                     'taker' => 0.25 / 100,
@@ -133,6 +109,7 @@ class kuna extends acx {
     }
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+        $this->load_markets();
         $market = $this->market ($symbol);
         $orderBook = $this->publicGetOrderBook (array_merge (array (
             'market' => $market['id'],
@@ -147,6 +124,7 @@ class kuna extends acx {
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if (!$symbol)
             throw new ExchangeError ($this->id . ' fetchOpenOrders requires a $symbol argument');
+        $this->load_markets();
         $market = $this->market ($symbol);
         $orders = $this->privateGetOrders (array_merge (array (
             'market' => $market['id'],
@@ -176,6 +154,7 @@ class kuna extends acx {
     }
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->publicGetTrades (array_merge (array (
             'market' => $market['id'],
@@ -214,6 +193,7 @@ class kuna extends acx {
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if (!$symbol)
             throw new ExchangeError ($this->id . ' fetchOpenOrders requires a $symbol argument');
+        $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->privateGetTradesMy (array ( 'market' => $market['id'] ));
         return $this->parse_my_trades ($response, $market);

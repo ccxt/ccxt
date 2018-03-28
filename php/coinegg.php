@@ -47,10 +47,8 @@ class coinegg extends Exchange {
                     ),
                 ),
                 'private' => array (
-                    'get' => array (
-                        'balance',
-                    ),
                     'post' => array (
+                        'balance',
                         'trade_add/{quote}',
                         'trade_cancel/{quote}',
                         'trade_view/{quote}',
@@ -121,6 +119,27 @@ class coinegg extends Exchange {
                 '203' => '\\ccxt\\OrderNotFound',
                 '402' => '\\ccxt\\DDoSProtection',
             ),
+            'errorMessages' => array (
+                '100' => 'Required parameters can not be empty',
+                '101' => 'Illegal parameter',
+                '102' => 'coin does not exist',
+                '103' => 'Key does not exist',
+                '104' => 'Signature does not match',
+                '105' => 'Insufficient permissions',
+                '106' => 'Request expired(nonce error)',
+                '200' => 'Lack of balance',
+                '201' => 'Too small for the number of trading',
+                '202' => 'Price must be in 0 - 1000000',
+                '203' => 'Order does not exist',
+                '204' => 'Pending order amount must be above 0.001 BTC',
+                '205' => 'Restrict pending order prices',
+                '206' => 'Decimal place error',
+                '401' => 'System error',
+                '402' => 'Requests are too frequent',
+                '403' => 'Non-open API',
+                '404' => 'IP restriction does not request the resource',
+                '405' => 'Currency transactions are temporarily closed',
+            ),
         ));
     }
 
@@ -186,6 +205,7 @@ class coinegg extends Exchange {
     public function parse_ticker ($ticker, $market = null) {
         $symbol = $market['symbol'];
         $timestamp = $this->milliseconds ();
+        $last = floatval ($ticker['last']);
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -193,12 +213,14 @@ class coinegg extends Exchange {
             'high' => floatval ($ticker['high']),
             'low' => floatval ($ticker['low']),
             'bid' => floatval ($ticker['buy']),
+            'bidVolume' => null,
             'ask' => floatval ($ticker['sell']),
+            'askVolume' => null,
             'vwap' => null,
             'open' => null,
-            'close' => null,
-            'first' => null,
-            'last' => floatval ($ticker['last']),
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
             'change' => $this->safe_float($ticker, 'change'),
             'percentage' => null,
             'average' => null,
@@ -235,18 +257,20 @@ class coinegg extends Exchange {
                 $baseId = $baseIds[$i];
                 $ticker = $tickers[$baseId];
                 $id = $baseId . $quoteId;
-                $market = $this->marketsById[$id];
-                $symbol = $market['symbol'];
-                $result[$symbol] = $this->parse_ticker(array (
-                    'high' => $ticker[4],
-                    'low' => $ticker[5],
-                    'buy' => $ticker[2],
-                    'sell' => $ticker[3],
-                    'last' => $ticker[1],
-                    'change' => $ticker[8],
-                    'vol' => $ticker[6],
-                    'quoteVol' => $ticker[7],
-                ), $market);
+                if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
+                    $market = $this->marketsById[$id];
+                    $symbol = $market['symbol'];
+                    $result[$symbol] = $this->parse_ticker(array (
+                        'high' => $ticker[4],
+                        'low' => $ticker[5],
+                        'buy' => $ticker[2],
+                        'sell' => $ticker[3],
+                        'last' => $ticker[1],
+                        'change' => $ticker[8],
+                        'vol' => $ticker[6],
+                        'quoteVol' => $ticker[7],
+                    ), $market);
+                }
             }
         }
         return $result;
@@ -296,7 +320,7 @@ class coinegg extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $balances = $this->privateGetBalance ($params);
+        $balances = $this->privatePostBalance ($params);
         $result = array ( 'info' => $balances );
         $balances = $this->omit ($balances['data'], 'uid');
         $rows = is_array ($balances) ? array_keys ($balances) : array ();
@@ -369,10 +393,7 @@ class coinegg extends Exchange {
             'amount' => $amount,
             'price' => $price,
         ), $params));
-        if (!$response['status']) {
-            throw new InvalidOrder ($this->json ($response));
-        }
-        $id = $response['id'];
+        $id = (string) $response['id'];
         $order = $this->parse_order(array (
             'id' => $id,
             'datetime' => $this->ymdhms ($this->milliseconds ()),
@@ -394,9 +415,6 @@ class coinegg extends Exchange {
             'coin' => $market['baseId'],
             'quote' => $market['quoteId'],
         ), $params));
-        if (!$response['status']) {
-            throw new ExchangeError ($this->json ($response));
-        }
         return $response;
     }
 
@@ -469,43 +487,31 @@ class coinegg extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
-        $errorMessages = array (
-            '100' => 'Required parameters can not be empty',
-            '101' => 'Illegal parameter',
-            '102' => 'coin does not exist',
-            '103' => 'Key does not exist',
-            '104' => 'Signature does not match',
-            '105' => 'Insufficient permissions',
-            '106' => 'Request expired(nonce $error)',
-            '200' => 'Lack of balance',
-            '201' => 'Too small for the number of trading',
-            '202' => 'Price must be in 0 - 1000000',
-            '203' => 'Order does not exist',
-            '204' => 'Pending order amount must be above 0.001 BTC',
-            '205' => 'Restrict pending order prices',
-            '206' => 'Decimal place error',
-            '401' => 'System error',
-            '402' => 'Requests are too frequent',
-            '403' => 'Non-open API',
-            '404' => 'IP restriction does not request the resource',
-            '405' => 'Currency transactions are temporarily closed',
-        );
-        // checks against $error codes
-        if (gettype ($body) == 'string') {
-            if (strlen ($body) > 0) {
-                if ($body[0] === '{') {
-                    $response = json_decode ($body, $as_associative_array = true);
-                    $error = $this->safe_string($response, 'code');
-                    $message = $this->safe_string($errorMessages, $code, 'Error');
-                    if ($error !== null) {
-                        if (is_array ($this->exceptions) && array_key_exists ($error, $this->exceptions)) {
-                            throw new $this->exceptions[$error] ($this->id . ' ' . $message);
-                        } else {
-                            throw new ExchangeError ($this->id . $message);
-                        }
-                    }
-                }
-            }
+        // checks against error codes
+        if (gettype ($body) != 'string')
+            return;
+        if (strlen ($body) === 0)
+            return;
+        if ($body[0] !== '{')
+            return;
+        $response = json_decode ($body, $as_associative_array = true);
+        // private endpoints return the following structure:
+        // array ("$result":true,"data":{...)} - success
+        // array ("$result":false,"$code":"103") - failure
+        $result = $this->safe_value($response, 'result');
+        if ($result === null)
+            // public endpoint
+            return;
+        if ($result === true)
+            // success
+            return;
+        $errorCode = $this->safe_string($response, 'code');
+        $errorMessages = $this->errorMessages;
+        $message = $this->safe_string($errorMessages, $errorCode, 'Unknown Error');
+        if (is_array ($this->exceptions) && array_key_exists ($errorCode, $this->exceptions)) {
+            throw new $this->exceptions[$errorCode] ($this->id . ' ' . $message);
+        } else {
+            throw new ExchangeError ($this->id . ' ' . $message);
         }
     }
 }

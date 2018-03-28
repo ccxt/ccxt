@@ -44,7 +44,7 @@ class kraken extends Exchange {
                 'api' => array (
                     'public' => 'https://api.kraken.com',
                     'private' => 'https://api.kraken.com',
-                    'zendesk' => 'https://kraken.zendesk.com/hc/en-us/articles',
+                    'zendesk' => 'https://support.kraken.com/hc/en-us/articles',
                 ),
                 'www' => 'https://www.kraken.com',
                 'doc' => array (
@@ -267,8 +267,7 @@ class kraken extends Exchange {
                 'amount' => $market['lot_decimals'],
                 'price' => $market['pair_decimals'],
             );
-            $lot = pow (10, -$precision['amount']);
-            $minAmount = $lot;
+            $minAmount = pow (10, -$precision['amount']);
             if (is_array ($limits) && array_key_exists ($base, $limits))
                 $minAmount = $limits[$base];
             $result[] = array (
@@ -281,7 +280,6 @@ class kraken extends Exchange {
                 'altname' => $market['altname'],
                 'maker' => $maker,
                 'taker' => floatval ($market['fees'][0][1]) / 100,
-                'lot' => $lot,
                 'active' => true,
                 'precision' => $precision,
                 'limits' => array (
@@ -316,7 +314,6 @@ class kraken extends Exchange {
             'info' => null,
             'maker' => null,
             'taker' => null,
-            'lot' => $amountLimits['min'],
             'active' => false,
             'precision' => $precision,
             'limits' => $limits,
@@ -421,6 +418,7 @@ class kraken extends Exchange {
         $baseVolume = floatval ($ticker['v'][1]);
         $vwap = floatval ($ticker['p'][1]);
         $quoteVolume = $baseVolume * $vwap;
+        $last = floatval ($ticker['c'][0]);
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -428,12 +426,14 @@ class kraken extends Exchange {
             'high' => floatval ($ticker['h'][1]),
             'low' => floatval ($ticker['l'][1]),
             'bid' => floatval ($ticker['b'][0]),
+            'bidVolume' => null,
             'ask' => floatval ($ticker['a'][0]),
+            'askVolume' => null,
             'vwap' => $vwap,
             'open' => floatval ($ticker['o']),
-            'close' => null,
-            'first' => null,
-            'last' => floatval ($ticker['c'][0]),
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,

@@ -116,6 +116,7 @@ module.exports = class anxpro extends Exchange {
         let bid = this.safeFloat (ticker['buy'], 'value');
         let ask = this.safeFloat (ticker['sell'], 'value');
         let baseVolume = parseFloat (ticker['vol']['value']);
+        let last = parseFloat (ticker['last']['value']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -123,12 +124,14 @@ module.exports = class anxpro extends Exchange {
             'high': parseFloat (ticker['high']['value']),
             'low': parseFloat (ticker['low']['value']),
             'bid': bid,
+            'bidVolume': undefined,
             'ask': ask,
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last']['value']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': parseFloat (ticker['avg']['value']),
@@ -222,9 +225,10 @@ module.exports = class anxpro extends Exchange {
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('result' in response)
-            if (response['result'] === 'success')
-                return response;
+        if (typeof response !== 'undefined')
+            if ('result' in response)
+                if (response['result'] === 'success')
+                    return response;
         throw new ExchangeError (this.id + ' ' + this.json (response));
     }
 };

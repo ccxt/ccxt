@@ -82,11 +82,11 @@ module.exports = class livecoin extends Exchange {
                     'taker': 0.18 / 100,
                 },
             },
+            'commonCurrencies': {
+                'CRC': 'CryCash',
+                'XBT': 'Bricktox',
+            },
         });
-    }
-
-    commonCurrencyCode (currency) {
-        return currency;
     }
 
     async fetchMarkets () {
@@ -98,7 +98,9 @@ module.exports = class livecoin extends Exchange {
             let market = markets[p];
             let id = market['symbol'];
             let symbol = id;
-            let [ base, quote ] = symbol.split ('/');
+            let [ baseId, quoteId ] = symbol.split ('/');
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
             let coinRestrictions = this.safeValue (restrictionsById, symbol);
             let precision = {
                 'price': 5,
@@ -124,6 +126,9 @@ module.exports = class livecoin extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': true,
                 'precision': precision,
                 'limits': limits,
                 'info': market,
@@ -269,6 +274,7 @@ module.exports = class livecoin extends Exchange {
         let vwap = parseFloat (ticker['vwap']);
         let baseVolume = parseFloat (ticker['volume']);
         let quoteVolume = baseVolume * vwap;
+        let last = parseFloat (ticker['last']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -276,12 +282,14 @@ module.exports = class livecoin extends Exchange {
             'high': parseFloat (ticker['high']),
             'low': parseFloat (ticker['low']),
             'bid': parseFloat (ticker['best_bid']),
+            'bidVolume': undefined,
             'ask': parseFloat (ticker['best_ask']),
+            'askVolume': undefined,
             'vwap': parseFloat (ticker['vwap']),
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
@@ -404,12 +412,11 @@ module.exports = class livecoin extends Exchange {
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
-        if (symbol)
-            market = this.market (symbol);
-        let pair = market ? market['id'] : undefined;
         let request = {};
-        if (pair)
-            request['currencyPair'] = pair;
+        if (typeof symbol !== 'undefined') {
+            market = this.market (symbol);
+            request['currencyPair'] = market['id'];
+        }
         if (typeof since !== 'undefined')
             request['issuedFrom'] = parseInt (since);
         if (typeof limit !== 'undefined')

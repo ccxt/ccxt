@@ -97,6 +97,11 @@ let countryName = function (code) {
 
 let testSymbol = async (exchange, symbol) => {
 
+    if (exchange.id !== 'coinmarketcap') {
+        await tests['fetchMarkets']    (exchange)
+        await tests['fetchCurrencies'] (exchange)
+    }
+
     await tests['fetchTicker']  (exchange, symbol)
     await tests['fetchTickers'] (exchange, symbol)
     await tests['fetchOHLCV']   (exchange, symbol)
@@ -198,11 +203,16 @@ let testExchange = async exchange => {
     if (!exchange.apiKey || (exchange.apiKey.length < 1))
         return true
 
+    exchange.checkRequiredCredentials ()
+
     // move to testnet/sandbox if possible before accessing the balance if possible
     if (exchange.urls['test'])
         exchange.urls['api'] = exchange.urls['test']
 
     let balance = await tests['fetchBalance'] (exchange)
+
+    await tests['fetchFundingFees']  (exchange)
+    await tests['fetchTradingFees']  (exchange)
 
     await tests['fetchOrders']       (exchange, symbol)
     await tests['fetchOpenOrders']   (exchange, symbol)
@@ -291,6 +301,11 @@ let tryAllProxies = async function (exchange, proxies) {
         try {
 
             exchange.proxy = proxies[currentProxy]
+
+            // add random origin for proxies
+            if (exchange.proxy.length > 0)
+                exchange.origin = exchange.uuid ()
+
             await testExchange (exchange)
             break
 

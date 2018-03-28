@@ -30,7 +30,19 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.11.84';
+$version = '1.12.23';
+
+// rounding mode
+const TRUNCATE = 0;
+const ROUND = 1;
+
+// digits counting mode
+const AFTER_DOT = 0;
+const SIGNIFICANT_DIGITS = 1;
+
+// padding mode
+const NO_PADDING = 0;
+const PAD_WITH_ZERO = 1;
 
 abstract class Exchange {
 
@@ -43,8 +55,8 @@ abstract class Exchange {
         'bibox',
         'binance',
         'bit2c',
+        'bitbank',
         'bitbay',
-        'bitcoincoid',
         'bitfinex',
         'bitfinex2',
         'bitflyer',
@@ -81,12 +93,15 @@ abstract class Exchange {
         'coingi',
         'coinmarketcap',
         'coinmate',
+        'coinone',
         'coinsecure',
         'coinspot',
         'coolcoin',
         'cryptopia',
         'dsx',
+        'ethfinex',
         'exmo',
+        'exx',
         'flowbtc',
         'foxbit',
         'fybse',
@@ -101,7 +116,9 @@ abstract class Exchange {
         'huobi',
         'huobicny',
         'huobipro',
+        'ice3x',
         'independentreserve',
+        'indodax',
         'itbit',
         'jubi',
         'kraken',
@@ -114,6 +131,7 @@ abstract class Exchange {
         'lykke',
         'mercado',
         'mixcoins',
+        'negociecoins',
         'nova',
         'okcoincny',
         'okcoinusd',
@@ -237,7 +255,7 @@ abstract class Exchange {
         $ms = static::parse_timeframe ($timeframe) * 1000;
         $ohlcvs = [];
         list(/* $timestamp */, /* $open */, $high, $low, $close, $volume) = [0, 1, 2, 3, 4, 5];
-        for ($i = min (count($trades) - 1, $limits); $i >= 0; $i--) {
+        for ($i = 0; $i < min (count($trades), $limits); $i++) {
             $trade = $trades[$i];
             if ($trade['timestamp'] < $since)
                 continue;
@@ -547,8 +565,10 @@ abstract class Exchange {
 
     public function __construct ($options = array ()) {
 
-        $this->curl        = curl_init ();
-        $this->id          = null;
+        $this->curl         = curl_init ();
+        $this->curl_options = array (); // overrideable by user, empty by default
+
+        $this->id           = null;
 
         // rate limiter params
         $this->rateLimit   = 2000;
@@ -631,6 +651,7 @@ abstract class Exchange {
             'fetchClosedOrders' => false,
             'fetchCurrencies' => false,
             'fetchDepositAddress' => false,
+            'fetchFundingFees' => false,
             'fetchL2OrderBook' => true,
             'fetchMarkets' => true,
             'fetchMyTrades' => false,
@@ -643,6 +664,7 @@ abstract class Exchange {
             'fetchTicker' => true,
             'fetchTickers' => false,
             'fetchTrades' => true,
+            'fetchTradingFees' => false,
             'withdraw' => false,
         );
 
@@ -654,6 +676,12 @@ abstract class Exchange {
         $this->last_http_response = null;
         $this->last_json_response = null;
         $this->last_response_headers = null;
+
+        $this->commonCurrencies = array (
+            'XBT' => 'BTC',
+            'BCC' => 'BCH',
+            'DRK' => 'DASH'
+        );
 
         $options = array_replace_recursive ($this->describe(), $options);
 
@@ -881,6 +909,10 @@ abstract class Exchange {
                 return $length;
             }
         );
+
+        // user-defined cURL options (if any)
+        if ($this->curl_options)
+            curl_setopt_array ($this->curl, $this->curl_options);
 
         $result = curl_exec ($this->curl);
 
@@ -1133,7 +1165,6 @@ abstract class Exchange {
     }
 
     public function parse_order_book ($orderbook, $timestamp = null, $bids_key = 'bids', $asks_key = 'asks', $price_key = 0, $amount_key = 1) {
-        $timestamp = $timestamp ? $timestamp : $this->milliseconds ();
         return array (
             'bids' => is_array ($orderbook) && array_key_exists ($bids_key, $orderbook) ?
                 $this->parse_bids_asks ($orderbook[$bids_key], $price_key, $amount_key) :
@@ -1142,7 +1173,8 @@ abstract class Exchange {
                 $this->parse_bids_asks ($orderbook[$asks_key], $price_key, $amount_key) :
                 array (),
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => isset ($timestamp) ? $this->iso8601 ($timestamp) : null,
+            'nonce' => null,
         );
     }
 
@@ -1197,6 +1229,7 @@ abstract class Exchange {
 
     public function filter_by_since_limit ($array, $since = null, $limit = null) {
         $result = array ();
+        $array = array_values ($array);
         foreach ($array as $entry)
             if ($entry['timestamp'] > $since)
                 $result[] = $entry;
@@ -1244,7 +1277,7 @@ abstract class Exchange {
                 return $grouped[$symbol];
             return array ();
         }
-        return $orders;
+        return $array;
     }
 
     public function filterBySymbol ($orders, $symbol = null) {
@@ -1252,6 +1285,7 @@ abstract class Exchange {
     }
 
     public function filter_by_symbol_since_limit ($array, $symbol = null, $since = null, $limit = null) {
+        $array = array_values ($array);
         $symbolIsSet = isset ($symbol);
         $sinceIsSet = isset ($since);
         $array = array_filter ($array, function ($element) use ($symbolIsSet, $symbol, $sinceIsSet, $since) {
@@ -1526,13 +1560,17 @@ abstract class Exchange {
     public function common_currency_code ($currency) {
         if (!$this->substituteCommonCurrencyCodes)
             return $currency;
-        if ($currency == 'XBT')
-            return 'BTC';
-        if ($currency == 'BCC')
-            return 'BCH';
-        if ($currency == 'DRK')
-            return 'DASH';
-        return $currency;
+        return $this->safe_string($this->commonCurrencies, $currency, $currency);
+    }
+
+    public function currency_id ($commonCode) {
+        $currencyIds = array ();
+        $distinct = is_array ($this->commonCurrencies) ? array_keys ($this->commonCurrencies) : array ();
+        for ($i = 0; $i < count ($distinct); $i++) {
+            $k = $distinct[$i];
+            $currencyIds[$this->commonCurrencies[$k]] = $k;
+        }
+        return $this->safe_string($currencyIds, $commonCode, $commonCode);
     }
 
     public function precision_from_string ($string) {
@@ -1591,6 +1629,10 @@ abstract class Exchange {
 
     public function commonCurrencyCode ($currency) {
         return $this->common_currency_code ($currency);
+    }
+
+    public function currencyId ($commonCode) {
+        return $this->currency_id ($commonCode);
     }
 
     public function currency ($code) {
@@ -1691,6 +1733,83 @@ abstract class Exchange {
 
         $old_feature = "has{$feature}";
         return array_key_exists ($old_feature, $old_feature_map) ? $old_feature_map[$old_feature] : false;
+    }
+
+    public static function decimalToPrecision ($x, $roundingMode = ROUND, $numPrecisionDigits = null, $countingMode = AFTER_DOT, $paddingMode = NO_PADDING) {
+        return static::decimal_to_precision ($x, $roundingMode, $numPrecisionDigits, $countingMode, $paddingMode);
+    }
+
+    public static function decimal_to_precision ($x, $roundingMode = ROUND, $numPrecisionDigits = null, $countingMode = AFTER_DOT, $paddingMode = NO_PADDING) {
+        if ($numPrecisionDigits < 0) {
+            throw new BaseError ('Negative precision is not yet supported');
+        }
+
+        if (!is_int ($numPrecisionDigits)) {
+            throw new BaseError ('Precision must be an integer');
+        }
+
+        if (!is_numeric ($x)) {
+            throw new BaseError ('Invalid number');
+        }
+
+        $result = '';
+        if ($roundingMode === ROUND) {
+            if ($countingMode === AFTER_DOT) {
+                $result = (string) round ($x, $numPrecisionDigits, PHP_ROUND_HALF_EVEN);
+            } elseif ($countingMode === SIGNIFICANT_DIGITS) {
+                $significantPosition = log (abs ($x), 10) % 10;
+                if ($significantPosition > 0) {
+                    $significantPosition += 1;
+                }
+                $result = (string) round ($x, $numPrecisionDigits - $significantPosition, PHP_ROUND_HALF_EVEN);
+            }
+        } elseif ($roundingMode === TRUNCATE) {
+            $dotPosition = strpos ($x, '.') ?: 0;
+            if ($countingMode === AFTER_DOT) {
+                $result = substr ($x, 0, ($dotPosition ? $dotPosition + 1 : 0) + $numPrecisionDigits);
+            } elseif ($countingMode === SIGNIFICANT_DIGITS) {
+                $significantPosition = log (abs ($x), 10) % 10;
+                $start = $dotPosition - $significantPosition;
+                $end   = $start + $numPrecisionDigits;
+                if ($dotPosition >= $end) {
+                    $end -= 1;
+                }
+                if ($significantPosition < 0) {
+                    $end += 1;
+                }
+                $result = str_pad (substr ($x, 0, $end), $dotPosition, '0');
+            }
+        }
+
+        $hasDot = strpos ($result, '.') !== false;
+        if ($paddingMode === NO_PADDING) {
+            if ($hasDot) {
+                $result = rtrim ($result, '0.');
+            }
+        } elseif ($paddingMode === PAD_WITH_ZERO) {
+            if ($hasDot) {
+                if ($countingMode === AFTER_DOT) {
+                    list ($before, $after) = explode ('.', $result, 2);
+                    $result = $before . '.' . str_pad ($after, $numPrecisionDigits, '0');
+                } elseif ($countingMode === SIGNIFICANT_DIGITS) {
+                    if ($result < 1) {
+                        $result = str_pad ($result, strcspn ($result, '123456789') + $numPrecisionDigits, '0');
+                    }
+                }
+            } else {
+                if ($countingMode === AFTER_DOT) {
+                    if ($numPrecisionDigits > 0) {
+                        $result = $result . '.' . str_repeat ('0', $numPrecisionDigits);
+                    }
+                } elseif ($countingMode === SIGNIFICANT_DIGITS) {
+                    if ($numPrecisionDigits > strlen ($result)) {
+                        $result = $result . '.' . str_repeat ('0', ($numPrecisionDigits - strlen ($result)));
+                    }
+                }
+            }
+        }
+
+        return $result;
     }
 
 }

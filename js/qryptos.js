@@ -22,6 +22,7 @@ module.exports = class qryptos extends Exchange {
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
+                'fetchMyTrades': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30953915-b1611dc0-a436-11e7-8947-c95bd5a42086.jpg',
@@ -197,12 +198,14 @@ module.exports = class qryptos extends Exchange {
             'high': this.safeFloat (ticker, 'high_market_ask'),
             'low': this.safeFloat (ticker, 'low_market_bid'),
             'bid': this.safeFloat (ticker, 'market_bid'),
+            'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'market_ask'),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
+            'close': last,
             'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
@@ -261,6 +264,18 @@ module.exports = class qryptos extends Exchange {
         if (typeof limit !== 'undefined')
             request['limit'] = limit;
         let response = await this.publicGetExecutions (this.extend (request, params));
+        return this.parseTrades (response['models'], market, since, limit);
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'product_id': market['id'],
+        };
+        if (typeof limit !== 'undefined')
+            request['limit'] = limit;
+        let response = await this.privateGetExecutionsMe (this.extend (request, params));
         return this.parseTrades (response['models'], market, since, limit);
     }
 

@@ -122,7 +122,9 @@ class _1btcxe (Exchange):
             'high': float(ticker['max']),
             'low': float(ticker['min']),
             'bid': float(ticker['bid']),
+            'bidVolume': None,
             'ask': float(ticker['ask']),
+            'askVolume': None,
             'vwap': None,
             'open': float(ticker['open']),
             'close': last,
@@ -133,6 +135,7 @@ class _1btcxe (Exchange):
             'average': None,
             'baseVolume': None,
             'quoteVolume': float(ticker['total_btc_traded']),
+            'info': ticker,
         }
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1d', since=None, limit=None):

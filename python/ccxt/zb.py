@@ -244,24 +244,7 @@ class zb (Exchange):
         request = {}
         request[marketFieldName] = market['id']
         orderbook = self.publicGetDepth(self.extend(request, params))
-        timestamp = self.milliseconds()
-        bids = None
-        asks = None
-        if 'bids' in orderbook:
-            bids = orderbook['bids']
-        if 'asks' in orderbook:
-            asks = orderbook['asks']
-        result = {
-            'bids': bids,
-            'asks': asks,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-        }
-        if result['bids']:
-            result['bids'] = self.sort_by(result['bids'], 0, True)
-        if result['asks']:
-            result['asks'] = self.sort_by(result['asks'], 0)
-        return result
+        return self.parse_order_book(orderbook)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -272,6 +255,7 @@ class zb (Exchange):
         response = self.publicGetTicker(self.extend(request, params))
         ticker = response['ticker']
         timestamp = self.milliseconds()
+        last = float(ticker['last'])
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -279,12 +263,14 @@ class zb (Exchange):
             'high': float(ticker['high']),
             'low': float(ticker['low']),
             'bid': float(ticker['buy']),
+            'bidVolume': None,
             'ask': float(ticker['sell']),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,

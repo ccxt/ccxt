@@ -217,6 +217,7 @@ module.exports = class gdax extends Exchange {
             bid = this.safeFloat (ticker, 'bid');
         if ('ask' in ticker)
             ask = this.safeFloat (ticker, 'ask');
+        let last = this.safeFloat (ticker, 'price');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -224,12 +225,14 @@ module.exports = class gdax extends Exchange {
             'high': undefined,
             'low': undefined,
             'bid': bid,
+            'bidVolume': undefined,
             'ask': ask,
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': this.safeFloat (ticker, 'price'),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,

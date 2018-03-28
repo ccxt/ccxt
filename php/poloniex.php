@@ -120,6 +120,10 @@ class poloniex extends Exchange {
                 'amount' => 8,
                 'price' => 8,
             ),
+            'commonCurrencies' => array (
+                'BTM' => 'Bitmark',
+                'STR' => 'XLM',
+            ),
         ));
     }
 
@@ -139,22 +143,6 @@ class poloniex extends Exchange {
             'rate' => $rate,
             'cost' => floatval ($this->fee_to_precision($symbol, $cost)),
         );
-    }
-
-    public function common_currency_code ($currency) {
-        if ($currency === 'BTM')
-            return 'Bitmark';
-        if ($currency === 'STR')
-            return 'XLM';
-        return $currency;
-    }
-
-    public function currency_id ($currency) {
-        if ($currency === 'Bitmark')
-            return 'BTM';
-        if ($currency === 'XLM')
-            return 'STR';
-        return $currency;
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '5m', $since = null, $limit = null) {
@@ -201,7 +189,24 @@ class poloniex extends Exchange {
                 'base' => $base,
                 'quote' => $quote,
                 'active' => true,
-                'lot' => $this->limits['amount']['min'],
+                'precision' => array (
+                    'amount' => 8,
+                    'price' => 8,
+                ),
+                'limits' => array (
+                    'amount' => array (
+                        'min' => 0.00000001,
+                        'max' => 1000000000,
+                    ),
+                    'price' => array (
+                        'min' => 0.00000001,
+                        'max' => 1000000000,
+                    ),
+                    'cost' => array (
+                        'min' => 0.00000000,
+                        'max' => 1000000000,
+                    ),
+                ),
                 'info' => $market,
             ));
         }
@@ -249,8 +254,10 @@ class poloniex extends Exchange {
         );
         if ($limit !== null)
             $request['depth'] = $limit; // 100
-        $orderbook = $this->publicGetReturnOrderBook (array_merge ($request, $params));
-        return $this->parse_order_book($orderbook);
+        $response = $this->publicGetReturnOrderBook (array_merge ($request, $params));
+        $orderbook = $this->parse_order_book($response);
+        $orderbook['nonce'] = $this->safe_integer($response, 'sec');
+        return $orderbook;
     }
 
     public function parse_ticker ($ticker, $market = null) {
@@ -275,7 +282,9 @@ class poloniex extends Exchange {
             'high' => floatval ($ticker['high24hr']),
             'low' => floatval ($ticker['low24hr']),
             'bid' => floatval ($ticker['highestBid']),
+            'bidVolume' => null,
             'ask' => floatval ($ticker['lowestAsk']),
+            'askVolume' => null,
             'vwap' => null,
             'open' => $open,
             'close' => $last,
@@ -482,13 +491,16 @@ class poloniex extends Exchange {
         if ($market)
             $symbol = $market['symbol'];
         $price = $this->safe_float($order, 'price');
-        $cost = $this->safe_float($order, 'total', 0.0);
         $remaining = $this->safe_float($order, 'amount');
         $amount = $this->safe_float($order, 'startingAmount', $remaining);
         $filled = null;
+        $cost = 0;
         if ($amount !== null) {
-            if ($remaining !== null)
+            if ($remaining !== null) {
                 $filled = $amount - $remaining;
+                if ($price !== null)
+                    $cost = $filled * $price;
+            }
         }
         if ($filled === null) {
             if ($trades !== null) {
@@ -730,43 +742,44 @@ class poloniex extends Exchange {
         return $this->parse_trades($trades);
     }
 
-    public function create_deposit_address ($currency, $params = array ()) {
-        $currencyId = $this->currency_id ($currency);
+    public function create_deposit_address ($code, $params = array ()) {
+        $currency = $this->currency ($code);
         $response = $this->privatePostGenerateNewAddress (array (
-            'currency' => $currencyId,
+            'currency' => $currency['id'],
         ));
         $address = null;
         if ($response['success'] === 1)
             $address = $this->safe_string($response, 'response');
         $this->check_address($address);
         return array (
-            'currency' => $currency,
+            'currency' => $code,
             'address' => $address,
             'status' => 'ok',
             'info' => $response,
         );
     }
 
-    public function fetch_deposit_address ($currency, $params = array ()) {
+    public function fetch_deposit_address ($code, $params = array ()) {
+        $currency = $this->currency ($code);
         $response = $this->privatePostReturnDepositAddresses ();
-        $currencyId = $this->currency_id ($currency);
+        $currencyId = $currency['id'];
         $address = $this->safe_string($response, $currencyId);
         $this->check_address($address);
         $status = $address ? 'ok' : 'none';
         return array (
-            'currency' => $currency,
+            'currency' => $code,
             'address' => $address,
             'status' => $status,
             'info' => $response,
         );
     }
 
-    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
-        $currencyId = $this->currency_id ($currency);
+        $currency = $this->currency ($code);
         $request = array (
-            'currency' => $currencyId,
+            'currency' => $currency['id'],
             'amount' => $amount,
             'address' => $address,
         );

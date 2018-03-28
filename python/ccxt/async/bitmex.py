@@ -202,15 +202,19 @@ class bitmex (Exchange):
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
-        orderbook = await self.publicGetOrderBookL2(self.extend({
-            'symbol': self.market_id(symbol),
-        }, params))
-        timestamp = self.milliseconds()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        if limit is not None:
+            request['depth'] = limit
+        orderbook = await self.publicGetOrderBookL2(self.extend(request, params))
         result = {
             'bids': [],
             'asks': [],
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
+            'nonce': None,
         }
         for o in range(0, len(orderbook)):
             order = orderbook[o]
@@ -245,7 +249,8 @@ class bitmex (Exchange):
         # why the hassle? urlencode in python is kinda broken for nested dicts.
         # E.g. self.urlencode({"filter": {"open": True}}) will return "filter={'open':+True}"
         # Bitmex doesn't like that. Hence resorting to self hack.
-        request['filter'] = self.json(request['filter'])
+        if 'filter' in request:
+            request['filter'] = self.json(request['filter'])
         response = await self.privateGetOrder(request)
         return self.parse_orders(response, market, since, limit)
 
@@ -286,7 +291,9 @@ class bitmex (Exchange):
             'high': float(ticker['high']),
             'low': float(ticker['low']),
             'bid': float(quote['bidPrice']),
+            'bidVolume': None,
             'ask': float(quote['askPrice']),
+            'askVolume': None,
             'vwap': float(ticker['vwap']),
             'open': open,
             'close': close,
@@ -301,7 +308,7 @@ class bitmex (Exchange):
         }
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
-        timestamp = self.parse8601(ohlcv['timestamp'])
+        timestamp = self.parse8601(ohlcv['timestamp']) - self.parse_timeframe(timeframe) * 1000
         return [
             timestamp,
             ohlcv['open'],
@@ -311,7 +318,7 @@ class bitmex (Exchange):
             ohlcv['volume'],
         ]
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=100, params={}):
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         # send JSON key/value pairs, such as {"key": "value"}
         # filter by individual fields and do advanced queries on timestamps
@@ -324,13 +331,14 @@ class bitmex (Exchange):
             'symbol': market['id'],
             'binSize': self.timeframes[timeframe],
             'partial': True,     # True == include yet-incomplete current bins
-            'count': limit,      # default 100, max 500
             # 'filter': filter,  # filter by individual fields and do advanced queries
             # 'columns': [],    # will return all columns if omitted
             # 'start': 0,       # starting point for results(wtf?)
             # 'reverse': False,  # True == newest first
             # 'endTime': '',    # ending date filter for results
         }
+        if limit is not None:
+            request['count'] = limit  # default 100, max 500
         # if since is not set, they will return candles starting from 2017-01-01
         if since is not None:
             ymdhms = self.ymdhms(since)

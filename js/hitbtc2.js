@@ -532,19 +532,6 @@ module.exports = class hitbtc2 extends hitbtc {
         });
     }
 
-    commonCurrencyCode (currency) {
-        let currencies = {
-            'XBT': 'BTC',
-            'DRK': 'DASH',
-            'CAT': 'BitClave',
-            'USD': 'USDT',
-            'EMGO': 'MGO',
-        };
-        if (currency in currencies)
-            return currencies[currency];
-        return currency;
-    }
-
     feeToPrecision (symbol, fee) {
         return this.truncate (fee, 8);
     }
@@ -634,7 +621,7 @@ module.exports = class hitbtc2 extends hitbtc {
                 'name': currency['fullName'],
                 'active': active,
                 'status': status,
-                'fee': undefined, // todo: redesign
+                'fee': this.safeFloat (currency, 'payoutFee'), // todo: redesign
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -746,7 +733,9 @@ module.exports = class hitbtc2 extends hitbtc {
             'high': this.safeFloat (ticker, 'high'),
             'low': this.safeFloat (ticker, 'low'),
             'bid': this.safeFloat (ticker, 'bid'),
+            'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'ask'),
+            'askVolume': undefined,
             'vwap': vwap,
             'open': open,
             'close': last,

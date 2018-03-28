@@ -29,6 +29,7 @@ class qryptos (Exchange):
                 'fetchOrders': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
+                'fetchMyTrades': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30953915-b1611dc0-a436-11e7-8947-c95bd5a42086.jpg',
@@ -194,12 +195,14 @@ class qryptos (Exchange):
             'high': self.safe_float(ticker, 'high_market_ask'),
             'low': self.safe_float(ticker, 'low_market_bid'),
             'bid': self.safe_float(ticker, 'market_bid'),
+            'bidVolume': None,
             'ask': self.safe_float(ticker, 'market_ask'),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
+            'close': last,
             'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
@@ -253,6 +256,17 @@ class qryptos (Exchange):
         if limit is not None:
             request['limit'] = limit
         response = await self.publicGetExecutions(self.extend(request, params))
+        return self.parse_trades(response['models'], market, since, limit)
+
+    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'product_id': market['id'],
+        }
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.privateGetExecutionsMe(self.extend(request, params))
         return self.parse_trades(response['models'], market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):

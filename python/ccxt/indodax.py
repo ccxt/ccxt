@@ -13,12 +13,12 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 
 
-class bitcoincoid (Exchange):
+class indodax (Exchange):
 
     def describe(self):
-        return self.deep_extend(super(bitcoincoid, self).describe(), {
-            'id': 'bitcoincoid',
-            'name': 'Bitcoin.co.id',
+        return self.deep_extend(super(indodax, self).describe(), {
+            'id': 'indodax',
+            'name': 'INDODAX',
             'countries': 'ID',  # Indonesia
             'has': {
                 'CORS': False,
@@ -34,12 +34,12 @@ class bitcoincoid (Exchange):
             },
             'version': '1.7',  # as of 6 November 2017
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766138-043c7786-5ecf-11e7-882b-809c14f38b53.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/37443283-2fddd0e4-281c-11e8-9741-b4f1419001b5.jpg',
                 'api': {
                     'public': 'https://vip.bitcoin.co.id/api',
                     'private': 'https://vip.bitcoin.co.id/tapi',
                 },
-                'www': 'https://www.bitcoin.co.id',
+                'www': 'https://www.indodax.com',
                 'doc': [
                     'https://vip.bitcoin.co.id/downloads/BITCOINCOID-API-DOCUMENTATION.pdf',
                 ],
@@ -134,6 +134,7 @@ class bitcoincoid (Exchange):
         timestamp = float(ticker['server_time']) * 1000
         baseVolume = 'vol_' + market['baseId'].lower()
         quoteVolume = 'vol_' + market['quoteId'].lower()
+        last = float(ticker['last'])
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -141,12 +142,14 @@ class bitcoincoid (Exchange):
             'high': float(ticker['high']),
             'low': float(ticker['low']),
             'bid': float(ticker['buy']),
+            'bidVolume': None,
             'ask': float(ticker['sell']),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
@@ -346,9 +349,13 @@ class bitcoincoid (Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response=None):
         # {success: 0, error: "invalid order."}
+        # or
+        # [{data, ...}, {...}, ...]
         if response is None:
-            if body[0] == '{':
+            if body[0] == '{' or body[0] == '[':
                 response = json.loads(body)
+        if isinstance(response, list):
+            return  # public endpoints may return []-arrays
         if not('success' in list(response.keys())):
             return  # no 'success' property on public responses
         if response['success'] == 1:

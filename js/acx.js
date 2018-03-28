@@ -44,15 +44,17 @@ module.exports = class acx extends Exchange {
             'api': {
                 'public': {
                     'get': [
+                        'depth', // Get depth or specified market Both asks and bids are sorted from highest price to lowest.
+                        'k_with_pending_trades', // Get K data with pending trades, which are the trades not included in K data yet, because there's delay between trade generated and processed by K data generator
+                        'k', // Get OHLC(k line) of specific market
                         'markets', // Get all available markets
+                        'order_book', // Get the order book of specified market
+                        'order_book/{market}',
                         'tickers', // Get ticker of all markets
                         'tickers/{market}', // Get ticker of specific market
-                        'trades', // Get recent trades on market, each trade is included only once Trades are sorted in reverse creation order.
-                        'order_book', // Get the order book of specified market
-                        'depth', // Get depth or specified market Both asks and bids are sorted from highest price to lowest.
-                        'k', // Get OHLC(k line) of specific market
-                        'k_with_pending_trades', // Get K data with pending trades, which are the trades not included in K data yet, because there's delay between trade generated and processed by K data generator
                         'timestamp', // Get server current time, in seconds since Unix epoch
+                        'trades', // Get recent trades on market, each trade is included only once Trades are sorted in reverse creation order.
+                        'trades/{market}',
                     ],
                 },
                 'private': {
@@ -143,14 +145,11 @@ module.exports = class acx extends Exchange {
         let request = {
             'market': market['id'],
         };
-        if (typeof limit === 'undefined')
+        if (typeof limit !== 'undefined')
             request['limit'] = limit; // default = 300
         let orderbook = await this.publicGetDepth (this.extend (request, params));
         let timestamp = orderbook['timestamp'] * 1000;
-        let result = this.parseOrderBook (orderbook, timestamp);
-        result['bids'] = this.sortBy (result['bids'], 0, true);
-        result['asks'] = this.sortBy (result['asks'], 0);
-        return result;
+        return this.parseOrderBook (orderbook, timestamp);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -159,6 +158,7 @@ module.exports = class acx extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        let last = this.safeFloat (ticker, 'last', undefined);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -166,12 +166,14 @@ module.exports = class acx extends Exchange {
             'high': this.safeFloat (ticker, 'high', undefined),
             'low': this.safeFloat (ticker, 'low', undefined),
             'bid': this.safeFloat (ticker, 'buy', undefined),
+            'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'sell', undefined),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': this.safeFloat (ticker, 'last', undefined),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,

@@ -538,18 +538,6 @@ class hitbtc2 (hitbtc):
             },
         })
 
-    def common_currency_code(self, currency):
-        currencies = {
-            'XBT': 'BTC',
-            'DRK': 'DASH',
-            'CAT': 'BitClave',
-            'USD': 'USDT',
-            'EMGO': 'MGO',
-        }
-        if currency in currencies:
-            return currencies[currency]
-        return currency
-
     def fee_to_precision(self, symbol, fee):
         return self.truncate(fee, 8)
 
@@ -636,7 +624,7 @@ class hitbtc2 (hitbtc):
                 'name': currency['fullName'],
                 'active': active,
                 'status': status,
-                'fee': None,  # todo: redesign
+                'fee': self.safe_float(currency, 'payoutFee'),  # todo: redesign
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -740,7 +728,9 @@ class hitbtc2 (hitbtc):
             'high': self.safe_float(ticker, 'high'),
             'low': self.safe_float(ticker, 'low'),
             'bid': self.safe_float(ticker, 'bid'),
+            'bidVolume': None,
             'ask': self.safe_float(ticker, 'ask'),
+            'askVolume': None,
             'vwap': vwap,
             'open': open,
             'close': last,

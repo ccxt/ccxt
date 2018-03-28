@@ -1,7 +1,7 @@
 'use strict';
 
 //-------------------------------------------------------------------------
-// converts timeframe to ms
+// converts timeframe to seconds
 const parseTimeframe = (timeframe) => {
 
     let amount = timeframe.slice (0, -1)
@@ -23,16 +23,17 @@ const parseTimeframe = (timeframe) => {
     return amount * scale
 }
 
-// given a sorted arrays of trades (recent first) and a timeframe builds an array of OHLCV candles
+// given a sorted arrays of trades (recent last) and a timeframe builds an array of OHLCV candles
 const buildOHLCVC = (trades, timeframe = '1m', since = -Infinity, limit = Infinity) => {
     let ms = parseTimeframe (timeframe) * 1000;
     let ohlcvs = [];
     const [ timestamp, /* open */, high, low, close, volume, count ] = [ 0, 1, 2, 3, 4, 5, 6 ];
     let oldest = Math.min (trades.length - 1, limit);
 
-    for (let i = oldest; i >= 0; i--) {
+    for (let i = 0; i <= oldest; i++) {
         let trade = trades[i];
-        if (trade.timestamp < since) continue;
+        if (trade.timestamp < since)
+            continue;
         let openingTime = Math.floor (trade.timestamp / ms) * ms; // shift to the edge of m/h/d (but not M)
         let candle = ohlcvs.length - 1;
 
