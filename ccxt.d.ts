@@ -360,6 +360,7 @@ declare module 'ccxt' {
     export class huobi extends Exchange {}
     export class huobicny extends huobipro {}
     export class huobipro extends Exchange {}
+    export class ice3x extends Exchange {}
     export class independentreserve extends Exchange {}
     export class indodax extends Exchange {}
     export class itbit extends Exchange {}

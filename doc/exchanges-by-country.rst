@@ -200,6 +200,8 @@ The ccxt library currently supports the following cryptocurrency exchange market
 +----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | Singapore                  | |quoinex|              | quoinex              | `QUOINEX <https://quoinex.com/>`__                             | 2     | `API <https://developers.quoine.com>`__                                                           |
 +----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
+| South Africa               | |ice3x|                | ice3x                | `ICE3X <https://ice3x.com>`__                                  | \*    | `API <https://ice3x.co.za/ice-cubed-bitcoin-exchange-api-documentation-1-june-2017>`__            |
++----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | South Africa               | |luno|                 | luno                 | `luno <https://www.luno.com>`__                                | 1     | `API <https://www.luno.com/en/api>`__                                                             |
 +----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | South Korea                | |bibox|                | bibox                | `Bibox <https://www.bibox.com>`__                              | 1     | `API <https://github.com/Biboxcom/api_reference/wiki/home_en>`__                                  |
@@ -382,6 +384,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
 .. |bitmex| image:: https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg
 .. |fybsg| image:: https://user-images.githubusercontent.com/1294454/27766513-3364d56a-5edb-11e7-9e6b-d5898bb89c81.jpg
 .. |luno| image:: https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg
+.. |ice3x| image:: https://user-images.githubusercontent.com/1294454/38012176-11616c32-3269-11e8-9f05-e65cf885bb15.jpg
 .. |bithumb| image:: https://user-images.githubusercontent.com/1294454/30597177-ea800172-9d5e-11e7-804c-b9d4fa9b56b0.jpg
 .. |coinone| image:: https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg
 .. |fybse| image:: https://user-images.githubusercontent.com/1294454/27766512-31019772-5edb-11e7-8241-2e675e6797f1.jpg
