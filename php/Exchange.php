@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.12.30';
+$version = '1.12.31';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -112,6 +112,7 @@ abstract class Exchange {
         'gdax',
         'gemini',
         'getbtc',
+        'hadax',
         'hitbtc',
         'hitbtc2',
         'huobi',

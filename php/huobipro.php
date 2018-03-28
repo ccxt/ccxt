@@ -102,12 +102,10 @@ class huobipro extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
-        $response = $this->publicGetCommonSymbols ();
-        $markets = $response['data'];
+    public function parse_markets ($markets) {
         $numMarkets = is_array ($markets) ? count ($markets) : 0;
         if ($numMarkets < 1)
-            throw new ExchangeError ($this->id . ' publicGetCommonSymbols returned empty $response => ' . $this->json ($response));
+            throw new ExchangeError ($this->id . ' publicGetCommonSymbols returned empty response => ' . $this->json ($markets));
         $result = array ();
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
@@ -153,6 +151,11 @@ class huobipro extends Exchange {
             );
         }
         return $result;
+    }
+
+    public function fetch_markets () {
+        $response = $this->publicGetCommonSymbols ();
+        return $this->parse_markets ($response['data']);
     }
 
     public function parse_ticker ($ticker, $market = null) {

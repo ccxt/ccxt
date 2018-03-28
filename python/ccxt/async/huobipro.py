@@ -114,12 +114,10 @@ class huobipro (Exchange):
             },
         })
 
-    async def fetch_markets(self):
-        response = await self.publicGetCommonSymbols()
-        markets = response['data']
+    def parse_markets(self, markets):
         numMarkets = len(markets)
         if numMarkets < 1:
-            raise ExchangeError(self.id + ' publicGetCommonSymbols returned empty response: ' + self.json(response))
+            raise ExchangeError(self.id + ' publicGetCommonSymbols returned empty response: ' + self.json(markets))
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
@@ -164,6 +162,10 @@ class huobipro (Exchange):
                 'info': market,
             })
         return result
+
+    async def fetch_markets(self):
+        response = await self.publicGetCommonSymbols()
+        return self.parse_markets(response['data'])
 
     def parse_ticker(self, ticker, market=None):
         symbol = None

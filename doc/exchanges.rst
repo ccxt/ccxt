@@ -1,7 +1,7 @@
 Supported Exchanges
 ===================
 
-The ccxt library currently supports the following 109 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 110 cryptocurrency exchange markets and trading APIs:
 
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 |                        | id                   | name                                                           | ver   | doc                                                                                               | countries                                  |
@@ -135,6 +135,8 @@ The ccxt library currently supports the following 109 cryptocurrency exchange ma
 | |gemini|               | gemini               | `Gemini <https://gemini.com>`__                                | 1     | `API <https://docs.gemini.com/rest-api>`__                                                        | US                                         |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |getbtc|               | getbtc               | `GetBTC <https://getbtc.org>`__                                | \*    | `API <https://getbtc.org/api-docs.php>`__                                                         | St. Vincent & Grenadines, Russia           |
++------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
+| |hadax|                | hadax                | `HADAX <https://www.hadax.com>`__                              | 1     | `API <https://github.com/huobiapi/API_Docs/wiki>`__                                               | China                                      |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |hitbtc|               | hitbtc               | `HitBTC <https://hitbtc.com>`__                                | 1     | `API <https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv1.md>`__                           | UK                                         |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -290,6 +292,7 @@ The ccxt library currently supports the following 109 cryptocurrency exchange ma
 .. |gdax| image:: https://user-images.githubusercontent.com/1294454/27766527-b1be41c6-5edb-11e7-95f6-5b496c469e2c.jpg
 .. |gemini| image:: https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg
 .. |getbtc| image:: https://user-images.githubusercontent.com/1294454/33801902-03c43462-dd7b-11e7-992e-077e4cd015b9.jpg
+.. |hadax| image:: https://user-images.githubusercontent.com/1294454/38059952-4756c49e-32f1-11e8-90b9-45c1eccba9cd.jpg
 .. |hitbtc| image:: https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg
 .. |hitbtc2| image:: https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg
 .. |huobi| image:: https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg
