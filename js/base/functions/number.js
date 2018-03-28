@@ -54,7 +54,7 @@ function numberToString (x) { // avoids scientific notation for too large and to
 //-----------------------------------------------------------------------------
 // expects non-scientific notation
 
-function precisionFromString (x) {
+function precisionFromString (string) {
     const split = string.replace (/0+$/g, '').split ('.')
     return (split.length > 1) ? (split[1].length) : 0
 }
