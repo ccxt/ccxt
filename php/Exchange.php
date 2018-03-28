@@ -37,7 +37,7 @@ const TRUNCATE = 0;
 const ROUND = 1;
 
 // digits counting mode
-const AFTER_POINT = 0;
+const AFTER_DOT = 0;
 const SIGNIFICANT_DIGITS = 1;
 
 // padding mode
@@ -1733,11 +1733,11 @@ abstract class Exchange {
         return array_key_exists ($old_feature, $old_feature_map) ? $old_feature_map[$old_feature] : false;
     }
 
-    public static function decimalToPrecision ($x, $roundingMode = ROUND, $numPrecisionDigits = null, $countingMode = AFTER_POINT, $paddingMode = NO_PADDING) {
+    public static function decimalToPrecision ($x, $roundingMode = ROUND, $numPrecisionDigits = null, $countingMode = AFTER_DOT, $paddingMode = NO_PADDING) {
         return static::decimal_to_precision ($x, $roundingMode, $numPrecisionDigits, $countingMode, $paddingMode);
     }
 
-    public static function decimal_to_precision ($x, $roundingMode = ROUND, $numPrecisionDigits = null, $countingMode = AFTER_POINT, $paddingMode = NO_PADDING) {
+    public static function decimal_to_precision ($x, $roundingMode = ROUND, $numPrecisionDigits = null, $countingMode = AFTER_DOT, $paddingMode = NO_PADDING) {
         if ($numPrecisionDigits < 0) {
             throw new BaseError ('Negative precision is not yet supported');
         }
@@ -1752,7 +1752,7 @@ abstract class Exchange {
 
         $result = '';
         if ($roundingMode === ROUND) {
-            if ($countingMode === AFTER_POINT) {
+            if ($countingMode === AFTER_DOT) {
                 $result = (string) round ($x, $numPrecisionDigits, PHP_ROUND_HALF_EVEN);
             } elseif ($countingMode === SIGNIFICANT_DIGITS) {
                 $significantPosition = log (abs ($x), 10) % 10;
@@ -1763,7 +1763,7 @@ abstract class Exchange {
             }
         } elseif ($roundingMode === TRUNCATE) {
             $dotPosition = strpos ($x, '.') ?: 0;
-            if ($countingMode === AFTER_POINT) {
+            if ($countingMode === AFTER_DOT) {
                 $result = substr ($x, 0, ($dotPosition ? $dotPosition + 1 : 0) + $numPrecisionDigits);
             } elseif ($countingMode === SIGNIFICANT_DIGITS) {
                 $significantPosition = log (abs ($x), 10) % 10;
@@ -1786,7 +1786,7 @@ abstract class Exchange {
             }
         } elseif ($paddingMode === PAD_WITH_ZERO) {
             if ($hasDot) {
-                if ($countingMode === AFTER_POINT) {
+                if ($countingMode === AFTER_DOT) {
                     list ($before, $after) = explode ('.', $result, 2);
                     $result = $before . '.' . str_pad ($after, $numPrecisionDigits, '0');
                 } elseif ($countingMode === SIGNIFICANT_DIGITS) {
@@ -1795,7 +1795,7 @@ abstract class Exchange {
                     }
                 }
             } else {
-                if ($countingMode === AFTER_POINT) {
+                if ($countingMode === AFTER_DOT) {
                     if ($numPrecisionDigits > 0) {
                         $result = $result . '.' . str_repeat ('0', $numPrecisionDigits);
                     }
