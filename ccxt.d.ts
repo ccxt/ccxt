@@ -374,6 +374,7 @@ declare module 'ccxt' {
     export class lykke extends Exchange {}
     export class mercado extends Exchange {}
     export class mixcoins extends Exchange {}
+    export class negociecoins extends Exchange {}
     export class nova extends Exchange {}
     export class okcoincny extends okcoinusd {}
     export class okcoinusd extends Exchange {}

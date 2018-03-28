@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.12.16';
+$version = '1.12.17';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -130,6 +130,7 @@ abstract class Exchange {
         'lykke',
         'mercado',
         'mixcoins',
+        'negociecoins',
         'nova',
         'okcoincny',
         'okcoinusd',

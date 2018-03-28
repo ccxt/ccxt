@@ -28,6 +28,8 @@ The ccxt library currently supports the following cryptocurrency exchange market
 +----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | Brazil                     | |mercado|              | mercado              | `Mercado Bitcoin <https://www.mercadobitcoin.com.br>`__        | 3     | `API <https://www.mercadobitcoin.com.br/api-doc>`__                                               |
 +----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
+| Brazil                     | |negociecoins|         | negociecoins         | `NegocieCoins <https://www.negociecoins.com.br>`__             | \*    | `API <https://www.negociecoins.com.br/documentacao-api>`__                                        |
++----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | British Virgin Islands     | |bitfinex|             | bitfinex             | `Bitfinex <https://www.bitfinex.com>`__                        | 1     | `API <https://bitfinex.readme.io/v1/docs>`__                                                      |
 +----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | British Virgin Islands     | |bitfinex2|            | bitfinex2            | `Bitfinex v2 <https://www.bitfinex.com>`__                     | 2     | `API <https://bitfinex.readme.io/v2/docs>`__                                                      |
@@ -314,6 +316,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
 .. |flowbtc| image:: https://user-images.githubusercontent.com/1294454/28162465-cd815d4c-67cf-11e7-8e57-438bea0523a2.jpg
 .. |foxbit| image:: https://user-images.githubusercontent.com/1294454/27991413-11b40d42-647f-11e7-91ee-78ced874dd09.jpg
 .. |mercado| image:: https://user-images.githubusercontent.com/1294454/27837060-e7c58714-60ea-11e7-9192-f05e86adb83f.jpg
+.. |negociecoins| image:: https://user-images.githubusercontent.com/1294454/38008571-25a6246e-3258-11e8-969b-aeb691049245.jpg
 .. |bitfinex| image:: https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg
 .. |bitfinex2| image:: https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg
 .. |ethfinex| image:: https://user-images.githubusercontent.com/1294454/37555526-7018a77c-29f9-11e8-8835-8e415c038a18.jpg

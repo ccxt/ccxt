@@ -1,7 +1,7 @@
 Supported Exchanges
 ===================
 
-The ccxt library currently supports the following 106 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 107 cryptocurrency exchange markets and trading APIs:
 
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 |                        | id                   | name                                                           | ver   | doc                                                                                               | countries                                  |
@@ -172,6 +172,8 @@ The ccxt library currently supports the following 106 cryptocurrency exchange ma
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |mixcoins|             | mixcoins             | `MixCoins <https://mixcoins.com>`__                            | 1     | `API <https://mixcoins.com/help/api/>`__                                                          | UK, Hong Kong                              |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
+| |negociecoins|         | negociecoins         | `NegocieCoins <https://www.negociecoins.com.br>`__             | \*    | `API <https://www.negociecoins.com.br/documentacao-api>`__                                        | Brazil                                     |
++------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |nova|                 | nova                 | `Novaexchange <https://novaexchange.com>`__                    | 2     | `API <https://novaexchange.com/remote/faq>`__                                                     | Tanzania                                   |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |okcoincny|            | okcoincny            | `OKCoin CNY <https://www.okcoin.cn>`__                         | 1     | `API <https://www.okcoin.cn/rest_getStarted.html>`__                                              | China                                      |
@@ -302,6 +304,7 @@ The ccxt library currently supports the following 106 cryptocurrency exchange ma
 .. |lykke| image:: https://user-images.githubusercontent.com/1294454/34487620-3139a7b0-efe6-11e7-90f5-e520cef74451.jpg
 .. |mercado| image:: https://user-images.githubusercontent.com/1294454/27837060-e7c58714-60ea-11e7-9192-f05e86adb83f.jpg
 .. |mixcoins| image:: https://user-images.githubusercontent.com/1294454/30237212-ed29303c-9535-11e7-8af8-fcd381cfa20c.jpg
+.. |negociecoins| image:: https://user-images.githubusercontent.com/1294454/38008571-25a6246e-3258-11e8-969b-aeb691049245.jpg
 .. |nova| image:: https://user-images.githubusercontent.com/1294454/30518571-78ca0bca-9b8a-11e7-8840-64b83a4a94b2.jpg
 .. |okcoincny| image:: https://user-images.githubusercontent.com/1294454/27766792-8be9157a-5ee5-11e7-926c-6d69b8d3378d.jpg
 .. |okcoinusd| image:: https://user-images.githubusercontent.com/1294454/27766791-89ffb502-5ee5-11e7-8a5b-c5950b68ac65.jpg

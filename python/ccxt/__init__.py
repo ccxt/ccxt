@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.12.16'
+__version__ = '1.12.17'
 
 # ----------------------------------------------------------------------------
 
@@ -137,6 +137,7 @@ from ccxt.luno import luno                                  # noqa: F401
 from ccxt.lykke import lykke                                # noqa: F401
 from ccxt.mercado import mercado                            # noqa: F401
 from ccxt.mixcoins import mixcoins                          # noqa: F401
+from ccxt.negociecoins import negociecoins                  # noqa: F401
 from ccxt.nova import nova                                  # noqa: F401
 from ccxt.okcoincny import okcoincny                        # noqa: F401
 from ccxt.okcoinusd import okcoinusd                        # noqa: F401
@@ -245,6 +246,7 @@ exchanges = [
     'lykke',
     'mercado',
     'mixcoins',
+    'negociecoins',
     'nova',
     'okcoincny',
     'okcoinusd',
