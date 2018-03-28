@@ -51,6 +51,14 @@ function numberToString (x) { // avoids scientific notation for too large and to
     return x.toString ()
 }
 
+//-----------------------------------------------------------------------------
+// expects non-scientific notation
+
+function precisionFromString (x) {
+    const split = string.replace (/0+$/g, '').split ('.')
+    return (split.length > 1) ? (split[1].length) : 0
+}
+
 /*  ------------------------------------------------------------------------ */
 
 const decimalToPrecision = (x, roundingMode
@@ -198,6 +206,7 @@ const decimalToPrecision = (x, roundingMode
 module.exports = {
 
     numberToString,
+    precisionFromString,
     decimalToPrecision,
 
     TRUNCATE,
