@@ -584,7 +584,7 @@ module.exports = class huobipro extends Exchange {
                 //
                 //     {"status":"error","err-code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
                 //
-                let status = this.safeStringValue (response, 'status');
+                let status = this.safeString (response, 'status');
                 if (status === 'error') {
                     const code = this.safeString (response, 'err-code');
                     const feedback = this.id + ' ' + this.json (response);
