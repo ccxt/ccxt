@@ -13,6 +13,7 @@ class negociecoins extends Exchange {
             'name' => 'NegocieCoins',
             'countries' => 'BR',
             'rateLimit' => 1000,
+            'version' => 'v3',
             'has' => array (
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,

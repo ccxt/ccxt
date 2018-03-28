@@ -16,6 +16,7 @@ class negociecoins (Exchange):
             'name': 'NegocieCoins',
             'countries': 'BR',
             'rateLimit': 1000,
+            'version': 'v3',
             'has': {
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,

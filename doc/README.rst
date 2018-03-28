@@ -198,7 +198,7 @@ The ccxt library currently supports the following 109 cryptocurrency exchange ma
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |mixcoins|             | mixcoins             | `MixCoins <https://mixcoins.com>`__                            | 1     | `API <https://mixcoins.com/help/api/>`__                                                          | UK, Hong Kong                              |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
-| |negociecoins|         | negociecoins         | `NegocieCoins <https://www.negociecoins.com.br>`__             | \*    | `API <https://www.negociecoins.com.br/documentacao-tradeapi>`__                                   | Brazil                                     |
+| |negociecoins|         | negociecoins         | `NegocieCoins <https://www.negociecoins.com.br>`__             | 3     | `API <https://www.negociecoins.com.br/documentacao-tradeapi>`__                                   | Brazil                                     |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |nova|                 | nova                 | `Novaexchange <https://novaexchange.com>`__                    | 2     | `API <https://novaexchange.com/remote/faq>`__                                                     | Tanzania                                   |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -551,7 +551,7 @@ Thank you!
    :target: https://nodesecurity.io/orgs/ccxt/projects/856d3088-8b46-4515-9324-6b7cd2470522
 .. |Gitter| image:: https://badges.gitter.im/ccxt-dev/ccxt.svg
    :target: https://gitter.im/ccxt-dev/ccxt?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge
-.. |Supported Exchanges| image:: https://img.shields.io/badge/exchanges-108-blue.svg
+.. |Supported Exchanges| image:: https://img.shields.io/badge/exchanges-109-blue.svg
    :target: https://github.com/ccxt/ccxt/wiki/Exchange-Markets
 .. |Open Collective| image:: https://opencollective.com/ccxt/backers/badge.svg
    :target: https://opencollective.com/ccxt
