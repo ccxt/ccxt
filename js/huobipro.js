@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, InvalidOrder } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -97,6 +97,9 @@ module.exports = class huobipro extends Exchange {
                     'taker': 0.002,
                 },
             },
+            'exceptions': {
+                'order-limitorder-amount-min-error': InvalidOrder, // limit order amount error, min: `0.001`
+            }
         });
     }
 
@@ -570,11 +573,29 @@ module.exports = class huobipro extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('status' in response)
-            if (response['status'] === 'error')
-                throw new ExchangeError (this.id + ' ' + this.json (response));
-        return response;
+    handleErrors (httpCode, reason, url, method, headers, body) {
+        if (typeof body !== 'string')
+            return; // fallback to default error handler
+        if (body.length < 2)
+            return; // fallback to default error handler
+        if ((body[0] === '{') || (body[0] === '[')) {
+            let response = JSON.parse (body);
+            if ('status' in response) {
+                //
+                //     {"status":"error","err-code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
+                //
+                let status = this.safeStringValue (response, 'status');
+                if (status === 'error') {
+                    const code = this.safeString (response, 'err-code');
+                    const feedback = this.id + ' ' + this.json (response);
+                    const message = this.safeString (response, 'err-msg', feedback);
+                    const exceptions = this.exceptions;
+                    if (code in exceptions) {
+                        throw new exceptions[code] (message);
+                    }
+                    throw new ExchangeError (message);
+                }
+            }
+        }
     }
 };
