@@ -17,6 +17,7 @@ module.exports = class coinone extends Exchange {
             'version': 'v2',
             'has': {
                 'CORS': false,
+                'createMarketOrder': false,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg',
@@ -212,7 +213,7 @@ module.exports = class coinone extends Exchange {
             'currency': this.marketId (symbol),
             'qty': amount,
         };
-        let method = 'privatePostOrderLimit' + this.capitalize (side);
+        let method = 'privatePostOrder' + this.capitalize (type) + this.capitalize (side);
         let response = await this[method] (this.extend (order, params));
         // todo: return the full order structure
         // return this.parseOrder (response, market);
