@@ -29,7 +29,7 @@ class livecoin (Exchange):
                 'CORS': False,
                 'fetchTickers': True,
                 'fetchCurrencies': True,
-                'fetchFees': True,
+                'fetchTradingFees': True,
                 'fetchOrders': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
@@ -241,12 +241,6 @@ class livecoin (Exchange):
                 account['used'] = float(balance['value'])
             result[currency] = account
         return self.parse_balance(result)
-
-    async def fetch_fees(self, params={}):
-        tradingFees = await self.fetch_trading_fees(params)
-        return self.extend(tradingFees, {
-            'withdraw': {},
-        })
 
     async def fetch_trading_fees(self, params={}):
         await self.load_markets()

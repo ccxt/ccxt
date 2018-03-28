@@ -34,14 +34,13 @@ class bitfinex (Exchange):
                 'deposit': True,
                 'fetchClosedOrders': True,
                 'fetchDepositAddress': True,
-                'fetchFees': True,
+                'fetchTradingFees': True,
                 'fetchFundingFees': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchTickers': True,
-                'fetchTradingFees': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -288,21 +287,6 @@ class bitfinex (Exchange):
             'maker': self.safe_float(response, 'maker_fee'),
             'taker': self.safe_float(response, 'taker_fee'),
         }
-
-    def load_fees(self):
-        #  # PHP does flat copying for arrays
-        #  # setting fees on the exchange instance isn't portable, unfortunately...
-        #  # self should probably go into the base class as well
-        # funding = self.fees['funding']
-        # fees = self.fetch_funding_fees()
-        # funding = self.deep_extend(funding, fees)
-        # return funding
-        raise NotSupported(self.id + ' loadFees() not implemented yet')
-
-    def fetch_fees(self):
-        fundingFees = self.fetch_funding_fees()
-        tradingFees = self.fetch_trading_fees()
-        return self.deep_extend(fundingFees, tradingFees)
 
     def fetch_markets(self):
         markets = self.publicGetSymbolsDetails()
