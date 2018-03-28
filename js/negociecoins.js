@@ -18,12 +18,12 @@ module.exports = class negociecoins extends Exchange {
                 'fetchClosedOrders': true,
             },
             'urls': {
-                'logo': 'https://broker.negociecoins.com.br/static/img/logo',
+                'logo': 'https://user-images.githubusercontent.com/1294454/38008571-25a6246e-3258-11e8-969b-aeb691049245.jpg',
                 'api': {
                     'public': 'https://broker.negociecoins.com.br/api/v3',
                     'private': 'https://broker.negociecoins.com.br/tradeapi/v1',
                 },
-                'www': 'https://www.negociecoins.com.br/',
+                'www': 'https://www.negociecoins.com.br',
                 'doc': [
                     'https://www.negociecoins.com.br/documentacao-api',
                     'https://www.negociecoins.com.br/documentacao-tradeapi',
@@ -55,10 +55,11 @@ module.exports = class negociecoins extends Exchange {
                 },
             },
             'markets': {
-                'BTC/BRL': { 'id': 'BRLBTC', 'symbol': 'BTC/BRL', 'base': 'BTC', 'quote': 'BRL' },
-                'LTC/BRL': { 'id': 'BRLLTC', 'symbol': 'LTC/BRL', 'base': 'LTC', 'quote': 'BRL' },
-                'BCH/BRL': { 'id': 'BRLBCH', 'symbol': 'BCH/BRL', 'base': 'BCH', 'quote': 'BRL' },
-                'BTG/BRL': { 'id': 'BRLBTG', 'symbol': 'BTG/BRL', 'base': 'BTG', 'quote': 'BRL' },
+                'B2X/BRL': { 'id': 'b2xbrl', 'symbol': 'B2X/BRL', 'base': 'B2X', 'quote': 'BRL' },
+                'BTC/BRL': { 'id': 'btcbrl', 'symbol': 'BTC/BRL', 'base': 'BTC', 'quote': 'BRL' },
+                'LTC/BRL': { 'id': 'ltcbrl', 'symbol': 'LTC/BRL', 'base': 'LTC', 'quote': 'BRL' },
+                'BCH/BRL': { 'id': 'bchbrl', 'symbol': 'BCH/BRL', 'base': 'BCH', 'quote': 'BRL' },
+                'BTG/BRL': { 'id': 'btgbrl', 'symbol': 'BTG/BRL', 'base': 'BTG', 'quote': 'BRL' },
             },
             'fees': {
                 'trading': {
@@ -89,7 +90,8 @@ module.exports = class negociecoins extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         let timestamp = ticker['date'] * 1000;
-        let symbol = market['symbol'];
+        let symbol = (typeof market !== 'undefined') ? market['symbol'] : undefined;
+        let last = parseFloat (ticker['last']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -97,17 +99,19 @@ module.exports = class negociecoins extends Exchange {
             'high': parseFloat (ticker['high']),
             'low': parseFloat (ticker['low']),
             'bid': parseFloat (ticker['buy']),
+            'bidVolume': undefined,
             'ask': parseFloat (ticker['sell']),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': parseFloat (ticker['vol']),
+            'baseVolume': parseFloat (ticker['vol']),
+            'quoteVolume': undefined,
             'info': ticker,
         };
     }
@@ -142,7 +146,7 @@ module.exports = class negociecoins extends Exchange {
             'id': this.safeString (trade, 'tid'),
             'order': undefined,
             'type': 'limit',
-            'side': trade['type'],
+            'side': trade['type'].toLowerCase (),
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -154,12 +158,12 @@ module.exports = class negociecoins extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
+        if (typeof since === 'undefined')
+            since = 0;
         let request = {
             'PAR': market['id'],
+            'timestamp_inicial': parseInt (since / 1000),
         };
-        if (!since)
-            since = 0;
-        request['timestamp_inicial'] = parseInt (since / 1000);
         let trades = await this.publicGetPARTradesTimestampInicial (this.extend (request, params));
         return this.parseTrades (trades, market, since, limit);
     }
@@ -275,25 +279,24 @@ module.exports = class negociecoins extends Exchange {
             // startDate yyyy-MM-dd
             // endDate: yyyy-MM-dd
         };
-        if (since)
+        if (typeof since !== 'undefined')
             request['startDate'] = this.ymd (since);
-        if (limit)
+        if (typeof limit !== 'undefined')
             request['pageSize'] = limit;
         let orders = await this.privatePostUserOrders (this.extend (request, params));
         return this.parseOrders (orders, market);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        throw new Error ('fetchOpenOrders is not implemented');
-        return await this.fetchOrders (symbol, since, limit, this.extend (params, {
-            'status': 'partially filled',
-        }));
+        return await this.fetchOrders (symbol, since, limit, this.extend ({
+            'status': 'pending',
+        }, params));
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchOrders (symbol, since, limit, this.extend (params, {
+        return await this.fetchOrders (symbol, since, limit, this.extend ({
             'status': 'filled',
-        }));
+        }, params));
     }
 
     nonce () {
@@ -322,7 +325,8 @@ module.exports = class negociecoins extends Exchange {
             let payload = [ this.apiKey, method, uri, timestamp, nonce, content ].join ('');
             let secret = this.base64ToBinary (this.secret);
             let signature = this.hmac (this.encode (payload), this.encode (secret), 'sha256', 'base64');
-            let auth = [this.apiKey, this.binaryToString (signature), nonce, timestamp].join (':');
+            signature = this.binaryToString (signature);
+            let auth = [ this.apiKey, signature, nonce, timestamp ].join (':');
             headers = {
                 'Authorization': 'amx ' + auth,
             };
@@ -331,7 +335,7 @@ module.exports = class negociecoins extends Exchange {
                 headers['Content-Length'] = body.length;
             } else if (queryString.length) {
                 url += '?' + queryString;
-                body = null;
+                body = undefined;
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
