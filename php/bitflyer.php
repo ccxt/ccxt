@@ -191,6 +191,8 @@ class bitflyer extends Exchange {
                 if (is_array ($trade) && array_key_exists ($id, $trade))
                     $order = $trade[$id];
             }
+        if ($order === null)
+            $order = $this->safe_string($trade, 'child_order_acceptance_id');
         $timestamp = $this->parse8601 ($trade['exec_date']);
         return array (
             'id' => (string) $trade['id'],
