@@ -25,8 +25,8 @@ module.exports = class negociecoins extends Exchange {
                 },
                 'www': 'https://www.negociecoins.com.br',
                 'doc': [
-                    'https://www.negociecoins.com.br/documentacao-api',
                     'https://www.negociecoins.com.br/documentacao-tradeapi',
+                    'https://www.negociecoins.com.br/documentacao-api',
                 ],
                 'fees': 'https://www.negociecoins.com.br/comissoes',
             },
@@ -56,10 +56,11 @@ module.exports = class negociecoins extends Exchange {
             },
             'markets': {
                 'B2X/BRL': { 'id': 'b2xbrl', 'symbol': 'B2X/BRL', 'base': 'B2X', 'quote': 'BRL' },
-                'BTC/BRL': { 'id': 'btcbrl', 'symbol': 'BTC/BRL', 'base': 'BTC', 'quote': 'BRL' },
-                'LTC/BRL': { 'id': 'ltcbrl', 'symbol': 'LTC/BRL', 'base': 'LTC', 'quote': 'BRL' },
                 'BCH/BRL': { 'id': 'bchbrl', 'symbol': 'BCH/BRL', 'base': 'BCH', 'quote': 'BRL' },
+                'BTC/BRL': { 'id': 'btcbrl', 'symbol': 'BTC/BRL', 'base': 'BTC', 'quote': 'BRL' },
                 'BTG/BRL': { 'id': 'btgbrl', 'symbol': 'BTG/BRL', 'base': 'BTG', 'quote': 'BRL' },
+                'DASH/BRL': { 'id': 'dashbrl', 'symbol': 'DASH/BRL', 'base': 'DASH', 'quote': 'BRL' },
+                'LTC/BRL': { 'id': 'ltcbrl', 'symbol': 'LTC/BRL', 'base': 'LTC', 'quote': 'BRL' },
             },
             'fees': {
                 'trading': {
