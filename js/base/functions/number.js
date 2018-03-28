@@ -56,7 +56,7 @@ function numberToString (x) { // avoids scientific notation for too large and to
 
 const truncate_regExpCache = []
     , truncate_to_string = (num, precision = 0) => {
-        num = toFixed (num)
+        num = numberToString (num)
         if (precision > 0) {
             const re = truncate_regExpCache[precision] || (truncate_regExpCache[precision] = new RegExp("([-]*\\d+\\.\\d{" + precision + "})(\\d)"))
             const [,result] = num.toString ().match (re) || [null, num]
