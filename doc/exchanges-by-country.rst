@@ -206,6 +206,8 @@ The ccxt library currently supports the following cryptocurrency exchange market
 +----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | South Korea                | |coinexchange|         | coinexchange         | `CoinExchange <https://www.coinexchange.io>`__                 | \*    | `API <https://coinexchangeio.github.io/slate/>`__                                                 |
 +----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
+| South Korea                | |coinone|              | coinone              | `CoinOne <https://coinone.co.kr>`__                            | 2     | `API <https://doc.coinone.co.kr>`__                                                               |
++----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | Spain                      | |exmo|                 | exmo                 | `EXMO <https://exmo.me>`__                                     | 1     | `API <https://exmo.me/en/api_doc>`__                                                              |
 +----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | St. Vincent & Grenadines   | |getbtc|               | getbtc               | `GetBTC <https://getbtc.org>`__                                | \*    | `API <https://getbtc.org/api-docs.php>`__                                                         |
@@ -378,6 +380,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
 .. |fybsg| image:: https://user-images.githubusercontent.com/1294454/27766513-3364d56a-5edb-11e7-9e6b-d5898bb89c81.jpg
 .. |luno| image:: https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg
 .. |bithumb| image:: https://user-images.githubusercontent.com/1294454/30597177-ea800172-9d5e-11e7-804c-b9d4fa9b56b0.jpg
+.. |coinone| image:: https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg
 .. |fybse| image:: https://user-images.githubusercontent.com/1294454/27766512-31019772-5edb-11e7-8241-2e675e6797f1.jpg
 .. |lykke| image:: https://user-images.githubusercontent.com/1294454/34487620-3139a7b0-efe6-11e7-90f5-e520cef74451.jpg
 .. |vaultoro| image:: https://user-images.githubusercontent.com/1294454/27766880-f205e870-5ee9-11e7-8fe2-0d5b15880752.jpg

@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.12.13'
+__version__ = '1.12.14'
 
 # ----------------------------------------------------------------------------
 
@@ -92,6 +92,7 @@ from ccxt.coinfloor import coinfloor                        # noqa: F401
 from ccxt.coingi import coingi                              # noqa: F401
 from ccxt.coinmarketcap import coinmarketcap                # noqa: F401
 from ccxt.coinmate import coinmate                          # noqa: F401
+from ccxt.coinone import coinone                            # noqa: F401
 from ccxt.coinsecure import coinsecure                      # noqa: F401
 from ccxt.coinspot import coinspot                          # noqa: F401
 from ccxt.coolcoin import coolcoin                          # noqa: F401
@@ -199,6 +200,7 @@ exchanges = [
     'coingi',
     'coinmarketcap',
     'coinmate',
+    'coinone',
     'coinsecure',
     'coinspot',
     'coolcoin',
