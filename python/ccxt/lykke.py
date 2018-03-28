@@ -184,12 +184,14 @@ class lykke (Exchange):
             'high': None,
             'low': None,
             'bid': float(ticker['Rate']['Bid']),
+            'bidVolume': None,
             'ask': float(ticker['Rate']['Ask']),
+            'askVolume': None,
             'vwap': None,
             'open': None,
             'close': None,
-            'first': None,
             'last': None,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
@@ -306,14 +308,9 @@ class lykke (Exchange):
                 orderbook['bids'] = self.array_concat(orderbook['bids'], side['Prices'])
             else:
                 orderbook['asks'] = self.array_concat(orderbook['asks'], side['Prices'])
-            timestamp = self.parse8601(side['Timestamp'])
-            if not orderbook['timestamp']:
-                orderbook['timestamp'] = timestamp
-            else:
-                orderbook['timestamp'] = max(orderbook['timestamp'], timestamp)
-        if not timestamp:
-            timestamp = self.milliseconds()
-        return self.parse_order_book(orderbook, orderbook['timestamp'], 'bids', 'asks', 'Price', 'Volume')
+            sideTimestamp = self.parse8601(side['Timestamp'])
+            timestamp = sideTimestamp if (timestamp is None) else max(timestamp, sideTimestamp)
+        return self.parse_order_book(orderbook, timestamp, 'bids', 'asks', 'Price', 'Volume')
 
     def parse_bid_ask(self, bidask, priceKey=0, amountKey=1):
         price = float(bidask[priceKey])

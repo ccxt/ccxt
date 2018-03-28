@@ -72,6 +72,8 @@ class ccex extends Exchange {
                 'IOT' => 'IoTcoin',
                 'BLC' => 'Cryptobullcoin',
                 'XID' => 'InternationalDiamond',
+                'LUX' => 'Luxmi',
+                'CRC' => 'CoreCoin',
             ),
         ));
     }
@@ -193,8 +195,9 @@ class ccex extends Exchange {
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = $ticker['updated'] * 1000;
         $symbol = null;
-        if ($market)
+        if ($market !== null)
             $symbol = $market['symbol'];
+        $last = floatval ($ticker['lastprice']);
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -202,12 +205,14 @@ class ccex extends Exchange {
             'high' => floatval ($ticker['high']),
             'low' => floatval ($ticker['low']),
             'bid' => floatval ($ticker['buy']),
+            'bidVolume' => null,
             'ask' => floatval ($ticker['sell']),
+            'askVolume' => null,
             'vwap' => null,
             'open' => null,
-            'close' => null,
-            'first' => null,
-            'last' => floatval ($ticker['lastprice']),
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => floatval ($ticker['avg']),
@@ -220,18 +225,18 @@ class ccex extends Exchange {
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
         $tickers = $this->webGetPrices ($params);
-        $result = array ( 'info' => $tickers );
+        $result = array ();
         $ids = is_array ($tickers) ? array_keys ($tickers) : array ();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $ticker = $tickers[$id];
-            $uppercase = strtoupper ($id);
             $market = null;
             $symbol = null;
-            if (is_array ($this->markets_by_id) && array_key_exists ($uppercase, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$uppercase];
+            if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$id];
                 $symbol = $market['symbol'];
             } else {
+                $uppercase = strtoupper ($id);
                 list ($base, $quote) = explode ('-', $uppercase);
                 $base = $this->common_currency_code($base);
                 $quote = $this->common_currency_code($quote);

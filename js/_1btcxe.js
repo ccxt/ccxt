@@ -126,7 +126,9 @@ module.exports = class _1btcxe extends Exchange {
             'high': parseFloat (ticker['max']),
             'low': parseFloat (ticker['min']),
             'bid': parseFloat (ticker['bid']),
+            'bidVolume': undefined,
             'ask': parseFloat (ticker['ask']),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': parseFloat (ticker['open']),
             'close': last,
@@ -137,6 +139,7 @@ module.exports = class _1btcxe extends Exchange {
             'average': undefined,
             'baseVolume': undefined,
             'quoteVolume': parseFloat (ticker['total_btc_traded']),
+            'info': ticker,
         };
     }
 

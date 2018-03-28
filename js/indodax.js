@@ -7,11 +7,11 @@ const { ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound, Authentic
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class bitcoincoid extends Exchange {
+module.exports = class indodax extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'bitcoincoid',
-            'name': 'Bitcoin.co.id',
+            'id': 'indodax',
+            'name': 'INDODAX',
             'countries': 'ID', // Indonesia
             'has': {
                 'CORS': false,
@@ -27,12 +27,12 @@ module.exports = class bitcoincoid extends Exchange {
             },
             'version': '1.7', // as of 6 November 2017
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766138-043c7786-5ecf-11e7-882b-809c14f38b53.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/37443283-2fddd0e4-281c-11e8-9741-b4f1419001b5.jpg',
                 'api': {
                     'public': 'https://vip.bitcoin.co.id/api',
                     'private': 'https://vip.bitcoin.co.id/tapi',
                 },
-                'www': 'https://www.bitcoin.co.id',
+                'www': 'https://www.indodax.com',
                 'doc': [
                     'https://vip.bitcoin.co.id/downloads/BITCOINCOID-API-DOCUMENTATION.pdf',
                 ],
@@ -131,6 +131,7 @@ module.exports = class bitcoincoid extends Exchange {
         let timestamp = parseFloat (ticker['server_time']) * 1000;
         let baseVolume = 'vol_' + market['baseId'].toLowerCase ();
         let quoteVolume = 'vol_' + market['quoteId'].toLowerCase ();
+        let last = parseFloat (ticker['last']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -138,12 +139,14 @@ module.exports = class bitcoincoid extends Exchange {
             'high': parseFloat (ticker['high']),
             'low': parseFloat (ticker['low']),
             'bid': parseFloat (ticker['buy']),
+            'bidVolume': undefined,
             'ask': parseFloat (ticker['sell']),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,

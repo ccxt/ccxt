@@ -96,6 +96,9 @@ class huobipro extends Exchange {
                     'taker' => 0.002,
                 ),
             ),
+            'exceptions' => array (
+                'order-limitorder-amount-min-error' => '\\ccxt\\InvalidOrder', // limit order amount error, min => `0.001`
+            ),
         ));
     }
 
@@ -205,6 +208,7 @@ class huobipro extends Exchange {
             'open' => $open,
             'close' => $close,
             'last' => $close,
+            'previousClose' => null,
             'change' => $change,
             'percentage' => $percentage,
             'average' => $average,
@@ -358,11 +362,11 @@ class huobipro extends Exchange {
             throw new ExchangeError ($this->id . ' fetchOrders() requires a type param or $status param for spot $market ' . $symbol . ' (0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)');
         }
         if (($status === 0) || ($status === 'open')) {
-            $status = 'submitted,partial-filled';
+            $status = 'pre-submitted,submitted,partial-filled';
         } else if (($status === 1) || ($status === 'closed')) {
-            $status = 'filled,partial-canceled';
+            $status = 'filled,partial-canceled,canceled';
         } else {
-            throw new ExchangeError ($this->id . ' fetchOrders() wrong type param or $status param for spot $market ' . $symbol . ' (0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)');
+            $status = 'pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled';
         }
         $response = $this->privateGetOrderOrders (array_merge (array (
             'symbol' => $market['id'],
@@ -568,11 +572,29 @@ class huobipro extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (is_array ($response) && array_key_exists ('status', $response))
-            if ($response['status'] === 'error')
-                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
-        return $response;
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body) {
+        if (gettype ($body) != 'string')
+            return; // fallback to default error handler
+        if (strlen ($body) < 2)
+            return; // fallback to default error handler
+        if (($body[0] === '{') || ($body[0] === '[')) {
+            $response = json_decode ($body, $as_associative_array = true);
+            if (is_array ($response) && array_key_exists ('status', $response)) {
+                //
+                //     array ("$status":"error","err-$code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min => `0.001`","data":null)
+                //
+                $status = $this->safe_string($response, 'status');
+                if ($status === 'error') {
+                    $code = $this->safe_string($response, 'err-code');
+                    $feedback = $this->id . ' ' . $this->json ($response);
+                    $message = $this->safe_string($response, 'err-msg', $feedback);
+                    $exceptions = $this->exceptions;
+                    if (is_array ($exceptions) && array_key_exists ($code, $exceptions)) {
+                        throw new $exceptions[$code] ($message);
+                    }
+                    throw new ExchangeError ($message);
+                }
+            }
+        }
     }
 }

@@ -575,6 +575,7 @@ class hitbtc extends Exchange {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
+        $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -582,12 +583,14 @@ class hitbtc extends Exchange {
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => $this->safe_float($ticker, 'bid'),
+            'bidVolume' => null,
             'ask' => $this->safe_float($ticker, 'ask'),
+            'askVolume' => null,
             'vwap' => null,
             'open' => $this->safe_float($ticker, 'open'),
-            'close' => null,
-            'first' => null,
-            'last' => $this->safe_float($ticker, 'last'),
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,

@@ -26,6 +26,7 @@ class binance extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
                 'withdraw' => true,
+                'fetchFundingFees' => true,
             ),
             'timeframes' => array (
                 '1m' => '1m',
@@ -77,6 +78,7 @@ class binance extends Exchange {
                         'depositAddress',
                         'accountStatus',
                         'systemStatus',
+                        'withdrawFee',
                     ),
                 ),
                 'v3' => array (
@@ -128,6 +130,7 @@ class binance extends Exchange {
                     'taker' => 0.001,
                     'maker' => 0.001,
                 ),
+                // should be deleted, these are outdated and inaccurate
                 'funding' => array (
                     'tierBased' => false,
                     'percentage' => false,
@@ -242,60 +245,7 @@ class binance extends Exchange {
                         'ZEC' => 0.005,
                         'ZRX' => 5.7,
                     ),
-                    'deposit' => array (
-                        'ARK' => 0,
-                        'AST' => 0,
-                        'BCH' => 0,
-                        'BNB' => 0,
-                        'BNT' => 0,
-                        'BQX' => 0,
-                        'BTC' => 0,
-                        'BTG' => 0,
-                        'CTR' => 0,
-                        'DASH' => 0,
-                        'DNT' => 0,
-                        'ENG' => 0,
-                        'ENJ' => 0,
-                        'EOS' => 0,
-                        'ETC' => 0,
-                        'ETH' => 0,
-                        'EVX' => 0,
-                        'FUN' => 0,
-                        'GAS' => 0,
-                        'HSR' => 0,
-                        'ICN' => 0,
-                        'IOTA' => 0,
-                        'KNC' => 0,
-                        'LINK' => 0,
-                        'LRC' => 0,
-                        'LTC' => 0,
-                        'MCO' => 0,
-                        'MDA' => 0,
-                        'MOD' => 0,
-                        'MTH' => 0,
-                        'MTL' => 0,
-                        'NEO' => 0,
-                        'OAX' => 0,
-                        'OMG' => 0,
-                        'POWR' => 0,
-                        'QTUM' => 0,
-                        'REQ' => 0,
-                        'SALT' => 0,
-                        'SNGLS' => 0,
-                        'SNM' => 0,
-                        'SNT' => 0,
-                        'STORJ' => 0,
-                        'STRAT' => 0,
-                        'SUB' => 0,
-                        'TRX' => 0,
-                        'USDT' => 0,
-                        'VIB' => 0,
-                        'WTC' => 0,
-                        'XRP' => 0,
-                        'XVG' => 0,
-                        'YOYOW' => 0,
-                        'ZRX' => 0,
-                    ),
+                    'deposit' => array (),
                 ),
             ),
             'commonCurrencies' => array (
@@ -457,8 +407,10 @@ class binance extends Exchange {
         );
         if ($limit !== null)
             $request['limit'] = $limit; // default = maximum = 100
-        $orderbook = $this->publicGetDepth (array_merge ($request, $params));
-        return $this->parse_order_book($orderbook);
+        $response = $this->publicGetDepth (array_merge ($request, $params));
+        $orderbook = $this->parse_order_book($response);
+        $orderbook['nonce'] = $this->safe_integer($response, 'lastUpdateId');
+        return $orderbook;
     }
 
     public function parse_ticker ($ticker, $market = null) {
@@ -772,7 +724,30 @@ class binance extends Exchange {
                 );
             }
         }
-        throw new ExchangeError ($this->id . ' fetchDepositAddress failed => ' . $this->last_http_response);
+    }
+
+    public function fetch_funding_fees ($codes = null, $params = array ()) {
+        //  by default it will try load withdrawal fees of all currencies (with separate requests)
+        //  however if you define $codes = array ( 'ETH', 'BTC' ) in args it will only load those
+        $this->load_markets();
+        $withdrawFees = array ();
+        $info = array ();
+        if ($codes === null)
+            $codes = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
+        for ($i = 0; $i < count ($codes); $i++) {
+            $code = $codes[$i];
+            $currency = $this->currency ($code);
+            $response = $this->wapiGetWithdrawFee (array (
+                'asset' => $currency['id'],
+            ));
+            $withdrawFees[$code] = $this->safe_float($response, 'withdrawFee');
+            $info[$code] = $response;
+        }
+        return array (
+            'withdraw' => $withdrawFees,
+            'deposit' => array (),
+            'info' => $info,
+        );
     }
 
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {

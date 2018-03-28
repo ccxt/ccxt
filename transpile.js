@@ -4,7 +4,8 @@ const fs   = require ('fs')
     , path = require ('path')
     , log  = require ('ololog')
     , ansi = require ('ansicolor').nice
-    , { capitalize } = require ('./js/base/functions.js')
+    , { unCamelCase,
+        capitalize } = require ('./js/base/functions.js')
     , errors = require ('./js/base/errors.js')
 
 // ---------------------------------------------------------------------------
@@ -364,7 +365,7 @@ const pythonRegexes = [
         for (let method of methods) {
             const regex = new RegExp ('self\\.(' + method + ')\\s*\\(', 'g')
             bodyAsString = bodyAsString.replace (regex,
-                (match, p1) => ('self.' + convertMethodNameToUnderscoreNotation (p1) + '('))
+                (match, p1) => ('self.' + unCamelCase (p1) + '('))
         }
 
         header.push ("\n\nclass " + className + ' (' + baseClass + '):')
@@ -397,7 +398,7 @@ const pythonRegexes = [
         for (let method of methods) {
             const regex = new RegExp ('this->(' + method + ')\\s*\\(', 'g')
             bodyAsString = bodyAsString.replace (regex,
-                (match, p1) => ('this->' + convertMethodNameToUnderscoreNotation (p1) + ' ('))
+                (match, p1) => ('this->' + unCamelCase (p1) + ' ('))
         }
 
         const footer =[
@@ -413,14 +414,6 @@ const pythonRegexes = [
     const python2Folder = './python/ccxt/'
     const python3Folder = './python/ccxt/async/'
     const phpFolder     = './php/'
-
-    // ----------------------------------------------------------------------------
-
-    function convertMethodNameToUnderscoreNotation (method) {
-        return (method
-            .replace (/[A-Z]+/g, match => capitalize (match.toLowerCase ()))
-            .replace (/[A-Z]/g, match => '_' + match.toLowerCase ()))
-    }
 
     // ----------------------------------------------------------------------------
 
@@ -477,7 +470,7 @@ const pythonRegexes = [
 
             methodNames.push (method)
 
-            method = convertMethodNameToUnderscoreNotation (method)
+            method = unCamelCase (method)
 
             // method arguments
             let args = matches[3].trim ()

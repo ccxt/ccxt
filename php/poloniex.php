@@ -189,7 +189,24 @@ class poloniex extends Exchange {
                 'base' => $base,
                 'quote' => $quote,
                 'active' => true,
-                'lot' => $this->limits['amount']['min'],
+                'precision' => array (
+                    'amount' => 8,
+                    'price' => 8,
+                ),
+                'limits' => array (
+                    'amount' => array (
+                        'min' => 0.00000001,
+                        'max' => 1000000000,
+                    ),
+                    'price' => array (
+                        'min' => 0.00000001,
+                        'max' => 1000000000,
+                    ),
+                    'cost' => array (
+                        'min' => 0.00000000,
+                        'max' => 1000000000,
+                    ),
+                ),
                 'info' => $market,
             ));
         }
@@ -237,8 +254,10 @@ class poloniex extends Exchange {
         );
         if ($limit !== null)
             $request['depth'] = $limit; // 100
-        $orderbook = $this->publicGetReturnOrderBook (array_merge ($request, $params));
-        return $this->parse_order_book($orderbook);
+        $response = $this->publicGetReturnOrderBook (array_merge ($request, $params));
+        $orderbook = $this->parse_order_book($response);
+        $orderbook['nonce'] = $this->safe_integer($response, 'sec');
+        return $orderbook;
     }
 
     public function parse_ticker ($ticker, $market = null) {
@@ -263,7 +282,9 @@ class poloniex extends Exchange {
             'high' => floatval ($ticker['high24hr']),
             'low' => floatval ($ticker['low24hr']),
             'bid' => floatval ($ticker['highestBid']),
+            'bidVolume' => null,
             'ask' => floatval ($ticker['lowestAsk']),
+            'askVolume' => null,
             'vwap' => null,
             'open' => $open,
             'close' => $last,

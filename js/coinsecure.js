@@ -216,6 +216,7 @@ module.exports = class coinsecure extends Exchange {
         }
         let quoteVolume = parseFloat (ticker['fiatvolume']) / 100;
         let vwap = quoteVolume / baseVolume;
+        let last = parseFloat (ticker['lastPrice']) / 100;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -223,12 +224,14 @@ module.exports = class coinsecure extends Exchange {
             'high': parseFloat (ticker['high']) / 100,
             'low': parseFloat (ticker['low']) / 100,
             'bid': parseFloat (ticker['bid']) / 100,
+            'bidVolume': undefined,
             'ask': parseFloat (ticker['ask']) / 100,
+            'askVolume': undefined,
             'vwap': vwap,
             'open': parseFloat (ticker['open']) / 100,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['lastPrice']) / 100,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,

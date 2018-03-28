@@ -25,6 +25,7 @@ module.exports = class bibox extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'createMarketOrder': false, // or they will return https://github.com/ccxt/ccxt/issues/2338
                 'withdraw': true,
             },
             'timeframes': {
@@ -132,6 +133,7 @@ module.exports = class bibox extends Exchange {
         } else {
             symbol = ticker['coin_symbol'] + '/' + ticker['currency_symbol'];
         }
+        let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -139,12 +141,14 @@ module.exports = class bibox extends Exchange {
             'high': this.safeFloat (ticker, 'high'),
             'low': this.safeFloat (ticker, 'low'),
             'bid': this.safeFloat (ticker, 'buy'),
+            'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'sell'),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': this.safeFloat (ticker, 'last'),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': this.safeString (ticker, 'percent'),
             'average': undefined,
@@ -564,6 +568,11 @@ module.exports = class bibox extends Exchange {
                     // operation failed! Orders have been completed or revoked
                     // e.g. trying to cancel a filled order
                     throw new OrderNotFound (message);
+                else if (code === '2067')
+                    // https://github.com/ccxt/ccxt/issues/2338
+                    //  { "error": { "code": "2067", "msg": "暂不支持市价单"}, "cmd": "orderpending/trade" }
+                    // "Does not support market orders"
+                    throw new InvalidOrder (message);
                 else if (code === '2068')
                     // \u4e0b\u5355\u6570\u91cf\u4e0d\u80fd\u4f4e\u4e8e
                     // The number of orders can not be less than

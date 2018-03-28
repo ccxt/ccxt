@@ -197,7 +197,24 @@ class poloniex (Exchange):
                 'base': base,
                 'quote': quote,
                 'active': True,
-                'lot': self.limits['amount']['min'],
+                'precision': {
+                    'amount': 8,
+                    'price': 8,
+                },
+                'limits': {
+                    'amount': {
+                        'min': 0.00000001,
+                        'max': 1000000000,
+                    },
+                    'price': {
+                        'min': 0.00000001,
+                        'max': 1000000000,
+                    },
+                    'cost': {
+                        'min': 0.00000000,
+                        'max': 1000000000,
+                    },
+                },
                 'info': market,
             }))
         return result
@@ -240,8 +257,10 @@ class poloniex (Exchange):
         }
         if limit is not None:
             request['depth'] = limit  # 100
-        orderbook = self.publicGetReturnOrderBook(self.extend(request, params))
-        return self.parse_order_book(orderbook)
+        response = self.publicGetReturnOrderBook(self.extend(request, params))
+        orderbook = self.parse_order_book(response)
+        orderbook['nonce'] = self.safe_integer(response, 'sec')
+        return orderbook
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
@@ -264,7 +283,9 @@ class poloniex (Exchange):
             'high': float(ticker['high24hr']),
             'low': float(ticker['low24hr']),
             'bid': float(ticker['highestBid']),
+            'bidVolume': None,
             'ask': float(ticker['lowestAsk']),
+            'askVolume': None,
             'vwap': None,
             'open': open,
             'close': last,

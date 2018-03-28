@@ -205,6 +205,7 @@ class coinegg extends Exchange {
     public function parse_ticker ($ticker, $market = null) {
         $symbol = $market['symbol'];
         $timestamp = $this->milliseconds ();
+        $last = floatval ($ticker['last']);
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -212,12 +213,14 @@ class coinegg extends Exchange {
             'high' => floatval ($ticker['high']),
             'low' => floatval ($ticker['low']),
             'bid' => floatval ($ticker['buy']),
+            'bidVolume' => null,
             'ask' => floatval ($ticker['sell']),
+            'askVolume' => null,
             'vwap' => null,
             'open' => null,
-            'close' => null,
-            'first' => null,
-            'last' => floatval ($ticker['last']),
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
             'change' => $this->safe_float($ticker, 'change'),
             'percentage' => null,
             'average' => null,
@@ -254,18 +257,20 @@ class coinegg extends Exchange {
                 $baseId = $baseIds[$i];
                 $ticker = $tickers[$baseId];
                 $id = $baseId . $quoteId;
-                $market = $this->marketsById[$id];
-                $symbol = $market['symbol'];
-                $result[$symbol] = $this->parse_ticker(array (
-                    'high' => $ticker[4],
-                    'low' => $ticker[5],
-                    'buy' => $ticker[2],
-                    'sell' => $ticker[3],
-                    'last' => $ticker[1],
-                    'change' => $ticker[8],
-                    'vol' => $ticker[6],
-                    'quoteVol' => $ticker[7],
-                ), $market);
+                if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
+                    $market = $this->marketsById[$id];
+                    $symbol = $market['symbol'];
+                    $result[$symbol] = $this->parse_ticker(array (
+                        'high' => $ticker[4],
+                        'low' => $ticker[5],
+                        'buy' => $ticker[2],
+                        'sell' => $ticker[3],
+                        'last' => $ticker[1],
+                        'change' => $ticker[8],
+                        'vol' => $ticker[6],
+                        'quoteVol' => $ticker[7],
+                    ), $market);
+                }
             }
         }
         return $result;
@@ -388,10 +393,7 @@ class coinegg extends Exchange {
             'amount' => $amount,
             'price' => $price,
         ), $params));
-        if (!$response['status']) {
-            throw new InvalidOrder ($this->json ($response));
-        }
-        $id = $response['id'];
+        $id = (string) $response['id'];
         $order = $this->parse_order(array (
             'id' => $id,
             'datetime' => $this->ymdhms ($this->milliseconds ()),
@@ -413,9 +415,6 @@ class coinegg extends Exchange {
             'coin' => $market['baseId'],
             'quote' => $market['quoteId'],
         ), $params));
-        if (!$response['status']) {
-            throw new ExchangeError ($this->json ($response));
-        }
         return $response;
     }
 

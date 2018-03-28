@@ -200,13 +200,7 @@ class bitmarket extends Exchange {
         $orderbook = $this->publicGetJsonMarketOrderbook (array_merge (array (
             'market' => $this->market_id($symbol),
         ), $params));
-        $timestamp = $this->milliseconds ();
-        return array (
-            'bids' => $orderbook['bids'],
-            'asks' => $orderbook['asks'],
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-        );
+        return $this->parse_order_book($orderbook);
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {
@@ -217,6 +211,7 @@ class bitmarket extends Exchange {
         $vwap = floatval ($ticker['vwap']);
         $baseVolume = floatval ($ticker['volume']);
         $quoteVolume = $baseVolume * $vwap;
+        $last = floatval ($ticker['last']);
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -224,12 +219,14 @@ class bitmarket extends Exchange {
             'high' => floatval ($ticker['high']),
             'low' => floatval ($ticker['low']),
             'bid' => floatval ($ticker['bid']),
+            'bidVolume' => null,
             'ask' => floatval ($ticker['ask']),
+            'askVolume' => null,
             'vwap' => $vwap,
             'open' => null,
-            'close' => null,
-            'first' => null,
-            'last' => floatval ($ticker['last']),
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,

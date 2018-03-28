@@ -4,9 +4,17 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import math
 import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import InvalidOrder
 
 
@@ -23,7 +31,8 @@ class cex (Exchange):
                 'fetchTickers': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
-                'fetchOrders': True,
+                'fetchClosedOrders': True,
+                'fetchDepositAddress': True,
             },
             'timeframes': {
                 '1m': '1m',
@@ -230,12 +239,14 @@ class cex (Exchange):
             'high': high,
             'low': low,
             'bid': bid,
+            'bidVolume': None,
             'ask': ask,
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
+            'close': last,
             'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
@@ -316,7 +327,15 @@ class cex (Exchange):
         return self.privatePostCancelOrder({'id': id})
 
     def parse_order(self, order, market=None):
-        timestamp = int(order['time'])
+        # Depending on the call, 'time' can be a unix int, unix string or ISO string
+        # Yes, really
+        timestamp = order['time']
+        if isinstance(order['time'], basestring) and order['time'].find('T') >= 0:
+            # ISO8601 string
+            timestamp = self.parse8601(timestamp)
+        else:
+            # either integer or string integer
+            timestamp = int(timestamp)
         symbol = None
         if not market:
             symbol = order['symbol1'] + '/' + order['symbol2']
@@ -405,6 +424,16 @@ class cex (Exchange):
             orders[i] = self.extend(orders[i], {'status': 'open'})
         return self.parse_orders(orders, market, since, limit)
 
+    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        method = 'privatePostArchivedOrdersPair'
+        if symbol is None:
+            raise NotSupported(self.id + ' fetchClosedOrders requires a symbol argument')
+        market = self.market(symbol)
+        request = {'pair': market['id']}
+        response = getattr(self, method)(self.extend(request, params))
+        return self.parse_orders(response, market, since, limit)
+
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
         response = self.privatePostGetOrder(self.extend({
@@ -451,3 +480,23 @@ class cex (Exchange):
             if response['error']:
                 raise ExchangeError(self.id + ' ' + self.json(response))
         return response
+
+    def fetch_deposit_address(self, code, params={}):
+        if code == 'XRP':
+            # https://github.com/ccxt/ccxt/pull/2327#issuecomment-375204856
+            raise NotSupported(self.id + ' fetchDepositAddress does not support XRP addresses yet(awaiting docs from CEX.io)')
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        response = self.privatePostGetAddress(self.extend(request, params))
+        address = self.safe_string(response, 'data')
+        self.check_address(address)
+        return {
+            'currency': code,
+            'address': address,
+            'tag': None,
+            'status': 'ok',
+            'info': response,
+        }

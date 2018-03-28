@@ -99,6 +99,7 @@ class bit2c extends Exchange {
         $averagePrice = floatval ($ticker['av']);
         $baseVolume = floatval ($ticker['a']);
         $quoteVolume = $baseVolume * $averagePrice;
+        $last = floatval ($ticker['ll']);
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -106,12 +107,14 @@ class bit2c extends Exchange {
             'high' => null,
             'low' => null,
             'bid' => floatval ($ticker['h']),
+            'bidVolume' => null,
             'ask' => floatval ($ticker['l']),
+            'askVolume' => null,
             'vwap' => null,
             'open' => null,
-            'close' => null,
-            'first' => null,
-            'last' => floatval ($ticker['ll']),
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => $averagePrice,

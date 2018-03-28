@@ -14,6 +14,7 @@ module.exports = {
       "semi": "off",
       "no-unused-vars": ["off"],
       "quotes": ["off", "single"],
+      "quote-props": "off",
       "func-call-spacing": ["error", "always"],
       "one-var": "off",
       "indent": ["warn", 4, { "ignoredNodes": ["ObjectPattern"] }],

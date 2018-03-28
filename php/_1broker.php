@@ -21,7 +21,7 @@ class _1broker extends Exchange {
                 'fetchOHLCV' => true,
             ),
             'timeframes' => array (
-                '1m' => '60',
+                '1m' => '60', // not working for some reason, returns array ("server_time":"2018-03-26T03:52:27.912Z","error":true,"warning":false,"response":null,"error_code":-1,"error_message":"Error while trying to fetch historical market data. An invalid resolution was probably used.")
                 '15m' => '900',
                 '1h' => '3600',
                 '1d' => '86400',
@@ -152,6 +152,7 @@ class _1broker extends Exchange {
             'datetime' => $this->iso8601 ($timestamp),
             'bids' => array ( $bid ),
             'asks' => array ( $ask ),
+            'nonce' => null,
         );
     }
 
@@ -178,7 +179,9 @@ class _1broker extends Exchange {
             'high' => floatval ($ticker['h']),
             'low' => floatval ($ticker['l']),
             'bid' => null,
+            'bidVolume' => null,
             'ask' => null,
+            'askVolume' => null,
             'vwap' => null,
             'open' => $open,
             'close' => $close,

@@ -68,7 +68,8 @@ module.exports = class tidex extends liqui {
             let currency = currencies[i];
             let id = currency['symbol'];
             let precision = currency['amountPoint'];
-            let code = this.commonCurrencyCode (id);
+            let code = id.toUpperCase ();
+            code = this.commonCurrencyCode (code);
             let active = currency['visible'] === true;
             let status = 'ok';
             if (!active) {

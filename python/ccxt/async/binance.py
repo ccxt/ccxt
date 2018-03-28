@@ -43,6 +43,7 @@ class binance (Exchange):
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'withdraw': True,
+                'fetchFundingFees': True,
             },
             'timeframes': {
                 '1m': '1m',
@@ -94,6 +95,7 @@ class binance (Exchange):
                         'depositAddress',
                         'accountStatus',
                         'systemStatus',
+                        'withdrawFee',
                     ],
                 },
                 'v3': {
@@ -145,6 +147,7 @@ class binance (Exchange):
                     'taker': 0.001,
                     'maker': 0.001,
                 },
+                # should be deleted, these are outdated and inaccurate
                 'funding': {
                     'tierBased': False,
                     'percentage': False,
@@ -259,60 +262,7 @@ class binance (Exchange):
                         'ZEC': 0.005,
                         'ZRX': 5.7,
                     },
-                    'deposit': {
-                        'ARK': 0,
-                        'AST': 0,
-                        'BCH': 0,
-                        'BNB': 0,
-                        'BNT': 0,
-                        'BQX': 0,
-                        'BTC': 0,
-                        'BTG': 0,
-                        'CTR': 0,
-                        'DASH': 0,
-                        'DNT': 0,
-                        'ENG': 0,
-                        'ENJ': 0,
-                        'EOS': 0,
-                        'ETC': 0,
-                        'ETH': 0,
-                        'EVX': 0,
-                        'FUN': 0,
-                        'GAS': 0,
-                        'HSR': 0,
-                        'ICN': 0,
-                        'IOTA': 0,
-                        'KNC': 0,
-                        'LINK': 0,
-                        'LRC': 0,
-                        'LTC': 0,
-                        'MCO': 0,
-                        'MDA': 0,
-                        'MOD': 0,
-                        'MTH': 0,
-                        'MTL': 0,
-                        'NEO': 0,
-                        'OAX': 0,
-                        'OMG': 0,
-                        'POWR': 0,
-                        'QTUM': 0,
-                        'REQ': 0,
-                        'SALT': 0,
-                        'SNGLS': 0,
-                        'SNM': 0,
-                        'SNT': 0,
-                        'STORJ': 0,
-                        'STRAT': 0,
-                        'SUB': 0,
-                        'TRX': 0,
-                        'USDT': 0,
-                        'VIB': 0,
-                        'WTC': 0,
-                        'XRP': 0,
-                        'XVG': 0,
-                        'YOYOW': 0,
-                        'ZRX': 0,
-                    },
+                    'deposit': {},
                 },
             },
             'commonCurrencies': {
@@ -462,8 +412,10 @@ class binance (Exchange):
         }
         if limit is not None:
             request['limit'] = limit  # default = maximum = 100
-        orderbook = await self.publicGetDepth(self.extend(request, params))
-        return self.parse_order_book(orderbook)
+        response = await self.publicGetDepth(self.extend(request, params))
+        orderbook = self.parse_order_book(response)
+        orderbook['nonce'] = self.safe_integer(response, 'lastUpdateId')
+        return orderbook
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.safe_integer(ticker, 'closeTime')
@@ -750,7 +702,28 @@ class binance (Exchange):
                     'status': 'ok',
                     'info': response,
                 }
-        raise ExchangeError(self.id + ' fetchDepositAddress failed: ' + self.last_http_response)
+
+    async def fetch_funding_fees(self, codes=None, params={}):
+        #  by default it will try load withdrawal fees of all currencies(with separate requests)
+        #  however if you define codes = ['ETH', 'BTC'] in args it will only load those
+        await self.load_markets()
+        withdrawFees = {}
+        info = {}
+        if codes is None:
+            codes = list(self.currencies.keys())
+        for i in range(0, len(codes)):
+            code = codes[i]
+            currency = self.currency(code)
+            response = await self.wapiGetWithdrawFee({
+                'asset': currency['id'],
+            })
+            withdrawFees[code] = self.safe_float(response, 'withdrawFee')
+            info[code] = response
+        return {
+            'withdraw': withdrawFees,
+            'deposit': {},
+            'info': info,
+        }
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)

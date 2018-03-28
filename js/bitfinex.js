@@ -217,12 +217,17 @@ module.exports = class bitfinex extends Exchange {
                 },
             },
             'commonCurrencies': {
-                'DSH': 'DASH', // Bitfinex names Dash as DSH, instead of DASH
-                'QTM': 'QTUM',
                 'BCC': 'CST_BCC',
                 'BCU': 'CST_BCU',
-                'IOT': 'IOTA',
                 'DAT': 'DATA',
+                'DSH': 'DASH', // Bitfinex names Dash as DSH, instead of DASH
+                'IOT': 'IOTA',
+                'MNA': 'MANA',
+                'QSH': 'QASH',
+                'QTM': 'QTUM',
+                'SNG': 'SNGLS',
+                'SPK': 'SPANK',
+                'YYW': 'YOYOW',
             },
             'exceptions': {
                 'exact': {
@@ -399,11 +404,12 @@ module.exports = class bitfinex extends Exchange {
     parseTicker (ticker, market = undefined) {
         let timestamp = parseFloat (ticker['timestamp']) * 1000;
         let symbol = undefined;
-        if (market) {
+        if (typeof market !== 'undefined') {
             symbol = market['symbol'];
         } else if ('pair' in ticker) {
             let id = ticker['pair'];
-            let market = this.findMarket (ticker['pair']);
+            if (id in this.markets_by_id)
+                market = this.markets_by_id[id];
             if (typeof market !== 'undefined') {
                 symbol = market['symbol'];
             } else {
@@ -414,6 +420,7 @@ module.exports = class bitfinex extends Exchange {
                 symbol = base + '/' + quote;
             }
         }
+        let last = parseFloat (ticker['last_price']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -421,12 +428,14 @@ module.exports = class bitfinex extends Exchange {
             'high': parseFloat (ticker['high']),
             'low': parseFloat (ticker['low']),
             'bid': parseFloat (ticker['bid']),
+            'bidVolume': undefined,
             'ask': parseFloat (ticker['ask']),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last_price']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': parseFloat (ticker['mid']),
@@ -615,18 +624,18 @@ module.exports = class bitfinex extends Exchange {
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 100, params = {}) {
         await this.loadMarkets ();
+        if (typeof since === 'undefined')
+            since = this.milliseconds () - this.parseTimeframe (timeframe) * limit * 1000;
         let market = this.market (symbol);
         let v2id = 't' + market['id'];
         let request = {
             'symbol': v2id,
             'timeframe': this.timeframes[timeframe],
-            'sort': 1,
+            'sort': '-1',
             'limit': limit,
+            'start': since,
         };
-        if (typeof since !== 'undefined')
-            request['start'] = since;
-        request = this.extend (request, params);
-        let response = await this.v2GetCandlesTradeTimeframeSymbolHist (request);
+        let response = await this.v2GetCandlesTradeTimeframeSymbolHist (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 

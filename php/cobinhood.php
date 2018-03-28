@@ -239,7 +239,9 @@ class cobinhood extends Exchange {
             'high' => floatval ($ticker['24h_high']),
             'low' => floatval ($ticker['24h_low']),
             'bid' => floatval ($ticker['highest_bid']),
+            'bidVolume' => null,
             'ask' => floatval ($ticker['lowest_ask']),
+            'askVolume' => null,
             'vwap' => null,
             'open' => null,
             'close' => $last,
@@ -382,11 +384,13 @@ class cobinhood extends Exchange {
 
     public function parse_order ($order, $market = null) {
         $symbol = null;
-        if (!$market) {
-            $marketId = $order['trading_pair'];
+        if ($market === null) {
+            $marketId = $this->safe_string($order, 'trading_pair');
+            if ($marketId === null)
+                $marketId = $this->safe_string($order, 'trading_pair_id');
             $market = $this->markets_by_id[$marketId];
         }
-        if ($market)
+        if ($market !== null)
             $symbol = $market['symbol'];
         $timestamp = $order['timestamp'];
         $price = floatval ($order['price']);
@@ -471,7 +475,7 @@ class cobinhood extends Exchange {
             'order_id' => $id,
         ), $params));
         $market = ($symbol === null) ? null : $this->market ($symbol);
-        return $this->parse_trades($response['result'], $market);
+        return $this->parse_trades($response['result']['trades'], $market);
     }
 
     public function create_deposit_address ($code, $params = array ()) {
@@ -496,7 +500,11 @@ class cobinhood extends Exchange {
         $response = $this->privateGetWalletDepositAddresses (array_merge (array (
             'currency' => $currency['id'],
         ), $params));
-        $address = $this->safe_string($response['result']['deposit_addresses'], 'address');
+        $addresses = $this->safe_value($response['result'], 'deposit_addresses', array ());
+        $address = null;
+        if (strlen ($addresses) > 0) {
+            $address = $this->safe_string($addresses[0], 'address');
+        }
         $this->check_address($address);
         return array (
             'currency' => $code,

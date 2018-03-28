@@ -219,6 +219,7 @@ class coinegg (Exchange):
     def parse_ticker(self, ticker, market=None):
         symbol = market['symbol']
         timestamp = self.milliseconds()
+        last = float(ticker['last'])
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -226,12 +227,14 @@ class coinegg (Exchange):
             'high': float(ticker['high']),
             'low': float(ticker['low']),
             'bid': float(ticker['buy']),
+            'bidVolume': None,
             'ask': float(ticker['sell']),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': self.safe_float(ticker, 'change'),
             'percentage': None,
             'average': None,
@@ -265,18 +268,19 @@ class coinegg (Exchange):
                 baseId = baseIds[i]
                 ticker = tickers[baseId]
                 id = baseId + quoteId
-                market = self.marketsById[id]
-                symbol = market['symbol']
-                result[symbol] = self.parse_ticker({
-                    'high': ticker[4],
-                    'low': ticker[5],
-                    'buy': ticker[2],
-                    'sell': ticker[3],
-                    'last': ticker[1],
-                    'change': ticker[8],
-                    'vol': ticker[6],
-                    'quoteVol': ticker[7],
-                }, market)
+                if id in self.markets_by_id:
+                    market = self.marketsById[id]
+                    symbol = market['symbol']
+                    result[symbol] = self.parse_ticker({
+                        'high': ticker[4],
+                        'low': ticker[5],
+                        'buy': ticker[2],
+                        'sell': ticker[3],
+                        'last': ticker[1],
+                        'change': ticker[8],
+                        'vol': ticker[6],
+                        'quoteVol': ticker[7],
+                    }, market)
         return result
 
     def fetch_order_book(self, symbol, limit=None, params={}):
@@ -386,9 +390,7 @@ class coinegg (Exchange):
             'amount': amount,
             'price': price,
         }, params))
-        if not response['status']:
-            raise InvalidOrder(self.json(response))
-        id = response['id']
+        id = str(response['id'])
         order = self.parse_order({
             'id': id,
             'datetime': self.ymdhms(self.milliseconds()),
@@ -409,8 +411,6 @@ class coinegg (Exchange):
             'coin': market['baseId'],
             'quote': market['quoteId'],
         }, params))
-        if not response['status']:
-            raise ExchangeError(self.json(response))
         return response
 
     def fetch_order(self, id, symbol=None, params={}):

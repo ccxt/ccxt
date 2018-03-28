@@ -87,6 +87,14 @@ class bitbay extends Exchange {
                 'GAME/EUR' => array ( 'id' => 'GAMEEUR', 'symbol' => 'GAME/EUR', 'base' => 'GAME', 'quote' => 'EUR', 'baseId' => 'GAME', 'quoteId' => 'EUR' ),
                 'GAME/PLN' => array ( 'id' => 'GAMEPLN', 'symbol' => 'GAME/PLN', 'base' => 'GAME', 'quote' => 'PLN', 'baseId' => 'GAME', 'quoteId' => 'PLN' ),
                 'GAME/BTC' => array ( 'id' => 'GAMEBTC', 'symbol' => 'GAME/BTC', 'base' => 'GAME', 'quote' => 'BTC', 'baseId' => 'GAME', 'quoteId' => 'BTC' ),
+                'XRP/USD' => array ( 'id' => 'XRPUSD', 'symbol' => 'XRP/USD', 'base' => 'XRP', 'quote' => 'USD', 'baseId' => 'XRP', 'quoteId' => 'USD' ),
+                'XRP/EUR' => array ( 'id' => 'XRPEUR', 'symbol' => 'XRP/EUR', 'base' => 'XRP', 'quote' => 'EUR', 'baseId' => 'XRP', 'quoteId' => 'EUR' ),
+                'XRP/PLN' => array ( 'id' => 'XRPPLN', 'symbol' => 'XRP/PLN', 'base' => 'XRP', 'quote' => 'PLN', 'baseId' => 'XRP', 'quoteId' => 'PLN' ),
+                'XRP/BTC' => array ( 'id' => 'XRPBTC', 'symbol' => 'XRP/BTC', 'base' => 'XRP', 'quote' => 'BTC', 'baseId' => 'XRP', 'quoteId' => 'BTC' ),
+                'XIN/USD' => array ( 'id' => 'XINUSD', 'symbol' => 'XIN/USD', 'base' => 'XIN', 'quote' => 'USD', 'baseId' => 'XIN', 'quoteId' => 'USD' ),
+                'XIN/EUR' => array ( 'id' => 'XINEUR', 'symbol' => 'XIN/EUR', 'base' => 'XIN', 'quote' => 'EUR', 'baseId' => 'XIN', 'quoteId' => 'EUR' ),
+                'XIN/PLN' => array ( 'id' => 'XINPLN', 'symbol' => 'XIN/PLN', 'base' => 'XIN', 'quote' => 'PLN', 'baseId' => 'XIN', 'quoteId' => 'PLN' ),
+                'XIN/BTC' => array ( 'id' => 'XINBTC', 'symbol' => 'XIN/BTC', 'base' => 'XIN', 'quote' => 'BTC', 'baseId' => 'XIN', 'quoteId' => 'BTC' ),
             ),
             'fees' => array (
                 'trading' => array (
@@ -169,6 +177,7 @@ class bitbay extends Exchange {
         $baseVolume = $this->safe_float($ticker, 'volume');
         $vwap = $this->safe_float($ticker, 'vwap');
         $quoteVolume = $baseVolume * $vwap;
+        $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -176,12 +185,14 @@ class bitbay extends Exchange {
             'high' => $this->safe_float($ticker, 'max'),
             'low' => $this->safe_float($ticker, 'min'),
             'bid' => $this->safe_float($ticker, 'bid'),
+            'bidVolume' => null,
             'ask' => $this->safe_float($ticker, 'ask'),
+            'askVolume' => null,
             'vwap' => $vwap,
             'open' => null,
-            'close' => null,
-            'first' => null,
-            'last' => $this->safe_float($ticker, 'last'),
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => $this->safe_float($ticker, 'average'),
@@ -258,6 +269,8 @@ class bitbay extends Exchange {
             // $request['bic'] = '';
         } else {
             $method = 'privatePostTransfer';
+            if ($tag !== null)
+                $address .= '?dt=' . (string) $tag;
             $request['address'] = $address;
         }
         $response = $this->$method (array_merge ($request, $params));
@@ -270,7 +283,9 @@ class bitbay extends Exchange {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api];
         if ($api === 'public') {
+            $query = $this->omit ($params, $this->extract_params($path));
             $url .= '/' . $this->implode_params($path, $params) . '.json';
+            $url .= '?' . $this->urlencode ($query);
         } else {
             $this->check_required_credentials();
             $body = $this->urlencode (array_merge (array (

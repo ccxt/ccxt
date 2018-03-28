@@ -206,6 +206,7 @@ module.exports = class coinegg extends Exchange {
     parseTicker (ticker, market = undefined) {
         let symbol = market['symbol'];
         let timestamp = this.milliseconds ();
+        let last = parseFloat (ticker['last']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -213,12 +214,14 @@ module.exports = class coinegg extends Exchange {
             'high': parseFloat (ticker['high']),
             'low': parseFloat (ticker['low']),
             'bid': parseFloat (ticker['buy']),
+            'bidVolume': undefined,
             'ask': parseFloat (ticker['sell']),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': this.safeFloat (ticker, 'change'),
             'percentage': undefined,
             'average': undefined,
@@ -255,18 +258,20 @@ module.exports = class coinegg extends Exchange {
                 let baseId = baseIds[i];
                 let ticker = tickers[baseId];
                 let id = baseId + quoteId;
-                let market = this.marketsById[id];
-                let symbol = market['symbol'];
-                result[symbol] = this.parseTicker ({
-                    'high': ticker[4],
-                    'low': ticker[5],
-                    'buy': ticker[2],
-                    'sell': ticker[3],
-                    'last': ticker[1],
-                    'change': ticker[8],
-                    'vol': ticker[6],
-                    'quoteVol': ticker[7],
-                }, market);
+                if (id in this.markets_by_id) {
+                    let market = this.marketsById[id];
+                    let symbol = market['symbol'];
+                    result[symbol] = this.parseTicker ({
+                        'high': ticker[4],
+                        'low': ticker[5],
+                        'buy': ticker[2],
+                        'sell': ticker[3],
+                        'last': ticker[1],
+                        'change': ticker[8],
+                        'vol': ticker[6],
+                        'quoteVol': ticker[7],
+                    }, market);
+                }
             }
         }
         return result;
@@ -389,10 +394,7 @@ module.exports = class coinegg extends Exchange {
             'amount': amount,
             'price': price,
         }, params));
-        if (!response['status']) {
-            throw new InvalidOrder (this.json (response));
-        }
-        let id = response['id'];
+        let id = response['id'].toString ();
         let order = this.parseOrder ({
             'id': id,
             'datetime': this.ymdhms (this.milliseconds ()),
@@ -414,9 +416,6 @@ module.exports = class coinegg extends Exchange {
             'coin': market['baseId'],
             'quote': market['quoteId'],
         }, params));
-        if (!response['status']) {
-            throw new ExchangeError (this.json (response));
-        }
         return response;
     }
 

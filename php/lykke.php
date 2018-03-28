@@ -190,12 +190,14 @@ class lykke extends Exchange {
             'high' => null,
             'low' => null,
             'bid' => floatval ($ticker['Rate']['Bid']),
+            'bidVolume' => null,
             'ask' => floatval ($ticker['Rate']['Ask']),
+            'askVolume' => null,
             'vwap' => null,
             'open' => null,
             'close' => null,
-            'first' => null,
             'last' => null,
+            'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
@@ -324,16 +326,10 @@ class lykke extends Exchange {
             } else {
                 $orderbook['asks'] = $this->array_concat($orderbook['asks'], $side['Prices']);
             }
-            $timestamp = $this->parse8601 ($side['Timestamp']);
-            if (!$orderbook['timestamp']) {
-                $orderbook['timestamp'] = $timestamp;
-            } else {
-                $orderbook['timestamp'] = max ($orderbook['timestamp'], $timestamp);
-            }
+            $sideTimestamp = $this->parse8601 ($side['Timestamp']);
+            $timestamp = ($timestamp === null) ? $sideTimestamp : max ($timestamp, $sideTimestamp);
         }
-        if (!$timestamp)
-            $timestamp = $this->milliseconds ();
-        return $this->parse_order_book($orderbook, $orderbook['timestamp'], 'bids', 'asks', 'Price', 'Volume');
+        return $this->parse_order_book($orderbook, $timestamp, 'bids', 'asks', 'Price', 'Volume');
     }
 
     public function parse_bid_ask ($bidask, $priceKey = 0, $amountKey = 1) {

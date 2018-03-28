@@ -540,8 +540,10 @@ module.exports = class coinexchange extends Exchange {
             'commonCurrencies': {
                 'BON': 'BonPeKaO',
                 'ETN': 'Ethernex',
+                'GDC': 'GoldenCryptoCoin',
                 'HNC': 'Huncoin',
                 'MARS': 'MarsBux',
+                'RUB': 'RubbleCoin',
             },
         });
     }
@@ -627,6 +629,7 @@ module.exports = class coinexchange extends Exchange {
         if (market)
             symbol = market['symbol'];
         let timestamp = this.milliseconds ();
+        let last = this.safeFloat (ticker, 'LastPrice');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -634,12 +637,14 @@ module.exports = class coinexchange extends Exchange {
             'high': this.safeFloat (ticker, 'HighPrice'),
             'low': this.safeFloat (ticker, 'LowPrice'),
             'bid': this.safeFloat (ticker, 'BidPrice'),
+            'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'AskPrice'),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': this.safeFloat (ticker, 'LastPrice'),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': this.safeFloat (ticker, 'Change'),
             'percentage': undefined,
             'average': undefined,

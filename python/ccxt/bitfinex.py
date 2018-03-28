@@ -229,12 +229,17 @@ class bitfinex (Exchange):
                 },
             },
             'commonCurrencies': {
-                'DSH': 'DASH',  # Bitfinex names Dash as DSH, instead of DASH
-                'QTM': 'QTUM',
                 'BCC': 'CST_BCC',
                 'BCU': 'CST_BCU',
-                'IOT': 'IOTA',
                 'DAT': 'DATA',
+                'DSH': 'DASH',  # Bitfinex names Dash as DSH, instead of DASH
+                'IOT': 'IOTA',
+                'MNA': 'MANA',
+                'QSH': 'QASH',
+                'QTM': 'QTUM',
+                'SNG': 'SNGLS',
+                'SPK': 'SPANK',
+                'YYW': 'YOYOW',
             },
             'exceptions': {
                 'exact': {
@@ -394,11 +399,12 @@ class bitfinex (Exchange):
     def parse_ticker(self, ticker, market=None):
         timestamp = float(ticker['timestamp']) * 1000
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
         elif 'pair' in ticker:
             id = ticker['pair']
-            market = self.find_market(ticker['pair'])
+            if id in self.markets_by_id:
+                market = self.markets_by_id[id]
             if market is not None:
                 symbol = market['symbol']
             else:
@@ -407,6 +413,7 @@ class bitfinex (Exchange):
                 base = self.common_currency_code(baseId)
                 quote = self.common_currency_code(quoteId)
                 symbol = base + '/' + quote
+        last = float(ticker['last_price'])
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -414,12 +421,14 @@ class bitfinex (Exchange):
             'high': float(ticker['high']),
             'low': float(ticker['low']),
             'bid': float(ticker['bid']),
+            'bidVolume': None,
             'ask': float(ticker['ask']),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['last_price']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': float(ticker['mid']),
@@ -591,18 +600,18 @@ class bitfinex (Exchange):
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=100, params={}):
         self.load_markets()
+        if since is None:
+            since = self.milliseconds() - self.parse_timeframe(timeframe) * limit * 1000
         market = self.market(symbol)
         v2id = 't' + market['id']
         request = {
             'symbol': v2id,
             'timeframe': self.timeframes[timeframe],
-            'sort': 1,
+            'sort': '-1',
             'limit': limit,
+            'start': since,
         }
-        if since is not None:
-            request['start'] = since
-        request = self.extend(request, params)
-        response = self.v2GetCandlesTradeTimeframeSymbolHist(request)
+        response = self.v2GetCandlesTradeTimeframeSymbolHist(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def get_currency_name(self, currency):

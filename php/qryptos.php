@@ -21,6 +21,7 @@ class qryptos extends Exchange {
                 'fetchOrders' => true,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
+                'fetchMyTrades' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/30953915-b1611dc0-a436-11e7-8947-c95bd5a42086.jpg',
@@ -196,12 +197,14 @@ class qryptos extends Exchange {
             'high' => $this->safe_float($ticker, 'high_market_ask'),
             'low' => $this->safe_float($ticker, 'low_market_bid'),
             'bid' => $this->safe_float($ticker, 'market_bid'),
+            'bidVolume' => null,
             'ask' => $this->safe_float($ticker, 'market_ask'),
+            'askVolume' => null,
             'vwap' => null,
             'open' => null,
-            'close' => null,
-            'first' => null,
+            'close' => $last,
             'last' => $last,
+            'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
@@ -260,6 +263,18 @@ class qryptos extends Exchange {
         if ($limit !== null)
             $request['limit'] = $limit;
         $response = $this->publicGetExecutions (array_merge ($request, $params));
+        return $this->parse_trades($response['models'], $market, $since, $limit);
+    }
+
+    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array (
+            'product_id' => $market['id'],
+        );
+        if ($limit !== null)
+            $request['limit'] = $limit;
+        $response = $this->privateGetExecutionsMe (array_merge ($request, $params));
         return $this->parse_trades($response['models'], $market, $since, $limit);
     }
 

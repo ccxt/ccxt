@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, InvalidOrder } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -96,6 +96,9 @@ module.exports = class huobipro extends Exchange {
                     'maker': 0.002,
                     'taker': 0.002,
                 },
+            },
+            'exceptions': {
+                'order-limitorder-amount-min-error': InvalidOrder, // limit order amount error, min: `0.001`
             },
         });
     }
@@ -206,6 +209,7 @@ module.exports = class huobipro extends Exchange {
             'open': open,
             'close': close,
             'last': close,
+            'previousClose': undefined,
             'change': change,
             'percentage': percentage,
             'average': average,
@@ -359,11 +363,11 @@ module.exports = class huobipro extends Exchange {
             throw new ExchangeError (this.id + ' fetchOrders() requires a type param or status param for spot market ' + symbol + ' (0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)');
         }
         if ((status === 0) || (status === 'open')) {
-            status = 'submitted,partial-filled';
+            status = 'pre-submitted,submitted,partial-filled';
         } else if ((status === 1) || (status === 'closed')) {
-            status = 'filled,partial-canceled';
+            status = 'filled,partial-canceled,canceled';
         } else {
-            throw new ExchangeError (this.id + ' fetchOrders() wrong type param or status param for spot market ' + symbol + ' (0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)');
+            status = 'pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled';
         }
         let response = await this.privateGetOrderOrders (this.extend ({
             'symbol': market['id'],
@@ -569,11 +573,29 @@ module.exports = class huobipro extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('status' in response)
-            if (response['status'] === 'error')
-                throw new ExchangeError (this.id + ' ' + this.json (response));
-        return response;
+    handleErrors (httpCode, reason, url, method, headers, body) {
+        if (typeof body !== 'string')
+            return; // fallback to default error handler
+        if (body.length < 2)
+            return; // fallback to default error handler
+        if ((body[0] === '{') || (body[0] === '[')) {
+            let response = JSON.parse (body);
+            if ('status' in response) {
+                //
+                //     {"status":"error","err-code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
+                //
+                let status = this.safeString (response, 'status');
+                if (status === 'error') {
+                    const code = this.safeString (response, 'err-code');
+                    const feedback = this.id + ' ' + this.json (response);
+                    const message = this.safeString (response, 'err-msg', feedback);
+                    const exceptions = this.exceptions;
+                    if (code in exceptions) {
+                        throw new exceptions[code] (message);
+                    }
+                    throw new ExchangeError (message);
+                }
+            }
+        }
     }
 };

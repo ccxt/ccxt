@@ -97,6 +97,7 @@ module.exports = class Exchange {
                 'fetchTicker': true,
                 'fetchTickers': false,
                 'fetchTrades': true,
+                'fetchTradingFees': false,
                 'withdraw': false,
             },
             'urls': {
@@ -270,7 +271,7 @@ module.exports = class Exchange {
     }
 
     checkRequiredCredentials () {
-        Object.keys (this.requiredCredentials).map (key => {
+        Object.keys (this.requiredCredentials).forEach ((key) => {
             if (this.requiredCredentials[key] && !this[key])
                 throw new AuthenticationError (this.id + ' requires `' + key + '`')
         })
@@ -429,13 +430,13 @@ module.exports = class Exchange {
 
             if (e instanceof SyntaxError) {
 
-                let error = ExchangeNotAvailable
+                let ExceptionClass = ExchangeNotAvailable
                 let details = 'not accessible from this location at the moment'
                 if (maintenance)
                     details = 'offline, on maintenance or unreachable from this location at the moment'
                 if (ddosProtection)
-                    error = DDoSProtection
-                throw new error ([ this.id, method, url, response.status, title, details ].join (' '))
+                    ExceptionClass = DDoSProtection
+                throw new ExceptionClass ([ this.id, method, url, response.status, title, details ].join (' '))
             }
 
             throw e
@@ -486,7 +487,7 @@ module.exports = class Exchange {
 
     handleRestResponse (response, url, method = 'GET', requestHeaders = undefined, requestBody = undefined) {
 
-        return response.text ().then (responseBody => {
+        return response.text ().then ((responseBody) => {
 
             let jsonRequired = this.parseJsonResponse && !this.skipJsonOnStatusCodes.includes (response.status)
             let json = jsonRequired ? this.parseJson (response, responseBody, url, method) : undefined
@@ -662,7 +663,7 @@ module.exports = class Exchange {
     currency (code) {
 
         if (typeof this.currencies === 'undefined')
-            return new ExchangeError (this.id + ' currencies not loaded')
+            throw new ExchangeError (this.id + ' currencies not loaded')
 
         if ((typeof code === 'string') && (code in this.currencies))
             return this.currencies[code]
@@ -673,7 +674,7 @@ module.exports = class Exchange {
     findMarket (string) {
 
         if (typeof this.markets === 'undefined')
-            return new ExchangeError (this.id + ' markets not loaded')
+            throw new ExchangeError (this.id + ' markets not loaded')
 
         if (typeof string === 'string') {
 
@@ -701,7 +702,7 @@ module.exports = class Exchange {
     market (symbol) {
 
         if (typeof this.markets === 'undefined')
-            return new ExchangeError (this.id + ' markets not loaded')
+            throw new ExchangeError (this.id + ' markets not loaded')
 
         if ((typeof symbol === 'string') && (symbol in this.markets))
             return this.markets[symbol]
@@ -766,12 +767,12 @@ module.exports = class Exchange {
     }
 
     parseOrderBook (orderbook, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1) {
-        timestamp = timestamp || this.milliseconds ();
         return {
             'bids': sortBy ((bidsKey in orderbook) ? this.parseBidsAsks (orderbook[bidsKey], priceKey, amountKey) : [], 0, true),
             'asks': sortBy ((asksKey in orderbook) ? this.parseBidsAsks (orderbook[asksKey], priceKey, amountKey) : [], 0),
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': (typeof timestamp !== 'undefined') ? this.iso8601 (timestamp) : undefined,
+            'nonce': undefined,
         }
     }
 
@@ -794,7 +795,7 @@ module.exports = class Exchange {
 
         const currencies = Object.keys (this.omit (balance, 'info'));
 
-        currencies.forEach (currency => {
+        currencies.forEach ((currency) => {
 
             if (typeof balance[currency].used === 'undefined') {
                 // exchange reports only 'free' balance -> try to derive 'used' funds from open orders cache
@@ -814,7 +815,7 @@ module.exports = class Exchange {
                 }
             }
 
-            [ 'free', 'used', 'total' ].forEach (account => {
+            [ 'free', 'used', 'total' ].forEach ((account) => {
                 balance[account] = balance[account] || {}
                 balance[account][currency] = balance[currency][account]
             })

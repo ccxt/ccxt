@@ -102,6 +102,7 @@ declare module 'ccxt' {
         bids: [number, number][];
         datetime: string;
         timestamp: number;
+        nonce: number;
     }
 
     export interface Trade {
@@ -298,8 +299,8 @@ declare module 'ccxt' {
     export class bibox extends Exchange {}
     export class binance extends Exchange {}
     export class bit2c extends Exchange {}
+    export class bitbank extends Exchange {}
     export class bitbay extends Exchange {}
-    export class bitcoincoid extends Exchange {}
     export class bitfinex extends Exchange {}
     export class bitfinex2 extends bitfinex {}
     export class bitflyer extends Exchange {}
@@ -336,12 +337,15 @@ declare module 'ccxt' {
     export class coingi extends Exchange {}
     export class coinmarketcap extends Exchange {}
     export class coinmate extends Exchange {}
+    export class coinone extends Exchange {}
     export class coinsecure extends Exchange {}
     export class coinspot extends Exchange {}
     export class coolcoin extends coinegg {}
     export class cryptopia extends Exchange {}
     export class dsx extends liqui {}
+    export class ethfinex extends bitfinex {}
     export class exmo extends Exchange {}
+    export class exx extends Exchange {}
     export class flowbtc extends Exchange {}
     export class foxbit extends Exchange {}
     export class fybse extends Exchange {}
@@ -356,7 +360,9 @@ declare module 'ccxt' {
     export class huobi extends Exchange {}
     export class huobicny extends huobipro {}
     export class huobipro extends Exchange {}
+    export class ice3x extends Exchange {}
     export class independentreserve extends Exchange {}
+    export class indodax extends Exchange {}
     export class itbit extends Exchange {}
     export class jubi extends btcbox {}
     export class kraken extends Exchange {}
@@ -369,6 +375,7 @@ declare module 'ccxt' {
     export class lykke extends Exchange {}
     export class mercado extends Exchange {}
     export class mixcoins extends Exchange {}
+    export class negociecoins extends Exchange {}
     export class nova extends Exchange {}
     export class okcoincny extends okcoinusd {}
     export class okcoinusd extends Exchange {}
