@@ -21,14 +21,13 @@ class bitfinex extends Exchange {
                 'deposit' => true,
                 'fetchClosedOrders' => true,
                 'fetchDepositAddress' => true,
-                'fetchFees' => true,
+                'fetchTradingFees' => true,
                 'fetchFundingFees' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchTickers' => true,
-                'fetchTradingFees' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array (
@@ -279,23 +278,6 @@ class bitfinex extends Exchange {
             'maker' => $this->safe_float($response, 'maker_fee'),
             'taker' => $this->safe_float($response, 'taker_fee'),
         );
-    }
-
-    public function load_fees () {
-        // // PHP does flat copying for arrays
-        // // setting $fees on the exchange instance isn't portable, unfortunately...
-        // // this should probably go into the base class as well
-        // $funding = $this->fees['funding'];
-        // $fees = $this->fetch_funding_fees();
-        // $funding = array_replace_recursive ($funding, $fees);
-        // return $funding;
-        throw new NotSupported ($this->id . ' loadFees() not implemented yet');
-    }
-
-    public function fetch_fees () {
-        $fundingFees = $this->fetch_funding_fees();
-        $tradingFees = $this->fetch_trading_fees();
-        return array_replace_recursive ($fundingFees, $tradingFees);
     }
 
     public function fetch_markets () {

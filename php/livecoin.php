@@ -18,7 +18,7 @@ class livecoin extends Exchange {
                 'CORS' => false,
                 'fetchTickers' => true,
                 'fetchCurrencies' => true,
-                'fetchFees' => true,
+                'fetchTradingFees' => true,
                 'fetchOrders' => true,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
@@ -239,13 +239,6 @@ class livecoin extends Exchange {
             $result[$currency] = $account;
         }
         return $this->parse_balance($result);
-    }
-
-    public function fetch_fees ($params = array ()) {
-        $tradingFees = $this->fetch_trading_fees($params);
-        return array_merge ($tradingFees, array (
-            'withdraw' => array (),
-        ));
     }
 
     public function fetch_trading_fees ($params = array ()) {
