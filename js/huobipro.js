@@ -103,12 +103,10 @@ module.exports = class huobipro extends Exchange {
         });
     }
 
-    async fetchMarkets () {
-        let response = await this.publicGetCommonSymbols ();
-        let markets = response['data'];
+    parseMarkets (markets) {
         let numMarkets = markets.length;
         if (numMarkets < 1)
-            throw new ExchangeError (this.id + ' publicGetCommonSymbols returned empty response: ' + this.json (response));
+            throw new ExchangeError (this.id + ' publicGetCommonSymbols returned empty response: ' + this.json (markets));
         let result = [];
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
@@ -154,6 +152,11 @@ module.exports = class huobipro extends Exchange {
             });
         }
         return result;
+    }
+
+    async fetchMarkets () {
+        let response = await this.publicGetCommonSymbols ();
+        return this.parseMarkets (response['data']);
     }
 
     parseTicker (ticker, market = undefined) {
