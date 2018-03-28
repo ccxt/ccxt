@@ -12,7 +12,7 @@ module.exports = class ice3x extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'ice3x',
             'name': 'ICE3X',
-            'countries': 'ZA',
+            'countries': 'ZA', // South Africa
             'rateLimit': 1000,
             'has': {
                 'fetchCurrencies': true,
@@ -21,13 +21,13 @@ module.exports = class ice3x extends Exchange {
                 'fetchDepositAddress': true,
             },
             'urls': {
-                'logo': 'https://ice3x.com/topleftcorner',
+                'logo': 'https://user-images.githubusercontent.com/1294454/38012176-11616c32-3269-11e8-9f05-e65cf885bb15.jpg',
                 'api': 'https://ice3x.com/api/v1',
                 'www': [
-                    'https://ice3x.com/',
-                    'https://ice3x.co.za/',
+                    'https://ice3x.com',
+                    'https://ice3x.co.za',
                 ],
-                'doc': 'https://ice3x.co.za/ice-cubed-bitcoin-exchange-api-documentation-1-june-2017/',
+                'doc': 'https://ice3x.co.za/ice-cubed-bitcoin-exchange-api-documentation-1-june-2017',
                 'fees': [
                     'https://help.ice3.com/support/solutions/articles/11000033293-trading-fees',
                     'https://help.ice3.com/support/solutions/articles/11000033288-fees-explained',
@@ -153,6 +153,7 @@ module.exports = class ice3x extends Exchange {
     parseTicker (ticker, market = undefined) {
         let timestamp = this.milliseconds ();
         let symbol = market['symbol'];
+        let last = parseFloat (ticker['last_price']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -160,12 +161,14 @@ module.exports = class ice3x extends Exchange {
             'high': this.safeFloat (ticker, 'max'),
             'low': this.safeFloat (ticker, 'min'),
             'bid': this.safeFloat (ticker, 'max_bid'),
+            'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'min_ask'),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last_price']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': this.safeFloat (ticker, 'avg'),
@@ -181,8 +184,7 @@ module.exports = class ice3x extends Exchange {
         let response = await this.publicGetStatsMarketdepthfull (this.extend ({
             'pair_id': market['id'],
         }, params));
-        let ticker = response['response']['entity'];
-        return this.parseTicker (ticker, market);
+        return this.parseTicker (response['response']['entity'], market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
