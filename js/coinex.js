@@ -12,6 +12,7 @@ module.exports = class coinex extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'coinex',
             'name': 'CoinEx',
+            'version': 'v1',
             'countries': 'CN',
             'rateLimit': 1000,
             'has': {
@@ -37,9 +38,9 @@ module.exports = class coinex extends Exchange {
                 '1w': '1week',
             },
             'urls': {
-                'logo': 'https://www.coinex.com/_nuxt/img/coin-ex-logo-white.abfd6af.svg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/38046312-0b450aac-32c8-11e8-99ab-bc6b136b6cc7.jpg',
                 'api': 'https://api.coinex.com/v1',
-                'www': 'https://www.coinex.com/',
+                'www': 'https://www.coinex.com',
                 'doc': 'https://github.com/coinexcom/coinex_exchange_api/wiki',
                 'fees': 'https://www.coinex.com/fees',
             },
@@ -99,10 +100,6 @@ module.exports = class coinex extends Exchange {
                 'price': 8,
             },
         });
-    }
-
-    commonCurrencyCode (currency) {
-        return currency;
     }
 
     async fetchMarkets () {
@@ -167,8 +164,9 @@ module.exports = class coinex extends Exchange {
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.publicGetMarketTickerAll (params);
-        let timestamp = response['data']['date'];
-        let tickers = response['data']['ticker'];
+        let data = response['data'];
+        let timestamp = data['date'];
+        let tickers = data['ticker'];
         let ids = Object.keys (tickers);
         let result = {};
         for (let i = 0; i < ids.length; i++) {
@@ -398,7 +396,7 @@ module.exports = class coinex extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + this.implodeParams (path, params);
+        let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
             if (Object.keys (query).length)
@@ -411,14 +409,14 @@ module.exports = class coinex extends Exchange {
                 'tonce': nonce.toString (),
             }, query);
             query = this.keysort (query);
-            let encQuery = this.urlencode (query);
-            let signature = this.hash (encQuery + '&secret_key=' + this.secret);
+            let urlencoded = this.urlencode (query);
+            let signature = this.hash (this.encode (urlencoded + '&secret_key=' + this.secret));
             headers = {
                 'Authorization': signature.toUpperCase (),
                 'Content-Type': 'application/json',
             };
             if (method === 'GET') {
-                url += '?' + encQuery;
+                url += '?' + urlencoded;
             } else {
                 body = this.json (query);
             }
