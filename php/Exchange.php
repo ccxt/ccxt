@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.12.13';
+$version = '1.12.14';
 
 abstract class Exchange {
 
@@ -81,6 +81,7 @@ abstract class Exchange {
         'coingi',
         'coinmarketcap',
         'coinmate',
+        'coinone',
         'coinsecure',
         'coinspot',
         'coolcoin',

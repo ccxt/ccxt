@@ -55,7 +55,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 Exchanges
 =========
 
-The ccxt library currently supports the following 105 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 106 cryptocurrency exchange markets and trading APIs:
 
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 |                        | id                   | name                                                           | ver   | doc                                                                                               | countries                                  |
@@ -151,6 +151,8 @@ The ccxt library currently supports the following 105 cryptocurrency exchange ma
 | |coinmarketcap|        | coinmarketcap        | `CoinMarketCap <https://coinmarketcap.com>`__                  | 1     | `API <https://coinmarketcap.com/api>`__                                                           | US                                         |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |coinmate|             | coinmate             | `CoinMate <https://coinmate.io>`__                             | \*    | `API <http://docs.coinmate.apiary.io>`__                                                          | UK, Czech Republic, EU                     |
++------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
+| |coinone|              | coinone              | `CoinOne <https://coinone.co.kr>`__                            | 2     | `API <https://doc.coinone.co.kr>`__                                                               | South Korea                                |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |coinsecure|           | coinsecure           | `Coinsecure <https://coinsecure.in>`__                         | 1     | `API <https://api.coinsecure.in>`__                                                               | India                                      |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -2410,6 +2412,7 @@ Notes
 .. |coingi| image:: https://user-images.githubusercontent.com/1294454/28619707-5c9232a8-7212-11e7-86d6-98fe5d15cc6e.jpg
 .. |coinmarketcap| image:: https://user-images.githubusercontent.com/1294454/28244244-9be6312a-69ed-11e7-99c1-7c1797275265.jpg
 .. |coinmate| image:: https://user-images.githubusercontent.com/1294454/27811229-c1efb510-606c-11e7-9a36-84ba2ce412d8.jpg
+.. |coinone| image:: https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg
 .. |coinsecure| image:: https://user-images.githubusercontent.com/1294454/27766472-9cbd200a-5ed9-11e7-9551-2267ad7bac08.jpg
 .. |coinspot| image:: https://user-images.githubusercontent.com/1294454/28208429-3cacdf9a-6896-11e7-854e-4c79a772a30f.jpg
 .. |coolcoin| image:: https://user-images.githubusercontent.com/1294454/36770529-be7b1a04-1c5b-11e8-9600-d11f1996b539.jpg
