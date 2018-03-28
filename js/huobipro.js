@@ -99,7 +99,7 @@ module.exports = class huobipro extends Exchange {
             },
             'exceptions': {
                 'order-limitorder-amount-min-error': InvalidOrder, // limit order amount error, min: `0.001`
-            }
+            },
         });
     }
 
