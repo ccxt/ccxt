@@ -222,7 +222,6 @@ module.exports = {
     decimalToPrecision,
     truncate_to_string,
     truncate,
-    toFixed,
 
     TRUNCATE,
     ROUND,
