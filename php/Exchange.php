@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.12.17';
+$version = '1.12.18';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -116,6 +116,7 @@ abstract class Exchange {
         'huobi',
         'huobicny',
         'huobipro',
+        'ice3x',
         'independentreserve',
         'indodax',
         'itbit',
