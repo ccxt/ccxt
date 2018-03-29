@@ -156,7 +156,8 @@ module.exports = class huobipro extends Exchange {
         return result;
     }
 
-    async fetchLimits (market, params = {}) {
+    async fetchLimits (symbol, params = {}) {
+        let market = this.market (symbol);
         return await this.publicGetCommonExchange (this.extend ({
             'symbol': market['id'],
         }));
