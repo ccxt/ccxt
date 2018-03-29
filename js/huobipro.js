@@ -163,7 +163,7 @@ module.exports = class huobipro extends Exchange {
         }));
     }
 
-    parseLimits (response, symbol, params = {}) {
+    parseLimits (response, symbol = undefined, params = {}) {
         return {
             'amount': {
                 'min': response['limit-order-must-greater-than'],
