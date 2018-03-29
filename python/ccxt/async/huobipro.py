@@ -33,7 +33,7 @@ class huobipro (Exchange):
             'hostname': 'api.huobipro.com',
             'has': {
                 'CORS': False,
-                'fetchLimits': True,
+                'fetchTradingLimits': True,
                 'fetchOHCLV': True,
                 'fetchOrders': True,
                 'fetchOrder': True,
@@ -165,13 +165,28 @@ class huobipro (Exchange):
             })
         return result
 
-    async def fetch_limits(self, symbol, params={}):
+    async def load_trading_limits_on_demand(self, symbol, reload=False, params={}):
+        if self.options['loadTradingLimitsOnDemand']:
+            return await self.load_trading_limits(symbol, reload, params)
+        return None
+
+    async def load_trading_limits(self, symbol, reload=False, params={}):
+        if reload or not('loaded' in list(self.markets[symbol].keys())):
+            limits = self.fetch_trading_limits(symbol)
+            self.markets[symbol] = self.extend(self.markets[symbol], {
+                'limits': limits,
+                'loaded': True,
+            })
+        return self.markets[symbol]['limits']
+
+    async def fetch_trading_limits(self, symbol, params={}):
         market = self.market(symbol)
-        return await self.publicGetCommonExchange(self.extend({
+        response = await self.publicGetCommonExchange(self.extend({
             'symbol': market['id'],
         }))
+        return self.parseLimits(response)
 
-    def parse_limits(self, response, symbol=None, params={}):
+    def parse_trading_limits(self, response, symbol=None, params={}):
         data = response['data']
         if data is None:
             return None
@@ -255,6 +270,17 @@ class huobipro (Exchange):
                 raise ExchangeError(self.id + ' fetchOrderBook() returned empty response: ' + self.json(response))
             return self.parse_order_book(response['tick'], response['tick']['ts'])
         raise ExchangeError(self.id + ' fetchOrderBook() returned unrecognized response: ' + self.json(response))
+
+    def parse_order_book(self, orderbook, timestamp=None, bidsKey='bids', asksKey='asks', priceKey=0, amountKey=1):
+        bids = self.parse_bids_asks(orderbook[bidsKey], priceKey, amountKey) if (bidsKey in list(orderbook.keys())) else []
+        asks = self.parse_bids_asks(orderbook[asksKey], priceKey, amountKey) if (asksKey in list(orderbook.keys())) else []
+        return {
+            'bids': self.sort_by(bids, 0, True),
+            'asks': self.sort_by(asks, 0),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp) if (timestamp is not None) else None,
+            'nonce': orderbook['version'],
+        }
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
@@ -360,7 +386,7 @@ class huobipro (Exchange):
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
             raise ExchangeError(self.id + ' fetchOrders() requires a symbol parameter')
-        self.load_markets()
+        await self.load_markets()
         market = self.market(symbol)
         status = None
         if 'type' in params:
@@ -486,10 +512,13 @@ class huobipro (Exchange):
             'info': response,
         }
 
+    def fee_to_precision(self, currency, fee):
+        return float(self.decimalToPrecision(fee, 0, self.currencies[currency]['precision']))
+
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]
         rate = market[takerOrMaker]
-        cost = float(self.cost_to_precision(symbol, amount * rate))
+        cost = amount * rate
         key = 'quote'
         if side == 'sell':
             cost *= price
@@ -499,7 +528,7 @@ class huobipro (Exchange):
             'type': takerOrMaker,
             'currency': market[key],
             'rate': rate,
-            'cost': float(self.fee_to_precision(symbol, cost)),
+            'cost': float(self.fee_to_precision(market[key], cost)),
         }
 
     async def withdraw(self, currency, amount, address, tag=None, params={}):

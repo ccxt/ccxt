@@ -258,6 +258,7 @@ class bitfinex (Exchange):
                     'Invalid order': InvalidOrder,  # ?
                 },
             },
+            'significantPrecision': True,
         })
 
     def fetch_funding_fees(self, params={}):
@@ -331,6 +332,30 @@ class bitfinex (Exchange):
                 'info': market,
             })
         return result
+
+    def cost_to_precision(self, symbol, cost):
+        return self.decimalToPrecision(float(cost), self.ROUND, self.markets[symbol].precision.price, self.SIGNIFICANT_DIGITS)
+
+    def price_to_precision(self, symbol, price):
+        return self.decimalToPrecision(float(price), self.ROUND, self.markets[symbol].precision.price, self.SIGNIFICANT_DIGITS)
+
+    def amount_to_precision(self, symbol, amount):
+        return self.decimalToPrecision(float(amount), self.ROUND, self.markets[symbol].precision.amount, self.SIGNIFICANT_DIGITS)
+
+    def fee_to_precision(self, currency, fee):
+        return self.decimalToPrecision(float(fee), self.ROUND, self.currencies[currency]['precision'], self.SIGNIFICANT_DIGITS)
+
+    def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
+        market = self.markets[symbol]
+        rate = market[takerOrMaker]
+        cost = amount * price
+        key = 'quote'
+        return {
+            'type': takerOrMaker,
+            'currency': market[key],
+            'rate': rate,
+            'cost': float(self.fee_to_precision(market[key], rate * cost)),
+        }
 
     def fetch_balance(self, params={}):
         self.load_markets()

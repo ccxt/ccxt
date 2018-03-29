@@ -20,7 +20,7 @@ class huobipro extends Exchange {
             'hostname' => 'api.huobipro.com',
             'has' => array (
                 'CORS' => false,
-                'fetchLimits' => true,
+                'fetchTradingLimits' => true,
                 'fetchOHCLV' => true,
                 'fetchOrders' => true,
                 'fetchOrder' => true,
@@ -155,14 +155,32 @@ class huobipro extends Exchange {
         return $result;
     }
 
-    public function fetch_limits ($symbol, $params = array ()) {
-        $market = $this->market ($symbol);
-        return $this->publicGetCommonExchange (array_merge (array (
-            'symbol' => $market['id'],
-        )));
+    public function load_trading_limits_on_demand ($symbol, $reload = false, $params = array ()) {
+        if ($this->options['loadTradingLimitsOnDemand'])
+            return $this->load_trading_limits ($symbol, $reload, $params);
+        return null;
     }
 
-    public function parse_limits ($response, $symbol = null, $params = array ()) {
+    public function load_trading_limits ($symbol, $reload = false, $params = array ()) {
+        if ($reload || !(is_array ($this->markets[$symbol]) && array_key_exists ('loaded', $this->markets[$symbol]))) {
+            $limits = $this->fetch_trading_limits ($symbol);
+            $this->markets[$symbol] = array_merge ($this->markets[$symbol], array (
+                'limits' => $limits,
+                'loaded' => true,
+            ));
+        }
+        return $this->markets[$symbol]['limits'];
+    }
+
+    public function fetch_trading_limits ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
+        $response = $this->publicGetCommonExchange (array_merge (array (
+            'symbol' => $market['id'],
+        )));
+        return $this->parseLimits ($response);
+    }
+
+    public function parse_trading_limits ($response, $symbol = null, $params = array ()) {
         $data = $response['data'];
         if ($data === null) {
             return null;
@@ -257,6 +275,18 @@ class huobipro extends Exchange {
             return $this->parse_order_book($response['tick'], $response['tick']['ts']);
         }
         throw new ExchangeError ($this->id . ' fetchOrderBook() returned unrecognized $response => ' . $this->json ($response));
+    }
+
+    public function parse_order_book ($orderbook, $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', $priceKey = 0, $amountKey = 1) {
+        $bids = (is_array ($orderbook) && array_key_exists ($bidsKey, $orderbook)) ? $this->parse_bids_asks($orderbook[$bidsKey], $priceKey, $amountKey) : array ();
+        $asks = (is_array ($orderbook) && array_key_exists ($asksKey, $orderbook)) ? $this->parse_bids_asks($orderbook[$asksKey], $priceKey, $amountKey) : array ();
+        return array (
+            'bids' => $this->sort_by($bids, 0, true),
+            'asks' => $this->sort_by($asks, 0),
+            'timestamp' => $timestamp,
+            'datetime' => ($timestamp !== null) ? $this->iso8601 ($timestamp) : null,
+            'nonce' => $orderbook['version'],
+        );
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {
@@ -517,10 +547,14 @@ class huobipro extends Exchange {
         );
     }
 
+    public function fee_to_precision ($currency, $fee) {
+        return floatval ($this->decimalToPrecision ($fee, 0, $this->currencies[$currency]['precision']));
+    }
+
     public function calculate_fee ($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
         $market = $this->markets[$symbol];
         $rate = $market[$takerOrMaker];
-        $cost = floatval ($this->cost_to_precision($symbol, $amount * $rate));
+        $cost = $amount * $rate;
         $key = 'quote';
         if ($side === 'sell') {
             $cost *= $price;
@@ -531,7 +565,7 @@ class huobipro extends Exchange {
             'type' => $takerOrMaker,
             'currency' => $market[$key],
             'rate' => $rate,
-            'cost' => floatval ($this->fee_to_precision($symbol, $cost)),
+            'cost' => floatval ($this->fee_to_precision($market[$key], $cost)),
         );
     }
 
