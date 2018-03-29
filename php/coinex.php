@@ -38,12 +38,21 @@ class coinex extends Exchange {
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/38046312-0b450aac-32c8-11e8-99ab-bc6b136b6cc7.jpg',
-                'api' => 'https://api.coinex.com',
+                'api' => array (
+                    'public' => 'https://api.coinex.com',
+                    'private' => 'https://api.coinex.com',
+                    'web' => 'https://www.coinex.com',
+                ),
                 'www' => 'https://www.coinex.com',
                 'doc' => 'https://github.com/coinexcom/coinex_exchange_api/wiki',
                 'fees' => 'https://www.coinex.com/fees',
             ),
             'api' => array (
+                'web' => array (
+                    'get' => array (
+                        'res/market',
+                    ),
+                ),
                 'public' => array (
                     'get' => array (
                         'market/list',
@@ -102,24 +111,46 @@ class coinex extends Exchange {
     }
 
     public function fetch_markets () {
-        $response = $this->publicGetMarketList ();
-        $markets = $response['data'];
+        $response = $this->webGetResMarket ();
+        $markets = $response['data']['market_info'];
         $result = array ();
-        for ($i = 0; $i < count ($markets); $i++) {
-            $id = $markets[$i];
-            $base = mb_substr ($id, 0, 3);
-            $quote = mb_substr ($id, -3);
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+        $keys = is_array ($markets) ? array_keys ($markets) : array ();
+        for ($i = 0; $i < count ($keys); $i++) {
+            $key = $keys[$i];
+            $market = $markets[$key];
+            $id = $market['market'];
+            $quoteId = $market['buy_asset_type'];
+            $baseId = $market['sell_asset_type'];
+            $base = $this->common_currency_code($baseId);
+            $quote = $this->common_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
+            $precision = array (
+                'amount' => $market['sell_asset_type_places'],
+                'price' => $market['buy_asset_type_places'],
+            );
+            $numMergeLevels = is_array ($market['merge']) ? count ($market['merge']) : 0;
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
                 'active' => true,
-                'lot' => $this->limits['amount']['min'],
-                'info' => $id,
+                'taker' => floatval ($market['taker_fee_rate']),
+                'maker' => floatval ($market['maker_fee_rate']),
+                'info' => $market,
+                'precision' => $precision,
+                'limits' => array (
+                    'amount' => array (
+                        'min' => floatval ($market['least_amount']),
+                        'max' => null,
+                    ),
+                    'price' => array (
+                        'min' => floatval ($market['merge'][$numMergeLevels - 1]),
+                        'max' => null,
+                    ),
+                ),
             );
         }
         return $result;
@@ -398,9 +429,14 @@ class coinex extends Exchange {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
+        $path = $this->implode_params($path, $params);
+        $url = $this->urls['api'][$api] . '/' . $this->version . '/' . $path;
         $query = $this->omit ($params, $this->extract_params($path));
         if ($api === 'public') {
+            if ($query)
+                $url .= '?' . $this->urlencode ($query);
+        } else if ($api === 'web') {
+            $url = $this->urls['api'][$api] . '/' . $path;
             if ($query)
                 $url .= '?' . $this->urlencode ($query);
         } else {

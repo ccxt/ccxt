@@ -44,12 +44,21 @@ class coinex (Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38046312-0b450aac-32c8-11e8-99ab-bc6b136b6cc7.jpg',
-                'api': 'https://api.coinex.com',
+                'api': {
+                    'public': 'https://api.coinex.com',
+                    'private': 'https://api.coinex.com',
+                    'web': 'https://www.coinex.com',
+                },
                 'www': 'https://www.coinex.com',
                 'doc': 'https://github.com/coinexcom/coinex_exchange_api/wiki',
                 'fees': 'https://www.coinex.com/fees',
             },
             'api': {
+                'web': {
+                    'get': [
+                        'res/market',
+                    ],
+                },
                 'public': {
                     'get': [
                         'market/list',
@@ -107,24 +116,46 @@ class coinex (Exchange):
         })
 
     def fetch_markets(self):
-        response = self.publicGetMarketList()
-        markets = response['data']
+        response = self.webGetResMarket()
+        markets = response['data']['market_info']
         result = []
-        for i in range(0, len(markets)):
-            id = markets[i]
-            base = id[0:3]
-            quote = id[-3:]
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+        keys = list(markets.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            market = markets[key]
+            id = market['market']
+            quoteId = market['buy_asset_type']
+            baseId = market['sell_asset_type']
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
+            precision = {
+                'amount': market['sell_asset_type_places'],
+                'price': market['buy_asset_type_places'],
+            }
+            numMergeLevels = len(market['merge'])
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': True,
-                'lot': self.limits['amount']['min'],
-                'info': id,
+                'taker': float(market['taker_fee_rate']),
+                'maker': float(market['maker_fee_rate']),
+                'info': market,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': float(market['least_amount']),
+                        'max': None,
+                    },
+                    'price': {
+                        'min': float(market['merge'][numMergeLevels - 1]),
+                        'max': None,
+                    },
+                },
             })
         return result
 
@@ -379,9 +410,14 @@ class coinex (Exchange):
         return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
+        path = self.implode_params(path, params)
+        url = self.urls['api'][api] + '/' + self.version + '/' + path
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
+            if query:
+                url += '?' + self.urlencode(query)
+        elif api == 'web':
+            url = self.urls['api'][api] + '/' + path
             if query:
                 url += '?' + self.urlencode(query)
         else:
