@@ -112,8 +112,8 @@ class coinex (Exchange):
         result = []
         for i in range(0, len(markets)):
             id = markets[i]
-            base = id[-3:]
-            quote = id[0:-3]
+            base = id[0:3]
+            quote = id[-3:]
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
