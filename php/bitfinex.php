@@ -612,7 +612,7 @@ class bitfinex extends Exchange {
         $request = array (
             'symbol' => $v2id,
             'timeframe' => $this->timeframes[$timeframe],
-            'sort' => '-1',
+            'sort' => 1,
             'limit' => $limit,
             'start' => $since,
         );
