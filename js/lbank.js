@@ -13,6 +13,7 @@ module.exports = class lbank extends Exchange {
             'id': 'lbank',
             'name': 'LBank',
             'countries': 'CN',
+            'version': 'v1',
             'has': {
                 'fetchTickers': true,
                 'fetchOHLCV': true,
@@ -34,9 +35,9 @@ module.exports = class lbank extends Exchange {
                 '1w': 'week1',
             },
             'urls': {
-                'logo': 'https://www.lbank.info/static/img/lbank_logo.2d8c557.svg',
-                'api': 'https://api.lbank.info/v1',
-                'www': 'https://www.lbank.info/',
+                'logo': 'https://user-images.githubusercontent.com/1294454/38063602-9605e28a-3302-11e8-81be-64b1e53c4cfb.jpg',
+                'api': 'https://api.lbank.info',
+                'www': 'https://www.lbank.info',
                 'doc': 'https://www.lbank.info/api/api-overview',
                 'fees': 'https://lbankinfo.zendesk.com/hc/zh-cn/articles/115002295114--%E8%B4%B9%E7%8E%87%E8%AF%B4%E6%98%8E',
             },
@@ -144,6 +145,7 @@ module.exports = class lbank extends Exchange {
         let timestamp = ticker['timestamp'];
         let info = ticker;
         ticker = info['ticker'];
+        let last = this.safeFloat (ticker, 'latest');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -151,12 +153,14 @@ module.exports = class lbank extends Exchange {
             'high': this.safeFloat (ticker, 'high'),
             'low': this.safeFloat (ticker, 'low'),
             'bid': undefined,
+            'bidVolume': undefined,
             'ask': undefined,
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': this.safeFloat (ticker, 'latest'),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': this.safeFloat (ticker, 'change'),
             'percentage': undefined,
             'average': undefined,
@@ -383,7 +387,7 @@ module.exports = class lbank extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let query = this.omit (params, this.extractParams (path));
-        let url = this.urls['api'] + '/' + this.implodeParams (path, params);
+        let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
         // Every endpoint ends with ".do"
         url += '.do';
         if (api === 'public') {
