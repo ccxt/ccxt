@@ -13,7 +13,7 @@ module.exports = class coinone extends Exchange {
             'id': 'coinone',
             'name': 'CoinOne',
             'countries': 'KR', // Korea
-            'rateLimit': 90,
+            'rateLimit': 667,
             'version': 'v2',
             'has': {
                 'CORS': false,
