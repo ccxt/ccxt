@@ -246,6 +246,7 @@ module.exports = class bitfinex extends Exchange {
                     'Invalid order': InvalidOrder, // ?
                 },
             },
+            'significantPrecision': true,
         });
     }
 
