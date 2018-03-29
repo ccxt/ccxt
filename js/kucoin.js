@@ -486,7 +486,7 @@ module.exports = class kucoin extends Exchange {
         return this.parseOrder (response['data'], market);
     }
 
-    async parseOrdersByStatus (orders, symbol, since, limit, status) {
+    async parseOrdersByStatus (orders, market, since, limit, status) {
         let result = [];
         for (let i = 0; i < orders.length; i++) {
             let order = this.parseOrder (this.extend (orders[i], {
@@ -494,6 +494,7 @@ module.exports = class kucoin extends Exchange {
             }), market);
             result.push (order);
         }
+        let symbol = (typeof market !== 'undefined') ? market['symbol'] : undefined;
         return this.filterBySymbolSinceLimit (result, symbol, since, limit);
     }
 
@@ -529,7 +530,7 @@ module.exports = class kucoin extends Exchange {
         //     let openOrders = this.filterBy (this.orders, 'status', 'open');
         //     return this.filterBySymbolSinceLimit (openOrders, symbol, since, limit);
         //
-        return this.parseOrdersByStatus (orders, symbol, since, limit, 'open');
+        return this.parseOrdersByStatus (orders, market, since, limit, 'open');
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = 20, params = {}) {
@@ -562,7 +563,7 @@ module.exports = class kucoin extends Exchange {
         //     let closedOrders = this.filterBy (this.orders, 'status', 'closed');
         //     return this.filterBySymbolSinceLimit (closedOrders, symbol, since, limit);
         //
-        return this.parseOrdersByStatus (orders, symbol, since, limit, 'closed');
+        return this.parseOrdersByStatus (orders, market, since, limit, 'closed');
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
