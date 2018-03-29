@@ -125,8 +125,6 @@ module.exports = class coinex extends Exchange {
             let base = this.commonCurrencyCode (baseId);
             let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
-            let taker = parseFloat (market['taker_fee_rate']);
-            let maker = parseFloat (market['maker_fee_rate']);
             let precision = {
                 'amount': market['sell_asset_type_places'],
                 'price': market['buy_asset_type_places'],
@@ -141,6 +139,8 @@ module.exports = class coinex extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': active,
+                'taker': parseFloat (market['taker_fee_rate']),
+                'maker': parseFloat (market['maker_fee_rate']),
                 'info': market,
                 'precision': precision,
                 'limits': {
