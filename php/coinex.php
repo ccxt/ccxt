@@ -107,8 +107,8 @@ class coinex extends Exchange {
         $result = array ();
         for ($i = 0; $i < count ($markets); $i++) {
             $id = $markets[$i];
-            $base = mb_substr ($id, -3);
-            $quote = mb_substr ($id, 0, -3);
+            $base = mb_substr ($id, 0, 3);
+            $quote = mb_substr ($id, -3);
             $base = $this->common_currency_code($base);
             $quote = $this->common_currency_code($quote);
             $symbol = $base . '/' . $quote;
