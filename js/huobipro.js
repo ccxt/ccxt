@@ -519,7 +519,7 @@ module.exports = class huobipro extends Exchange {
     }
 
     feeToPrecision (currency, fee) {
-        return parseFloat (fee).toFixed (this.currencies[currency].precision);
+        return parseFloat (fee).toFixed (this.currencies[currency]['precision']);
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
