@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.12.32'
+__version__ = '1.12.33'
 
 # -----------------------------------------------------------------------------
 
@@ -75,6 +75,7 @@ from ccxt.async.coinfloor import coinfloor                      # noqa: F401
 from ccxt.async.coingi import coingi                            # noqa: F401
 from ccxt.async.coinmarketcap import coinmarketcap              # noqa: F401
 from ccxt.async.coinmate import coinmate                        # noqa: F401
+from ccxt.async.coinnest import coinnest                        # noqa: F401
 from ccxt.async.coinone import coinone                          # noqa: F401
 from ccxt.async.coinsecure import coinsecure                    # noqa: F401
 from ccxt.async.coinspot import coinspot                        # noqa: F401
@@ -188,6 +189,7 @@ exchanges = [
     'coingi',
     'coinmarketcap',
     'coinmate',
+    'coinnest',
     'coinone',
     'coinsecure',
     'coinspot',
