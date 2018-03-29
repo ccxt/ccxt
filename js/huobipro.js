@@ -21,13 +21,13 @@ module.exports = class huobipro extends Exchange {
             'hostname': 'api.huobipro.com',
             'has': {
                 'CORS': false,
+                'fetchLimits': true,
                 'fetchOHCLV': true,
                 'fetchOrders': true,
                 'fetchOrder': true,
                 'fetchOpenOrders': true,
                 'fetchDepositAddress': true,
                 'withdraw': true,
-                'loadLimits': true,
             },
             'timeframes': {
                 '1m': '1min',
@@ -156,7 +156,7 @@ module.exports = class huobipro extends Exchange {
         return result;
     }
 
-    async loadLimits (market, params = {}) {
+    async fetchLimits (market, params = {}) {
         return await this.publicGetCommonExchange (this.extend ({
             'symbol': market['id'],
         }));
