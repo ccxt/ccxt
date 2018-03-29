@@ -182,8 +182,8 @@ class coinex (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': None,
-            'quoteVolume': float(ticker['vol']),
+            'baseVolume': float(ticker['vol']),
+            'quoteVolume': None,
             'info': ticker,
         }
 
