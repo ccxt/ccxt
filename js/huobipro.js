@@ -163,6 +163,15 @@ module.exports = class huobipro extends Exchange {
         }));
     }
 
+    parseLimits (response, symbol, params = {}) {
+        return {
+            'amount': {
+                'min': response['limit-order-must-greater-than'],
+                'max': response['limit-order-must-less-than'],
+            },
+        };
+    }
+
     async fetchMarkets () {
         let response = await this.publicGetCommonSymbols ();
         return this.parseMarkets (response['data']);
