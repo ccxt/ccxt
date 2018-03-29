@@ -138,7 +138,7 @@ module.exports = class coinex extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'active': active,
+                'active': true,
                 'taker': parseFloat (market['taker_fee_rate']),
                 'maker': parseFloat (market['maker_fee_rate']),
                 'info': market,
