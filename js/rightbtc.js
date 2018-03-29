@@ -30,10 +30,8 @@ module.exports = class rightbtc extends Exchange {
             'urls': {
                 'logo': 'https://www.rightbtc.com/assets/images/hftlogo@2x.png',
                 'api': 'https://www.rightbtc.com/api',
-                'www': 'https://www.rightbtc.com/',
-                'doc': [
-                    'https://www.rightbtc.com/api/public/',
-                ],
+                'www': 'https://www.rightbtc.com',
+                'doc': 'https://www.rightbtc.com/api/public/',
                 'fees': 'https://www.rightbtc.com/#!/support/fee',
             },
             'api': {
