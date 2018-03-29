@@ -18,9 +18,13 @@ module.exports = class coinnest extends Exchange {
                 'fetchOpenOrders': true,
             },
             'urls': {
-                'logo': 'https://www.coinnest.co.kr/static/images/fire_white.png?v=2.0',
-                'api': 'https://api.coinnest.co.kr/api',
-                'www': 'https://www.coinnest.co.kr/',
+                'logo': 'https://user-images.githubusercontent.com/1294454/38065728-7289ff5c-330d-11e8-9cc1-cf0cbcb606bc.jpg',
+                'api': {
+                    'public': 'https://api.coinnest.co.kr/api',
+                    'private': 'https://api.coinnest.co.kr/api',
+                    'web': 'https://www.coinnest.co.kr',
+                },
+                'www': 'https://www.coinnest.co.kr',
                 'doc': 'https://www.coinnest.co.kr/doc/intro.html',
                 'fees': [
                     'https://coinnesthelp.zendesk.com/hc/ko/articles/115002110252-%EA%B1%B0%EB%9E%98-%EC%88%98%EC%88%98%EB%A3%8C%EB%8A%94-%EC%96%BC%EB%A7%88%EC%9D%B8%EA%B0%80%EC%9A%94-',
@@ -28,6 +32,11 @@ module.exports = class coinnest extends Exchange {
                 ],
             },
             'api': {
+                'web': {
+                    'get': [
+                        'coin/allcoin',
+                    ],
+                },
                 'public': {
                     'get': [
                         'pub/ticker',
@@ -66,6 +75,7 @@ module.exports = class coinnest extends Exchange {
     async fetchMarkets () {
         let quote = 'KRW';
         let quoteId = quote.toLowerCase ();
+        // todo: rewrite this for web endpoint
         let coins = 'btc,bch,btg,bcd,ubtc,btn,kst,ltc,act,eth,etc,ada,qtum,xlm,neo,gas,rpx,hsr,knc,tsl,tron,omg,wtc,mco,storm,gto,pxs,chat,ink,oc,hlc,ent,qbt,spc,put'.split (',');
         let result = [];
         for (let i = 0; i < coins.length; i++) {
@@ -90,6 +100,7 @@ module.exports = class coinnest extends Exchange {
     parseTicker (ticker, market = undefined) {
         let timestamp = ticker['time'] * 1000;
         let symbol = market['symbol'];
+        let last = parseFloat (ticker['last']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -97,12 +108,14 @@ module.exports = class coinnest extends Exchange {
             'high': parseFloat (ticker['high']),
             'low': parseFloat (ticker['low']),
             'bid': parseFloat (ticker['buy']),
+            'bidVolume': undefined,
             'ask': parseFloat (ticker['sell']),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
@@ -295,7 +308,7 @@ module.exports = class coinnest extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + path;
+        let url = this.urls['api'][api] + '/' + path;
         let query = undefined;
         if (api === 'public') {
             query = this.urlencode (params);
