@@ -20,6 +20,7 @@ class huobipro extends Exchange {
             'hostname' => 'api.huobipro.com',
             'has' => array (
                 'CORS' => false,
+                'fetchLimits' => true,
                 'fetchOHCLV' => true,
                 'fetchOrders' => true,
                 'fetchOrder' => true,
@@ -61,6 +62,7 @@ class huobipro extends Exchange {
                         'common/symbols', // 查询系统支持的所有交易对
                         'common/currencys', // 查询系统支持的所有币种
                         'common/timestamp', // 查询系统当前时间
+                        'common/exchange', // order limits
                     ),
                 ),
                 'private' => array (
@@ -151,6 +153,13 @@ class huobipro extends Exchange {
             );
         }
         return $result;
+    }
+
+    public function fetch_limits ($symbol, $params = array ()) {
+        $market = $this->market ($symbol);
+        return $this->publicGetCommonExchange (array_merge (array (
+            'symbol' => $market['id'],
+        )));
     }
 
     public function fetch_markets () {

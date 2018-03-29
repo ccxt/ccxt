@@ -146,6 +146,7 @@ class bittrex extends Exchange {
                 'ORDER_NOT_OPEN' => '\\ccxt\\InvalidOrder',
                 'UUID_INVALID' => '\\ccxt\\OrderNotFound',
                 'RATE_NOT_PROVIDED' => '\\ccxt\\InvalidOrder', // createLimitBuyOrder ('ETH/BTC', 1, 0)
+                'WHITELIST_VIOLATION_IP' => '\\ccxt\\PermissionDenied',
             ),
         ));
     }
