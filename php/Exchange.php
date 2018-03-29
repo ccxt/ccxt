@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.12.31';
+$version = '1.12.32';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -127,6 +127,7 @@ abstract class Exchange {
         'kucoin',
         'kuna',
         'lakebtc',
+        'lbank',
         'liqui',
         'livecoin',
         'luno',

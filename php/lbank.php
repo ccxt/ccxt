@@ -386,7 +386,7 @@ class lbank extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $query = $this->omit ($params, $this->extract_params($path));
-        $url = $this->urls['api'] . '/' . $this->verions . '/' . $this->implode_params($path, $params);
+        $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         // Every endpoint ends with ".do"
         $url .= '.do';
         if ($api === 'public') {
