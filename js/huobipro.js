@@ -27,6 +27,7 @@ module.exports = class huobipro extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchDepositAddress': true,
                 'withdraw': true,
+                'loadLimits': true,
             },
             'timeframes': {
                 '1m': '1min',
@@ -62,6 +63,7 @@ module.exports = class huobipro extends Exchange {
                         'common/symbols', // 查询系统支持的所有交易对
                         'common/currencys', // 查询系统支持的所有币种
                         'common/timestamp', // 查询系统当前时间
+                        'common/exchange', // order limits
                     ],
                 },
                 'private': {
@@ -152,6 +154,13 @@ module.exports = class huobipro extends Exchange {
             });
         }
         return result;
+    }
+
+
+    async loadLimits (market, params = {}) {
+        return await this.publicGetCommonExchange (this.extend ({
+            'symbol': market['id'];
+        }))
     }
 
     async fetchMarkets () {
