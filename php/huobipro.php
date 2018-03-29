@@ -162,6 +162,19 @@ class huobipro extends Exchange {
         )));
     }
 
+    public function parse_limits ($response, $symbol = null, $params = array ()) {
+        $data = $response['data'];
+        if ($data === null) {
+            return null;
+        }
+        return array (
+            'amount' => array (
+                'min' => $data['limit-order-must-greater-than'],
+                'max' => $data['limit-order-must-less-than'],
+            ),
+        );
+    }
+
     public function fetch_markets () {
         $response = $this->publicGetCommonSymbols ();
         return $this->parse_markets ($response['data']);

@@ -171,6 +171,17 @@ class huobipro (Exchange):
             'symbol': market['id'],
         }))
 
+    def parse_limits(self, response, symbol=None, params={}):
+        data = response['data']
+        if data is None:
+            return None
+        return {
+            'amount': {
+                'min': data['limit-order-must-greater-than'],
+                'max': data['limit-order-must-less-than'],
+            },
+        }
+
     def fetch_markets(self):
         response = self.publicGetCommonSymbols()
         return self.parse_markets(response['data'])
