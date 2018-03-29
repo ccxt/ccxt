@@ -327,6 +327,35 @@ module.exports = class bitfinex extends Exchange {
         return result;
     }
 
+    costToPrecision (symbol, cost) {
+        return this.decimalToPrecision (parseFloat (cost), this.ROUND, this.markets[symbol].precision.price, this.SIGNIFICANT_DIGITS);
+    }
+
+    priceToPrecision (symbol, price) {
+        return this.decimalToPrecision (parseFloat (price), this.ROUND, this.markets[symbol].precision.price, this.SIGNIFICANT_DIGITS);
+    }
+
+    amountToPrecision (symbol, amount) {
+        return this.decimalToPrecision (parseFloat (amount), this.ROUND, this.markets[symbol].precision.amount, this.SIGNIFICANT_DIGITS);
+    }
+
+    feeToPrecision (currency, fee) {
+        return this.decimalToPrecision (parseFloat (fee), this.ROUND, this.currencies[currency]['precision'], this.SIGNIFICANT_DIGITS);
+    }
+
+    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+        let market = this.markets[symbol];
+        let rate = market[takerOrMaker];
+        let cost = amount * price;
+        let key = 'quote';
+        return {
+            'type': takerOrMaker,
+            'currency': market[key],
+            'rate': rate,
+            'cost': parseFloat (this.feeToPrecision (market[key], rate * cost)),
+        };
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let balanceType = this.safeString (params, 'type', 'exchange');
