@@ -33,6 +33,7 @@ class huobipro (Exchange):
             'hostname': 'api.huobipro.com',
             'has': {
                 'CORS': False,
+                'fetchLimits': True,
                 'fetchOHCLV': True,
                 'fetchOrders': True,
                 'fetchOrder': True,
@@ -74,6 +75,7 @@ class huobipro (Exchange):
                         'common/symbols',  # 查询系统支持的所有交易对
                         'common/currencys',  # 查询系统支持的所有币种
                         'common/timestamp',  # 查询系统当前时间
+                        'common/exchange',  # order limits
                     ],
                 },
                 'private': {
@@ -162,6 +164,12 @@ class huobipro (Exchange):
                 'info': market,
             })
         return result
+
+    async def fetch_limits(self, symbol, params={}):
+        market = self.market(symbol)
+        return await self.publicGetCommonExchange(self.extend({
+            'symbol': market['id'],
+        }))
 
     async def fetch_markets(self):
         response = await self.publicGetCommonSymbols()
