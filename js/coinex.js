@@ -129,7 +129,6 @@ module.exports = class coinex extends Exchange {
                 'amount': market['sell_asset_type_places'],
                 'price': market['buy_asset_type_places'],
             };
-            let active = market['IsActive'];
             let numMergeLevels = market['merge'].length;
             result.push ({
                 'id': id,
