@@ -21,7 +21,7 @@ module.exports = class huobipro extends Exchange {
             'hostname': 'api.huobipro.com',
             'has': {
                 'CORS': false,
-                'fetchLimits': true,
+                'fetchTradingLimits': true,
                 'fetchOHCLV': true,
                 'fetchOrders': true,
                 'fetchOrder': true,
@@ -156,14 +156,32 @@ module.exports = class huobipro extends Exchange {
         return result;
     }
 
-    async fetchLimits (symbol, params = {}) {
-        let market = this.market (symbol);
-        return await this.publicGetCommonExchange (this.extend ({
-            'symbol': market['id'],
-        }));
+    async loadTradingLimitsOnDemand (symbol, reload = false, params = {}) {
+        if (this.options['loadTradingLimitsOnDemand'])
+            return await this.loadTradingLimits (symbol, reload, params);
+        return undefined;
     }
 
-    parseLimits (response, symbol = undefined, params = {}) {
+    async loadTradingLimits (symbol, reload = false, params = {}) {
+        if (reload || !('loaded' in this.markets[symbol])) {
+            let limits = this.fetchTradingLimits (symbol);
+            this.markets[symbol] = this.extend (this.markets[symbol], {
+                'limits': limits,
+                'loaded': true,
+            });
+        }
+        return this.markets[symbol]['limits'];
+    }
+
+    async fetchTradingLimits (symbol, params = {}) {
+        let market = this.market (symbol);
+        let response = await this.publicGetCommonExchange (this.extend ({
+            'symbol': market['id'],
+        }));
+        return this.parseLimits (response);
+    }
+
+    parseTradingLimits (response, symbol = undefined, params = {}) {
         let data = response['data'];
         if (typeof data === 'undefined') {
             return undefined;
@@ -377,7 +395,7 @@ module.exports = class huobipro extends Exchange {
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!symbol)
             throw new ExchangeError (this.id + ' fetchOrders() requires a symbol parameter');
-        this.loadMarkets ();
+        await this.loadMarkets ();
         let market = this.market (symbol);
         let status = undefined;
         if ('type' in params) {
