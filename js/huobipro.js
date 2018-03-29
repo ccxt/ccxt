@@ -164,10 +164,14 @@ module.exports = class huobipro extends Exchange {
     }
 
     parseLimits (response, symbol = undefined, params = {}) {
+        let data = response['data'];
+        if (typeof data === 'undefined') {
+            return undefined;
+        }
         return {
             'amount': {
-                'min': response['limit-order-must-greater-than'],
-                'max': response['limit-order-must-less-than'],
+                'min': data['limit-order-must-greater-than'],
+                'max': data['limit-order-must-less-than'],
             },
         };
     }
