@@ -169,12 +169,47 @@ module.exports = class independentreserve extends Exchange {
         return this.parseTicker (response, market);
     }
 
+    parseOrder (order) {
+        let orderType;
+        if (/Market/.exec(order['Type'])) {
+            orderType = 'market';
+        } else if (/Limit/.exec(order['Type'])) {
+            orderType = 'limit';
+        }
+        return {
+            id: order['OrderGuid'],
+            datetime: order['CreatedTimestampUtc'],
+            type: orderType,
+            timestamp: new Date(order['CreatedTimestampUtc']).getTime(),
+            side: /Bid/.exec(order['OrderType']) ? 'buy' : 'sell',
+            price: order['AvgPrice'],
+            amount: order['VolumeOrdered'],
+            filled: order['VolumeFilled'],
+            fee: undefined,
+            remaining: undefined,
+            status: this.parseOrderStatus(order['Status']),
+        };
+    }
+
+    parseOrderStatus (status) {
+        let statuses = {
+            'Open': 'open',
+            'PartiallyFilled': 'open',
+            'Filled': 'closed',
+            'PartiallyFilledAndCancelled': 'canceled',
+            'Cancelled': 'canceled',
+            'PartiallyFilledAndExpired': 'canceled',
+            'Expired': 'canceled'
+        };
+        return (status in statuses) ? statuses[status] : status.toLowerCase ();
+    }
+
     async fetchOrder(id, symbol = undefined, params) {
         let request = {
             orderGuid: id
         };
         const response = await this.privatePostGetOrderDetails(this.extend(request, params));
-        // TODO unifined api
+        return this.parseOrder(response);
     }
 
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
