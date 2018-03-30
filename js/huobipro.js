@@ -156,29 +156,43 @@ module.exports = class huobipro extends Exchange {
         return result;
     }
 
-    async loadTradingLimitsOnDemand (symbol, reload = false, params = {}) {
-        if (this.options['loadTradingLimitsOnDemand'])
-            return await this.loadTradingLimits (symbol, reload, params);
-        return undefined;
-    }
-
-    async loadTradingLimits (symbol, reload = false, params = {}) {
-        if (reload || !('loaded' in this.markets[symbol])) {
-            let limits = this.fetchTradingLimits (symbol);
-            this.markets[symbol] = this.extend (this.markets[symbol], {
-                'limits': limits,
-                'loaded': true,
-            });
+    async loadTradingLimits (symbols = undefined, params = {}) {
+        if (reload || !('limitsLoaded' in this.options)) {
+            let response = this.fetchTradingLimits (symbol);
+            let limits = response['limits'];
+            let keys = Object.keys (limits);
+            for (let i = 0; i < keys.length; i++) {
+                let symbol = keys[i];
+                this.markets[symbol] = this.extend (this.markets[symbol], {
+                    'limits': limits[symbol],
+                });
+            }
         }
-        return this.markets[symbol]['limits'];
+        return this.markets;
     }
 
-    async fetchTradingLimits (symbol, params = {}) {
-        let market = this.market (symbol);
-        let response = await this.publicGetCommonExchange (this.extend ({
-            'symbol': market['id'],
-        }));
-        return this.parseLimits (response);
+    async fetchTradingLimits (symbols = undefined, params = {}) {
+        //  by default it will try load withdrawal fees of all currencies (with separate requests)
+        //  however if you define codes = [ 'ETH', 'BTC' ] in args it will only load those
+        await this.loadMarkets ();
+        let withdrawFees = {};
+        let info = {};
+        if (typeof symbols === 'undefined')
+            symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            let symbol = symbols[i];
+            let market = this.market (symbol);
+            let response = await this.publicGetCommonExchange (this.extend ({
+                'symbol': market['id'],
+            }));
+            let limits = this.parseTradingLimits (response);
+            info[symbol] = response;
+            limits[symbol] = limits;
+        }
+        return {
+            'limits': limits,
+            'info': info,
+        };
     }
 
     parseTradingLimits (response, symbol = undefined, params = {}) {
