@@ -176,6 +176,7 @@ module.exports = class huobipro extends Exchange {
         //  however if you define codes = [ 'ETH', 'BTC' ] in args it will only load those
         await this.loadMarkets ();
         let info = {};
+        let limits = {};
         if (typeof symbols === 'undefined')
             symbols = this.symbols;
         for (let i = 0; i < symbols.length; i++) {
