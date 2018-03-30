@@ -39,12 +39,21 @@ module.exports = class coinex extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38046312-0b450aac-32c8-11e8-99ab-bc6b136b6cc7.jpg',
-                'api': 'https://api.coinex.com',
+                'api': {
+                    'public': 'https://api.coinex.com',
+                    'private': 'https://api.coinex.com',
+                    'web': 'https://www.coinex.com',
+                },
                 'www': 'https://www.coinex.com',
                 'doc': 'https://github.com/coinexcom/coinex_exchange_api/wiki',
                 'fees': 'https://www.coinex.com/fees',
             },
             'api': {
+                'web': {
+                    'get': [
+                        'res/market',
+                    ],
+                },
                 'public': {
                     'get': [
                         'market/list',
@@ -103,24 +112,46 @@ module.exports = class coinex extends Exchange {
     }
 
     async fetchMarkets () {
-        let response = await this.publicGetMarketList ();
-        let markets = response['data'];
+        let response = await this.webGetResMarket ();
+        let markets = response['data']['market_info'];
         let result = [];
-        for (let i = 0; i < markets.length; i++) {
-            let id = markets[i];
-            let base = id.slice (-3);
-            let quote = id.slice (0, -3);
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
+        let keys = Object.keys (markets);
+        for (let i = 0; i < keys.length; i++) {
+            let key = keys[i];
+            let market = markets[key];
+            let id = market['market'];
+            let quoteId = market['buy_asset_type'];
+            let baseId = market['sell_asset_type'];
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
+            let precision = {
+                'amount': market['sell_asset_type_places'],
+                'price': market['buy_asset_type_places'],
+            };
+            let numMergeLevels = market['merge'].length;
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': true,
-                'lot': this.limits['amount']['min'],
-                'info': id,
+                'taker': parseFloat (market['taker_fee_rate']),
+                'maker': parseFloat (market['maker_fee_rate']),
+                'info': market,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': parseFloat (market['least_amount']),
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': parseFloat (market['merge'][numMergeLevels - 1]),
+                        'max': undefined,
+                    },
+                },
             });
         }
         return result;
@@ -149,8 +180,8 @@ module.exports = class coinex extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': parseFloat (ticker['vol']),
+            'baseVolume': parseFloat (ticker['vol']),
+            'quoteVolume': undefined,
             'info': ticker,
         };
     }
@@ -399,9 +430,14 @@ module.exports = class coinex extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
+        path = this.implodeParams (path, params);
+        let url = this.urls['api'][api] + '/' + this.version + '/' + path;
         let query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
+            if (Object.keys (query).length)
+                url += '?' + this.urlencode (query);
+        } else if (api === 'web') {
+            url = this.urls['api'][api] + '/' + path;
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {

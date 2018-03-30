@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.12.35",
+  "version": "1.12.48",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 90+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "build/ccxt.browser.js",
@@ -57,7 +57,7 @@
     "istanbul": "^0.4.5",
     "mocha": "^3.5.3",
     "nyc": "^11.4.1",
-    "ololog": "^1.1.84"
+    "ololog": "^1.1.87"
   },
   "author": {
     "name": "Igor Kroitor",

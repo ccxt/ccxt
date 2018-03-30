@@ -33,6 +33,7 @@ class huobipro (Exchange):
             'hostname': 'api.huobipro.com',
             'has': {
                 'CORS': False,
+                'fetchTradingLimits': True,
                 'fetchOHCLV': True,
                 'fetchOrders': True,
                 'fetchOrder': True,
@@ -74,6 +75,7 @@ class huobipro (Exchange):
                         'common/symbols',  # 查询系统支持的所有交易对
                         'common/currencys',  # 查询系统支持的所有币种
                         'common/timestamp',  # 查询系统当前时间
+                        'common/exchange',  # order limits
                     ],
                 },
                 'private': {
@@ -163,6 +165,51 @@ class huobipro (Exchange):
             })
         return result
 
+    def load_trading_limits(self, symbols=None, reload=False, params={}):
+        if reload or not('limitsLoaded' in list(self.options.keys())):
+            response = self.fetch_trading_limits(symbols)
+            limits = response['limits']
+            keys = list(limits.keys())
+            for i in range(0, len(keys)):
+                symbol = keys[i]
+                self.markets[symbol] = self.extend(self.markets[symbol], {
+                    'limits': limits[symbol],
+                })
+        return self.markets
+
+    def fetch_trading_limits(self, symbols=None, params={}):
+        #  by default it will try load withdrawal fees of all currencies(with separate requests)
+        #  however if you define codes = ['ETH', 'BTC'] in args it will only load those
+        self.load_markets()
+        info = {}
+        limits = {}
+        if symbols is None:
+            symbols = self.symbols
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            market = self.market(symbol)
+            response = self.publicGetCommonExchange(self.extend({
+                'symbol': market['id'],
+            }))
+            limits = self.parse_trading_limits(response)
+            info[symbol] = response
+            limits[symbol] = limits
+        return {
+            'limits': limits,
+            'info': info,
+        }
+
+    def parse_trading_limits(self, response, symbol=None, params={}):
+        data = response['data']
+        if data is None:
+            return None
+        return {
+            'amount': {
+                'min': data['limit-order-must-greater-than'],
+                'max': data['limit-order-must-less-than'],
+            },
+        }
+
     def fetch_markets(self):
         response = self.publicGetCommonSymbols()
         return self.parse_markets(response['data'])
@@ -236,6 +283,17 @@ class huobipro (Exchange):
                 raise ExchangeError(self.id + ' fetchOrderBook() returned empty response: ' + self.json(response))
             return self.parse_order_book(response['tick'], response['tick']['ts'])
         raise ExchangeError(self.id + ' fetchOrderBook() returned unrecognized response: ' + self.json(response))
+
+    def parse_order_book(self, orderbook, timestamp=None, bidsKey='bids', asksKey='asks', priceKey=0, amountKey=1):
+        bids = self.parse_bids_asks(orderbook[bidsKey], priceKey, amountKey) if (bidsKey in list(orderbook.keys())) else []
+        asks = self.parse_bids_asks(orderbook[asksKey], priceKey, amountKey) if (asksKey in list(orderbook.keys())) else []
+        return {
+            'bids': self.sort_by(bids, 0, True),
+            'asks': self.sort_by(asks, 0),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp) if (timestamp is not None) else None,
+            'nonce': orderbook['version'],
+        }
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -467,10 +525,13 @@ class huobipro (Exchange):
             'info': response,
         }
 
+    def fee_to_precision(self, currency, fee):
+        return float(self.decimalToPrecision(fee, 0, self.currencies[currency]['precision']))
+
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]
         rate = market[takerOrMaker]
-        cost = float(self.cost_to_precision(symbol, amount * rate))
+        cost = amount * rate
         key = 'quote'
         if side == 'sell':
             cost *= price
@@ -480,7 +541,7 @@ class huobipro (Exchange):
             'type': takerOrMaker,
             'currency': market[key],
             'rate': rate,
-            'cost': float(self.fee_to_precision(symbol, cost)),
+            'cost': float(self.fee_to_precision(market[key], cost)),
         }
 
     def withdraw(self, currency, amount, address, tag=None, params={}):
