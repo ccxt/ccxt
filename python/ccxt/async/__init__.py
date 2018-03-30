@@ -10,6 +10,14 @@ __version__ = '1.12.53'
 
 from ccxt.async.base.exchange import Exchange                   # noqa: F401
 
+from ccxt.base.decimal_to_precision import decimal_to_precision  # noqa: F401
+from ccxt.base.decimal_to_precision import TRUNCATE              # noqa: F401
+from ccxt.base.decimal_to_precision import ROUND                 # noqa: F401
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES        # noqa: F401
+from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS    # noqa: F401
+from ccxt.base.decimal_to_precision import NO_PADDING            # noqa: F401
+from ccxt.base.decimal_to_precision import PAD_WITH_ZERO         # noqa: F401
+
 from ccxt.base import errors                                    # noqa: F401
 from ccxt.base.errors import BaseError                          # noqa: F401
 from ccxt.base.errors import ExchangeError                      # noqa: F401
@@ -259,6 +267,7 @@ exchanges = [
 base = [
     'Exchange',
     'exchanges',
+    'decimal_to_precision',
 ]
 
 __all__ = base + errors.__all__ + exchanges
