@@ -122,13 +122,11 @@ it ('decimalToPrecision: without dot / trailing dot', () => {
     equal (decimalToPrecision ('123.', TRUNCATE, 5, DECIMAL_PLACES, PAD_WITH_ZERO), '123.00000')
 })
 
-it ('decimalToPrecision: rounding for equidistant digits (WIP)', () => {
+it ('decimalToPrecision: rounding for equidistant digits', () => {
 
-    // WIP
-
-    // equal (decimalToPrecision ('1.44', ROUND, 1, DECIMAL_PLACES), '1.4')
-    // equal (decimalToPrecision ('1.45', ROUND, 1, DECIMAL_PLACES), '1.5')
-    // equal (decimalToPrecision ('1.45', ROUND, 0, DECIMAL_PLACES), '1')   // not 2!
+    equal (decimalToPrecision ('1.44', ROUND, 1, DECIMAL_PLACES), '1.4')
+    equal (decimalToPrecision ('1.45', ROUND, 1, DECIMAL_PLACES), '1.5')
+    equal (decimalToPrecision ('1.45', ROUND, 0, DECIMAL_PLACES), '1')   // not 2!
 })
 
 /*  ------------------------------------------------------------------------ */

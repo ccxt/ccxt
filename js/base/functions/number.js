@@ -134,7 +134,7 @@ const decimalToPrecision = (x, roundingMode
 /*  Determine the range to cut  */
 
     let precisionStart = (countingMode === DECIMAL_PLACES) ? afterDot      // 0.(0)001234567
-                                                      : digitsStart   // 0.00(1)234567
+                                                           : digitsStart   // 0.00(1)234567
       , precisionEnd = precisionStart +
                        numPrecisionDigits
 
@@ -158,9 +158,12 @@ const decimalToPrecision = (x, roundingMode
             c += memo
 
             if (i >= (precisionStart + numPrecisionDigits)) {
-                c = (roundingMode === ROUND)
-                        ? ((c > FIVE) ? (NINE + 1) : ZERO) // single-digit rounding
-                        : ZERO                              // "floor" to zero
+                
+                const ceil = (roundingMode === ROUND) &&
+                             (c >= FIVE) &&
+                            !((c === FIVE) && memo) // prevents rounding of 1.45 to 2
+                
+                c = ceil ? (NINE + 1) : ZERO
             }
             if (c > NINE) { c = ZERO; memo = 1; }
             else memo = 0
