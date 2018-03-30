@@ -169,19 +169,37 @@ module.exports = class independentreserve extends Exchange {
         return this.parseTicker (response, market);
     }
 
+    async fetchOrder(id, symbol = undefined, params) {
+        let request = {
+            orderGuid: id
+        };
+        const response = await this.privatePostGetOrderDetails(this.extend(request, params));
+        // TODO unifined api
+    }
+
+    async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            pageIndex: params.pageIndex || 1,
+            pageSize: 50
+        };
+        const response = await this.privatePostGetTrades (this.extend (request, params));
+        return this.parseTrades(response['Data'], symbol && this.market (symbol), since, limit);
+    }
+
     parseTrade (trade, market) {
         let timestamp = this.parse8601 (trade['TradeTimestampUtc']);
         return {
-            'id': undefined,
+            'id': trade['TradeGuid'],
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
-            'order': undefined,
+            'order': trade['OrderGuid'],
             'type': undefined,
-            'side': undefined,
-            'price': trade['SecondaryCurrencyTradePrice'],
-            'amount': trade['PrimaryCurrencyAmount'],
+            'side': /Bid/.exec(trade['OrderType']) ? 'buy' : 'sell',
+            'price': trade['Price'],
+            'amount': trade['VolumeTraded'],
         };
     }
 
@@ -211,6 +229,7 @@ module.exports = class independentreserve extends Exchange {
         if (type === 'limit')
             order['price'] = price;
         order['volume'] = amount;
+
         let response = await this[method] (this.extend (order, params));
         return {
             'info': response,
@@ -236,23 +255,70 @@ module.exports = class independentreserve extends Exchange {
                 'apiKey=' + this.apiKey,
                 'nonce=' + nonce.toString (),
             ];
-            let keysorted = this.keysort (params);
-            let keys = Object.keys (keysorted);
+
+            let keys = this.apiSpecificKeySort(Object.keys(params));
+
+            const sortedParams = [];
             for (let i = 0; i < keys.length; i++) {
                 let key = keys[i];
-                auth.push (key + '=' + params[key]);
+                sortedParams.push (key + '=' + params[key]);
             }
-            let message = auth.join (',');
+
+            let message = auth.concat(sortedParams).join(',');
+            console.log(message);
             let signature = this.hmac (this.encode (message), this.encode (this.secret));
-            let query = this.keysort (this.extend ({
+            let query = this.extend ({
                 'apiKey': this.apiKey,
                 'nonce': nonce,
                 'signature': signature,
-            }, params));
+            }, this.apiSpecificKeySort(params));
+
             body = this.json (query);
             headers = { 'Content-Type': 'application/json' };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    apiSpecificKeySort(params, out = {}) {
+
+        const keyOrder = [
+            'amount',
+            'withdrawalAddress',
+            'comment',
+            'depositAddress',
+            'primaryCurrencyCode',
+            'secondaryCurrencyCode',
+            'withdrawalAmount',
+            'withdrawalBankAccountName',
+            'orderType',
+            'price',
+            'volume',
+            'orderGuid',
+            'accountGuid',
+            'fromTimestampUtc',
+            'toTimestampUtc',
+            'txTypes',
+            'pageIndex',
+            'pageSize'
+        ];
+
+        if (params.constructor === Object) {
+            for (const k of keyOrder) {
+                if (params[k]) {
+                    out[k] = params[k];
+                }
+            }
+        } else if (params.constructor === Array) {
+            out = [];
+            for (const k of keyOrder) {
+                const key = params.find(p => p === k);
+                if (key) {
+                    out.push(key);
+                }
+            }
+        }
+
+        return out;
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
