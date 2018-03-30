@@ -9,7 +9,7 @@ sys.path.append(root)
 from ccxt.base.decimal_to_precision import decimal_to_precision  # noqa F401
 from ccxt.base.decimal_to_precision import TRUNCATE              # noqa F401
 from ccxt.base.decimal_to_precision import ROUND                 # noqa F401
-from ccxt.base.decimal_to_precision import AFTER_DOT             # noqa F401
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES             # noqa F401
 from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS    # noqa F401
 from ccxt.base.decimal_to_precision import PAD_WITH_ZERO         # noqa F401
 
@@ -20,16 +20,16 @@ def equal(a, b):
         raise ValueError('{} does not equal {}'.format(a, b))
 
 
-equal(decimal_to_precision('12.3456000', TRUNCATE, 20, AFTER_DOT), '12.3456')
-equal(decimal_to_precision('12.3456', TRUNCATE, 20, AFTER_DOT), '12.3456')
-equal(decimal_to_precision('12.3456', TRUNCATE, 4, AFTER_DOT), '12.3456')
-equal(decimal_to_precision('12.3456', TRUNCATE, 3, AFTER_DOT), '12.345')
-equal(decimal_to_precision('12.3456', TRUNCATE, 2, AFTER_DOT), '12.34')
-equal(decimal_to_precision('12.3456', TRUNCATE, 1, AFTER_DOT), '12.3')
-equal(decimal_to_precision('12.3456', TRUNCATE, 0, AFTER_DOT), '12')
-# equal(decimal_to_precision('12.3456', TRUNCATE, -1, AFTER_DOT), '10')   # not yet supported
-# equal(decimal_to_precision('123.456', TRUNCATE, -2, AFTER_DOT), '120')  # not yet supported
-# equal(decimal_to_precision('123.456', TRUNCATE, -3, AFTER_DOT), '100')  # not yet supported
+equal(decimal_to_precision('12.3456000', TRUNCATE, 20, DECIMAL_PLACES), '12.3456')
+equal(decimal_to_precision('12.3456', TRUNCATE, 20, DECIMAL_PLACES), '12.3456')
+equal(decimal_to_precision('12.3456', TRUNCATE, 4, DECIMAL_PLACES), '12.3456')
+equal(decimal_to_precision('12.3456', TRUNCATE, 3, DECIMAL_PLACES), '12.345')
+equal(decimal_to_precision('12.3456', TRUNCATE, 2, DECIMAL_PLACES), '12.34')
+equal(decimal_to_precision('12.3456', TRUNCATE, 1, DECIMAL_PLACES), '12.3')
+equal(decimal_to_precision('12.3456', TRUNCATE, 0, DECIMAL_PLACES), '12')
+# equal(decimal_to_precision('12.3456', TRUNCATE, -1, DECIMAL_PLACES), '10')   # not yet supported
+# equal(decimal_to_precision('123.456', TRUNCATE, -2, DECIMAL_PLACES), '120')  # not yet supported
+# equal(decimal_to_precision('123.456', TRUNCATE, -3, DECIMAL_PLACES), '100')  # not yet supported
 
 # --------------------------------------------------------------------------------------------------------
 
@@ -57,22 +57,22 @@ equal(decimal_to_precision('123.0000987654', TRUNCATE, 1, SIGNIFICANT_DIGITS, PA
 # --------------------------------------------------------------------------------------------------------
 
 
-equal(decimal_to_precision('12.3456000', ROUND, 20, AFTER_DOT), '12.3456')
-equal(decimal_to_precision('12.3456', ROUND, 20, AFTER_DOT), '12.3456')
-equal(decimal_to_precision('12.3456', ROUND, 4, AFTER_DOT), '12.3456')
-equal(decimal_to_precision('12.3456', ROUND, 3, AFTER_DOT), '12.346')
-equal(decimal_to_precision('12.3456', ROUND, 2, AFTER_DOT), '12.35')
-equal(decimal_to_precision('12.3456', ROUND, 1, AFTER_DOT), '12.3')
-equal(decimal_to_precision('12.3456', ROUND, 0, AFTER_DOT), '12')
-# equal(decimal_to_precision('12.3456', ROUND, -1, AFTER_DOT), '10')  // not yet supported
-# equal(decimal_to_precision('123.456', ROUND, -1, AFTER_DOT), '120')  // not yet supported
-# equal(decimal_to_precision('123.456', ROUND, -2, AFTER_DOT), '100')  // not yet supported
+equal(decimal_to_precision('12.3456000', ROUND, 20, DECIMAL_PLACES), '12.3456')
+equal(decimal_to_precision('12.3456', ROUND, 20, DECIMAL_PLACES), '12.3456')
+equal(decimal_to_precision('12.3456', ROUND, 4, DECIMAL_PLACES), '12.3456')
+equal(decimal_to_precision('12.3456', ROUND, 3, DECIMAL_PLACES), '12.346')
+equal(decimal_to_precision('12.3456', ROUND, 2, DECIMAL_PLACES), '12.35')
+equal(decimal_to_precision('12.3456', ROUND, 1, DECIMAL_PLACES), '12.3')
+equal(decimal_to_precision('12.3456', ROUND, 0, DECIMAL_PLACES), '12')
+# equal(decimal_to_precision('12.3456', ROUND, -1, DECIMAL_PLACES), '10')  // not yet supported
+# equal(decimal_to_precision('123.456', ROUND, -1, DECIMAL_PLACES), '120')  // not yet supported
+# equal(decimal_to_precision('123.456', ROUND, -2, DECIMAL_PLACES), '100')  // not yet supported
 
-equal(decimal_to_precision('9.999', ROUND, 3, AFTER_DOT), '9.999')
-equal(decimal_to_precision('9.999', ROUND, 2, AFTER_DOT), '10')
-equal(decimal_to_precision('9.999', ROUND, 2, AFTER_DOT, PAD_WITH_ZERO), '10.00')
-equal(decimal_to_precision('99.999', ROUND, 2, AFTER_DOT, PAD_WITH_ZERO), '100.00')
-equal(decimal_to_precision('-99.999', ROUND, 2, AFTER_DOT, PAD_WITH_ZERO), '-100.00')
+equal(decimal_to_precision('9.999', ROUND, 3, DECIMAL_PLACES), '9.999')
+equal(decimal_to_precision('9.999', ROUND, 2, DECIMAL_PLACES), '10')
+equal(decimal_to_precision('9.999', ROUND, 2, DECIMAL_PLACES, PAD_WITH_ZERO), '10.00')
+equal(decimal_to_precision('99.999', ROUND, 2, DECIMAL_PLACES, PAD_WITH_ZERO), '100.00')
+equal(decimal_to_precision('-99.999', ROUND, 2, DECIMAL_PLACES, PAD_WITH_ZERO), '-100.00')
 
 # --------------------------------------------------------------------------------------------------------
 
@@ -102,5 +102,5 @@ equal(decimal_to_precision('0.098765', ROUND, 1, SIGNIFICANT_DIGITS, PAD_WITH_ZE
 
 # --------------------------------------------------------------------------------------------------------
 
-equal(decimal_to_precision('-0.123456', TRUNCATE, 5, AFTER_DOT), '-0.12345')
-equal(decimal_to_precision('-0.123456', ROUND, 5, AFTER_DOT), '-0.12346')
+equal(decimal_to_precision('-0.123456', TRUNCATE, 5, DECIMAL_PLACES), '-0.12345')
+equal(decimal_to_precision('-0.123456', ROUND, 5, DECIMAL_PLACES), '-0.12346')

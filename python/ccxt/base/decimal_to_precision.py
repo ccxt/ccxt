@@ -5,7 +5,7 @@ import itertools
 __all__ = [
     'TRUNCATE',
     'ROUND',
-    'AFTER_DOT',
+    'DECIMAL_PLACES',
     'SIGNIFICANT_DIGITS',
     'NO_PADDING',
     'PAD_WITH_ZERO',
@@ -18,7 +18,7 @@ TRUNCATE = 0
 ROUND = 1
 
 # digits counting mode
-AFTER_DOT = 2
+DECIMAL_PLACES = 2
 SIGNIFICANT_DIGITS = 3
 
 # padding mode
@@ -26,10 +26,10 @@ NO_PADDING = 4
 PAD_WITH_ZERO = 5
 
 
-def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=AFTER_DOT, padding_mode=NO_PADDING):
+def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=DECIMAL_PLACES, padding_mode=NO_PADDING):
     assert precision is not None and isinstance(precision, numbers.Integral)
     assert rounding_mode in [TRUNCATE, ROUND]
-    assert counting_mode in [AFTER_DOT, SIGNIFICANT_DIGITS]
+    assert counting_mode in [DECIMAL_PLACES, SIGNIFICANT_DIGITS]
     assert padding_mode in [NO_PADDING, PAD_WITH_ZERO]
 
     # all default except decimal.Underflow (raised when a number is rounded to zero)
@@ -42,7 +42,7 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=A
         return decimal.Decimal('10') ** (-x)
 
     if rounding_mode == ROUND:
-        if counting_mode == AFTER_DOT:
+        if counting_mode == DECIMAL_PLACES:
             precise = str(dec.quantize(quant(precision)))  # ROUND_HALF_EVEN is default context
         elif counting_mode == SIGNIFICANT_DIGITS:
             q = precision - dec.adjusted() - 1
@@ -56,7 +56,7 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=A
 
     elif rounding_mode == TRUNCATE:
         # Slice a string
-        if counting_mode == AFTER_DOT:
+        if counting_mode == DECIMAL_PLACES:
             before, after = string.split('.')
             truncated = before + '.' + after[:precision]
             precise = truncated.rstrip('.')
@@ -77,7 +77,7 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=A
         return precise.rstrip('0').rstrip('.') if '.' in precise else precise
     elif padding_mode == PAD_WITH_ZERO:
         if '.' in precise:
-            if counting_mode == AFTER_DOT:
+            if counting_mode == DECIMAL_PLACES:
                 before, after = precise.split('.')
                 return before + '.' + after.ljust(precision, '0')
 
@@ -90,7 +90,7 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=A
             if counting_mode == SIGNIFICANT_DIGITS:
                 if precision > len(precise):
                     return precise + '.' + (precision - len(precise)) * '0'
-            elif counting_mode == AFTER_DOT:
+            elif counting_mode == DECIMAL_PLACES:
                 if precision > 0:
                     return precise + '.' + precision * '0'
             return precise

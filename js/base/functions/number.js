@@ -14,13 +14,13 @@ const { max } = Math
        I switched to using named constants instead, as it is actually more readable and
        succinct, and surely doesn't come with any inherent performance downside:
 
-            decimalToPrecision ('123.456', ROUND, 2, AFTER_DOT)                     */
+            decimalToPrecision ('123.456', ROUND, 2, DECIMAL_PLACES)                     */
 
 
 const ROUND    = 0                  // rounding mode
     , TRUNCATE = 1
 
-const AFTER_DOT          = 0        // digits counting mode
+const DECIMAL_PLACES          = 0        // digits counting mode
     , SIGNIFICANT_DIGITS = 1
 
 const NO_PADDING    = 0             // zero-padding mode
@@ -75,11 +75,11 @@ function precisionFromString (string) {
 
 const decimalToPrecision = (x, roundingMode
                              , numPrecisionDigits
-                             , countingMode       = AFTER_DOT
+                             , countingMode       = DECIMAL_PLACES
                              , paddingMode        = NO_PADDING) => {
 
     if (numPrecisionDigits < 0) throw new Error ('negative precision is not yet supported')
-
+    
 /*  Convert to a string (if needed), skip leading minus sign (if any)   */
 
     const str          = numberToString (x)
@@ -133,7 +133,7 @@ const decimalToPrecision = (x, roundingMode
 
 /*  Determine the range to cut  */
 
-    let precisionStart = (countingMode === AFTER_DOT) ? afterDot      // 0.(0)001234567
+    let precisionStart = (countingMode === DECIMAL_PLACES) ? afterDot      // 0.(0)001234567
                                                       : digitsStart   // 0.00(1)234567
       , precisionEnd = precisionStart +
                        numPrecisionDigits
@@ -229,7 +229,7 @@ module.exports = {
 
     TRUNCATE,
     ROUND,
-    AFTER_DOT,
+    DECIMAL_PLACES,
     SIGNIFICANT_DIGITS,
     NO_PADDING,
     PAD_WITH_ZERO,
