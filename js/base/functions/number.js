@@ -131,6 +131,8 @@ const decimalToPrecision = (x, roundingMode
         }
     }
 
+    if (digitsStart < 0) digitsStart = 1
+
 /*  Determine the range to cut  */
 
     let precisionStart = (countingMode === DECIMAL_PLACES) ? afterDot      // 0.(0)001234567
