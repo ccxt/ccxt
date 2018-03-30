@@ -281,19 +281,11 @@ class huobipro (Exchange):
         if 'tick' in response:
             if not response['tick']:
                 raise ExchangeError(self.id + ' fetchOrderBook() returned empty response: ' + self.json(response))
-            return self.parse_order_book(response['tick'], response['tick']['ts'])
+            orderbook = response['tick']
+            timestamp = orderbook['ts']
+            orderbook['nonce'] = orderbook['version']
+            return self.parse_order_book(orderbook, timestamp)
         raise ExchangeError(self.id + ' fetchOrderBook() returned unrecognized response: ' + self.json(response))
-
-    def parse_order_book(self, orderbook, timestamp=None, bidsKey='bids', asksKey='asks', priceKey=0, amountKey=1):
-        bids = self.parse_bids_asks(orderbook[bidsKey], priceKey, amountKey) if (bidsKey in list(orderbook.keys())) else []
-        asks = self.parse_bids_asks(orderbook[asksKey], priceKey, amountKey) if (asksKey in list(orderbook.keys())) else []
-        return {
-            'bids': self.sort_by(bids, 0, True),
-            'asks': self.sort_by(asks, 0),
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp) if (timestamp is not None) else None,
-            'nonce': orderbook['version'],
-        }
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
