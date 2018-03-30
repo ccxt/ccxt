@@ -158,7 +158,7 @@ module.exports = class huobipro extends Exchange {
 
     async loadTradingLimits (symbols = undefined, reload = false, params = {}) {
         if (reload || !('limitsLoaded' in this.options)) {
-            let response = this.fetchTradingLimits (symbol);
+            let response = this.fetchTradingLimits (symbols);
             let limits = response['limits'];
             let keys = Object.keys (limits);
             for (let i = 0; i < keys.length; i++) {
@@ -175,7 +175,6 @@ module.exports = class huobipro extends Exchange {
         //  by default it will try load withdrawal fees of all currencies (with separate requests)
         //  however if you define codes = [ 'ETH', 'BTC' ] in args it will only load those
         await this.loadMarkets ();
-        let withdrawFees = {};
         let info = {};
         if (typeof symbols === 'undefined')
             symbols = this.symbols;
