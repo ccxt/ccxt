@@ -35,10 +35,12 @@ function numberToString (x) { // avoids scientific notation for too large and to
     if (isString (x)) return x
 
     if (Math.abs (x) < 1.0) {
-        const e = parseInt (x.toString ().split ('e-')[1])
+        const s = x.toString ()
+        const e = parseInt (s.split ('e-')[1])
+        const neg = (s[0] === '-')
         if (e) {
             x *= Math.pow (10, e-1)
-            x = '0.' + (new Array (e)).join ('0') + x.toString ().substring (2)
+            x = (neg ? '-' : '') + '0.' + (new Array (e)).join ('0') + x.toString ().substring (neg ? 3 : 2)
         }
     } else {
         let e = parseInt (x.toString ().split ('+')[1])

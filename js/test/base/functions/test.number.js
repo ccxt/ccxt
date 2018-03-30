@@ -2,7 +2,8 @@
 
 /*  ------------------------------------------------------------------------ */
 
-const { decimalToPrecision
+const { numberToString
+      , decimalToPrecision
       , ROUND
       , TRUNCATE
       , DECIMAL_PLACES
@@ -12,6 +13,17 @@ const { decimalToPrecision
 const { strictEqual: equal, throws }  = require ('assert')
 
 /*  ------------------------------------------------------------------------ */
+
+it ('numberToString works', () => {
+
+    equal (numberToString (-7.9e-7), '-0.0000007899999999999999')
+    equal (numberToString ( 7.9e-7),  '0.0000007899999999999999')
+
+    equal (numberToString (-12.345), '-12.345')
+    equal (numberToString ( 12.345),  '12.345')
+
+    equal (numberToString (0), '0')
+})
 
 it ('decimalToPrecision: error handling', () => {
 
