@@ -145,6 +145,7 @@ module.exports = class Exchange {
                 'BCC': 'BCH',
                 'DRK': 'DASH',
             },
+            'precisionMode': this.DECIMAL_PLACES,
         } // return
     } // describe ()
 

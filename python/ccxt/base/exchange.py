@@ -169,6 +169,8 @@ class Exchange(object):
         'withdraw': False,
     }
 
+    precisionMode = self.DECIMAL_PLACES
+
     minFundingAddressLength = 10  # used in check_address
     substituteCommonCurrencyCodes = True
     lastRestRequestTimestamp = 0

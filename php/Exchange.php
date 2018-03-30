@@ -672,6 +672,8 @@ abstract class Exchange {
             'withdraw' => false,
         );
 
+        $this->precisionMode = this->DECIMAL_PLACES;
+
         $this->lastRestRequestTimestamp = 0;
         $this->lastRestPollTimestamp    = 0;
         $this->restRequestQueue         = null;

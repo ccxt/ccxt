@@ -246,7 +246,7 @@ module.exports = class bitfinex extends Exchange {
                     'Invalid order': InvalidOrder, // ?
                 },
             },
-            'significantPrecision': true,
+            'precisionMode': this.SIGNIFICANT_DIGITS,
         });
     }
 
@@ -329,19 +329,19 @@ module.exports = class bitfinex extends Exchange {
     }
 
     costToPrecision (symbol, cost) {
-        return this.decimalToPrecision (parseFloat (cost), this.ROUND, this.markets[symbol].precision.price, this.SIGNIFICANT_DIGITS);
+        return this.decimalToPrecision (parseFloat (cost), this.ROUND, this.markets[symbol].precision.price, this.precisionMode);
     }
 
     priceToPrecision (symbol, price) {
-        return this.decimalToPrecision (parseFloat (price), this.ROUND, this.markets[symbol].precision.price, this.SIGNIFICANT_DIGITS);
+        return this.decimalToPrecision (parseFloat (price), this.ROUND, this.markets[symbol].precision.price, this.precisionMode);
     }
 
     amountToPrecision (symbol, amount) {
-        return this.decimalToPrecision (parseFloat (amount), this.ROUND, this.markets[symbol].precision.amount, this.SIGNIFICANT_DIGITS);
+        return this.decimalToPrecision (parseFloat (amount), this.ROUND, this.markets[symbol].precision.amount, this.precisionMode);
     }
 
     feeToPrecision (currency, fee) {
-        return this.decimalToPrecision (parseFloat (fee), this.ROUND, this.currencies[currency]['precision'], this.SIGNIFICANT_DIGITS);
+        return this.decimalToPrecision (parseFloat (fee), this.ROUND, this.currencies[currency]['precision'], this.precisionMode);
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
