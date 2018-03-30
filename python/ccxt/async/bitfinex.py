@@ -455,7 +455,7 @@ class bitfinex (Exchange):
         cost = price * amount
         fee = None
         if 'fee_amount' in trade:
-            feeCost = self.safe_float(trade, 'fee_amount')
+            feeCost = -self.safe_float(trade, 'fee_amount')
             feeCurrency = self.safe_string(trade, 'fee_currency')
             if feeCurrency in self.currencies_by_id:
                 feeCurrency = self.currencies_by_id[feeCurrency]['code']
