@@ -156,7 +156,7 @@ module.exports = class huobipro extends Exchange {
         return result;
     }
 
-    async loadTradingLimits (symbols = undefined, params = {}) {
+    async loadTradingLimits (symbols = undefined, reload = false, params = {}) {
         if (reload || !('limitsLoaded' in this.options)) {
             let response = this.fetchTradingLimits (symbol);
             let limits = response['limits'];
