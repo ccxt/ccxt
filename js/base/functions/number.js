@@ -159,7 +159,7 @@ const decimalToPrecision = (x, roundingMode
 
             if (i >= (precisionStart + numPrecisionDigits)) {
                 c = (roundingMode === ROUND)
-                        ? ((c >= FIVE) ? (NINE + 1) : ZERO) // single-digit rounding
+                        ? ((c > FIVE) ? (NINE + 1) : ZERO) // single-digit rounding
                         : ZERO                              // "floor" to zero
             }
             if (c > NINE) { c = ZERO; memo = 1; }

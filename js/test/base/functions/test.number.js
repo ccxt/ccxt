@@ -68,7 +68,7 @@ it ('decimalToPrecision: rounding (to N digits after dot)', () => {
     equal (decimalToPrecision ('12.3456',     ROUND,   4, DECIMAL_PLACES),  '12.3456')
     equal (decimalToPrecision ('12.3456',     ROUND,   3, DECIMAL_PLACES),  '12.346')
     equal (decimalToPrecision ('12.3456',     ROUND,   2, DECIMAL_PLACES),  '12.35')
-    equal (decimalToPrecision ('12.3456',     ROUND,   1, DECIMAL_PLACES),  '12.4') // 12.35 → 12.4 (see the "rounding for equidistant digits" test)
+    equal (decimalToPrecision ('12.3456',     ROUND,   1, DECIMAL_PLACES),  '12.3')
     equal (decimalToPrecision ('12.3456',     ROUND,   0, DECIMAL_PLACES),  '12')
 //  equal (decimalToPrecision ('12.3456',     ROUND,  -1, DECIMAL_PLACES),  '10')  // not yet supported
 //  equal (decimalToPrecision ('123.456',     ROUND,  -1, DECIMAL_PLACES), '120')  // not yet supported
@@ -122,10 +122,13 @@ it ('decimalToPrecision: without dot / trailing dot', () => {
     equal (decimalToPrecision ('123.', TRUNCATE, 5, DECIMAL_PLACES, PAD_WITH_ZERO), '123.00000')
 })
 
-it ('decimalToPrecision: rounding for equidistant digits', () => {
+it ('decimalToPrecision: rounding for equidistant digits (WIP)', () => {
 
-    equal (decimalToPrecision ('12.54', ROUND, 1, DECIMAL_PLACES), '12.5')
-    equal (decimalToPrecision ('12.55', ROUND, 1, DECIMAL_PLACES), '12.6')
+    // WIP
+
+    // equal (decimalToPrecision ('1.44', ROUND, 1, DECIMAL_PLACES), '1.4')
+    // equal (decimalToPrecision ('1.45', ROUND, 1, DECIMAL_PLACES), '1.5')
+    // equal (decimalToPrecision ('1.45', ROUND, 0, DECIMAL_PLACES), '1')   // not 2!
 })
 
 /*  ------------------------------------------------------------------------ */
