@@ -45,9 +45,9 @@ it ('decimalToPrecision: truncation (to N significant digits)', () => {
     equal (decimalToPrecision ('0.0001234567',   TRUNCATE, 7,   SIGNIFICANT_DIGITS),  '0.0001234567')
 
     equal (decimalToPrecision ('0.000123456',    TRUNCATE, 6,  SIGNIFICANT_DIGITS),   '0.000123456')
-    equal (decimalToPrecision ('0.00012345',     TRUNCATE, 5,  SIGNIFICANT_DIGITS),   '0.00012345')
-    equal (decimalToPrecision ('0.00012',        TRUNCATE, 2,  SIGNIFICANT_DIGITS),   '0.00012')
-    equal (decimalToPrecision ('0.0001',         TRUNCATE, 1,  SIGNIFICANT_DIGITS),   '0.0001')
+    equal (decimalToPrecision ('0.000123456',    TRUNCATE, 5,  SIGNIFICANT_DIGITS),   '0.00012345')
+    equal (decimalToPrecision ('0.000123456',    TRUNCATE, 2,  SIGNIFICANT_DIGITS),   '0.00012')
+    equal (decimalToPrecision ('0.000123456',    TRUNCATE, 1,  SIGNIFICANT_DIGITS),   '0.0001')
 
     equal (decimalToPrecision ('123.0000987654',  TRUNCATE, 10,  SIGNIFICANT_DIGITS),                '123.0000987')
     equal (decimalToPrecision ('123.0000987654',  TRUNCATE,  8,  SIGNIFICANT_DIGITS),                '123.00009')
