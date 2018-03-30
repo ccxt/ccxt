@@ -80,13 +80,20 @@ const decimalToPrecision = (x, roundingMode
 
     if (numPrecisionDigits < 0) throw new Error ('negative precision is not yet supported')
 
-/*  Convert to a string (if needed), skip trailing dot (if any) and leading minus sign (if any)   */
+/*  Convert to a string (if needed), skip leading minus sign (if any)   */
 
     const str          = numberToString (x)
         , isNegative   = str[0] === '-'
-        , endsWithDot  = str[str.length - 1] === '.'
         , strStart     = isNegative ? 1 : 0
-        , strEnd       = str.length - (endsWithDot ? 1 : 0)
+        , strEnd       = str.length
+
+/*  Find the dot position in the source buffer   */
+
+    for (var strDot = 0; strDot < strEnd; strDot++)
+        if (str[strDot] === '.')
+            break
+
+    const hasDot = strDot < str.length
 
 /*  Char code constants         */
 
@@ -97,19 +104,16 @@ const decimalToPrecision = (x, roundingMode
         , FIVE  = (ZERO + 5)
         , NINE  = (ZERO + 9)
 
-/*  Significant digits positions    */
-
-    let digitsStart = -1
-      , digitsEnd   = -1
-
 /*  For -123.4567 the `chars` array will hold 01234567 (leading zero is reserved for rounding cases when 099 → 100)    */
 
-    const chars    = new Uint8Array (strEnd - strStart)
+    const chars    = new Uint8Array ((strEnd - strStart) + (hasDot ? 0 : 1))
           chars[0] = ZERO
 
-/*  Validate & copy digits, find the actual dot position              */
+/*  Validate & copy digits, determine certain locations in the resulting buffer  */
 
-    let afterDot = chars.length
+    let afterDot    = chars.length
+      , digitsStart = -1                // significant digits
+      , digitsEnd   = -1
 
     for (var i = 1, j = strStart; j < strEnd; j++, i++) {
 
