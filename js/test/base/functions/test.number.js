@@ -111,4 +111,15 @@ it ('decimalToPrecision: negative numbers', () => {
     equal (decimalToPrecision ('-0.123456', ROUND,    5, AFTER_DOT), '-0.12346')
 })
 
+it ('decimalToPrecision: without dot / trailing dot', () => {
+
+    equal (decimalToPrecision ('123', TRUNCATE, 0), '123')
+
+    equal (decimalToPrecision ('123', TRUNCATE, 5, AFTER_DOT),                '123')
+    equal (decimalToPrecision ('123', TRUNCATE, 5, AFTER_DOT, PAD_WITH_ZERO), '123.00000')
+
+    equal (decimalToPrecision ('123.', TRUNCATE, 0, AFTER_DOT),                '123')
+    equal (decimalToPrecision ('123.', TRUNCATE, 5, AFTER_DOT, PAD_WITH_ZERO), '123.00000')
+})
+
 /*  ------------------------------------------------------------------------ */
