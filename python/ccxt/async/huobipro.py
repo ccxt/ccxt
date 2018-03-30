@@ -165,26 +165,39 @@ class huobipro (Exchange):
             })
         return result
 
-    async def load_trading_limits_on_demand(self, symbol, reload=False, params={}):
-        if self.options['loadTradingLimitsOnDemand']:
-            return await self.load_trading_limits(symbol, reload, params)
-        return None
+    async def load_trading_limits(self, symbols=None, reload=False, params={}):
+        if reload or not('limitsLoaded' in list(self.options.keys())):
+            response = self.fetch_trading_limits(symbols)
+            limits = response['limits']
+            keys = list(limits.keys())
+            for i in range(0, len(keys)):
+                symbol = keys[i]
+                self.markets[symbol] = self.extend(self.markets[symbol], {
+                    'limits': limits[symbol],
+                })
+        return self.markets
 
-    async def load_trading_limits(self, symbol, reload=False, params={}):
-        if reload or not('loaded' in list(self.markets[symbol].keys())):
-            limits = self.fetch_trading_limits(symbol)
-            self.markets[symbol] = self.extend(self.markets[symbol], {
-                'limits': limits,
-                'loaded': True,
-            })
-        return self.markets[symbol]['limits']
-
-    async def fetch_trading_limits(self, symbol, params={}):
-        market = self.market(symbol)
-        response = await self.publicGetCommonExchange(self.extend({
-            'symbol': market['id'],
-        }))
-        return self.parseLimits(response)
+    async def fetch_trading_limits(self, symbols=None, params={}):
+        #  by default it will try load withdrawal fees of all currencies(with separate requests)
+        #  however if you define codes = ['ETH', 'BTC'] in args it will only load those
+        await self.load_markets()
+        info = {}
+        limits = {}
+        if symbols is None:
+            symbols = self.symbols
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            market = self.market(symbol)
+            response = await self.publicGetCommonExchange(self.extend({
+                'symbol': market['id'],
+            }))
+            limits = self.parse_trading_limits(response)
+            info[symbol] = response
+            limits[symbol] = limits
+        return {
+            'limits': limits,
+            'info': info,
+        }
 
     def parse_trading_limits(self, response, symbol=None, params={}):
         data = response['data']
