@@ -88,7 +88,13 @@ module.exports = class livecoin extends Exchange {
             },
             'exceptions': {
                 '1': ExchangeError,
-                '10/11/12/20/30/101/102': AuthenticationError,
+                '10': AuthenticationError,
+                '11': AuthenticationError,
+                '12': AuthenticationError,
+                '20': AuthenticationError,
+                '30': AuthenticationError,
+                '101': AuthenticationError,
+                '102': AuthenticationError,
                 '31': NotSupported,
                 '32': ExchangeError,
                 '100': ExchangeError, // invalid parameters
@@ -510,13 +516,13 @@ module.exports = class livecoin extends Exchange {
         if (typeof tag !== 'undefined')
             wallet += '::' + tag;
         let withdrawal = {
-            'amount': amount,
+            'amount': this.amountToPrecision (amount),
             'currency': this.commonCurrencyCode (currency),
             'wallet': wallet,
         };
         let response = await this.privatePostPaymentOutCoin (this.extend (withdrawal, params));
         let id = this.safeInteger (response, 'id');
-        if (id === undefined)
+        if (typeof id === 'undefined')
             throw new InsufficientFunds (this.id + ' consider withdrawal fees ' + this.json (response));
         return {
             'info': response,
@@ -569,30 +575,34 @@ module.exports = class livecoin extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body) {
-        if (code >= 300 && body[0] === '{') {
+        if (body[0] === '{') {
             let response = JSON.parse (body);
-            if ('errorCode' in response) {
-                let error = this.safeString (response, 'errorCode');
-                if (error !== undefined) {
-                    let excKeys = Object.keys (this.exceptions);
-                    for (let i = 0; i < excKeys.length; i++) {
-                        let excError = excKeys[i];
-                        if (excError === error || (excError.indexOf ('/') >= 0 && error in excError.split ('/'))) {
-                            throw new this.exceptions[excError] (this.id + ' ' + body);
+            if (code >= 300) {
+                if ('errorCode' in response) {
+                    let error = this.safeString (response, 'errorCode');
+                    if (typeof error !== 'undefined') {
+                        let excKeys = Object.keys (this.exceptions);
+                        for (let i = 0; i < excKeys.length; i++) {
+                            let excErrorCode = excKeys[i];
+                            if (error === excErrorCode) {
+                                throw new this.exceptions[excErrorCode] (this.id + ' ' + body);
+                            }
                         }
                     }
-                }
-                if (error === 2) {
-                    if ('errorMessage' in response) {
-                        if (response['errorMessage'] === 'User not found')
-                            throw new AuthenticationError (this.id + ' ' + response['errorMessage']);
+                    if (error === 2) {
+                        if ('errorMessage' in response) {
+                            if (response['errorMessage'] === 'User not found')
+                                throw new AuthenticationError (this.id + ' ' + response['errorMessage']);
+                        }
                     }
+                    throw new ExchangeError (this.id + ' ' + body);
                 }
+            }
+            // returns status code 200 even if success === false
+            let success = this.safeValue (response, 'success', true);
+            if (!success) {
                 throw new ExchangeError (this.id + ' ' + body);
             }
-            let success = this.safeValue (response, 'success', true);
-            if (!success)
-                throw new ExchangeError (this.id + ' ' + body);
         }
     }
 };
