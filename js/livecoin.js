@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, NotSupported, InvalidOrder, OrderNotFound, ExchangeNotAvailable, DDoSProtection } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, NotSupported, InvalidOrder, OrderNotFound, ExchangeNotAvailable, DDoSProtection, InsufficientFunds } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -85,6 +85,18 @@ module.exports = class livecoin extends Exchange {
             'commonCurrencies': {
                 'CRC': 'CryCash',
                 'XBT': 'Bricktox',
+            },
+            'exceptions': {
+                '1': ExchangeError,
+                '10/11/12/20/30/101/102': AuthenticationError,
+                '31': NotSupported,
+                '32': ExchangeError,
+                '100': ExchangeError, // invalid parameters
+                '103': InvalidOrder, // invalid currency
+                '104': InvalidOrder, // invalid amount
+                '105': InvalidOrder, // unable to block funds
+                '503': ExchangeNotAvailable,
+                '429': DDoSProtection,
             },
         });
     }
@@ -503,9 +515,12 @@ module.exports = class livecoin extends Exchange {
             'wallet': wallet,
         };
         let response = await this.privatePostPaymentOutCoin (this.extend (withdrawal, params));
+        let id = this.safeInteger (response, 'id');
+        if (id === undefined)
+            throw new InsufficientFunds (this.id + ' consider withdrawal fees ' + this.json (response));
         return {
             'info': response,
-            'id': this.safeInteger (response, 'id'),
+            'id': id,
         };
     }
 
@@ -554,55 +569,30 @@ module.exports = class livecoin extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body) {
-        if (code >= 300) {
-            if (body[0] === '{') {
-                let response = JSON.parse (body);
-                if ('errorCode' in response) {
-                    let error = response['errorCode'];
-                    // todo: rework for error-maps, like in liqui or okcoinusd
-                    if (error === 1) {
-                        throw new ExchangeError (this.id + ' ' + this.json (response));
-                    } else if (error === 2) {
-                        if ('errorMessage' in response) {
-                            if (response['errorMessage'] === 'User not found')
-                                throw new AuthenticationError (this.id + ' ' + response['errorMessage']);
-                        } else {
-                            throw new ExchangeError (this.id + ' ' + this.json (response));
+        if (code >= 300 && body[0] === '{') {
+            let response = JSON.parse (body);
+            if ('errorCode' in response) {
+                let error = this.safeString (response, 'errorCode');
+                if (error !== undefined) {
+                    let excKeys = Object.keys (this.exceptions);
+                    for (let i = 0; i < excKeys.length; i++) {
+                        let excError = excKeys[i];
+                        if (excError === error || (excError.indexOf ('/') >= 0 && error in excError.split ('/'))) {
+                            throw new this.exceptions[excError] (this.id + ' ' + body);
                         }
-                    } else if ((error === 10) || (error === 11) || (error === 12) || (error === 20) || (error === 30) || (error === 101) || (error === 102)) {
-                        throw new AuthenticationError (this.id + ' ' + this.json (response));
-                    } else if (error === 31) {
-                        throw new NotSupported (this.id + ' ' + this.json (response));
-                    } else if (error === 32) {
-                        throw new ExchangeError (this.id + ' ' + this.json (response));
-                    } else if (error === 100) {
-                        throw new ExchangeError (this.id + ': Invalid parameters ' + this.json (response));
-                    } else if (error === 103) {
-                        throw new InvalidOrder (this.id + ': Invalid currency ' + this.json (response));
-                    } else if (error === 104) {
-                        throw new InvalidOrder (this.id + ': Invalid amount ' + this.json (response));
-                    } else if (error === 105) {
-                        throw new InvalidOrder (this.id + ': Unable to block funds ' + this.json (response));
-                    } else if (error === 503) {
-                        throw new ExchangeNotAvailable (this.id + ': Exchange is not available ' + this.json (response));
-                    } else if (error === 429) {
-                        throw new DDoSProtection (this.id + ': Too many requests' + this.json (response));
-                    } else {
-                        throw new ExchangeError (this.id + ' ' + this.json (response));
                     }
                 }
+                if (error === 2) {
+                    if ('errorMessage' in response) {
+                        if (response['errorMessage'] === 'User not found')
+                            throw new AuthenticationError (this.id + ' ' + response['errorMessage']);
+                    }
+                }
+                throw new ExchangeError (this.id + ' ' + body);
             }
-            throw new ExchangeError (this.id + ' ' + body);
+            let success = this.safeValue (response, 'success', true);
+            if (!success)
+                throw new ExchangeError (this.id + ' ' + body);
         }
-    }
-
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('success' in response) {
-            if (!response['success']) {
-                throw new ExchangeError (this.id + ' error: ' + this.json (response));
-            }
-        }
-        return response;
     }
 };
