@@ -300,7 +300,6 @@ module.exports = class independentreserve extends Exchange {
             }
 
             let message = auth.concat(sortedParams).join(',');
-            console.log(message);
             let signature = this.hmac (this.encode (message), this.encode (this.secret));
             let query = this.extend ({
                 'apiKey': this.apiKey,
