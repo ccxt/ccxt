@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.12.30'
+__version__ = '1.12.54'
 
 # ----------------------------------------------------------------------------
 
@@ -31,7 +31,7 @@ from ccxt.base.exchange import Exchange                     # noqa: F401
 from ccxt.base.decimal_to_precision import decimal_to_precision  # noqa: F401
 from ccxt.base.decimal_to_precision import TRUNCATE              # noqa: F401
 from ccxt.base.decimal_to_precision import ROUND                 # noqa: F401
-from ccxt.base.decimal_to_precision import AFTER_DOT             # noqa: F401
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES        # noqa: F401
 from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS    # noqa: F401
 from ccxt.base.decimal_to_precision import NO_PADDING            # noqa: F401
 from ccxt.base.decimal_to_precision import PAD_WITH_ZERO         # noqa: F401
@@ -101,6 +101,7 @@ from ccxt.coinfloor import coinfloor                        # noqa: F401
 from ccxt.coingi import coingi                              # noqa: F401
 from ccxt.coinmarketcap import coinmarketcap                # noqa: F401
 from ccxt.coinmate import coinmate                          # noqa: F401
+from ccxt.coinnest import coinnest                          # noqa: F401
 from ccxt.coinone import coinone                            # noqa: F401
 from ccxt.coinsecure import coinsecure                      # noqa: F401
 from ccxt.coinspot import coinspot                          # noqa: F401
@@ -119,6 +120,7 @@ from ccxt.gateio import gateio                              # noqa: F401
 from ccxt.gdax import gdax                                  # noqa: F401
 from ccxt.gemini import gemini                              # noqa: F401
 from ccxt.getbtc import getbtc                              # noqa: F401
+from ccxt.hadax import hadax                                # noqa: F401
 from ccxt.hitbtc import hitbtc                              # noqa: F401
 from ccxt.hitbtc2 import hitbtc2                            # noqa: F401
 from ccxt.huobi import huobi                                # noqa: F401
@@ -133,6 +135,7 @@ from ccxt.kraken import kraken                              # noqa: F401
 from ccxt.kucoin import kucoin                              # noqa: F401
 from ccxt.kuna import kuna                                  # noqa: F401
 from ccxt.lakebtc import lakebtc                            # noqa: F401
+from ccxt.lbank import lbank                                # noqa: F401
 from ccxt.liqui import liqui                                # noqa: F401
 from ccxt.livecoin import livecoin                          # noqa: F401
 from ccxt.luno import luno                                  # noqa: F401
@@ -212,6 +215,7 @@ exchanges = [
     'coingi',
     'coinmarketcap',
     'coinmate',
+    'coinnest',
     'coinone',
     'coinsecure',
     'coinspot',
@@ -230,6 +234,7 @@ exchanges = [
     'gdax',
     'gemini',
     'getbtc',
+    'hadax',
     'hitbtc',
     'hitbtc2',
     'huobi',
@@ -244,6 +249,7 @@ exchanges = [
     'kucoin',
     'kuna',
     'lakebtc',
+    'lbank',
     'liqui',
     'livecoin',
     'luno',

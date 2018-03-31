@@ -245,6 +245,7 @@ class bitfinex extends Exchange {
                     'Invalid order' => '\\ccxt\\InvalidOrder', // ?
                 ),
             ),
+            'significantPrecision' => true,
         ));
     }
 
@@ -324,6 +325,35 @@ class bitfinex extends Exchange {
             );
         }
         return $result;
+    }
+
+    public function cost_to_precision ($symbol, $cost) {
+        return $this->decimalToPrecision (floatval ($cost), $this->ROUND, $this->markets[$symbol].precision.price, $this->SIGNIFICANT_DIGITS);
+    }
+
+    public function price_to_precision ($symbol, $price) {
+        return $this->decimalToPrecision (floatval ($price), $this->ROUND, $this->markets[$symbol].precision.price, $this->SIGNIFICANT_DIGITS);
+    }
+
+    public function amount_to_precision ($symbol, $amount) {
+        return $this->decimalToPrecision (floatval ($amount), $this->ROUND, $this->markets[$symbol].precision.amount, $this->SIGNIFICANT_DIGITS);
+    }
+
+    public function fee_to_precision ($currency, $fee) {
+        return $this->decimalToPrecision (floatval ($fee), $this->ROUND, $this->currencies[$currency]['precision'], $this->SIGNIFICANT_DIGITS);
+    }
+
+    public function calculate_fee ($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
+        $market = $this->markets[$symbol];
+        $rate = $market[$takerOrMaker];
+        $cost = $amount * $price;
+        $key = 'quote';
+        return array (
+            'type' => $takerOrMaker,
+            'currency' => $market[$key],
+            'rate' => $rate,
+            'cost' => floatval ($this->fee_to_precision($market[$key], $rate * $cost)),
+        );
     }
 
     public function fetch_balance ($params = array ()) {
@@ -435,7 +465,7 @@ class bitfinex extends Exchange {
         $cost = $price * $amount;
         $fee = null;
         if (is_array ($trade) && array_key_exists ('fee_amount', $trade)) {
-            $feeCost = $this->safe_float($trade, 'fee_amount');
+            $feeCost = -$this->safe_float($trade, 'fee_amount');
             $feeCurrency = $this->safe_string($trade, 'fee_currency');
             if (is_array ($this->currencies_by_id) && array_key_exists ($feeCurrency, $this->currencies_by_id))
                 $feeCurrency = $this->currencies_by_id[$feeCurrency]['code'];
@@ -612,7 +642,7 @@ class bitfinex extends Exchange {
         $request = array (
             'symbol' => $v2id,
             'timeframe' => $this->timeframes[$timeframe],
-            'sort' => '-1',
+            'sort' => 1,
             'limit' => $limit,
             'start' => $since,
         );

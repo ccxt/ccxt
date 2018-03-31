@@ -21,6 +21,7 @@ module.exports = class huobipro extends Exchange {
             'hostname': 'api.huobipro.com',
             'has': {
                 'CORS': false,
+                'fetchTradingLimits': true,
                 'fetchOHCLV': true,
                 'fetchOrders': true,
                 'fetchOrder': true,
@@ -62,6 +63,7 @@ module.exports = class huobipro extends Exchange {
                         'common/symbols', // 查询系统支持的所有交易对
                         'common/currencys', // 查询系统支持的所有币种
                         'common/timestamp', // 查询系统当前时间
+                        'common/exchange', // order limits
                     ],
                 },
                 'private': {
@@ -154,6 +156,58 @@ module.exports = class huobipro extends Exchange {
         return result;
     }
 
+    async loadTradingLimits (symbols = undefined, reload = false, params = {}) {
+        if (reload || !('limitsLoaded' in this.options)) {
+            let response = this.fetchTradingLimits (symbols);
+            let limits = response['limits'];
+            let keys = Object.keys (limits);
+            for (let i = 0; i < keys.length; i++) {
+                let symbol = keys[i];
+                this.markets[symbol] = this.extend (this.markets[symbol], {
+                    'limits': limits[symbol],
+                });
+            }
+        }
+        return this.markets;
+    }
+
+    async fetchTradingLimits (symbols = undefined, params = {}) {
+        //  by default it will try load withdrawal fees of all currencies (with separate requests)
+        //  however if you define codes = [ 'ETH', 'BTC' ] in args it will only load those
+        await this.loadMarkets ();
+        let info = {};
+        let limits = {};
+        if (typeof symbols === 'undefined')
+            symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            let symbol = symbols[i];
+            let market = this.market (symbol);
+            let response = await this.publicGetCommonExchange (this.extend ({
+                'symbol': market['id'],
+            }));
+            let limits = this.parseTradingLimits (response);
+            info[symbol] = response;
+            limits[symbol] = limits;
+        }
+        return {
+            'limits': limits,
+            'info': info,
+        };
+    }
+
+    parseTradingLimits (response, symbol = undefined, params = {}) {
+        let data = response['data'];
+        if (typeof data === 'undefined') {
+            return undefined;
+        }
+        return {
+            'amount': {
+                'min': data['limit-order-must-greater-than'],
+                'max': data['limit-order-must-less-than'],
+            },
+        };
+    }
+
     async fetchMarkets () {
         let response = await this.publicGetCommonSymbols ();
         return this.parseMarkets (response['data']);
@@ -233,7 +287,10 @@ module.exports = class huobipro extends Exchange {
             if (!response['tick']) {
                 throw new ExchangeError (this.id + ' fetchOrderBook() returned empty response: ' + this.json (response));
             }
-            return this.parseOrderBook (response['tick'], response['tick']['ts']);
+            let orderbook = response['tick'];
+            let timestamp = orderbook['ts'];
+            orderbook['nonce'] = orderbook['version'];
+            return this.parseOrderBook (orderbook, timestamp);
         }
         throw new ExchangeError (this.id + ' fetchOrderBook() returned unrecognized response: ' + this.json (response));
     }
@@ -355,7 +412,7 @@ module.exports = class huobipro extends Exchange {
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!symbol)
             throw new ExchangeError (this.id + ' fetchOrders() requires a symbol parameter');
-        this.loadMarkets ();
+        await this.loadMarkets ();
         let market = this.market (symbol);
         let status = undefined;
         if ('type' in params) {
@@ -496,10 +553,14 @@ module.exports = class huobipro extends Exchange {
         };
     }
 
+    feeToPrecision (currency, fee) {
+        return parseFloat (this.decimalToPrecision (fee, 0, this.currencies[currency]['precision']));
+    }
+
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         let market = this.markets[symbol];
         let rate = market[takerOrMaker];
-        let cost = parseFloat (this.costToPrecision (symbol, amount * rate));
+        let cost = amount * rate;
         let key = 'quote';
         if (side === 'sell') {
             cost *= price;
@@ -510,7 +571,7 @@ module.exports = class huobipro extends Exchange {
             'type': takerOrMaker,
             'currency': market[key],
             'rate': rate,
-            'cost': parseFloat (this.feeToPrecision (symbol, cost)),
+            'cost': parseFloat (this.feeToPrecision (market[key], cost)),
         };
     }
 

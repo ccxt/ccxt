@@ -258,6 +258,7 @@ class bitfinex (Exchange):
                     'Invalid order': InvalidOrder,  # ?
                 },
             },
+            'significantPrecision': True,
         })
 
     async def fetch_funding_fees(self, params={}):
@@ -331,6 +332,30 @@ class bitfinex (Exchange):
                 'info': market,
             })
         return result
+
+    def cost_to_precision(self, symbol, cost):
+        return self.decimalToPrecision(float(cost), self.ROUND, self.markets[symbol].precision.price, self.SIGNIFICANT_DIGITS)
+
+    def price_to_precision(self, symbol, price):
+        return self.decimalToPrecision(float(price), self.ROUND, self.markets[symbol].precision.price, self.SIGNIFICANT_DIGITS)
+
+    def amount_to_precision(self, symbol, amount):
+        return self.decimalToPrecision(float(amount), self.ROUND, self.markets[symbol].precision.amount, self.SIGNIFICANT_DIGITS)
+
+    def fee_to_precision(self, currency, fee):
+        return self.decimalToPrecision(float(fee), self.ROUND, self.currencies[currency]['precision'], self.SIGNIFICANT_DIGITS)
+
+    def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
+        market = self.markets[symbol]
+        rate = market[takerOrMaker]
+        cost = amount * price
+        key = 'quote'
+        return {
+            'type': takerOrMaker,
+            'currency': market[key],
+            'rate': rate,
+            'cost': float(self.fee_to_precision(market[key], rate * cost)),
+        }
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
@@ -430,7 +455,7 @@ class bitfinex (Exchange):
         cost = price * amount
         fee = None
         if 'fee_amount' in trade:
-            feeCost = self.safe_float(trade, 'fee_amount')
+            feeCost = -self.safe_float(trade, 'fee_amount')
             feeCurrency = self.safe_string(trade, 'fee_currency')
             if feeCurrency in self.currencies_by_id:
                 feeCurrency = self.currencies_by_id[feeCurrency]['code']
@@ -591,7 +616,7 @@ class bitfinex (Exchange):
         request = {
             'symbol': v2id,
             'timeframe': self.timeframes[timeframe],
-            'sort': '-1',
+            'sort': 1,
             'limit': limit,
             'start': since,
         }

@@ -4,11 +4,19 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.12.30'
+__version__ = '1.12.54'
 
 # -----------------------------------------------------------------------------
 
 from ccxt.async.base.exchange import Exchange                   # noqa: F401
+
+from ccxt.base.decimal_to_precision import decimal_to_precision  # noqa: F401
+from ccxt.base.decimal_to_precision import TRUNCATE              # noqa: F401
+from ccxt.base.decimal_to_precision import ROUND                 # noqa: F401
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES        # noqa: F401
+from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS    # noqa: F401
+from ccxt.base.decimal_to_precision import NO_PADDING            # noqa: F401
+from ccxt.base.decimal_to_precision import PAD_WITH_ZERO         # noqa: F401
 
 from ccxt.base import errors                                    # noqa: F401
 from ccxt.base.errors import BaseError                          # noqa: F401
@@ -75,6 +83,7 @@ from ccxt.async.coinfloor import coinfloor                      # noqa: F401
 from ccxt.async.coingi import coingi                            # noqa: F401
 from ccxt.async.coinmarketcap import coinmarketcap              # noqa: F401
 from ccxt.async.coinmate import coinmate                        # noqa: F401
+from ccxt.async.coinnest import coinnest                        # noqa: F401
 from ccxt.async.coinone import coinone                          # noqa: F401
 from ccxt.async.coinsecure import coinsecure                    # noqa: F401
 from ccxt.async.coinspot import coinspot                        # noqa: F401
@@ -93,6 +102,7 @@ from ccxt.async.gateio import gateio                            # noqa: F401
 from ccxt.async.gdax import gdax                                # noqa: F401
 from ccxt.async.gemini import gemini                            # noqa: F401
 from ccxt.async.getbtc import getbtc                            # noqa: F401
+from ccxt.async.hadax import hadax                              # noqa: F401
 from ccxt.async.hitbtc import hitbtc                            # noqa: F401
 from ccxt.async.hitbtc2 import hitbtc2                          # noqa: F401
 from ccxt.async.huobi import huobi                              # noqa: F401
@@ -107,6 +117,7 @@ from ccxt.async.kraken import kraken                            # noqa: F401
 from ccxt.async.kucoin import kucoin                            # noqa: F401
 from ccxt.async.kuna import kuna                                # noqa: F401
 from ccxt.async.lakebtc import lakebtc                          # noqa: F401
+from ccxt.async.lbank import lbank                              # noqa: F401
 from ccxt.async.liqui import liqui                              # noqa: F401
 from ccxt.async.livecoin import livecoin                        # noqa: F401
 from ccxt.async.luno import luno                                # noqa: F401
@@ -186,6 +197,7 @@ exchanges = [
     'coingi',
     'coinmarketcap',
     'coinmate',
+    'coinnest',
     'coinone',
     'coinsecure',
     'coinspot',
@@ -204,6 +216,7 @@ exchanges = [
     'gdax',
     'gemini',
     'getbtc',
+    'hadax',
     'hitbtc',
     'hitbtc2',
     'huobi',
@@ -218,6 +231,7 @@ exchanges = [
     'kucoin',
     'kuna',
     'lakebtc',
+    'lbank',
     'liqui',
     'livecoin',
     'luno',
@@ -253,6 +267,7 @@ exchanges = [
 base = [
     'Exchange',
     'exchanges',
+    'decimal_to_precision',
 ]
 
 __all__ = base + errors.__all__ + exchanges

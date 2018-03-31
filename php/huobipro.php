@@ -20,6 +20,7 @@ class huobipro extends Exchange {
             'hostname' => 'api.huobipro.com',
             'has' => array (
                 'CORS' => false,
+                'fetchTradingLimits' => true,
                 'fetchOHCLV' => true,
                 'fetchOrders' => true,
                 'fetchOrder' => true,
@@ -61,6 +62,7 @@ class huobipro extends Exchange {
                         'common/symbols', // 查询系统支持的所有交易对
                         'common/currencys', // 查询系统支持的所有币种
                         'common/timestamp', // 查询系统当前时间
+                        'common/exchange', // order limits
                     ),
                 ),
                 'private' => array (
@@ -102,12 +104,10 @@ class huobipro extends Exchange {
         ));
     }
 
-    public function fetch_markets () {
-        $response = $this->publicGetCommonSymbols ();
-        $markets = $response['data'];
+    public function parse_markets ($markets) {
         $numMarkets = is_array ($markets) ? count ($markets) : 0;
         if ($numMarkets < 1)
-            throw new ExchangeError ($this->id . ' publicGetCommonSymbols returned empty $response => ' . $this->json ($response));
+            throw new ExchangeError ($this->id . ' publicGetCommonSymbols returned empty response => ' . $this->json ($markets));
         $result = array ();
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
@@ -153,6 +153,63 @@ class huobipro extends Exchange {
             );
         }
         return $result;
+    }
+
+    public function load_trading_limits ($symbols = null, $reload = false, $params = array ()) {
+        if ($reload || !(is_array ($this->options) && array_key_exists ('limitsLoaded', $this->options))) {
+            $response = $this->fetch_trading_limits ($symbols);
+            $limits = $response['limits'];
+            $keys = is_array ($limits) ? array_keys ($limits) : array ();
+            for ($i = 0; $i < count ($keys); $i++) {
+                $symbol = $keys[$i];
+                $this->markets[$symbol] = array_merge ($this->markets[$symbol], array (
+                    'limits' => $limits[$symbol],
+                ));
+            }
+        }
+        return $this->markets;
+    }
+
+    public function fetch_trading_limits ($symbols = null, $params = array ()) {
+        //  by default it will try load withdrawal fees of all currencies (with separate requests)
+        //  however if you define codes = array ( 'ETH', 'BTC' ) in args it will only load those
+        $this->load_markets();
+        $info = array ();
+        $limits = array ();
+        if ($symbols === null)
+            $symbols = $this->symbols;
+        for ($i = 0; $i < count ($symbols); $i++) {
+            $symbol = $symbols[$i];
+            $market = $this->market ($symbol);
+            $response = $this->publicGetCommonExchange (array_merge (array (
+                'symbol' => $market['id'],
+            )));
+            $limits = $this->parse_trading_limits ($response);
+            $info[$symbol] = $response;
+            $limits[$symbol] = $limits;
+        }
+        return array (
+            'limits' => $limits,
+            'info' => $info,
+        );
+    }
+
+    public function parse_trading_limits ($response, $symbol = null, $params = array ()) {
+        $data = $response['data'];
+        if ($data === null) {
+            return null;
+        }
+        return array (
+            'amount' => array (
+                'min' => $data['limit-order-must-greater-than'],
+                'max' => $data['limit-order-must-less-than'],
+            ),
+        );
+    }
+
+    public function fetch_markets () {
+        $response = $this->publicGetCommonSymbols ();
+        return $this->parse_markets ($response['data']);
     }
 
     public function parse_ticker ($ticker, $market = null) {
@@ -229,7 +286,10 @@ class huobipro extends Exchange {
             if (!$response['tick']) {
                 throw new ExchangeError ($this->id . ' fetchOrderBook() returned empty $response => ' . $this->json ($response));
             }
-            return $this->parse_order_book($response['tick'], $response['tick']['ts']);
+            $orderbook = $response['tick'];
+            $timestamp = $orderbook['ts'];
+            $orderbook['nonce'] = $orderbook['version'];
+            return $this->parse_order_book($orderbook, $timestamp);
         }
         throw new ExchangeError ($this->id . ' fetchOrderBook() returned unrecognized $response => ' . $this->json ($response));
     }
@@ -492,10 +552,14 @@ class huobipro extends Exchange {
         );
     }
 
+    public function fee_to_precision ($currency, $fee) {
+        return floatval ($this->decimalToPrecision ($fee, 0, $this->currencies[$currency]['precision']));
+    }
+
     public function calculate_fee ($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
         $market = $this->markets[$symbol];
         $rate = $market[$takerOrMaker];
-        $cost = floatval ($this->cost_to_precision($symbol, $amount * $rate));
+        $cost = $amount * $rate;
         $key = 'quote';
         if ($side === 'sell') {
             $cost *= $price;
@@ -506,7 +570,7 @@ class huobipro extends Exchange {
             'type' => $takerOrMaker,
             'currency' => $market[$key],
             'rate' => $rate,
-            'cost' => floatval ($this->fee_to_precision($symbol, $cost)),
+            'cost' => floatval ($this->fee_to_precision($market[$key], $cost)),
         );
     }
 

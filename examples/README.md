@@ -67,6 +67,8 @@ php -f path/to/example.php # substitute for actual filename here
 
 [Python3とCCXTライブラリを用いたBitMEX自動売買bot作成Tips](https://note.mu/akagami/n/n0af0a96c261f) – An article in Japanese on getting started with CCXT and a few bot tips.
 
+[Python3とCCXTを使用して仮想通貨の自動売買プログラムを作る](http://www.hacky.xyz/entry/2018/03/18/200822) – Automatic cryptocurrency trading using Python 3 and CCXT
+
 [ccxtを使って裁定取引botを作ってみたらなぜか虚しくなった件](https://qiita.com/reon777/items/21ed87f19cdd50f08bd9) – An article in Japanese explaining the basics of programming an arbitrage bot with CCXT.
 
 [Лучшая криптотрейдинг библиотека?](http://medium.com/@vladthelittleone/лучшая-криптотрейдинг-библиотека-67e308f96c1f) – An article in Russian on setting up CCXT to connect and trade with crypto exchanges.

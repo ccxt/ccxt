@@ -338,6 +338,7 @@ declare module 'ccxt' {
     export class coingi extends Exchange {}
     export class coinmarketcap extends Exchange {}
     export class coinmate extends Exchange {}
+    export class coinnest extends Exchange {}
     export class coinone extends Exchange {}
     export class coinsecure extends Exchange {}
     export class coinspot extends Exchange {}
@@ -356,6 +357,7 @@ declare module 'ccxt' {
     export class gdax extends Exchange {}
     export class gemini extends Exchange {}
     export class getbtc extends _1btcxe {}
+    export class hadax extends huobipro {}
     export class hitbtc extends Exchange {}
     export class hitbtc2 extends hitbtc {}
     export class huobi extends Exchange {}
@@ -370,6 +372,7 @@ declare module 'ccxt' {
     export class kucoin extends Exchange {}
     export class kuna extends acx {}
     export class lakebtc extends Exchange {}
+    export class lbank extends Exchange {}
     export class liqui extends Exchange {}
     export class livecoin extends Exchange {}
     export class luno extends Exchange {}
