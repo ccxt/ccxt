@@ -515,8 +515,8 @@ module.exports = class livecoin extends Exchange {
         let wallet = address;
         if (typeof tag !== 'undefined')
             wallet += '::' + tag;
-        let withdrawal = {
-            'amount': this.amountToPrecision (amount),
+        let withdrawal = {    // throws error when amount is too precise
+            'amount': amount, // needs to be this.decimalToPrecision (prec = this.currencies[currency]['precision']
             'currency': this.commonCurrencyCode (currency),
             'wallet': wallet,
         };
