@@ -758,7 +758,9 @@ class kucoin extends Exchange {
             $order = $this->safe_string($trade, 'orderOid');
             if ($order === null)
                 $order = $this->safe_string($trade, 'oid');
-            $side = $this->safe_string($trade, 'dealDirection');
+            $side = $this->safe_string($trade, 'direction');
+            // https://github.com/ccxt/ccxt/issues/2409
+            // $side = $this->safe_string($trade, 'dealDirection');
             if ($side !== null)
                 $side = strtolower ($side);
             $price = $this->safe_float($trade, 'dealPrice');

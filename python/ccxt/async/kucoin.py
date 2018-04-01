@@ -725,7 +725,9 @@ class kucoin (Exchange):
             order = self.safe_string(trade, 'orderOid')
             if order is None:
                 order = self.safe_string(trade, 'oid')
-            side = self.safe_string(trade, 'dealDirection')
+            side = self.safe_string(trade, 'direction')
+            # https://github.com/ccxt/ccxt/issues/2409
+            # side = self.safe_string(trade, 'dealDirection')
             if side is not None:
                 side = side.lower()
             price = self.safe_float(trade, 'dealPrice')
