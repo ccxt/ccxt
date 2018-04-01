@@ -308,7 +308,7 @@ class Exchange(object):
                 return gzip.GzipFile('', 'rb', 9, io.BytesIO(text)).read()
         return text
 
-    def handle_errors(self, code, reason, url, method, headers, body, response=None):
+    def handle_errors(self, code, reason, url, method, headers, body, response):
         pass
 
     def prepare_request_headers(self, headers=None):
