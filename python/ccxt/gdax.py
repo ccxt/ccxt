@@ -338,7 +338,7 @@ class gdax (Exchange):
             request['start'] = self.ymdhms(since)
             if limit is None:
                 # https://docs.gdax.com/#get-historic-rates
-                limit = 350  # max = 350
+                limit = 300  # max = 300
             request['end'] = self.ymdhms(self.sum(limit * granularity * 1000, since))
         response = self.publicGetProductsIdCandles(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)

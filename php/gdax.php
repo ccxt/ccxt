@@ -346,7 +346,7 @@ class gdax extends Exchange {
             $request['start'] = $this->ymdhms ($since);
             if ($limit === null) {
                 // https://docs.gdax.com/#get-historic-rates
-                $limit = 350; // max = 350
+                $limit = 300; // max = 300
             }
             $request['end'] = $this->ymdhms ($this->sum ($limit * $granularity * 1000, $since));
         }
