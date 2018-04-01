@@ -162,9 +162,6 @@ class okcoinusd (Exchange):
             'ETC/USD': True,
             'ETH/USD': True,
             'LTC/USD': True,
-            'XRP/USD': True,
-            'EOS/USD': True,
-            'BTG/USD': True,
         }
         for i in range(0, len(markets)):
             id = markets[i]['symbol']
