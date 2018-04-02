@@ -267,6 +267,7 @@ module.exports = class binance extends Exchange {
                 '-1100': InvalidOrder, // createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
                 '-2010': InsufficientFunds, // createOrder -> 'Account has insufficient balance for requested action.'
                 '-2011': OrderNotFound, // cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
+                '-2013': OrderNotFound,
                 '-2015': AuthenticationError, // "Invalid API-key, IP, or permissions for action."
             },
         });
