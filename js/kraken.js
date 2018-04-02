@@ -199,7 +199,7 @@ module.exports = class kraken extends Exchange {
         return this.truncate (parseFloat (fee), this.markets[symbol]['precision']['amount']);
     }
 
-    handleErrors (code, reason, url, method, headers, body, response = undefined) {
+    handleErrors (code, reason, url, method, headers, body, response) {
         if (body.indexOf ('Invalid order') >= 0)
             throw new InvalidOrder (this.id + ' ' + body);
         if (body.indexOf ('Invalid nonce') >= 0)
