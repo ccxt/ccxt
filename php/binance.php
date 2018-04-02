@@ -810,6 +810,19 @@ class binance extends Exchange {
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
         if (($code === 418) || ($code === 429))
             throw new DDoSProtection ($this->id . ' ' . (string) $code . ' ' . $reason . ' ' . $body);
+        // $error $response in a form => array ( "$code" => -1013, "msg" => "Invalid quantity." )
+        // following block cointains legacy checks against message patterns in "msg" property
+        // will switch "$code" checks eventually, when we know all of them
+        if ($code >= 400) {
+            if (mb_strpos ($body, 'Price * QTY is zero or less') !== false)
+                throw new InvalidOrder ($this->id . ' order cost = amount * price is zero or less ' . $body);
+            if (mb_strpos ($body, 'LOT_SIZE') !== false)
+                throw new InvalidOrder ($this->id . ' order amount should be evenly divisible by lot size, use $this->amount_to_lots(symbol, amount) ' . $body);
+            if (mb_strpos ($body, 'PRICE_FILTER') !== false)
+                throw new InvalidOrder ($this->id . ' order price exceeds allowed price precision or invalid, use $this->price_to_precision(symbol, amount) ' . $body);
+            if (mb_strpos ($body, 'Order does not exist') !== false)
+                throw new OrderNotFound ($this->id . ' ' . $body);
+        }
         if (strlen ($body) > 0) {
             if ($body[0] === '{') {
                 $response = json_decode ($body, $as_associative_array = true);
@@ -830,19 +843,6 @@ class binance extends Exchange {
                     throw new ExchangeError ($this->id . ' => $success value false => ' . $body);
                 }
             }
-        }
-        // $error $response in a form => array ( "$code" => -1013, "msg" => "Invalid quantity." )
-        // following block cointains legacy checks against message patterns in "msg" property
-        // will switch "$code" checks eventually, when we know all of them
-        if ($code >= 400) {
-            if (mb_strpos ($body, 'Price * QTY is zero or less') !== false)
-                throw new InvalidOrder ($this->id . ' order cost = amount * price is zero or less ' . $body);
-            if (mb_strpos ($body, 'LOT_SIZE') !== false)
-                throw new InvalidOrder ($this->id . ' order amount should be evenly divisible by lot size, use $this->amount_to_lots(symbol, amount) ' . $body);
-            if (mb_strpos ($body, 'PRICE_FILTER') !== false)
-                throw new InvalidOrder ($this->id . ' order price exceeds allowed price precision or invalid, use $this->price_to_precision(symbol, amount) ' . $body);
-            if (mb_strpos ($body, 'Order does not exist') !== false)
-                throw new OrderNotFound ($this->id . ' ' . $body);
         }
     }
 }

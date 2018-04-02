@@ -774,6 +774,18 @@ class binance (Exchange):
     def handle_errors(self, code, reason, url, method, headers, body):
         if (code == 418) or (code == 429):
             raise DDoSProtection(self.id + ' ' + str(code) + ' ' + reason + ' ' + body)
+        # error response in a form: {"code": -1013, "msg": "Invalid quantity."}
+        # following block cointains legacy checks against message patterns in "msg" property
+        # will switch "code" checks eventually, when we know all of them
+        if code >= 400:
+            if body.find('Price * QTY is zero or less') >= 0:
+                raise InvalidOrder(self.id + ' order cost = amount * price is zero or less ' + body)
+            if body.find('LOT_SIZE') >= 0:
+                raise InvalidOrder(self.id + ' order amount should be evenly divisible by lot size, use self.amount_to_lots(symbol, amount) ' + body)
+            if body.find('PRICE_FILTER') >= 0:
+                raise InvalidOrder(self.id + ' order price exceeds allowed price precision or invalid, use self.price_to_precision(symbol, amount) ' + body)
+            if body.find('Order does not exist') >= 0:
+                raise OrderNotFound(self.id + ' ' + body)
         if len(body) > 0:
             if body[0] == '{':
                 response = json.loads(body)
@@ -790,15 +802,3 @@ class binance (Exchange):
                 success = self.safe_value(response, 'success', True)
                 if not success:
                     raise ExchangeError(self.id + ': success value False: ' + body)
-        # error response in a form: {"code": -1013, "msg": "Invalid quantity."}
-        # following block cointains legacy checks against message patterns in "msg" property
-        # will switch "code" checks eventually, when we know all of them
-        if code >= 400:
-            if body.find('Price * QTY is zero or less') >= 0:
-                raise InvalidOrder(self.id + ' order cost = amount * price is zero or less ' + body)
-            if body.find('LOT_SIZE') >= 0:
-                raise InvalidOrder(self.id + ' order amount should be evenly divisible by lot size, use self.amount_to_lots(symbol, amount) ' + body)
-            if body.find('PRICE_FILTER') >= 0:
-                raise InvalidOrder(self.id + ' order price exceeds allowed price precision or invalid, use self.price_to_precision(symbol, amount) ' + body)
-            if body.find('Order does not exist') >= 0:
-                raise OrderNotFound(self.id + ' ' + body)
