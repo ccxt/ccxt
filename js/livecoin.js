@@ -373,8 +373,8 @@ module.exports = class livecoin extends Exchange {
             timestamp = this.parse8601 (order['lastModificationTime']);
         let trades = undefined;
         if ('trades' in order)
-            // TODO currently not supported by livecoin
-            // trades = this.parseTrades (order['trades'], market, since, limit);
+        // TODO currently not supported by livecoin
+        // trades = this.parseTrades (order['trades'], market, since, limit);
             trades = undefined;
         let status = undefined;
         if (order['orderStatus'] === 'OPEN' || order['orderStatus'] === 'PARTIALLY_FILLED') {
