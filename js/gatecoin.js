@@ -17,12 +17,13 @@ module.exports = class gatecoin extends Exchange {
             'comment': 'a regulated/licensed exchange',
             'has': {
                 'CORS': false,
+                'createDepositAddress': true,
+                'fetchDepositAddress': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchTickers': true,
                 'withdraw': true,
-                'fetchDepositAddress': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -584,11 +585,32 @@ module.exports = class gatecoin extends Exchange {
         let request = {
             'DigiCurrency': currency['id'],
         };
-        let response = await this.privateGetElectronicWalletDepositWalletsDigiCurrency (this.extend (request, params)); // overwrite methods
+        let response = await this.privateGetElectronicWalletDepositWalletsDigiCurrency (this.extend (request, params));
         let result = response['addresses'];
         let numResults = result.length;
         if (numResults < 1)
             throw new InvalidAddress (this.id + ' privateGetElectronicWalletDepositWalletsDigiCurrency() returned no addresses');
+        let address = this.safeString (result[0], 'address');
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'status': 'ok',
+            'info': response,
+        };
+    }
+
+    async createDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let request = {
+            'DigiCurrency': currency['id'],
+        };
+        let response = await this.privatePostElectronicWalletDepositWalletsDigiCurrency (this.extend (request, params));
+        let result = response['addresses'];
+        let numResults = result.length;
+        if (numResults < 1)
+            throw new InvalidAddress (this.id + ' privatePostElectronicWalletDepositWalletsDigiCurrency() returned no addresses');
         let address = this.safeString (result[0], 'address');
         this.checkAddress (address);
         return {
