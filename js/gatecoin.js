@@ -570,7 +570,6 @@ module.exports = class gatecoin extends Exchange {
             'DigiCurrency': currency['id'],
             'Address': address,
             'Amount': amount,
-            'ValidationCode': this.safeString (params, 'ValidationCode'),
         };
         let response = await this.privatePostElectronicWalletWithdrawalsDigiCurrency (this.extend (request, params));
         return {
