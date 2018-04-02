@@ -405,7 +405,7 @@ class Exchange(object):
             last_response = response.text
 
         self.last_json_response = json_response  # remove once we have switched to handleErrors completely
-        self.handle_errors(response.status_code, response.reason, url, method, response.headers, response.text, response=json_response)
+        self.handle_errors(response.status_code, response.reason, url, method, response.headers, response.text, json_response)
         self.default_error_handler(None, response.status_code, response.text, url, method)
 
         return last_response
