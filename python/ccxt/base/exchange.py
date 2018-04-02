@@ -357,20 +357,20 @@ class Exchange(object):
             response.raise_for_status()
 
         except Timeout as e:
-            self.raise_error(RequestTimeout, method, url, e)
+            self.raise_error(RequestTimeout, method, url, e, None)
 
         except TooManyRedirects as e:
-            self.raise_error(ExchangeError, url, method, e)
+            self.raise_error(ExchangeError, url, method, e, None)
 
         except SSLError as e:
-            self.raise_error(ExchangeError, url, method, e)
+            self.raise_error(ExchangeError, url, method, e, None)
 
         except HTTPError as e:
             self.handle_rest_response(response, url, method, headers, body)
-            self.raise_error(ExchangeError, url, method, e, response.text)
+            self.raise_error(ExchangeError, url, method, e, None)
 
         except RequestException as e:  # base exception class
-            self.raise_error(ExchangeError, url, method, e, response.text)
+            self.raise_error(ExchangeError, url, method, e, None)
 
         return self.handle_rest_response(response, url, method, headers, body)
 
