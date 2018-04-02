@@ -266,7 +266,7 @@ class binance extends Exchange {
                 '-1100' => '\\ccxt\\InvalidOrder', // createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
                 '-2010' => '\\ccxt\\InsufficientFunds', // createOrder -> 'Account has insufficient balance for requested action.'
                 '-2011' => '\\ccxt\\OrderNotFound', // cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
-                '-2013' => '\\ccxt\\OrderNotFound',
+                '-2013' => '\\ccxt\\OrderNotFound', // fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'
                 '-2015' => '\\ccxt\\AuthenticationError', // "Invalid API-key, IP, or permissions for action."
             ),
         ));
@@ -820,8 +820,6 @@ class binance extends Exchange {
                 throw new InvalidOrder ($this->id . ' order amount should be evenly divisible by lot size, use $this->amount_to_lots(symbol, amount) ' . $body);
             if (mb_strpos ($body, 'PRICE_FILTER') !== false)
                 throw new InvalidOrder ($this->id . ' order price exceeds allowed price precision or invalid, use $this->price_to_precision(symbol, amount) ' . $body);
-            if (mb_strpos ($body, 'Order does not exist') !== false)
-                throw new OrderNotFound ($this->id . ' ' . $body);
         }
         if (strlen ($body) > 0) {
             if ($body[0] === '{') {

@@ -276,7 +276,7 @@ class binance (Exchange):
                 '-1100': InvalidOrder,  # createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
                 '-2010': InsufficientFunds,  # createOrder -> 'Account has insufficient balance for requested action.'
                 '-2011': OrderNotFound,  # cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
-                '-2013': OrderNotFound,
+                '-2013': OrderNotFound,  # fetchOrder(1, 'BTC/USDT') -> 'Order does not exist'
                 '-2015': AuthenticationError,  # "Invalid API-key, IP, or permissions for action."
             },
         })
@@ -784,8 +784,6 @@ class binance (Exchange):
                 raise InvalidOrder(self.id + ' order amount should be evenly divisible by lot size, use self.amount_to_lots(symbol, amount) ' + body)
             if body.find('PRICE_FILTER') >= 0:
                 raise InvalidOrder(self.id + ' order price exceeds allowed price precision or invalid, use self.price_to_precision(symbol, amount) ' + body)
-            if body.find('Order does not exist') >= 0:
-                raise OrderNotFound(self.id + ' ' + body)
         if len(body) > 0:
             if body[0] == '{':
                 response = json.loads(body)
