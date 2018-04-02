@@ -335,34 +335,43 @@ module.exports = class gatecoin extends Exchange {
 
     parseTrade (trade, market = undefined) {
         let side = undefined;
-        let order = undefined;
+        let orderId = undefined;
         if ('way' in trade) {
             side = (trade['way'] === 'bid') ? 'buy' : 'sell';
-            let orderId = trade['way'] + 'OrderId';
-            order = trade[orderId];
+            let orderIdField = trade['way'] + 'OrderId';
+            orderId = this.safeStrinfg (trade, orderIdField);
         }
         let timestamp = parseInt (trade['transactionTime']) * 1000;
-        if (!market)
-            market = this.markets_by_id[trade['currencyPair']];
+        if (typeof market === 'undefined') {
+            let marketId = this.safeString (trade, 'currencyPair');
+            if (typeof marketId !== 'undefined')
+                market = this.findMarket (marketId);
+        }
         let fee = undefined;
         let feeCost = this.safeFloat (trade, 'feeAmount');
         let price = trade['price'];
         let amount = trade['quantity'];
-        let cost = this.sum (price * amount);
+        let cost = price * amount;
+        let feeCurrency = undefined;
+        let symbol = undefined;
+        if (typeof market !== 'undefined') {
+            symbol = market['symbol'];
+            feeCurrency = market['quote'];
+        }
         if (typeof feeCost !== 'undefined') {
             fee = {
                 'cost': feeCost,
-                'currency': market['quote'],
-                'rate': trade['feeRate'],
+                'currency': feeCurrency,
+                'rate': this.safeFloat (trade, 'feeRate'),
             };
         }
         return {
             'info': trade,
-            'id': trade['transactionId'].toString (),
-            'order': order,
+            'id': this.safeString (trade, 'transactionId'),
+            'order': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': undefined,
             'side': side,
             'price': price,
@@ -564,11 +573,9 @@ module.exports = class gatecoin extends Exchange {
             'ValidationCode': this.safeString (params, 'ValidationCode'),
         };
         let response = await this.privatePostElectronicWalletWithdrawalsDigiCurrency (this.extend (request, params));
-        if (!response)
-            throw new ExchangeError (this.id + ' withdraw() error: ' + this.json (response));
         return {
             'info': response,
-            'id': response['id'],
+            'id': this.safeString (response, 'id'),
         };
     }
 
