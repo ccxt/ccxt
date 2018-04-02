@@ -533,13 +533,12 @@ module.exports = class bitmex extends Exchange {
         };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response = undefined) {
+    handleErrors (code, reason, url, method, headers, body, response) {
         if (code === 429)
             throw new DDoSProtection (this.id + ' ' + body);
         if (code >= 400) {
             if (body) {
                 if (body[0] === '{') {
-                    let response = JSON.parse (body);
                     if ('error' in response) {
                         if ('message' in response['error']) {
                             let message = this.safeValue (response['error'], 'message');

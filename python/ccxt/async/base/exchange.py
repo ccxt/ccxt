@@ -115,7 +115,6 @@ class Exchange(BaseExchange):
 
         encoded_body = body.encode() if body else None
         session_method = getattr(self.session, method.lower())
-        http_status_code = None
 
         standard_response = requests.models.Response()
 

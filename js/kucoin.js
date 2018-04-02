@@ -759,9 +759,7 @@ module.exports = class kucoin extends Exchange {
             order = this.safeString (trade, 'orderOid');
             if (typeof order === 'undefined')
                 order = this.safeString (trade, 'oid');
-            side = this.safeString (trade, 'direction');
-            // https://github.com/ccxt/ccxt/issues/2409
-            // side = this.safeString (trade, 'dealDirection');
+            side = this.safeString (trade, 'dealDirection');
             if (typeof side !== 'undefined')
                 side = side.toLowerCase ();
             price = this.safeFloat (trade, 'dealPrice');
@@ -963,13 +961,13 @@ module.exports = class kucoin extends Exchange {
         throw new ExchangeError (this.id + ': unknown response: ' + this.json (response));
     }
 
-    handleErrors (code, reason, url, method, headers, body, response = undefined) {
+    handleErrors (code, reason, url, method, headers, body, response) {
         if (typeof response !== 'undefined') {
             // JS callchain parses body beforehand
             this.throwExceptionOnError (response);
         } else if (body && (body[0] === '{')) {
             // Python/PHP callchains don't have json available at this step
-            this.throwExceptionOnError (JSON.parse (body));
+            this.throwExceptionOnError (response);  // now they do (:
         }
     }
 };

@@ -313,10 +313,9 @@ module.exports = class coinsecure extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response = undefined) {
+    handleErrors (code, reason, url, method, headers, body, response) {
         if (code === 200) {
             if ((body[0] === '{') || (body[0] === '[')) {
-                let response = JSON.parse (body);
                 if ('success' in response) {
                     let success = response['success'];
                     if (!success) {

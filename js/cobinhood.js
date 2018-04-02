@@ -550,14 +550,13 @@ module.exports = class cobinhood extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response = undefined) {
+    handleErrors (code, reason, url, method, headers, body, response) {
         if (code < 400 || code >= 600) {
             return;
         }
         if (body[0] !== '{') {
             throw new ExchangeError (this.id + ' ' + body);
         }
-        let response = JSON.parse (body);
         let message = this.safeValue (response['error'], 'error_code');
         throw new ExchangeError (this.id + ' ' + message);
     }

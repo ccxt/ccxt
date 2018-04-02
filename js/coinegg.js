@@ -487,7 +487,7 @@ module.exports = class coinegg extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response = undefined) {
+    handleErrors (code, reason, url, method, headers, body, response) {
         // checks against error codes
         if (typeof body !== 'string')
             return;
@@ -495,7 +495,6 @@ module.exports = class coinegg extends Exchange {
             return;
         if (body[0] !== '{')
             return;
-        let response = JSON.parse (body);
         // private endpoints return the following structure:
         // {"result":true,"data":{...}} - success
         // {"result":false,"code":"103"} - failure

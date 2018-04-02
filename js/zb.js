@@ -491,13 +491,12 @@ module.exports = class zb extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body) {
+    handleErrors (httpCode, reason, url, method, headers, body, response) {
         if (typeof body !== 'string')
             return; // fallback to default error handler
         if (body.length < 2)
             return; // fallback to default error handler
         if (body[0] === '{') {
-            let response = JSON.parse (body);
             if ('code' in response) {
                 let error = this.safeString (response, 'code');
                 let message = this.id + ' ' + this.json (response);

@@ -815,14 +815,7 @@ module.exports = class poloniex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response = undefined) {
-        let response = undefined;
-        try {
-            response = JSON.parse (body);
-        } catch (e) {
-            // syntax error, resort to default error handler
-            return;
-        }
+    handleErrors (code, reason, url, method, headers, body, response) {
         if ('error' in response) {
             const error = response['error'];
             const feedback = this.id + ' ' + this.json (response);

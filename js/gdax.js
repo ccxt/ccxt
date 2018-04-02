@@ -347,7 +347,7 @@ module.exports = class gdax extends Exchange {
             request['start'] = this.ymdhms (since);
             if (typeof limit === 'undefined') {
                 // https://docs.gdax.com/#get-historic-rates
-                limit = 300; // max = 300
+                limit = 350; // max = 350
             }
             request['end'] = this.ymdhms (this.sum (limit * granularity * 1000, since));
         }
@@ -578,10 +578,9 @@ module.exports = class gdax extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response = undefined) {
+    handleErrors (code, reason, url, method, headers, body, response) {
         if ((code === 400) || (code === 404)) {
             if (body[0] === '{') {
-                let response = JSON.parse (body);
                 let message = response['message'];
                 let error = this.id + ' ' + message;
                 if (message.indexOf ('price too small') >= 0) {

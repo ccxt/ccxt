@@ -363,13 +363,10 @@ module.exports = class indodax extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response = undefined) {
+    handleErrors (code, reason, url, method, headers, body, response) {
         // { success: 0, error: "invalid order." }
         // or
         // [{ data, ... }, { ... }, ... ]
-        if (typeof response === 'undefined')
-            if (body[0] === '{' || body[0] === '[')
-                response = JSON.parse (body);
         if (Array.isArray (response))
             return; // public endpoints may return []-arrays
         if (!('success' in response))

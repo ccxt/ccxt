@@ -156,9 +156,6 @@ module.exports = class okcoinusd extends Exchange {
             'ETC/USD': true,
             'ETH/USD': true,
             'LTC/USD': true,
-            'XRP/USD': true,
-            'EOS/USD': true,
-            'BTG/USD': true,
         };
         for (let i = 0; i < markets.length; i++) {
             let id = markets[i]['symbol'];
@@ -665,11 +662,10 @@ module.exports = class okcoinusd extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response = undefined) {
+    handleErrors (code, reason, url, method, headers, body, response) {
         if (body.length < 2)
             return; // fallback to default error handler
         if (body[0] === '{') {
-            let response = JSON.parse (body);
             if ('error_code' in response) {
                 let error = this.safeString (response, 'error_code');
                 let message = this.id + ' ' + this.json (response);
