@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import math
 import json
 from ccxt.base.errors import ExchangeError
@@ -283,6 +276,7 @@ class binance (Exchange):
                 '-1100': InvalidOrder,  # createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
                 '-2010': InsufficientFunds,  # createOrder -> 'Account has insufficient balance for requested action.'
                 '-2011': OrderNotFound,  # cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
+                '-2013': OrderNotFound,  # fetchOrder(1, 'BTC/USDT') -> 'Order does not exist'
                 '-2015': AuthenticationError,  # "Invalid API-key, IP, or permissions for action."
             },
         })
@@ -778,37 +772,31 @@ class binance (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body):
-        # in case of error binance sets http status code >= 400
-        if code < 300:
-            # status code ok, proceed with request
-            return
-        if code < 400:
-            # should not normally happen, reserve for redirects in case
-            # we'll want to scrape some info from web pages
-            return
-        # code >= 400
         if (code == 418) or (code == 429):
             raise DDoSProtection(self.id + ' ' + str(code) + ' ' + reason + ' ' + body)
         # error response in a form: {"code": -1013, "msg": "Invalid quantity."}
         # following block cointains legacy checks against message patterns in "msg" property
         # will switch "code" checks eventually, when we know all of them
-        if body.find('Price * QTY is zero or less') >= 0:
-            raise InvalidOrder(self.id + ' order cost = amount * price is zero or less ' + body)
-        if body.find('LOT_SIZE') >= 0:
-            raise InvalidOrder(self.id + ' order amount should be evenly divisible by lot size, use self.amount_to_lots(symbol, amount) ' + body)
-        if body.find('PRICE_FILTER') >= 0:
-            raise InvalidOrder(self.id + ' order price exceeds allowed price precision or invalid, use self.price_to_precision(symbol, amount) ' + body)
-        if body.find('Order does not exist') >= 0:
-            raise OrderNotFound(self.id + ' ' + body)
-        # checks against error codes
-        if isinstance(body, basestring):
-            if len(body) > 0:
-                if body[0] == '{':
-                    response = json.loads(body)
-                    error = self.safe_string(response, 'code')
-                    if error is not None:
-                        exceptions = self.exceptions
-                        if error in exceptions:
-                            raise exceptions[error](self.id + ' ' + self.json(response))
-                        else:
-                            raise ExchangeError(self.id + ': unknown error code: ' + self.json(response))
+        if code >= 400:
+            if body.find('Price * QTY is zero or less') >= 0:
+                raise InvalidOrder(self.id + ' order cost = amount * price is zero or less ' + body)
+            if body.find('LOT_SIZE') >= 0:
+                raise InvalidOrder(self.id + ' order amount should be evenly divisible by lot size, use self.amount_to_lots(symbol, amount) ' + body)
+            if body.find('PRICE_FILTER') >= 0:
+                raise InvalidOrder(self.id + ' order price exceeds allowed price precision or invalid, use self.price_to_precision(symbol, amount) ' + body)
+        if len(body) > 0:
+            if body[0] == '{':
+                response = json.loads(body)
+                # checks against error codes
+                error = self.safe_string(response, 'code')
+                if error is not None:
+                    exceptions = self.exceptions
+                    if error in exceptions:
+                        raise exceptions[error](self.id + ' ' + body)
+                    else:
+                        raise ExchangeError(self.id + ': unknown error code: ' + body + ' ' + error)
+                # check success value for wapi endpoints
+                # response in format {'msg': 'The coin does not exist.', 'success': True/false}
+                success = self.safe_value(response, 'success', True)
+                if not success:
+                    raise ExchangeError(self.id + ': success value False: ' + body)

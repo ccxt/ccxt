@@ -266,6 +266,7 @@ class binance extends Exchange {
                 '-1100' => '\\ccxt\\InvalidOrder', // createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
                 '-2010' => '\\ccxt\\InsufficientFunds', // createOrder -> 'Account has insufficient balance for requested action.'
                 '-2011' => '\\ccxt\\OrderNotFound', // cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
+                '-2013' => '\\ccxt\\OrderNotFound', // fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'
                 '-2015' => '\\ccxt\\AuthenticationError', // "Invalid API-key, IP, or permissions for action."
             ),
         ));
@@ -807,42 +808,37 @@ class binance extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
-        // in case of $error binance sets http status $code >= 400
-        if ($code < 300)
-            // status $code ok, proceed with request
-            return;
-        if ($code < 400)
-            // should not normally happen, reserve for redirects in case
-            // we'll want to scrape some info from web pages
-            return;
-        // $code >= 400
         if (($code === 418) || ($code === 429))
             throw new DDoSProtection ($this->id . ' ' . (string) $code . ' ' . $reason . ' ' . $body);
         // $error $response in a form => array ( "$code" => -1013, "msg" => "Invalid quantity." )
         // following block cointains legacy checks against message patterns in "msg" property
         // will switch "$code" checks eventually, when we know all of them
-        if (mb_strpos ($body, 'Price * QTY is zero or less') !== false)
-            throw new InvalidOrder ($this->id . ' order cost = amount * price is zero or less ' . $body);
-        if (mb_strpos ($body, 'LOT_SIZE') !== false)
-            throw new InvalidOrder ($this->id . ' order amount should be evenly divisible by lot size, use $this->amount_to_lots(symbol, amount) ' . $body);
-        if (mb_strpos ($body, 'PRICE_FILTER') !== false)
-            throw new InvalidOrder ($this->id . ' order price exceeds allowed price precision or invalid, use $this->price_to_precision(symbol, amount) ' . $body);
-        if (mb_strpos ($body, 'Order does not exist') !== false)
-            throw new OrderNotFound ($this->id . ' ' . $body);
-        // checks against $error codes
-        if (gettype ($body) == 'string') {
-            if (strlen ($body) > 0) {
-                if ($body[0] === '{') {
-                    $response = json_decode ($body, $as_associative_array = true);
-                    $error = $this->safe_string($response, 'code');
-                    if ($error !== null) {
-                        $exceptions = $this->exceptions;
-                        if (is_array ($exceptions) && array_key_exists ($error, $exceptions)) {
-                            throw new $exceptions[$error] ($this->id . ' ' . $this->json ($response));
-                        } else {
-                            throw new ExchangeError ($this->id . ' => unknown $error $code => ' . $this->json ($response));
-                        }
+        if ($code >= 400) {
+            if (mb_strpos ($body, 'Price * QTY is zero or less') !== false)
+                throw new InvalidOrder ($this->id . ' order cost = amount * price is zero or less ' . $body);
+            if (mb_strpos ($body, 'LOT_SIZE') !== false)
+                throw new InvalidOrder ($this->id . ' order amount should be evenly divisible by lot size, use $this->amount_to_lots(symbol, amount) ' . $body);
+            if (mb_strpos ($body, 'PRICE_FILTER') !== false)
+                throw new InvalidOrder ($this->id . ' order price exceeds allowed price precision or invalid, use $this->price_to_precision(symbol, amount) ' . $body);
+        }
+        if (strlen ($body) > 0) {
+            if ($body[0] === '{') {
+                $response = json_decode ($body, $as_associative_array = true);
+                // checks against $error codes
+                $error = $this->safe_string($response, 'code');
+                if ($error !== null) {
+                    $exceptions = $this->exceptions;
+                    if (is_array ($exceptions) && array_key_exists ($error, $exceptions)) {
+                        throw new $exceptions[$error] ($this->id . ' ' . $body);
+                    } else {
+                        throw new ExchangeError ($this->id . ' => unknown $error $code => ' . $body . ' ' . $error);
                     }
+                }
+                // check $success value for wapi endpoints
+                // $response in format array ('msg' => 'The coin does not exist.', 'success' => true/false)
+                $success = $this->safe_value($response, 'success', true);
+                if (!$success) {
+                    throw new ExchangeError ($this->id . ' => $success value false => ' . $body);
                 }
             }
         }
