@@ -340,7 +340,7 @@ module.exports = class gatecoin extends Exchange {
         if ('way' in trade) {
             side = (trade['way'] === 'bid') ? 'buy' : 'sell';
             let orderIdField = trade['way'] + 'OrderId';
-            orderId = this.safeStrinfg (trade, orderIdField);
+            orderId = this.safeString (trade, orderIdField);
         }
         let timestamp = parseInt (trade['transactionTime']) * 1000;
         if (typeof market === 'undefined') {
