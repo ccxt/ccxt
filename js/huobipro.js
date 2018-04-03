@@ -185,9 +185,9 @@ module.exports = class huobipro extends Exchange {
             let response = await this.publicGetCommonExchange (this.extend ({
                 'symbol': market['id'],
             }));
-            let limits = this.parseTradingLimits (response);
+            let limit = this.parseTradingLimits (response);
             info[symbol] = response;
-            limits[symbol] = limits;
+            limits[symbol] = limit;
         }
         return {
             'limits': limits,
