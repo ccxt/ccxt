@@ -351,7 +351,7 @@ class kucoin (Exchange):
                 trades[i]['side'] = side
                 trades[i]['order'] = orderId
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
         else:
             symbol = order['coinType'] + '/' + order['coinTypePair']
@@ -409,7 +409,7 @@ class kucoin (Exchange):
                     if amount is not None:
                         cost = amount * price
         feeCurrency = None
-        if market:
+        if market is not None:
             feeCurrency = market['quote'] if (side == 'sell') else market['base']
         else:
             feeCurrencyField = 'coinTypePair' if (side == 'sell') else 'coinType'
@@ -458,12 +458,26 @@ class kucoin (Exchange):
         response = self.privateGetOrderDetail(self.extend(request, params))
         if not response['data']:
             raise OrderNotFound(self.id + ' ' + self.json(response))
-        order = self.parse_order(response['data'], market)
-        orderId = order['id']
-        if orderId in self.orders:
-            order['status'] = self.orders[orderId]['status']
-        self.orders[orderId] = order
-        return order
+        #
+        # the caching part to be removed
+        #
+        #     order = self.parse_order(response['data'], market)
+        #     orderId = order['id']
+        #     if orderId in self.orders:
+        #         order['status'] = self.orders[orderId]['status']
+        #     self.orders[orderId] = order
+        #
+        return self.parse_order(response['data'], market)
+
+    def parse_orders_by_status(self, orders, market, since, limit, status):
+        result = []
+        for i in range(0, len(orders)):
+            order = self.parse_order(self.extend(orders[i], {
+                'status': status,
+            }), market)
+            result.append(order)
+        symbol = market['symbol'] if (market is not None) else None
+        return self.filter_by_symbol_since_limit(result, symbol, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
@@ -474,18 +488,30 @@ class kucoin (Exchange):
             'symbol': market['id'],
         }
         response = self.privateGetOrderActiveMap(self.extend(request, params))
-        orders = self.array_concat(response['data']['SELL'], response['data']['BUY'])
-        for i in range(0, len(orders)):
-            order = self.parse_order(self.extend(orders[i], {
-                'status': 'open',
-            }), market)
-            orderId = order['id']
-            if orderId in self.orders:
-                if self.orders[orderId]['status'] != 'open':
-                    order['status'] = self.orders[orderId]['status']
-            self.orders[order['id']] = order
-        openOrders = self.filter_by(self.orders, 'status', 'open')
-        return self.filter_by_symbol_since_limit(openOrders, symbol, since, limit)
+        sell = self.safe_value(response['data'], 'SELL')
+        if sell is None:
+            sell = []
+        buy = self.safe_value(response['data'], 'BUY')
+        if buy is None:
+            buy = []
+        orders = self.array_concat(sell, buy)
+        #
+        # the caching part to be removed
+        #
+        #     for i in range(0, len(orders)):
+        #         order = self.parse_order(self.extend(orders[i], {
+        #             'status': 'open',
+        #         }), market)
+        #         orderId = order['id']
+        #         if orderId in self.orders:
+        #             if self.orders[orderId]['status'] != 'open':
+        #                 order['status'] = self.orders[orderId]['status']
+        #         self.orders[order['id']] = order
+        #     }
+        #     openOrders = self.filter_by(self.orders, 'status', 'open')
+        #     return self.filter_by_symbol_since_limit(openOrders, symbol, since, limit)
+        #
+        return self.parse_orders_by_status(orders, market, since, limit, 'open')
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=20, params={}):
         request = {}
@@ -500,28 +526,35 @@ class kucoin (Exchange):
             request['limit'] = limit
         response = self.privateGetOrderDealt(self.extend(request, params))
         orders = response['data']['datas']
-        for i in range(0, len(orders)):
-            order = self.parse_order(self.extend(orders[i], {
-                'status': 'closed',
-            }), market)
-            orderId = order['id']
-            if orderId in self.orders:
-                if self.orders[orderId]['status'] == 'canceled':
-                    order['status'] = self.orders[orderId]['status']
-            self.orders[order['id']] = order
-        closedOrders = self.filter_by(self.orders, 'status', 'closed')
-        return self.filter_by_symbol_since_limit(closedOrders, symbol, since, limit)
+        #
+        # the caching part to be removed
+        #
+        #     for i in range(0, len(orders)):
+        #         order = self.parse_order(self.extend(orders[i], {
+        #             'status': 'closed',
+        #         }), market)
+        #         orderId = order['id']
+        #         if orderId in self.orders:
+        #             if self.orders[orderId]['status'] == 'canceled':
+        #                 order['status'] = self.orders[orderId]['status']
+        #         self.orders[order['id']] = order
+        #     }
+        #     closedOrders = self.filter_by(self.orders, 'status', 'closed')
+        #     return self.filter_by_symbol_since_limit(closedOrders, symbol, since, limit)
+        #
+        return self.parse_orders_by_status(orders, market, since, limit, 'closed')
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type != 'limit':
             raise ExchangeError(self.id + ' allows limit orders only')
         self.load_markets()
         market = self.market(symbol)
+        quote = market['quote']
         base = market['base']
         request = {
             'symbol': market['id'],
             'type': side.upper(),
-            'price': self.price_to_precision(symbol, price),
+            'price': self.truncate(price, self.currencies[quote]['precision']),
             'amount': self.truncate(amount, self.currencies[base]['precision']),
         }
         price = float(price)
@@ -534,6 +567,7 @@ class kucoin (Exchange):
             'id': orderId,
             'timestamp': None,
             'datetime': None,
+            'symbol': market['id'],
             'type': type,
             'side': side,
             'amount': amount,
@@ -560,13 +594,19 @@ class kucoin (Exchange):
         if 'type' in params:
             request['type'] = params['type'].upper()
             params = self.omit(params, 'type')
-        response = self.privatePostOrderCancelAll(self.extend(request, params))
-        openOrders = self.filter_by(self.orders, 'status', 'open')
-        for i in range(0, len(openOrders)):
-            order = openOrders[i]
-            orderId = order['id']
-            self.orders[orderId]['status'] = 'canceled'
-        return response
+        #
+        # the caching part to be removed
+        #
+        #     response = self.privatePostOrderCancelAll(self.extend(request, params))
+        #     openOrders = self.filter_by(self.orders, 'status', 'open')
+        #     for i in range(0, len(openOrders)):
+        #         order = openOrders[i]
+        #         orderId = order['id']
+        #         self.orders[orderId]['status'] = 'canceled'
+        #     }
+        #     return response
+        #
+        return self.privatePostOrderCancelAll(self.extend(request, params))
 
     def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
@@ -582,23 +622,29 @@ class kucoin (Exchange):
             params = self.omit(params, 'type')
         else:
             raise ExchangeError(self.id + ' cancelOrder requires parameter type=["BUY"|"SELL"]')
-        response = self.privatePostCancelOrder(self.extend(request, params))
-        if id in self.orders:
-            self.orders[id]['status'] = 'canceled'
-        else:
-            # store it in cache for further references
-            timestamp = self.milliseconds()
-            side = request['type'].lower()
-            self.orders[id] = {
-                'id': id,
-                'timestamp': timestamp,
-                'datetime': self.iso8601(timestamp),
-                'type': None,
-                'side': side,
-                'symbol': symbol,
-                'status': 'canceled',
-            }
-        return response
+        #
+        # the caching part to be removed
+        #
+        #     response = self.privatePostCancelOrder(self.extend(request, params))
+        #     if id in self.orders:
+        #         self.orders[id]['status'] = 'canceled'
+        #     else:
+        #         # store it in cache for further references
+        #         timestamp = self.milliseconds()
+        #         side = request['type'].lower()
+        #         self.orders[id] = {
+        #             'id': id,
+        #             'timestamp': timestamp,
+        #             'datetime': self.iso8601(timestamp),
+        #             'type': None,
+        #             'side': side,
+        #             'symbol': symbol,
+        #             'status': 'canceled',
+        #         }
+        #     }
+        #     return response
+        #
+        return self.privatePostCancelOrder(self.extend(request, params))
 
     def parse_ticker(self, ticker, market=None):
         timestamp = ticker['datetime']
@@ -611,6 +657,7 @@ class kucoin (Exchange):
         change = self.safe_float(ticker, 'changeRate')
         if change is not None:
             change *= 100
+        last = self.safe_float(ticker, 'lastDealPrice')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -618,12 +665,14 @@ class kucoin (Exchange):
             'high': self.safe_float(ticker, 'high'),
             'low': self.safe_float(ticker, 'low'),
             'bid': self.safe_float(ticker, 'buy'),
+            'bidVolume': None,
             'ask': self.safe_float(ticker, 'sell'),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': self.safe_float(ticker, 'lastDealPrice'),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': change,
             'percentage': None,
             'average': None,
@@ -676,7 +725,9 @@ class kucoin (Exchange):
             order = self.safe_string(trade, 'orderOid')
             if order is None:
                 order = self.safe_string(trade, 'oid')
-            side = self.safe_string(trade, 'dealDirection')
+            side = self.safe_string(trade, 'direction')
+            # https://github.com/ccxt/ccxt/issues/2409
+            # side = self.safe_string(trade, 'dealDirection')
             if side is not None:
                 side = side.lower()
             price = self.safe_float(trade, 'dealPrice')
@@ -731,7 +782,7 @@ class kucoin (Exchange):
         response = self.privateGetDealOrders(self.extend(request, params))
         return self.parse_trades(response['data']['datas'], market, since, limit)
 
-    def parse_trading_view_ohlcvs(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
+    def parse_trading_view_ohlc_vs(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
         result = []
         for i in range(0, len(ohlcvs['t'])):
             result.append([
@@ -777,7 +828,7 @@ class kucoin (Exchange):
             'to': end,
         }
         response = self.publicGetOpenChartHistory(self.extend(request, params))
-        return self.parse_trading_view_ohlcvs(response, market, timeframe, since, limit)
+        return self.parse_trading_view_ohlc_vs(response, market, timeframe, since, limit)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)

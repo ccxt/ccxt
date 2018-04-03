@@ -146,6 +146,7 @@ class bittrex extends Exchange {
                 'ORDER_NOT_OPEN' => '\\ccxt\\InvalidOrder',
                 'UUID_INVALID' => '\\ccxt\\OrderNotFound',
                 'RATE_NOT_PROVIDED' => '\\ccxt\\InvalidOrder', // createLimitBuyOrder ('ETH/BTC', 1, 0)
+                'WHITELIST_VIOLATION_IP' => '\\ccxt\\PermissionDenied',
             ),
         ));
     }
@@ -246,7 +247,14 @@ class bittrex extends Exchange {
     }
 
     public function parse_ticker ($ticker, $market = null) {
-        $timestamp = $this->parse8601 ($ticker['TimeStamp'] . '+00:00');
+        $timestamp = $this->safe_string($ticker, 'TimeStamp');
+        $iso8601 = null;
+        if (gettype ($timestamp) == 'string') {
+            if (strlen ($timestamp) > 0) {
+                $timestamp = $this->parse8601 ($timestamp);
+                $iso8601 = $this->iso8601 ($timestamp);
+            }
+        }
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
@@ -263,16 +271,18 @@ class bittrex extends Exchange {
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $iso8601,
             'high' => $this->safe_float($ticker, 'High'),
             'low' => $this->safe_float($ticker, 'Low'),
             'bid' => $this->safe_float($ticker, 'Bid'),
+            'bidVolume' => null,
             'ask' => $this->safe_float($ticker, 'Ask'),
+            'askVolume' => null,
             'vwap' => null,
             'open' => null,
-            'close' => null,
-            'first' => null,
+            'close' => $last,
             'last' => $last,
+            'previousClose' => null,
             'change' => $change,
             'percentage' => $percentage,
             'average' => null,
@@ -603,12 +613,6 @@ class bittrex extends Exchange {
         return $this->filter_by($orders, 'status', 'closed');
     }
 
-    public function currency_id ($currency) {
-        if ($currency === 'BCH')
-            return 'BCC';
-        return $currency;
-    }
-
     public function fetch_deposit_address ($code, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency ($code);
@@ -635,11 +639,11 @@ class bittrex extends Exchange {
         );
     }
 
-    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
-        $currencyId = $this->currency_id ($currency);
+        $currency = $this->currency ($code);
         $request = array (
-            'currency' => $currencyId,
+            'currency' => $currency['id'],
             'quantity' => $amount,
             'address' => $address,
         );

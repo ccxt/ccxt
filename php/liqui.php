@@ -73,6 +73,9 @@ class liqui extends Exchange {
                     'deposit' => array (),
                 ),
             ),
+            'commonCurrencies' => array (
+                'DSH' => 'DASH',
+            ),
             'exceptions' => array (
                 '803' => '\\ccxt\\InvalidOrder', // "Count could not be less than 0.001." (selling below minAmount)
                 '804' => '\\ccxt\\InvalidOrder', // "Count could not be more than 10000." (buying above maxAmount)
@@ -102,21 +105,6 @@ class liqui extends Exchange {
             'rate' => $rate,
             'cost' => $cost,
         );
-    }
-
-    public function common_currency_code ($currency) {
-        if (!$this->substituteCommonCurrencyCodes)
-            return $currency;
-        if ($currency === 'XBT')
-            return 'BTC';
-        if ($currency === 'BCC')
-            return 'BCH';
-        if ($currency === 'DRK')
-            return 'DASH';
-        // they misspell DASH as dsh :/
-        if ($currency === 'DSH')
-            return 'DASH';
-        return $currency;
     }
 
     public function get_base_quote_from_market_id ($id) {
@@ -215,10 +203,7 @@ class liqui extends Exchange {
         if (!$market_id_in_reponse)
             throw new ExchangeError ($this->id . ' ' . $market['symbol'] . ' order book is empty or not available');
         $orderbook = $response[$market['id']];
-        $result = $this->parse_order_book($orderbook);
-        $result['bids'] = $this->sort_by($result['bids'], 0, true);
-        $result['asks'] = $this->sort_by($result['asks'], 0);
-        return $result;
+        return $this->parse_order_book($orderbook);
     }
 
     public function fetch_order_books ($symbols = null, $params = array ()) {
@@ -257,6 +242,7 @@ class liqui extends Exchange {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
+        $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -264,12 +250,14 @@ class liqui extends Exchange {
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => $this->safe_float($ticker, 'buy'),
+            'bidVolume' => null,
             'ask' => $this->safe_float($ticker, 'sell'),
+            'askVolume' => null,
             'vwap' => null,
             'open' => null,
-            'close' => null,
-            'first' => null,
-            'last' => $this->safe_float($ticker, 'last'),
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => $this->safe_float($ticker, 'avg'),

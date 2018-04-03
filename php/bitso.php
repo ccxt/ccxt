@@ -72,6 +72,10 @@ class bitso extends Exchange {
                     ),
                 ),
             ),
+            'exceptions' => array (
+                '0201' => '\\ccxt\\AuthenticationError', // Invalid Nonce or Invalid Credentials
+                '104' => '\\ccxt\\InvalidNonce', // Cannot perform request - nonce must be higher than 1520307203724237
+            ),
         ));
     }
 
@@ -154,6 +158,7 @@ class bitso extends Exchange {
         $vwap = floatval ($ticker['vwap']);
         $baseVolume = floatval ($ticker['volume']);
         $quoteVolume = $baseVolume * $vwap;
+        $last = floatval ($ticker['last']);
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -161,12 +166,14 @@ class bitso extends Exchange {
             'high' => floatval ($ticker['high']),
             'low' => floatval ($ticker['low']),
             'bid' => floatval ($ticker['bid']),
+            'bidVolume' => null,
             'ask' => floatval ($ticker['ask']),
+            'askVolume' => null,
             'vwap' => $vwap,
             'open' => null,
-            'close' => null,
-            'first' => null,
-            'last' => floatval ($ticker['last']),
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
@@ -382,6 +389,41 @@ class bitso extends Exchange {
             );
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body) {
+        if (gettype ($body) != 'string')
+            return; // fallback to default $error handler
+        if (strlen ($body) < 2)
+            return; // fallback to default $error handler
+        if (($body[0] === '{') || ($body[0] === '[')) {
+            $response = json_decode ($body, $as_associative_array = true);
+            if (is_array ($response) && array_key_exists ('success', $response)) {
+                //
+                //     array ("$success":false,"$error":{"$code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237")}
+                //
+                $success = $this->safe_value($response, 'success', false);
+                if (gettype ($success) == 'string') {
+                    if (($success === 'true') || ($success === '1'))
+                        $success = true;
+                    else
+                        $success = false;
+                }
+                if (!$success) {
+                    $feedback = $this->id . ' ' . $this->json ($response);
+                    $error = $this->safe_value($response, 'error');
+                    if ($error === null)
+                        throw new ExchangeError ($feedback);
+                    $code = $this->safe_string($error, 'code');
+                    $exceptions = $this->exceptions;
+                    if (is_array ($exceptions) && array_key_exists ($code, $exceptions)) {
+                        throw new $exceptions[$code] ($feedback);
+                    } else {
+                        throw new ExchangeError ($feedback);
+                    }
+                }
+            }
+        }
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

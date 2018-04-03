@@ -484,19 +484,14 @@ class hitbtc (Exchange):
                     },
                 },
             },
+            'commonCurrencies': {
+                'XBT': 'BTC',
+                'DRK': 'DASH',
+                'CAT': 'BitClave',
+                'USD': 'USDT',
+                'EMGO': 'MGO',
+            },
         })
-
-    def common_currency_code(self, currency):
-        currencies = {
-            'XBT': 'BTC',
-            'DRK': 'DASH',
-            'CAT': 'BitClave',
-            'USD': 'USDT',
-            'EMGO': 'MGO',
-        }
-        if currency in currencies:
-            return currencies[currency]
-        return currency
 
     def fetch_markets(self):
         markets = self.publicGetSymbols()
@@ -579,6 +574,7 @@ class hitbtc (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -586,12 +582,14 @@ class hitbtc (Exchange):
             'high': self.safe_float(ticker, 'high'),
             'low': self.safe_float(ticker, 'low'),
             'bid': self.safe_float(ticker, 'bid'),
+            'bidVolume': None,
             'ask': self.safe_float(ticker, 'ask'),
+            'askVolume': None,
             'vwap': None,
             'open': self.safe_float(ticker, 'open'),
-            'close': None,
-            'first': None,
-            'last': self.safe_float(ticker, 'last'),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,

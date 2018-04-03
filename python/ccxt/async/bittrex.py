@@ -16,6 +16,7 @@ import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -163,6 +164,7 @@ class bittrex (Exchange):
                 'ORDER_NOT_OPEN': InvalidOrder,
                 'UUID_INVALID': OrderNotFound,
                 'RATE_NOT_PROVIDED': InvalidOrder,  # createLimitBuyOrder('ETH/BTC', 1, 0)
+                'WHITELIST_VIOLATION_IP': PermissionDenied,
             },
         })
 
@@ -253,7 +255,12 @@ class bittrex (Exchange):
         return self.parse_order_book(orderbook, None, 'buy', 'sell', 'Rate', 'Quantity')
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = self.parse8601(ticker['TimeStamp'] + '+00:00')
+        timestamp = self.safe_string(ticker, 'TimeStamp')
+        iso8601 = None
+        if isinstance(timestamp, basestring):
+            if len(timestamp) > 0:
+                timestamp = self.parse8601(timestamp)
+                iso8601 = self.iso8601(timestamp)
         symbol = None
         if market:
             symbol = market['symbol']
@@ -269,16 +276,18 @@ class bittrex (Exchange):
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'datetime': iso8601,
             'high': self.safe_float(ticker, 'High'),
             'low': self.safe_float(ticker, 'Low'),
             'bid': self.safe_float(ticker, 'Bid'),
+            'bidVolume': None,
             'ask': self.safe_float(ticker, 'Ask'),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
+            'close': last,
             'last': last,
+            'previousClose': None,
             'change': change,
             'percentage': percentage,
             'average': None,
@@ -576,11 +585,6 @@ class bittrex (Exchange):
         orders = await self.fetch_orders(symbol, since, limit, params)
         return self.filter_by(orders, 'status', 'closed')
 
-    def currency_id(self, currency):
-        if currency == 'BCH':
-            return 'BCC'
-        return currency
-
     async def fetch_deposit_address(self, code, params={}):
         await self.load_markets()
         currency = self.currency(code)
@@ -605,11 +609,11 @@ class bittrex (Exchange):
             'info': response,
         }
 
-    async def withdraw(self, currency, amount, address, tag=None, params={}):
+    async def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
-        currencyId = self.currency_id(currency)
+        currency = self.currency(code)
         request = {
-            'currency': currencyId,
+            'currency': currency['id'],
             'quantity': amount,
             'address': address,
         }

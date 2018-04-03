@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InvalidOrder } = require ('./base/errors');
+const { ExchangeError, InvalidOrder, NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -19,7 +19,8 @@ module.exports = class cex extends Exchange {
                 'fetchTickers': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
-                'fetchOrders': true,
+                'fetchClosedOrders': true,
+                'fetchDepositAddress': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -236,12 +237,14 @@ module.exports = class cex extends Exchange {
             'high': high,
             'low': low,
             'bid': bid,
+            'bidVolume': undefined,
             'ask': ask,
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
+            'close': last,
             'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
@@ -333,7 +336,16 @@ module.exports = class cex extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        let timestamp = parseInt (order['time']);
+        // Depending on the call, 'time' can be a unix int, unix string or ISO string
+        // Yes, really
+        let timestamp = order['time'];
+        if (typeof order['time'] === 'string' && order['time'].indexOf ('T') >= 0) {
+            // ISO8601 string
+            timestamp = this.parse8601 (timestamp);
+        } else {
+            // either integer or string integer
+            timestamp = parseInt (timestamp);
+        }
         let symbol = undefined;
         if (!market) {
             let symbol = order['symbol1'] + '/' + order['symbol2'];
@@ -430,6 +442,18 @@ module.exports = class cex extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let method = 'privatePostArchivedOrdersPair';
+        if (typeof symbol === 'undefined') {
+            throw new NotSupported (this.id + ' fetchClosedOrders requires a symbol argument');
+        }
+        let market = this.market (symbol);
+        let request = { 'pair': market['id'] };
+        let response = await this[method] (this.extend (request, params));
+        return this.parseOrders (response, market, since, limit);
+    }
+
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostGetOrder (this.extend ({
@@ -481,5 +505,27 @@ module.exports = class cex extends Exchange {
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         }
         return response;
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        if (code === 'XRP') {
+            // https://github.com/ccxt/ccxt/pull/2327#issuecomment-375204856
+            throw new NotSupported (this.id + ' fetchDepositAddress does not support XRP addresses yet (awaiting docs from CEX.io)');
+        }
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let request = {
+            'currency': currency['id'],
+        };
+        let response = await this.privatePostGetAddress (this.extend (request, params));
+        let address = this.safeString (response, 'data');
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': undefined,
+            'status': 'ok',
+            'info': response,
+        };
     }
 };

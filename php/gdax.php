@@ -216,6 +216,7 @@ class gdax extends Exchange {
             $bid = $this->safe_float($ticker, 'bid');
         if (is_array ($ticker) && array_key_exists ('ask', $ticker))
             $ask = $this->safe_float($ticker, 'ask');
+        $last = $this->safe_float($ticker, 'price');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -223,12 +224,14 @@ class gdax extends Exchange {
             'high' => null,
             'low' => null,
             'bid' => $bid,
+            'bidVolume' => null,
             'ask' => $ask,
+            'askVolume' => null,
             'vwap' => null,
             'open' => null,
-            'close' => null,
-            'first' => null,
-            'last' => $this->safe_float($ticker, 'price'),
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
@@ -343,7 +346,7 @@ class gdax extends Exchange {
             $request['start'] = $this->ymdhms ($since);
             if ($limit === null) {
                 // https://docs.gdax.com/#get-historic-rates
-                $limit = 350; // max = 350
+                $limit = 300; // max = 300
             }
             $request['end'] = $this->ymdhms ($this->sum ($limit * $granularity * 1000, $since));
         }

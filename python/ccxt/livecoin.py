@@ -29,7 +29,7 @@ class livecoin (Exchange):
                 'CORS': False,
                 'fetchTickers': True,
                 'fetchCurrencies': True,
-                'fetchFees': True,
+                'fetchTradingFees': True,
                 'fetchOrders': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
@@ -92,10 +92,11 @@ class livecoin (Exchange):
                     'taker': 0.18 / 100,
                 },
             },
+            'commonCurrencies': {
+                'CRC': 'CryCash',
+                'XBT': 'Bricktox',
+            },
         })
-
-    def common_currency_code(self, currency):
-        return currency
 
     def fetch_markets(self):
         markets = self.publicGetExchangeTicker()
@@ -106,7 +107,9 @@ class livecoin (Exchange):
             market = markets[p]
             id = market['symbol']
             symbol = id
-            base, quote = symbol.split('/')
+            baseId, quoteId = symbol.split('/')
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
             coinRestrictions = self.safe_value(restrictionsById, symbol)
             precision = {
                 'price': 5,
@@ -131,6 +134,9 @@ class livecoin (Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': True,
                 'precision': precision,
                 'limits': limits,
                 'info': market,
@@ -236,12 +242,6 @@ class livecoin (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    def fetch_fees(self, params={}):
-        tradingFees = self.fetch_trading_fees(params)
-        return self.extend(tradingFees, {
-            'withdraw': {},
-        })
-
     def fetch_trading_fees(self, params={}):
         self.load_markets()
         response = self.privateGetExchangeCommissionCommonInfo(params)
@@ -272,6 +272,7 @@ class livecoin (Exchange):
         vwap = float(ticker['vwap'])
         baseVolume = float(ticker['volume'])
         quoteVolume = baseVolume * vwap
+        last = float(ticker['last'])
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -279,12 +280,14 @@ class livecoin (Exchange):
             'high': float(ticker['high']),
             'low': float(ticker['low']),
             'bid': float(ticker['best_bid']),
+            'bidVolume': None,
             'ask': float(ticker['best_ask']),
+            'askVolume': None,
             'vwap': float(ticker['vwap']),
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
@@ -397,12 +400,10 @@ class livecoin (Exchange):
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         market = None
-        if symbol:
-            market = self.market(symbol)
-        pair = market['id'] if market else None
         request = {}
-        if pair:
-            request['currencyPair'] = pair
+        if symbol is not None:
+            market = self.market(symbol)
+            request['currencyPair'] = market['id']
         if since is not None:
             request['issuedFrom'] = int(since)
         if limit is not None:

@@ -203,15 +203,19 @@ class bitmex extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $orderbook = $this->publicGetOrderBookL2 (array_merge (array (
-            'symbol' => $this->market_id($symbol),
-        ), $params));
-        $timestamp = $this->milliseconds ();
+        $market = $this->market ($symbol);
+        $request = array (
+            'symbol' => $market['id'],
+        );
+        if ($limit !== null)
+            $request['depth'] = $limit;
+        $orderbook = $this->publicGetOrderBookL2 (array_merge ($request, $params));
         $result = array (
             'bids' => array (),
             'asks' => array (),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
+            'nonce' => null,
         );
         for ($o = 0; $o < count ($orderbook); $o++) {
             $order = $orderbook[$o];
@@ -250,7 +254,8 @@ class bitmex extends Exchange {
         // why the hassle? urlencode in python is kinda broken for nested dicts.
         // E.g. self.urlencode(array ("filter" => array ("open" => True))) will return "filter=array ('open':+True)"
         // Bitmex doesn't like that. Hence resorting to this hack.
-        $request['filter'] = $this->json ($request['filter']);
+        if (is_array ($request) && array_key_exists ('filter', $request))
+            $request['filter'] = $this->json ($request['filter']);
         $response = $this->privateGetOrder ($request);
         return $this->parse_orders($response, $market, $since, $limit);
     }
@@ -294,7 +299,9 @@ class bitmex extends Exchange {
             'high' => floatval ($ticker['high']),
             'low' => floatval ($ticker['low']),
             'bid' => floatval ($quote['bidPrice']),
+            'bidVolume' => null,
             'ask' => floatval ($quote['askPrice']),
+            'askVolume' => null,
             'vwap' => floatval ($ticker['vwap']),
             'open' => $open,
             'close' => $close,
@@ -310,7 +317,7 @@ class bitmex extends Exchange {
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
-        $timestamp = $this->parse8601 ($ohlcv['timestamp']);
+        $timestamp = $this->parse8601 ($ohlcv['timestamp']) - $this->parse_timeframe($timeframe) * 1000;
         return [
             $timestamp,
             $ohlcv['open'],
@@ -321,7 +328,7 @@ class bitmex extends Exchange {
         ];
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = 100, $params = array ()) {
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         // send JSON key/value pairs, such as array ("key" => "value")
         // $filter by individual fields and do advanced queries on timestamps
@@ -334,13 +341,14 @@ class bitmex extends Exchange {
             'symbol' => $market['id'],
             'binSize' => $this->timeframes[$timeframe],
             'partial' => true,     // true == include yet-incomplete current bins
-            'count' => $limit,      // default 100, max 500
             // 'filter' => $filter, // $filter by individual fields and do advanced queries
             // 'columns' => array (),    // will return all columns if omitted
             // 'start' => 0,       // starting point for results (wtf?)
             // 'reverse' => false, // true == newest first
             // 'endTime' => '',    // ending date $filter for results
         );
+        if ($limit !== null)
+            $request['count'] = $limit; // default 100, max 500
         // if $since is not set, they will return candles starting from 2017-01-01
         if ($since !== null) {
             $ymdhms = $this->ymdhms ($since);

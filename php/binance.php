@@ -26,6 +26,7 @@ class binance extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
                 'withdraw' => true,
+                'fetchFundingFees' => true,
             ),
             'timeframes' => array (
                 '1m' => '1m',
@@ -77,6 +78,7 @@ class binance extends Exchange {
                         'depositAddress',
                         'accountStatus',
                         'systemStatus',
+                        'withdrawFee',
                     ),
                 ),
                 'v3' => array (
@@ -128,6 +130,7 @@ class binance extends Exchange {
                     'taker' => 0.001,
                     'maker' => 0.001,
                 ),
+                // should be deleted, these are outdated and inaccurate
                 'funding' => array (
                     'tierBased' => false,
                     'percentage' => false,
@@ -242,61 +245,13 @@ class binance extends Exchange {
                         'ZEC' => 0.005,
                         'ZRX' => 5.7,
                     ),
-                    'deposit' => array (
-                        'ARK' => 0,
-                        'AST' => 0,
-                        'BCH' => 0,
-                        'BNB' => 0,
-                        'BNT' => 0,
-                        'BQX' => 0,
-                        'BTC' => 0,
-                        'BTG' => 0,
-                        'CTR' => 0,
-                        'DASH' => 0,
-                        'DNT' => 0,
-                        'ENG' => 0,
-                        'ENJ' => 0,
-                        'EOS' => 0,
-                        'ETC' => 0,
-                        'ETH' => 0,
-                        'EVX' => 0,
-                        'FUN' => 0,
-                        'GAS' => 0,
-                        'HSR' => 0,
-                        'ICN' => 0,
-                        'IOTA' => 0,
-                        'KNC' => 0,
-                        'LINK' => 0,
-                        'LRC' => 0,
-                        'LTC' => 0,
-                        'MCO' => 0,
-                        'MDA' => 0,
-                        'MOD' => 0,
-                        'MTH' => 0,
-                        'MTL' => 0,
-                        'NEO' => 0,
-                        'OAX' => 0,
-                        'OMG' => 0,
-                        'POWR' => 0,
-                        'QTUM' => 0,
-                        'REQ' => 0,
-                        'SALT' => 0,
-                        'SNGLS' => 0,
-                        'SNM' => 0,
-                        'SNT' => 0,
-                        'STORJ' => 0,
-                        'STRAT' => 0,
-                        'SUB' => 0,
-                        'TRX' => 0,
-                        'USDT' => 0,
-                        'VIB' => 0,
-                        'WTC' => 0,
-                        'XRP' => 0,
-                        'XVG' => 0,
-                        'YOYOW' => 0,
-                        'ZRX' => 0,
-                    ),
+                    'deposit' => array (),
                 ),
+            ),
+            'commonCurrencies' => array (
+                'YOYO' => 'YOYOW',
+                'BCC' => 'BCH',
+                'NANO' => 'XRB',
             ),
             // exchange-specific options
             'options' => array (
@@ -311,6 +266,7 @@ class binance extends Exchange {
                 '-1100' => '\\ccxt\\InvalidOrder', // createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
                 '-2010' => '\\ccxt\\InsufficientFunds', // createOrder -> 'Account has insufficient balance for requested action.'
                 '-2011' => '\\ccxt\\OrderNotFound', // cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
+                '-2013' => '\\ccxt\\OrderNotFound', // fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'
                 '-2015' => '\\ccxt\\AuthenticationError', // "Invalid API-key, IP, or permissions for action."
             ),
         ));
@@ -452,8 +408,10 @@ class binance extends Exchange {
         );
         if ($limit !== null)
             $request['limit'] = $limit; // default = maximum = 100
-        $orderbook = $this->publicGetDepth (array_merge ($request, $params));
-        return $this->parse_order_book($orderbook);
+        $response = $this->publicGetDepth (array_merge ($request, $params));
+        $orderbook = $this->parse_order_book($response);
+        $orderbook['nonce'] = $this->safe_integer($response, 'lastUpdateId');
+        return $orderbook;
     }
 
     public function parse_ticker ($ticker, $market = null) {
@@ -748,17 +706,6 @@ class binance extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function common_currency_code ($currency) {
-        $currencies = array (
-            'YOYO' => 'YOYOW',
-            'BCC' => 'BCH',
-            'NANO' => 'XRB',
-        );
-        if (is_array ($currencies) && array_key_exists ($currency, $currencies))
-            return $currencies[$currency];
-        return $currency;
-    }
-
     public function fetch_deposit_address ($code, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency ($code);
@@ -778,7 +725,30 @@ class binance extends Exchange {
                 );
             }
         }
-        throw new ExchangeError ($this->id . ' fetchDepositAddress failed => ' . $this->last_http_response);
+    }
+
+    public function fetch_funding_fees ($codes = null, $params = array ()) {
+        //  by default it will try load withdrawal fees of all currencies (with separate requests)
+        //  however if you define $codes = array ( 'ETH', 'BTC' ) in args it will only load those
+        $this->load_markets();
+        $withdrawFees = array ();
+        $info = array ();
+        if ($codes === null)
+            $codes = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
+        for ($i = 0; $i < count ($codes); $i++) {
+            $code = $codes[$i];
+            $currency = $this->currency ($code);
+            $response = $this->wapiGetWithdrawFee (array (
+                'asset' => $currency['id'],
+            ));
+            $withdrawFees[$code] = $this->safe_float($response, 'withdrawFee');
+            $info[$code] = $response;
+        }
+        return array (
+            'withdraw' => $withdrawFees,
+            'deposit' => array (),
+            'info' => $info,
+        );
     }
 
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
@@ -838,42 +808,37 @@ class binance extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
-        // in case of $error binance sets http status $code >= 400
-        if ($code < 300)
-            // status $code ok, proceed with request
-            return;
-        if ($code < 400)
-            // should not normally happen, reserve for redirects in case
-            // we'll want to scrape some info from web pages
-            return;
-        // $code >= 400
         if (($code === 418) || ($code === 429))
             throw new DDoSProtection ($this->id . ' ' . (string) $code . ' ' . $reason . ' ' . $body);
         // $error $response in a form => array ( "$code" => -1013, "msg" => "Invalid quantity." )
         // following block cointains legacy checks against message patterns in "msg" property
         // will switch "$code" checks eventually, when we know all of them
-        if (mb_strpos ($body, 'Price * QTY is zero or less') !== false)
-            throw new InvalidOrder ($this->id . ' order cost = amount * price is zero or less ' . $body);
-        if (mb_strpos ($body, 'LOT_SIZE') !== false)
-            throw new InvalidOrder ($this->id . ' order amount should be evenly divisible by lot size, use $this->amount_to_lots(symbol, amount) ' . $body);
-        if (mb_strpos ($body, 'PRICE_FILTER') !== false)
-            throw new InvalidOrder ($this->id . ' order price exceeds allowed price precision or invalid, use $this->price_to_precision(symbol, amount) ' . $body);
-        if (mb_strpos ($body, 'Order does not exist') !== false)
-            throw new OrderNotFound ($this->id . ' ' . $body);
-        // checks against $error codes
-        if (gettype ($body) == 'string') {
-            if (strlen ($body) > 0) {
-                if ($body[0] === '{') {
-                    $response = json_decode ($body, $as_associative_array = true);
-                    $error = $this->safe_string($response, 'code');
-                    if ($error !== null) {
-                        $exceptions = $this->exceptions;
-                        if (is_array ($exceptions) && array_key_exists ($error, $exceptions)) {
-                            throw new $exceptions[$error] ($this->id . ' ' . $this->json ($response));
-                        } else {
-                            throw new ExchangeError ($this->id . ' => unknown $error $code => ' . $this->json ($response));
-                        }
+        if ($code >= 400) {
+            if (mb_strpos ($body, 'Price * QTY is zero or less') !== false)
+                throw new InvalidOrder ($this->id . ' order cost = amount * price is zero or less ' . $body);
+            if (mb_strpos ($body, 'LOT_SIZE') !== false)
+                throw new InvalidOrder ($this->id . ' order amount should be evenly divisible by lot size, use $this->amount_to_lots(symbol, amount) ' . $body);
+            if (mb_strpos ($body, 'PRICE_FILTER') !== false)
+                throw new InvalidOrder ($this->id . ' order price exceeds allowed price precision or invalid, use $this->price_to_precision(symbol, amount) ' . $body);
+        }
+        if (strlen ($body) > 0) {
+            if ($body[0] === '{') {
+                $response = json_decode ($body, $as_associative_array = true);
+                // checks against $error codes
+                $error = $this->safe_string($response, 'code');
+                if ($error !== null) {
+                    $exceptions = $this->exceptions;
+                    if (is_array ($exceptions) && array_key_exists ($error, $exceptions)) {
+                        throw new $exceptions[$error] ($this->id . ' ' . $body);
+                    } else {
+                        throw new ExchangeError ($this->id . ' => unknown $error $code => ' . $body . ' ' . $error);
                     }
+                }
+                // check $success value for wapi endpoints
+                // $response in format array ('msg' => 'The coin does not exist.', 'success' => true/false)
+                $success = $this->safe_value($response, 'success', true);
+                if (!$success) {
+                    throw new ExchangeError ($this->id . ' => $success value false => ' . $body);
                 }
             }
         }

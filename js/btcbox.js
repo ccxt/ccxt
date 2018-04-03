@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, InsufficientFunds, InvalidOrder, AuthenticationError, PermissionDenied, InvalidNonce, OrderNotFound, DDoSProtection } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -47,6 +47,18 @@ module.exports = class btcbox extends Exchange {
             'markets': {
                 'BTC/JPY': { 'id': 'BTC/JPY', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY' },
             },
+            'exceptions': {
+                '104': AuthenticationError,
+                '105': PermissionDenied,
+                '106': InvalidNonce,
+                '107': InvalidOrder, // price should be an integer
+                '200': InsufficientFunds,
+                '201': InvalidOrder, // amount too small
+                '202': InvalidOrder, // price should be [0 : 1000000]
+                '203': OrderNotFound,
+                '401': OrderNotFound, // cancel canceled, closed or non-existent order
+                '402': DDoSProtection,
+            },
         });
     }
 
@@ -81,9 +93,7 @@ module.exports = class btcbox extends Exchange {
         if (numSymbols > 1)
             request['coin'] = market['id'];
         let orderbook = await this.publicGetDepth (this.extend (request, params));
-        let result = this.parseOrderBook (orderbook);
-        result['asks'] = this.sortBy (result['asks'], 0);
-        return result;
+        return this.parseOrderBook (orderbook);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -91,6 +101,7 @@ module.exports = class btcbox extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -98,12 +109,14 @@ module.exports = class btcbox extends Exchange {
             'high': this.safeFloat (ticker, 'high'),
             'low': this.safeFloat (ticker, 'low'),
             'bid': this.safeFloat (ticker, 'buy'),
+            'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'sell'),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': this.safeFloat (ticker, 'last'),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
@@ -140,7 +153,7 @@ module.exports = class btcbox extends Exchange {
     }
 
     parseTrade (trade, market) {
-        let timestamp = parseInt (trade['date']) * 1000;
+        let timestamp = parseInt (trade['date']) * 1000; // GMT time
         return {
             'info': trade,
             'id': trade['tid'],
@@ -191,6 +204,91 @@ module.exports = class btcbox extends Exchange {
         }, params));
     }
 
+    parseOrder (order) {
+        // {"id":11,"datetime":"2014-10-21 10:47:20","type":"sell","price":42000,"amount_original":1.2,"amount_outstanding":1.2,"status":"closed","trades":[]}
+        const id = this.safeString (order, 'id');
+        const timestamp = this.parse8601 (order['datetime'] + '+09:00'); // Tokyo time
+        const amount = this.safeFloat (order, 'amount_original');
+        const remaining = this.safeFloat (order, 'amount_outstanding');
+        let filled = undefined;
+        if (typeof amount !== 'undefined')
+            if (typeof remaining !== 'undefined')
+                filled = amount - remaining;
+        const price = this.safeFloat (order, 'price');
+        let cost = undefined;
+        if (typeof price !== 'undefined')
+            if (typeof filled !== 'undefined')
+                cost = filled * price;
+        // status is set by fetchOrder method only
+        const statuses = {
+            // TODO: complete list
+            'part': 'open', // partially or not at all executed
+            'all': 'closed', // fully executed
+            'cancelled': 'canceled',
+            'closed': 'closed', // never encountered, seems to be bug in the doc
+        };
+        let status = undefined;
+        if (order['status'] in statuses)
+            status = statuses[order['status']];
+        // fetchOrders do not return status, use heuristic
+        if (typeof status === 'undefined')
+            if (typeof remaining !== 'undefined' && remaining === 0)
+                status = 'closed';
+        let trades = undefined; // todo: this.parseTrades (order['trades']);
+        return {
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'amount': amount,
+            'remaining': remaining,
+            'filled': filled,
+            'side': order['type'],
+            'type': undefined,
+            'status': status,
+            'symbol': 'BTC/JPY',
+            'price': price,
+            'cost': cost,
+            'trades': trades,
+            'fee': undefined,
+            'info': order,
+        };
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privatePostTradeView (this.extend ({
+            'id': id,
+        }, params));
+        return this.parseOrder (response);
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privatePostTradeList (this.extend ({
+            'type': 'all', // 'open' or 'all'
+        }, params));
+        // status (open/closed/canceled) is undefined
+        return this.parseOrders (response);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privatePostTradeList (this.extend ({
+            'type': 'open', // 'open' or 'all'
+        }, params));
+        const orders = this.parseOrders (response);
+        // btcbox does not return status, but we know it's 'open' as we queried for open orders
+        for (let i = 0; i < orders.length; i++) {
+            const order = orders[i];
+            order['status'] = 'open';
+        }
+        return orders;
+    }
+
+    nonce () {
+        return this.milliseconds ();
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
         if (api === 'public') {
@@ -214,11 +312,21 @@ module.exports = class btcbox extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('result' in response)
-            if (!response['result'])
-                throw new ExchangeError (this.id + ' ' + this.json (response));
-        return response;
+    handleErrors (httpCode, reason, url, method, headers, body) {
+        // typical error response: {"result":false,"code":"401"}
+        if (httpCode >= 400)
+            return; // resort to defaultErrorHandler
+        if (body[0] !== '{')
+            return; // not json, resort to defaultErrorHandler
+        const response = JSON.parse (body);
+        const result = this.safeValue (response, 'result');
+        if (typeof result === 'undefined' || result === true)
+            return; // either public API (no error codes expected) or success
+        const errorCode = this.safeValue (response, 'code');
+        const feedback = this.id + ' ' + this.json (response);
+        const exceptions = this.exceptions;
+        if (errorCode in exceptions)
+            throw new exceptions[errorCode] (feedback);
+        throw new ExchangeError (feedback); // unknown message
     }
 };

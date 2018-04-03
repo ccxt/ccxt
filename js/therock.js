@@ -68,7 +68,7 @@ module.exports = class therock extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': 0.02 / 100,
+                    'maker': 0.2 / 100,
                     'taker': 0.2 / 100,
                 },
                 'funding': {
@@ -160,7 +160,9 @@ module.exports = class therock extends Exchange {
             'high': parseFloat (ticker['high']),
             'low': parseFloat (ticker['low']),
             'bid': parseFloat (ticker['bid']),
+            'bidVolume': undefined,
             'ask': parseFloat (ticker['ask']),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': parseFloat (ticker['open']),
             'close': last,

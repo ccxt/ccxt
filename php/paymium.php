@@ -96,9 +96,7 @@ class paymium extends Exchange {
         $orderbook = $this->publicGetDataIdDepth (array_merge (array (
             'id' => $this->market_id($symbol),
         ), $params));
-        $result = $this->parse_order_book($orderbook, null, 'bids', 'asks', 'price', 'amount');
-        $result['bids'] = $this->sort_by($result['bids'], 0, true);
-        return $result;
+        return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'price', 'amount');
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {
@@ -109,6 +107,7 @@ class paymium extends Exchange {
         $vwap = floatval ($ticker['vwap']);
         $baseVolume = floatval ($ticker['volume']);
         $quoteVolume = $baseVolume * $vwap;
+        $last = $this->safe_float($ticker, 'price');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -116,12 +115,14 @@ class paymium extends Exchange {
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => $this->safe_float($ticker, 'bid'),
+            'bidVolume' => null,
             'ask' => $this->safe_float($ticker, 'ask'),
+            'askVolume' => null,
             'vwap' => $vwap,
             'open' => $this->safe_float($ticker, 'open'),
-            'close' => null,
-            'first' => null,
-            'last' => $this->safe_float($ticker, 'price'),
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
             'change' => null,
             'percentage' => $this->safe_float($ticker, 'variation'),
             'average' => null,

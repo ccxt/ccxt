@@ -155,9 +155,7 @@ class gateio extends Exchange {
         $orderbook = $this->publicGetOrderBookId (array_merge (array (
             'id' => $this->market_id($symbol),
         ), $params));
-        $result = $this->parse_order_book($orderbook);
-        $result['asks'] = $this->sort_by($result['asks'], 0);
-        return $result;
+        return $this->parse_order_book($orderbook);
     }
 
     public function parse_ticker ($ticker, $market = null) {
@@ -165,6 +163,7 @@ class gateio extends Exchange {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
+        $last = floatval ($ticker['last']);
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -172,12 +171,14 @@ class gateio extends Exchange {
             'high' => floatval ($ticker['high24hr']),
             'low' => floatval ($ticker['low24hr']),
             'bid' => floatval ($ticker['highestBid']),
+            'bidVolume' => null,
             'ask' => floatval ($ticker['lowestAsk']),
+            'askVolume' => null,
             'vwap' => null,
             'open' => null,
-            'close' => null,
-            'first' => null,
-            'last' => floatval ($ticker['last']),
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
             'change' => floatval ($ticker['percentChange']),
             'percentage' => null,
             'average' => null,
@@ -329,9 +330,18 @@ class gateio extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (is_array ($response) && array_key_exists ('result', $response))
-            if ($response['result'] !== 'true')
-                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+        if (is_array ($response) && array_key_exists ('result', $response)) {
+            $result = $response['result'];
+            $message = $this->id . ' ' . $this->json ($response);
+            if ($result === null)
+                throw new ExchangeError ($message);
+            if (gettype ($result) == 'string') {
+                if ($result !== 'true')
+                    throw new ExchangeError ($message);
+            } else if (!$result) {
+                throw new ExchangeError ($message);
+            }
+        }
         return $response;
     }
 }

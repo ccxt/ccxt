@@ -2,37 +2,39 @@
 
 """CCXT: CryptoCurrency eXchange Trading Library"""
 
-"""
-MIT License
-
-Copyright (c) 2017 Igor Kroitor
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-"""
+# MIT License
+# Copyright (c) 2017 Igor Kroitor
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.11.83'
+__version__ = '1.12.63'
 
 # ----------------------------------------------------------------------------
 
 from ccxt.base.exchange import Exchange                     # noqa: F401
+
+from ccxt.base.decimal_to_precision import decimal_to_precision  # noqa: F401
+from ccxt.base.decimal_to_precision import TRUNCATE              # noqa: F401
+from ccxt.base.decimal_to_precision import ROUND                 # noqa: F401
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES        # noqa: F401
+from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS    # noqa: F401
+from ccxt.base.decimal_to_precision import NO_PADDING            # noqa: F401
+from ccxt.base.decimal_to_precision import PAD_WITH_ZERO         # noqa: F401
 
 from ccxt.base import errors                                # noqa: F401
 from ccxt.base.errors import BaseError                      # noqa: F401
@@ -60,8 +62,8 @@ from ccxt.anxpro import anxpro                              # noqa: F401
 from ccxt.bibox import bibox                                # noqa: F401
 from ccxt.binance import binance                            # noqa: F401
 from ccxt.bit2c import bit2c                                # noqa: F401
+from ccxt.bitbank import bitbank                            # noqa: F401
 from ccxt.bitbay import bitbay                              # noqa: F401
-from ccxt.bitcoincoid import bitcoincoid                    # noqa: F401
 from ccxt.bitfinex import bitfinex                          # noqa: F401
 from ccxt.bitfinex2 import bitfinex2                        # noqa: F401
 from ccxt.bitflyer import bitflyer                          # noqa: F401
@@ -93,17 +95,22 @@ from ccxt.chilebit import chilebit                          # noqa: F401
 from ccxt.cobinhood import cobinhood                        # noqa: F401
 from ccxt.coincheck import coincheck                        # noqa: F401
 from ccxt.coinegg import coinegg                            # noqa: F401
+from ccxt.coinex import coinex                              # noqa: F401
 from ccxt.coinexchange import coinexchange                  # noqa: F401
 from ccxt.coinfloor import coinfloor                        # noqa: F401
 from ccxt.coingi import coingi                              # noqa: F401
 from ccxt.coinmarketcap import coinmarketcap                # noqa: F401
 from ccxt.coinmate import coinmate                          # noqa: F401
+from ccxt.coinnest import coinnest                          # noqa: F401
+from ccxt.coinone import coinone                            # noqa: F401
 from ccxt.coinsecure import coinsecure                      # noqa: F401
 from ccxt.coinspot import coinspot                          # noqa: F401
 from ccxt.coolcoin import coolcoin                          # noqa: F401
 from ccxt.cryptopia import cryptopia                        # noqa: F401
 from ccxt.dsx import dsx                                    # noqa: F401
+from ccxt.ethfinex import ethfinex                          # noqa: F401
 from ccxt.exmo import exmo                                  # noqa: F401
+from ccxt.exx import exx                                    # noqa: F401
 from ccxt.flowbtc import flowbtc                            # noqa: F401
 from ccxt.foxbit import foxbit                              # noqa: F401
 from ccxt.fybse import fybse                                # noqa: F401
@@ -113,24 +120,29 @@ from ccxt.gateio import gateio                              # noqa: F401
 from ccxt.gdax import gdax                                  # noqa: F401
 from ccxt.gemini import gemini                              # noqa: F401
 from ccxt.getbtc import getbtc                              # noqa: F401
+from ccxt.hadax import hadax                                # noqa: F401
 from ccxt.hitbtc import hitbtc                              # noqa: F401
 from ccxt.hitbtc2 import hitbtc2                            # noqa: F401
 from ccxt.huobi import huobi                                # noqa: F401
 from ccxt.huobicny import huobicny                          # noqa: F401
 from ccxt.huobipro import huobipro                          # noqa: F401
+from ccxt.ice3x import ice3x                                # noqa: F401
 from ccxt.independentreserve import independentreserve      # noqa: F401
+from ccxt.indodax import indodax                            # noqa: F401
 from ccxt.itbit import itbit                                # noqa: F401
 from ccxt.jubi import jubi                                  # noqa: F401
 from ccxt.kraken import kraken                              # noqa: F401
 from ccxt.kucoin import kucoin                              # noqa: F401
 from ccxt.kuna import kuna                                  # noqa: F401
 from ccxt.lakebtc import lakebtc                            # noqa: F401
+from ccxt.lbank import lbank                                # noqa: F401
 from ccxt.liqui import liqui                                # noqa: F401
 from ccxt.livecoin import livecoin                          # noqa: F401
 from ccxt.luno import luno                                  # noqa: F401
 from ccxt.lykke import lykke                                # noqa: F401
 from ccxt.mercado import mercado                            # noqa: F401
 from ccxt.mixcoins import mixcoins                          # noqa: F401
+from ccxt.negociecoins import negociecoins                  # noqa: F401
 from ccxt.nova import nova                                  # noqa: F401
 from ccxt.okcoincny import okcoincny                        # noqa: F401
 from ccxt.okcoinusd import okcoinusd                        # noqa: F401
@@ -164,8 +176,8 @@ exchanges = [
     'bibox',
     'binance',
     'bit2c',
+    'bitbank',
     'bitbay',
-    'bitcoincoid',
     'bitfinex',
     'bitfinex2',
     'bitflyer',
@@ -197,17 +209,22 @@ exchanges = [
     'cobinhood',
     'coincheck',
     'coinegg',
+    'coinex',
     'coinexchange',
     'coinfloor',
     'coingi',
     'coinmarketcap',
     'coinmate',
+    'coinnest',
+    'coinone',
     'coinsecure',
     'coinspot',
     'coolcoin',
     'cryptopia',
     'dsx',
+    'ethfinex',
     'exmo',
+    'exx',
     'flowbtc',
     'foxbit',
     'fybse',
@@ -217,24 +234,29 @@ exchanges = [
     'gdax',
     'gemini',
     'getbtc',
+    'hadax',
     'hitbtc',
     'hitbtc2',
     'huobi',
     'huobicny',
     'huobipro',
+    'ice3x',
     'independentreserve',
+    'indodax',
     'itbit',
     'jubi',
     'kraken',
     'kucoin',
     'kuna',
     'lakebtc',
+    'lbank',
     'liqui',
     'livecoin',
     'luno',
     'lykke',
     'mercado',
     'mixcoins',
+    'negociecoins',
     'nova',
     'okcoincny',
     'okcoinusd',
@@ -263,6 +285,7 @@ exchanges = [
 base = [
     'Exchange',
     'exchanges',
+    'decimal_to_precision',
 ]
 
 __all__ = base + errors.__all__ + exchanges

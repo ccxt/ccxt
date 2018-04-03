@@ -232,24 +232,7 @@ class zb extends Exchange {
         $request = array ();
         $request[$marketFieldName] = $market['id'];
         $orderbook = $this->publicGetDepth (array_merge ($request, $params));
-        $timestamp = $this->milliseconds ();
-        $bids = null;
-        $asks = null;
-        if (is_array ($orderbook) && array_key_exists ('bids', $orderbook))
-            $bids = $orderbook['bids'];
-        if (is_array ($orderbook) && array_key_exists ('asks', $orderbook))
-            $asks = $orderbook['asks'];
-        $result = array (
-            'bids' => $bids,
-            'asks' => $asks,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-        );
-        if ($result['bids'])
-            $result['bids'] = $this->sort_by($result['bids'], 0, true);
-        if ($result['asks'])
-            $result['asks'] = $this->sort_by($result['asks'], 0);
-        return $result;
+        return $this->parse_order_book($orderbook);
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {
@@ -261,6 +244,7 @@ class zb extends Exchange {
         $response = $this->publicGetTicker (array_merge ($request, $params));
         $ticker = $response['ticker'];
         $timestamp = $this->milliseconds ();
+        $last = floatval ($ticker['last']);
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -268,12 +252,14 @@ class zb extends Exchange {
             'high' => floatval ($ticker['high']),
             'low' => floatval ($ticker['low']),
             'bid' => floatval ($ticker['buy']),
+            'bidVolume' => null,
             'ask' => floatval ($ticker['sell']),
+            'askVolume' => null,
             'vwap' => null,
             'open' => null,
-            'close' => null,
-            'first' => null,
-            'last' => floatval ($ticker['last']),
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,

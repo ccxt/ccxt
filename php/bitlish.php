@@ -114,23 +114,11 @@ class bitlish extends Exchange {
                     ),
                 ),
             ),
+            'commonCurrencies' => array (
+                'DSH' => 'DASH',
+                'XDG' => 'DOGE',
+            ),
         ));
-    }
-
-    public function common_currency_code ($currency) {
-        if (!$this->substituteCommonCurrencyCodes)
-            return $currency;
-        if ($currency === 'XBT')
-            return 'BTC';
-        if ($currency === 'BCC')
-            return 'BCH';
-        if ($currency === 'DRK')
-            return 'DASH';
-        if ($currency === 'DSH')
-            $currency = 'DASH';
-        if ($currency === 'XDG')
-            $currency = 'DOGE';
-        return $currency;
     }
 
     public function fetch_markets () {
@@ -168,8 +156,10 @@ class bitlish extends Exchange {
             'symbol' => $symbol,
             'high' => $this->safe_float($ticker, 'max'),
             'low' => $this->safe_float($ticker, 'min'),
-            'bid' => null,
-            'ask' => null,
+            'bid' => $this->safe_float($ticker, 'bid'),
+            'bidVolume' => null,
+            'ask' => $this->safe_float($ticker, 'ask'),
+            'askVolume' => null,
             'vwap' => null,
             'open' => $this->safe_float($ticker, 'first'),
             'close' => $last,

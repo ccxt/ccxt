@@ -65,58 +65,29 @@ class yobit (liqui):
                     'withdraw': {},
                 },
             },
+            'commonCurrencies': {
+                'AIR': 'AirCoin',
+                'ANI': 'ANICoin',
+                'ANT': 'AntsCoin',
+                'ATM': 'Autumncoin',
+                'BCC': 'BCH',
+                'BCS': 'BitcoinStake',
+                'BTS': 'Bitshares2',
+                'DCT': 'Discount',
+                'DGD': 'DarkGoldCoin',
+                'ICN': 'iCoin',
+                'LIZI': 'LiZi',
+                'LUN': 'LunarCoin',
+                'MDT': 'Midnight',
+                'NAV': 'NavajoCoin',
+                'OMG': 'OMGame',
+                'PAY': 'EPAY',
+                'REP': 'Republicoin',
+            },
             'options': {
                 'fetchOrdersRequiresSymbol': True,
             },
         })
-
-    def common_currency_code(self, currency):
-        substitutions = {
-            'AIR': 'AirCoin',
-            'ANI': 'ANICoin',
-            'ANT': 'AntsCoin',
-            'ATM': 'Autumncoin',
-            'BCC': 'BCH',
-            'BCS': 'BitcoinStake',
-            'BTS': 'Bitshares2',
-            'DCT': 'Discount',
-            'DGD': 'DarkGoldCoin',
-            'ICN': 'iCoin',
-            'LIZI': 'LiZi',
-            'LUN': 'LunarCoin',
-            'MDT': 'Midnight',
-            'NAV': 'NavajoCoin',
-            'OMG': 'OMGame',
-            'PAY': 'EPAY',
-            'REP': 'Republicoin',
-        }
-        if currency in substitutions:
-            return substitutions[currency]
-        return currency
-
-    def currency_id(self, commonCode):
-        substitutions = {
-            'AirCoin': 'AIR',
-            'ANICoin': 'ANI',
-            'AntsCoin': 'ANT',
-            'Autumncoin': 'ATM',
-            'BCH': 'BCC',
-            'BitcoinStake': 'BCS',
-            'Bitshares2': 'BTS',
-            'Discount': 'DCT',
-            'DarkGoldCoin': 'DGD',
-            'iCoin': 'ICN',
-            'LiZi': 'LIZI',
-            'LunarCoin': 'LUN',
-            'Midnight': 'MDT',
-            'NavajoCoin': 'NAV',
-            'OMGame': 'OMG',
-            'EPAY': 'PAY',
-            'Republicoin': 'REP',
-        }
-        if commonCode in substitutions:
-            return substitutions[commonCode]
-        return commonCode
 
     def parse_order_status(self, status):
         statuses = {
@@ -156,30 +127,30 @@ class yobit (liqui):
                     result[currency] = account
         return self.parse_balance(result)
 
-    async def create_deposit_address(self, currency, params={}):
-        response = await self.fetch_deposit_address(currency, self.extend({
+    async def create_deposit_address(self, code, params={}):
+        response = await self.fetch_deposit_address(code, self.extend({
             'need_new': 1,
         }, params))
         address = self.safe_string(response, 'address')
         self.check_address(address)
         return {
-            'currency': currency,
+            'currency': code,
             'address': address,
             'status': 'ok',
             'info': response['info'],
         }
 
-    async def fetch_deposit_address(self, currency, params={}):
-        currencyId = self.currency_id(currency)
+    async def fetch_deposit_address(self, code, params={}):
+        currency = self.currency(code)
         request = {
-            'coinName': currencyId,
+            'coinName': currency['id'],
             'need_new': 0,
         }
         response = await self.privatePostGetDepositAddress(self.extend(request, params))
         address = self.safe_string(response['return'], 'address')
         self.check_address(address)
         return {
-            'currency': currency,
+            'currency': code,
             'address': address,
             'status': 'ok',
             'info': response,

@@ -219,6 +219,7 @@ class gdax (Exchange):
             bid = self.safe_float(ticker, 'bid')
         if 'ask' in ticker:
             ask = self.safe_float(ticker, 'ask')
+        last = self.safe_float(ticker, 'price')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -226,12 +227,14 @@ class gdax (Exchange):
             'high': None,
             'low': None,
             'bid': bid,
+            'bidVolume': None,
             'ask': ask,
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': self.safe_float(ticker, 'price'),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
@@ -335,7 +338,7 @@ class gdax (Exchange):
             request['start'] = self.ymdhms(since)
             if limit is None:
                 # https://docs.gdax.com/#get-historic-rates
-                limit = 350  # max = 350
+                limit = 300  # max = 300
             request['end'] = self.ymdhms(self.sum(limit * granularity * 1000, since))
         response = self.publicGetProductsIdCandles(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)

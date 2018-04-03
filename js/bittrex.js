@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection, PermissionDenied } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -147,6 +147,7 @@ module.exports = class bittrex extends Exchange {
                 'ORDER_NOT_OPEN': InvalidOrder,
                 'UUID_INVALID': OrderNotFound,
                 'RATE_NOT_PROVIDED': InvalidOrder, // createLimitBuyOrder ('ETH/BTC', 1, 0)
+                'WHITELIST_VIOLATION_IP': PermissionDenied,
             },
         });
     }
@@ -247,7 +248,14 @@ module.exports = class bittrex extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = this.parse8601 (ticker['TimeStamp'] + '+00:00');
+        let timestamp = this.safeString (ticker, 'TimeStamp');
+        let iso8601 = undefined;
+        if (typeof timestamp === 'string') {
+            if (timestamp.length > 0) {
+                timestamp = this.parse8601 (timestamp);
+                iso8601 = this.iso8601 (timestamp);
+            }
+        }
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
@@ -264,16 +272,18 @@ module.exports = class bittrex extends Exchange {
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': iso8601,
             'high': this.safeFloat (ticker, 'High'),
             'low': this.safeFloat (ticker, 'Low'),
             'bid': this.safeFloat (ticker, 'Bid'),
+            'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'Ask'),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
+            'close': last,
             'last': last,
+            'previousClose': undefined,
             'change': change,
             'percentage': percentage,
             'average': undefined,
@@ -604,12 +614,6 @@ module.exports = class bittrex extends Exchange {
         return this.filterBy (orders, 'status', 'closed');
     }
 
-    currencyId (currency) {
-        if (currency === 'BCH')
-            return 'BCC';
-        return currency;
-    }
-
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
         let currency = this.currency (code);
@@ -636,11 +640,11 @@ module.exports = class bittrex extends Exchange {
         };
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
-        let currencyId = this.currencyId (currency);
+        let currency = this.currency (code);
         let request = {
-            'currency': currencyId,
+            'currency': currency['id'],
             'quantity': amount,
             'address': address,
         };

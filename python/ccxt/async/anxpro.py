@@ -114,6 +114,7 @@ class anxpro (Exchange):
         bid = self.safe_float(ticker['buy'], 'value')
         ask = self.safe_float(ticker['sell'], 'value')
         baseVolume = float(ticker['vol']['value'])
+        last = float(ticker['last']['value'])
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -121,12 +122,14 @@ class anxpro (Exchange):
             'high': float(ticker['high']['value']),
             'low': float(ticker['low']['value']),
             'bid': bid,
+            'bidVolume': None,
             'ask': ask,
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['last']['value']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': float(ticker['avg']['value']),
@@ -209,7 +212,8 @@ class anxpro (Exchange):
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = await self.fetch2(path, api, method, params, headers, body)
-        if 'result' in response:
-            if response['result'] == 'success':
-                return response
+        if response is not None:
+            if 'result' in response:
+                if response['result'] == 'success':
+                    return response
         raise ExchangeError(self.id + ' ' + self.json(response))
