@@ -33,12 +33,13 @@ class huobipro (Exchange):
             'hostname': 'api.huobipro.com',
             'has': {
                 'CORS': False,
-                'fetchTradingLimits': True,
-                'fetchOHCLV': True,
-                'fetchOrders': True,
-                'fetchOrder': True,
-                'fetchOpenOrders': True,
                 'fetchDepositAddress': True,
+                'fetchClosedOrders': 'emulated',
+                'fetchOHCLV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrders': True,
+                'fetchTradingLimits': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -191,9 +192,9 @@ class huobipro (Exchange):
             response = self.publicGetCommonExchange(self.extend({
                 'symbol': market['id'],
             }))
-            limits = self.parse_trading_limits(response)
+            limit = self.parse_trading_limits(response)
             info[symbol] = response
-            limits[symbol] = limits
+            limits[symbol] = limit
         return {
             'limits': limits,
             'info': info,
@@ -413,9 +414,13 @@ class huobipro (Exchange):
         return self.parse_orders(response['data'], market, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        open = 0  # 0 for unfilled orders, 1 for filled orders
         return self.fetch_orders(symbol, None, None, self.extend({
-            'status': open,
+            'status': 0,  # 0 for unfilled orders, 1 for filled orders
+        }, params))
+
+    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        return self.fetch_orders(symbol, None, None, self.extend({
+            'status': 1,  # 0 for unfilled orders, 1 for filled orders
         }, params))
 
     def fetch_order(self, id, symbol=None, params={}):

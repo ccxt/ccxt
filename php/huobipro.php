@@ -20,12 +20,13 @@ class huobipro extends Exchange {
             'hostname' => 'api.huobipro.com',
             'has' => array (
                 'CORS' => false,
-                'fetchTradingLimits' => true,
-                'fetchOHCLV' => true,
-                'fetchOrders' => true,
-                'fetchOrder' => true,
-                'fetchOpenOrders' => true,
                 'fetchDepositAddress' => true,
+                'fetchClosedOrders' => 'emulated',
+                'fetchOHCLV' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrders' => true,
+                'fetchTradingLimits' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array (
@@ -184,9 +185,9 @@ class huobipro extends Exchange {
             $response = $this->publicGetCommonExchange (array_merge (array (
                 'symbol' => $market['id'],
             )));
-            $limits = $this->parse_trading_limits ($response);
+            $limit = $this->parse_trading_limits ($response);
             $info[$symbol] = $response;
-            $limits[$symbol] = $limits;
+            $limits[$symbol] = $limit;
         }
         return array (
             'limits' => $limits,
@@ -436,9 +437,14 @@ class huobipro extends Exchange {
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $open = 0; // 0 for unfilled orders, 1 for filled orders
         return $this->fetch_orders($symbol, null, null, array_merge (array (
-            'status' => $open,
+            'status' => 0, // 0 for unfilled orders, 1 for filled orders
+        ), $params));
+    }
+
+    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_orders($symbol, null, null, array_merge (array (
+            'status' => 1, // 0 for unfilled orders, 1 for filled orders
         ), $params));
     }
 
