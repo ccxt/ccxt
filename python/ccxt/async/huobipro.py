@@ -167,7 +167,7 @@ class huobipro (Exchange):
 
     async def load_trading_limits(self, symbols=None, reload=False, params={}):
         if reload or not('limitsLoaded' in list(self.options.keys())):
-            response = self.fetch_trading_limits(symbols)
+            response = await self.fetch_trading_limits(symbols)
             limits = response['limits']
             keys = list(limits.keys())
             for i in range(0, len(keys)):
