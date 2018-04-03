@@ -443,6 +443,15 @@ module.exports = class gatecoin extends Exchange {
         return await this.privateDeleteTradeOrdersOrderID ({ 'OrderID': id });
     }
 
+    parseOrderStatus (status) {
+        const statuses = {
+            '6': 'closed',
+        };
+        if (status in statuses)
+            return statuses[status];
+        return status;
+    }
+
     parseOrder (order, market = undefined) {
         let side = (order['side'] === 0) ? 'buy' : 'sell';
         let type = (order['type'] === 0) ? 'limit' : 'market';
@@ -461,22 +470,17 @@ module.exports = class gatecoin extends Exchange {
         let price = order['price'];
         let cost = price * filled;
         let id = order['clOrderId'];
-        let status = 'open';
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
         let trades = undefined;
-        const fees = {
-            'cost': undefined,
-            'currency': undefined,
-            'rate': undefined,
-        };
-        if (order['status'] === 6) {
-            status = 'closed';
+        let fee = undefined;
+        if (status === 'closed') {
             let tradesFilled = undefined;
             let tradesCost = undefined;
             trades = [];
             let transactions = this.safeValue (order, 'trades');
-            let feeCost = 0.0;
+            let feeCost = undefined;
             let feeCurrency = undefined;
-            let feeRate = 0.0;
+            let feeRate = undefined;
             if (typeof transactions !== 'undefined') {
                 if (Array.isArray (transactions)) {
                     for (let i = 0; i < transactions.length; i++) {
@@ -484,20 +488,38 @@ module.exports = class gatecoin extends Exchange {
                         if (typeof tradesFilled === 'undefined')
                             tradesFilled = 0.0;
                         if (typeof tradesCost === 'undefined')
-                        tradesCost = 0.0;
+                            tradesCost = 0.0;
                         tradesFilled += trade['amount'];
                         tradesCost += trade['amount'] * trade['price'];
                         if ('fee' in trade) {
-                            feeCost += trade['fee']['cost'];
+                            if (typeof trade['fee']['cost'] !== 'undefined') {
+                                if (typeof feeCost === 'undefined')
+                                    feeCost = 0.0;
+                                feeCost += trade['fee']['cost'];
+                            }
                             feeCurrency = trade['fee']['currency'];
-                            feeRate += trade['fee']['rate'];
+                            if (typeof trade['fee']['rate'] !== 'undefined') {
+                                if (typeof feeRate === 'undefined')
+                                    feeRate = 0.0;
+                                feeRate += trade['fee']['rate'];
+                            }
                         }
                         trades.push (trade);
                     }
-                    price = tradesCost / tradesFilled;
-                    fees['cost'] = feeCost;
-                    fees['currency'] = feeCurrency;
-                    fees['rate'] = feeRate / transactions.length;
+                    if ((typeof tradesFilled !== 'undefined') && (tradesFilled > 0))
+                        price = tradesCost / tradesFilled;
+                    if (typeof feeRate !== 'undefined') {
+                        let numTrades = trades.length;
+                        if (numTrades > 0)
+                            feeRate = feeRate / numTrades;
+                    }
+                    if (typeof feeCost !== 'undefined') {
+                        fee = {
+                            'cost': feeCost,
+                            'currency': feeCurrency,
+                            'rate': feeRate,
+                        };
+                    }
                 }
             }
         }
@@ -515,7 +537,7 @@ module.exports = class gatecoin extends Exchange {
             'remaining': remaining,
             'cost': cost,
             'trades': trades,
-            'fee': fees,
+            'fee': fee,
             'info': order,
         };
         return result;
