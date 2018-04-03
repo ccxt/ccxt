@@ -89,20 +89,21 @@ module.exports = class livecoin extends Exchange {
             'exceptions': {
                 '1': ExchangeError,
                 '10': AuthenticationError,
-                '11': AuthenticationError,
-                '12': AuthenticationError,
-                '20': AuthenticationError,
-                '30': AuthenticationError,
+                '100': ExchangeError, // invalid parameters
                 '101': AuthenticationError,
                 '102': AuthenticationError,
-                '31': NotSupported,
-                '32': ExchangeError,
-                '100': ExchangeError, // invalid parameters
                 '103': InvalidOrder, // invalid currency
                 '104': InvalidOrder, // invalid amount
                 '105': InvalidOrder, // unable to block funds
-                '503': ExchangeNotAvailable,
+                '11': AuthenticationError,
+                '12': AuthenticationError,
+                '2': AuthenticationError, // "User not found"
+                '20': AuthenticationError,
+                '30': AuthenticationError,
+                '31': NotSupported,
+                '32': ExchangeError,
                 '429': DDoSProtection,
+                '503': ExchangeNotAvailable,
             },
         });
     }
@@ -523,7 +524,7 @@ module.exports = class livecoin extends Exchange {
         let response = await this.privatePostPaymentOutCoin (this.extend (withdrawal, params));
         let id = this.safeInteger (response, 'id');
         if (typeof id === 'undefined')
-            throw new InsufficientFunds (this.id + ' consider withdrawal fees ' + this.json (response));
+            throw new InsufficientFunds (this.id + ' insufficient funds to cover requested withdrawal amount post fees ' + this.json (response));
         return {
             'info': response,
             'id': id,
@@ -575,26 +576,16 @@ module.exports = class livecoin extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body) {
+        if (typeof body !== 'string')
+            return;
         if (body[0] === '{') {
             let response = JSON.parse (body);
             if (code >= 300) {
-                if ('errorCode' in response) {
-                    let error = this.safeString (response, 'errorCode');
-                    if (typeof error !== 'undefined') {
-                        let excKeys = Object.keys (this.exceptions);
-                        for (let i = 0; i < excKeys.length; i++) {
-                            let excErrorCode = excKeys[i];
-                            if (error === excErrorCode) {
-                                throw new this.exceptions[excErrorCode] (this.id + ' ' + body);
-                            }
-                        }
-                    }
-                    if (error === 2) {
-                        if ('errorMessage' in response) {
-                            if (response['errorMessage'] === 'User not found')
-                                throw new AuthenticationError (this.id + ' ' + response['errorMessage']);
-                        }
-                    }
+                let errorCode = this.safeString (response, 'errorCode');
+                if (errorCode in this.exceptions) {
+                    let ExceptionClass = this.exceptions[errorCode];
+                    throw new ExceptionClass (this.id + ' ' + body);
+                } else {
                     throw new ExchangeError (this.id + ' ' + body);
                 }
             }
