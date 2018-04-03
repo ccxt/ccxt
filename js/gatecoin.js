@@ -470,8 +470,8 @@ module.exports = class gatecoin extends Exchange {
         };
         if (order['status'] === 6) {
             status = 'closed';
-            filled = 0.0;
-            price = 0.0;
+            let tradesFilled = undefined;
+            let tradesCost = undefined;
             trades = [];
             let transactions = this.safeValue (order, 'trades');
             let feeCost = 0.0;
@@ -481,8 +481,12 @@ module.exports = class gatecoin extends Exchange {
                 if (Array.isArray (transactions)) {
                     for (let i = 0; i < transactions.length; i++) {
                         let trade = this.parseTrade (transactions[i]);
-                        filled += trade['amount'];
-                        price += trade['amount'] * trade['price'];
+                        if (typeof tradesFilled === 'undefined')
+                            tradesFilled = 0.0;
+                        if (typeof tradesCost === 'undefined')
+                        tradesCost = 0.0;
+                        tradesFilled += trade['amount'];
+                        tradesCost += trade['amount'] * trade['price'];
                         if ('fee' in trade) {
                             feeCost += trade['fee']['cost'];
                             feeCurrency = trade['fee']['currency'];
@@ -490,8 +494,7 @@ module.exports = class gatecoin extends Exchange {
                         }
                         trades.push (trade);
                     }
-                    cost = price;
-                    price = price / filled;
+                    price = tradesCost / tradesFilled;
                     fees['cost'] = feeCost;
                     fees['currency'] = feeCurrency;
                     fees['rate'] = feeRate / transactions.length;
