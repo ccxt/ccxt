@@ -498,13 +498,14 @@ module.exports = class zb extends Exchange {
             return; // fallback to default error handler
         if (body[0] === '{') {
             let response = JSON.parse (body);
+            this.last_json_response = response;
             if ('code' in response) {
-                let error = this.safeString (response, 'code');
+                let code = this.safeString (response, 'code');
                 let message = this.id + ' ' + this.json (response);
-                if (error in this.exceptions) {
-                    let ExceptionClass = this.exceptions[error];
+                if (code in this.exceptions) {
+                    let ExceptionClass = this.exceptions[code];
                     throw new ExceptionClass (message);
-                } else if (error !== '1000') {
+                } else if (code !== '1000') {
                     throw new ExchangeError (message);
                 }
             }
