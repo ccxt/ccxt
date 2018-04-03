@@ -16,6 +16,7 @@ import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import OrderNotFound
 
 
 class huobipro (Exchange):
@@ -114,6 +115,8 @@ class huobipro (Exchange):
             },
             'exceptions': {
                 'order-limitorder-amount-min-error': InvalidOrder,  # limit order amount error, min: `0.001`
+                'order-orderstate-error': OrderNotFound,  # canceling an already canceled order
+                'order-queryorder-invalid': OrderNotFound,  # querying a non-existent order
             },
         })
 
@@ -613,8 +616,7 @@ class huobipro (Exchange):
                 if status == 'error':
                     code = self.safe_string(response, 'err-code')
                     feedback = self.id + ' ' + self.json(response)
-                    message = self.safe_string(response, 'err-msg', feedback)
                     exceptions = self.exceptions
                     if code in exceptions:
-                        raise exceptions[code](message)
-                    raise ExchangeError(message)
+                        raise exceptions[code](feedback)
+                    raise ExchangeError(feedback)

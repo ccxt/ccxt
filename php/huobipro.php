@@ -101,6 +101,8 @@ class huobipro extends Exchange {
             ),
             'exceptions' => array (
                 'order-limitorder-amount-min-error' => '\\ccxt\\InvalidOrder', // limit order amount error, min => `0.001`
+                'order-orderstate-error' => '\\ccxt\\OrderNotFound', // canceling an already canceled order
+                'order-queryorder-invalid' => '\\ccxt\\OrderNotFound', // querying a non-existent order
             ),
         ));
     }
@@ -657,12 +659,11 @@ class huobipro extends Exchange {
                 if ($status === 'error') {
                     $code = $this->safe_string($response, 'err-code');
                     $feedback = $this->id . ' ' . $this->json ($response);
-                    $message = $this->safe_string($response, 'err-msg', $feedback);
                     $exceptions = $this->exceptions;
                     if (is_array ($exceptions) && array_key_exists ($code, $exceptions)) {
-                        throw new $exceptions[$code] ($message);
+                        throw new $exceptions[$code] ($feedback);
                     }
-                    throw new ExchangeError ($message);
+                    throw new ExchangeError ($feedback);
                 }
             }
         }
