@@ -89,6 +89,8 @@ class coinmarketcap (Exchange):
 
     def currency_code(self, base, name):
         currencies = {
+            'AdCoin': 'AdCoin',
+            'ACChain': 'ACChain',
             'BatCoin': 'BatCoin',
             'Bitgem': 'Bitgem',
             'BlockCAT': 'BlockCAT',
