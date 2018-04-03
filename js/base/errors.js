@@ -23,12 +23,12 @@ module.exports = subclass (
                 , 'OrderNotCached':         {}
                 , 'CancelPending':          {}
                 }
-            , 'NetworkError':
-                { 'DDoSProtection':         {}
-                , 'RequestTimeout':         {}
-                , 'ExchangeNotAvailable':   {}
-                , 'InvalidNonce':           {}
-                }
+            }
+        , 'NetworkError':
+            { 'DDoSProtection':         {}
+            , 'RequestTimeout':         {}
+            , 'ExchangeNotAvailable':   {}
+            , 'InvalidNonce':           {}
             }
         }
     }

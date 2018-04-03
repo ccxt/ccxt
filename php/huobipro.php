@@ -20,12 +20,13 @@ class huobipro extends Exchange {
             'hostname' => 'api.huobipro.com',
             'has' => array (
                 'CORS' => false,
-                'fetchTradingLimits' => true,
-                'fetchOHCLV' => true,
-                'fetchOrders' => true,
-                'fetchOrder' => true,
-                'fetchOpenOrders' => true,
                 'fetchDepositAddress' => true,
+                'fetchClosedOrders' => 'emulated',
+                'fetchOHCLV' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrders' => true,
+                'fetchTradingLimits' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array (
@@ -100,6 +101,8 @@ class huobipro extends Exchange {
             ),
             'exceptions' => array (
                 'order-limitorder-amount-min-error' => '\\ccxt\\InvalidOrder', // limit order amount error, min => `0.001`
+                'order-orderstate-error' => '\\ccxt\\OrderNotFound', // canceling an already canceled order
+                'order-queryorder-invalid' => '\\ccxt\\OrderNotFound', // querying a non-existent order
             ),
         ));
     }
@@ -184,9 +187,9 @@ class huobipro extends Exchange {
             $response = $this->publicGetCommonExchange (array_merge (array (
                 'symbol' => $market['id'],
             )));
-            $limits = $this->parse_trading_limits ($response);
+            $limit = $this->parse_trading_limits ($response);
             $info[$symbol] = $response;
-            $limits[$symbol] = $limits;
+            $limits[$symbol] = $limit;
         }
         return array (
             'limits' => $limits,
@@ -436,9 +439,14 @@ class huobipro extends Exchange {
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $open = 0; // 0 for unfilled orders, 1 for filled orders
         return $this->fetch_orders($symbol, null, null, array_merge (array (
-            'status' => $open,
+            'status' => 0, // 0 for unfilled orders, 1 for filled orders
+        ), $params));
+    }
+
+    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_orders($symbol, null, null, array_merge (array (
+            'status' => 1, // 0 for unfilled orders, 1 for filled orders
         ), $params));
     }
 
@@ -651,12 +659,11 @@ class huobipro extends Exchange {
                 if ($status === 'error') {
                     $code = $this->safe_string($response, 'err-code');
                     $feedback = $this->id . ' ' . $this->json ($response);
-                    $message = $this->safe_string($response, 'err-msg', $feedback);
                     $exceptions = $this->exceptions;
                     if (is_array ($exceptions) && array_key_exists ($code, $exceptions)) {
-                        throw new $exceptions[$code] ($message);
+                        throw new $exceptions[$code] ($feedback);
                     }
-                    throw new ExchangeError ($message);
+                    throw new ExchangeError ($feedback);
                 }
             }
         }

@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.12.61';
+$version = '1.12.73';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -915,7 +915,7 @@ abstract class Exchange {
         );
 
         // user-defined cURL options (if any)
-        if ($this->curl_options)
+        if (!empty($this->curl_options))
             curl_setopt_array ($this->curl, $this->curl_options);
 
         $result = curl_exec ($this->curl);

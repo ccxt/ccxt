@@ -180,9 +180,12 @@ class paymium (Exchange):
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
-            body = self.json(params)
             nonce = str(self.nonce())
-            auth = nonce + url + body
+            auth = nonce + url
+            if method == 'POST':
+                if query:
+                    body = self.json(query)
+                    auth += body
             headers = {
                 'Api-Key': self.apiKey,
                 'Api-Signature': self.hmac(self.encode(auth), self.encode(self.secret)),

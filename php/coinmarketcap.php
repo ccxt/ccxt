@@ -88,6 +88,8 @@ class coinmarketcap extends Exchange {
 
     public function currency_code ($base, $name) {
         $currencies = array (
+            'AdCoin' => 'AdCoin',
+            'ACChain' => 'ACChain',
             'BatCoin' => 'BatCoin',
             'Bitgem' => 'Bitgem',
             'BlockCAT' => 'BlockCAT',

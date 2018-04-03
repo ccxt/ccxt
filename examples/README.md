@@ -71,6 +71,8 @@ php -f path/to/example.php # substitute for actual filename here
 
 [ccxtを使って裁定取引botを作ってみたらなぜか虚しくなった件](https://qiita.com/reon777/items/21ed87f19cdd50f08bd9) – An article in Japanese explaining the basics of programming an arbitrage bot with CCXT.
 
+[python異步加協程獲取比特幣市場信息](https://hk.saowen.com/a/18a648f24d6e7f54981e9db4411b56730a35dd2b3b27519083543bcd6198cd27) – An article in Chinese on using CCXT with Python.
+
 [Лучшая криптотрейдинг библиотека?](http://medium.com/@vladthelittleone/лучшая-криптотрейдинг-библиотека-67e308f96c1f) – An article in Russian on setting up CCXT to connect and trade with crypto exchanges.
 
 [Using ccxt and technicalindicators to calculate MACD for BTC/USDT with Node.js](https://runkit.com/dhilipb/macd-for-btc-usdt) – A runkit sample showing how to fetch data and run statistical calculations.

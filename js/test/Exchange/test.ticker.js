@@ -70,7 +70,17 @@ module.exports = (exchange, ticker, method, symbol) => {
     //     ... (keys.map (key =>
     //         key + ': ' + ticker[key])))
 
-    if ((exchange.id !== 'coinmarketcap') && (exchange.id !== 'xbtce'))
+    if (![
+
+        'coinmarketcap',
+        'xbtce',
+
+    ].includes (exchange.id)) {
+
         if (ticker['bid'] && ticker['ask'])
             assert (ticker['bid'] <= ticker['ask'])
+
+    }
+
+    return ticker
 }

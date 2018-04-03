@@ -16,9 +16,13 @@ class gatecoin extends Exchange {
             'comment' => 'a regulated/licensed exchange',
             'has' => array (
                 'CORS' => false,
+                'createDepositAddress' => true,
+                'fetchDepositAddress' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
+                'fetchOrder' => true,
                 'fetchTickers' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array (
                 '1m' => '1m',
@@ -263,6 +267,14 @@ class gatecoin extends Exchange {
         return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'price', 'volume');
     }
 
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
+        $response = $this->privateGetTradeOrdersOrderID (array_merge (array (
+            'OrderID' => $id,
+        ), $params));
+        return $this->parse_order($response.order);
+    }
+
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = intval ($ticker['createDateTime']) * 1000;
         $symbol = null;
@@ -323,26 +335,49 @@ class gatecoin extends Exchange {
 
     public function parse_trade ($trade, $market = null) {
         $side = null;
-        $order = null;
+        $orderId = null;
         if (is_array ($trade) && array_key_exists ('way', $trade)) {
             $side = ($trade['way'] === 'bid') ? 'buy' : 'sell';
-            $orderId = $trade['way'] . 'OrderId';
-            $order = $trade[$orderId];
+            $orderIdField = $trade['way'] . 'OrderId';
+            $orderId = $this->safe_string($trade, $orderIdField);
         }
         $timestamp = intval ($trade['transactionTime']) * 1000;
-        if (!$market)
-            $market = $this->markets_by_id[$trade['currencyPair']];
+        if ($market === null) {
+            $marketId = $this->safe_string($trade, 'currencyPair');
+            if ($marketId !== null)
+                $market = $this->find_market($marketId);
+        }
+        $fee = null;
+        $feeCost = $this->safe_float($trade, 'feeAmount');
+        $price = $trade['price'];
+        $amount = $trade['quantity'];
+        $cost = $price * $amount;
+        $feeCurrency = null;
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+            $feeCurrency = $market['quote'];
+        }
+        if ($feeCost !== null) {
+            $fee = array (
+                'cost' => $feeCost,
+                'currency' => $feeCurrency,
+                'rate' => $this->safe_float($trade, 'feeRate'),
+            );
+        }
         return array (
             'info' => $trade,
-            'id' => (string) $trade['transactionId'],
-            'order' => $order,
+            'id' => $this->safe_string($trade, 'transactionId'),
+            'order' => $orderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'type' => null,
             'side' => $side,
-            'price' => $trade['price'],
-            'amount' => $trade['quantity'],
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
+            'fee' => $fee,
         );
     }
 
@@ -407,6 +442,15 @@ class gatecoin extends Exchange {
         return $this->privateDeleteTradeOrdersOrderID (array ( 'OrderID' => $id ));
     }
 
+    public function parse_order_status ($status) {
+        $statuses = array (
+            '6' => 'closed',
+        );
+        if (is_array ($statuses) && array_key_exists ($status, $statuses))
+            return $statuses[$status];
+        return $status;
+    }
+
     public function parse_order ($order, $market = null) {
         $side = ($order['side'] === 0) ? 'buy' : 'sell';
         $type = ($order['type'] === 0) ? 'limit' : 'market';
@@ -425,7 +469,59 @@ class gatecoin extends Exchange {
         $price = $order['price'];
         $cost = $price * $filled;
         $id = $order['clOrderId'];
-        $status = 'open'; // they report open orders only? TODO use .orders cache for emulation
+        $status = $this->parse_order_status($this->safe_string($order, 'status'));
+        $trades = null;
+        $fee = null;
+        if ($status === 'closed') {
+            $tradesFilled = null;
+            $tradesCost = null;
+            $trades = array ();
+            $transactions = $this->safe_value($order, 'trades');
+            $feeCost = null;
+            $feeCurrency = null;
+            $feeRate = null;
+            if ($transactions !== null) {
+                if (gettype ($transactions) === 'array' && count (array_filter (array_keys ($transactions), 'is_string')) == 0) {
+                    for ($i = 0; $i < count ($transactions); $i++) {
+                        $trade = $this->parse_trade($transactions[$i]);
+                        if ($tradesFilled === null)
+                            $tradesFilled = 0.0;
+                        if ($tradesCost === null)
+                            $tradesCost = 0.0;
+                        $tradesFilled .= $trade['amount'];
+                        $tradesCost .= $trade['amount'] * $trade['price'];
+                        if (is_array ($trade) && array_key_exists ('fee', $trade)) {
+                            if ($trade['fee']['cost'] != null) {
+                                if ($feeCost === null)
+                                    $feeCost = 0.0;
+                                $feeCost .= $trade['fee']['cost'];
+                            }
+                            $feeCurrency = $trade['fee']['currency'];
+                            if ($trade['fee']['rate'] != null) {
+                                if ($feeRate === null)
+                                    $feeRate = 0.0;
+                                $feeRate .= $trade['fee']['rate'];
+                            }
+                        }
+                        $trades[] = $trade;
+                    }
+                    if (($tradesFilled !== null) && ($tradesFilled > 0))
+                        $price = $tradesCost / $tradesFilled;
+                    if ($feeRate !== null) {
+                        $numTrades = is_array ($trades) ? count ($trades) : 0;
+                        if ($numTrades > 0)
+                            $feeRate = $feeRate / $numTrades;
+                    }
+                    if ($feeCost !== null) {
+                        $fee = array (
+                            'cost' => $feeCost,
+                            'currency' => $feeCurrency,
+                            'rate' => $feeRate,
+                        );
+                    }
+                }
+            }
+        }
         $result = array (
             'id' => $id,
             'datetime' => $this->iso8601 ($timestamp),
@@ -439,8 +535,8 @@ class gatecoin extends Exchange {
             'filled' => $filled,
             'remaining' => $remaining,
             'cost' => $cost,
-            'trades' => null,
-            'fee' => null,
+            'trades' => $trades,
+            'fee' => $fee,
             'info' => $order,
         );
         return $result;
@@ -489,5 +585,63 @@ class gatecoin extends Exchange {
                 if ($response['responseStatus']['message'] === 'OK')
                     return $response;
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+    }
+
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+        $this->check_address($address);
+        $this->load_markets();
+        $currency = $this->currency ($code);
+        $request = array (
+            'DigiCurrency' => $currency['id'],
+            'Address' => $address,
+            'Amount' => $amount,
+        );
+        $response = $this->privatePostElectronicWalletWithdrawalsDigiCurrency (array_merge ($request, $params));
+        return array (
+            'info' => $response,
+            'id' => $this->safe_string($response, 'id'),
+        );
+    }
+
+    public function fetch_deposit_address ($code, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency ($code);
+        $request = array (
+            'DigiCurrency' => $currency['id'],
+        );
+        $response = $this->privateGetElectronicWalletDepositWalletsDigiCurrency (array_merge ($request, $params));
+        $result = $response['addresses'];
+        $numResults = is_array ($result) ? count ($result) : 0;
+        if ($numResults < 1)
+            throw new InvalidAddress ($this->id . ' privateGetElectronicWalletDepositWalletsDigiCurrency() returned no addresses');
+        $address = $this->safe_string($result[0], 'address');
+        $this->check_address($address);
+        return array (
+            'currency' => $code,
+            'address' => $address,
+            'status' => 'ok',
+            'info' => $response,
+        );
+    }
+
+    public function create_deposit_address ($code, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency ($code);
+        $request = array (
+            'DigiCurrency' => $currency['id'],
+        );
+        $response = $this->privatePostElectronicWalletDepositWalletsDigiCurrency (array_merge ($request, $params));
+        $result = $response['addresses'];
+        $numResults = is_array ($result) ? count ($result) : 0;
+        if ($numResults < 1)
+            throw new InvalidAddress ($this->id . ' privatePostElectronicWalletDepositWalletsDigiCurrency() returned no addresses');
+        $address = $this->safe_string($result[0], 'address');
+        $this->check_address($address);
+        return array (
+            'currency' => $code,
+            'address' => $address,
+            'status' => 'ok',
+            'info' => $response,
+        );
     }
 }
