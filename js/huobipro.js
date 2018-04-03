@@ -102,6 +102,8 @@ module.exports = class huobipro extends Exchange {
             },
             'exceptions': {
                 'order-limitorder-amount-min-error': InvalidOrder, // limit order amount error, min: `0.001`
+                'order-orderstate-error': OrderNotFound, // canceling an already canceled order
+                'order-queryorder-invalid': OrderNotFound, // querying a non-existent order
             },
         });
     }
@@ -658,12 +660,11 @@ module.exports = class huobipro extends Exchange {
                 if (status === 'error') {
                     const code = this.safeString (response, 'err-code');
                     const feedback = this.id + ' ' + this.json (response);
-                    const message = this.safeString (response, 'err-msg', feedback);
                     const exceptions = this.exceptions;
                     if (code in exceptions) {
-                        throw new exceptions[code] (message);
+                        throw new exceptions[code] (feedback);
                     }
-                    throw new ExchangeError (message);
+                    throw new ExchangeError (feedback);
                 }
             }
         }
