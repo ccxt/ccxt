@@ -187,9 +187,14 @@ class paymium extends Exchange {
                 $url .= '?' . $this->urlencode ($query);
         } else {
             $this->check_required_credentials();
-            $body = $this->json ($params);
             $nonce = (string) $this->nonce ();
-            $auth = $nonce . $url . $body;
+            $auth = $nonce . $url;
+            if ($method === 'POST') {
+                if ($query) {
+                    $body = $this->json ($query);
+                    $auth .= $body;
+                }
+            }
             $headers = array (
                 'Api-Key' => $this->apiKey,
                 'Api-Signature' => $this->hmac ($this->encode ($auth), $this->encode ($this->secret)),
