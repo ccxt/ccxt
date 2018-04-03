@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InvalidOrder } = require ('./base/errors');
+const { ExchangeError, InvalidOrder, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
