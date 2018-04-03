@@ -188,9 +188,14 @@ module.exports = class paymium extends Exchange {
                 url += '?' + this.urlencode (query);
         } else {
             this.checkRequiredCredentials ();
-            body = this.json (params);
             let nonce = this.nonce ().toString ();
-            let auth = nonce + url + body;
+            let auth = nonce + url;
+            if (method === 'POST') {
+                if (Object.keys (query).length) {
+                    body = this.json (query);
+                    auth += body;
+                }
+            }
             headers = {
                 'Api-Key': this.apiKey,
                 'Api-Signature': this.hmac (this.encode (auth), this.encode (this.secret)),
