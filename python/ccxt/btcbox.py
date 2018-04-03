@@ -60,11 +60,12 @@ class btcbox (Exchange):
                 '104': AuthenticationError,
                 '105': PermissionDenied,
                 '106': InvalidNonce,
-                '107': InvalidOrder,
+                '107': InvalidOrder,  # price should be an integer
                 '200': InsufficientFunds,
-                '201': InvalidOrder,
-                '202': InvalidOrder,
+                '201': InvalidOrder,  # amount too small
+                '202': InvalidOrder,  # price should be [0 : 1000000]
                 '203': OrderNotFound,
+                '401': OrderNotFound,  # cancel canceled, closed or non-existent order
                 '402': DDoSProtection,
             },
         })
@@ -153,7 +154,7 @@ class btcbox (Exchange):
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market):
-        timestamp = int(trade['date']) * 1000
+        timestamp = int(trade['date']) * 1000  # GMT time
         return {
             'info': trade,
             'id': trade['tid'],
@@ -203,7 +204,7 @@ class btcbox (Exchange):
     def parse_order(self, order):
         # {"id":11,"datetime":"2014-10-21 10:47:20","type":"sell","price":42000,"amount_original":1.2,"amount_outstanding":1.2,"status":"closed","trades":[]}
         id = self.safe_string(order, 'id')
-        timestamp = self.parse8601(order['datetime'])
+        timestamp = self.parse8601(order['datetime'] + '+09:00')  # Tokyo time
         amount = self.safe_float(order, 'amount_original')
         remaining = self.safe_float(order, 'amount_outstanding')
         filled = None
@@ -215,14 +216,21 @@ class btcbox (Exchange):
         if price is not None:
             if filled is not None:
                 cost = filled * price
+        # status is set by fetchOrder method only
         statuses = {
             # TODO: complete list
-            'closed': 'closed',
+            'part': 'open',  # partially or not at all executed
+            'all': 'closed',  # fully executed
             'cancelled': 'canceled',
+            'closed': 'closed',  # never encountered, seems to be bug in the doc
         }
         status = None
         if order['status'] in statuses:
             status = statuses[order['status']]
+        # fetchOrders do not return status, use heuristic
+        if status is None:
+            if remaining is not None and remaining == 0:
+                status = 'closed'
         trades = None  # todo: self.parse_trades(order['trades'])
         return {
             'id': id,
@@ -234,7 +242,7 @@ class btcbox (Exchange):
             'side': order['type'],
             'type': None,
             'status': status,
-            'symbol': None,
+            'symbol': 'BTC/JPY',
             'price': price,
             'cost': cost,
             'trades': trades,
@@ -254,6 +262,7 @@ class btcbox (Exchange):
         response = self.privatePostTradeList(self.extend({
             'type': 'all',  # 'open' or 'all'
         }, params))
+        # status(open/closed/canceled) is None
         return self.parse_orders(response)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -261,7 +270,15 @@ class btcbox (Exchange):
         response = self.privatePostTradeList(self.extend({
             'type': 'open',  # 'open' or 'all'
         }, params))
-        return self.parse_orders(response)
+        orders = self.parse_orders(response)
+        # btcbox does not return status, but we know it's 'open' as we queried for open orders
+        for i in range(0, len(orders)):
+            order = orders[i]
+            order['status'] = 'open'
+        return orders
+
+    def nonce(self):
+        return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + path

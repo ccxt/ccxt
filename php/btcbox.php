@@ -50,11 +50,12 @@ class btcbox extends Exchange {
                 '104' => '\\ccxt\\AuthenticationError',
                 '105' => '\\ccxt\\PermissionDenied',
                 '106' => '\\ccxt\\InvalidNonce',
-                '107' => '\\ccxt\\InvalidOrder',
+                '107' => '\\ccxt\\InvalidOrder', // price should be an integer
                 '200' => '\\ccxt\\InsufficientFunds',
-                '201' => '\\ccxt\\InvalidOrder',
-                '202' => '\\ccxt\\InvalidOrder',
+                '201' => '\\ccxt\\InvalidOrder', // amount too small
+                '202' => '\\ccxt\\InvalidOrder', // price should be [0 : 1000000]
                 '203' => '\\ccxt\\OrderNotFound',
+                '401' => '\\ccxt\\OrderNotFound', // cancel canceled, closed or non-existent order
                 '402' => '\\ccxt\\DDoSProtection',
             ),
         ));
@@ -151,7 +152,7 @@ class btcbox extends Exchange {
     }
 
     public function parse_trade ($trade, $market) {
-        $timestamp = intval ($trade['date']) * 1000;
+        $timestamp = intval ($trade['date']) * 1000; // GMT time
         return array (
             'info' => $trade,
             'id' => $trade['tid'],
@@ -205,7 +206,7 @@ class btcbox extends Exchange {
     public function parse_order ($order) {
         // array ("$id":11,"datetime":"2014-10-21 10:47:20","type":"sell","$price":42000,"amount_original":1.2,"amount_outstanding":1.2,"$status":"closed","$trades":array ())
         $id = $this->safe_string($order, 'id');
-        $timestamp = $this->parse8601 ($order['datetime']);
+        $timestamp = $this->parse8601 ($order['datetime'] . '+09:00'); // Tokyo time
         $amount = $this->safe_float($order, 'amount_original');
         $remaining = $this->safe_float($order, 'amount_outstanding');
         $filled = null;
@@ -217,14 +218,21 @@ class btcbox extends Exchange {
         if ($price !== null)
             if ($filled !== null)
                 $cost = $filled * $price;
+        // $status is set by fetchOrder method only
         $statuses = array (
             // TODO => complete list
-            'closed' => 'closed',
+            'part' => 'open', // partially or not at all executed
+            'all' => 'closed', // fully executed
             'cancelled' => 'canceled',
+            'closed' => 'closed', // never encountered, seems to be bug in the doc
         );
         $status = null;
         if (is_array ($statuses) && array_key_exists ($order['status'], $statuses))
             $status = $statuses[$order['status']];
+        // fetchOrders do not return $status, use heuristic
+        if ($status === null)
+            if ($remaining !== null && $remaining === 0)
+                $status = 'closed';
         $trades = null; // todo => $this->parse_trades($order['trades']);
         return array (
             'id' => $id,
@@ -236,7 +244,7 @@ class btcbox extends Exchange {
             'side' => $order['type'],
             'type' => null,
             'status' => $status,
-            'symbol' => null,
+            'symbol' => 'BTC/JPY',
             'price' => $price,
             'cost' => $cost,
             'trades' => $trades,
@@ -258,6 +266,7 @@ class btcbox extends Exchange {
         $response = $this->privatePostTradeList (array_merge (array (
             'type' => 'all', // 'open' or 'all'
         ), $params));
+        // status (open/closed/canceled) is null
         return $this->parse_orders($response);
     }
 
@@ -266,7 +275,17 @@ class btcbox extends Exchange {
         $response = $this->privatePostTradeList (array_merge (array (
             'type' => 'open', // 'open' or 'all'
         ), $params));
-        return $this->parse_orders($response);
+        $orders = $this->parse_orders($response);
+        // btcbox does not return status, but we know it's 'open' as we queried for open $orders
+        for ($i = 0; $i < count ($orders); $i++) {
+            $order = $orders[$i];
+            $order['status'] = 'open';
+        }
+        return $orders;
+    }
+
+    public function nonce () {
+        return $this->milliseconds ();
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
