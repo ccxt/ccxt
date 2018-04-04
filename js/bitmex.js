@@ -43,13 +43,6 @@ module.exports = class bitmex extends Exchange {
                 ],
                 'fees': 'https://www.bitmex.com/app/fees',
             },
-            'fees': {
-                'trading': {
-                    'percentage': true,
-                    'taker': 0.00225,
-                    'maker': -0.0075,
-                },
-            },
             'api': {
                 'public': {
                     'get': [
