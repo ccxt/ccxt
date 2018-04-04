@@ -85,6 +85,25 @@ class livecoin extends Exchange {
                 'CRC' => 'CryCash',
                 'XBT' => 'Bricktox',
             ),
+            'exceptions' => array (
+                '1' => '\\ccxt\\ExchangeError',
+                '10' => '\\ccxt\\AuthenticationError',
+                '100' => '\\ccxt\\ExchangeError', // invalid parameters
+                '101' => '\\ccxt\\AuthenticationError',
+                '102' => '\\ccxt\\AuthenticationError',
+                '103' => '\\ccxt\\InvalidOrder', // invalid currency
+                '104' => '\\ccxt\\InvalidOrder', // invalid amount
+                '105' => '\\ccxt\\InvalidOrder', // unable to block funds
+                '11' => '\\ccxt\\AuthenticationError',
+                '12' => '\\ccxt\\AuthenticationError',
+                '2' => '\\ccxt\\AuthenticationError', // "User not found"
+                '20' => '\\ccxt\\AuthenticationError',
+                '30' => '\\ccxt\\AuthenticationError',
+                '31' => '\\ccxt\\NotSupported',
+                '32' => '\\ccxt\\ExchangeError',
+                '429' => '\\ccxt\\DDoSProtection',
+                '503' => '\\ccxt\\ExchangeNotAvailable',
+            ),
         ));
     }
 
@@ -497,14 +516,17 @@ class livecoin extends Exchange {
         if ($tag !== null)
             $wallet .= '::' . $tag;
         $withdrawal = array (
-            'amount' => $amount,
+            'amount' => $this->truncate ($amount, $this->currencies[$currency]['precision']), // throws an error when $amount is too precise
             'currency' => $this->common_currency_code($currency),
             'wallet' => $wallet,
         );
         $response = $this->privatePostPaymentOutCoin (array_merge ($withdrawal, $params));
+        $id = $this->safe_integer($response, 'id');
+        if ($id === null)
+            throw new InsufficientFunds ($this->id . ' insufficient funds to cover requested $withdrawal $amount post fees ' . $this->json ($response));
         return array (
             'info' => $response,
-            'id' => $this->safe_integer($response, 'id'),
+            'id' => $id,
         );
     }
 
@@ -553,55 +575,24 @@ class livecoin extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
-        if ($code >= 300) {
-            if ($body[0] === '{') {
-                $response = json_decode ($body, $as_associative_array = true);
-                if (is_array ($response) && array_key_exists ('errorCode', $response)) {
-                    $error = $response['errorCode'];
-                    // todo => rework for $error-maps, like in liqui or okcoinusd
-                    if ($error === 1) {
-                        throw new ExchangeError ($this->id . ' ' . $this->json ($response));
-                    } else if ($error === 2) {
-                        if (is_array ($response) && array_key_exists ('errorMessage', $response)) {
-                            if ($response['errorMessage'] === 'User not found')
-                                throw new AuthenticationError ($this->id . ' ' . $response['errorMessage']);
-                        } else {
-                            throw new ExchangeError ($this->id . ' ' . $this->json ($response));
-                        }
-                    } else if (($error === 10) || ($error === 11) || ($error === 12) || ($error === 20) || ($error === 30) || ($error === 101) || ($error === 102)) {
-                        throw new AuthenticationError ($this->id . ' ' . $this->json ($response));
-                    } else if ($error === 31) {
-                        throw new NotSupported ($this->id . ' ' . $this->json ($response));
-                    } else if ($error === 32) {
-                        throw new ExchangeError ($this->id . ' ' . $this->json ($response));
-                    } else if ($error === 100) {
-                        throw new ExchangeError ($this->id . ' => Invalid parameters ' . $this->json ($response));
-                    } else if ($error === 103) {
-                        throw new InvalidOrder ($this->id . ' => Invalid currency ' . $this->json ($response));
-                    } else if ($error === 104) {
-                        throw new InvalidOrder ($this->id . ' => Invalid amount ' . $this->json ($response));
-                    } else if ($error === 105) {
-                        throw new InvalidOrder ($this->id . ' => Unable to block funds ' . $this->json ($response));
-                    } else if ($error === 503) {
-                        throw new ExchangeNotAvailable ($this->id . ' => Exchange is not available ' . $this->json ($response));
-                    } else if ($error === 429) {
-                        throw new DDoSProtection ($this->id . ' => Too many requests' . $this->json ($response));
-                    } else {
-                        throw new ExchangeError ($this->id . ' ' . $this->json ($response));
-                    }
+        if (gettype ($body) != 'string')
+            return;
+        if ($body[0] === '{') {
+            $response = json_decode ($body, $as_associative_array = true);
+            if ($code >= 300) {
+                $errorCode = $this->safe_string($response, 'errorCode');
+                if (is_array ($this->exceptions) && array_key_exists ($errorCode, $this->exceptions)) {
+                    $ExceptionClass = $this->exceptions[$errorCode];
+                    throw new $ExceptionClass ($this->id . ' ' . $body);
+                } else {
+                    throw new ExchangeError ($this->id . ' ' . $body);
                 }
             }
-            throw new ExchangeError ($this->id . ' ' . $body);
-        }
-    }
-
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (is_array ($response) && array_key_exists ('success', $response)) {
-            if (!$response['success']) {
-                throw new ExchangeError ($this->id . ' error => ' . $this->json ($response));
+            // returns status $code 200 even if $success === false
+            $success = $this->safe_value($response, 'success', true);
+            if (!$success) {
+                throw new ExchangeError ($this->id . ' ' . $body);
             }
         }
-        return $response;
     }
 }

@@ -334,16 +334,16 @@ class bitfinex (Exchange):
         return result
 
     def cost_to_precision(self, symbol, cost):
-        return self.decimalToPrecision(float(cost), self.ROUND, self.markets[symbol].precision.price, self.SIGNIFICANT_DIGITS)
+        return self.decimalToPrecision(cost, self.ROUND, self.markets[symbol].precision.price, self.SIGNIFICANT_DIGITS)
 
     def price_to_precision(self, symbol, price):
-        return self.decimalToPrecision(float(price), self.ROUND, self.markets[symbol].precision.price, self.SIGNIFICANT_DIGITS)
+        return self.decimalToPrecision(price, self.ROUND, self.markets[symbol].precision.price, self.SIGNIFICANT_DIGITS)
 
     def amount_to_precision(self, symbol, amount):
-        return self.decimalToPrecision(float(amount), self.ROUND, self.markets[symbol].precision.amount, self.SIGNIFICANT_DIGITS)
+        return self.decimalToPrecision(amount, self.ROUND, self.markets[symbol].precision.amount, self.SIGNIFICANT_DIGITS)
 
     def fee_to_precision(self, currency, fee):
-        return self.decimalToPrecision(float(fee), self.ROUND, self.currencies[currency]['precision'], self.SIGNIFICANT_DIGITS)
+        return self.decimalToPrecision(fee, self.ROUND, self.currencies[currency]['precision'], self.SIGNIFICANT_DIGITS)
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]

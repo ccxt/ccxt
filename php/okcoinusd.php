@@ -174,6 +174,7 @@ class okcoinusd extends Exchange {
             $lot = pow (10, -$precision['amount']);
             $minAmount = $markets[$i]['minTradeSize'];
             $minPrice = pow (10, -$precision['price']);
+            $active = ($markets[$i]['online'] !== 0);
             $market = array_merge ($this->fees['trading'], array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -186,7 +187,7 @@ class okcoinusd extends Exchange {
                 'spot' => true,
                 'future' => false,
                 'lot' => $lot,
-                'active' => true,
+                'active' => $active,
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
