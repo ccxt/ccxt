@@ -76,7 +76,43 @@ module.exports = class coinnest extends Exchange {
         let quote = 'KRW';
         let quoteId = quote.toLowerCase ();
         // todo: rewrite this for web endpoint
-        let coins = 'btc,bch,btg,bcd,ubtc,btn,kst,ltc,act,eth,etc,ada,qtum,xlm,neo,gas,rpx,hsr,knc,tsl,tron,omg,wtc,mco,storm,gto,pxs,chat,ink,oc,hlc,ent,qbt,spc,put'.split (',');
+        let coins = [
+            'btc',
+            'bch',
+            'btg',
+            'bcd',
+            'ubtc',
+            'btn',
+            'kst',
+            'ltc',
+            'act',
+            'eth',
+            'etc',
+            'ada',
+            'qtum',
+            'xlm',
+            'neo',
+            'gas',
+            'rpx',
+            'hsr',
+            'knc',
+            'tsl',
+            'tron',
+            'omg',
+            'wtc',
+            'mco',
+            'storm',
+            'gto',
+            'pxs',
+            'chat',
+            'ink',
+            'oc',
+            'hlc',
+            'ent',
+            'qbt',
+            'spc',
+            'put',
+        ];
         let result = [];
         for (let i = 0; i < coins.length; i++) {
             let baseId = coins[i];
