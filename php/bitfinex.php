@@ -245,7 +245,7 @@ class bitfinex extends Exchange {
                     'Invalid order' => '\\ccxt\\InvalidOrder', // ?
                 ),
             ),
-            'significantPrecision' => true,
+            'precisionMode' => SIGNIFICANT_DIGITS,
         ));
     }
 
@@ -327,19 +327,19 @@ class bitfinex extends Exchange {
     }
 
     public function cost_to_precision ($symbol, $cost) {
-        return $this->decimal_to_precision($cost, ROUND, $this->markets[$symbol].precision.price, SIGNIFICANT_DIGITS);
+        return $this->decimal_to_precision($cost, ROUND, $this->markets[$symbol]['precision']['price'], $this->precisionMode);
     }
 
     public function price_to_precision ($symbol, $price) {
-        return $this->decimal_to_precision($price, ROUND, $this->markets[$symbol].precision.price, SIGNIFICANT_DIGITS);
+        return $this->decimal_to_precision($price, ROUND, $this->markets[$symbol]['precision']['price'], $this->precisionMode);
     }
 
     public function amount_to_precision ($symbol, $amount) {
-        return $this->decimal_to_precision($amount, ROUND, $this->markets[$symbol].precision.amount, SIGNIFICANT_DIGITS);
+        return $this->decimal_to_precision($amount, ROUND, $this->markets[$symbol]['precision']['amount'], $this->precisionMode);
     }
 
     public function fee_to_precision ($currency, $fee) {
-        return $this->decimal_to_precision($fee, ROUND, $this->currencies[$currency]['precision'], SIGNIFICANT_DIGITS);
+        return $this->decimal_to_precision($fee, ROUND, $this->currencies[$currency]['precision'], $this->precisionMode);
     }
 
     public function calculate_fee ($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
