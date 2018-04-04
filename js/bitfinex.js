@@ -329,19 +329,19 @@ module.exports = class bitfinex extends Exchange {
     }
 
     costToPrecision (symbol, cost) {
-        return this.decimalToPrecision (parseFloat (cost), this.ROUND, this.markets[symbol].precision.price, this.SIGNIFICANT_DIGITS);
+        return this.decimalToPrecision (cost, this.ROUND, this.markets[symbol].precision.price, this.SIGNIFICANT_DIGITS);
     }
 
     priceToPrecision (symbol, price) {
-        return this.decimalToPrecision (parseFloat (price), this.ROUND, this.markets[symbol].precision.price, this.SIGNIFICANT_DIGITS);
+        return this.decimalToPrecision (price, this.ROUND, this.markets[symbol].precision.price, this.SIGNIFICANT_DIGITS);
     }
 
     amountToPrecision (symbol, amount) {
-        return this.decimalToPrecision (parseFloat (amount), this.ROUND, this.markets[symbol].precision.amount, this.SIGNIFICANT_DIGITS);
+        return this.decimalToPrecision (amount, this.ROUND, this.markets[symbol].precision.amount, this.SIGNIFICANT_DIGITS);
     }
 
     feeToPrecision (currency, fee) {
-        return this.decimalToPrecision (parseFloat (fee), this.ROUND, this.currencies[currency]['precision'], this.SIGNIFICANT_DIGITS);
+        return this.decimalToPrecision (fee, this.ROUND, this.currencies[currency]['precision'], this.SIGNIFICANT_DIGITS);
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
