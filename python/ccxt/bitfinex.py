@@ -16,6 +16,8 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.decimal_to_precision import ROUND
+from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS
 
 
 class bitfinex (Exchange):
@@ -328,22 +330,21 @@ class bitfinex (Exchange):
                 'active': True,
                 'precision': precision,
                 'limits': limits,
-                'lot': math.pow(10, -precision['amount']),
                 'info': market,
             })
         return result
 
     def cost_to_precision(self, symbol, cost):
-        return self.decimalToPrecision(cost, self.ROUND, self.markets[symbol].precision.price, self.SIGNIFICANT_DIGITS)
+        return self.decimal_to_precision(cost, ROUND, self.markets[symbol].precision.price, SIGNIFICANT_DIGITS)
 
     def price_to_precision(self, symbol, price):
-        return self.decimalToPrecision(price, self.ROUND, self.markets[symbol].precision.price, self.SIGNIFICANT_DIGITS)
+        return self.decimal_to_precision(price, ROUND, self.markets[symbol].precision.price, SIGNIFICANT_DIGITS)
 
     def amount_to_precision(self, symbol, amount):
-        return self.decimalToPrecision(amount, self.ROUND, self.markets[symbol].precision.amount, self.SIGNIFICANT_DIGITS)
+        return self.decimal_to_precision(amount, ROUND, self.markets[symbol].precision.amount, SIGNIFICANT_DIGITS)
 
     def fee_to_precision(self, currency, fee):
-        return self.decimalToPrecision(fee, self.ROUND, self.currencies[currency]['precision'], self.SIGNIFICANT_DIGITS)
+        return self.decimal_to_precision(fee, ROUND, self.currencies[currency]['precision'], SIGNIFICANT_DIGITS)
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]

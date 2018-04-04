@@ -526,7 +526,7 @@ class huobipro (Exchange):
         }
 
     def fee_to_precision(self, currency, fee):
-        return float(self.decimalToPrecision(fee, 0, self.currencies[currency]['precision']))
+        return float(self.decimal_to_precision(fee, 0, self.currencies[currency]['precision']))
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]
