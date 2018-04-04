@@ -483,7 +483,9 @@ module.exports = class okcoinusd extends Exchange {
         let amount = order['amount'];
         let filled = order['deal_amount'];
         let remaining = amount - filled;
-        let average = order['avg_price'];
+        let average = this.safeFloat (order, 'avg_price');
+        // https://github.com/ccxt/ccxt/issues/2452
+        average = this.safeFloat (order, 'price_avg', average);
         let cost = average * filled;
         let result = {
             'info': order,
