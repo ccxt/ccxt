@@ -42,13 +42,6 @@ class bitmex extends Exchange {
                 ),
                 'fees' => 'https://www.bitmex.com/app/fees',
             ),
-            'fees' => array (
-                'trading' => array (
-                    'percentage' => true,
-                    'taker' => 0.00225,
-                    'maker' => -0.0075,
-                ),
-            ),
             'api' => array (
                 'public' => array (
                     'get' => array (

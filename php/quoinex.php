@@ -28,13 +28,6 @@ class quoinex extends qryptos {
                 ),
                 'fees' => 'https://news.quoinex.com/fees/',
             ),
-            'fees' => array (
-                'trading' => array (
-                    'percentage' => true,
-                    'taker' => 0.0025,
-                    'maker' => 0.0025,
-                ),
-            ),
         ));
     }
 }

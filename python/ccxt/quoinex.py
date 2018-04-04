@@ -29,11 +29,4 @@ class quoinex (qryptos):
                 ],
                 'fees': 'https://news.quoinex.com/fees/',
             },
-            'fees': {
-                'trading': {
-                    'percentage': True,
-                    'taker': 0.0025,
-                    'maker': 0.0025,
-                },
-            },
         })
