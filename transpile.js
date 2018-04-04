@@ -4,9 +4,9 @@ const fs   = require ('fs')
     , path = require ('path')
     , log  = require ('ololog')
     , ansi = require ('ansicolor').nice
-    , { unCamelCase,
-        capitalize } = require ('./js/base/functions.js')
     , errors = require ('./js/base/errors.js')
+    , { unCamelCase, capitalize } = require ('./js/base/functions.js')
+    , { precisionConstants } = require ('./js/base/functions/number.js')
 
 // ---------------------------------------------------------------------------
 
@@ -92,6 +92,7 @@ const commonRegexes = [
     [ /\.fetchTickers\s/g, '.fetch_tickers'],
     [ /\.fetchTicker\s/g, '.fetch_ticker'],
     [ /\.fetchCurrencies\s/g, '.fetch_currencies'],
+    [ /\.decimalToPrecision\s/g, '.decimal_to_precision'],
     [ /\.priceToPrecision\s/g, '.price_to_precision'],
     [ /\.amountToPrecision\s/g, '.amount_to_precision'],
     [ /\.amountToString\s/g, '.amount_to_string'],
@@ -360,7 +361,17 @@ const pythonRegexes = [
                 errorImports.push ('from ccxt.base.errors import ' + error)
         }
 
-        header = header.concat (libraries, errorImports)
+        const precisionImports = []
+
+        for (let constant in precisionConstants) {
+            // const regex = new RegExp ("[^\\']" + error + "[^\\']")
+            if (bodyAsString.indexOf (constant) >= 0) {
+                console.log (constant)
+                precisionImports.push ('from ccxt.base.decimal_to_precision import ' + constant)
+            }
+        }
+
+        header = header.concat (libraries, errorImports, precisionImports)
 
         for (let method of methods) {
             const regex = new RegExp ('self\\.(' + method + ')\\s*\\(', 'g')
