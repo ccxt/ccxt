@@ -18,6 +18,10 @@ from ccxt.base.errors import InvalidAddress
 
 # -----------------------------------------------------------------------------
 
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES
+
+# -----------------------------------------------------------------------------
+
 __all__ = [
     'Exchange',
 ]
@@ -168,6 +172,8 @@ class Exchange(object):
         'fetchTradingFees': False,
         'withdraw': False,
     }
+
+    precisionMode = DECIMAL_PLACES
 
     minFundingAddressLength = 10  # used in check_address
     substituteCommonCurrencyCodes = True
