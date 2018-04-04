@@ -460,7 +460,9 @@ class okcoinusd (Exchange):
         amount = order['amount']
         filled = order['deal_amount']
         remaining = amount - filled
-        average = order['avg_price']
+        average = self.safe_float(order, 'avg_price')
+        # https://github.com/ccxt/ccxt/issues/2452
+        average = self.safe_float(order, 'price_avg', average)
         cost = average * filled
         result = {
             'info': order,

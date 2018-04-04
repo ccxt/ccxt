@@ -482,7 +482,9 @@ class okcoinusd extends Exchange {
         $amount = $order['amount'];
         $filled = $order['deal_amount'];
         $remaining = $amount - $filled;
-        $average = $order['avg_price'];
+        $average = $this->safe_float($order, 'avg_price');
+        // https://github.com/ccxt/ccxt/issues/2452
+        $average = $this->safe_float($order, 'price_avg', $average);
         $cost = $average * $filled;
         $result = array (
             'info' => $order,
