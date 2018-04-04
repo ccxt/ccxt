@@ -26,7 +26,14 @@ class quoinex extends qryptos {
                     'https://developers.quoine.com',
                     'https://developers.quoine.com/v2',
                 ),
-                'fees' => 'https://quoine.zendesk.com/hc/en-us/articles/115011281488-Fees',
+                'fees' => 'https://news.quoinex.com/fees/',
+            ),
+            'fees' => array (
+                'trading' => array (
+                    'percentage' => true,
+                    'taker' => 0.0025,
+                    'maker' => 0.0025,
+                ),
             ),
         ));
     }
