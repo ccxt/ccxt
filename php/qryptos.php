@@ -239,7 +239,18 @@ class qryptos extends Exchange {
     }
 
     public function parse_trade ($trade, $market) {
+        // {             id =>  12345,
+        //         quantity => "6.789",
+        //            price => "98765.4321",
+        //       taker_side => "sell",
+        //       created_at =>  1512345678,
+        //          my_side => "buy"           }
         $timestamp = $trade['created_at'] * 1000;
+        // 'taker_side' gets filled for both fetchTrades and fetchMyTrades
+        $takerSide = $this->safe_string($trade, 'taker_side');
+        // 'my_side' gets filled for fetchMyTrades only and may differ from 'taker_side'
+        $mySide = $this->safe_string($trade, 'my_side');
+        $side = ($mySide !== null) ? $mySide : $takerSide;
         return array (
             'info' => $trade,
             'id' => (string) $trade['id'],
@@ -248,7 +259,7 @@ class qryptos extends Exchange {
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $market['symbol'],
             'type' => null,
-            'side' => $trade['taker_side'],
+            'side' => $side,
             'price' => floatval ($trade['price']),
             'amount' => floatval ($trade['quantity']),
         );

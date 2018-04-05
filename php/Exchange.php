@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.12.73';
+$version = '1.12.87';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -671,6 +671,8 @@ abstract class Exchange {
             'fetchTradingFees' => false,
             'withdraw' => false,
         );
+
+        $this->precisionMode = DECIMAL_PLACES;
 
         $this->lastRestRequestTimestamp = 0;
         $this->lastRestPollTimestamp    = 0;

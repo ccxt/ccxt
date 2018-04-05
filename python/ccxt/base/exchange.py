@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.12.73'
+__version__ = '1.12.87'
 
 # -----------------------------------------------------------------------------
 
@@ -15,6 +15,10 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidAddress
+
+# -----------------------------------------------------------------------------
+
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 
 # -----------------------------------------------------------------------------
 
@@ -168,6 +172,8 @@ class Exchange(object):
         'fetchTradingFees': False,
         'withdraw': False,
     }
+
+    precisionMode = DECIMAL_PLACES
 
     minFundingAddressLength = 10  # used in check_address
     substituteCommonCurrencyCodes = True

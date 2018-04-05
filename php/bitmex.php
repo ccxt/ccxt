@@ -40,6 +40,7 @@ class bitmex extends Exchange {
                     'https://www.bitmex.com/app/apiOverview',
                     'https://github.com/BitMEX/api-connectors/tree/master/official-http',
                 ),
+                'fees' => 'https://www.bitmex.com/app/fees',
             ),
             'api' => array (
                 'public' => array (

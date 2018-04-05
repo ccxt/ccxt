@@ -324,6 +324,9 @@ class cryptopia extends Exchange {
             $market = $this->market ($symbol);
             $request['TradePairId'] = $market['id'];
         }
+        if ($limit !== null) {
+            $request['Count'] = $limit; // default 100
+        }
         $response = $this->privatePostGetTradeHistory (array_merge ($request, $params));
         return $this->parse_trades($response['Data'], $market, $since, $limit);
     }

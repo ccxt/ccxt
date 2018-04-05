@@ -4,12 +4,20 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import hashlib
 import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
@@ -95,6 +103,25 @@ class livecoin (Exchange):
             'commonCurrencies': {
                 'CRC': 'CryCash',
                 'XBT': 'Bricktox',
+            },
+            'exceptions': {
+                '1': ExchangeError,
+                '10': AuthenticationError,
+                '100': ExchangeError,  # invalid parameters
+                '101': AuthenticationError,
+                '102': AuthenticationError,
+                '103': InvalidOrder,  # invalid currency
+                '104': InvalidOrder,  # invalid amount
+                '105': InvalidOrder,  # unable to block funds
+                '11': AuthenticationError,
+                '12': AuthenticationError,
+                '2': AuthenticationError,  # "User not found"
+                '20': AuthenticationError,
+                '30': AuthenticationError,
+                '31': NotSupported,
+                '32': ExchangeError,
+                '429': DDoSProtection,
+                '503': ExchangeNotAvailable,
             },
         })
 
@@ -476,14 +503,17 @@ class livecoin (Exchange):
         if tag is not None:
             wallet += '::' + tag
         withdrawal = {
-            'amount': amount,
+            'amount': self.truncate(amount, self.currencies[currency]['precision']),  # throws an error when amount is too precise
             'currency': self.common_currency_code(currency),
             'wallet': wallet,
         }
         response = self.privatePostPaymentOutCoin(self.extend(withdrawal, params))
+        id = self.safe_integer(response, 'id')
+        if id is None:
+            raise InsufficientFunds(self.id + ' insufficient funds to cover requested withdrawal amount post fees ' + self.json(response))
         return {
             'info': response,
-            'id': self.safe_integer(response, 'id'),
+            'id': id,
         }
 
     def fetch_deposit_address(self, currency, params={}):
@@ -525,45 +555,18 @@ class livecoin (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body):
-        if code >= 300:
-            if body[0] == '{':
-                response = json.loads(body)
-                if 'errorCode' in response:
-                    error = response['errorCode']
-                    # todo: rework for error-maps, like in liqui or okcoinusd
-                    if error == 1:
-                        raise ExchangeError(self.id + ' ' + self.json(response))
-                    elif error == 2:
-                        if 'errorMessage' in response:
-                            if response['errorMessage'] == 'User not found':
-                                raise AuthenticationError(self.id + ' ' + response['errorMessage'])
-                        else:
-                            raise ExchangeError(self.id + ' ' + self.json(response))
-                    elif (error == 10) or (error == 11) or (error == 12) or (error == 20) or (error == 30) or (error == 101) or (error == 102):
-                        raise AuthenticationError(self.id + ' ' + self.json(response))
-                    elif error == 31:
-                        raise NotSupported(self.id + ' ' + self.json(response))
-                    elif error == 32:
-                        raise ExchangeError(self.id + ' ' + self.json(response))
-                    elif error == 100:
-                        raise ExchangeError(self.id + ': Invalid parameters ' + self.json(response))
-                    elif error == 103:
-                        raise InvalidOrder(self.id + ': Invalid currency ' + self.json(response))
-                    elif error == 104:
-                        raise InvalidOrder(self.id + ': Invalid amount ' + self.json(response))
-                    elif error == 105:
-                        raise InvalidOrder(self.id + ': Unable to block funds ' + self.json(response))
-                    elif error == 503:
-                        raise ExchangeNotAvailable(self.id + ': Exchange is not available ' + self.json(response))
-                    elif error == 429:
-                        raise DDoSProtection(self.id + ': Too many requests' + self.json(response))
-                    else:
-                        raise ExchangeError(self.id + ' ' + self.json(response))
-            raise ExchangeError(self.id + ' ' + body)
-
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
-        if 'success' in response:
-            if not response['success']:
-                raise ExchangeError(self.id + ' error: ' + self.json(response))
-        return response
+        if not isinstance(body, basestring):
+            return
+        if body[0] == '{':
+            response = json.loads(body)
+            if code >= 300:
+                errorCode = self.safe_string(response, 'errorCode')
+                if errorCode in self.exceptions:
+                    ExceptionClass = self.exceptions[errorCode]
+                    raise ExceptionClass(self.id + ' ' + body)
+                else:
+                    raise ExchangeError(self.id + ' ' + body)
+            # returns status code 200 even if success == False
+            success = self.safe_value(response, 'success', True)
+            if not success:
+                raise ExchangeError(self.id + ' ' + body)

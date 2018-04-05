@@ -32,6 +32,14 @@ class zaif extends Exchange {
                     'https://www.npmjs.com/package/zaif.jp',
                     'https://github.com/you21979/node-zaif',
                 ),
+                'fees' => 'https://zaif.jp/fee?lang=en',
+            ),
+            'fees' => array (
+                'trading' => array (
+                    'percentage' => true,
+                    'taker' => -0.0001,
+                    'maker' => -0.0005,
+                ),
             ),
             'api' => array (
                 'public' => array (

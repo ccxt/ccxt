@@ -757,8 +757,7 @@ module.exports = class kucoin extends Exchange {
         } else {
             timestamp = this.safeValue (trade, 'createdAt');
             order = this.safeString (trade, 'orderOid');
-            if (typeof order === 'undefined')
-                order = this.safeString (trade, 'oid');
+            id = this.safeString (trade, 'oid');
             side = this.safeString (trade, 'direction');
             // https://github.com/ccxt/ccxt/issues/2409
             // side = this.safeString (trade, 'dealDirection');
