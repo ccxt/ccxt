@@ -335,7 +335,7 @@ class bitfinex extends Exchange {
     }
 
     public function amount_to_precision ($symbol, $amount) {
-        return $this->decimal_to_precision($amount, ROUND, $this->markets[$symbol]['precision']['amount'], $this->precisionMode);
+        return $this->decimal_to_precision($amount, TRUNCATE, $this->markets[$symbol]['precision']['amount'], $this->precisionMode);
     }
 
     public function fee_to_precision ($currency, $fee) {
