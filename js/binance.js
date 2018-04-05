@@ -829,7 +829,7 @@ module.exports = class binance extends Exchange {
                 // response in format {'msg': 'The coin does not exist.', 'success': true/false}
                 let success = this.safeValue (response, 'success', true);
                 if (!success) {
-                    response = response['msg'];
+                    response = JSON.parse (response['msg']);
                 }
                 // checks against error codes
                 let error = this.safeString (response, 'code');
