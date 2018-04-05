@@ -91,8 +91,8 @@ class lakebtc extends Exchange {
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $code = $id;
-            if (is_array ($this->currencies) && array_key_exists ($id, $this->currencies)) {
-                $currency = $this->currencies[$id];
+            if (is_array ($this->currencies_by_id) && array_key_exists ($id, $this->currencies_by_id)) {
+                $currency = $this->currencies_by_id[$id];
                 $code = $currency['code'];
             }
             $balance = floatval ($balances[$id]);
