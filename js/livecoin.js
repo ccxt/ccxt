@@ -588,6 +588,11 @@ module.exports = class livecoin extends Exchange {
                     throw new ExchangeError (this.id + ' ' + body);
                 }
             }
+            // returns status code 200 even if success === false
+            let success = this.safeValue (response, 'success', true);
+            if (!success) {
+                throw new ExchangeError (this.id + ' ' + body);
+            }
         }
     }
 };
