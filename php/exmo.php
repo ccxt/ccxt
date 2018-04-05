@@ -357,8 +357,13 @@ class exmo extends Exchange {
     }
 
     public function fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
-        $order = $this->fetch_order($id, $symbol, $params);
-        return $this->filter_by_symbol_since_limit($order['trades'], $symbol, $since, $limit);
+        $market = null;
+        if ($symbol !== null)
+            $market = $this->market ($symbol);
+        $response = $this->privatePostOrderTrades (array (
+            'order_id' => (string) $id,
+        ));
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function update_cached_orders ($openOrders, $symbol) {

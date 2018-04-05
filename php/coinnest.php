@@ -75,7 +75,43 @@ class coinnest extends Exchange {
         $quote = 'KRW';
         $quoteId = strtolower ($quote);
         // todo => rewrite this for web endpoint
-        $coins = 'btc,bch,btg,bcd,ubtc,btn,kst,ltc,act,eth,etc,ada,qtum,xlm,neo,gas,rpx,hsr,knc,tsl,tron,omg,wtc,mco,storm,gto,pxs,chat,ink,oc,hlc,ent,qbt,spc,put'.split (',');
+        $coins = array (
+            'btc',
+            'bch',
+            'btg',
+            'bcd',
+            'ubtc',
+            'btn',
+            'kst',
+            'ltc',
+            'act',
+            'eth',
+            'etc',
+            'ada',
+            'qtum',
+            'xlm',
+            'neo',
+            'gas',
+            'rpx',
+            'hsr',
+            'knc',
+            'tsl',
+            'tron',
+            'omg',
+            'wtc',
+            'mco',
+            'storm',
+            'gto',
+            'pxs',
+            'chat',
+            'ink',
+            'oc',
+            'hlc',
+            'ent',
+            'qbt',
+            'spc',
+            'put',
+        );
         $result = array ();
         for ($i = 0; $i < count ($coins); $i++) {
             $baseId = $coins[$i];

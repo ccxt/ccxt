@@ -824,6 +824,13 @@ class binance extends Exchange {
         if (strlen ($body) > 0) {
             if ($body[0] === '{') {
                 $response = json_decode ($body, $as_associative_array = true);
+                // check $success value for wapi endpoints
+                // $response in format array ('msg' => 'The coin does not exist.', 'success' => true/false)
+                $success = $this->safe_value($response, 'success', true);
+                if (!$success) {
+                    if (is_array ($response) && array_key_exists ('msg', $response))
+                        $response = $response['msg'];
+                }
                 // checks against $error codes
                 $error = $this->safe_string($response, 'code');
                 if ($error !== null) {
@@ -834,9 +841,6 @@ class binance extends Exchange {
                         throw new ExchangeError ($this->id . ' => unknown $error $code => ' . $body . ' ' . $error);
                     }
                 }
-                // check $success value for wapi endpoints
-                // $response in format array ('msg' => 'The coin does not exist.', 'success' => true/false)
-                $success = $this->safe_value($response, 'success', true);
                 if (!$success) {
                     throw new ExchangeError ($this->id . ' => $success value false => ' . $body);
                 }

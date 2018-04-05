@@ -325,6 +325,9 @@ module.exports = class cryptopia extends Exchange {
             market = this.market (symbol);
             request['TradePairId'] = market['id'];
         }
+        if (typeof limit !== 'undefined') {
+            request['Count'] = limit; // default 100
+        }
         let response = await this.privatePostGetTradeHistory (this.extend (request, params));
         return this.parseTrades (response['Data'], market, since, limit);
     }

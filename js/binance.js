@@ -824,6 +824,13 @@ module.exports = class binance extends Exchange {
         }
         if (body.length > 0) {
             if (body[0] === '{') {
+                // check success value for wapi endpoints
+                // response in format {'msg': 'The coin does not exist.', 'success': true/false}
+                let success = this.safeValue (response, 'success', true);
+                if (!success) {
+                    if ('msg' in response)
+                        response = response['msg'];
+                }
                 // checks against error codes
                 let error = this.safeString (response, 'code');
                 if (typeof error !== 'undefined') {
@@ -834,9 +841,6 @@ module.exports = class binance extends Exchange {
                         throw new ExchangeError (this.id + ': unknown error code: ' + body + ' ' + error);
                     }
                 }
-                // check success value for wapi endpoints
-                // response in format {'msg': 'The coin does not exist.', 'success': true/false}
-                let success = this.safeValue (response, 'success', true);
                 if (!success) {
                     throw new ExchangeError (this.id + ': success value false: ' + body);
                 }

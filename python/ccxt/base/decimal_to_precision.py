@@ -57,7 +57,7 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=D
     elif rounding_mode == TRUNCATE:
         # Slice a string
         if counting_mode == DECIMAL_PLACES:
-            before, after = string.split('.')
+            before, after = string.split('.') if '.' in string else (string, '')
             truncated = before + '.' + after[:precision]
             precise = truncated.rstrip('.')
         elif counting_mode == SIGNIFICANT_DIGITS:

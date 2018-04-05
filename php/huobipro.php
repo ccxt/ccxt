@@ -561,7 +561,7 @@ class huobipro extends Exchange {
     }
 
     public function fee_to_precision ($currency, $fee) {
-        return floatval ($this->decimalToPrecision ($fee, 0, $this->currencies[$currency]['precision']));
+        return floatval ($this->decimal_to_precision($fee, 0, $this->currencies[$currency]['precision']));
     }
 
     public function calculate_fee ($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
