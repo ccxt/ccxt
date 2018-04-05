@@ -240,6 +240,12 @@ module.exports = class qryptos extends Exchange {
     }
 
     parseTrade (trade, market) {
+        // {             id:  12345,
+        //         quantity: "6.789",
+        //            price: "98765.4321",
+        //       taker_side: "sell",
+        //       created_at:  1512345678,
+        //          my_side: "buy"           }
         let timestamp = trade['created_at'] * 1000;
         // 'taker_side' gets filled for both fetchTrades and fetchMyTrades
         let takerSide = this.safeString (trade, 'taker_side');
