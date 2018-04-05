@@ -830,7 +830,7 @@ module.exports = class binance extends Exchange {
                 let success = this.safeValue (response, 'success', true);
                 if (!success) {
                     if ('msg' in response)
-                        response = response['msg'];
+                        response = JSON.parse (response['msg']);
                 }
                 // checks against error codes
                 let error = this.safeString (response, 'code');
