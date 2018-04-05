@@ -829,7 +829,7 @@ class binance extends Exchange {
                 $success = $this->safe_value($response, 'success', true);
                 if (!$success) {
                     if (is_array ($response) && array_key_exists ('msg', $response))
-                        $response = $response['msg'];
+                        $response = json_decode ($response['msg'], $as_associative_array = true);
                 }
                 // checks against $error codes
                 $error = $this->safe_string($response, 'code');
