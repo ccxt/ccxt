@@ -428,6 +428,93 @@ const phpFolder     = './php/'
 
 // ----------------------------------------------------------------------------
 
+function transpileJavaScriptToPython3 ({ js, className }) {
+
+    // transpile JS → Python 3
+    let python3Body = regexAll (js, pythonRegexes)
+        .replace (/$\s*$/gm, '')
+        .replace (/\'([абвгдеёжзийклмнопрстуфхцчшщъыьэюя服务端忙碌]+)\'/gm, "u'$1'")
+
+    // special case for Python OrderedDicts
+    let orderedDictRegex = /\.ordered\s+\(\{([^\}]+)\}\)/g
+    let orderedDictMatches = undefined
+    while (orderedDictMatches = orderedDictRegex.exec (python3Body)) {
+        let replaced = orderedDictMatches[1].replace (/^(\s+)([^\:]+)\:\s*([^\,]+)\,$/gm, '$1($2, $3),')
+        python3Body = python3Body.replace (orderedDictRegex, '\.ordered ([' + replaced + '])')
+    }
+
+    // special case for Python super
+    python3Body = python3Body.replace (/super\./g, 'super(' + className + ', self).')
+
+    return python3Body
+}
+
+// ----------------------------------------------------------------------------
+
+function transpilePython3ToPython2 (py) {
+
+    // remove await from Python 2 body (transpile Python 3 → Python 2)
+    let python2Body = regexAll (py, python2Regexes)
+
+    return python2Body
+}
+
+// ----------------------------------------------------------------------------
+
+function transpileJavaScriptToPHP ({ js, variables }) {
+
+    // match all local variables (let, const or var)
+    let localVariablesRegex = /[^a-zA-Z0-9_](?:let|const|var)\s+(?:\[([^\]]+)\]|([a-zA-Z0-9_]+))/g // local variables
+
+    let allVariables = variables.map (x => x); // clone the array
+    // process the variables created in destructuring assignments as well
+    let localVariablesMatches
+    while (localVariablesMatches = localVariablesRegex.exec (js)) {
+        let match = localVariablesMatches[1] ? localVariablesMatches[1] : localVariablesMatches[2]
+        match = match.trim ().split (', ')                 // split the destructuring assignment by comma
+        match.forEach (x => allVariables.push (x.trim ())) // trim each variable name
+        allVariables.push (localVariablesMatches[1])       // add them to the list of local variables
+    }
+
+    let catchClauseRegex = /catch \(([^)]+)\)/g
+    let catchClauseMatches
+    while (catchClauseMatches = catchClauseRegex.exec (js)) {
+        allVariables.push (catchClauseMatches[1])
+    }
+
+    // append $ to all variables in the method (PHP syntax demands $ at the beginning of a variable name)
+    let phpVariablesRegexes = allVariables.map (x => [ "([^$$a-zA-Z0-9\\.\\>'_])" + x + "([^a-zA-Z0-9'_])", '$1$$' + x + '$2' ])
+
+    // transpile JS → PHP
+    let phpBody = regexAll (js, phpRegexes.concat (phpVariablesRegexes))
+
+    return phpBody
+}
+
+// ----------------------------------------------------------------------------
+
+function transpileJavaScriptToPythonAndPHP (args) {
+
+    //-------------------------------------------------------------------------
+
+    // transpile JS → Python 3
+    let python3Body = transpileJavaScriptToPython3 (args)
+
+    //-------------------------------------------------------------------------
+
+    // remove await from Python 2 body (transpile Python 3 → Python 2)
+    let python2Body = transpilePython3ToPython2 (python3Body)
+
+    //-------------------------------------------------------------------------
+
+    // transpile JS → PHP
+    let phpBody = transpileJavaScriptToPHP (args)
+
+    return { python3Body, python2Body, phpBody }
+}
+
+// ----------------------------------------------------------------------------
+
 function transpileDerivedExchangeClass (contents) {
 
     // match all required imports
@@ -505,47 +592,10 @@ function transpileDerivedExchangeClass (contents) {
 
         // method body without the signature (first line)
         // and without the closing bracket (last line)
-        let body = lines.slice (1, -1).join ("\n")
+        let js = lines.slice (1, -1).join ("\n")
 
-        // match all local variables (let, const or var)
-        let localVariablesRegex = /[^a-zA-Z0-9_](?:let|const|var)\s+(?:\[([^\]]+)\]|([a-zA-Z0-9_]+))/g // local variables
-
-        // process the variables created in destructuring assignments as well
-        let localVariablesMatches
-        while (localVariablesMatches = localVariablesRegex.exec (body)) {
-            let match = localVariablesMatches[1] ? localVariablesMatches[1] : localVariablesMatches[2]
-            match = match.trim ().split (', ')              // split the destructuring assignment by comma
-            match.forEach (x => variables.push (x.trim ())) // trim each variable name
-            variables.push (localVariablesMatches[1])       // add them to the list of local variables
-        }
-
-        let catchClauseRegex = /catch \(([^)]+)\)/g
-        let catchClauseMatches
-        while (catchClauseMatches = catchClauseRegex.exec (body)) {
-            variables.push (catchClauseMatches[1])
-        }
-
-        // append $ to all variables in the method (PHP syntax demands $ at the beginning of a variable name)
-        let phpVariablesRegexes = variables.map (x => [ "([^$$a-zA-Z0-9\\.\\>'_])" + x + "([^a-zA-Z0-9'_])", '$1$$' + x + '$2' ])
-
-        // transpile JS → Python 3
-        let python3Body = regexAll (body, pythonRegexes)
-            .replace (/$\s*$/gm, '')
-            .replace (/\'([абвгдеёжзийклмнопрстуфхцчшщъыьэюя服务端忙碌]+)\'/gm, "u'$1'")
-
-        // special case for Python OrderedDicts
-        let orderedDictRegex = /\.ordered\s+\(\{([^\}]+)\}\)/g
-        let orderedDictMatches = undefined
-        while (orderedDictMatches = orderedDictRegex.exec (python3Body)) {
-            let replaced = orderedDictMatches[1].replace (/^(\s+)([^\:]+)\:\s*([^\,]+)\,$/gm, '$1($2, $3),')
-            python3Body = python3Body.replace (orderedDictRegex, '\.ordered ([' + replaced + '])')
-        }
-
-        // special case for Python super
-        python3Body = python3Body.replace (/super\./g, 'super(' + className + ', self).')
-
-        // remove await from Python 2 body
-        let python2Body = regexAll (python3Body, python2Regexes)
+        // transpile everything
+        let { python3Body, python2Body, phpBody } = transpileJavaScriptToPythonAndPHP ({ js, className, variables })
 
         // compile the final Python code for the method signature
         let pythonString = 'def ' + method + '(self' + (pythonArgs.length ? ', ' + pythonArgs : '') + '):'
@@ -559,9 +609,6 @@ function transpileDerivedExchangeClass (contents) {
         python3.push ('');
         python3.push ('    ' + keyword + pythonString);
         python3.push (python3Body);
-
-        // transpile JS → PHP
-        let phpBody = regexAll (body, phpRegexes.concat (phpVariablesRegexes))
 
         // compile signature + body for PHP
         php.push ('');
@@ -771,7 +818,7 @@ if (classes === null) {
 exportTypeScriptDeclarations (classes)
 
 transpilePythonAsyncToSync ('./python/test/test_async.py', './python/test/test.py')
-transpilePrecisionTests ('./js/test/base/functions/test.number.js', './python/test/test_decimal_to_precision.py', './php/test/precisionTests.php')
+// transpilePrecisionTests ('./js/test/base/functions/test.number.js', './python/test/test_decimal_to_precision.py', './php/test/precisionTests.php')
 
 //-----------------------------------------------------------------------------
 
