@@ -300,7 +300,7 @@ module.exports = class bitz extends Exchange {
         let timestamp = undefined;
         let iso8601 = undefined;
         if ('datetime' in order) {
-            timestamp = this.parse8601 (order, 'datetime');
+            timestamp = this.parse8601 (order['datetime']);
             iso8601 = this.iso8601 (timestamp);
         }
         return {
