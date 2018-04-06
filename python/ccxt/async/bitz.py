@@ -293,7 +293,7 @@ class bitz (Exchange):
         timestamp = None
         iso8601 = None
         if 'datetime' in order:
-            timestamp = self.parse8601(order, 'datetime')
+            timestamp = self.parse8601(order['datetime'])
             iso8601 = self.iso8601(timestamp)
         return {
             'id': order['id'],
