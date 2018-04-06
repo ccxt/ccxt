@@ -87,6 +87,7 @@ module.exports = class zb extends Exchange {
                 },
                 'private': {
                     'get': [
+                        // spot API
                         'order',
                         'cancelOrder',
                         'getOrder',
@@ -102,6 +103,18 @@ module.exports = class zb extends Exchange {
                         'getCnyWithdrawRecord',
                         'getCnyChargeRecord',
                         'withdraw',
+                        // leverage API
+                        'getLeverAssetsInfo',
+                        'getLeverBills',
+                        'transferInLever',
+                        'transferOutLever',
+                        'loan',
+                        'cancelLoan',
+                        'getLoans',
+                        'getLoanRecords',
+                        'borrow',
+                        'repay',
+                        'getRepayments',
                     ],
                 },
             },
