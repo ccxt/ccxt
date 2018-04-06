@@ -926,6 +926,15 @@ abstract class Exchange {
         $this->last_http_response = $result;
         $this->last_response_headers = $response_headers;
 
+        if ($this->parseJsonResponse) {
+
+            $this->last_json_response =
+                ((gettype ($result) == 'string') &&  (strlen ($result) > 1)) ?
+                    json_decode ($result, $as_associative_array = true) : null;
+
+        }
+
+
         $curl_errno = curl_errno ($this->curl);
         $curl_error = curl_error ($this->curl);
         $http_status_code = curl_getinfo ($this->curl, CURLINFO_HTTP_CODE);
@@ -1013,37 +1022,29 @@ abstract class Exchange {
             }
         }
 
-        if ($this->parseJsonResponse) {
 
-            $this->last_json_response =
-                ((gettype ($result) == 'string') &&  (strlen ($result) > 1)) ?
-                    json_decode ($result, $as_associative_array = true) : null;
+        if ($this->parseJsonResponse && !$this->last_json_response) {
 
-            if (!$this->last_json_response) {
+            if (preg_match ('#offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing#i', $result)) {
 
-                if (preg_match ('#offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing#i', $result)) {
+                $details = '(possible reasons: ' . implode (', ', array (
+                    'exchange is down or offline',
+                    'on maintenance',
+                    'DDoS protection',
+                    'rate-limiting in effect',
+                )) . ')';
 
-                    $details = '(possible reasons: ' . implode (', ', array (
-                        'exchange is down or offline',
-                        'on maintenance',
-                        'DDoS protection',
-                        'rate-limiting in effect',
-                    )) . ')';
-
-                    $this->raise_error ('ExchangeNotAvailable', $url, $method, $http_status_code,
-                        'not accessible from this location at the moment', $details);
-                }
-
-                if (preg_match ('#cloudflare|incapsula#i', $result)) {
-                    $this->raise_error ('DDoSProtection', $url, $method, $http_status_code,
-                        'not accessible from this location at the moment');
-                }
+                $this->raise_error ('ExchangeNotAvailable', $url, $method, $http_status_code,
+                    'not accessible from this location at the moment', $details);
             }
 
-            return $this->last_json_response;
+            if (preg_match ('#cloudflare|incapsula#i', $result)) {
+                $this->raise_error ('DDoSProtection', $url, $method, $http_status_code,
+                    'not accessible from this location at the moment');
+            }
         }
 
-        return $result;
+        return $this->parseJsonResponse ? $this->last_json_response : $result;
     }
 
     public function set_markets ($markets, $currencies = null) {
