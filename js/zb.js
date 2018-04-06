@@ -340,6 +340,8 @@ module.exports = class zb extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        if (typeof symbol === 'undefined')
+            throw new ExchangeError (this.id + ' fetchOrder() requires a symbol argument');
         await this.loadMarkets ();
         let order = {
             'id': id.toString (),
@@ -368,10 +370,8 @@ module.exports = class zb extends Exchange {
         try {
             response = await this[method] (this.extend (request, params));
         } catch (e) {
-            if (this.last_json_response) {
-                let code = this.safeString (this.last_json_response, 'code');
-                if (code === '3001')
-                    return [];
+            if (e instanceof OrderNotFound) {
+                return [];
             }
             throw e;
         }
@@ -396,10 +396,8 @@ module.exports = class zb extends Exchange {
         try {
             response = await this[method] (this.extend (request, params));
         } catch (e) {
-            if (this.last_json_response) {
-                let code = this.safeString (this.last_json_response, 'code');
-                if (code === '3001')
-                    return [];
+            if (e instanceof OrderNotFound) {
+                return [];
             }
             throw e;
         }
@@ -498,7 +496,6 @@ module.exports = class zb extends Exchange {
             return; // fallback to default error handler
         if (body[0] === '{') {
             let response = JSON.parse (body);
-            this.last_json_response = response;
             if ('code' in response) {
                 let code = this.safeString (response, 'code');
                 let message = this.id + ' ' + this.json (response);
