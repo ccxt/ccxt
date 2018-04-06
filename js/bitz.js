@@ -297,7 +297,6 @@ module.exports = class bitz extends Exchange {
             if (typeof side !== 'undefined')
                 side = (side === 'in') ? 'buy' : 'sell';
         }
-        i
         let timestamp = undefined;
         let iso8601 = undefined;
         if ('datetime' in order) {
