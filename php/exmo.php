@@ -301,14 +301,21 @@ class exmo extends Exchange {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        $prefix = ($type === 'market') ? 'market_' : '';
+        $prefix = ($type === 'market') ? ($type . '_') : '';
         $market = $this->market ($symbol);
         $request = array (
             'pair' => $market['id'],
             'quantity' => $this->amount_to_string($symbol, $amount),
-            'price' => $this->price_to_precision($symbol, $price),
             'type' => $prefix . $side,
         );
+        if ($type === 'market') {
+            if ($price === null) {
+                $request['price'] = 0;
+            }
+        }
+        if ($price !== null) {
+            $request['price'] = $this->price_to_precision($symbol, $price);
+        }
         $response = $this->privatePostOrderCreate (array_merge ($request, $params));
         $id = $this->safe_string($response, 'order_id');
         $timestamp = $this->milliseconds ();

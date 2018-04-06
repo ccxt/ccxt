@@ -298,14 +298,18 @@ class exmo (Exchange):
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
-        prefix = 'market_' if (type == 'market') else ''
+        prefix = (type + '_') if (type == 'market') else ''
         market = self.market(symbol)
         request = {
             'pair': market['id'],
             'quantity': self.amount_to_string(symbol, amount),
-            'price': self.price_to_precision(symbol, price),
             'type': prefix + side,
         }
+        if type == 'market':
+            if price is None:
+                request['price'] = 0
+        if price is not None:
+            request['price'] = self.price_to_precision(symbol, price)
         response = await self.privatePostOrderCreate(self.extend(request, params))
         id = self.safe_string(response, 'order_id')
         timestamp = self.milliseconds()
