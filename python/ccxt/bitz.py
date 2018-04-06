@@ -290,10 +290,15 @@ class bitz (Exchange):
             side = self.safe_string(order, 'type')
             if side is not None:
                 side = 'buy' if (side == 'in') else 'sell'
+        timestamp = None
+        iso8601 = None
+        if 'datetime' in order:
+            timestamp = self.parse8601(order['datetime'])
+            iso8601 = self.iso8601(timestamp)
         return {
             'id': order['id'],
-            'datetime': None,
-            'timestamp': None,
+            'datetime': iso8601,
+            'timestamp': timestamp,
             'status': 'open',
             'symbol': symbol,
             'type': 'limit',
@@ -343,7 +348,7 @@ class bitz (Exchange):
         response = self.privatePostOpenOrders(self.extend({
             'coin': market['id'],
         }, params))
-        return self.parse_orders(response['data'], market)
+        return self.parse_orders(response['data'], market, since, limit)
 
     def nonce(self):
         currentTimestamp = self.seconds()

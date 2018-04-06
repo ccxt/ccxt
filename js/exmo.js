@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, OrderNotFound, AuthenticationError, InsufficientFunds, InvalidOrder, InvalidNonce } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, OrderNotFound, AuthenticationError, InsufficientFunds, InvalidOrder, InvalidNonce } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -97,6 +97,7 @@ module.exports = class exmo extends Exchange {
                 '40005': AuthenticationError, // Authorization error, incorrect signature
                 '40009': InvalidNonce, //
                 '40015': ExchangeError, // API function do not exist
+                '40016': ExchangeNotAvailable, // Maintenance work in progress
                 '40017': AuthenticationError, // Wrong API Key
                 '50052': InsufficientFunds,
                 '50054': InsufficientFunds,
@@ -299,14 +300,21 @@ module.exports = class exmo extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let prefix = (type === 'market') ? 'market_' : '';
+        let prefix = (type === 'market') ? (type + '_') : '';
         let market = this.market (symbol);
         let request = {
             'pair': market['id'],
             'quantity': this.amountToString (symbol, amount),
-            'price': this.priceToPrecision (symbol, price),
             'type': prefix + side,
         };
+        if (type === 'market') {
+            if (typeof price === 'undefined') {
+                request['price'] = 0;
+            }
+        }
+        if (typeof price !== 'undefined') {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
         let response = await this.privatePostOrderCreate (this.extend (request, params));
         let id = this.safeString (response, 'order_id');
         let timestamp = this.milliseconds ();
@@ -358,8 +366,13 @@ module.exports = class exmo extends Exchange {
     }
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const order = await this.fetchOrder (id, symbol, params);
-        return this.filterBySymbolSinceLimit (order['trades'], symbol, since, limit);
+        let market = undefined;
+        if (typeof symbol !== 'undefined')
+            market = this.market (symbol);
+        let response = await this.privatePostOrderTrades ({
+            'order_id': id.toString (),
+        });
+        return this.parseTrades (response, market, since, limit);
     }
 
     updateCachedOrders (openOrders, symbol) {

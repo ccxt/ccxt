@@ -18,6 +18,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 
 
@@ -112,6 +113,7 @@ class exmo (Exchange):
                 '40005': AuthenticationError,  # Authorization error, incorrect signature
                 '40009': InvalidNonce,  #
                 '40015': ExchangeError,  # API function do not exist
+                '40016': ExchangeNotAvailable,  # Maintenance work in progress
                 '40017': AuthenticationError,  # Wrong API Key
                 '50052': InsufficientFunds,
                 '50054': InsufficientFunds,
@@ -296,14 +298,18 @@ class exmo (Exchange):
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
-        prefix = 'market_' if (type == 'market') else ''
+        prefix = (type + '_') if (type == 'market') else ''
         market = self.market(symbol)
         request = {
             'pair': market['id'],
             'quantity': self.amount_to_string(symbol, amount),
-            'price': self.price_to_precision(symbol, price),
             'type': prefix + side,
         }
+        if type == 'market':
+            if price is None:
+                request['price'] = 0
+        if price is not None:
+            request['price'] = self.price_to_precision(symbol, price)
         response = await self.privatePostOrderCreate(self.extend(request, params))
         id = self.safe_string(response, 'order_id')
         timestamp = self.milliseconds()
@@ -350,8 +356,13 @@ class exmo (Exchange):
         raise OrderNotFound(self.id + ' fetchOrder order id ' + str(id) + ' not found in cache.')
 
     async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
-        order = await self.fetch_order(id, symbol, params)
-        return self.filter_by_symbol_since_limit(order['trades'], symbol, since, limit)
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        response = await self.privatePostOrderTrades({
+            'order_id': str(id),
+        })
+        return self.parse_trades(response, market, since, limit)
 
     def update_cached_orders(self, openOrders, symbol):
         # update local cache with open orders

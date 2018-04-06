@@ -787,6 +787,12 @@ class binance (Exchange):
         if len(body) > 0:
             if body[0] == '{':
                 response = json.loads(body)
+                # check success value for wapi endpoints
+                # response in format {'msg': 'The coin does not exist.', 'success': True/false}
+                success = self.safe_value(response, 'success', True)
+                if not success:
+                    if 'msg' in response:
+                        response = json.loads(response['msg'])
                 # checks against error codes
                 error = self.safe_string(response, 'code')
                 if error is not None:
@@ -795,8 +801,5 @@ class binance (Exchange):
                         raise exceptions[error](self.id + ' ' + body)
                     else:
                         raise ExchangeError(self.id + ': unknown error code: ' + body + ' ' + error)
-                # check success value for wapi endpoints
-                # response in format {'msg': 'The coin does not exist.', 'success': True/false}
-                success = self.safe_value(response, 'success', True)
                 if not success:
                     raise ExchangeError(self.id + ': success value False: ' + body)

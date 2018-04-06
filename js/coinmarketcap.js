@@ -89,6 +89,8 @@ module.exports = class coinmarketcap extends Exchange {
 
     currencyCode (base, name) {
         const currencies = {
+            'AdCoin': 'AdCoin',
+            'ACChain': 'ACChain',
             'BatCoin': 'BatCoin',
             'Bitgem': 'Bitgem',
             'BlockCAT': 'BlockCAT',

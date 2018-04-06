@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, InvalidNonce, InsufficientFunds, InvalidOrder, OrderNotFound, NotSupported, PermissionDenied } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, InvalidNonce, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -18,8 +18,8 @@ module.exports = class bitbank extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchMyTrades': true,
-                // 'fetchDepositAddress': true,
-                // 'withdraw': true,
+                'fetchDepositAddress': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1min',
@@ -71,14 +71,14 @@ module.exports = class bitbank extends Exchange {
                 },
             },
             'markets': {
-                'BCH/BTC': { 'id': 'bcc_btc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'baseId': 'BCC' },
-                'BCH/JPY': { 'id': 'bcc_jpy', 'symbol': 'BCH/JPY', 'base': 'BCH', 'quote': 'JPY', 'baseId': 'BCC' },
-                'MONA/BTC': { 'id': 'mona_btc', 'symbol': 'MONA/BTC', 'base': 'MONA', 'quote': 'BTC' },
-                'MONA/JPY': { 'id': 'mona_jpy', 'symbol': 'MONA/JPY', 'base': 'MONA', 'quote': 'JPY' },
-                'ETH/BTC': { 'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC' },
-                'LTC/BTC': { 'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
-                'XRP/JPY': { 'id': 'xrp_jpy', 'symbol': 'XRP/JPY', 'base': 'XRP', 'quote': 'JPY' },
-                'BTC/JPY': { 'id': 'btc_jpy', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY' },
+                'BCH/BTC': { 'id': 'bcc_btc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'baseId': 'bcc', 'quoteId': 'btc' },
+                'BCH/JPY': { 'id': 'bcc_jpy', 'symbol': 'BCH/JPY', 'base': 'BCH', 'quote': 'JPY', 'baseId': 'bcc', 'quoteId': 'jpy' },
+                'MONA/BTC': { 'id': 'mona_btc', 'symbol': 'MONA/BTC', 'base': 'MONA', 'quote': 'BTC', 'baseId': 'mona', 'quoteId': 'btc' },
+                'MONA/JPY': { 'id': 'mona_jpy', 'symbol': 'MONA/JPY', 'base': 'MONA', 'quote': 'JPY', 'baseId': 'mona', 'quoteId': 'jpy' },
+                'ETH/BTC': { 'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'baseId': 'eth', 'quoteId': 'btc' },
+                'LTC/BTC': { 'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'baseId': 'ltc', 'quoteId': 'btc' },
+                'XRP/JPY': { 'id': 'xrp_jpy', 'symbol': 'XRP/JPY', 'base': 'XRP', 'quote': 'JPY', 'baseId': 'xrp', 'quoteId': 'jpy' },
+                'BTC/JPY': { 'id': 'btc_jpy', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY', 'baseId': 'btc', 'quoteId': 'jpy' },
             },
             'fees': {
                 'trading': {
@@ -101,6 +101,22 @@ module.exports = class bitbank extends Exchange {
             'precision': {
                 'price': 8,
                 'amount': 8,
+            },
+            'exceptions': {
+                '20001': AuthenticationError,
+                '20002': AuthenticationError,
+                '20003': AuthenticationError,
+                '20005': AuthenticationError,
+                '20004': InvalidNonce,
+                '40020': InvalidOrder,
+                '40021': InvalidOrder,
+                '40025': ExchangeError,
+                '40013': OrderNotFound,
+                '40014': OrderNotFound,
+                '50008': PermissionDenied,
+                '50009': OrderNotFound,
+                '50010': OrderNotFound,
+                '60001': InsufficientFunds,
             },
         });
     }
@@ -355,48 +371,38 @@ module.exports = class bitbank extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
-        //
-        // TODO: test
-        //
-        //     await this.loadMarkets ();
-        //     let currency = this.currency (code);
-        //     let response = await this.privatePostReturnDepositAddresses (this.extend ({
-        //         'asset': currency['id'],
-        //     }, params));
-        //     // Not sure about this if there could be more accounts...
-        //     let accounts = response['data']['accounts'];
-        //     let address = this.safeString (accounts[0], 'address');
-        //     let status = address ? 'ok' : 'none';
-        //     return {
-        //         'currency': currency,
-        //         'address': address,
-        //         'tag': undefined,
-        //         'status': status,
-        //         'info': response,
-        //     };
-        //
-        throw new NotSupported (this.id + ' fetchDepositAddress is not implemented!');
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let response = await this.privateGetUserWithdrawalAccount (this.extend ({
+            'asset': currency['id'],
+        }, params));
+        // Not sure about this if there could be more accounts...
+        let accounts = response['data']['accounts'];
+        let address = this.safeString (accounts[0], 'address');
+        let status = address ? 'ok' : 'none';
+        return {
+            'currency': currency,
+            'address': address,
+            'tag': undefined,
+            'status': status,
+            'info': response,
+        };
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
-        //
-        // TODO: test
-        //
-        //     if (!('uuid' in params)) {
-        //         throw new ExchangeError (this.id + ' uuid is required for withdrawal');
-        //     }
-        //     await this.loadMarkets ();
-        //     let currency = this.currency (code);
-        //     let response = await this.privatePostRequestWithdrawal (this.extend ({
-        //         'asset': currency['id'],
-        //         'amount': amount,
-        //     }, params));
-        //     return {
-        //         'info': response,
-        //         'id': response['data']['txid'],
-        //     };
-        //
-        throw new NotSupported (this.id + ' withdraw is not implemented!');
+        if (!('uuid' in params)) {
+            throw new ExchangeError (this.id + ' uuid is required for withdrawal');
+        }
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let response = await this.privatePostUserRequestWithdrawal (this.extend ({
+            'asset': currency['id'],
+            'amount': amount,
+        }, params));
+        return {
+            'info': response,
+            'id': response['data']['txid'],
+        };
     }
 
     nonce () {
@@ -501,21 +507,7 @@ module.exports = class bitbank extends Exchange {
                 '70005': 'Order can not be accepted because purchase order is currently suspended',
                 '70006': 'We can not accept orders because we are currently unsubscribed ',
             };
-            let errorClasses = {
-                '20001': AuthenticationError,
-                '20002': AuthenticationError,
-                '20003': AuthenticationError,
-                '20005': AuthenticationError,
-                '20004': InvalidNonce,
-                '40020': InvalidOrder,
-                '40021': InvalidOrder,
-                '40013': OrderNotFound,
-                '40014': OrderNotFound,
-                '50008': PermissionDenied,
-                '50009': OrderNotFound,
-                '50010': OrderNotFound,
-                '60001': InsufficientFunds,
-            };
+            let errorClasses = this.exceptions;
             let code = this.safeString (data, 'code');
             let message = this.safeString (errorMessages, code, 'Error');
             let ErrorClass = this.safeValue (errorClasses, code);
