@@ -122,6 +122,17 @@ class wex (liqui):
             'info': ticker,
         }
 
+    def fetch_deposit_address(self, code, params={}):
+        request = {'coinName': self.common_currency_code(code)}
+        response = self.privatePostCoinDepositAddress(self.extend(request, params))
+        return {
+            'currency': code,
+            'address': response['return']['address'],
+            'tag': None,
+            'status': 'ok',
+            'info': response,
+        }
+
     def handle_errors(self, code, reason, url, method, headers, body):
         if code == 200:
             if body[0] != '{':
