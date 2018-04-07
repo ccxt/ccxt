@@ -88,6 +88,7 @@ class zb extends Exchange {
                 ),
                 'private' => array (
                     'get' => array (
+                        // spot API
                         'order',
                         'cancelOrder',
                         'getOrder',
@@ -103,6 +104,18 @@ class zb extends Exchange {
                         'getCnyWithdrawRecord',
                         'getCnyChargeRecord',
                         'withdraw',
+                        // leverage API
+                        'getLeverAssetsInfo',
+                        'getLeverBills',
+                        'transferInLever',
+                        'transferOutLever',
+                        'loan',
+                        'cancelLoan',
+                        'getLoans',
+                        'getLoanRecords',
+                        'borrow',
+                        'repay',
+                        'getRepayments',
                     ),
                 ),
             ),

@@ -104,6 +104,7 @@ class zb (Exchange):
                 },
                 'private': {
                     'get': [
+                        # spot API
                         'order',
                         'cancelOrder',
                         'getOrder',
@@ -119,6 +120,18 @@ class zb (Exchange):
                         'getCnyWithdrawRecord',
                         'getCnyChargeRecord',
                         'withdraw',
+                        # leverage API
+                        'getLeverAssetsInfo',
+                        'getLeverBills',
+                        'transferInLever',
+                        'transferOutLever',
+                        'loan',
+                        'cancelLoan',
+                        'getLoans',
+                        'getLoanRecords',
+                        'borrow',
+                        'repay',
+                        'getRepayments',
                     ],
                 },
             },
