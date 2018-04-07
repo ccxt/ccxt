@@ -88,6 +88,9 @@ module.exports = class qryptos extends Exchange {
                     'user': {
                         'not_enough_free_balance': InsufficientFunds,
                     },
+                    'price': {
+                        'must_be_positive': InvalidOrder,
+                    },
                     'quantity': {
                         'less_than_order_size': InvalidOrder,
                     },
@@ -465,7 +468,7 @@ module.exports = class qryptos extends Exchange {
             // { "errors": { "quantity": ["less_than_order_size"] }}
             if ('errors' in response) {
                 const errors = response['errors'];
-                const errorTypes = ['user', 'quantity'];
+                const errorTypes = ['user', 'quantity', 'price'];
                 for (let i = 0; i < errorTypes.length; i++) {
                     const errorType = errorTypes[i];
                     if (errorType in errors) {
