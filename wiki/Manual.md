@@ -1877,7 +1877,7 @@ Notice that the order `b` has disappeared, the selling order also isn't there. A
 exchange.fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {})
 ```
 
-Returns ordered array of trades (most recent trade first).
+Returns ordered array of trades (most recent trade last).
 
 #### Trade structure
 
