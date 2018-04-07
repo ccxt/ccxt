@@ -232,7 +232,7 @@ class exx extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $balances = $this->privateGetBalance ($params);
+        $balances = $this->privateGetGetBalance ($params);
         $result = array ( 'info' => $balances );
         $balances = $balances['funds'];
         $currencies = is_array ($balances) ? array_keys ($balances) : array ();

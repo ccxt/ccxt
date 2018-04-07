@@ -225,7 +225,7 @@ class exx (Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        balances = await self.privateGetBalance(params)
+        balances = await self.privateGetGetBalance(params)
         result = {'info': balances}
         balances = balances['funds']
         currencies = list(balances.keys())

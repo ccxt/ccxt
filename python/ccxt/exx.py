@@ -225,7 +225,7 @@ class exx (Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        balances = self.privateGetBalance(params)
+        balances = self.privateGetGetBalance(params)
         result = {'info': balances}
         balances = balances['funds']
         currencies = list(balances.keys())
