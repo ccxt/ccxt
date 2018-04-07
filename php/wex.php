@@ -84,6 +84,9 @@ class wex extends liqui {
                     'external service unavailable' => '\\ccxt\\DDoSProtection',
                 ),
             ),
+            'commonCurrencies' => array (
+                'RUR' => 'RUB',
+            ),
         ));
     }
 

@@ -88,6 +88,9 @@ class wex (liqui):
                     'external service unavailable': DDoSProtection,
                 },
             },
+            'commonCurrencies': {
+                'RUR': 'RUB',
+            },
         })
 
     def parse_ticker(self, ticker, market=None):
