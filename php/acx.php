@@ -171,7 +171,7 @@ class acx extends Exchange {
             'ask' => $this->safe_float($ticker, 'sell', null),
             'askVolume' => null,
             'vwap' => null,
-            'open' => $this->safe_float($ticker, 'open', null),
+            'open' => null,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
