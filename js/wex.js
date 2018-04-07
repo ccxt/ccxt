@@ -119,6 +119,15 @@ module.exports = class wex extends liqui {
         };
     }
 
+    async fetchDepositAddress (code, params = {}) {
+        let request = { 'coinName': this.commonCurrencyCode (code) };
+        let response = await this.privatePostCoinDepositAddress (this.extend (request, params));
+        return {
+            'info': response,
+            'address': response['return']['address'],
+        };
+    }
+
     handleErrors (code, reason, url, method, headers, body) {
         if (code === 200) {
             if (body[0] !== '{') {
