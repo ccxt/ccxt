@@ -155,26 +155,26 @@ class acx (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
-        last = self.safe_float(ticker, 'last', None)
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high', None),
-            'low': self.safe_float(ticker, 'low', None),
-            'bid': self.safe_float(ticker, 'buy', None),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'buy'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'sell', None),
+            'ask': self.safe_float(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
-            'open': None,
+            'open': self.safe_float(ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'vol', None),
+            'baseVolume': self.safe_float(ticker, 'vol'),
             'quoteVolume': None,
             'info': ticker,
         }
