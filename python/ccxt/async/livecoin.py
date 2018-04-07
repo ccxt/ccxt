@@ -104,6 +104,7 @@ class livecoin (Exchange):
             'commonCurrencies': {
                 'CRC': 'CryCash',
                 'ORE': 'Orectic',
+                'RUR': 'RUB',
                 'XBT': 'Bricktox',
             },
             'exceptions': {

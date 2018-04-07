@@ -487,7 +487,8 @@ class coinegg (Exchange):
         # {"code":0,"msg":"Suceess","data":{"uid":"2716039","btc_balance":"0.00000000","btc_lock":"0.00000000","xrp_balance":"0.00000000","xrp_lock":"0.00000000"}}
         result = self.safe_value(response, 'result')
         if result is None:
-            # public endpoint
+            # public endpoint ← self comment left here by the contributor, in fact a missing result does not necessarily mean a public endpoint...
+            # we should just check the code and don't rely on the result at all here...
             return
         if result is True:
             # success

@@ -84,6 +84,7 @@ class yobit (liqui):
                 'PAY': 'EPAY',
                 'PLC': 'Platin Coin',
                 'REP': 'Republicoin',
+                'RUR': 'RUB',
             },
             'options': {
                 'fetchOrdersRequiresSymbol': True,
