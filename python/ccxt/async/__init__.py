@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.12.104'
+__version__ = '1.12.105'
 
 # -----------------------------------------------------------------------------
 
@@ -50,6 +50,7 @@ from ccxt.async.bitfinex import bitfinex                        # noqa: F401
 from ccxt.async.bitfinex2 import bitfinex2                      # noqa: F401
 from ccxt.async.bitflyer import bitflyer                        # noqa: F401
 from ccxt.async.bithumb import bithumb                          # noqa: F401
+from ccxt.async.bitkk import bitkk                              # noqa: F401
 from ccxt.async.bitlish import bitlish                          # noqa: F401
 from ccxt.async.bitmarket import bitmarket                      # noqa: F401
 from ccxt.async.bitmex import bitmex                            # noqa: F401
@@ -164,6 +165,7 @@ exchanges = [
     'bitfinex2',
     'bitflyer',
     'bithumb',
+    'bitkk',
     'bitlish',
     'bitmarket',
     'bitmex',

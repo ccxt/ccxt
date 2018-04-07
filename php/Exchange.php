@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.12.104';
+$version = '1.12.105';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -61,6 +61,7 @@ abstract class Exchange {
         'bitfinex2',
         'bitflyer',
         'bithumb',
+        'bitkk',
         'bitlish',
         'bitmarket',
         'bitmex',
