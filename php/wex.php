@@ -120,6 +120,18 @@ class wex extends liqui {
         );
     }
 
+    public function fetch_deposit_address ($code, $params = array ()) {
+        $request = array ( 'coinName' => $this->common_currency_code($code) );
+        $response = $this->privatePostCoinDepositAddress (array_merge ($request, $params));
+        return array (
+            'currency' => $code,
+            'address' => $response['return']['address'],
+            'tag' => null,
+            'status' => 'ok',
+            'info' => $response,
+        );
+    }
+
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
         if ($code === 200) {
             if ($body[0] !== '{') {
