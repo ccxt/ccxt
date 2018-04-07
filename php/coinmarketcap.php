@@ -90,20 +90,19 @@ class coinmarketcap extends Exchange {
 
     public function currency_code ($base, $name) {
         $currencies = array (
-            'AdCoin' => 'AdCoin',
             'ACChain' => 'ACChain',
+            'AdCoin' => 'AdCoin',
             'BatCoin' => 'BatCoin',
             'Bitgem' => 'Bitgem',
+            'BlazeCoin' => 'BlazeCoin',
             'BlockCAT' => 'BlockCAT',
             'Catcoin' => 'Catcoin',
             'Hi Mutual Society' => 'Hi Mutual Society',
             'iCoin' => 'iCoin',
-            'NetCoin' => 'NetCoin',
-            // a special case, most exchanges list it as IOTA, therefore
-            // we change just the Coinmarketcap instead of changing them all
-            'MIOTA' => 'IOTA',
             'Maggie' => 'Maggie',
-            'BlazeCoin' => 'BlazeCoin',
+            'MIOTA' => 'IOTA', // a special case, most exchanges list it as IOTA, therefore we change just the Coinmarketcap instead of changing them all
+            'NetCoin' => 'NetCoin',
+            'Polcoin' => 'Polcoin',
         );
         if (is_array ($currencies) && array_key_exists ($name, $currencies))
             return $currencies[$name];
