@@ -123,8 +123,11 @@ module.exports = class wex extends liqui {
         let request = { 'coinName': this.commonCurrencyCode (code) };
         let response = await this.privatePostCoinDepositAddress (this.extend (request, params));
         return {
-            'info': response,
+            'currency': code,
             'address': response['return']['address'],
+            'tag': undefined,
+            'status': 'ok',
+            'info': response,
         };
     }
 
