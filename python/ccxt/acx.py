@@ -167,7 +167,7 @@ class acx (Exchange):
             'ask': self.safe_float(ticker, 'sell', None),
             'askVolume': None,
             'vwap': None,
-            'open': None,
+            'open': self.safe_float(ticker, 'open', None),
             'close': last,
             'last': last,
             'previousClose': None,
