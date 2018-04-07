@@ -231,7 +231,7 @@ module.exports = class exx extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let balances = await this.privateGetBalance (params);
+        let balances = await this.privateGetGetBalance (params);
         let result = { 'info': balances };
         balances = balances['funds'];
         let currencies = Object.keys (balances);
