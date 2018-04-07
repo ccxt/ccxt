@@ -1859,9 +1859,14 @@ Most of methods returning orders within ccxt unified API will usually yield an o
         'fee':      {                // fee info, if available
             'currency': 'BTC',       // which currency the fee is (usually quote)
             'cost': 0.0009,          // the fee amount in that currency
+            'rate': 0.002,           // the fee rate (if available)
         },
         'info':     { ... },         // the original unparsed order structure as is
     }
+
+**The work on ``'fee'`` info is still in progress, fee info may be missing partially or entirely, depending on the exchange capabilities**.
+
+**The ``fee`` currency may be different from both traded currencies (for example, an ETH/BTC order with fees in USD).**
 
 Placing Orders
 ~~~~~~~~~~~~~~
@@ -2058,7 +2063,39 @@ Recent Trades
 
     exchange.fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {})
 
-Returns ordered array of trades (most recent trade first).
+Returns ordered array of trades (most recent trade last).
+
+Trade structure
+^^^^^^^^^^^^^^^
+
+.. code:: javascript
+
+    [
+        {
+            'info':         { ... },                    // the original decoded JSON as is
+            'id':           '12345-67890:09876/54321',  // string trade id
+            'timestamp':    1502962946216,              // Unix timestamp in milliseconds
+            'datetime':     '2017-08-17 12:42:48.000',  // ISO8601 datetime with milliseconds
+            'symbol':       'ETH/BTC',                  // symbol
+            'order':        '12345-67890:09876/54321',  // string order id or undefined/None/null
+            'type':         'limit',                    // order type, 'market', 'limit' or undefined/None/null
+            'side':         'buy',                      // direction of the trade, 'buy' or 'sell'
+            'takerOrMaker': 'taker'                     // string, 'taker' or 'maker'
+            'price':        0.06917684,                 // float price in quote currency
+            'amount':       1.5,                        // amount of base currency
+            'cost':         0.10376526,                 // total cost (including fees), `price * amount`
+            'fee':          {                           // provided by exchange or calculated by ccxt
+                'cost':  0.0015,                        // float
+                'currency': "ETH",                      // usually base currency for buys, quote currency for sells
+                'rate': 0.002,                          // the fee rate (if available)
+            },
+        },
+        ...
+    ]
+
+**The work on ``'fee'`` info is still in progress, fee info may be missing partially or entirely, depending on the exchange capabilities.**
+
+**The ``fee`` currency may be different from both traded currencies (for example, an ETH/BTC order with fees in USD).**
 
 Trades By Order Id
 ~~~~~~~~~~~~~~~~~~
