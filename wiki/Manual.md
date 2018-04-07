@@ -1685,10 +1685,15 @@ Most of methods returning orders within ccxt unified API will usually yield an o
     'fee':      {                // fee info, if available
         'currency': 'BTC',       // which currency the fee is (usually quote)
         'cost': 0.0009,          // the fee amount in that currency
+        'rate': 0.002,           // the fee rate (if available)
     },
     'info':     { ... },         // the original unparsed order structure as is
 }
 ```
+
+**The work on `'fee'` info is still in progress, fee info may be missing partially or entirely, depending on the exchange capabilities**.
+
+**The `fee` currency may be different from both traded currencies (for example, an ETH/BTC order with fees in USD).**
 
 ### Placing Orders
 
@@ -1899,12 +1904,16 @@ Returns ordered array of trades (most recent trade last).
         'fee':          {                           // provided by exchange or calculated by ccxt
             'cost':  0.0015,                        // float
             'currency': "ETH",                      // usually base currency for buys, quote currency for sells
+            'rate': 0.002,                          // the fee rate (if available)
         },
     },
     ...
 ]
 ```
 
+**The work on `'fee'` info is still in progress, fee info may be missing partially or entirely, depending on the exchange capabilities.**
+
+**The `fee` currency may be different from both traded currencies (for example, an ETH/BTC order with fees in USD).**
 
 ### Trades By Order Id
 
