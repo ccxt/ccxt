@@ -170,7 +170,7 @@ module.exports = class acx extends Exchange {
             'ask': this.safeFloat (ticker, 'sell', undefined),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': undefined,
+            'open': this.safeFloat (ticker, 'open', undefined),
             'close': last,
             'last': last,
             'previousClose': undefined,
