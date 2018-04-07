@@ -89,6 +89,9 @@ class qryptos extends Exchange {
                     'user' => array (
                         'not_enough_free_balance' => '\\ccxt\\InsufficientFunds',
                     ),
+                    'price' => array (
+                        'must_be_positive' => '\\ccxt\\InvalidOrder',
+                    ),
                     'quantity' => array (
                         'less_than_order_size' => '\\ccxt\\InvalidOrder',
                     ),
@@ -466,7 +469,7 @@ class qryptos extends Exchange {
             // array ( "$errors" => { "quantity" => ["less_than_order_size"] )}
             if (is_array ($response) && array_key_exists ('errors', $response)) {
                 $errors = $response['errors'];
-                $errorTypes = ['user', 'quantity'];
+                $errorTypes = ['user', 'quantity', 'price'];
                 for ($i = 0; $i < count ($errorTypes); $i++) {
                     $errorType = $errorTypes[$i];
                     if (is_array ($errors) && array_key_exists ($errorType, $errors)) {
