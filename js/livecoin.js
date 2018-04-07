@@ -86,6 +86,7 @@ module.exports = class livecoin extends Exchange {
             'commonCurrencies': {
                 'CRC': 'CryCash',
                 'ORE': 'Orectic',
+                'RUR': 'RUB',
                 'XBT': 'Bricktox',
             },
             'exceptions': {
