@@ -83,6 +83,9 @@ module.exports = class wex extends liqui {
                     'external service unavailable': DDoSProtection,
                 },
             },
+            'commonCurrencies': {
+                'RUR': 'RUB',
+            },
         });
     }
 
