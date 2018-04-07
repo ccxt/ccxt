@@ -303,24 +303,20 @@ class exmo extends Exchange {
         $this->load_markets();
         $prefix = ($type === 'market') ? ($type . '_') : '';
         $market = $this->market ($symbol);
+        if (($type === 'market') && ($price === null)) {
+            $price = 0;
+        }
         $request = array (
             'pair' => $market['id'],
             'quantity' => $this->amount_to_string($symbol, $amount),
             'type' => $prefix . $side,
+            'price' => $this->price_to_precision($symbol, $price),
         );
-        if ($type === 'market') {
-            if ($price === null) {
-                $request['price'] = 0;
-            }
-        }
-        if ($price !== null) {
-            $request['price'] = $this->price_to_precision($symbol, $price);
-        }
         $response = $this->privatePostOrderCreate (array_merge ($request, $params));
         $id = $this->safe_string($response, 'order_id');
         $timestamp = $this->milliseconds ();
-        $price = floatval ($price);
         $amount = floatval ($amount);
+        $price = floatval ($price);
         $status = 'open';
         $order = array (
             'id' => $id,
