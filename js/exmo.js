@@ -309,7 +309,7 @@ module.exports = class exmo extends Exchange {
             'pair': market['id'],
             'quantity': this.amountToString (symbol, amount),
             'type': prefix + side,
-            'price': this.priceToPrecision (symbol, price);
+            'price': this.priceToPrecision (symbol, price),
         };
         let response = await this.privatePostOrderCreate (this.extend (request, params));
         let id = this.safeString (response, 'order_id');
