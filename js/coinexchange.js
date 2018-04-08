@@ -541,6 +541,7 @@ module.exports = class coinexchange extends Exchange {
                 'BON': 'BonPeKaO',
                 'ETN': 'Ethernex',
                 'GDC': 'GoldenCryptoCoin',
+                'GTC': 'GlobalTourCoin',
                 'HNC': 'Huncoin',
                 'MARS': 'MarsBux',
                 'MER': 'TheMermaidCoin',
