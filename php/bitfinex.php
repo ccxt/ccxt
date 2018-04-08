@@ -245,6 +245,7 @@ class bitfinex extends Exchange {
                     'Invalid order => not enough exchange balance for ' => '\\ccxt\\InsufficientFunds', // when buying cost is greater than the available quote currency
                     'Invalid order => minimum size for ' => '\\ccxt\\InvalidOrder', // when amount below limits.amount.min
                     'Invalid order' => '\\ccxt\\InvalidOrder', // ?
+                    'The available balance is only' => '\\ccxt\\InsufficientFunds', // array ("status":"error","message":"Cannot withdraw 1.0027 ETH from your exchange wallet. The available balance is only 0.0 ETH. If you have limit orders, open positions, unused or active margin funding, this will decrease your available balance. To increase it, you can cancel limit orders or reduce/close your positions.","withdrawal_id":0,"fees":"0.0027")
                 ),
             ),
             'precisionMode' => SIGNIFICANT_DIGITS,
@@ -727,9 +728,12 @@ class bitfinex extends Exchange {
             $request['payment_id'] = $tag;
         $responses = $this->privatePostWithdraw (array_merge ($request, $params));
         $response = $responses[0];
+        $id = $response['withdrawal_id'];
+        if ($id === 0)
+            throw new ExchangeError ($this->id . ' withdraw returned an $id of zero => ' . $this->json ($response));
         return array (
             'info' => $response,
-            'id' => $response['withdrawal_id'],
+            'id' => $id,
         );
     }
 
