@@ -66,6 +66,7 @@ module.exports = class yobit extends liqui {
                 'AIR': 'AirCoin',
                 'ANI': 'ANICoin',
                 'ANT': 'AntsCoin',
+                'AST': 'Astral',
                 'ATM': 'Autumncoin',
                 'BCC': 'BCH',
                 'BCS': 'BitcoinStake',
