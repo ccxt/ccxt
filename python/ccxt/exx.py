@@ -341,7 +341,7 @@ class exx (Exchange):
                 'accesskey': self.apiKey,
                 'nonce': self.nonce(),
             }, params)))
-            signature = self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512)
+            signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha512)
             url += '?' + query + '&signature=' + signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
