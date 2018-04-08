@@ -535,6 +535,33 @@ module.exports = class bibox extends Exchange {
         };
     }
 
+    async fetchFundingFees (codes = undefined, params = {}) {
+        //  by default it will try load withdrawal fees of all currencies (with separate requests)
+        //  however if you define codes = [ 'ETH', 'BTC' ] in args it will only load those
+        await this.loadMarkets ();
+        let withdrawFees = {};
+        let info = {};
+        if (typeof codes === 'undefined')
+            codes = Object.keys (this.currencies);
+        for (let i = 0; i < codes.length; i++) {
+            let code = codes[i];
+            let currency = this.currency (code);
+            let response = await this.privatePostTransfer ({
+                'cmd': 'transfer/transferOutInfo',
+                'body': this.extend ({
+                    'coin_symbol': currency['id'],
+                }, params),
+            });
+            info[code] = response;
+            withdrawFees[code] = response['result']['withdraw_fee'];
+        }
+        return {
+            'info': info,
+            'withdraw': withdrawFees,
+            'deposit': {},
+        };
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
         let cmds = this.json ([ params ]);
