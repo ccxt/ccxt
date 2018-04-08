@@ -545,6 +545,7 @@ module.exports = class coinexchange extends Exchange {
                 'MARS': 'MarsBux',
                 'MER': 'TheMermaidCoin',
                 'RUB': 'RubbleCoin',
+                'UP': 'UpscaleToken',
             },
         });
     }
