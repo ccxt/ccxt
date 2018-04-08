@@ -288,6 +288,7 @@ class lykke extends Exchange {
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
         $response = $this->privateGetOrdersId (array_merge (array (
             'id' => $id,
         ), $params));
@@ -295,11 +296,13 @@ class lykke extends Exchange {
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
         $response = $this->privateGetOrders ();
         return $this->parse_orders($response, null, $since, $limit);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
         $response = $this->privateGetOrders (array_merge (array (
             'status' => 'InOrderBook',
         ), $params));
@@ -307,6 +310,7 @@ class lykke extends Exchange {
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
         $response = $this->privateGetOrders (array_merge (array (
             'status' => 'Matched',
         ), $params));

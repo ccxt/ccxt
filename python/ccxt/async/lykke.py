@@ -273,22 +273,26 @@ class lykke (Exchange):
         return result
 
     async def fetch_order(self, id, symbol=None, params={}):
+        await self.load_markets()
         response = await self.privateGetOrdersId(self.extend({
             'id': id,
         }, params))
         return self.parse_order(response)
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
         response = await self.privateGetOrders()
         return self.parse_orders(response, None, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
         response = await self.privateGetOrders(self.extend({
             'status': 'InOrderBook',
         }, params))
         return self.parse_orders(response, None, since, limit)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
         response = await self.privateGetOrders(self.extend({
             'status': 'Matched',
         }, params))
