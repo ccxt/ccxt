@@ -70,6 +70,7 @@ module.exports = class yobit extends liqui {
                 'ATM': 'Autumncoin',
                 'BCC': 'BCH',
                 'BCS': 'BitcoinStake',
+                'BLN': 'Bulleon',
                 'BTS': 'Bitshares2',
                 'CS': 'CryptoSpots',
                 'DCT': 'Discount',
