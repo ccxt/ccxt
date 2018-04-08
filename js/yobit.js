@@ -84,6 +84,7 @@ module.exports = class yobit extends liqui {
                 'PLC': 'Platin Coin',
                 'REP': 'Republicoin',
                 'RUR': 'RUB',
+                'XIN': 'XINCoin',
             },
             'options': {
                 'fetchOrdersRequiresSymbol': true,
