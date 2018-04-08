@@ -286,6 +286,7 @@ module.exports = class lykke extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
         let response = await this.privateGetOrdersId (this.extend ({
             'id': id,
         }, params));
@@ -293,11 +294,13 @@ module.exports = class lykke extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         let response = await this.privateGetOrders ();
         return this.parseOrders (response, undefined, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         let response = await this.privateGetOrders (this.extend ({
             'status': 'InOrderBook',
         }, params));
@@ -305,6 +308,7 @@ module.exports = class lykke extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         let response = await this.privateGetOrders (this.extend ({
             'status': 'Matched',
         }, params));
