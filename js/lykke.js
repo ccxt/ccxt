@@ -251,11 +251,14 @@ module.exports = class lykke extends Exchange {
             symbol = market['symbol'];
         let timestamp = undefined;
         if ('LastMatchTime' in order) {
-            timestamp = this.parse8601 (order['LastMatchTime']);
+            if (order['LastMatchTime'])
+                timestamp = this.parse8601 (order['LastMatchTime']);
         } else if ('Registered' in order) {
-            timestamp = this.parse8601 (order['Registered']);
+            if (order['Registered'])
+                timestamp = this.parse8601 (order['Registered']);
         } else if ('CreatedAt' in order) {
-            timestamp = this.parse8601 (order['CreatedAt']);
+            if (order['CreatedAt'])
+                timestamp = this.parse8601 (order['CreatedAt']);
         }
         let price = this.safeFloat (order, 'Price');
         let amount = this.safeFloat (order, 'Volume');
