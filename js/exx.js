@@ -357,7 +357,7 @@ module.exports = class exx extends Exchange {
                 'accesskey': this.apiKey,
                 'nonce': this.nonce (),
             }, params)));
-            let signature = this.hmac (this.encode (body), this.encode (this.secret), 'sha512');
+            let signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha512');
             url += '?' + query + '&signature=' + signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
