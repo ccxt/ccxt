@@ -425,7 +425,7 @@ module.exports = class exmo extends Exchange {
             let parsedOrders = this.parseOrders (response[marketId], market);
             orders = this.arrayConcat (orders, parsedOrders);
         }
-        this.updateCachedOrders (orders);
+        this.updateCachedOrders (orders, symbol);
         return this.filterBySymbolSinceLimit (this.orders, symbol, since, limit);
     }
 
