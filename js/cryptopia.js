@@ -82,6 +82,7 @@ module.exports = class cryptopia extends Exchange {
                 'CMT': 'Comet',
                 'FCN': 'Facilecoin',
                 'FUEL': 'FC2', // FuelCoin != FUEL
+                'HAV': 'Havecoin',
                 'LDC': 'LADACoin',
                 'NET': 'NetCoin',
                 'QBT': 'Cubits',
