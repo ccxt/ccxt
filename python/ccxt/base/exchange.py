@@ -1195,10 +1195,10 @@ class Exchange(object):
         }
 
     def edit_limit_buy_order(self, id, symbol, *args):
-        return self.edit_limit_order(symbol, 'buy', *args)
+        return self.edit_limit_order(id, symbol, 'buy', *args)
 
     def edit_limit_sell_order(self, id, symbol, *args):
-        return self.edit_limit_order(symbol, 'sell', *args)
+        return self.edit_limit_order(id, symbol, 'sell', *args)
 
     def edit_limit_order(self, id, symbol, *args):
         return self.edit_order(id, symbol, 'limit', *args)
