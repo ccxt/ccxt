@@ -454,7 +454,7 @@ module.exports = class coinex extends Exchange {
                 'Authorization': signature.toUpperCase (),
                 'Content-Type': 'application/json',
             };
-            if (method === 'GET') {
+            if ((method === 'GET') || (method === 'DELETE')) {
                 url += '?' + urlencoded;
             } else {
                 body = this.json (query);
