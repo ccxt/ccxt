@@ -18,7 +18,7 @@ class southxchange (Exchange):
             'rateLimit': 1000,
             'has': {
                 'CORS': True,
-                'createDepositAddres': True,
+                'createDepositAddress': True,
                 'fetchOpenOrders': True,
                 'fetchTickers': True,
                 'withdraw': True,

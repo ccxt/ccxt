@@ -23,6 +23,9 @@ class cobinhood (Exchange):
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'fetchOrder': True,
+                'fetchDepositAddress': True,
+                'createDepositAddress': True,
+                'withdraw': True,
             },
             'requiredCredentials': {
                 'apiKey': True,

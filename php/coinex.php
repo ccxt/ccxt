@@ -19,6 +19,7 @@ class coinex extends Exchange {
             'has' => array (
                 'fetchTickers' => true,
                 'fetchOHLCV' => true,
+                'fetchOrder' => true,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchMyTrades' => true,
