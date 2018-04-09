@@ -78,6 +78,8 @@ class yobit extends liqui {
                 'DGD' => 'DarkGoldCoin',
                 'ICN' => 'iCoin',
                 'LIZI' => 'LiZi',
+                'LOC' => 'LocoCoin',
+                'LOCX' => 'LOC',
                 'LUN' => 'LunarCoin',
                 'MDT' => 'Midnight',
                 'NAV' => 'NavajoCoin',
