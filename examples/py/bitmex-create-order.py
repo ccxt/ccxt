@@ -15,15 +15,15 @@ exchange = ccxt.bitmex({
     'enableRateLimit': True,
 })
 
-symbol = 'XBTM18' # bitcoin contract according to bitmex futures coding
-type = 'StopLimit' # or 'market', or 'Stop' or 'StopLimit'
-side = 'sell' # or 'buy'
+symbol = 'XBTM18'  # bitcoin contract according to bitmex futures coding
+type = 'StopLimit'  # or 'market', or 'Stop' or 'StopLimit'
+side = 'sell'  # or 'buy'
 amount = 1.0
-price = 6500.0 # or None
+price = 6500.0  # or None
 
 # extra params and overrides
 params = {
-    'stopPx': 6000.0, # if needed
+    'stopPx': 6000.0,  # if needed
 }
 
 order = exchange.create_order(symbol, type, side, amount, price, params)
