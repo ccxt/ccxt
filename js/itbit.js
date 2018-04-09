@@ -86,7 +86,7 @@ module.exports = class itbit extends Exchange {
         let serverTimeUTC = ('serverTimeUTC' in ticker);
         if (!serverTimeUTC)
             throw new ExchangeError (this.id + ' fetchTicker returned a bad response: ' + this.json (ticker));
-        let timestamp = this.parse8601 (ticker, 'serverTimeUTC');
+        let timestamp = this.parse8601 (ticker['serverTimeUTC']);
         let vwap = this.safeFloat (ticker, 'vwap24h');
         let baseVolume = this.safeFloat (ticker, 'volume24h');
         let quoteVolume = undefined;
