@@ -482,7 +482,7 @@ module.exports = class okcoinusd extends Exchange {
                 type = 'market';
             } else {
                 side = this.parseOrderSide (order['type']);
-                if ('contract_name' in order || 'lever_rate' in order)
+                if (('contract_name' in order) || ('lever_rate' in order))
                     type = 'margin';
             }
         }
