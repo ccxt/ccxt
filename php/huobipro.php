@@ -327,10 +327,12 @@ class huobipro extends Exchange {
     public function fetch_trades ($symbol, $since = null, $limit = 2000, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->marketGetHistoryTrade (array_merge (array (
+        $request = array (
             'symbol' => $market['id'],
-            'size' => $limit,
-        ), $params));
+        );
+        if ($limit !== null)
+            $request['size'] = $limit;
+        $response = $this->marketGetHistoryTrade (array_merge ($request, $params));
         $data = $response['data'];
         $result = array ();
         for ($i = 0; $i < count ($data); $i++) {
@@ -358,11 +360,14 @@ class huobipro extends Exchange {
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = 2000, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->marketGetHistoryKline (array_merge (array (
+        $request = array (
             'symbol' => $market['id'],
             'period' => $this->timeframes[$timeframe],
-            'size' => $limit, // max = 2000
-        ), $params));
+        );
+        if ($limit !== null) {
+            $request['size'] = $limit;
+        }
+        $response = $this->marketGetHistoryKline (array_merge ($request, $params));
         return $this->parse_ohlcvs($response['data'], $market, $timeframe, $since, $limit);
     }
 

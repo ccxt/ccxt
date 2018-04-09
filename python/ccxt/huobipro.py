@@ -314,13 +314,15 @@ class huobipro (Exchange):
             'amount': trade['amount'],
         }
 
-    def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    def fetch_trades(self, symbol, since=None, limit=2000, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.marketGetHistoryTrade(self.extend({
+        request = {
             'symbol': market['id'],
-            'size': 2000,
-        }, params))
+        }
+        if limit is not None:
+            request['size'] = limit
+        response = self.marketGetHistoryTrade(self.extend(request, params))
         data = response['data']
         result = []
         for i in range(0, len(data)):
@@ -341,14 +343,16 @@ class huobipro (Exchange):
             ohlcv['amount'],
         ]
 
-    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=2000, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.marketGetHistoryKline(self.extend({
+        request = {
             'symbol': market['id'],
             'period': self.timeframes[timeframe],
-            'size': 2000,  # max = 2000
-        }, params))
+        }
+        if limit is not None:
+            request['size'] = limit
+        response = self.marketGetHistoryKline(self.extend(request, params))
         return self.parse_ohlcvs(response['data'], market, timeframe, since, limit)
 
     def load_accounts(self, reload=False):
