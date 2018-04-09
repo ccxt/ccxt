@@ -645,4 +645,20 @@ module.exports = class gatecoin extends Exchange {
             'info': response,
         };
     }
+
+    async createUserWallet (code, address, params = {}) {
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let request = {
+            'DigiCurrency': currency['id'],
+            'AddressName': this.safeString (params, 'AddressName'),
+            'Address': address,
+            'Password': this.safeString (params, 'Password'),
+        };
+        let response = await this.privatePostElectronicWalletUserWalletsDigiCurrency (this.extend (request, params));
+        return {
+            'status': 'ok',
+            'info': response,
+        };
+    }
 };
