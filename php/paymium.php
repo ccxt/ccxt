@@ -159,10 +159,10 @@ class paymium extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $order = array (
             'type' => $this->capitalize ($type) . 'Order',
-            'currency' => $this->market_id($market),
+            'currency' => $this->market_id($symbol),
             'direction' => $side,
             'amount' => $amount,
         );

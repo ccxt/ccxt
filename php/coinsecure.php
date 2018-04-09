@@ -270,7 +270,7 @@ class coinsecure extends Exchange {
         }
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $method = 'privatePutUserExchange';
         $order = array ();

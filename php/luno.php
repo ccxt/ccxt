@@ -257,10 +257,10 @@ class luno extends Exchange {
         return $this->parse_trades($response['trades'], $market, $since, $limit);
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $method = 'privatePost';
-        $order = array ( 'pair' => $this->market_id($market) );
+        $order = array ( 'pair' => $this->market_id($symbol) );
         if ($type === 'market') {
             $method .= 'Marketorder';
             $order['type'] = strtoupper ($side);
