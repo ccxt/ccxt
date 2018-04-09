@@ -78,7 +78,43 @@ class coinnest (Exchange):
         quote = 'KRW'
         quoteId = quote.lower()
         # todo: rewrite self for web endpoint
-        coins = 'btc,bch,btg,bcd,ubtc,btn,kst,ltc,act,eth,etc,ada,qtum,xlm,neo,gas,rpx,hsr,knc,tsl,tron,omg,wtc,mco,storm,gto,pxs,chat,ink,oc,hlc,ent,qbt,spc,put'.split(',')
+        coins = [
+            'btc',
+            'bch',
+            'btg',
+            'bcd',
+            'ubtc',
+            'btn',
+            'kst',
+            'ltc',
+            'act',
+            'eth',
+            'etc',
+            'ada',
+            'qtum',
+            'xlm',
+            'neo',
+            'gas',
+            'rpx',
+            'hsr',
+            'knc',
+            'tsl',
+            'tron',
+            'omg',
+            'wtc',
+            'mco',
+            'storm',
+            'gto',
+            'pxs',
+            'chat',
+            'ink',
+            'oc',
+            'hlc',
+            'ent',
+            'qbt',
+            'spc',
+            'put',
+        ]
         result = []
         for i in range(0, len(coins)):
             baseId = coins[i]

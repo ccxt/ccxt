@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InvalidOrder } = require ('./base/errors');
+const { ExchangeError, InvalidOrder, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -21,12 +21,13 @@ module.exports = class huobipro extends Exchange {
             'hostname': 'api.huobipro.com',
             'has': {
                 'CORS': false,
-                'fetchTradingLimits': true,
-                'fetchOHCLV': true,
-                'fetchOrders': true,
-                'fetchOrder': true,
-                'fetchOpenOrders': true,
                 'fetchDepositAddress': true,
+                'fetchClosedOrders': 'emulated',
+                'fetchOHCLV': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrders': true,
+                'fetchTradingLimits': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -101,6 +102,8 @@ module.exports = class huobipro extends Exchange {
             },
             'exceptions': {
                 'order-limitorder-amount-min-error': InvalidOrder, // limit order amount error, min: `0.001`
+                'order-orderstate-error': OrderNotFound, // canceling an already canceled order
+                'order-queryorder-invalid': OrderNotFound, // querying a non-existent order
             },
         });
     }
@@ -158,7 +161,7 @@ module.exports = class huobipro extends Exchange {
 
     async loadTradingLimits (symbols = undefined, reload = false, params = {}) {
         if (reload || !('limitsLoaded' in this.options)) {
-            let response = this.fetchTradingLimits (symbols);
+            let response = await this.fetchTradingLimits (symbols);
             let limits = response['limits'];
             let keys = Object.keys (limits);
             for (let i = 0; i < keys.length; i++) {
@@ -185,9 +188,9 @@ module.exports = class huobipro extends Exchange {
             let response = await this.publicGetCommonExchange (this.extend ({
                 'symbol': market['id'],
             }));
-            let limits = this.parseTradingLimits (response);
+            let limit = this.parseTradingLimits (response);
             info[symbol] = response;
-            limits[symbol] = limits;
+            limits[symbol] = limit;
         }
         return {
             'limits': limits,
@@ -320,13 +323,15 @@ module.exports = class huobipro extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = 2000, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.marketGetHistoryTrade (this.extend ({
+        let request = {
             'symbol': market['id'],
-            'size': 2000,
-        }, params));
+        };
+        if (typeof limit !== 'undefined')
+            request['size'] = limit;
+        let response = await this.marketGetHistoryTrade (this.extend (request, params));
         let data = response['data'];
         let result = [];
         for (let i = 0; i < data.length; i++) {
@@ -351,14 +356,17 @@ module.exports = class huobipro extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 2000, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.marketGetHistoryKline (this.extend ({
+        let request = {
             'symbol': market['id'],
             'period': this.timeframes[timeframe],
-            'size': 2000, // max = 2000
-        }, params));
+        };
+        if (typeof limit !== 'undefined') {
+            request['size'] = limit;
+        }
+        let response = await this.marketGetHistoryKline (this.extend (request, params));
         return this.parseOHLCVs (response['data'], market, timeframe, since, limit);
     }
 
@@ -437,9 +445,14 @@ module.exports = class huobipro extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let open = 0; // 0 for unfilled orders, 1 for filled orders
         return await this.fetchOrders (symbol, undefined, undefined, this.extend ({
-            'status': open,
+            'status': 0, // 0 for unfilled orders, 1 for filled orders
+        }, params));
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchOrders (symbol, undefined, undefined, this.extend ({
+            'status': 1, // 0 for unfilled orders, 1 for filled orders
         }, params));
     }
 
@@ -652,12 +665,11 @@ module.exports = class huobipro extends Exchange {
                 if (status === 'error') {
                     const code = this.safeString (response, 'err-code');
                     const feedback = this.id + ' ' + this.json (response);
-                    const message = this.safeString (response, 'err-msg', feedback);
                     const exceptions = this.exceptions;
                     if (code in exceptions) {
-                        throw new exceptions[code] (message);
+                        throw new exceptions[code] (feedback);
                     }
-                    throw new ExchangeError (message);
+                    throw new ExchangeError (feedback);
                 }
             }
         }

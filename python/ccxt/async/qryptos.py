@@ -95,6 +95,9 @@ class qryptos (Exchange):
                     'user': {
                         'not_enough_free_balance': InsufficientFunds,
                     },
+                    'price': {
+                        'must_be_positive': InvalidOrder,
+                    },
                     'quantity': {
                         'less_than_order_size': InvalidOrder,
                     },
@@ -233,7 +236,18 @@ class qryptos (Exchange):
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market):
+        # {            id:  12345,
+        #         quantity: "6.789",
+        #            price: "98765.4321",
+        #       taker_side: "sell",
+        #       created_at:  1512345678,
+        #          my_side: "buy"           }
         timestamp = trade['created_at'] * 1000
+        # 'taker_side' gets filled for both fetchTrades and fetchMyTrades
+        takerSide = self.safe_string(trade, 'taker_side')
+        # 'my_side' gets filled for fetchMyTrades only and may differ from 'taker_side'
+        mySide = self.safe_string(trade, 'my_side')
+        side = mySide if (mySide is not None) else takerSide
         return {
             'info': trade,
             'id': str(trade['id']),
@@ -242,7 +256,7 @@ class qryptos (Exchange):
             'datetime': self.iso8601(timestamp),
             'symbol': market['symbol'],
             'type': None,
-            'side': trade['taker_side'],
+            'side': side,
             'price': float(trade['price']),
             'amount': float(trade['quantity']),
         }
@@ -425,7 +439,7 @@ class qryptos (Exchange):
             # {"errors": {"quantity": ["less_than_order_size"]}}
             if 'errors' in response:
                 errors = response['errors']
-                errorTypes = ['user', 'quantity']
+                errorTypes = ['user', 'quantity', 'price']
                 for i in range(0, len(errorTypes)):
                     errorType = errorTypes[i]
                     if errorType in errors:

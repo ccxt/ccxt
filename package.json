@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.12.54",
+  "version": "1.12.117",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 90+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "build/ccxt.browser.js",
@@ -11,6 +11,7 @@
     "type": "git",
     "url": "https://github.com/ccxt/ccxt.git"
   },
+  "readme": "README.md",
   "scripts": {
     "build": "npm run export-exchanges && npm run vss && npm run pandoc-python-readme && npm run pandoc-doc-readme && npm run pandoc-doc-manual && npm run pandoc-doc-install && npm run pandoc-doc-exchanges && npm run pandoc-doc-exchanges-by-country && npm run check-js-syntax && npm run transpile && npm run qa && npm run update-badges && npm run browserify",
     "test": "npm run build && node run-tests",

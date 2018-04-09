@@ -8,6 +8,7 @@ import base64
 import hashlib
 import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import ExchangeNotAvailable
 
 
 class coinone (Exchange):
@@ -105,6 +106,9 @@ class coinone (Exchange):
                         ],
                     },
                 },
+            },
+            'exceptions': {
+                '405': ExchangeNotAvailable,
             },
         })
 
@@ -248,6 +252,15 @@ class coinone (Exchange):
             if 'result' in response:
                 result = response['result']
                 if result != 'success':
-                    raise ExchangeError(self.id + ' ' + body)
+                    #
+                    #    { "errorCode": "405",  "status": "maintenance",  "result": "error"}
+                    #
+                    code = self.safe_string(response, 'errorCode')
+                    feedback = self.id + ' ' + self.json(response)
+                    exceptions = self.exceptions
+                    if code in exceptions:
+                        raise exceptions[code](feedback)
+                    else:
+                        raise ExchangeError(feedback)
             else:
                 raise ExchangeError(self.id + ' ' + body)

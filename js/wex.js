@@ -17,6 +17,7 @@ module.exports = class wex extends liqui {
             'has': {
                 'CORS': false,
                 'fetchTickers': true,
+                'fetchDepositAddress': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30652751-d74ec8f8-9e31-11e7-98c5-71469fcef03e.jpg',
@@ -83,6 +84,9 @@ module.exports = class wex extends liqui {
                     'external service unavailable': DDoSProtection,
                 },
             },
+            'commonCurrencies': {
+                'RUR': 'RUB',
+            },
         });
     }
 
@@ -113,6 +117,18 @@ module.exports = class wex extends liqui {
             'baseVolume': this.safeFloat (ticker, 'vol_cur'),
             'quoteVolume': this.safeFloat (ticker, 'vol'),
             'info': ticker,
+        };
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        let request = { 'coinName': this.commonCurrencyCode (code) };
+        let response = await this.privatePostCoinDepositAddress (this.extend (request, params));
+        return {
+            'currency': code,
+            'address': response['return']['address'],
+            'tag': undefined,
+            'status': 'ok',
+            'info': response,
         };
     }
 

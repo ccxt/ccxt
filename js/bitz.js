@@ -297,10 +297,16 @@ module.exports = class bitz extends Exchange {
             if (typeof side !== 'undefined')
                 side = (side === 'in') ? 'buy' : 'sell';
         }
+        let timestamp = undefined;
+        let iso8601 = undefined;
+        if ('datetime' in order) {
+            timestamp = this.parse8601 (order['datetime']);
+            iso8601 = this.iso8601 (timestamp);
+        }
         return {
             'id': order['id'],
-            'datetime': undefined,
-            'timestamp': undefined,
+            'datetime': iso8601,
+            'timestamp': timestamp,
             'status': 'open',
             'symbol': symbol,
             'type': 'limit',
@@ -353,7 +359,7 @@ module.exports = class bitz extends Exchange {
         let response = await this.privatePostOpenOrders (this.extend ({
             'coin': market['id'],
         }, params));
-        return this.parseOrders (response['data'], market);
+        return this.parseOrders (response['data'], market, since, limit);
     }
 
     nonce () {

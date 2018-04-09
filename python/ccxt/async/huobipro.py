@@ -16,6 +16,7 @@ import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import OrderNotFound
 
 
 class huobipro (Exchange):
@@ -33,12 +34,13 @@ class huobipro (Exchange):
             'hostname': 'api.huobipro.com',
             'has': {
                 'CORS': False,
-                'fetchTradingLimits': True,
-                'fetchOHCLV': True,
-                'fetchOrders': True,
-                'fetchOrder': True,
-                'fetchOpenOrders': True,
                 'fetchDepositAddress': True,
+                'fetchClosedOrders': 'emulated',
+                'fetchOHCLV': True,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrders': True,
+                'fetchTradingLimits': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -113,6 +115,8 @@ class huobipro (Exchange):
             },
             'exceptions': {
                 'order-limitorder-amount-min-error': InvalidOrder,  # limit order amount error, min: `0.001`
+                'order-orderstate-error': OrderNotFound,  # canceling an already canceled order
+                'order-queryorder-invalid': OrderNotFound,  # querying a non-existent order
             },
         })
 
@@ -167,7 +171,7 @@ class huobipro (Exchange):
 
     async def load_trading_limits(self, symbols=None, reload=False, params={}):
         if reload or not('limitsLoaded' in list(self.options.keys())):
-            response = self.fetch_trading_limits(symbols)
+            response = await self.fetch_trading_limits(symbols)
             limits = response['limits']
             keys = list(limits.keys())
             for i in range(0, len(keys)):
@@ -191,9 +195,9 @@ class huobipro (Exchange):
             response = await self.publicGetCommonExchange(self.extend({
                 'symbol': market['id'],
             }))
-            limits = self.parse_trading_limits(response)
+            limit = self.parse_trading_limits(response)
             info[symbol] = response
-            limits[symbol] = limits
+            limits[symbol] = limit
         return {
             'limits': limits,
             'info': info,
@@ -310,13 +314,15 @@ class huobipro (Exchange):
             'amount': trade['amount'],
         }
 
-    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    async def fetch_trades(self, symbol, since=None, limit=2000, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.marketGetHistoryTrade(self.extend({
+        request = {
             'symbol': market['id'],
-            'size': 2000,
-        }, params))
+        }
+        if limit is not None:
+            request['size'] = limit
+        response = await self.marketGetHistoryTrade(self.extend(request, params))
         data = response['data']
         result = []
         for i in range(0, len(data)):
@@ -337,14 +343,16 @@ class huobipro (Exchange):
             ohlcv['amount'],
         ]
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=2000, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.marketGetHistoryKline(self.extend({
+        request = {
             'symbol': market['id'],
             'period': self.timeframes[timeframe],
-            'size': 2000,  # max = 2000
-        }, params))
+        }
+        if limit is not None:
+            request['size'] = limit
+        response = await self.marketGetHistoryKline(self.extend(request, params))
         return self.parse_ohlcvs(response['data'], market, timeframe, since, limit)
 
     async def load_accounts(self, reload=False):
@@ -413,9 +421,13 @@ class huobipro (Exchange):
         return self.parse_orders(response['data'], market, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        open = 0  # 0 for unfilled orders, 1 for filled orders
         return await self.fetch_orders(symbol, None, None, self.extend({
-            'status': open,
+            'status': 0,  # 0 for unfilled orders, 1 for filled orders
+        }, params))
+
+    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        return await self.fetch_orders(symbol, None, None, self.extend({
+            'status': 1,  # 0 for unfilled orders, 1 for filled orders
         }, params))
 
     async def fetch_order(self, id, symbol=None, params={}):
@@ -518,7 +530,7 @@ class huobipro (Exchange):
         }
 
     def fee_to_precision(self, currency, fee):
-        return float(self.decimalToPrecision(fee, 0, self.currencies[currency]['precision']))
+        return float(self.decimal_to_precision(fee, 0, self.currencies[currency]['precision']))
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]
@@ -608,8 +620,7 @@ class huobipro (Exchange):
                 if status == 'error':
                     code = self.safe_string(response, 'err-code')
                     feedback = self.id + ' ' + self.json(response)
-                    message = self.safe_string(response, 'err-msg', feedback)
                     exceptions = self.exceptions
                     if code in exceptions:
-                        raise exceptions[code](message)
-                    raise ExchangeError(message)
+                        raise exceptions[code](feedback)
+                    raise ExchangeError(feedback)

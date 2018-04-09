@@ -22,6 +22,7 @@ class wex (liqui):
             'has': {
                 'CORS': False,
                 'fetchTickers': True,
+                'fetchDepositAddress': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30652751-d74ec8f8-9e31-11e7-98c5-71469fcef03e.jpg',
@@ -88,6 +89,9 @@ class wex (liqui):
                     'external service unavailable': DDoSProtection,
                 },
             },
+            'commonCurrencies': {
+                'RUR': 'RUB',
+            },
         })
 
     def parse_ticker(self, ticker, market=None):
@@ -117,6 +121,17 @@ class wex (liqui):
             'baseVolume': self.safe_float(ticker, 'vol_cur'),
             'quoteVolume': self.safe_float(ticker, 'vol'),
             'info': ticker,
+        }
+
+    async def fetch_deposit_address(self, code, params={}):
+        request = {'coinName': self.common_currency_code(code)}
+        response = await self.privatePostCoinDepositAddress(self.extend(request, params))
+        return {
+            'currency': code,
+            'address': response['return']['address'],
+            'tag': None,
+            'status': 'ok',
+            'info': response,
         }
 
     def handle_errors(self, code, reason, url, method, headers, body):

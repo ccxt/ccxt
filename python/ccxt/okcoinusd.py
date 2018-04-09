@@ -162,6 +162,9 @@ class okcoinusd (Exchange):
             'ETC/USD': True,
             'ETH/USD': True,
             'LTC/USD': True,
+            'XRP/USD': True,
+            'EOS/USD': True,
+            'BTG/USD': True,
         }
         for i in range(0, len(markets)):
             id = markets[i]['symbol']
@@ -178,6 +181,7 @@ class okcoinusd (Exchange):
             lot = math.pow(10, -precision['amount'])
             minAmount = markets[i]['minTradeSize']
             minPrice = math.pow(10, -precision['price'])
+            active = (markets[i]['online'] != 0)
             market = self.extend(self.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
@@ -190,7 +194,7 @@ class okcoinusd (Exchange):
                 'spot': True,
                 'future': False,
                 'lot': lot,
-                'active': True,
+                'active': active,
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -431,6 +435,17 @@ class okcoinusd (Exchange):
             return 'canceled'
         return status
 
+    def parse_order_side(self, side):
+        if side == 1:
+            return 'buy'  # open long position
+        if side == 2:
+            return 'sell'  # open short position
+        if side == 3:
+            return 'sell'  # liquidate long position
+        if side == 4:
+            return 'buy'  # liquidate short position
+        return side
+
     def parse_order(self, order, market=None):
         side = None
         type = None
@@ -438,9 +453,16 @@ class okcoinusd (Exchange):
             if (order['type'] == 'buy') or (order['type'] == 'sell'):
                 side = order['type']
                 type = 'limit'
-            else:
-                side = 'buy' if (order['type'] == 'buy_market') else 'sell'
+            elif order['type'] == 'buy_market':
+                side = 'buy'
                 type = 'market'
+            elif order['type'] == 'sell_market':
+                side = 'sell'
+                type = 'market'
+            else:
+                side = self.parse_order_side(order['type'])
+                if ('contract_name' in list(order.keys())) or ('lever_rate' in list(order.keys())):
+                    type = 'margin'
         status = self.parse_order_status(order['status'])
         symbol = None
         if not market:
@@ -456,7 +478,9 @@ class okcoinusd (Exchange):
         amount = order['amount']
         filled = order['deal_amount']
         remaining = amount - filled
-        average = order['avg_price']
+        average = self.safe_float(order, 'avg_price')
+        # https://github.com/ccxt/ccxt/issues/2452
+        average = self.safe_float(order, 'price_avg', average)
         cost = average * filled
         result = {
             'info': order,

@@ -42,6 +42,7 @@ class bitflyer (Exchange):
                         'getticker',
                         'getexecutions',
                         'gethealth',
+                        'getboardstate',
                         'getchats',
                     ],
                 },

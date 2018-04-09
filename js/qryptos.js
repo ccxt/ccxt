@@ -88,6 +88,9 @@ module.exports = class qryptos extends Exchange {
                     'user': {
                         'not_enough_free_balance': InsufficientFunds,
                     },
+                    'price': {
+                        'must_be_positive': InvalidOrder,
+                    },
                     'quantity': {
                         'less_than_order_size': InvalidOrder,
                     },
@@ -240,7 +243,18 @@ module.exports = class qryptos extends Exchange {
     }
 
     parseTrade (trade, market) {
+        // {             id:  12345,
+        //         quantity: "6.789",
+        //            price: "98765.4321",
+        //       taker_side: "sell",
+        //       created_at:  1512345678,
+        //          my_side: "buy"           }
         let timestamp = trade['created_at'] * 1000;
+        // 'taker_side' gets filled for both fetchTrades and fetchMyTrades
+        let takerSide = this.safeString (trade, 'taker_side');
+        // 'my_side' gets filled for fetchMyTrades only and may differ from 'taker_side'
+        let mySide = this.safeString (trade, 'my_side');
+        let side = (typeof mySide !== 'undefined') ? mySide : takerSide;
         return {
             'info': trade,
             'id': trade['id'].toString (),
@@ -249,7 +263,7 @@ module.exports = class qryptos extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
             'type': undefined,
-            'side': trade['taker_side'],
+            'side': side,
             'price': parseFloat (trade['price']),
             'amount': parseFloat (trade['quantity']),
         };
@@ -454,7 +468,7 @@ module.exports = class qryptos extends Exchange {
             // { "errors": { "quantity": ["less_than_order_size"] }}
             if ('errors' in response) {
                 const errors = response['errors'];
-                const errorTypes = ['user', 'quantity'];
+                const errorTypes = ['user', 'quantity', 'price'];
                 for (let i = 0; i < errorTypes.length; i++) {
                     const errorType = errorTypes[i];
                     if (errorType in errors) {

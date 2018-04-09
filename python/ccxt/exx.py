@@ -187,7 +187,7 @@ class exx (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         orderbook = self.publicGetDepth(self.extend({
             'currency': self.market_id(symbol),
@@ -225,7 +225,7 @@ class exx (Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        balances = self.privateGetBalance(params)
+        balances = self.privateGetGetBalance(params)
         result = {'info': balances}
         balances = balances['funds']
         currencies = list(balances.keys())
@@ -341,7 +341,7 @@ class exx (Exchange):
                 'accesskey': self.apiKey,
                 'nonce': self.nonce(),
             }, params)))
-            signature = self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512)
+            signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha512)
             url += '?' + query + '&signature=' + signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 

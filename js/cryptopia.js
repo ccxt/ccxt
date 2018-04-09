@@ -77,12 +77,14 @@ module.exports = class cryptopia extends Exchange {
                 'ACC': 'AdCoin',
                 'BAT': 'BatCoin',
                 'BLZ': 'BlazeCoin',
+                'BTG': 'Bitgem',
                 'CC': 'CCX',
                 'CMT': 'Comet',
                 'FCN': 'Facilecoin',
-                'NET': 'NetCoin',
-                'BTG': 'Bitgem',
                 'FUEL': 'FC2', // FuelCoin != FUEL
+                'HAV': 'Havecoin',
+                'LDC': 'LADACoin',
+                'NET': 'NetCoin',
                 'QBT': 'Cubits',
                 'WRC': 'WarCoin',
             },
@@ -324,6 +326,9 @@ module.exports = class cryptopia extends Exchange {
         if (symbol) {
             market = this.market (symbol);
             request['TradePairId'] = market['id'];
+        }
+        if (typeof limit !== 'undefined') {
+            request['Count'] = limit; // default 100
         }
         let response = await this.privatePostGetTradeHistory (this.extend (request, params));
         return this.parseTrades (response['Data'], market, since, limit);

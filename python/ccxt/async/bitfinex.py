@@ -16,6 +16,9 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.decimal_to_precision import ROUND
+from ccxt.base.decimal_to_precision import TRUNCATE
+from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS
 
 
 class bitfinex (Exchange):
@@ -256,9 +259,10 @@ class bitfinex (Exchange):
                     'Invalid order: not enough exchange balance for ': InsufficientFunds,  # when buying cost is greater than the available quote currency
                     'Invalid order: minimum size for ': InvalidOrder,  # when amount below limits.amount.min
                     'Invalid order': InvalidOrder,  # ?
+                    'The available balance is only': InsufficientFunds,  # {"status":"error","message":"Cannot withdraw 1.0027 ETH from your exchange wallet. The available balance is only 0.0 ETH. If you have limit orders, open positions, unused or active margin funding, self will decrease your available balance. To increase it, you can cancel limit orders or reduce/close your positions.","withdrawal_id":0,"fees":"0.0027"}
                 },
             },
-            'significantPrecision': True,
+            'precisionMode': SIGNIFICANT_DIGITS,
         })
 
     async def fetch_funding_fees(self, params={}):
@@ -328,22 +332,21 @@ class bitfinex (Exchange):
                 'active': True,
                 'precision': precision,
                 'limits': limits,
-                'lot': math.pow(10, -precision['amount']),
                 'info': market,
             })
         return result
 
     def cost_to_precision(self, symbol, cost):
-        return self.decimalToPrecision(float(cost), self.ROUND, self.markets[symbol].precision.price, self.SIGNIFICANT_DIGITS)
+        return self.decimal_to_precision(cost, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
 
     def price_to_precision(self, symbol, price):
-        return self.decimalToPrecision(float(price), self.ROUND, self.markets[symbol].precision.price, self.SIGNIFICANT_DIGITS)
+        return self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
 
     def amount_to_precision(self, symbol, amount):
-        return self.decimalToPrecision(float(amount), self.ROUND, self.markets[symbol].precision.amount, self.SIGNIFICANT_DIGITS)
+        return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], self.precisionMode)
 
     def fee_to_precision(self, currency, fee):
-        return self.decimalToPrecision(float(fee), self.ROUND, self.currencies[currency]['precision'], self.SIGNIFICANT_DIGITS)
+        return self.decimal_to_precision(fee, ROUND, self.currencies[currency]['precision'], self.precisionMode)
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]
@@ -695,9 +698,12 @@ class bitfinex (Exchange):
             request['payment_id'] = tag
         responses = await self.privatePostWithdraw(self.extend(request, params))
         response = responses[0]
+        id = response['withdrawal_id']
+        if id == 0:
+            raise ExchangeError(self.id + ' withdraw returned an id of zero: ' + self.json(response))
         return {
             'info': response,
-            'id': response['withdrawal_id'],
+            'id': id,
         }
 
     def nonce(self):

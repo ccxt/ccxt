@@ -84,12 +84,14 @@ class cryptopia (Exchange):
                 'ACC': 'AdCoin',
                 'BAT': 'BatCoin',
                 'BLZ': 'BlazeCoin',
+                'BTG': 'Bitgem',
                 'CC': 'CCX',
                 'CMT': 'Comet',
                 'FCN': 'Facilecoin',
-                'NET': 'NetCoin',
-                'BTG': 'Bitgem',
                 'FUEL': 'FC2',  # FuelCoin != FUEL
+                'HAV': 'Havecoin',
+                'LDC': 'LADACoin',
+                'NET': 'NetCoin',
                 'QBT': 'Cubits',
                 'WRC': 'WarCoin',
             },
@@ -310,6 +312,8 @@ class cryptopia (Exchange):
         if symbol:
             market = self.market(symbol)
             request['TradePairId'] = market['id']
+        if limit is not None:
+            request['Count'] = limit  # default 100
         response = await self.privatePostGetTradeHistory(self.extend(request, params))
         return self.parse_trades(response['Data'], market, since, limit)
 

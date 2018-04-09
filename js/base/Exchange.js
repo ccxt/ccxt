@@ -37,6 +37,8 @@ const {
     , RequestTimeout
     , ExchangeNotAvailable } = require ('./errors')
 
+const { DECIMAL_PLACES } = functions.precisionConstants
+
 const defaultFetch = isNode ? require ('fetch-ponyfill') ().fetch : fetch
 
 const journal = undefined // isNode && require ('./journal') // stub until we get a better solution for Webpack and React
@@ -145,6 +147,7 @@ module.exports = class Exchange {
                 'BCC': 'BCH',
                 'DRK': 'DASH',
             },
+            'precisionMode': DECIMAL_PLACES,
         } // return
     } // describe ()
 
