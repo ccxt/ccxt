@@ -252,15 +252,12 @@ class lykke extends Exchange {
         if ($market)
             $symbol = $market['symbol'];
         $timestamp = null;
-        if (is_array ($order) && array_key_exists ('LastMatchTime', $order)) {
-            if ($order['LastMatchTime'])
-                $timestamp = $this->parse8601 ($order['LastMatchTime']);
-        } else if (is_array ($order) && array_key_exists ('Registered', $order)) {
-            if ($order['Registered'])
-                $timestamp = $this->parse8601 ($order['Registered']);
-        } else if (is_array ($order) && array_key_exists ('CreatedAt', $order)) {
-            if ($order['CreatedAt'])
-                $timestamp = $this->parse8601 ($order['CreatedAt']);
+        if ((is_array ($order) && array_key_exists ('LastMatchTime', $order)) && ($order['LastMatchTime'])) {
+            $timestamp = $this->parse8601 ($order['LastMatchTime']);
+        } else if ((is_array ($order) && array_key_exists ('Registered', $order)) && ($order['Registered'])) {
+            $timestamp = $this->parse8601 ($order['Registered']);
+        } else if ((is_array ($order) && array_key_exists ('CreatedAt', $order)) && ($order['CreatedAt'])) {
+            $timestamp = $this->parse8601 ($order['CreatedAt']);
         }
         $price = $this->safe_float($order, 'Price');
         $amount = $this->safe_float($order, 'Volume');
