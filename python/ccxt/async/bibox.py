@@ -511,33 +511,6 @@ class bibox (Exchange):
             'id': None,
         }
 
-    async def fetch_funding_fees(self, codes=None, params={}):
-        #  by default it will try load withdrawal fees of all currencies(with separate requests)
-        #  however if you define codes = ['ETH', 'BTC'] in args it will only load those
-        await self.load_markets()
-        withdrawFees = {}
-        info = {}
-        if codes is None:
-            codes = list(self.currencies.keys())
-        print(codes)
-        for i in range(0, len(codes)):
-            code = codes[i]
-            currency = self.currency(code)
-            response = await self.privatePostTransfer({
-                'cmd': 'transfer/transferOutInfo',
-                'body': self.extend({
-                    'coin_symbol': currency['id'],
-                }, params),
-            })
-            info[code] = response
-            console.log(response['result'])
-            withdrawFees[code] = response['result']['withdraw_fee']
-        return {
-            'info': info,
-            'withdraw': withdrawFees,
-            'deposit': {},
-        }
-
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + path
         cmds = self.json([params])
