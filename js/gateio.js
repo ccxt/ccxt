@@ -233,7 +233,7 @@ module.exports = class gateio extends Exchange {
             'symbol': market['symbol'],
             'type': undefined,
             'side': trade['type'],
-            'price': trade['rate'],
+            'price': parseFloat (trade['rate']),
             'amount': this.safeFloat (trade, 'amount'),
         };
     }
