@@ -44,18 +44,18 @@ module.exports = class bit2c extends Exchange {
                         'Order/AddOrderMarketPriceSell',
                         'Order/CancelOrder',
                         'Order/AddCoinFundsRequest',
-+                       'Order/AddStopOrder',
+                        'Order/AddStopOrder',
                         'Payment/GetMyId',
                         'Payment/Send',
                         'Payment/Pay',
-+                    ],
-+                    'get': [
-+                        'Account/Balance',
-+                        'Account/Balance/v2',
-+                        'Order/MyOrders',
-+                        'Order/GetById',
-+                        'Order/AccountHistory',
-+                        'Order/OrderHistory',
+                    ],
+                    'get': [
+                        'Account/Balance',
+                        'Account/Balance/v2',
+                        'Order/MyOrders',
+                        'Order/GetById',
+                        'Order/AccountHistory',
+                        'Order/OrderHistory',
                     ],
                 },
             },
@@ -75,7 +75,7 @@ module.exports = class bit2c extends Exchange {
     }
 
     async fetchBalance (params = {}) {
-        let balance = await this.private_get_account_balance_v2 ();
+        let balance = await this.privateGetAccountBalanceV2 ();
         let result = { 'info': balance };
         let currencies = Object.keys (this.currencies);
         for (let i = 0; i < currencies.length; i++) {
