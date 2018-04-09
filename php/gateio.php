@@ -234,7 +234,7 @@ class gateio extends Exchange {
             'symbol' => $market['symbol'],
             'type' => null,
             'side' => $trade['type'],
-            'price' => $trade['rate'],
+            'price' => floatval ($trade['rate']),
             'amount' => $this->safe_float($trade, 'amount'),
         );
     }
