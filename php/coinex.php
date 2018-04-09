@@ -455,7 +455,7 @@ class coinex extends Exchange {
                 'Authorization' => strtoupper ($signature),
                 'Content-Type' => 'application/json',
             );
-            if ($method === 'GET') {
+            if (($method === 'GET') || ($method === 'DELETE')) {
                 $url .= '?' . $urlencoded;
             } else {
                 $body = $this->json ($query);
