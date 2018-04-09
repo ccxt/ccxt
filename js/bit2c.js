@@ -18,7 +18,7 @@ module.exports = class bit2c extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg',
-                'api': 'https://www.bit2c.co.il',
+                'api': 'https://bit2c.co.il',
                 'www': 'https://www.bit2c.co.il',
                 'doc': [
                     'https://www.bit2c.co.il/home/api',
@@ -31,23 +31,31 @@ module.exports = class bit2c extends Exchange {
                         'Exchanges/{pair}/Ticker',
                         'Exchanges/{pair}/orderbook',
                         'Exchanges/{pair}/trades',
+                        'Exchanges/{pair}/lasttrades',
                     ],
                 },
                 'private': {
                     'post': [
-                        'Account/Balance',
-                        'Account/Balance/v2',
                         'Merchant/CreateCheckout',
-                        'Order/AccountHistory',
                         'Order/AddCoinFundsRequest',
                         'Order/AddFund',
                         'Order/AddOrder',
                         'Order/AddOrderMarketPriceBuy',
                         'Order/AddOrderMarketPriceSell',
                         'Order/CancelOrder',
-                        'Order/MyOrders',
+                        'Order/AddCoinFundsRequest',
+                        'Order/AddStopOrder',
                         'Payment/GetMyId',
                         'Payment/Send',
+                        'Payment/Pay',
+                    ],
+                    'get': [
+                        'Account/Balance',
+                        'Account/Balance/v2',
+                        'Order/MyOrders',
+                        'Order/GetById',
+                        'Order/AccountHistory',
+                        'Order/OrderHistory',
                     ],
                 },
             },
@@ -67,7 +75,7 @@ module.exports = class bit2c extends Exchange {
     }
 
     async fetchBalance (params = {}) {
-        let balance = await this.privatePostAccountBalanceV2 ();
+        let balance = await this.privateGetAccountBalanceV2 ();
         let result = { 'info': balance };
         let currencies = Object.keys (this.currencies);
         for (let i = 0; i < currencies.length; i++) {
