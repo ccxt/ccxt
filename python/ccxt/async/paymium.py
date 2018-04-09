@@ -152,10 +152,10 @@ class paymium (Exchange):
         }, params))
         return self.parse_trades(response, market, since, limit)
 
-    async def create_order(self, market, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol, type, side, amount, price=None, params={}):
         order = {
             'type': self.capitalize(type) + 'Order',
-            'currency': self.market_id(market),
+            'currency': self.market_id(symbol),
             'direction': side,
             'amount': amount,
         }
