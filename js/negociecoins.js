@@ -15,6 +15,8 @@ module.exports = class negociecoins extends Exchange {
             'rateLimit': 1000,
             'version': 'v3',
             'has': {
+                'fetchOrder': true,
+                'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
             },
