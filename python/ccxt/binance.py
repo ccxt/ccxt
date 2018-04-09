@@ -792,7 +792,10 @@ class binance (Exchange):
                 success = self.safe_value(response, 'success', True)
                 if not success:
                     if 'msg' in response:
-                        response = json.loads(response['msg'])
+                        try:
+                            response = json.loads(response['msg'])
+                        except Exception as e:
+                            response = {}
                 # checks against error codes
                 error = self.safe_string(response, 'code')
                 if error is not None:
