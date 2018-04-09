@@ -17,6 +17,8 @@ module.exports = class lbank extends Exchange {
             'has': {
                 'fetchTickers': true,
                 'fetchOHLCV': true,
+                'fetchOrder': true,
+                'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
             },

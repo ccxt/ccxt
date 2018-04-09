@@ -18,6 +18,7 @@ module.exports = class hitbtc extends Exchange {
             'has': {
                 'CORS': false,
                 'fetchTrades': true,
+                'fetchTickers': true,
                 'fetchOrder': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
