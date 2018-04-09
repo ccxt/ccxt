@@ -808,15 +808,10 @@ module.exports = class binance extends Exchange {
             throw new ExchangeError (this.id + ' insertTime/applyTime missing: ' + this.json (transaction));
         }
         let amount = parseFloat (transaction['amount']);
-        //
-        // create unique identifiable repeatable synthetic hash id
-        // for use when the exchange does not use id's
-        //
-        let syntheticId = this.hash (timestamp.toString () + currency.id + side + amount + address);
+
         let result = {
             'info': transaction,                  // the original decoded JSON as is
             'id': null,                           // string transaction id
-            'hashid': syntheticId,
             'address': address,                   // deposit/widthraw address
             'txid': txId,                         // txid in terms of corresponding currency
             'timestamp': timestamp,               // Unix timestamp in milliseconds
