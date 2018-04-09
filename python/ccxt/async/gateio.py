@@ -228,7 +228,7 @@ class gateio (Exchange):
             'symbol': market['symbol'],
             'type': None,
             'side': trade['type'],
-            'price': trade['rate'],
+            'price': float(trade['rate']),
             'amount': self.safe_float(trade, 'amount'),
         }
 
