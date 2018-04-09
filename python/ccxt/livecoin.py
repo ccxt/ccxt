@@ -32,6 +32,7 @@ class livecoin (Exchange):
             'name': 'LiveCoin',
             'countries': ['US', 'UK', 'RU'],
             'rateLimit': 1000,
+            'userAgent': self.userAgents['chrome'],
             'has': {
                 'fetchDepositAddress': True,
                 'CORS': False,
@@ -102,6 +103,8 @@ class livecoin (Exchange):
             },
             'commonCurrencies': {
                 'CRC': 'CryCash',
+                'ORE': 'Orectic',
+                'RUR': 'RUB',
                 'XBT': 'Bricktox',
             },
             'exceptions': {

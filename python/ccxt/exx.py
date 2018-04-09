@@ -225,7 +225,7 @@ class exx (Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        balances = self.privateGetBalance(params)
+        balances = self.privateGetGetBalance(params)
         result = {'info': balances}
         balances = balances['funds']
         currencies = list(balances.keys())
@@ -341,7 +341,7 @@ class exx (Exchange):
                 'accesskey': self.apiKey,
                 'nonce': self.nonce(),
             }, params)))
-            signature = self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512)
+            signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha512)
             url += '?' + query + '&signature=' + signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 

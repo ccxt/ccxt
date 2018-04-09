@@ -324,30 +324,29 @@ class coinegg (Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        balances = self.privatePostBalance(params)
-        result = {'info': balances}
-        balances = self.omit(balances['data'], 'uid')
-        rows = list(balances.keys())
-        for i in range(0, len(rows)):
-            row = rows[i]
-            id, type = row.split('_')
-            id = id.upper()
-            type = type.upper()
-            currency = self.common_currency_code(id)
-            if currency in self.currencies:
-                if not(currency in list(result.keys())):
-                    result[currency] = {
-                        'free': None,
-                        'used': None,
-                        'total': None,
-                    }
-                type = (type == 'used' if 'LOCK' else 'free')
-                result[currency][type] = float(balances[row])
+        response = self.privatePostBalance(params)
+        result = {}
+        balances = self.omit(response['data'], 'uid')
+        keys = list(balances.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            currencyId, accountType = key.split('_')
+            code = currencyId
+            if currencyId in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
+            if not(code in list(result.keys())):
+                result[code] = {
+                    'free': None,
+                    'used': None,
+                    'total': None,
+                }
+            accountType = 'used' if (accountType == 'lock') else 'free'
+            result[code][accountType] = float(balances[key])
         currencies = list(result.keys())
         for i in range(0, len(currencies)):
             currency = currencies[i]
             result[currency]['total'] = self.sum(result[currency]['free'], result[currency]['used'])
-        return self.parse_balance(result)
+        return self.parse_balance(self.extend({'info': response}, result))
 
     def parse_order(self, order, market=None):
         symbol = market['symbol']
@@ -485,9 +484,11 @@ class coinegg (Exchange):
         # private endpoints return the following structure:
         # {"result":true,"data":{...}} - success
         # {"result":false,"code":"103"} - failure
+        # {"code":0,"msg":"Suceess","data":{"uid":"2716039","btc_balance":"0.00000000","btc_lock":"0.00000000","xrp_balance":"0.00000000","xrp_lock":"0.00000000"}}
         result = self.safe_value(response, 'result')
         if result is None:
-            # public endpoint
+            # public endpoint ← self comment left here by the contributor, in fact a missing result does not necessarily mean a public endpoint...
+            # we should just check the code and don't rely on the result at all here...
             return
         if result is True:
             # success

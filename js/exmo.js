@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, OrderNotFound, AuthenticationError, InsufficientFunds, InvalidOrder, InvalidNonce } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, OrderNotFound, AuthenticationError, InsufficientFunds, InvalidOrder, InvalidNonce } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -97,6 +97,7 @@ module.exports = class exmo extends Exchange {
                 '40005': AuthenticationError, // Authorization error, incorrect signature
                 '40009': InvalidNonce, //
                 '40015': ExchangeError, // API function do not exist
+                '40016': ExchangeNotAvailable, // Maintenance work in progress
                 '40017': AuthenticationError, // Wrong API Key
                 '50052': InsufficientFunds,
                 '50054': InsufficientFunds,
@@ -299,19 +300,22 @@ module.exports = class exmo extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let prefix = (type === 'market') ? 'market_' : '';
+        let prefix = (type === 'market') ? (type + '_') : '';
         let market = this.market (symbol);
+        if ((type === 'market') && (typeof price === 'undefined')) {
+            price = 0;
+        }
         let request = {
             'pair': market['id'],
             'quantity': this.amountToString (symbol, amount),
-            'price': this.priceToPrecision (symbol, price),
             'type': prefix + side,
+            'price': this.priceToPrecision (symbol, price),
         };
         let response = await this.privatePostOrderCreate (this.extend (request, params));
         let id = this.safeString (response, 'order_id');
         let timestamp = this.milliseconds ();
-        price = parseFloat (price);
         amount = parseFloat (amount);
+        price = parseFloat (price);
         let status = 'open';
         let order = {
             'id': id,
@@ -421,7 +425,7 @@ module.exports = class exmo extends Exchange {
             let parsedOrders = this.parseOrders (response[marketId], market);
             orders = this.arrayConcat (orders, parsedOrders);
         }
-        this.updateCachedOrders (orders);
+        this.updateCachedOrders (orders, symbol);
         return this.filterBySymbolSinceLimit (this.orders, symbol, since, limit);
     }
 

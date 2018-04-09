@@ -95,6 +95,9 @@ class qryptos (Exchange):
                     'user': {
                         'not_enough_free_balance': InsufficientFunds,
                     },
+                    'price': {
+                        'must_be_positive': InvalidOrder,
+                    },
                     'quantity': {
                         'less_than_order_size': InvalidOrder,
                     },
@@ -436,7 +439,7 @@ class qryptos (Exchange):
             # {"errors": {"quantity": ["less_than_order_size"]}}
             if 'errors' in response:
                 errors = response['errors']
-                errorTypes = ['user', 'quantity']
+                errorTypes = ['user', 'quantity', 'price']
                 for i in range(0, len(errorTypes)):
                     errorType = errorTypes[i]
                     if errorType in errors:

@@ -88,7 +88,7 @@ class zb (Exchange):
                     'public': 'http://api.zb.com/data',  # no https for public API
                     'private': 'https://trade.zb.com/api',
                 },
-                'www': 'https://trade.zb.com/api',
+                'www': 'https://www.zb.com',
                 'doc': 'https://www.zb.com/i/developer',
                 'fees': 'https://www.zb.com/i/rate',
             },
@@ -104,6 +104,7 @@ class zb (Exchange):
                 },
                 'private': {
                     'get': [
+                        # spot API
                         'order',
                         'cancelOrder',
                         'getOrder',
@@ -119,6 +120,18 @@ class zb (Exchange):
                         'getCnyWithdrawRecord',
                         'getCnyChargeRecord',
                         'withdraw',
+                        # leverage API
+                        'getLeverAssetsInfo',
+                        'getLeverBills',
+                        'transferInLever',
+                        'transferOutLever',
+                        'loan',
+                        'cancelLoan',
+                        'getLoans',
+                        'getLoanRecords',
+                        'borrow',
+                        'repay',
+                        'getRepayments',
                     ],
                 },
             },
@@ -344,6 +357,8 @@ class zb (Exchange):
         return await self.privateGetCancelOrder(order)
 
     async def fetch_order(self, id, symbol=None, params={}):
+        if symbol is None:
+            raise ExchangeError(self.id + ' fetchOrder() requires a symbol argument')
         await self.load_markets()
         order = {
             'id': str(id),
@@ -371,10 +386,8 @@ class zb (Exchange):
         try:
             response = await getattr(self, method)(self.extend(request, params))
         except Exception as e:
-            if self.last_json_response:
-                code = self.safe_string(self.last_json_response, 'code')
-                if code == '3001':
-                    return []
+            if isinstance(e, OrderNotFound):
+                return []
             raise e
         return self.parse_orders(response, market, since, limit)
 
@@ -396,10 +409,8 @@ class zb (Exchange):
         try:
             response = await getattr(self, method)(self.extend(request, params))
         except Exception as e:
-            if self.last_json_response:
-                code = self.safe_string(self.last_json_response, 'code')
-                if code == '3001':
-                    return []
+            if isinstance(e, OrderNotFound):
+                return []
             raise e
         return self.parse_orders(response, market, since, limit)
 
@@ -489,10 +500,10 @@ class zb (Exchange):
         if body[0] == '{':
             response = json.loads(body)
             if 'code' in response:
-                error = self.safe_string(response, 'code')
+                code = self.safe_string(response, 'code')
                 message = self.id + ' ' + self.json(response)
-                if error in self.exceptions:
-                    ExceptionClass = self.exceptions[error]
+                if code in self.exceptions:
+                    ExceptionClass = self.exceptions[code]
                     raise ExceptionClass(message)
-                elif error != '1000':
+                elif code != '1000':
                     raise ExchangeError(message)
