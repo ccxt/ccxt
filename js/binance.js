@@ -833,7 +833,7 @@ module.exports = class binance extends Exchange {
                         try {
                             response = JSON.parse (response['msg']);
                         } catch (e) {
-                            response = '';
+                            response = {};
                         }
                 }
                 // checks against error codes
