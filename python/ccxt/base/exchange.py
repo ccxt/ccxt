@@ -1017,9 +1017,6 @@ class Exchange(object):
         }
 
     def parse_balance(self, balance):
-        for currency in self.currencies:
-            if currency not in balance:
-                balance[currency] = {'free': 0, 'used': 0, 'total': 0}
         currencies = self.omit(balance, 'info').keys()
         for account in ['free', 'used', 'total']:
             balance[account] = {}
