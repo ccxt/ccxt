@@ -90,7 +90,7 @@ module.exports = class bibox extends Exchange {
                 '3024': PermissionDenied, // wrong apikey permissions
                 '3025': AuthenticationError, // signature failed
                 '4000': ExchangeNotAvailable, // current network is unstable
-                '4003': DDoSProtection, // server busy; please try again later
+                '4003': DDoSProtection, // server busy please try again later
             },
         });
     }
