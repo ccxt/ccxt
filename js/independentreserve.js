@@ -261,7 +261,7 @@ module.exports = class independentreserve extends Exchange {
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
-            'pageIndex': params['pageIndex'] || 1,
+            'pageIndex': params['pageIndex'] || 1, // todo: rework this crap
             'pageSize': 50
         };
         const response = await this.privatePostGetTrades (this.extend (request, params));
@@ -336,15 +336,13 @@ module.exports = class independentreserve extends Exchange {
                 'apiKey=' + this.apiKey,
                 'nonce=' + nonce.toString (),
             ];
-
+            // remove this crap
             let keys = this.apiSpecificKeySort(Object.keys(params));
-
             const sortedParams = [];
             for (let i = 0; i < keys.length; i++) {
                 let key = keys[i];
                 sortedParams.push (key + '=' + params[key]);
             }
-
             let message = auth.concat(sortedParams).join(',');
             let signature = this.hmac (this.encode (message), this.encode (this.secret));
             let query = this.extend ({
@@ -359,8 +357,8 @@ module.exports = class independentreserve extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    apiSpecificKeySort(params, out = {}) {
-
+    apiSpecificKeySort (params, out = {}) {
+        // todo rework this crap
         const keyOrder = [
             'amount',
             'withdrawalAddress',
@@ -391,13 +389,12 @@ module.exports = class independentreserve extends Exchange {
         } else if (params.constructor === Array) {
             out = [];
             for (const k of keyOrder) {
-                const key = params.find(p => p === k);
+                const key = params.find (p => p === k);
                 if (key) {
-                    out.push(key);
+                    out.push (key);
                 }
             }
         }
-
         return out;
     }
 
