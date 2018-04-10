@@ -76,6 +76,7 @@ class yobit extends liqui {
                 'CS' => 'CryptoSpots',
                 'DCT' => 'Discount',
                 'DGD' => 'DarkGoldCoin',
+                'ERT' => 'Eristica Token',
                 'ICN' => 'iCoin',
                 'LIZI' => 'LiZi',
                 'LOC' => 'LocoCoin',
