@@ -250,12 +250,15 @@ module.exports = class independentreserve extends Exchange {
         return status;
     }
 
-    async fetchOrder (id, symbol = undefined, params) {
-        let request = {
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privatePostGetOrderDetails (this.extend ({
             'orderGuid': id,
-        };
-        const response = await this.privatePostGetOrderDetails (this.extend (request, params));
-        return this.parseOrder (response);
+        }, params));
+        let market = undefined;
+        if (typeof symbol !== 'undefined')
+            market = this.market (symbol);
+        return this.parseOrder (response, market);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = 50, params = {}) {
@@ -288,6 +291,13 @@ module.exports = class independentreserve extends Exchange {
         let symbol = undefined;
         if (typeof market !== 'undefined')
             symbol = market['symbol'];
+        let side = this.safeString (trade, 'OrderType');
+        if (typeof side !== 'undefined') {
+            if (side.indexOf ('Bid') >= 0)
+                side = 'buy';
+            else if (side.indexOf ('Offer') >= 0)
+                side = 'sell';
+        }
         return {
             'id': id,
             'info': trade,
@@ -296,7 +306,7 @@ module.exports = class independentreserve extends Exchange {
             'symbol': symbol,
             'order': orderId,
             'type': undefined,
-            'side': /Bid/.exec (trade['OrderType']) ? 'buy' : 'sell',
+            'side': side,
             'price': price,
             'amount': amount,
             'fee': undefined,
