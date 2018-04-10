@@ -355,62 +355,22 @@ module.exports = class independentreserve extends Exchange {
                 'nonce=' + nonce.toString (),
             ];
             // remove this crap
-            let keys = this.apiSpecificKeySort (Object.keys (params));
-            const sortedParams = [];
+            let keys = Object.keys (params);
+            let payload = [];
             for (let i = 0; i < keys.length; i++) {
                 let key = keys[i];
-                sortedParams.push (key + '=' + params[key]);
+                payload.push (key + '=' + params[key]);
             }
-            let message = auth.concat (sortedParams).join (',');
+            auth = this.arrayConcat (auth, payload);
+            let message = auth.join (',');
             let signature = this.hmac (this.encode (message), this.encode (this.secret));
-            let query = this.extend ({
+            body = this.json ({
                 'apiKey': this.apiKey,
                 'nonce': nonce,
                 'signature': signature,
-            }, this.apiSpecificKeySort (params));
-            body = this.json (query);
+            });
             headers = { 'Content-Type': 'application/json' };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    }
-
-    apiSpecificKeySort (params, out = {}) {
-        // todo rework this crap
-        const keyOrder = [
-            'amount',
-            'withdrawalAddress',
-            'comment',
-            'depositAddress',
-            'primaryCurrencyCode',
-            'secondaryCurrencyCode',
-            'withdrawalAmount',
-            'withdrawalBankAccountName',
-            'orderType',
-            'price',
-            'volume',
-            'orderGuid',
-            'accountGuid',
-            'fromTimestampUtc',
-            'toTimestampUtc',
-            'txTypes',
-            'pageIndex',
-            'pageSize',
-        ];
-        if (params.constructor === Object) {
-            for (const k of keyOrder) {
-                if (params[k]) {
-                    out[k] = params[k];
-                }
-            }
-        } else if (params.constructor === Array) {
-            out = [];
-            for (const k of keyOrder) {
-                const key = params.find (p => p === k);
-                if (key) {
-                    out.push (key);
-                }
-            }
-        }
-        return out;
     }
 };
