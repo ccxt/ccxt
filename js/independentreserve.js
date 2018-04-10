@@ -246,26 +246,30 @@ module.exports = class independentreserve extends Exchange {
             'Expired': 'canceled'
         };
         if (status in statuses)
-            return tatuses[status];
+            return statuses[status];
         return status;
     }
 
-    async fetchOrder(id, symbol = undefined, params) {
+    async fetchOrder (id, symbol = undefined, params) {
         let request = {
-            'orderGuid': id
+            'orderGuid': id,
         };
-        const response = await this.privatePostGetOrderDetails(this.extend(request, params));
-        return this.parseOrder(response);
+        const response = await this.privatePostGetOrderDetails (this.extend (request, params));
+        return this.parseOrder (response);
     }
 
-    async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             'pageIndex': params['pageIndex'] || 1, // todo: rework this crap
-            'pageSize': 50
+            'pageSize': 50,
         };
+        let market = undefined;
+        if (typeof symbol !== 'undefined') {
+            market = this.market (symbol);
+        }
         const response = await this.privatePostGetTrades (this.extend (request, params));
-        return this.parseTrades(response['Data'], symbol && this.market (symbol), since, limit);
+        return this.parseTrades (response['Data'], market, since, limit);
     }
 
     parseTrade (trade, market) {
@@ -310,7 +314,6 @@ module.exports = class independentreserve extends Exchange {
         if (type === 'limit')
             order['price'] = price;
         order['volume'] = amount;
-
         let response = await this[method] (this.extend (order, params));
         return {
             'info': response,
