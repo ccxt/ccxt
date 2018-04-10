@@ -61,32 +61,35 @@ class foxbit extends Exchange {
                 'BTC/PKR' => array ( 'id' => 'BTCPKR', 'symbol' => 'BTC/PKR', 'base' => 'BTC', 'quote' => 'PKR', 'brokerId' => 8, 'broker' => 'UrduBit' ),
                 'BTC/CLP' => array ( 'id' => 'BTCCLP', 'symbol' => 'BTC/CLP', 'base' => 'BTC', 'quote' => 'CLP', 'brokerId' => 9, 'broker' => 'ChileBit' ),
             ),
+            'options' => array (
+                'brokerId' => '4', // https://blinktrade.com/docs/#brokers
+            ),
         ));
     }
 
     public function fetch_balance ($params = array ()) {
-
         $response = $this->privatePostU2 (array (
             'BalanceReqID' => $this->nonce (),
         ));
-        
-
-        $balances = $response["Responses"]['0']['4'];
-
+        $balances = $this->safe_value($response['Responses'], $this->options['brokerId']);
         $result = array ( 'info' => $response );
-        $currencies = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
-        for ($i = 0; $i < count ($currencies); $i++) {
-            $currency = $currencies[$i];
-            $uppercase = strtoupper ($currency);
-            $account = $this->account ();
-            if (is_array ($balances) && array_key_exists ($uppercase, $balances)) {
-                 $account['used'] = floatval ($balances[$uppercase.'_locked'])*1e-8;
-                $account['total'] = floatval ($balances[$uppercase])*1e-8;
-                $account['free'] = $account['total'] - $account['used'];
+        if ($balances !== null) {
+            $currencyIds = is_array ($this->currencies_by_id) ? array_keys ($this->currencies_by_id) : array ();
+            for ($i = 0; $i < count ($currencyIds); $i++) {
+                $currencyId = $currencyIds[$i];
+                $currency = $this->currencies_by_id[$currencyId];
+                $code = $currency['code'];
+                // we only set the balance for the $currency if that $currency is present in $response
+                // otherwise we will lose the info if the $currency balance has been funded or traded or not
+                if (is_array ($balances) && array_key_exists ($currencyId, $balances)) {
+                    $account = $this->account ();
+                    $account['used'] = floatval ($balances[$currencyId . '_locked']) * 1e-8;
+                    $account['total'] = floatval ($balances[$currencyId]) * 1e-8;
+                    $account['free'] = $account['total'] - $account['used'];
+                    $result[$code] = $account;
+                }
             }
-            $result[$currency] = $account;
         }
-        
         return $this->parse_balance($result);
     }
 
