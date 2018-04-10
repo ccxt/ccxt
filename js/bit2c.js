@@ -204,7 +204,7 @@ module.exports = class bit2c extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async fetchOpenOrders (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         if (typeof symbol === 'undefined')
             throw new ExchangeError (this.id + ' fetchOpenOrders() requires a symbol argument');
