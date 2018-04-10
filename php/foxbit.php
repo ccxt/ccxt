@@ -65,10 +65,29 @@ class foxbit extends Exchange {
     }
 
     public function fetch_balance ($params = array ()) {
-        // todo parse balance
-        return $this->privatePostU2 (array (
+
+        $response = $this->privatePostU2 (array (
             'BalanceReqID' => $this->nonce (),
         ));
+        
+
+        $balances = $response["Responses"]['0']['4'];
+
+        $result = array ( 'info' => $response );
+        $currencies = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
+        for ($i = 0; $i < count ($currencies); $i++) {
+            $currency = $currencies[$i];
+            $uppercase = strtoupper ($currency);
+            $account = $this->account ();
+            if (is_array ($balances) && array_key_exists ($uppercase, $balances)) {
+                 $account['used'] = floatval ($balances[$uppercase.'_locked'])*1e-8;
+                $account['total'] = floatval ($balances[$uppercase])*1e-8;
+                $account['free'] = $account['total'] - $account['used'];
+            }
+            $result[$currency] = $account;
+        }
+        
+        return $this->parse_balance($result);
     }
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
