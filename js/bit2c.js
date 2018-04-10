@@ -15,6 +15,7 @@ module.exports = class bit2c extends Exchange {
             'rateLimit': 3000,
             'has': {
                 'CORS': false,
+                'fetchOpenOrders': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg',
@@ -201,4 +202,38 @@ module.exports = class bit2c extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
+    
+    fetchOpenOrders(symbol, since=undefined, limit=undefined, params={}):
+        market = this.market(symbol)
+        response = this.privateGetOrderMyOrders(this.extend({
+            'pair': market['id'],
+        }, params))
+        orders = []
+        if(response[market['id']]['ask']):
+            orders += response[market['id']]['ask']
+        if(response[market['id']]['bid']):
+            orders += response[market['id']]['bid']
+        return this.parse_orders(orders, market, since, limit)
+
+    parseOrder(order, market):
+        timestamp = order['created']
+        price = order['price']
+        amount = order['amount']
+        return {
+            'id': order['id'],
+            'datetime': this.iso8601(timestamp),
+            'timestamp': timestamp,
+            'status': undefined,
+            'symbol': market['symbol'],
+            'type': undefined,
+            'side': undefined,
+            'price': price,
+            'amount': amount,
+            'filled': undefined,
+            'remaining': undefined,
+            'cost': price * amount,
+            'trades': undefined,
+            'fee': undefined,
+            'info': order,
+        }
 };
