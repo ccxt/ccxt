@@ -82,8 +82,8 @@ module.exports = class foxbit extends Exchange {
                 // otherwise we will lose the info if the currency balance has been funded or traded or not
                 if (currencyId in balances) {
                     let account = this.account ();
-                    account['used'] = floatval (balances[currencyId  + '_locked']) * 1e-8;
-                    account['total'] = floatval (balances[currencyId]) * 1e-8;
+                    account['used'] = parseFloat (balances[currencyId  + '_locked']) * 1e-8;
+                    account['total'] = parseFloat (balances[currencyId]) * 1e-8;
                     account['free'] = account['total'] - account['used'];
                     result[code] = account;
                 }
