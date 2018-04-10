@@ -196,8 +196,8 @@ module.exports = class independentreserve extends Exchange {
         let feeCost = undefined;
         if (typeof amount !== 'undefined') {
             if (typeof filled !== 'undefined') {
-               remaining = amount - filled;
-               if (typeof feeRate !== 'undefined')
+                remaining = amount - filled;
+                if (typeof feeRate !== 'undefined')
                     feeCost = feeRate * filled;
             }
         }
@@ -216,7 +216,7 @@ module.exports = class independentreserve extends Exchange {
         let cost = this.safeFloat (order, 'Value');
         let average = this.safeFloat (order, 'AvgPrice');
         let price = this.safeFloat (order, 'Price', average);
-        let result = {
+        return {
             'info': order,
             'id': id,
             'timestamp': timestamp,
@@ -243,7 +243,7 @@ module.exports = class independentreserve extends Exchange {
             'PartiallyFilledAndCancelled': 'canceled',
             'Cancelled': 'canceled',
             'PartiallyFilledAndExpired': 'canceled',
-            'Expired': 'canceled'
+            'Expired': 'canceled',
         };
         if (status in statuses)
             return statuses[status];
@@ -282,7 +282,7 @@ module.exports = class independentreserve extends Exchange {
             'symbol': market['symbol'],
             'order': trade['OrderGuid'],
             'type': undefined,
-            'side': /Bid/.exec(trade['OrderType']) ? 'buy' : 'sell',
+            'side': /Bid/.exec (trade['OrderType']) ? 'buy' : 'sell',
             'price': trade['Price'],
             'amount': trade['VolumeTraded'],
         };
@@ -340,20 +340,19 @@ module.exports = class independentreserve extends Exchange {
                 'nonce=' + nonce.toString (),
             ];
             // remove this crap
-            let keys = this.apiSpecificKeySort(Object.keys(params));
+            let keys = this.apiSpecificKeySort (Object.keys (params));
             const sortedParams = [];
             for (let i = 0; i < keys.length; i++) {
                 let key = keys[i];
                 sortedParams.push (key + '=' + params[key]);
             }
-            let message = auth.concat(sortedParams).join(',');
+            let message = auth.concat (sortedParams).join (',');
             let signature = this.hmac (this.encode (message), this.encode (this.secret));
             let query = this.extend ({
                 'apiKey': this.apiKey,
                 'nonce': nonce,
                 'signature': signature,
-            }, this.apiSpecificKeySort(params));
-
+            }, this.apiSpecificKeySort (params));
             body = this.json (query);
             headers = { 'Content-Type': 'application/json' };
         }
@@ -380,9 +379,8 @@ module.exports = class independentreserve extends Exchange {
             'toTimestampUtc',
             'txTypes',
             'pageIndex',
-            'pageSize'
+            'pageSize',
         ];
-
         if (params.constructor === Object) {
             for (const k of keyOrder) {
                 if (params[k]) {
