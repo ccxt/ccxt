@@ -177,7 +177,7 @@ module.exports = class flowbtc extends Exchange {
             'side': side,
             'orderType': orderType,
             'qty': amount,
-            'px': price,
+            'px': price.toFixed(2),
         };
         let response = await this.privatePostCreateOrder (this.extend (order, params));
         return {
