@@ -716,13 +716,6 @@ module.exports = class binance extends Exchange {
         return deposits.concat (withdrawals);
     }
 
-    // GET /wapi/v3/depositHistory.html (HMAC SHA256)
-    // asset       STRING  NO
-    // status      INT     NO 0(0:pending,1:success)
-    // startTime   LONG    NO
-    // endTime     LONG    NO
-    // recvWindow  LONG    NO
-    // timestamp   LONG    YES
     async fetchDeposits (currency = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let para = {};
@@ -742,13 +735,6 @@ module.exports = class binance extends Exchange {
         throw new ExchangeError (this.id + ' depositHistory failed: ' + this.last_http_response);
     }
 
-    // GET /wapi/v3/withdrawHistory.html (HMAC SHA256)
-    // asset        STRING  NO
-    // status       INT     NO 0(0:Email Sent,1:Cancelled 2:Awaiting Approval 3:Rejected 4:Processing 5:Failure 6Completed)
-    // startTime    LONG    NO
-    // endTime      LONG    NO
-    // recvWindow   LONG    NO
-    // timestamp    LONG    YES
     async fetchWithdrawals (currency = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let para = {};
@@ -808,7 +794,6 @@ module.exports = class binance extends Exchange {
             throw new ExchangeError (this.id + ' insertTime/applyTime missing: ' + this.json (transaction));
         }
         let amount = parseFloat (transaction['amount']);
-
         let result = {
             'info': transaction,                  // the original decoded JSON as is
             'id': null,                           // string transaction id
