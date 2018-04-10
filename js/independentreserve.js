@@ -258,33 +258,48 @@ module.exports = class independentreserve extends Exchange {
         return this.parseOrder (response);
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = 50, params = {}) {
         await this.loadMarkets ();
-        const request = {
-            'pageIndex': params['pageIndex'] || 1, // todo: rework this crap
-            'pageSize': 50,
-        };
+        let pageIndex = this.safeInteger (params, 'pageIndex', 1);
+        const request = this.ordered ({
+            'pageIndex': pageIndex,
+            'pageSize': limit,
+        });
+        const response = await this.privatePostGetTrades (this.extend (request, params));
         let market = undefined;
         if (typeof symbol !== 'undefined') {
             market = this.market (symbol);
         }
-        const response = await this.privatePostGetTrades (this.extend (request, params));
         return this.parseTrades (response['Data'], market, since, limit);
     }
 
-    parseTrade (trade, market) {
+    parseTrade (trade, market = undefined) {
         let timestamp = this.parse8601 (trade['TradeTimestampUtc']);
+        let id = this.safeString (trade, 'TradeGuid');
+        let orderId = this.safeString (trade, 'OrderGuid');
+        let price = this.safeFloat (trade, 'Price');
+        if (typeof price === 'undefined') {
+            price = this.safeFloat (trade, 'SecondaryCurrencyTradePrice');
+        }
+        let amount = this.safeFloat (trade, 'VolumeTraded');
+        if (typeof amount === 'undefined') {
+            amount = this.safeFloat (trade, 'PrimaryCurrencyAmount');
+        }
+        let symbol = undefined;
+        if (typeof market !== 'undefined')
+            symbol = market['symbol'];
         return {
-            'id': trade['TradeGuid'],
+            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'order': trade['OrderGuid'],
+            'symbol': symbol,
+            'order': orderId,
             'type': undefined,
             'side': /Bid/.exec (trade['OrderType']) ? 'buy' : 'sell',
-            'price': trade['Price'],
-            'amount': trade['VolumeTraded'],
+            'price': price,
+            'amount': amount,
+            'fee': undefined,
         };
     }
 
@@ -397,11 +412,5 @@ module.exports = class independentreserve extends Exchange {
             }
         }
         return out;
-    }
-
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        // todo error handling
-        return response;
     }
 };
