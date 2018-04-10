@@ -71,12 +71,31 @@ class flowbtc extends Exchange {
             $id = $market['name'];
             $base = $market['product1Label'];
             $quote = $market['product2Label'];
+            $precision = array (
+                'amount' => $this->safe_integer($market, 'product1DecimalPlaces'),
+                'price' => $this->safe_integer($market, 'product2DecimalPlaces'),
+            );
             $symbol = $base . '/' . $quote;
             $result[$symbol] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'precision' => $precision,
+                'limits' => array (
+                    'amount' => array (
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'price' => array (
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'cost' => array (
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
                 'info' => $market,
             );
         }
@@ -170,6 +189,10 @@ class flowbtc extends Exchange {
         return $this->parse_trades($response['trades'], $market, $since, $limit);
     }
 
+    public function price_to_precision ($symbol, $price) {
+        return $this->decimal_to_precision($price, ROUND, $this->markets[$symbol]['precision']['price'], $this->precisionMode);
+    }
+
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $orderType = ($type === 'market') ? 1 : 0;
@@ -178,7 +201,7 @@ class flowbtc extends Exchange {
             'side' => $side,
             'orderType' => $orderType,
             'qty' => $amount,
-            'px' => $price,
+            'px' => $this->price_to_precision($symbol, $price),
         );
         $response = $this->privatePostCreateOrder (array_merge ($order, $params));
         return array (

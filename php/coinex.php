@@ -19,6 +19,7 @@ class coinex extends Exchange {
             'has' => array (
                 'fetchTickers' => true,
                 'fetchOHLCV' => true,
+                'fetchOrder' => true,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchMyTrades' => true,
@@ -455,7 +456,7 @@ class coinex extends Exchange {
                 'Authorization' => strtoupper ($signature),
                 'Content-Type' => 'application/json',
             );
-            if ($method === 'GET') {
+            if (($method === 'GET') || ($method === 'DELETE')) {
                 $url .= '?' . $urlencoded;
             } else {
                 $body = $this->json ($query);

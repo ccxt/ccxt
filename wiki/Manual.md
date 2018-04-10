@@ -758,7 +758,7 @@ To get a list of all available methods with an exchange instance, including impl
 
 ```
 console.log (new ccxt.kraken ())   // JavaScript
-print (dir (ccxt.hitbtc ()))        # Python
+print(dir(ccxt.hitbtc()))           # Python
 var_dump (new \ccxt\okcoinusd ()); // PHP
 ```
 

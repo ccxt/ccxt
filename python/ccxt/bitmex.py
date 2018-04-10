@@ -449,7 +449,7 @@ class bitmex (Exchange):
             'orderQty': amount,
             'ordType': self.capitalize(type),
         }
-        if type == 'limit':
+        if price is not None:
             request['price'] = price
         response = self.privatePostOrder(self.extend(request, params))
         order = self.parse_order(response)

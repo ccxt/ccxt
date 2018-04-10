@@ -400,7 +400,8 @@ class gatecoin (Exchange):
             request['Count'] = limit
         request = self.extend(request, params)
         response = self.publicGetPublicTickerHistoryCurrencyPairTimeframe(request)
-        return self.parse_ohlcvs(response['tickers'], market, timeframe, since, limit)
+        ohlcvs = self.parse_ohlcvs(response['tickers'], market, timeframe, since, limit)
+        return self.sort_by(ohlcvs, 0)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

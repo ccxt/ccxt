@@ -17,7 +17,7 @@ class southxchange extends Exchange {
             'rateLimit' => 1000,
             'has' => array (
                 'CORS' => true,
-                'createDepositAddres' => true,
+                'createDepositAddress' => true,
                 'fetchOpenOrders' => true,
                 'fetchTickers' => true,
                 'withdraw' => true,

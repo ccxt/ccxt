@@ -22,6 +22,8 @@ class lbank (Exchange):
             'has': {
                 'fetchTickers': True,
                 'fetchOHLCV': True,
+                'fetchOrder': True,
+                'fetchOrders': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
             },

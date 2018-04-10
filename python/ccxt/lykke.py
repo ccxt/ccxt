@@ -22,6 +22,7 @@ class lykke (Exchange):
                 'fetchTrades': False,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
+                'fetchOrder': True,
                 'fetchOrders': True,
             },
             'requiredCredentials': {

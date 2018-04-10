@@ -19,6 +19,7 @@ class exx (Exchange):
             'countries': 'CN',
             'rateLimit': 1000 / 10,
             'has': {
+                'fetchOrder': True,
                 'fetchTickers': True,
                 'fetchOpenOrders': True,
             },

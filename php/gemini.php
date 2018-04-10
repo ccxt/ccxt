@@ -18,6 +18,7 @@ class gemini extends Exchange {
             'version' => 'v1',
             'has' => array (
                 'fetchDepositAddress' => false,
+                'createDepositAddress' => true,
                 'CORS' => false,
                 'fetchBidsAsks' => false,
                 'fetchTickers' => false,
@@ -292,5 +293,21 @@ class gemini extends Exchange {
             if ($response['result'] === 'error')
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;
+    }
+
+    public function create_deposit_address ($code, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency ($code);
+        $response = $this->privatePostDepositCurrencyNewAddress (array_merge (array (
+            'currency' => $currency['id'],
+        ), $params));
+        $address = $this->safe_string($response, 'address');
+        $this->check_address($address);
+        return array (
+            'currency' => $code,
+            'address' => $address,
+            'status' => 'ok',
+            'info' => $response,
+        );
     }
 }

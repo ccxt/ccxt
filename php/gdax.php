@@ -465,11 +465,11 @@ class gdax extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         // $oid = (string) $this->nonce ();
         $order = array (
-            'product_id' => $this->market_id($market),
+            'product_id' => $this->market_id($symbol),
             'side' => $side,
             'size' => $amount,
             'type' => $type,

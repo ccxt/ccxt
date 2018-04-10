@@ -413,7 +413,8 @@ module.exports = class gatecoin extends Exchange {
             request['Count'] = limit;
         request = this.extend (request, params);
         let response = await this.publicGetPublicTickerHistoryCurrencyPairTimeframe (request);
-        return this.parseOHLCVs (response['tickers'], market, timeframe, since, limit);
+        let ohlcvs = this.parseOHLCVs (response['tickers'], market, timeframe, since, limit);
+        return this.sortBy (ohlcvs, 0);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

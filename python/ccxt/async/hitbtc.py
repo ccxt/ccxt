@@ -22,6 +22,7 @@ class hitbtc (Exchange):
             'has': {
                 'CORS': False,
                 'fetchTrades': True,
+                'fetchTickers': True,
                 'fetchOrder': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,

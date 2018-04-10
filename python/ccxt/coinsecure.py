@@ -264,7 +264,7 @@ class coinsecure (Exchange):
             trades = result['message']
             return self.parse_trades(trades, market)
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         method = 'privatePutUserExchange'
         order = {}

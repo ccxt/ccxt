@@ -265,7 +265,7 @@ declare module 'ccxt' {
         marketIds (symbols: string[]): string[];
         symbol (symbol: string): string;
         extractParams (str: string): string[];
-        createOrder (market: string, type: string, side: string, amount: string, price?: string, params?: string): Promise<any>;
+        createOrder (symbol: string, type: string, side: string, amount: string, price?: string, params?: string): Promise<any>;
         fetchBalance (params?: any): Promise<Balances>;
         fetchTotalBalance (params?: any): Promise<PartialBalances>;
         fetchUsedBalance (params?: any): Promise<PartialBalances>;

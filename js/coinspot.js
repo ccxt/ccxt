@@ -125,12 +125,12 @@ module.exports = class coinspot extends Exchange {
         }, params));
     }
 
-    createOrder (market, type, side, amount, price = undefined, params = {}) {
+    createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         let method = 'privatePostMy' + this.capitalize (side);
         if (type === 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
         let order = {
-            'cointype': this.marketId (market),
+            'cointype': this.marketId (symbol),
             'amount': amount,
             'rate': price,
         };

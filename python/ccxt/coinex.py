@@ -23,6 +23,7 @@ class coinex (Exchange):
             'has': {
                 'fetchTickers': True,
                 'fetchOHLCV': True,
+                'fetchOrder': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'fetchMyTrades': True,
@@ -434,7 +435,7 @@ class coinex (Exchange):
                 'Authorization': signature.upper(),
                 'Content-Type': 'application/json',
             }
-            if method == 'GET':
+            if (method == 'GET') or (method == 'DELETE'):
                 url += '?' + urlencoded
             else:
                 body = self.json(query)
