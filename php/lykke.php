@@ -22,6 +22,7 @@ class lykke extends Exchange {
                 'fetchTrades' => false,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
+                'fetchOrder' => true,
                 'fetchOrders' => true,
             ),
             'requiredCredentials' => array (
@@ -252,11 +253,11 @@ class lykke extends Exchange {
         if ($market)
             $symbol = $market['symbol'];
         $timestamp = null;
-        if (is_array ($order) && array_key_exists ('LastMatchTime', $order)) {
+        if ((is_array ($order) && array_key_exists ('LastMatchTime', $order)) && ($order['LastMatchTime'])) {
             $timestamp = $this->parse8601 ($order['LastMatchTime']);
-        } else if (is_array ($order) && array_key_exists ('Registered', $order)) {
+        } else if ((is_array ($order) && array_key_exists ('Registered', $order)) && ($order['Registered'])) {
             $timestamp = $this->parse8601 ($order['Registered']);
-        } else if (is_array ($order) && array_key_exists ('CreatedAt', $order)) {
+        } else if ((is_array ($order) && array_key_exists ('CreatedAt', $order)) && ($order['CreatedAt'])) {
             $timestamp = $this->parse8601 ($order['CreatedAt']);
         }
         $price = $this->safe_float($order, 'Price');
@@ -285,6 +286,7 @@ class lykke extends Exchange {
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
         $response = $this->privateGetOrdersId (array_merge (array (
             'id' => $id,
         ), $params));
@@ -292,11 +294,13 @@ class lykke extends Exchange {
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
         $response = $this->privateGetOrders ();
         return $this->parse_orders($response, null, $since, $limit);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
         $response = $this->privateGetOrders (array_merge (array (
             'status' => 'InOrderBook',
         ), $params));
@@ -304,6 +308,7 @@ class lykke extends Exchange {
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
         $response = $this->privateGetOrders (array_merge (array (
             'status' => 'Matched',
         ), $params));

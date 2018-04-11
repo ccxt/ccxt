@@ -19,6 +19,7 @@ class hitbtc extends Exchange {
             'has' => array (
                 'CORS' => false,
                 'fetchTrades' => true,
+                'fetchTickers' => true,
                 'fetchOrder' => true,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,

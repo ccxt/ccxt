@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError } = require ('./base/errors');
+const { ROUND } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -58,6 +59,14 @@ module.exports = class flowbtc extends Exchange {
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'tierBased': false,
+                    'percentage': true,
+                    'maker': 0.0035,
+                    'taker': 0.0035,
+                },
+            },
         });
     }
 
@@ -70,12 +79,31 @@ module.exports = class flowbtc extends Exchange {
             let id = market['name'];
             let base = market['product1Label'];
             let quote = market['product2Label'];
+            let precision = {
+                'amount': this.safeInteger (market, 'product1DecimalPlaces'),
+                'price': this.safeInteger (market, 'product2DecimalPlaces'),
+            };
             let symbol = base + '/' + quote;
             result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
                 'info': market,
             };
         }
@@ -169,6 +197,10 @@ module.exports = class flowbtc extends Exchange {
         return this.parseTrades (response['trades'], market, since, limit);
     }
 
+    priceToPrecision (symbol, price) {
+        return this.decimalToPrecision (price, ROUND, this.markets[symbol]['precision']['price'], this.precisionMode);
+    }
+
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let orderType = (type === 'market') ? 1 : 0;
@@ -177,7 +209,7 @@ module.exports = class flowbtc extends Exchange {
             'side': side,
             'orderType': orderType,
             'qty': amount,
-            'px': price,
+            'px': this.priceToPrecision (symbol, price),
         };
         let response = await this.privatePostCreateOrder (this.extend (order, params));
         return {

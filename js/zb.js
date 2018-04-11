@@ -71,7 +71,7 @@ module.exports = class zb extends Exchange {
                     'public': 'http://api.zb.com/data', // no https for public API
                     'private': 'https://trade.zb.com/api',
                 },
-                'www': 'https://trade.zb.com/api',
+                'www': 'https://www.zb.com',
                 'doc': 'https://www.zb.com/i/developer',
                 'fees': 'https://www.zb.com/i/rate',
             },

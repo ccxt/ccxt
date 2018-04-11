@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.12.97';
+$version = '1.12.139';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -61,6 +61,7 @@ abstract class Exchange {
         'bitfinex2',
         'bitflyer',
         'bithumb',
+        'bitkk',
         'bitlish',
         'bitmarket',
         'bitmex',
@@ -1453,11 +1454,11 @@ abstract class Exchange {
     }
 
     public function edit_limit_buy_order ($id, $symbol, $amount, $price, $params = array ()) {
-        return $this->edit_limit_order ($symbol, 'buy', $amount, $price, $params);
+        return $this->edit_limit_order ($id, $symbol, 'buy', $amount, $price, $params);
     }
 
     public function edit_limit_sell_order ($id, $symbol, $amount, $price, $params = array ()) {
-        return $this->edit_limit_order ($symbol, 'sell', $amount, $price, $params);
+        return $this->edit_limit_order ($id, $symbol, 'sell', $amount, $price, $params);
     }
 
     public function edit_limit_order ($id, $symbol, $side, $amount, $price, $params = array ()) {

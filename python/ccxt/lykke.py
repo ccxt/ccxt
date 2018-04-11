@@ -22,6 +22,7 @@ class lykke (Exchange):
                 'fetchTrades': False,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
+                'fetchOrder': True,
                 'fetchOrders': True,
             },
             'requiredCredentials': {
@@ -239,11 +240,11 @@ class lykke (Exchange):
         if market:
             symbol = market['symbol']
         timestamp = None
-        if 'LastMatchTime' in order:
+        if ('LastMatchTime' in list(order.keys())) and(order['LastMatchTime']):
             timestamp = self.parse8601(order['LastMatchTime'])
-        elif 'Registered' in order:
+        elif ('Registered' in list(order.keys())) and(order['Registered']):
             timestamp = self.parse8601(order['Registered'])
-        elif 'CreatedAt' in order:
+        elif ('CreatedAt' in list(order.keys())) and(order['CreatedAt']):
             timestamp = self.parse8601(order['CreatedAt'])
         price = self.safe_float(order, 'Price')
         amount = self.safe_float(order, 'Volume')
@@ -270,22 +271,26 @@ class lykke (Exchange):
         return result
 
     def fetch_order(self, id, symbol=None, params={}):
+        self.load_markets()
         response = self.privateGetOrdersId(self.extend({
             'id': id,
         }, params))
         return self.parse_order(response)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
         response = self.privateGetOrders()
         return self.parse_orders(response, None, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
         response = self.privateGetOrders(self.extend({
             'status': 'InOrderBook',
         }, params))
         return self.parse_orders(response, None, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
         response = self.privateGetOrders(self.extend({
             'status': 'Matched',
         }, params))

@@ -77,6 +77,7 @@ module.exports = class huobipro extends Exchange {
                         'order/matchresults', // 查询当前成交、历史成交
                         'dw/withdraw-virtual/addresses', // 查询虚拟币提现地址
                         'dw/deposit-virtual/addresses',
+                        'query/deposit-withdraw',
                     ],
                     'post': [
                         'order/orders/place', // 创建并执行一个新订单 (一步下单， 推荐使用)
@@ -323,13 +324,15 @@ module.exports = class huobipro extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = 2000, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.marketGetHistoryTrade (this.extend ({
+        let request = {
             'symbol': market['id'],
-            'size': 2000,
-        }, params));
+        };
+        if (typeof limit !== 'undefined')
+            request['size'] = limit;
+        let response = await this.marketGetHistoryTrade (this.extend (request, params));
         let data = response['data'];
         let result = [];
         for (let i = 0; i < data.length; i++) {
@@ -354,14 +357,17 @@ module.exports = class huobipro extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 2000, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.marketGetHistoryKline (this.extend ({
+        let request = {
             'symbol': market['id'],
             'period': this.timeframes[timeframe],
-            'size': 2000, // max = 2000
-        }, params));
+        };
+        if (typeof limit !== 'undefined') {
+            request['size'] = limit;
+        }
+        let response = await this.marketGetHistoryKline (this.extend (request, params));
         return this.parseOHLCVs (response['data'], market, timeframe, since, limit);
     }
 

@@ -90,6 +90,7 @@ class huobipro (Exchange):
                         'order/matchresults',  # 查询当前成交、历史成交
                         'dw/withdraw-virtual/addresses',  # 查询虚拟币提现地址
                         'dw/deposit-virtual/addresses',
+                        'query/deposit-withdraw',
                     ],
                     'post': [
                         'order/orders/place',  # 创建并执行一个新订单(一步下单， 推荐使用)
@@ -314,13 +315,15 @@ class huobipro (Exchange):
             'amount': trade['amount'],
         }
 
-    async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    async def fetch_trades(self, symbol, since=None, limit=2000, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.marketGetHistoryTrade(self.extend({
+        request = {
             'symbol': market['id'],
-            'size': 2000,
-        }, params))
+        }
+        if limit is not None:
+            request['size'] = limit
+        response = await self.marketGetHistoryTrade(self.extend(request, params))
         data = response['data']
         result = []
         for i in range(0, len(data)):
@@ -341,14 +344,16 @@ class huobipro (Exchange):
             ohlcv['amount'],
         ]
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=2000, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.marketGetHistoryKline(self.extend({
+        request = {
             'symbol': market['id'],
             'period': self.timeframes[timeframe],
-            'size': 2000,  # max = 2000
-        }, params))
+        }
+        if limit is not None:
+            request['size'] = limit
+        response = await self.marketGetHistoryKline(self.extend(request, params))
         return self.parse_ohlcvs(response['data'], market, timeframe, since, limit)
 
     async def load_accounts(self, reload=False):

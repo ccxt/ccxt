@@ -414,7 +414,8 @@ class gatecoin extends Exchange {
             $request['Count'] = $limit;
         $request = array_merge ($request, $params);
         $response = $this->publicGetPublicTickerHistoryCurrencyPairTimeframe ($request);
-        return $this->parse_ohlcvs($response['tickers'], $market, $timeframe, $since, $limit);
+        $ohlcvs = $this->parse_ohlcvs($response['tickers'], $market, $timeframe, $since, $limit);
+        return $this->sort_by($ohlcvs, 0);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {

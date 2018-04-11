@@ -300,21 +300,19 @@ class exmo (Exchange):
         self.load_markets()
         prefix = (type + '_') if (type == 'market') else ''
         market = self.market(symbol)
+        if (type == 'market') and(price is None):
+            price = 0
         request = {
             'pair': market['id'],
             'quantity': self.amount_to_string(symbol, amount),
             'type': prefix + side,
+            'price': self.price_to_precision(symbol, price),
         }
-        if type == 'market':
-            if price is None:
-                request['price'] = 0
-        if price is not None:
-            request['price'] = self.price_to_precision(symbol, price)
         response = self.privatePostOrderCreate(self.extend(request, params))
         id = self.safe_string(response, 'order_id')
         timestamp = self.milliseconds()
-        price = float(price)
         amount = float(amount)
+        price = float(price)
         status = 'open'
         order = {
             'id': id,
@@ -411,7 +409,7 @@ class exmo (Exchange):
                 market = self.markets_by_id[marketId]
             parsedOrders = self.parse_orders(response[marketId], market)
             orders = self.array_concat(orders, parsedOrders)
-        self.update_cached_orders(orders)
+        self.update_cached_orders(orders, symbol)
         return self.filter_by_symbol_since_limit(self.orders, symbol, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):

@@ -20,6 +20,7 @@ module.exports = class lykke extends Exchange {
                 'fetchTrades': false,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
+                'fetchOrder': true,
                 'fetchOrders': true,
             },
             'requiredCredentials': {
@@ -250,11 +251,11 @@ module.exports = class lykke extends Exchange {
         if (market)
             symbol = market['symbol'];
         let timestamp = undefined;
-        if ('LastMatchTime' in order) {
+        if (('LastMatchTime' in order) && (order['LastMatchTime'])) {
             timestamp = this.parse8601 (order['LastMatchTime']);
-        } else if ('Registered' in order) {
+        } else if (('Registered' in order) && (order['Registered'])) {
             timestamp = this.parse8601 (order['Registered']);
-        } else if ('CreatedAt' in order) {
+        } else if (('CreatedAt' in order) && (order['CreatedAt'])) {
             timestamp = this.parse8601 (order['CreatedAt']);
         }
         let price = this.safeFloat (order, 'Price');
@@ -283,6 +284,7 @@ module.exports = class lykke extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
         let response = await this.privateGetOrdersId (this.extend ({
             'id': id,
         }, params));
@@ -290,11 +292,13 @@ module.exports = class lykke extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         let response = await this.privateGetOrders ();
         return this.parseOrders (response, undefined, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         let response = await this.privateGetOrders (this.extend ({
             'status': 'InOrderBook',
         }, params));
@@ -302,6 +306,7 @@ module.exports = class lykke extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         let response = await this.privateGetOrders (this.extend ({
             'status': 'Matched',
         }, params));

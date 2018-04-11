@@ -78,6 +78,7 @@ class huobipro extends Exchange {
                         'order/matchresults', // 查询当前成交、历史成交
                         'dw/withdraw-virtual/addresses', // 查询虚拟币提现地址
                         'dw/deposit-virtual/addresses',
+                        'query/deposit-withdraw',
                     ),
                     'post' => array (
                         'order/orders/place', // 创建并执行一个新订单 (一步下单， 推荐使用)
@@ -324,13 +325,15 @@ class huobipro extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+    public function fetch_trades ($symbol, $since = null, $limit = 2000, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->marketGetHistoryTrade (array_merge (array (
+        $request = array (
             'symbol' => $market['id'],
-            'size' => 2000,
-        ), $params));
+        );
+        if ($limit !== null)
+            $request['size'] = $limit;
+        $response = $this->marketGetHistoryTrade (array_merge ($request, $params));
         $data = $response['data'];
         $result = array ();
         for ($i = 0; $i < count ($data); $i++) {
@@ -355,14 +358,17 @@ class huobipro extends Exchange {
         ];
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = 2000, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->marketGetHistoryKline (array_merge (array (
+        $request = array (
             'symbol' => $market['id'],
             'period' => $this->timeframes[$timeframe],
-            'size' => 2000, // max = 2000
-        ), $params));
+        );
+        if ($limit !== null) {
+            $request['size'] = $limit;
+        }
+        $response = $this->marketGetHistoryKline (array_merge ($request, $params));
         return $this->parse_ohlcvs($response['data'], $market, $timeframe, $since, $limit);
     }
 

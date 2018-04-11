@@ -17,7 +17,9 @@ module.exports = class ice3x extends Exchange {
             'has': {
                 'fetchCurrencies': true,
                 'fetchTickers': true,
+                'fetchOrder': true,
                 'fetchOpenOrders': true,
+                'fetchMyTrades': true,
                 'fetchDepositAddress': true,
             },
             'urls': {

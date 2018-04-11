@@ -53,7 +53,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 
 # Exchanges
 
-The ccxt library currently supports the following 112 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 113 cryptocurrency exchange markets and trading APIs:
 
 |                                                                                                                           | id                 | name                                                      | ver | doc                                                                                          | countries                               |
 |---------------------------------------------------------------------------------------------------------------------------|--------------------|-----------------------------------------------------------|:---:|:--------------------------------------------------------------------------------------------:|-----------------------------------------|
@@ -71,6 +71,7 @@ The ccxt library currently supports the following 112 cryptocurrency exchange ma
 |![bitfinex2](https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg)          | bitfinex2          | [Bitfinex v2](https://www.bitfinex.com)                   | 2   | [API](https://bitfinex.readme.io/v2/docs)                                                    | British Virgin Islands                  |
 |![bitflyer](https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg)           | bitflyer           | [bitFlyer](https://bitflyer.jp)                           | 1   | [API](https://bitflyer.jp/API)                                                               | Japan                                   |
 |![bithumb](https://user-images.githubusercontent.com/1294454/30597177-ea800172-9d5e-11e7-804c-b9d4fa9b56b0.jpg)            | bithumb            | [Bithumb](https://www.bithumb.com)                        | *   | [API](https://www.bithumb.com/u1/US127)                                                      | South Korea                             |
+|![bitkk](https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg)              | bitkk              | [bitkk](https://www.bitkk.com)                            | 1   | [API](https://www.bitkk.com/i/developer)                                                     | China                                   |
 |![bitlish](https://user-images.githubusercontent.com/1294454/27766275-dcfc6c30-5ed3-11e7-839d-00a846385d0b.jpg)            | bitlish            | [Bitlish](https://bitlish.com)                            | 1   | [API](https://bitlish.com/api)                                                               | UK, EU, Russia                          |
 |![bitmarket](https://user-images.githubusercontent.com/1294454/27767256-a8555200-5ef9-11e7-96fd-469a65e2b0bd.jpg)          | bitmarket          | [BitMarket](https://www.bitmarket.pl)                     | *   | [API](https://www.bitmarket.net/docs.php?file=api_public.html)                               | Poland, EU                              |
 |![bitmex](https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg)             | bitmex             | [BitMEX](https://www.bitmex.com)                          | 1   | [API](https://www.bitmex.com/app/apiOverview)                                                | Seychelles                              |
@@ -168,7 +169,7 @@ The ccxt library currently supports the following 112 cryptocurrency exchange ma
 |![yobit](https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg)              | yobit              | [YoBit](https://www.yobit.net)                            | 3   | [API](https://www.yobit.net/en/api/)                                                         | Russia                                  |
 |![yunbi](https://user-images.githubusercontent.com/1294454/28570548-4d646c40-7147-11e7-9cf6-839b93e6d622.jpg)              | yunbi              | [YUNBI](https://yunbi.com)                                | 2   | [API](https://yunbi.com/documents/api/guide)                                                 | China                                   |
 |![zaif](https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg)               | zaif               | [Zaif](https://zaif.jp)                                   | 1   | [API](http://techbureau-api-document.readthedocs.io/ja/latest/index.html)                    | Japan                                   |
-|![zb](https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg)                 | zb                 | [ZB](https://trade.zb.com/api)                            | 1   | [API](https://www.zb.com/i/developer)                                                        | China                                   |
+|![zb](https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg)                 | zb                 | [ZB](https://www.zb.com)                                  | 1   | [API](https://www.zb.com/i/developer)                                                        | China                                   |
 
 Besides making basic market and limit orders, some exchanges offer margin trading (leverage), various derivatives (like futures contracts and options) and also have [dark pools](https://en.wikipedia.org/wiki/Dark_pool), [OTC](https://en.wikipedia.org/wiki/Over-the-counter_(finance)) (over-the-counter trading), merchant APIs and much more.
 
@@ -757,7 +758,7 @@ To get a list of all available methods with an exchange instance, including impl
 
 ```
 console.log (new ccxt.kraken ())   // JavaScript
-print (dir (ccxt.hitbtc ()))        # Python
+print(dir(ccxt.hitbtc()))           # Python
 var_dump (new \ccxt\okcoinusd ()); // PHP
 ```
 
@@ -1084,6 +1085,16 @@ A price ticker contains statistics for a particular market/symbol for some perio
     'baseVolume':    float, // volume of base currency
     'quoteVolume':   float, // volume of quote currency
 }
+```
+
+**All prices in ticker structure are in base currency**.
+
+```
+base currency ↓
+             BTC / USDT
+             ETH / BTC
+            DASH / ETH
+                    ↑ quote currency
 ```
 
 Timestamp and datetime are both Universal Time Coordinated (UTC).
@@ -1685,10 +1696,15 @@ Most of methods returning orders within ccxt unified API will usually yield an o
     'fee':      {                // fee info, if available
         'currency': 'BTC',       // which currency the fee is (usually quote)
         'cost': 0.0009,          // the fee amount in that currency
+        'rate': 0.002,           // the fee rate (if available)
     },
     'info':     { ... },         // the original unparsed order structure as is
 }
 ```
+
+**The work on `'fee'` info is still in progress, fee info may be missing partially or entirely, depending on the exchange capabilities**.
+
+**The `fee` currency may be different from both traded currencies (for example, an ETH/BTC order with fees in USD).**
 
 ### Placing Orders
 
@@ -1877,7 +1893,35 @@ Notice that the order `b` has disappeared, the selling order also isn't there. A
 exchange.fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {})
 ```
 
-Returns ordered array of trades (most recent trade first).
+Returns ordered array `[]` of trades (most recent trade last).
+
+#### Trade structure
+
+```JavaScript
+{
+    'info':         { ... },                    // the original decoded JSON as is
+    'id':           '12345-67890:09876/54321',  // string trade id
+    'timestamp':    1502962946216,              // Unix timestamp in milliseconds
+    'datetime':     '2017-08-17 12:42:48.000',  // ISO8601 datetime with milliseconds
+    'symbol':       'ETH/BTC',                  // symbol
+    'order':        '12345-67890:09876/54321',  // string order id or undefined/None/null
+    'type':         'limit',                    // order type, 'market', 'limit' or undefined/None/null
+    'side':         'buy',                      // direction of the trade, 'buy' or 'sell'
+    'takerOrMaker': 'taker'                     // string, 'taker' or 'maker'
+    'price':        0.06917684,                 // float price in quote currency
+    'amount':       1.5,                        // amount of base currency
+    'cost':         0.10376526,                 // total cost (including fees), `price * amount`
+    'fee':          {                           // provided by exchange or calculated by ccxt
+        'cost':  0.0015,                        // float
+        'currency': "ETH",                      // usually base currency for buys, quote currency for sells
+        'rate': 0.002,                          // the fee rate (if available)
+    },
+}
+```
+
+**The work on `'fee'` info is still in progress, fee info may be missing partially or entirely, depending on the exchange capabilities.**
+
+**The `fee` currency may be different from both traded currencies (for example, an ETH/BTC order with fees in USD).**
 
 ### Trades By Order Id
 

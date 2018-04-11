@@ -455,6 +455,18 @@ module.exports = class okcoinusd extends Exchange {
         return status;
     }
 
+    parseOrderSide (side) {
+        if (side === 1)
+            return 'buy'; // open long position
+        if (side === 2)
+            return 'sell'; // open short position
+        if (side === 3)
+            return 'sell'; // liquidate long position
+        if (side === 4)
+            return 'buy'; // liquidate short position
+        return side;
+    }
+
     parseOrder (order, market = undefined) {
         let side = undefined;
         let type = undefined;
@@ -462,9 +474,16 @@ module.exports = class okcoinusd extends Exchange {
             if ((order['type'] === 'buy') || (order['type'] === 'sell')) {
                 side = order['type'];
                 type = 'limit';
-            } else {
-                side = (order['type'] === 'buy_market') ? 'buy' : 'sell';
+            } else if (order['type'] === 'buy_market') {
+                side = 'buy';
                 type = 'market';
+            } else if (order['type'] === 'sell_market') {
+                side = 'sell';
+                type = 'market';
+            } else {
+                side = this.parseOrderSide (order['type']);
+                if (('contract_name' in order) || ('lever_rate' in order))
+                    type = 'margin';
             }
         }
         let status = this.parseOrderStatus (order['status']);

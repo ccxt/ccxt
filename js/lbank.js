@@ -17,6 +17,8 @@ module.exports = class lbank extends Exchange {
             'has': {
                 'fetchTickers': true,
                 'fetchOHLCV': true,
+                'fetchOrder': true,
+                'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
             },
@@ -261,10 +263,12 @@ module.exports = class lbank extends Exchange {
         await this.loadMarkets ();
         let response = await this.privatePostUserInfo (params);
         let result = { 'info': response };
-        let currencies = Object.keys (this.extend (response['info']['free'], response['info']['freeze']));
-        for (let i = 0; i < currencies.length; i++) {
-            let id = currencies[i];
-            let currency = this.commonCurrencyCode (id);
+        let ids = Object.keys (this.extend (response['info']['free'], response['info']['freeze']));
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
+            let code = id;
+            if (id in this.currencies_by_id)
+                code = this.currencies_by_id[id]['code'];
             let free = this.safeFloat (response['info']['free'], id, 0.0);
             let used = this.safeFloat (response['info']['freeze'], id, 0.0);
             let account = {
@@ -273,7 +277,7 @@ module.exports = class lbank extends Exchange {
                 'total': 0.0,
             };
             account['total'] = this.sum (account['free'], account['used']);
-            result[currency] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }

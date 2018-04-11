@@ -88,22 +88,24 @@ class itbit extends Exchange {
         if (!$serverTimeUTC)
             throw new ExchangeError ($this->id . ' fetchTicker returned a bad response => ' . $this->json ($ticker));
         $timestamp = $this->parse8601 ($ticker['serverTimeUTC']);
-        $vwap = floatval ($ticker['vwap24h']);
-        $baseVolume = floatval ($ticker['volume24h']);
-        $quoteVolume = $baseVolume * $vwap;
-        $last = floatval ($ticker['lastPrice']);
+        $vwap = $this->safe_float($ticker, 'vwap24h');
+        $baseVolume = $this->safe_float($ticker, 'volume24h');
+        $quoteVolume = null;
+        if ($baseVolume !== null && $vwap !== null)
+            $quoteVolume = $baseVolume * $vwap;
+        $last = $this->safe_float($ticker, 'lastPrice');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['high24h']),
-            'low' => floatval ($ticker['low24h']),
+            'high' => $this->safe_float($ticker, 'high24h'),
+            'low' => $this->safe_float($ticker, 'low24h'),
             'bid' => $this->safe_float($ticker, 'bid'),
             'bidVolume' => null,
             'ask' => $this->safe_float($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => $vwap,
-            'open' => floatval ($ticker['openToday']),
+            'open' => $this->safe_float($ticker, 'openToday'),
             'close' => $last,
             'last' => $last,
             'previousClose' => null,

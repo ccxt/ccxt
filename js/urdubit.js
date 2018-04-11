@@ -24,6 +24,9 @@ module.exports = class urdubit extends foxbit {
                 'www': 'https://urdubit.com',
                 'doc': 'https://blinktrade.com/docs',
             },
+            'options': {
+                'brokerId': '8', // https://blinktrade.com/docs/#brokers
+            },
         });
     }
 };

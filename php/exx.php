@@ -16,6 +16,7 @@ class exx extends Exchange {
             'countries' => 'CN',
             'rateLimit' => 1000 / 10,
             'has' => array (
+                'fetchOrder' => true,
                 'fetchTickers' => true,
                 'fetchOpenOrders' => true,
             ),
@@ -232,7 +233,7 @@ class exx extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $balances = $this->privateGetBalance ($params);
+        $balances = $this->privateGetGetBalance ($params);
         $result = array ( 'info' => $balances );
         $balances = $balances['funds'];
         $currencies = is_array ($balances) ? array_keys ($balances) : array ();
@@ -358,7 +359,7 @@ class exx extends Exchange {
                 'accesskey' => $this->apiKey,
                 'nonce' => $this->nonce (),
             ), $params)));
-            $signature = $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512');
+            $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret), 'sha512');
             $url .= '?' . $query . '&$signature=' . $signature;
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
