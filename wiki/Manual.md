@@ -1219,7 +1219,7 @@ if exchange.has['fetchOHLCV']:
 // PHP
 if ($exchange->has['fetchOHLCV'])
     foreach ($exchange->markets as $symbol => $market) {
-        usleep ($exchange.rateLimit * 1000); // usleep wants microseconds
+        usleep ($exchange->rateLimit * 1000); // usleep wants microseconds
         var_dump ($exchange->fetch_ohlcv ($symbol, '1M')); // one month
     }
 ```
@@ -1290,7 +1290,7 @@ for symbol in exchange.markets:                    # ensure you have called load
 ```PHP
 // PHP
 foreach ($exchange->markets as $symbol => $market) {
-    usleep ($exchange.rateLimit * 1000); // usleep wants microseconds
+    usleep ($exchange->rateLimit * 1000); // usleep wants microseconds
     var_dump ($exchange->fetch_trades ($symbol));
 }
 ```
