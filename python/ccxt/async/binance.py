@@ -610,6 +610,8 @@ class binance (Exchange):
                 'timeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
             })
         response = await getattr(self, method)(self.extend(order, params))
+        if test:
+            return response
         return self.parse_order(response)
 
     async def fetch_order(self, id, symbol=None, params={}):
