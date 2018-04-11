@@ -1960,9 +1960,22 @@ With certain currencies, like AEON, BTS, GXS, NXT, SBD, STEEM, STR, XEM, XLM, XM
 
 ### Withdraw
 
+```JavaScript
+// JavaScript
+exchange.withdraw (code, amount, address, tag = undefined, params = {})
 ```
-exchange.withdraw (currency, amount, address, tag = undefined, params = {})
+
+```Python
+# Python
+exchange.withdraw(code, amount, address, tag=None, params={})
 ```
+
+```PHP
+// PHP
+$exchange->withdraw ($code, $amount, $address, $tag = null, $params = array ())
+```
+
+The `code` is the currency code (usually three or more uppercase letters, but can be different in some cases).
 
 The withdraw method returns a dictionary containing the withdrawal id, which is usually the txid of the onchain transaction itself, or an internal *withdrawal request id* registered within the exchange. The returned value looks as follows:
 
