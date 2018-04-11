@@ -40,9 +40,7 @@ class indodax (Exchange):
                     'private': 'https://vip.bitcoin.co.id/tapi',
                 },
                 'www': 'https://www.indodax.com',
-                'doc': [
-                    'https://vip.bitcoin.co.id/downloads/BITCOINCOID-API-DOCUMENTATION.pdf',
-                ],
+                'doc': 'https://indodax.com/downloads/BITCOINCOID-API-DOCUMENTATION.pdf',
             },
             'api': {
                 'public': {
