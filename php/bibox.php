@@ -218,15 +218,15 @@ class bibox extends Exchange {
             );
         }
         return array (
-            'id' => null,
+            'id' => $this->safe_string($trade, 'id'),
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
             'type' => 'limit',
             'side' => $side,
-            'price' => floatval ($trade['price']),
-            'amount' => floatval ($trade['amount']),
+            'price' => $this->safe_float($trade, 'price'),
+            'amount' => $this->safe_float($trade, 'amount'),
             'fee' => $fee,
         );
     }
@@ -283,7 +283,7 @@ class bibox extends Exchange {
             'cmd' => 'transfer/coinList',
             'body' => array (),
         ));
-        $currencies = $response['result'][0]['result'];
+        $currencies = $response['result'];
         $result = array ();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
@@ -339,21 +339,31 @@ class bibox extends Exchange {
         if (is_array ($balances) && array_key_exists ('assets_list', $balances)) {
             $indexed = $this->index_by($balances['assets_list'], 'coin_symbol');
         } else {
-            $indexed = array ();
+            $indexed = $balances;
         }
         $keys = is_array ($indexed) ? array_keys ($indexed) : array ();
         for ($i = 0; $i < count ($keys); $i++) {
             $id = $keys[$i];
-            $currency = $this->common_currency_code($id);
+            $code = strtoupper ($id);
+            if (mb_strpos ($code, 'TOTAL_') !== false) {
+                $code = mb_substr ($code, 6);
+            }
+            if (is_array ($this->currencies_by_id) && array_key_exists ($code, $this->currencies_by_id)) {
+                $code = $this->currencies_by_id[$code]['code'];
+            }
             $account = $this->account ();
             $balance = $indexed[$id];
-            $used = floatval ($balance['freeze']);
-            $free = floatval ($balance['balance']);
-            $total = $this->sum ($free, $used);
-            $account['free'] = $free;
-            $account['used'] = $used;
-            $account['total'] = $total;
-            $result[$currency] = $account;
+            if (gettype ($balance) == 'string') {
+                $balance = floatval ($balance);
+                $account['free'] = $balance;
+                $account['used'] = 0.0;
+                $account['total'] = $balance;
+            } else {
+                $account['free'] = floatval ($balance['balance']);
+                $account['used'] = floatval ($balance['freeze']);
+                $account['total'] = $this->sum ($account['free'], $account['used']);
+            }
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
@@ -400,7 +410,7 @@ class bibox extends Exchange {
         }
         $type = ($order['order_type'] === 1) ? 'market' : 'limit';
         $timestamp = $order['createdAt'];
-        $price = $order['price'];
+        $price = $this->safe_float($order, 'price');
         $filled = $this->safe_float($order, 'deal_amount');
         $amount = $this->safe_float($order, 'amount');
         $cost = $this->safe_float($order, 'money');
@@ -503,7 +513,7 @@ class bibox extends Exchange {
             ), $params),
         ));
         $trades = $this->safe_value($response['result'], 'items', array ());
-        return $this->parse_trades($trades, $market, $since, $limit);
+        return $this->parse_orders($trades, $market, $since, $limit);
     }
 
     public function fetch_deposit_address ($code, $params = array ()) {
@@ -618,12 +628,16 @@ class bibox extends Exchange {
                 }
                 if (!(is_array ($response) && array_key_exists ('result', $response)))
                     throw new ExchangeError ($this->id . ' ' . $body);
-                if ($method === 'GET') {
-                    return $response;
-                } else {
-                    return $response['result'][0];
-                }
             }
+        }
+    }
+
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
+        if ($method === 'GET') {
+            return $response;
+        } else {
+            return $response['result'][0];
         }
     }
 }

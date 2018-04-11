@@ -4,6 +4,13 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import hashlib
 import math
 import json
@@ -216,15 +223,15 @@ class bibox (Exchange):
                 'currency': None,
             }
         return {
-            'id': None,
+            'id': self.safe_string(trade, 'id'),
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
             'type': 'limit',
             'side': side,
-            'price': float(trade['price']),
-            'amount': float(trade['amount']),
+            'price': self.safe_float(trade, 'price'),
+            'amount': self.safe_float(trade, 'amount'),
             'fee': fee,
         }
 
@@ -276,7 +283,7 @@ class bibox (Exchange):
             'cmd': 'transfer/coinList',
             'body': {},
         })
-        currencies = response['result'][0]['result']
+        currencies = response['result']
         result = {}
         for i in range(0, len(currencies)):
             currency = currencies[i]
@@ -330,20 +337,27 @@ class bibox (Exchange):
         if 'assets_list' in balances:
             indexed = self.index_by(balances['assets_list'], 'coin_symbol')
         else:
-            indexed = {}
+            indexed = balances
         keys = list(indexed.keys())
         for i in range(0, len(keys)):
             id = keys[i]
-            currency = self.common_currency_code(id)
+            code = id.upper()
+            if code.find('TOTAL_') >= 0:
+                code = code[6:]
+            if code in self.currencies_by_id:
+                code = self.currencies_by_id[code]['code']
             account = self.account()
             balance = indexed[id]
-            used = float(balance['freeze'])
-            free = float(balance['balance'])
-            total = self.sum(free, used)
-            account['free'] = free
-            account['used'] = used
-            account['total'] = total
-            result[currency] = account
+            if isinstance(balance, basestring):
+                balance = float(balance)
+                account['free'] = balance
+                account['used'] = 0.0
+                account['total'] = balance
+            else:
+                account['free'] = float(balance['balance'])
+                account['used'] = float(balance['freeze'])
+                account['total'] = self.sum(account['free'], account['used'])
+            result[code] = account
         return self.parse_balance(result)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -385,7 +399,7 @@ class bibox (Exchange):
             symbol = order['coin_symbol'] + '/' + order['currency_symbol']
         type = 'market' if (order['order_type'] == 1) else 'limit'
         timestamp = order['createdAt']
-        price = order['price']
+        price = self.safe_float(order, 'price')
         filled = self.safe_float(order, 'deal_amount')
         amount = self.safe_float(order, 'amount')
         cost = self.safe_float(order, 'money')
@@ -482,7 +496,7 @@ class bibox (Exchange):
             }, params),
         })
         trades = self.safe_value(response['result'], 'items', [])
-        return self.parse_trades(trades, market, since, limit)
+        return self.parse_orders(trades, market, since, limit)
 
     async def fetch_deposit_address(self, code, params={}):
         await self.load_markets()
@@ -587,7 +601,10 @@ class bibox (Exchange):
                     raise ExchangeError(self.id + ': "error" in response: ' + body)
                 if not('result' in list(response.keys())):
                     raise ExchangeError(self.id + ' ' + body)
-                if method == 'GET':
-                    return response
-                else:
-                    return response['result'][0]
+
+    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = await self.fetch2(path, api, method, params, headers, body)
+        if method == 'GET':
+            return response
+        else:
+            return response['result'][0]
