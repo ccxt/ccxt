@@ -561,8 +561,9 @@ class binance (Exchange):
             timestamp = order['time']
         elif 'transactTime' in order:
             timestamp = order['transactTime']
-        else:
-            raise ExchangeError(self.id + ' malformed order: ' + self.json(order))
+        iso8601 = None
+        if timestamp is not None:
+            iso8601 = self.iso8601(timestamp)
         price = float(order['price'])
         amount = float(order['origQty'])
         filled = self.safe_float(order, 'executedQty', 0.0)
@@ -571,14 +572,21 @@ class binance (Exchange):
         if price is not None:
             if filled is not None:
                 cost = price * filled
+        id = self.safe_string(order, 'orderId')
+        type = self.safe_string(order, 'type')
+        if type is not None:
+            type = type.lower()
+        side = self.safe_string(order, 'side')
+        if side is not None:
+            side = side.lower()
         result = {
             'info': order,
-            'id': str(order['orderId']),
+            'id': id,
             'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'datetime': iso8601,
             'symbol': symbol,
-            'type': order['type'].lower(),
-            'side': order['side'].lower(),
+            'type': type,
+            'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -610,8 +618,6 @@ class binance (Exchange):
                 'timeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
             })
         response = await getattr(self, method)(self.extend(order, params))
-        if test:
-            return response
         return self.parse_order(response)
 
     async def fetch_order(self, id, symbol=None, params={}):

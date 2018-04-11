@@ -580,8 +580,9 @@ class binance extends Exchange {
             $timestamp = $order['time'];
         else if (is_array ($order) && array_key_exists ('transactTime', $order))
             $timestamp = $order['transactTime'];
-        else
-            throw new ExchangeError ($this->id . ' malformed $order => ' . $this->json ($order));
+        $iso8601 = null;
+        if ($timestamp !== null)
+            $iso8601 = $this->iso8601 ($timestamp);
         $price = floatval ($order['price']);
         $amount = floatval ($order['origQty']);
         $filled = $this->safe_float($order, 'executedQty', 0.0);
@@ -590,14 +591,21 @@ class binance extends Exchange {
         if ($price !== null)
             if ($filled !== null)
                 $cost = $price * $filled;
+        $id = $this->safe_string($order, 'orderId');
+        $type = $this->safe_string($order, 'type');
+        if ($type !== null)
+            $type = strtolower ($type);
+        $side = $this->safe_string($order, 'side');
+        if ($side !== null)
+            $side = strtolower ($side);
         $result = array (
             'info' => $order,
-            'id' => (string) $order['orderId'],
+            'id' => $id,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $iso8601,
             'symbol' => $symbol,
-            'type' => strtolower ($order['type']),
-            'side' => strtolower ($order['side']),
+            'type' => $type,
+            'side' => $side,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
@@ -632,9 +640,6 @@ class binance extends Exchange {
             ));
         }
         $response = $this->$method (array_merge ($order, $params));
-        if ($test) {
-            return $response;
-        }
         return $this->parse_order($response);
     }
 
