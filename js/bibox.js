@@ -198,7 +198,7 @@ module.exports = class bibox extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = trade['createdAt'];
+        let timestamp = trade['time'];
         let side = this.safeInteger (trade, 'side');
         side = this.safeInteger (trade, 'order_side', side);
         side = (side === 1) ? 'buy' : 'sell';
@@ -512,7 +512,7 @@ module.exports = class bibox extends Exchange {
             }, params),
         });
         let trades = this.safeValue (response['result'], 'items', []);
-        return this.parseTrades (trades, market, since, limit);
+        return this.parseOrders (trades, market, since, limit);
     }
 
     async fetchDepositAddress (code, params = {}) {
