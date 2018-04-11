@@ -4,6 +4,13 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import hashlib
 import math
 import json
@@ -276,7 +283,7 @@ class bibox (Exchange):
             'cmd': 'transfer/coinList',
             'body': {},
         })
-        currencies = response['result'][0]['result']
+        currencies = response['result']
         result = {}
         for i in range(0, len(currencies)):
             currency = currencies[i]
@@ -330,20 +337,27 @@ class bibox (Exchange):
         if 'assets_list' in balances:
             indexed = self.index_by(balances['assets_list'], 'coin_symbol')
         else:
-            indexed = {}
+            indexed = balances
         keys = list(indexed.keys())
         for i in range(0, len(keys)):
             id = keys[i]
-            currency = self.common_currency_code(id)
+            code = id.upper()
+            if code.find('TOTAL_') >= 0:
+                code = code[6:]
+            if code in self.currencies_by_id:
+                code = self.currencies_by_id[code]['code']
             account = self.account()
             balance = indexed[id]
-            used = float(balance['freeze'])
-            free = float(balance['balance'])
-            total = self.sum(free, used)
-            account['free'] = free
-            account['used'] = used
-            account['total'] = total
-            result[currency] = account
+            if isinstance(balance, basestring):
+                balance = float(balance)
+                account['free'] = balance
+                account['used'] = 0.0
+                account['total'] = balance
+            else:
+                account['free'] = float(balance['balance'])
+                account['used'] = float(balance['freeze'])
+                account['total'] = self.sum(account['free'], account['used'])
+            result[code] = account
         return self.parse_balance(result)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -587,7 +601,10 @@ class bibox (Exchange):
                     raise ExchangeError(self.id + ': "error" in response: ' + body)
                 if not('result' in list(response.keys())):
                     raise ExchangeError(self.id + ' ' + body)
-                if method == 'GET':
-                    return response
-                else:
-                    return response['result'][0]
+
+    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = await self.fetch2(path, api, method, params, headers, body)
+        if method == 'GET':
+            return response
+        else:
+            return response['result'][0]
