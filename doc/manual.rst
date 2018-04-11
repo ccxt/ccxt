@@ -1243,7 +1243,7 @@ A price ticker contains statistics for a particular market/symbol for some perio
         'quoteVolume':   float, // volume of quote currency
     }
 
-**All prices in ticker structure are in base currency**.
+**All prices in ticker structure are in quote currency**.
 
 ::
 
