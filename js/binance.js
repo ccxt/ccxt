@@ -579,8 +579,9 @@ module.exports = class binance extends Exchange {
             timestamp = order['time'];
         else if ('transactTime' in order)
             timestamp = order['transactTime'];
-        else
-            throw new ExchangeError (this.id + ' malformed order: ' + this.json (order));
+        let iso8601 = undefined;
+        if (typeof timestamp !== 'undefined')
+            iso8601 = this.iso8601 (timestamp);
         let price = parseFloat (order['price']);
         let amount = parseFloat (order['origQty']);
         let filled = this.safeFloat (order, 'executedQty', 0.0);
@@ -589,14 +590,21 @@ module.exports = class binance extends Exchange {
         if (typeof price !== 'undefined')
             if (typeof filled !== 'undefined')
                 cost = price * filled;
+        let id = this.safeString (order, 'orderId');
+        let type = this.safeString (order, 'type');
+        if (typeof type !== 'undefined')
+            type = type.toLowerCase ();
+        let side = this.safeString (order, 'side');
+        if (typeof side !== 'undefined')
+            side = side.toLowerCase ();
         let result = {
             'info': order,
-            'id': order['orderId'].toString (),
+            'id': id,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': iso8601,
             'symbol': symbol,
-            'type': order['type'].toLowerCase (),
-            'side': order['side'].toLowerCase (),
+            'type': type,
+            'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -631,9 +639,6 @@ module.exports = class binance extends Exchange {
             });
         }
         let response = await this[method] (this.extend (order, params));
-        if (test) {
-            return response;
-        }
         return this.parseOrder (response);
     }
 
