@@ -79,6 +79,8 @@ php -f path/to/example.php # substitute for actual filename here
 
 [ccxtを使って裁定取引botを作ってみたらなぜか虚しくなった件](https://qiita.com/reon777/items/21ed87f19cdd50f08bd9) – An article in Japanese explaining the basics of programming an arbitrage bot with CCXT.
 
+[Python 3 / BitMEX の BOT を作ろう CCXT + BOT サンプルコード 〈基礎編〉](https://note.mu/mman/n/n5a9083864335) – A sample of basic BitMEX bot with CCXT in Python 3.
+
 [python異步加協程獲取比特幣市場信息](https://hk.saowen.com/a/18a648f24d6e7f54981e9db4411b56730a35dd2b3b27519083543bcd6198cd27) – An article in Chinese on using CCXT with Python.
 
 [数字货币量化交易1 【群友 Shadow 自制】ccxt 的python版本安装及使用入门](https://www.bilibili.com/video/av21795165) – Trading Digital Currencies 1: Installing and using the Python version of ccxt (video in Chinese)
