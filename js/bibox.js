@@ -20,6 +20,7 @@ module.exports = class bibox extends Exchange {
                 'fetchBalance': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchFundingFees': true,
                 'fetchTickers': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
@@ -80,6 +81,17 @@ module.exports = class bibox extends Exchange {
                     'deposit': {},
                 },
             },
+            'exceptions': {
+                '2015': AuthenticationError, // Google authenticator is wrong
+                '2033': OrderNotFound, // operation failed! Orders have been completed or revoked
+                '2067': InvalidOrder, // Does not support market orders
+                '2068': InvalidOrder, // The number of orders can not be less than
+                '3012': AuthenticationError, // invalid apiKey
+                '3024': PermissionDenied, // wrong apikey permissions
+                '3025': AuthenticationError, // signature failed
+                '4000': ExchangeNotAvailable, // current network is unstable
+                '4003': DDoSProtection, // server busy please try again later
+            },
         });
     }
 
@@ -91,10 +103,10 @@ module.exports = class bibox extends Exchange {
         let result = [];
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
-            let base = market['coin_symbol'];
-            let quote = market['currency_symbol'];
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
+            let baseId = market['coin_symbol'];
+            let quoteId = market['currency_symbol'];
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
             let id = base + '_' + quote;
             let precision = {
@@ -106,7 +118,9 @@ module.exports = class bibox extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'active': undefined,
+                'baseId': base,
+                'quoteId': quote,
+                'active': true,
                 'info': market,
                 'lot': Math.pow (10, -precision['amount']),
                 'precision': precision,
@@ -268,7 +282,7 @@ module.exports = class bibox extends Exchange {
             'cmd': 'transfer/coinList',
             'body': {},
         });
-        let currencies = response['result'];
+        let currencies = response['result'][0]['result'];
         let result = {};
         for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];
@@ -535,6 +549,34 @@ module.exports = class bibox extends Exchange {
         };
     }
 
+    async fetchFundingFees (codes = undefined, params = {}) {
+        //  by default it will try load withdrawal fees of all currencies (with separate requests)
+        //  however if you define codes = [ 'ETH', 'BTC' ] in args it will only load those
+        await this.loadMarkets ();
+        let withdrawFees = {};
+        let info = {};
+        if (typeof codes === 'undefined')
+            codes = Object.keys (this.currencies);
+        for (let i = 0; i < codes.length; i++) {
+            let code = codes[i];
+            let currency = this.currency (code);
+            process.exit ();
+            let response = await this.privatePostTransfer ({
+                'cmd': 'transfer/transferOutInfo',
+                'body': this.extend ({
+                    'coin_symbol': currency['id'],
+                }, params),
+            });
+            info[code] = response;
+            withdrawFees[code] = response['result']['withdraw_fee'];
+        }
+        return {
+            'info': info,
+            'withdraw': withdrawFees,
+            'deposit': {},
+        };
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
         let cmds = this.json ([ params ]);
@@ -557,47 +599,31 @@ module.exports = class bibox extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        let message = this.id + ' ' + this.json (response);
-        if ('error' in response) {
-            if ('code' in response['error']) {
-                let code = response['error']['code'];
-                if (code === '2033')
-                    // \u64cd\u4f5c\u5931\u8d25\uff01\u8ba2\u5355\u5df2\u5b8c\u6210\u6216\u5df2\u64a4\u9500
-                    // operation failed! Orders have been completed or revoked
-                    // e.g. trying to cancel a filled order
-                    throw new OrderNotFound (message);
-                else if (code === '2067')
-                    // https://github.com/ccxt/ccxt/issues/2338
-                    //  { "error": { "code": "2067", "msg": "暂不支持市价单"}, "cmd": "orderpending/trade" }
-                    // "Does not support market orders"
-                    throw new InvalidOrder (message);
-                else if (code === '2068')
-                    // \u4e0b\u5355\u6570\u91cf\u4e0d\u80fd\u4f4e\u4e8e
-                    // The number of orders can not be less than
-                    throw new InvalidOrder (message);
-                else if (code === '3012')
-                    throw new AuthenticationError (message); // invalid apiKey
-                else if (code === '3024')
-                    throw new PermissionDenied (message); // insufficient apiKey permissions
-                else if (code === '3025')
-                    throw new AuthenticationError (message); // signature failed
-                else if (code === '4000')
-                    // \u5f53\u524d\u7f51\u7edc\u8fde\u63a5\u4e0d\u7a33\u5b9a\uff0c\u8bf7\u7a0d\u5019\u91cd\u8bd5
-                    // The current network connection is unstable. Please try again later
-                    throw new ExchangeNotAvailable (message);
-                else if (code === '4003')
-                    throw new DDoSProtection (message); // server is busy, try again later
+    handleErrors (code, reason, url, method, headers, body) {
+        if (body.length > 0) {
+            if (body[0] === '{') {
+                let response = JSON.parse (body);
+                if ('error' in response) {
+                    if ('code' in response['error']) {
+                        let code = this.safeString (response['error'], 'code');
+                        let feedback = this.id + ' ' + body;
+                        const exceptions = this.exceptions;
+                        if (code in exceptions) {
+                            throw new exceptions[code] (feedback);
+                        } else {
+                            throw new ExchangeError (feedback);
+                        }
+                    }
+                    throw new ExchangeError (this.id + ': "error" in response: ' + body);
+                }
+                if (!('result' in response))
+                    throw new ExchangeError (this.id + ' ' + body);
+                if (method === 'GET') {
+                    return response;
+                } else {
+                    return response['result'][0];
+                }
             }
-            throw new ExchangeError (message);
-        }
-        if (!('result' in response))
-            throw new ExchangeError (message);
-        if (method === 'GET') {
-            return response;
-        } else {
-            return response['result'][0];
         }
     }
 };
