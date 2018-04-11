@@ -75,12 +75,18 @@ php -f path/to/example.php # substitute for actual filename here
 
 [仮想通貨トレード Bot 制作に便利な CCXT ライブラリに関する知見まとめ (Python 随時更新)](http://www.stray-scrapbook.work/entry/2018/04/03/205700) – A summary on Python version of CCXT API in Japanese.
 
-
 [Python3とCCXTを使用して仮想通貨の自動売買プログラムを作る](http://www.hacky.xyz/entry/2018/03/18/200822) – Automatic cryptocurrency trading using Python 3 and CCXT
 
 [ccxtを使って裁定取引botを作ってみたらなぜか虚しくなった件](https://qiita.com/reon777/items/21ed87f19cdd50f08bd9) – An article in Japanese explaining the basics of programming an arbitrage bot with CCXT.
 
 [python異步加協程獲取比特幣市場信息](https://hk.saowen.com/a/18a648f24d6e7f54981e9db4411b56730a35dd2b3b27519083543bcd6198cd27) – An article in Chinese on using CCXT with Python.
+
+[数字货币量化交易1 【群友 Shadow 自制】ccxt 的python版本安装及使用入门](https://www.bilibili.com/video/av21795165) – Trading Digital Currencies 1: Installing and using the Python version of ccxt (video in Chinese)
+
+[数字货币量化交易2 【群友 林军 自制】ccxt Unified API命令详解及node版本使用演示](https://www.bilibili.com/video/av21842290) – Trading Digital Currencies 2: Using unified CCXT API (video in Chinese)
+
+[数字货币量化交易3 ccxt Custom API命令详解及node版本使用演示](https://www.bilibili.com/video/av21842988)
+– Trading Digital Currencies 3: Details on using custom exchange-specific [implicit methods](https://github.com/ccxt/ccxt/wiki/Manual#implicit-api-methods) in ccxt (video in Chinese)
 
 [Лучшая криптотрейдинг библиотека?](http://medium.com/@vladthelittleone/лучшая-криптотрейдинг-библиотека-67e308f96c1f) – An article in Russian on setting up CCXT to connect and trade with crypto exchanges.
 
