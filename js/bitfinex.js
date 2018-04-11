@@ -671,6 +671,28 @@ module.exports = class bitfinex extends Exchange {
             'AVT': 'aventus', // #1811
             'QTUM': 'qtum', // #1811
             'EDO': 'eidoo', // #1811
+            'IOTA': 'iota',
+            'DATA': 'datacoin',
+            'OMG': 'omisego',
+            'SAN': 'santiment',
+            'QASH': 'qash',
+            'BTG': 'bgold',
+            'GNT': 'golem',
+            'SNT': 'status',
+            'BAT': 'bat',
+            'ZRX': 'zrx',
+            'REP': 'rep',
+            'YYW': 'yoyow',
+            'MNA': 'mna',
+            'FUN': 'fun',
+            'TNB': 'tnb',
+            'SPK': 'spk',
+            'TRX': 'trx',
+            'RCN': 'rcn',
+            'RLC': 'rlc',
+            'AID': 'aid',
+            'SNG': 'sng',
+            'ELF': 'elf',
         };
         if (currency in names)
             return names[currency];
