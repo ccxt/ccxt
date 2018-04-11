@@ -1380,7 +1380,7 @@ You can call the unified ``fetchOHLCV`` / ``fetch_ohlcv`` method to get the list
     // PHP
     if ($exchange->has['fetchOHLCV'])
         foreach ($exchange->markets as $symbol => $market) {
-            usleep ($exchange.rateLimit * 1000); // usleep wants microseconds
+            usleep ($exchange->rateLimit * 1000); // usleep wants microseconds
             var_dump ($exchange->fetch_ohlcv ($symbol, '1M')); // one month
         }
 
@@ -1453,7 +1453,7 @@ For example, if you want to print recent trades for all symbols one by one seque
 
     // PHP
     foreach ($exchange->markets as $symbol => $market) {
-        usleep ($exchange.rateLimit * 1000); // usleep wants microseconds
+        usleep ($exchange->rateLimit * 1000); // usleep wants microseconds
         var_dump ($exchange->fetch_trades ($symbol));
     }
 
