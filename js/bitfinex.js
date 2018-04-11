@@ -231,7 +231,7 @@ module.exports = class bitfinex extends Exchange {
             },
             'exceptions': {
                 'exact': {
-                    'Sorry, the service is temporarily unavailable. See https://www.bitfinex.com/ for more info.': ExchangeNotAvailable,
+                    'temporarily_unavailable': ExchangeNotAvailable, // Sorry, the service is temporarily unavailable. See https://www.bitfinex.com/ for more info.
                     'Order could not be cancelled.': OrderNotFound, // non-existent order
                     'No such order found.': OrderNotFound, // ?
                     'Order price must be positive.': InvalidOrder, // on price <= 0
