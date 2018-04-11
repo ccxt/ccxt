@@ -560,7 +560,6 @@ module.exports = class bibox extends Exchange {
         for (let i = 0; i < codes.length; i++) {
             let code = codes[i];
             let currency = this.currency (code);
-            process.exit ();
             let response = await this.privatePostTransfer ({
                 'cmd': 'transfer/transferOutInfo',
                 'body': this.extend ({
