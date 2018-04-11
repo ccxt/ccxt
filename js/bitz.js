@@ -165,14 +165,16 @@ module.exports = class bitz extends Exchange {
         let keys = Object.keys (balances);
         for (let i = 0; i < keys.length; i++) {
             let id = keys[i];
-            if (!(id.indexOf ('_') >= 0)) {
+            let idHasUnderscore = (id.indexOf ('_') >= 0);
+            if (!idHasUnderscore) {
                 let code = id.toUpperCase ();
                 if (id in this.currencies_by_id) {
                     code = this.currencies_by_id[id]['code'];
                 }
                 let account = this.account ();
-                account['used'] = parseFloat (balances[id + '_lock']);
-                account['total'] = parseFloat (balances[id]);
+                let usedField = id + '_lock';
+                account['used'] = this.safeFloat (balances, usedField);
+                account['total'] = this.safeFloat (balances, id);
                 account['free'] = account['total'] - account['used'];
                 result[code] = account;
             }
