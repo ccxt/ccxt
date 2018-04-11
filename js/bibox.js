@@ -103,10 +103,10 @@ module.exports = class bibox extends Exchange {
         let result = [];
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
-            let base = market['coin_symbol'];
-            let quote = market['currency_symbol'];
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
+            let baseId = market['coin_symbol'];
+            let quoteId = market['currency_symbol'];
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
             let id = base + '_' + quote;
             let precision = {
@@ -118,7 +118,9 @@ module.exports = class bibox extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'active': undefined,
+                'baseId': base,
+                'quoteId': quote,
+                'active': true,
                 'info': market,
                 'lot': Math.pow (10, -precision['amount']),
                 'precision': precision,
@@ -280,7 +282,7 @@ module.exports = class bibox extends Exchange {
             'cmd': 'transfer/coinList',
             'body': {},
         });
-        let currencies = response['result'];
+        let currencies = response['result'][0]['result'];
         let result = {};
         for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];
@@ -558,6 +560,7 @@ module.exports = class bibox extends Exchange {
         for (let i = 0; i < codes.length; i++) {
             let code = codes[i];
             let currency = this.currency (code);
+            process.exit ();
             let response = await this.privatePostTransfer ({
                 'cmd': 'transfer/transferOutInfo',
                 'body': this.extend ({
@@ -603,11 +606,12 @@ module.exports = class bibox extends Exchange {
                 if ('error' in response) {
                     if ('code' in response['error']) {
                         let code = this.safeString (response['error'], 'code');
-                        let errorCodes = Object.keys (this.exceptions);
-                        for (let i = 0; i < errorCodes.length; i++) {
-                            if (code === errorCodes[i]) {
-                                throw new this.exceptions[errorCodes[i]] (this.id + ' ' + body);
-                            }
+                        let feedback = this.id + ' ' + body;
+                        const exceptions = this.exceptions;
+                        if (code in exceptions) {
+                            throw new exceptions[code] (feedback);
+                        } else {
+                            throw new ExchangeError (feedback);
                         }
                     }
                     throw new ExchangeError (this.id + ': "error" in response: ' + body);
