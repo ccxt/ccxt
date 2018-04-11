@@ -15,7 +15,7 @@ exchange = ccxt.binance({
     'enableRateLimit': True,
 })
 
-symbol = 'BTC/ETH'
+symbol = 'ETH/BTC'
 type = 'limit'  # or 'market'
 side = 'sell'  # or 'buy'
 amount = 1.0

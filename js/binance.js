@@ -631,6 +631,9 @@ module.exports = class binance extends Exchange {
             });
         }
         let response = await this[method] (this.extend (order, params));
+        if (test) {
+            return response;
+        }
         return this.parseOrder (response);
     }
 
