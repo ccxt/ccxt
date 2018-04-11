@@ -562,12 +562,16 @@ class kucoin (Exchange):
         cost = price * amount
         response = self.privatePostOrder(self.extend(request, params))
         orderId = self.safe_string(response['data'], 'orderOid')
+        timestamp = self.safe_integer(response, 'timestamp')
+        iso8601 = None
+        if timestamp is not None:
+            iso8601 = self.iso8601(self.timestamp)
         order = {
             'info': response,
             'id': orderId,
-            'timestamp': None,
-            'datetime': None,
-            'symbol': market['id'],
+            'timestamp': timestamp,
+            'datetime': iso8601,
+            'symbol': market['symbol'],
             'type': type,
             'side': side,
             'amount': amount,
