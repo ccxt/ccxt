@@ -632,6 +632,9 @@ class binance extends Exchange {
             ));
         }
         $response = $this->$method (array_merge ($order, $params));
+        if ($test) {
+            return $response;
+        }
         return $this->parse_order($response);
     }
 
