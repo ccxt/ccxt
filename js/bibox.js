@@ -282,7 +282,7 @@ module.exports = class bibox extends Exchange {
             'cmd': 'transfer/coinList',
             'body': {},
         });
-        let currencies = response['result'][0]['result'];
+        let currencies = response['result'];
         let result = {};
         for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];
@@ -338,21 +338,31 @@ module.exports = class bibox extends Exchange {
         if ('assets_list' in balances) {
             indexed = this.indexBy (balances['assets_list'], 'coin_symbol');
         } else {
-            indexed = {};
+            indexed = balances;
         }
         let keys = Object.keys (indexed);
         for (let i = 0; i < keys.length; i++) {
             let id = keys[i];
-            let currency = this.commonCurrencyCode (id);
+            let code = id.toUpperCase ();
+            if (code.indexOf ('TOTAL_') >= 0) {
+                code = code.slice (6);
+            }
+            if (code in this.currencies_by_id) {
+                code = this.currencies_by_id[code]['code'];
+            }
             let account = this.account ();
             let balance = indexed[id];
-            let used = parseFloat (balance['freeze']);
-            let free = parseFloat (balance['balance']);
-            let total = this.sum (free, used);
-            account['free'] = free;
-            account['used'] = used;
-            account['total'] = total;
-            result[currency] = account;
+            if (typeof balance === 'string') {
+                balance = parseFloat (balance);
+                account['free'] = balance;
+                account['used'] = 0.0;
+                account['total'] = balance;
+            } else {
+                account['free'] = parseFloat (balance['balance']);
+                account['used'] = parseFloat (balance['freeze']);
+                account['total'] = this.sum (account['free'], account['used']);
+            }
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
@@ -617,12 +627,16 @@ module.exports = class bibox extends Exchange {
                 }
                 if (!('result' in response))
                     throw new ExchangeError (this.id + ' ' + body);
-                if (method === 'GET') {
-                    return response;
-                } else {
-                    return response['result'][0];
-                }
             }
+        }
+    }
+
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let response = await this.fetch2 (path, api, method, params, headers, body);
+        if (method === 'GET') {
+            return response;
+        } else {
+            return response['result'][0];
         }
     }
 };
