@@ -198,7 +198,7 @@ module.exports = class bibox extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = trade['time'];
+        let timestamp = trade['createdAt'];
         let side = this.safeInteger (trade, 'side');
         side = this.safeInteger (trade, 'order_side', side);
         side = (side === 1) ? 'buy' : 'sell';
@@ -217,15 +217,15 @@ module.exports = class bibox extends Exchange {
             };
         }
         return {
-            'id': undefined,
+            'id': this.safeString (trade, 'id'),
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'type': 'limit',
             'side': side,
-            'price': parseFloat (trade['price']),
-            'amount': parseFloat (trade['amount']),
+            'price': this.safeFloat (trade, 'price'),
+            'amount': this.safeFloat (trade, 'amount'),
             'fee': fee,
         };
     }
@@ -409,7 +409,7 @@ module.exports = class bibox extends Exchange {
         }
         let type = (order['order_type'] === 1) ? 'market' : 'limit';
         let timestamp = order['createdAt'];
-        let price = order['price'];
+        let price = this.safeFloat (order, 'price');
         let filled = this.safeFloat (order, 'deal_amount');
         let amount = this.safeFloat (order, 'amount');
         let cost = this.safeFloat (order, 'money');
