@@ -217,15 +217,15 @@ module.exports = class bibox extends Exchange {
             };
         }
         return {
-            'id': undefined,
+            'id': this.safeString (trade, 'id'),
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'type': 'limit',
             'side': side,
-            'price': parseFloat (trade['price']),
-            'amount': parseFloat (trade['amount']),
+            'price': this.safeFloat (trade, 'price'),
+            'amount': this.safeFloat (trade, 'amount'),
             'fee': fee,
         };
     }
@@ -409,7 +409,7 @@ module.exports = class bibox extends Exchange {
         }
         let type = (order['order_type'] === 1) ? 'market' : 'limit';
         let timestamp = order['createdAt'];
-        let price = order['price'];
+        let price = this.safeFloat (order, 'price');
         let filled = this.safeFloat (order, 'deal_amount');
         let amount = this.safeFloat (order, 'amount');
         let cost = this.safeFloat (order, 'money');
@@ -512,7 +512,7 @@ module.exports = class bibox extends Exchange {
             }, params),
         });
         let trades = this.safeValue (response['result'], 'items', []);
-        return this.parseTrades (trades, market, since, limit);
+        return this.parseOrders (trades, market, since, limit);
     }
 
     async fetchDepositAddress (code, params = {}) {
