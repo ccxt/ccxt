@@ -584,12 +584,16 @@ module.exports = class kucoin extends Exchange {
         let cost = price * amount;
         let response = await this.privatePostOrder (this.extend (request, params));
         let orderId = this.safeString (response['data'], 'orderOid');
+        let timestamp = this.safeInteger (response, 'timestamp');
+        let iso8601 = undefined;
+        if (typeof timestamp !== 'undefined')
+            iso8601 = this.iso8601 (this.timestamp);
         let order = {
             'info': response,
             'id': orderId,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'symbol': market['id'],
+            'timestamp': timestamp,
+            'datetime': iso8601,
+            'symbol': market['symbol'],
             'type': type,
             'side': side,
             'amount': amount,
