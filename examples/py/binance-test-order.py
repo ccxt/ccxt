@@ -15,7 +15,7 @@ exchange = ccxt.binance({
     'enableRateLimit': True,
 })
 
-symbol = 'BTC/ETH'  # bitcoin contract according to bitmex futures coding
+symbol = 'BTC/ETH'
 type = 'limit'  # or 'market'
 side = 'sell'  # or 'buy'
 amount = 1.0
