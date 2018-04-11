@@ -612,6 +612,13 @@ class binance extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
+        // the next 5 lines are added to support for testing orders
+        $method = 'privatePostOrder';
+        $test = $this->safe_value($params, 'test', false);
+        if ($test) {
+            $method .= 'Test';
+            $params = $this->omit ($params, 'test');
+        }
         $order = array (
             'symbol' => $market['id'],
             'quantity' => $this->amount_to_string($symbol, $amount),
@@ -624,7 +631,7 @@ class binance extends Exchange {
                 'timeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
             ));
         }
-        $response = $this->privatePostOrder (array_merge ($order, $params));
+        $response = $this->$method (array_merge ($order, $params));
         return $this->parse_order($response);
     }
 

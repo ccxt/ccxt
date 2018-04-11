@@ -592,6 +592,12 @@ class binance (Exchange):
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        # the next 5 lines are added to support for testing orders
+        method = 'privatePostOrder'
+        test = self.safe_value(params, 'test', False)
+        if test:
+            method += 'Test'
+            params = self.omit(params, 'test')
         order = {
             'symbol': market['id'],
             'quantity': self.amount_to_string(symbol, amount),
@@ -603,7 +609,7 @@ class binance (Exchange):
                 'price': self.price_to_precision(symbol, price),
                 'timeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
             })
-        response = await self.privatePostOrder(self.extend(order, params))
+        response = await getattr(self, method)(self.extend(order, params))
         return self.parse_order(response)
 
     async def fetch_order(self, id, symbol=None, params={}):
