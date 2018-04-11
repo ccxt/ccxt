@@ -611,6 +611,13 @@ module.exports = class binance extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
+        // the next 5 lines are added to support for testing orders
+        let method = 'privatePostOrder';
+        let test = this.safeValue (params, 'test', false);
+        if (test) {
+            method += 'Test';
+            params = this.omit (params, 'test');
+        }
         let order = {
             'symbol': market['id'],
             'quantity': this.amountToString (symbol, amount),
@@ -623,7 +630,7 @@ module.exports = class binance extends Exchange {
                 'timeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
             });
         }
-        let response = await this.privatePostOrder (this.extend (order, params));
+        let response = await this[method] (this.extend (order, params));
         return this.parseOrder (response);
     }
 
