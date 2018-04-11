@@ -231,6 +231,7 @@ class bitfinex extends Exchange {
             ),
             'exceptions' => array (
                 'exact' => array (
+                    'temporarily_unavailable' => '\\ccxt\\ExchangeNotAvailable', // Sorry, the service is temporarily unavailable. See https://www.bitfinex.com/ for more info.
                     'Order could not be cancelled.' => '\\ccxt\\OrderNotFound', // non-existent order
                     'No such order found.' => '\\ccxt\\OrderNotFound', // ?
                     'Order price must be positive.' => '\\ccxt\\InvalidOrder', // on price <= 0
@@ -654,23 +655,45 @@ class bitfinex extends Exchange {
 
     public function get_currency_name ($currency) {
         $names = array (
-            'BTC' => 'bitcoin',
-            'LTC' => 'litecoin',
-            'ETH' => 'ethereum',
-            'ETC' => 'ethereumc',
-            'OMNI' => 'mastercoin',
-            'ZEC' => 'zcash',
-            'XMR' => 'monero',
-            'USD' => 'wire',
-            'DASH' => 'dash',
-            'XRP' => 'ripple',
-            'EOS' => 'eos',
-            'BCH' => 'bcash', // undocumented
-            'USDT' => 'tetheruso', // undocumented
-            'NEO' => 'neo', // #1811
+            'AID' => 'aid',
             'AVT' => 'aventus', // #1811
-            'QTUM' => 'qtum', // #1811
+            'BAT' => 'bat',
+            'BCH' => 'bcash', // undocumented
+            'BTC' => 'bitcoin',
+            'BTG' => 'bgold',
+            'DASH' => 'dash',
+            'DATA' => 'datacoin',
             'EDO' => 'eidoo', // #1811
+            'ELF' => 'elf',
+            'EOS' => 'eos',
+            'ETC' => 'ethereumc',
+            'ETH' => 'ethereum',
+            'FUN' => 'fun',
+            'GNT' => 'golem',
+            'IOTA' => 'iota',
+            'LTC' => 'litecoin',
+            'MANA' => 'mna',
+            'NEO' => 'neo', // #1811
+            'OMG' => 'omisego',
+            'OMNI' => 'mastercoin',
+            'QASH' => 'qash',
+            'QTUM' => 'qtum', // #1811
+            'RCN' => 'rcn',
+            'REP' => 'rep',
+            'RLC' => 'rlc',
+            'SAN' => 'santiment',
+            'SNGLS' => 'sng',
+            'SNT' => 'status',
+            'SPANK' => 'spk',
+            'TNB' => 'tnb',
+            'TRX' => 'trx',
+            'USD' => 'wire',
+            'USDT' => 'tetheruso', // undocumented
+            'XMR' => 'monero',
+            'XRP' => 'ripple',
+            'YOYOW' => 'yoyow',
+            'ZEC' => 'zcash',
+            'ZRX' => 'zrx',
         );
         if (is_array ($names) && array_key_exists ($currency, $names))
             return $names[$currency];
