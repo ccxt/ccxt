@@ -671,7 +671,6 @@ module.exports = class bitfinex extends Exchange {
             'AVT': 'aventus', // #1811
             'QTUM': 'qtum', // #1811
             'EDO': 'eidoo', // #1811
-
             'IOTA': 'iota',
             'DATA': 'datacoin',
             'OMG': 'omisego',
