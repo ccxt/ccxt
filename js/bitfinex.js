@@ -693,7 +693,7 @@ module.exports = class bitfinex extends Exchange {
             'RLC': 'rlc',
             'AID': 'aid',
             'SNG': 'sng',
-            'ELF': 'elf'
+            'ELF': 'elf',
         };
         if (currency in names)
             return names[currency];
