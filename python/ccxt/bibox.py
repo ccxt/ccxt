@@ -223,15 +223,15 @@ class bibox (Exchange):
                 'currency': None,
             }
         return {
-            'id': None,
+            'id': self.safe_string(trade, 'id'),
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
             'type': 'limit',
             'side': side,
-            'price': float(trade['price']),
-            'amount': float(trade['amount']),
+            'price': self.safe_float(trade, 'price'),
+            'amount': self.safe_float(trade, 'amount'),
             'fee': fee,
         }
 
@@ -399,7 +399,7 @@ class bibox (Exchange):
             symbol = order['coin_symbol'] + '/' + order['currency_symbol']
         type = 'market' if (order['order_type'] == 1) else 'limit'
         timestamp = order['createdAt']
-        price = order['price']
+        price = self.safe_float(order, 'price')
         filled = self.safe_float(order, 'deal_amount')
         amount = self.safe_float(order, 'amount')
         cost = self.safe_float(order, 'money')
@@ -496,7 +496,7 @@ class bibox (Exchange):
             }, params),
         })
         trades = self.safe_value(response['result'], 'items', [])
-        return self.parse_trades(trades, market, since, limit)
+        return self.parse_orders(trades, market, since, limit)
 
     def fetch_deposit_address(self, code, params={}):
         self.load_markets()

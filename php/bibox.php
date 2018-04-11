@@ -218,15 +218,15 @@ class bibox extends Exchange {
             );
         }
         return array (
-            'id' => null,
+            'id' => $this->safe_string($trade, 'id'),
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
             'type' => 'limit',
             'side' => $side,
-            'price' => floatval ($trade['price']),
-            'amount' => floatval ($trade['amount']),
+            'price' => $this->safe_float($trade, 'price'),
+            'amount' => $this->safe_float($trade, 'amount'),
             'fee' => $fee,
         );
     }
@@ -410,7 +410,7 @@ class bibox extends Exchange {
         }
         $type = ($order['order_type'] === 1) ? 'market' : 'limit';
         $timestamp = $order['createdAt'];
-        $price = $order['price'];
+        $price = $this->safe_float($order, 'price');
         $filled = $this->safe_float($order, 'deal_amount');
         $amount = $this->safe_float($order, 'amount');
         $cost = $this->safe_float($order, 'money');
@@ -513,7 +513,7 @@ class bibox extends Exchange {
             ), $params),
         ));
         $trades = $this->safe_value($response['result'], 'items', array ());
-        return $this->parse_trades($trades, $market, $since, $limit);
+        return $this->parse_orders($trades, $market, $since, $limit);
     }
 
     public function fetch_deposit_address ($code, $params = array ()) {
