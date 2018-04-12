@@ -564,8 +564,8 @@ class binance (Exchange):
         iso8601 = None
         if timestamp is not None:
             iso8601 = self.iso8601(timestamp)
-        price = float(order['price'])
-        amount = float(order['origQty'])
+        price = self.safe_float(order, 'price')
+        amount = self.safe_float(order, 'origQty')
         filled = self.safe_float(order, 'executedQty', 0.0)
         remaining = max(amount - filled, 0.0)
         cost = None

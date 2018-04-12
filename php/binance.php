@@ -583,8 +583,8 @@ class binance extends Exchange {
         $iso8601 = null;
         if ($timestamp !== null)
             $iso8601 = $this->iso8601 ($timestamp);
-        $price = floatval ($order['price']);
-        $amount = floatval ($order['origQty']);
+        $price = $this->safe_float($order, 'price');
+        $amount = $this->safe_float($order, 'origQty');
         $filled = $this->safe_float($order, 'executedQty', 0.0);
         $remaining = max ($amount - $filled, 0.0);
         $cost = null;
