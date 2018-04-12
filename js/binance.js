@@ -582,8 +582,8 @@ module.exports = class binance extends Exchange {
         let iso8601 = undefined;
         if (typeof timestamp !== 'undefined')
             iso8601 = this.iso8601 (timestamp);
-        let price = parseFloat (order['price']);
-        let amount = parseFloat (order['origQty']);
+        let price = this.safeFloat (order, 'price');
+        let amount = this.safeFloat (order, 'origQty');
         let filled = this.safeFloat (order, 'executedQty', 0.0);
         let remaining = Math.max (amount - filled, 0.0);
         let cost = undefined;
