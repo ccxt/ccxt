@@ -565,7 +565,7 @@ class kucoin (Exchange):
         timestamp = self.safe_integer(response, 'timestamp')
         iso8601 = None
         if timestamp is not None:
-            iso8601 = self.iso8601(self.timestamp)
+            iso8601 = self.iso8601(timestamp)
         order = {
             'info': response,
             'id': orderId,
