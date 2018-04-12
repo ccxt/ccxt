@@ -567,10 +567,12 @@ class binance (Exchange):
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'origQty')
         filled = self.safe_float(order, 'executedQty', 0.0)
-        remaining = max(amount - filled, 0.0)
+        remaining = None
         cost = None
-        if price is not None:
-            if filled is not None:
+        if filled is not None:
+            if amount is not None:
+                remaining = max(amount - filled, 0.0)
+            if price is not None:
                 cost = price * filled
         id = self.safe_string(order, 'orderId')
         type = self.safe_string(order, 'type')

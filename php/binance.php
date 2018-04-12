@@ -586,11 +586,14 @@ class binance extends Exchange {
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'origQty');
         $filled = $this->safe_float($order, 'executedQty', 0.0);
-        $remaining = max ($amount - $filled, 0.0);
+        $remaining = null;
         $cost = null;
-        if ($price !== null)
-            if ($filled !== null)
+        if ($filled !== null) {
+            if ($amount !== null)
+                $remaining = max ($amount - $filled, 0.0);
+            if ($price !== null)
                 $cost = $price * $filled;
+        }
         $id = $this->safe_string($order, 'orderId');
         $type = $this->safe_string($order, 'type');
         if ($type !== null)
