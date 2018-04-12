@@ -588,7 +588,7 @@ class kucoin extends Exchange {
         $timestamp = $this->safe_integer($response, 'timestamp');
         $iso8601 = null;
         if ($timestamp !== null)
-            $iso8601 = $this->iso8601 ($this->timestamp);
+            $iso8601 = $this->iso8601 ($timestamp);
         $order = array (
             'info' => $response,
             'id' => $orderId,
