@@ -16,6 +16,7 @@ class bitz extends Exchange {
             'countries' => 'HK',
             'rateLimit' => 1000,
             'version' => 'v1',
+            'userAgent' => $this->userAgents['chrome'],
             'has' => array (
                 'fetchTickers' => true,
                 'fetchOHLCV' => true,
@@ -164,17 +165,20 @@ class bitz extends Exchange {
         $result = array ( 'info' => $response );
         $keys = is_array ($balances) ? array_keys ($balances) : array ();
         for ($i = 0; $i < count ($keys); $i++) {
-            $currency = $keys[$i];
-            $balance = floatval ($balances[$currency]);
-            if (is_array ($this->currencies_by_id) && array_key_exists ($currency, $this->currencies_by_id))
-                $currency = $this->currencies_by_id[$currency]['code'];
-            else
-                $currency = strtoupper ($currency);
-            $account = $this->account ();
-            $account['free'] = $balance;
-            $account['used'] = null;
-            $account['total'] = $balance;
-            $result[$currency] = $account;
+            $id = $keys[$i];
+            $idHasUnderscore = (mb_strpos ($id, '_') !== false);
+            if (!$idHasUnderscore) {
+                $code = strtoupper ($id);
+                if (is_array ($this->currencies_by_id) && array_key_exists ($id, $this->currencies_by_id)) {
+                    $code = $this->currencies_by_id[$id]['code'];
+                }
+                $account = $this->account ();
+                $usedField = $id . '_lock';
+                $account['used'] = $this->safe_float($balances, $usedField);
+                $account['total'] = $this->safe_float($balances, $id);
+                $account['free'] = $account['total'] - $account['used'];
+                $result[$code] = $account;
+            }
         }
         return $this->parse_balance($result);
     }

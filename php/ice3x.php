@@ -18,7 +18,9 @@ class ice3x extends Exchange {
             'has' => array (
                 'fetchCurrencies' => true,
                 'fetchTickers' => true,
+                'fetchOrder' => true,
                 'fetchOpenOrders' => true,
+                'fetchMyTrades' => true,
                 'fetchDepositAddress' => true,
             ),
             'urls' => array (

@@ -269,7 +269,7 @@ module.exports = class coinsecure extends Exchange {
         }
     }
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let method = 'privatePutUserExchange';
         let order = {};

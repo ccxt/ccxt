@@ -17,6 +17,7 @@ module.exports = class gemini extends Exchange {
             'version': 'v1',
             'has': {
                 'fetchDepositAddress': false,
+                'createDepositAddress': true,
                 'CORS': false,
                 'fetchBidsAsks': false,
                 'fetchTickers': false,
@@ -291,5 +292,21 @@ module.exports = class gemini extends Exchange {
             if (response['result'] === 'error')
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
+    }
+
+    async createDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let response = await this.privatePostDepositCurrencyNewAddress (this.extend ({
+            'currency': currency['id'],
+        }, params));
+        let address = this.safeString (response, 'address');
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'status': 'ok',
+            'info': response,
+        };
     }
 };

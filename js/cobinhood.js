@@ -21,6 +21,9 @@ module.exports = class cobinhood extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchOrder': true,
+                'fetchDepositAddress': true,
+                'createDepositAddress': true,
+                'withdraw': true,
             },
             'requiredCredentials': {
                 'apiKey': true,

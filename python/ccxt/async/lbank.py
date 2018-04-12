@@ -22,6 +22,8 @@ class lbank (Exchange):
             'has': {
                 'fetchTickers': True,
                 'fetchOHLCV': True,
+                'fetchOrder': True,
+                'fetchOrders': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
             },
@@ -255,10 +257,12 @@ class lbank (Exchange):
         await self.load_markets()
         response = await self.privatePostUserInfo(params)
         result = {'info': response}
-        currencies = list(self.extend(response['info']['free'], response['info']['freeze']).keys())
-        for i in range(0, len(currencies)):
-            id = currencies[i]
-            currency = self.common_currency_code(id)
+        ids = list(self.extend(response['info']['free'], response['info']['freeze']).keys())
+        for i in range(0, len(ids)):
+            id = ids[i]
+            code = id
+            if id in self.currencies_by_id:
+                code = self.currencies_by_id[id]['code']
             free = self.safe_float(response['info']['free'], id, 0.0)
             used = self.safe_float(response['info']['freeze'], id, 0.0)
             account = {
@@ -267,7 +271,7 @@ class lbank (Exchange):
                 'total': 0.0,
             }
             account['total'] = self.sum(account['free'], account['used'])
-            result[currency] = account
+            result[code] = account
         return self.parse_balance(result)
 
     def parse_order(self, order, market=None):

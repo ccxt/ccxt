@@ -126,12 +126,12 @@ class coinspot extends Exchange {
         ), $params));
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $method = 'privatePostMy' . $this->capitalize ($side);
         if ($type === 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
         $order = array (
-            'cointype' => $this->market_id($market),
+            'cointype' => $this->market_id($symbol),
             'amount' => $amount,
             'rate' => $price,
         );

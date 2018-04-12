@@ -21,7 +21,9 @@ class ice3x (Exchange):
             'has': {
                 'fetchCurrencies': True,
                 'fetchTickers': True,
+                'fetchOrder': True,
                 'fetchOpenOrders': True,
+                'fetchMyTrades': True,
                 'fetchDepositAddress': True,
             },
             'urls': {

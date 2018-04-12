@@ -25,4 +25,7 @@ class surbitcoin (foxbit):
                 'www': 'https://surbitcoin.com',
                 'doc': 'https://blinktrade.com/docs',
             },
+            'options': {
+                'brokerId': '1',  # https://blinktrade.com/docs/#brokers
+            },
         })

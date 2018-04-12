@@ -441,11 +441,11 @@ class gdax (Exchange):
         response = self.privateGetOrders(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         # oid = str(self.nonce())
         order = {
-            'product_id': self.market_id(market),
+            'product_id': self.market_id(symbol),
             'side': side,
             'size': amount,
             'type': type,

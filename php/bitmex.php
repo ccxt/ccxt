@@ -471,7 +471,7 @@ class bitmex extends Exchange {
             'orderQty' => $amount,
             'ordType' => $this->capitalize ($type),
         );
-        if ($type === 'limit')
+        if ($price !== null)
             $request['price'] = $price;
         $response = $this->privatePostOrder (array_merge ($request, $params));
         $order = $this->parse_order($response);

@@ -256,10 +256,10 @@ module.exports = class luno extends Exchange {
         return this.parseTrades (response['trades'], market, since, limit);
     }
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let method = 'privatePost';
-        let order = { 'pair': this.marketId (market) };
+        let order = { 'pair': this.marketId (symbol) };
         if (type === 'market') {
             method += 'Marketorder';
             order['type'] = side.toUpperCase ();
