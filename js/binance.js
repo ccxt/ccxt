@@ -586,11 +586,11 @@ module.exports = class binance extends Exchange {
         let amount = parseFloat (order['origQty']);
         let filled = this.safeFloat (order, 'executedQty', 0.0);
         let remaining = Math.max (amount - filled, 0.0);
-        remaining = this.amountToPrecision (symbol, remaining);
+        remaining = parseFloat (this.amountToPrecision (symbol, remaining));
         let cost = undefined;
         if (typeof price !== 'undefined')
             if (typeof filled !== 'undefined')
-                cost = this.costToPrecision (symbol, price * filled);
+                cost = parseFloat (this.costToPrecision (symbol, price * filled));
         let id = this.safeString (order, 'orderId');
         let type = this.safeString (order, 'type');
         if (typeof type !== 'undefined')
@@ -635,7 +635,7 @@ module.exports = class binance extends Exchange {
         };
         if (type === 'limit') {
             order = this.extend (order, {
-                'price': this.priceToPrecision (symbol, price),
+                'price': parseFloat (this.priceToPrecision (symbol, price)),
                 'timeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
             });
         }
