@@ -1,5 +1,3 @@
-import { ExchangeNotAvailable } from 'ccxt';
-
 'use strict';
 
 //  ---------------------------------------------------------------------------
