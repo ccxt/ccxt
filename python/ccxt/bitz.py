@@ -22,6 +22,7 @@ class bitz (Exchange):
             'countries': 'HK',
             'rateLimit': 1000,
             'version': 'v1',
+            'userAgent': self.userAgents['chrome'],
             'has': {
                 'fetchTickers': True,
                 'fetchOHLCV': True,
@@ -167,17 +168,18 @@ class bitz (Exchange):
         result = {'info': response}
         keys = list(balances.keys())
         for i in range(0, len(keys)):
-            currency = keys[i]
-            balance = float(balances[currency])
-            if currency in self.currencies_by_id:
-                currency = self.currencies_by_id[currency]['code']
-            else:
-                currency = currency.upper()
-            account = self.account()
-            account['free'] = balance
-            account['used'] = None
-            account['total'] = balance
-            result[currency] = account
+            id = keys[i]
+            idHasUnderscore = (id.find('_') >= 0)
+            if not idHasUnderscore:
+                code = id.upper()
+                if id in self.currencies_by_id:
+                    code = self.currencies_by_id[id]['code']
+                account = self.account()
+                usedField = id + '_lock'
+                account['used'] = self.safe_float(balances, usedField)
+                account['total'] = self.safe_float(balances, id)
+                account['free'] = account['total'] - account['used']
+                result[code] = account
         return self.parse_balance(result)
 
     def parse_ticker(self, ticker, market=None):

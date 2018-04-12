@@ -210,7 +210,7 @@ The ccxt library currently supports the following 113 cryptocurrency exchange ma
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |independentreserve|   | independentreserve   | `Independent Reserve <https://www.independentreserve.com>`__   | \*    | `API <https://www.independentreserve.com/API>`__                                                  | Australia, New Zealand                     |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
-| |indodax|              | indodax              | `INDODAX <https://www.indodax.com>`__                          | 1.7   | `API <https://vip.bitcoin.co.id/downloads/BITCOINCOID-API-DOCUMENTATION.pdf>`__                   | Indonesia                                  |
+| |indodax|              | indodax              | `INDODAX <https://www.indodax.com>`__                          | 1.7   | `API <https://indodax.com/downloads/BITCOINCOID-API-DOCUMENTATION.pdf>`__                         | Indonesia                                  |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |itbit|                | itbit                | `itBit <https://www.itbit.com>`__                              | 1     | `API <https://api.itbit.com/docs>`__                                                              | US                                         |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -1243,6 +1243,16 @@ A price ticker contains statistics for a particular market/symbol for some perio
         'quoteVolume':   float, // volume of quote currency
     }
 
+**All prices in ticker structure are in quote currency**.
+
+::
+
+    base currency ↓
+                 BTC / USDT
+                 ETH / BTC
+                DASH / ETH
+                        ↑ quote currency
+
 Timestamp and datetime are both Universal Time Coordinated (UTC).
 
 Although some exchanges do mix-in orderbook's top bid/ask prices into their tickers (and some even top bid/asks volumes) you should not treat ticker as a ``fetchOrderBook`` replacement. The main purpose of a ticker is to serve statistical data, as such, treat it as "live 24h OHLCV". It is known that exchanges discourage frequent ``fetchTicker`` requests by imposing stricter rate limits on these queries. If you need a unified way to access bid/asks you should use ``fetchL[123]OrderBook`` family instead.
@@ -1370,7 +1380,7 @@ You can call the unified ``fetchOHLCV`` / ``fetch_ohlcv`` method to get the list
     // PHP
     if ($exchange->has['fetchOHLCV'])
         foreach ($exchange->markets as $symbol => $market) {
-            usleep ($exchange.rateLimit * 1000); // usleep wants microseconds
+            usleep ($exchange->rateLimit * 1000); // usleep wants microseconds
             var_dump ($exchange->fetch_ohlcv ($symbol, '1M')); // one month
         }
 
@@ -1443,7 +1453,7 @@ For example, if you want to print recent trades for all symbols one by one seque
 
     // PHP
     foreach ($exchange->markets as $symbol => $market) {
-        usleep ($exchange.rateLimit * 1000); // usleep wants microseconds
+        usleep ($exchange->rateLimit * 1000); // usleep wants microseconds
         var_dump ($exchange->fetch_trades ($symbol));
     }
 
@@ -2136,9 +2146,22 @@ With certain currencies, like AEON, BTS, GXS, NXT, SBD, STEEM, STR, XEM, XLM, XM
 Withdraw
 ~~~~~~~~
 
-::
+.. code:: javascript
 
-    exchange.withdraw (currency, amount, address, tag = undefined, params = {})
+    // JavaScript
+    exchange.withdraw (code, amount, address, tag = undefined, params = {})
+
+.. code:: python
+
+    # Python
+    exchange.withdraw(code, amount, address, tag=None, params={})
+
+.. code:: php
+
+    // PHP
+    $exchange->withdraw ($code, $amount, $address, $tag = null, $params = array ())
+
+The ``code`` is the currency code (usually three or more uppercase letters, but can be different in some cases).
 
 The withdraw method returns a dictionary containing the withdrawal id, which is usually the txid of the onchain transaction itself, or an internal *withdrawal request id* registered within the exchange. The returned value looks as follows:
 

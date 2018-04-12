@@ -30,7 +30,7 @@ class indodax (Exchange):
                 'fetchOpenOrders': True,
                 'fetchMyTrades': False,
                 'fetchCurrencies': False,
-                'withdraw': False,
+                'withdraw': True,
             },
             'version': '1.7',  # as of 6 November 2017
             'urls': {
@@ -40,9 +40,7 @@ class indodax (Exchange):
                     'private': 'https://vip.bitcoin.co.id/tapi',
                 },
                 'www': 'https://www.indodax.com',
-                'doc': [
-                    'https://vip.bitcoin.co.id/downloads/BITCOINCOID-API-DOCUMENTATION.pdf',
-                ],
+                'doc': 'https://indodax.com/downloads/BITCOINCOID-API-DOCUMENTATION.pdf',
             },
             'api': {
                 'public': {
@@ -62,6 +60,7 @@ class indodax (Exchange):
                         'openOrders',
                         'cancelOrder',
                         'orderHistory',
+                        'withdrawCoin',
                     ],
                 },
             },
@@ -329,6 +328,49 @@ class indodax (Exchange):
             'pair': market['id'],
             'type': params['side'],
         }, params))
+
+    async def withdraw(self, code, amount, address, tag=None, params={}):
+        self.check_address(address)
+        await self.load_markets()
+        currency = self.currency(code)
+        # Custom string you need to provide to identify each withdrawal request.
+        # Will be passed to callback URL(assigned via website to the API key)
+        # so your system can identify the request and confirm it.
+        # Alphanumeric, max length 255.
+        requestId = self.milliseconds()
+        # alternatively:
+        # requestId = self.uuid()
+        request = {
+            'currency': currency['id'],
+            'withdraw_amount': amount,
+            'withdraw_address': address,
+            'request_id': str(requestId),
+        }
+        if tag:
+            request['withdraw_memo'] = tag
+        response = await self.privatePostWithdrawCoin(self.extend(request, params))
+        #
+        #     {
+        #         "success": 1,
+        #         "status": "approved",
+        #         "withdraw_currency": "xrp",
+        #         "withdraw_address": "rwWr7KUZ3ZFwzgaDGjKBysADByzxvohQ3C",
+        #         "withdraw_amount": "10000.00000000",
+        #         "fee": "2.00000000",
+        #         "amount_after_fee": "9998.00000000",
+        #         "submit_time": "1509469200",
+        #         "withdraw_id": "xrp-12345",
+        #         "txid": "",
+        #         "withdraw_memo": "123123"
+        #     }
+        #
+        id = None
+        if ('txid' in list(response.keys())) and len((response['txid']) > 0):
+            id = response['txid']
+        return {
+            'info': response,
+            'id': id,
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]

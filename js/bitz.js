@@ -15,6 +15,7 @@ module.exports = class bitz extends Exchange {
             'countries': 'HK',
             'rateLimit': 1000,
             'version': 'v1',
+            'userAgent': this.userAgents['chrome'],
             'has': {
                 'fetchTickers': true,
                 'fetchOHLCV': true,
@@ -163,17 +164,20 @@ module.exports = class bitz extends Exchange {
         let result = { 'info': response };
         let keys = Object.keys (balances);
         for (let i = 0; i < keys.length; i++) {
-            let currency = keys[i];
-            let balance = parseFloat (balances[currency]);
-            if (currency in this.currencies_by_id)
-                currency = this.currencies_by_id[currency]['code'];
-            else
-                currency = currency.toUpperCase ();
-            let account = this.account ();
-            account['free'] = balance;
-            account['used'] = undefined;
-            account['total'] = balance;
-            result[currency] = account;
+            let id = keys[i];
+            let idHasUnderscore = (id.indexOf ('_') >= 0);
+            if (!idHasUnderscore) {
+                let code = id.toUpperCase ();
+                if (id in this.currencies_by_id) {
+                    code = this.currencies_by_id[id]['code'];
+                }
+                let account = this.account ();
+                let usedField = id + '_lock';
+                account['used'] = this.safeFloat (balances, usedField);
+                account['total'] = this.safeFloat (balances, id);
+                account['free'] = account['total'] - account['used'];
+                result[code] = account;
+            }
         }
         return this.parseBalance (result);
     }

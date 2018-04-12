@@ -60,6 +60,14 @@ class flowbtc (Exchange):
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'tierBased': False,
+                    'percentage': True,
+                    'maker': 0.0035,
+                    'taker': 0.0035,
+                },
+            },
         })
 
     async def fetch_markets(self):
