@@ -193,7 +193,7 @@ module.exports = class yobit extends liqui {
                         throw new InsufficientFunds (this.id + ' ' + this.json (response));
                     } else if (response['error_log'] === 'Requests too often') {
                         throw new DDoSProtection (this.id + ' ' + this.json (response));
-                    } else if ((response['error_log'] === 'not available') || (response['error'] === 'external service unavailable')) {
+                    } else if ((response['error_log'] === 'not available') || (response['error_log'] === 'external service unavailable')) {
                         throw new DDoSProtection (this.id + ' ' + this.json (response));
                     } else {
                         throw new ExchangeError (this.id + ' ' + this.json (response));
