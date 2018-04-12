@@ -587,7 +587,7 @@ module.exports = class kucoin extends Exchange {
         let timestamp = this.safeInteger (response, 'timestamp');
         let iso8601 = undefined;
         if (typeof timestamp !== 'undefined')
-            iso8601 = this.iso8601 (this.timestamp);
+            iso8601 = this.iso8601 (timestamp);
         let order = {
             'info': response,
             'id': orderId,
