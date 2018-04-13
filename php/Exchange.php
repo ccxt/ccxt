@@ -1413,8 +1413,8 @@ abstract class Exchange {
         return $this->fetch_my_trades ($symbol, $since, $limit, $params);
     }
 
-    public function fetch_markets () { // stub
-        return $this->markets;
+    public function fetch_markets () {
+        return $this->markets ? array_values ($this->markets) : array ();
     }
 
     public function fetchMarkets  () {
