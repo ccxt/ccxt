@@ -22,6 +22,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 'createOrder': false,
                 'deposit': false,
                 'editOrder': false,
+                'fetchDepositAddress': false,
                 'fetchClosedOrders': false,
                 'fetchFundingFees': false,
                 'fetchMyTrades': false,
