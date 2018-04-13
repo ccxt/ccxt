@@ -203,7 +203,6 @@ module.exports = class yobit extends liqui {
                             throw new DDoSProtection (this.id + ' ' + this.json (response));
                         }
                     }
-                } else {
                     throw new ExchangeError (this.id + ' ' + this.json (response));
                 }
             }
