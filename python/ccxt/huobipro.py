@@ -289,6 +289,8 @@ class huobipro (Exchange):
             orderbook = response['tick']
             timestamp = orderbook['ts']
             orderbook['nonce'] = orderbook['version']
+            orderbook['asks'] = orderbook['asks'][:limit]
+            orderbook['bids'] = orderbook['bids'][:limit]
             return self.parse_order_book(orderbook, timestamp)
         raise ExchangeError(self.id + ' fetchOrderBook() returned unrecognized response: ' + self.json(response))
 
