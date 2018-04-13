@@ -469,6 +469,8 @@ class huobipro extends Exchange {
     public function parse_order_status ($status) {
         if ($status === 'partial-filled') {
             return 'open';
+        } else if ($status === 'partial-canceled') {
+            return 'canceled';
         } else if ($status === 'filled') {
             return 'closed';
         } else if ($status === 'canceled') {
