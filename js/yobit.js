@@ -72,6 +72,8 @@ module.exports = class yobit extends liqui {
                 'BCS': 'BitcoinStake',
                 'BLN': 'Bulleon',
                 'BTS': 'Bitshares2',
+                'CAT': 'BitClave',
+                'COV': 'Coven Coin',
                 'CS': 'CryptoSpots',
                 'DCT': 'Discount',
                 'DGD': 'DarkGoldCoin',
@@ -85,6 +87,7 @@ module.exports = class yobit extends liqui {
                 'MDT': 'Midnight',
                 'NAV': 'NavajoCoin',
                 'OMG': 'OMGame',
+                'STK': 'StakeCoin',
                 'PAY': 'EPAY',
                 'PLC': 'Platin Coin',
                 'REP': 'Republicoin',
@@ -191,15 +194,17 @@ module.exports = class yobit extends liqui {
             let response = JSON.parse (body);
             if ('success' in response) {
                 if (!response['success']) {
-                    if (response['error_log'].indexOf ('Insufficient funds') >= 0) { // not enougTh is a typo inside Liqui's own API...
-                        throw new InsufficientFunds (this.id + ' ' + this.json (response));
-                    } else if (response['error_log'] === 'Requests too often') {
-                        throw new DDoSProtection (this.id + ' ' + this.json (response));
-                    } else if ((response['error_log'] === 'not available') || (response['error_log'] === 'external service unavailable')) {
-                        throw new DDoSProtection (this.id + ' ' + this.json (response));
-                    } else {
-                        throw new ExchangeError (this.id + ' ' + this.json (response));
+                    if ('error_log' in response) {
+                        if (response['error_log'].indexOf ('Insufficient funds') >= 0) { // not enougTh is a typo inside Liqui's own API...
+                            throw new InsufficientFunds (this.id + ' ' + this.json (response));
+                        } else if (response['error_log'] === 'Requests too often') {
+                            throw new DDoSProtection (this.id + ' ' + this.json (response));
+                        } else if ((response['error_log'] === 'not available') || (response['error_log'] === 'external service unavailable')) {
+                            throw new DDoSProtection (this.id + ' ' + this.json (response));
+                        }
                     }
+                } else {
+                    throw new ExchangeError (this.id + ' ' + this.json (response));
                 }
             }
         }
