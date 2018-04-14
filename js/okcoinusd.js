@@ -593,6 +593,7 @@ module.exports = class okcoinusd extends Exchange {
                 method += 'OrdersInfo';
                 request = this.extend (request, {
                     'type': status,
+                    'order_id': params['order_id']
                 });
             } else {
                 method += 'OrderHistory';
