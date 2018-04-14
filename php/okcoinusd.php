@@ -612,14 +612,14 @@ class okcoinusd extends Exchange {
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $open = 0; // 0 for unfilled orders, 1 for filled orders
-        return $this->fetch_orders($symbol, null, null, array_merge (array (
+        return $this->fetch_orders($symbol, $since, $limit, array_merge (array (
             'status' => $open,
         ), $params));
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $closed = 1; // 0 for unfilled $orders, 1 for filled $orders
-        $orders = $this->fetch_orders($symbol, null, null, array_merge (array (
+        $orders = $this->fetch_orders($symbol, $since, $limit, array_merge (array (
             'status' => $closed,
         ), $params));
         return $this->filter_by($orders, 'status', 'closed');

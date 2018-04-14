@@ -578,13 +578,13 @@ class okcoinusd (Exchange):
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         open = 0  # 0 for unfilled orders, 1 for filled orders
-        return self.fetch_orders(symbol, None, None, self.extend({
+        return self.fetch_orders(symbol, since, limit, self.extend({
             'status': open,
         }, params))
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         closed = 1  # 0 for unfilled orders, 1 for filled orders
-        orders = self.fetch_orders(symbol, None, None, self.extend({
+        orders = self.fetch_orders(symbol, since, limit, self.extend({
             'status': closed,
         }, params))
         return self.filter_by(orders, 'status', 'closed')
