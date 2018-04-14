@@ -419,43 +419,28 @@ class huobipro extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders_by_states ($states, $symbol = null, $since = null, $limit = null, $params = array ()) {
         if (!$symbol)
             throw new ExchangeError ($this->id . ' fetchOrders() requires a $symbol parameter');
         $this->load_markets();
         $market = $this->market ($symbol);
-        $status = null;
-        if (is_array ($params) && array_key_exists ('type', $params)) {
-            $status = $params['type'];
-        } else if (is_array ($params) && array_key_exists ('status', $params)) {
-            $status = $params['status'];
-        } else {
-            throw new ExchangeError ($this->id . ' fetchOrders() requires a type param or $status param for spot $market ' . $symbol . ' (0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)');
-        }
-        if (($status === 0) || ($status === 'open')) {
-            $status = 'pre-submitted,submitted,partial-filled';
-        } else if (($status === 1) || ($status === 'closed')) {
-            $status = 'filled,partial-canceled,canceled';
-        } else {
-            $status = 'pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled';
-        }
         $response = $this->privateGetOrderOrders (array_merge (array (
             'symbol' => $market['id'],
-            'states' => $status,
+            'states' => 'pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled',
         )));
         return $this->parse_orders($response['data'], $market, $since, $limit);
     }
 
+    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_orders_by_states ('pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled', $symbol, $since, $limit, $params);
+    }
+
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders($symbol, null, null, array_merge (array (
-            'status' => 0, // 0 for unfilled orders, 1 for filled orders
-        ), $params));
+        return $this->fetch_orders_by_states ('pre-submitted,submitted,partial-filled', $symbol, $since, $limit, $params);
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders($symbol, null, null, array_merge (array (
-            'status' => 1, // 0 for unfilled orders, 1 for filled orders
-        ), $params));
+        return $this->fetch_orders_by_states ('filled,partial-canceled,canceled', $symbol, $since, $limit, $params);
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
