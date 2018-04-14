@@ -593,7 +593,7 @@ module.exports = class okcoinusd extends Exchange {
                 method += 'OrdersInfo';
                 request = this.extend (request, {
                     'type': status,
-                    'order_id': params['order_id']
+                    'order_id': params['order_id'],
                 });
             } else {
                 method += 'OrderHistory';
@@ -622,7 +622,7 @@ module.exports = class okcoinusd extends Exchange {
         let orders = await this.fetchOrders (symbol, since, limit, this.extend ({
             'status': closed,
         }, params));
-        return orders
+        return orders;
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
