@@ -622,7 +622,7 @@ module.exports = class okcoinusd extends Exchange {
         let orders = await this.fetchOrders (symbol, since, limit, this.extend ({
             'status': closed,
         }, params));
-        return this.filterBy (orders, 'status', 'closed');
+        return orders
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
