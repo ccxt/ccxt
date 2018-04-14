@@ -764,13 +764,13 @@ module.exports = class binance extends Exchange {
         } else {
             // '0': 'email sent', '1': 'cancelled', '2': 'awaiting approval', '3': 'rejected',
             // '4': 'processing', '5': 'failure', '6': 'complete',
-            if (status in [6]) {
+            if (status === 6) {
                 return 'ok';
-            } else if (status in [0, 2, 4]) {
+            } else if (status === 0 || status === 2 || status === 4) {
                 return 'pending';
-            } else if (status in [3, 5]) {
+            } else if (status === 3 || status === 5) {
                 return 'error';
-            } else if (status in [1]) {
+            } else if (status === 1) {
                 return 'canceled';
             }
         }
