@@ -35,11 +35,11 @@ class huobipro (Exchange):
             'has': {
                 'CORS': False,
                 'fetchDepositAddress': True,
-                'fetchClosedOrders': 'emulated',
                 'fetchOHCLV': True,
                 'fetchOpenOrders': True,
+                'fetchClosedOrders': True,
                 'fetchOrder': True,
-                'fetchOrders': True,
+                'fetchOrders': False,
                 'fetchTradingLimits': True,
                 'withdraw': True,
             },

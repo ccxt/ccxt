@@ -23,11 +23,11 @@ class huobipro extends Exchange {
             'has' => array (
                 'CORS' => false,
                 'fetchDepositAddress' => true,
-                'fetchClosedOrders' => 'emulated',
                 'fetchOHCLV' => true,
                 'fetchOpenOrders' => true,
+                'fetchClosedOrders' => true,
                 'fetchOrder' => true,
-                'fetchOrders' => true,
+                'fetchOrders' => false,
                 'fetchTradingLimits' => true,
                 'withdraw' => true,
             ),
