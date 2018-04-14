@@ -22,7 +22,6 @@ module.exports = class huobipro extends Exchange {
             'has': {
                 'CORS': false,
                 'fetchDepositAddress': true,
-                'fetchClosedOrders': 'emulated',
                 'fetchOHCLV': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
