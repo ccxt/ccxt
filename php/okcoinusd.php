@@ -594,6 +594,7 @@ class okcoinusd extends Exchange {
                 $method .= 'OrdersInfo';
                 $request = array_merge ($request, array (
                     'type' => $status,
+                    'order_id' => $params['order_id'],
                 ));
             } else {
                 $method .= 'OrderHistory';
@@ -622,7 +623,7 @@ class okcoinusd extends Exchange {
         $orders = $this->fetch_orders($symbol, $since, $limit, array_merge (array (
             'status' => $closed,
         ), $params));
-        return $this->filter_by($orders, 'status', 'closed');
+        return $orders;
     }
 
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {

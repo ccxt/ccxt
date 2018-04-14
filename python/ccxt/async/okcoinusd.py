@@ -563,6 +563,7 @@ class okcoinusd (Exchange):
                 method += 'OrdersInfo'
                 request = self.extend(request, {
                     'type': status,
+                    'order_id': params['order_id'],
                 })
             else:
                 method += 'OrderHistory'
@@ -587,7 +588,7 @@ class okcoinusd (Exchange):
         orders = await self.fetch_orders(symbol, since, limit, self.extend({
             'status': closed,
         }, params))
-        return self.filter_by(orders, 'status', 'closed')
+        return orders
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
