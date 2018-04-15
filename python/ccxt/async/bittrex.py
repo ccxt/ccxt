@@ -43,7 +43,6 @@ class bittrex (Exchange):
                 'fetchMyTrades': False,
                 'fetchOHLCV': True,
                 'fetchOrder': True,
-                'fetchOrders': True,
                 'fetchOpenOrders': True,
                 'fetchTickers': True,
                 'withdraw': True,
@@ -568,7 +567,7 @@ class bittrex (Exchange):
             raise e
         return self.parse_order(response['result'])
 
-    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         request = {}
         market = None
@@ -580,10 +579,6 @@ class bittrex (Exchange):
         if symbol:
             return self.filter_by_symbol(orders, symbol)
         return orders
-
-    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        orders = await self.fetch_orders(symbol, since, limit, params)
-        return self.filter_by(orders, 'status', 'closed')
 
     async def fetch_deposit_address(self, code, params={}):
         await self.load_markets()
