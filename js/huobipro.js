@@ -425,7 +425,7 @@ module.exports = class huobipro extends Exchange {
         let market = this.market (symbol);
         let response = await this.privateGetOrderOrders (this.extend ({
             'symbol': market['id'],
-            'states': 'pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled',
+            'states': states,
         }));
         return this.parseOrders (response['data'], market, since, limit);
     }
