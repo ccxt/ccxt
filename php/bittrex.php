@@ -22,7 +22,7 @@ class bittrex extends Exchange {
                 'CORS' => true,
                 'createMarketOrder' => false,
                 'fetchDepositAddress' => true,
-                'fetchClosedOrders' => 'emulated',
+                'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchMyTrades' => false,
                 'fetchOHLCV' => true,
