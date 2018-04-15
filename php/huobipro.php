@@ -23,11 +23,11 @@ class huobipro extends Exchange {
             'has' => array (
                 'CORS' => false,
                 'fetchDepositAddress' => true,
-                'fetchClosedOrders' => 'emulated',
                 'fetchOHCLV' => true,
                 'fetchOpenOrders' => true,
+                'fetchClosedOrders' => true,
                 'fetchOrder' => true,
-                'fetchOrders' => true,
+                'fetchOrders' => false,
                 'fetchTradingLimits' => true,
                 'withdraw' => true,
             ),
@@ -78,6 +78,7 @@ class huobipro extends Exchange {
                         'order/matchresults', // 查询当前成交、历史成交
                         'dw/withdraw-virtual/addresses', // 查询虚拟币提现地址
                         'dw/deposit-virtual/addresses',
+                        'query/deposit-withdraw',
                     ),
                     'post' => array (
                         'order/orders/place', // 创建并执行一个新订单 (一步下单， 推荐使用)
@@ -418,43 +419,28 @@ class huobipro extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders_by_states ($states, $symbol = null, $since = null, $limit = null, $params = array ()) {
         if (!$symbol)
             throw new ExchangeError ($this->id . ' fetchOrders() requires a $symbol parameter');
         $this->load_markets();
         $market = $this->market ($symbol);
-        $status = null;
-        if (is_array ($params) && array_key_exists ('type', $params)) {
-            $status = $params['type'];
-        } else if (is_array ($params) && array_key_exists ('status', $params)) {
-            $status = $params['status'];
-        } else {
-            throw new ExchangeError ($this->id . ' fetchOrders() requires a type param or $status param for spot $market ' . $symbol . ' (0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)');
-        }
-        if (($status === 0) || ($status === 'open')) {
-            $status = 'pre-submitted,submitted,partial-filled';
-        } else if (($status === 1) || ($status === 'closed')) {
-            $status = 'filled,partial-canceled,canceled';
-        } else {
-            $status = 'pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled';
-        }
         $response = $this->privateGetOrderOrders (array_merge (array (
             'symbol' => $market['id'],
-            'states' => $status,
+            'states' => 'pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled',
         )));
         return $this->parse_orders($response['data'], $market, $since, $limit);
     }
 
+    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_orders_by_states ('pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled', $symbol, $since, $limit, $params);
+    }
+
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders($symbol, null, null, array_merge (array (
-            'status' => 0, // 0 for unfilled orders, 1 for filled orders
-        ), $params));
+        return $this->fetch_orders_by_states ('pre-submitted,submitted,partial-filled', $symbol, $since, $limit, $params);
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders($symbol, null, null, array_merge (array (
-            'status' => 1, // 0 for unfilled orders, 1 for filled orders
-        ), $params));
+        return $this->fetch_orders_by_states ('filled,partial-canceled,canceled', $symbol, $since, $limit, $params);
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
@@ -468,6 +454,8 @@ class huobipro extends Exchange {
     public function parse_order_status ($status) {
         if ($status === 'partial-filled') {
             return 'open';
+        } else if ($status === 'partial-canceled') {
+            return 'canceled';
         } else if ($status === 'filled') {
             return 'closed';
         } else if ($status === 'canceled') {

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.12.135'
+__version__ = '1.12.167'
 
 # -----------------------------------------------------------------------------
 
@@ -900,7 +900,7 @@ class Exchange(object):
         return self.fees
 
     def fetch_markets(self):
-        return self.markets
+        return self.to_array(self.markets)
 
     def fetch_fees(self):
         trading = {}

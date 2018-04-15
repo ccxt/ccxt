@@ -21,6 +21,7 @@ class bibox extends Exchange {
                 'fetchBalance' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
+                'fetchFundingFees' => true,
                 'fetchTickers' => true,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
@@ -81,6 +82,17 @@ class bibox extends Exchange {
                     'deposit' => array (),
                 ),
             ),
+            'exceptions' => array (
+                '2015' => '\\ccxt\\AuthenticationError', // Google authenticator is wrong
+                '2033' => '\\ccxt\\OrderNotFound', // operation failed! Orders have been completed or revoked
+                '2067' => '\\ccxt\\InvalidOrder', // Does not support market orders
+                '2068' => '\\ccxt\\InvalidOrder', // The number of orders can not be less than
+                '3012' => '\\ccxt\\AuthenticationError', // invalid apiKey
+                '3024' => '\\ccxt\\PermissionDenied', // wrong apikey permissions
+                '3025' => '\\ccxt\\AuthenticationError', // signature failed
+                '4000' => '\\ccxt\\ExchangeNotAvailable', // current network is unstable
+                '4003' => '\\ccxt\\DDoSProtection', // server busy please try again later
+            ),
         ));
     }
 
@@ -92,10 +104,10 @@ class bibox extends Exchange {
         $result = array ();
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
-            $base = $market['coin_symbol'];
-            $quote = $market['currency_symbol'];
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+            $baseId = $market['coin_symbol'];
+            $quoteId = $market['currency_symbol'];
+            $base = $this->common_currency_code($baseId);
+            $quote = $this->common_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $id = $base . '_' . $quote;
             $precision = array (
@@ -107,7 +119,9 @@ class bibox extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
-                'active' => null,
+                'baseId' => $base,
+                'quoteId' => $quote,
+                'active' => true,
                 'info' => $market,
                 'lot' => pow (10, -$precision['amount']),
                 'precision' => $precision,
@@ -204,15 +218,15 @@ class bibox extends Exchange {
             );
         }
         return array (
-            'id' => null,
+            'id' => $this->safe_string($trade, 'id'),
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
             'type' => 'limit',
             'side' => $side,
-            'price' => floatval ($trade['price']),
-            'amount' => floatval ($trade['amount']),
+            'price' => $this->safe_float($trade, 'price'),
+            'amount' => $this->safe_float($trade, 'amount'),
             'fee' => $fee,
         );
     }
@@ -325,21 +339,31 @@ class bibox extends Exchange {
         if (is_array ($balances) && array_key_exists ('assets_list', $balances)) {
             $indexed = $this->index_by($balances['assets_list'], 'coin_symbol');
         } else {
-            $indexed = array ();
+            $indexed = $balances;
         }
         $keys = is_array ($indexed) ? array_keys ($indexed) : array ();
         for ($i = 0; $i < count ($keys); $i++) {
             $id = $keys[$i];
-            $currency = $this->common_currency_code($id);
+            $code = strtoupper ($id);
+            if (mb_strpos ($code, 'TOTAL_') !== false) {
+                $code = mb_substr ($code, 6);
+            }
+            if (is_array ($this->currencies_by_id) && array_key_exists ($code, $this->currencies_by_id)) {
+                $code = $this->currencies_by_id[$code]['code'];
+            }
             $account = $this->account ();
             $balance = $indexed[$id];
-            $used = floatval ($balance['freeze']);
-            $free = floatval ($balance['balance']);
-            $total = $this->sum ($free, $used);
-            $account['free'] = $free;
-            $account['used'] = $used;
-            $account['total'] = $total;
-            $result[$currency] = $account;
+            if (gettype ($balance) == 'string') {
+                $balance = floatval ($balance);
+                $account['free'] = $balance;
+                $account['used'] = 0.0;
+                $account['total'] = $balance;
+            } else {
+                $account['free'] = floatval ($balance['balance']);
+                $account['used'] = floatval ($balance['freeze']);
+                $account['total'] = $this->sum ($account['free'], $account['used']);
+            }
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
@@ -386,7 +410,7 @@ class bibox extends Exchange {
         }
         $type = ($order['order_type'] === 1) ? 'market' : 'limit';
         $timestamp = $order['createdAt'];
-        $price = $order['price'];
+        $price = $this->safe_float($order, 'price');
         $filled = $this->safe_float($order, 'deal_amount');
         $amount = $this->safe_float($order, 'amount');
         $cost = $this->safe_float($order, 'money');
@@ -489,7 +513,7 @@ class bibox extends Exchange {
             ), $params),
         ));
         $trades = $this->safe_value($response['result'], 'items', array ());
-        return $this->parse_trades($trades, $market, $since, $limit);
+        return $this->parse_orders($trades, $market, $since, $limit);
     }
 
     public function fetch_deposit_address ($code, $params = array ()) {
@@ -536,6 +560,33 @@ class bibox extends Exchange {
         );
     }
 
+    public function fetch_funding_fees ($codes = null, $params = array ()) {
+        //  by default it will try load withdrawal fees of all currencies (with separate requests)
+        //  however if you define $codes = array ( 'ETH', 'BTC' ) in args it will only load those
+        $this->load_markets();
+        $withdrawFees = array ();
+        $info = array ();
+        if ($codes === null)
+            $codes = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
+        for ($i = 0; $i < count ($codes); $i++) {
+            $code = $codes[$i];
+            $currency = $this->currency ($code);
+            $response = $this->privatePostTransfer (array (
+                'cmd' => 'transfer/transferOutInfo',
+                'body' => array_merge (array (
+                    'coin_symbol' => $currency['id'],
+                ), $params),
+            ));
+            $info[$code] = $response;
+            $withdrawFees[$code] = $response['result']['withdraw_fee'];
+        }
+        return array (
+            'info' => $info,
+            'withdraw' => $withdrawFees,
+            'deposit' => array (),
+        );
+    }
+
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
         $cmds = $this->json (array ( $params ));
@@ -558,43 +609,31 @@ class bibox extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+        if (strlen ($body) > 0) {
+            if ($body[0] === '{') {
+                $response = json_decode ($body, $as_associative_array = true);
+                if (is_array ($response) && array_key_exists ('error', $response)) {
+                    if (is_array ($response['error']) && array_key_exists ('code', $response['error'])) {
+                        $code = $this->safe_string($response['error'], 'code');
+                        $feedback = $this->id . ' ' . $body;
+                        $exceptions = $this->exceptions;
+                        if (is_array ($exceptions) && array_key_exists ($code, $exceptions)) {
+                            throw new $exceptions[$code] ($feedback);
+                        } else {
+                            throw new ExchangeError ($feedback);
+                        }
+                    }
+                    throw new ExchangeError ($this->id . ' => "error" in $response => ' . $body);
+                }
+                if (!(is_array ($response) && array_key_exists ('result', $response)))
+                    throw new ExchangeError ($this->id . ' ' . $body);
+            }
+        }
+    }
+
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        $message = $this->id . ' ' . $this->json ($response);
-        if (is_array ($response) && array_key_exists ('error', $response)) {
-            if (is_array ($response['error']) && array_key_exists ('code', $response['error'])) {
-                $code = $response['error']['code'];
-                if ($code === '2033')
-                    // \u64cd\u4f5c\u5931\u8d25\uff01\u8ba2\u5355\u5df2\u5b8c\u6210\u6216\u5df2\u64a4\u9500
-                    // operation failed! Orders have been completed or revoked
-                    // e.g. trying to cancel a filled order
-                    throw new OrderNotFound ($message);
-                else if ($code === '2067')
-                    // https://github.com/ccxt/ccxt/issues/2338
-                    //  array ( "error" => { "$code" => "2067", "msg" => "暂不支持市价单"), "cmd" => "orderpending/trade" }
-                    // "Does not support market orders"
-                    throw new InvalidOrder ($message);
-                else if ($code === '2068')
-                    // \u4e0b\u5355\u6570\u91cf\u4e0d\u80fd\u4f4e\u4e8e
-                    // The number of orders can not be less than
-                    throw new InvalidOrder ($message);
-                else if ($code === '3012')
-                    throw new AuthenticationError ($message); // invalid apiKey
-                else if ($code === '3024')
-                    throw new PermissionDenied ($message); // insufficient apiKey permissions
-                else if ($code === '3025')
-                    throw new AuthenticationError ($message); // signature failed
-                else if ($code === '4000')
-                    // \u5f53\u524d\u7f51\u7edc\u8fde\u63a5\u4e0d\u7a33\u5b9a\uff0c\u8bf7\u7a0d\u5019\u91cd\u8bd5
-                    // The current network connection is unstable. Please try again later
-                    throw new ExchangeNotAvailable ($message);
-                else if ($code === '4003')
-                    throw new DDoSProtection ($message); // server is busy, try again later
-            }
-            throw new ExchangeError ($message);
-        }
-        if (!(is_array ($response) && array_key_exists ('result', $response)))
-            throw new ExchangeError ($message);
         if ($method === 'GET') {
             return $response;
         } else {

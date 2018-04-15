@@ -593,6 +593,7 @@ module.exports = class okcoinusd extends Exchange {
                 method += 'OrdersInfo';
                 request = this.extend (request, {
                     'type': status,
+                    'order_id': params['order_id'],
                 });
             } else {
                 method += 'OrderHistory';
@@ -611,17 +612,17 @@ module.exports = class okcoinusd extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let open = 0; // 0 for unfilled orders, 1 for filled orders
-        return await this.fetchOrders (symbol, undefined, undefined, this.extend ({
+        return await this.fetchOrders (symbol, since, limit, this.extend ({
             'status': open,
         }, params));
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let closed = 1; // 0 for unfilled orders, 1 for filled orders
-        let orders = await this.fetchOrders (symbol, undefined, undefined, this.extend ({
+        let orders = await this.fetchOrders (symbol, since, limit, this.extend ({
             'status': closed,
         }, params));
-        return this.filterBy (orders, 'status', 'closed');
+        return orders;
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {

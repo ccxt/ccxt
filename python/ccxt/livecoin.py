@@ -102,6 +102,7 @@ class livecoin (Exchange):
                 },
             },
             'commonCurrencies': {
+                'CPC': 'Capricoin',
                 'CRC': 'CryCash',
                 'ORE': 'Orectic',
                 'RUR': 'RUB',

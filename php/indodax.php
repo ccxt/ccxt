@@ -24,7 +24,7 @@ class indodax extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchMyTrades' => false,
                 'fetchCurrencies' => false,
-                'withdraw' => false,
+                'withdraw' => true,
             ),
             'version' => '1.7', // as of 6 November 2017
             'urls' => array (
@@ -34,9 +34,7 @@ class indodax extends Exchange {
                     'private' => 'https://vip.bitcoin.co.id/tapi',
                 ),
                 'www' => 'https://www.indodax.com',
-                'doc' => array (
-                    'https://vip.bitcoin.co.id/downloads/BITCOINCOID-API-DOCUMENTATION.pdf',
-                ),
+                'doc' => 'https://indodax.com/downloads/BITCOINCOID-API-DOCUMENTATION.pdf',
             ),
             'api' => array (
                 'public' => array (
@@ -56,6 +54,7 @@ class indodax extends Exchange {
                         'openOrders',
                         'cancelOrder',
                         'orderHistory',
+                        'withdrawCoin',
                     ),
                 ),
             ),
@@ -343,6 +342,50 @@ class indodax extends Exchange {
             'pair' => $market['id'],
             'type' => $params['side'],
         ), $params));
+    }
+
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+        $this->check_address($address);
+        $this->load_markets();
+        $currency = $this->currency ($code);
+        // Custom string you need to provide to identify each withdrawal $request.
+        // Will be passed to callback URL (assigned via website to the API key)
+        // so your system can identify the $request and confirm it.
+        // Alphanumeric, max length 255.
+        $requestId = $this->milliseconds ();
+        // alternatively:
+        // $requestId = $this->uuid ();
+        $request = array (
+            'currency' => $currency['id'],
+            'withdraw_amount' => $amount,
+            'withdraw_address' => $address,
+            'request_id' => (string) $requestId,
+        );
+        if ($tag)
+            $request['withdraw_memo'] = $tag;
+        $response = $this->privatePostWithdrawCoin (array_merge ($request, $params));
+        //
+        //     {
+        //         "success" => 1,
+        //         "status" => "approved",
+        //         "withdraw_currency" => "xrp",
+        //         "withdraw_address" => "rwWr7KUZ3ZFwzgaDGjKBysADByzxvohQ3C",
+        //         "withdraw_amount" => "10000.00000000",
+        //         "fee" => "2.00000000",
+        //         "amount_after_fee" => "9998.00000000",
+        //         "submit_time" => "1509469200",
+        //         "withdraw_id" => "xrp-12345",
+        //         "txid" => "",
+        //         "withdraw_memo" => "123123"
+        //     }
+        //
+        $id = null;
+        if ((is_array ($response) && array_key_exists ('txid', $response)) && (strlen ($response['txid']) > 0))
+            $id = $response['txid'];
+        return array (
+            'info' => $response,
+            'id' => $id,
+        );
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

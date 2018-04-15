@@ -611,6 +611,7 @@ class bittrex (Exchange):
 
     def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
+        self.load_markets()
         currency = self.currency(code)
         request = {
             'currency': currency['id'],

@@ -132,7 +132,7 @@ The ccxt library currently supports the following 113 cryptocurrency exchange ma
 |![huobipro](https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg)           | huobipro           | [Huobi Pro](https://www.huobipro.com)                     | 1   | [API](https://github.com/huobiapi/API_Docs/wiki/REST_api_reference)                          | China                                   |
 |![ice3x](https://user-images.githubusercontent.com/1294454/38012176-11616c32-3269-11e8-9f05-e65cf885bb15.jpg)              | ice3x              | [ICE3X](https://ice3x.com)                                | *   | [API](https://ice3x.co.za/ice-cubed-bitcoin-exchange-api-documentation-1-june-2017)          | South Africa                            |
 |![independentreserve](https://user-images.githubusercontent.com/1294454/30521662-cf3f477c-9bcb-11e7-89bc-d1ac85012eda.jpg) | independentreserve | [Independent Reserve](https://www.independentreserve.com) | *   | [API](https://www.independentreserve.com/API)                                                | Australia, New Zealand                  |
-|![indodax](https://user-images.githubusercontent.com/1294454/37443283-2fddd0e4-281c-11e8-9741-b4f1419001b5.jpg)            | indodax            | [INDODAX](https://www.indodax.com)                        | 1.7 | [API](https://vip.bitcoin.co.id/downloads/BITCOINCOID-API-DOCUMENTATION.pdf)                 | Indonesia                               |
+|![indodax](https://user-images.githubusercontent.com/1294454/37443283-2fddd0e4-281c-11e8-9741-b4f1419001b5.jpg)            | indodax            | [INDODAX](https://www.indodax.com)                        | 1.7 | [API](https://indodax.com/downloads/BITCOINCOID-API-DOCUMENTATION.pdf)                       | Indonesia                               |
 |![itbit](https://user-images.githubusercontent.com/1294454/27822159-66153620-60ad-11e7-89e7-005f6d7f3de0.jpg)              | itbit              | [itBit](https://www.itbit.com)                            | 1   | [API](https://api.itbit.com/docs)                                                            | US                                      |
 |![jubi](https://user-images.githubusercontent.com/1294454/27766581-9d397d9a-5edd-11e7-8fb9-5d8236c0e692.jpg)               | jubi               | [jubi.com](https://www.jubi.com)                          | 1   | [API](https://www.jubi.com/help/api.html)                                                    | China                                   |
 |![kraken](https://user-images.githubusercontent.com/1294454/27766599-22709304-5ede-11e7-9de1-9f33732e1509.jpg)             | kraken             | [Kraken](https://www.kraken.com)                          | 0   | [API](https://www.kraken.com/en-us/help/api)                                                 | US                                      |
@@ -669,6 +669,7 @@ Historically various symbolic names have been used to designate same trading pai
 - `BCC → BCH`: The Bitcoin Cash fork is often called with two different symbolic names: `BCC` and `BCH`. The name `BCC` is ambiguous for Bitcoin Cash, it is confused with BitConnect. The ccxt library will convert `BCC` to `BCH` where it is appropriate (some exchanges and aggregators confuse them).
 - `DRK → DASH`: `DASH` was Darkcoin then became Dash ([read more](https://minergate.com/blog/dashcoin-and-dash/)).
 - `DSH → DASH`: Try not to confuse symbols and currencies. The `DSH` (Dashcoin) is not the same as `DASH` (Dash). Some exchanges have `DASH` labelled inconsistently as `DSH`, the ccxt library does a correction for that as well (`DSH → DASH`), but only on certain exchanges that have these two currencies confused, whereas most exchanges have them both correct. Just remember that `DASH/BTC` is not the same as `DSH/BTC`.
+- `NANO` → `XRB`: `NANO` is the newer code for Raiblocks, however, CCXT unified API uses the older `XRB` for backward-compatibility with existing exchanges and data providers.
 
 ### Consistency Of Base And Quote Currencies
 
@@ -1082,14 +1083,31 @@ A price ticker contains statistics for a particular market/symbol for some perio
     'change':        float, // absolute change, `last - open`
     'percentage':    float, // relative change, `(change/open) * 100`
     'average':       float, // average price, `(last + open) / 2`
-    'baseVolume':    float, // volume of base currency
-    'quoteVolume':   float, // volume of quote currency
+    'baseVolume':    float, // volume of base currency traded for last 24 hours
+    'quoteVolume':   float, // volume of quote currency traded for last 24 hours
 }
+```
+
+- The `bidVolume` is the volume (amount) of current best bid in the orderbook.
+- The `askVolume` is the volume (amount) of current best ask in the orderbook.
+- The `baseVolume` is the amount of base currency traded (bought or sold) in last 24 hours.
+- The `quoteVolume` is the amount of quote currency traded (bought or sold) in last 24 hours.
+
+**All prices in ticker structure are in quote currency. Some fields in a returned ticker structure may be undefined/None/null.**
+
+```
+base currency ↓
+             BTC / USDT
+             ETH / BTC
+            DASH / ETH
+                    ↑ quote currency
 ```
 
 Timestamp and datetime are both Universal Time Coordinated (UTC).
 
 Although some exchanges do mix-in orderbook's top bid/ask prices into their tickers (and some even top bid/asks volumes) you should not treat ticker as a `fetchOrderBook` replacement. The main purpose of a ticker is to serve statistical data, as such, treat it as "live 24h OHLCV". It is known that exchanges discourage frequent `fetchTicker` requests by imposing stricter rate limits on these queries. If you need a unified way to access bid/asks you should use `fetchL[123]OrderBook` family instead.
+
+To get historical prices and volumes use the unified [`fetchOHLCV`](https://github.com/ccxt/ccxt/wiki/Manual#ohlcv-candlestick-charts) method where available.
 
 ### Individually By Symbol
 
@@ -1209,7 +1227,7 @@ if exchange.has['fetchOHLCV']:
 // PHP
 if ($exchange->has['fetchOHLCV'])
     foreach ($exchange->markets as $symbol => $market) {
-        usleep ($exchange.rateLimit * 1000); // usleep wants microseconds
+        usleep ($exchange->rateLimit * 1000); // usleep wants microseconds
         var_dump ($exchange->fetch_ohlcv ($symbol, '1M')); // one month
     }
 ```
@@ -1280,7 +1298,7 @@ for symbol in exchange.markets:                    # ensure you have called load
 ```PHP
 // PHP
 foreach ($exchange->markets as $symbol => $market) {
-    usleep ($exchange.rateLimit * 1000); // usleep wants microseconds
+    usleep ($exchange->rateLimit * 1000); // usleep wants microseconds
     var_dump ($exchange->fetch_trades ($symbol));
 }
 ```
@@ -1950,9 +1968,22 @@ With certain currencies, like AEON, BTS, GXS, NXT, SBD, STEEM, STR, XEM, XLM, XM
 
 ### Withdraw
 
+```JavaScript
+// JavaScript
+exchange.withdraw (code, amount, address, tag = undefined, params = {})
 ```
-exchange.withdraw (currency, amount, address, tag = undefined, params = {})
+
+```Python
+# Python
+exchange.withdraw(code, amount, address, tag=None, params={})
 ```
+
+```PHP
+// PHP
+$exchange->withdraw ($code, $amount, $address, $tag = null, $params = array ())
+```
+
+The `code` is the currency code (usually three or more uppercase letters, but can be different in some cases).
 
 The withdraw method returns a dictionary containing the withdrawal id, which is usually the txid of the onchain transaction itself, or an internal *withdrawal request id* registered within the exchange. The returned value looks as follows:
 
