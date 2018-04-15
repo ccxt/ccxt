@@ -38,7 +38,7 @@ class bittrex (Exchange):
                 'CORS': True,
                 'createMarketOrder': False,
                 'fetchDepositAddress': True,
-                'fetchClosedOrders': 'emulated',
+                'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchMyTrades': False,
                 'fetchOHLCV': True,
