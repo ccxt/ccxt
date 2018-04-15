@@ -22,11 +22,11 @@ module.exports = class huobipro extends Exchange {
             'has': {
                 'CORS': false,
                 'fetchDepositAddress': true,
-                'fetchClosedOrders': 'emulated',
                 'fetchOHCLV': true,
                 'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
                 'fetchOrder': true,
-                'fetchOrders': true,
+                'fetchOrders': false,
                 'fetchTradingLimits': true,
                 'withdraw': true,
             },
@@ -418,43 +418,28 @@ module.exports = class huobipro extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrdersByStates (states, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!symbol)
             throw new ExchangeError (this.id + ' fetchOrders() requires a symbol parameter');
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let status = undefined;
-        if ('type' in params) {
-            status = params['type'];
-        } else if ('status' in params) {
-            status = params['status'];
-        } else {
-            throw new ExchangeError (this.id + ' fetchOrders() requires a type param or status param for spot market ' + symbol + ' (0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)');
-        }
-        if ((status === 0) || (status === 'open')) {
-            status = 'pre-submitted,submitted,partial-filled';
-        } else if ((status === 1) || (status === 'closed')) {
-            status = 'filled,partial-canceled,canceled';
-        } else {
-            status = 'pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled';
-        }
         let response = await this.privateGetOrderOrders (this.extend ({
             'symbol': market['id'],
-            'states': status,
+            'states': states,
         }));
         return this.parseOrders (response['data'], market, since, limit);
     }
 
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchOrdersByStates ('pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled', symbol, since, limit, params);
+    }
+
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchOrders (symbol, undefined, undefined, this.extend ({
-            'status': 0, // 0 for unfilled orders, 1 for filled orders
-        }, params));
+        return await this.fetchOrdersByStates ('pre-submitted,submitted,partial-filled', symbol, since, limit, params);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchOrders (symbol, undefined, undefined, this.extend ({
-            'status': 1, // 0 for unfilled orders, 1 for filled orders
-        }, params));
+        return await this.fetchOrdersByStates ('filled,partial-canceled,canceled', symbol, since, limit, params);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -468,6 +453,8 @@ module.exports = class huobipro extends Exchange {
     parseOrderStatus (status) {
         if (status === 'partial-filled') {
             return 'open';
+        } else if (status === 'partial-canceled') {
+            return 'canceled';
         } else if (status === 'filled') {
             return 'closed';
         } else if (status === 'canceled') {

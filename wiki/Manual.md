@@ -669,6 +669,7 @@ Historically various symbolic names have been used to designate same trading pai
 - `BCC → BCH`: The Bitcoin Cash fork is often called with two different symbolic names: `BCC` and `BCH`. The name `BCC` is ambiguous for Bitcoin Cash, it is confused with BitConnect. The ccxt library will convert `BCC` to `BCH` where it is appropriate (some exchanges and aggregators confuse them).
 - `DRK → DASH`: `DASH` was Darkcoin then became Dash ([read more](https://minergate.com/blog/dashcoin-and-dash/)).
 - `DSH → DASH`: Try not to confuse symbols and currencies. The `DSH` (Dashcoin) is not the same as `DASH` (Dash). Some exchanges have `DASH` labelled inconsistently as `DSH`, the ccxt library does a correction for that as well (`DSH → DASH`), but only on certain exchanges that have these two currencies confused, whereas most exchanges have them both correct. Just remember that `DASH/BTC` is not the same as `DSH/BTC`.
+- `NANO` → `XRB`: `NANO` is the newer code for Raiblocks, however, CCXT unified API uses the older `XRB` for backward-compatibility with existing exchanges and data providers.
 
 ### Consistency Of Base And Quote Currencies
 
@@ -1082,12 +1083,17 @@ A price ticker contains statistics for a particular market/symbol for some perio
     'change':        float, // absolute change, `last - open`
     'percentage':    float, // relative change, `(change/open) * 100`
     'average':       float, // average price, `(last + open) / 2`
-    'baseVolume':    float, // volume of base currency
-    'quoteVolume':   float, // volume of quote currency
+    'baseVolume':    float, // volume of base currency traded for last 24 hours
+    'quoteVolume':   float, // volume of quote currency traded for last 24 hours
 }
 ```
 
-**All prices in ticker structure are in quote currency**.
+- The `bidVolume` is the volume (amount) of current best bid in the orderbook.
+- The `askVolume` is the volume (amount) of current best ask in the orderbook.
+- The `baseVolume` is the amount of base currency traded (bought or sold) in last 24 hours.
+- The `quoteVolume` is the amount of quote currency traded (bought or sold) in last 24 hours.
+
+**All prices in ticker structure are in quote currency. Some fields in a returned ticker structure may be undefined/None/null.**
 
 ```
 base currency ↓
@@ -1100,6 +1106,8 @@ base currency ↓
 Timestamp and datetime are both Universal Time Coordinated (UTC).
 
 Although some exchanges do mix-in orderbook's top bid/ask prices into their tickers (and some even top bid/asks volumes) you should not treat ticker as a `fetchOrderBook` replacement. The main purpose of a ticker is to serve statistical data, as such, treat it as "live 24h OHLCV". It is known that exchanges discourage frequent `fetchTicker` requests by imposing stricter rate limits on these queries. If you need a unified way to access bid/asks you should use `fetchL[123]OrderBook` family instead.
+
+To get historical prices and volumes use the unified [`fetchOHLCV`](https://github.com/ccxt/ccxt/wiki/Manual#ohlcv-candlestick-charts) method where available.
 
 ### Individually By Symbol
 

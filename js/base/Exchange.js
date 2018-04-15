@@ -631,7 +631,7 @@ module.exports = class Exchange {
     }
 
     fetchMarkets () {
-        return new Promise ((resolve, reject) => resolve (this.markets))
+        return new Promise ((resolve, reject) => resolve (Object.values (this.markets)))
     }
 
     async fetchOrderStatus (id, market = undefined) {
