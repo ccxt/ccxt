@@ -426,7 +426,7 @@ class huobipro extends Exchange {
         $market = $this->market ($symbol);
         $response = $this->privateGetOrderOrders (array_merge (array (
             'symbol' => $market['id'],
-            'states' => 'pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled',
+            'states' => $states,
         )));
         return $this->parse_orders($response['data'], $market, $since, $limit);
     }

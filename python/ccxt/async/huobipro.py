@@ -404,7 +404,7 @@ class huobipro (Exchange):
         market = self.market(symbol)
         response = await self.privateGetOrderOrders(self.extend({
             'symbol': market['id'],
-            'states': 'pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled',
+            'states': states,
         }))
         return self.parse_orders(response['data'], market, since, limit)
 
