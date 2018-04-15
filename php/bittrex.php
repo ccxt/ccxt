@@ -27,7 +27,6 @@ class bittrex extends Exchange {
                 'fetchMyTrades' => false,
                 'fetchOHLCV' => true,
                 'fetchOrder' => true,
-                'fetchOrders' => true,
                 'fetchOpenOrders' => true,
                 'fetchTickers' => true,
                 'withdraw' => true,
@@ -595,7 +594,7 @@ class bittrex extends Exchange {
         return $this->parse_order($response['result']);
     }
 
-    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array ();
         $market = null;
@@ -608,11 +607,6 @@ class bittrex extends Exchange {
         if ($symbol)
             return $this->filter_by_symbol($orders, $symbol);
         return $orders;
-    }
-
-    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $orders = $this->fetch_orders($symbol, $since, $limit, $params);
-        return $this->filter_by($orders, 'status', 'closed');
     }
 
     public function fetch_deposit_address ($code, $params = array ()) {
