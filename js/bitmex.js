@@ -162,7 +162,7 @@ module.exports = class bitmex extends Exchange {
             let precision = {
                 'amount': undefined,
                 'price': undefined,
-            }
+            };
             if (market['lotSize'])
                 precision['amount'] = this.precisionFromString (this.truncate_to_string (market['lotSize'], 16));
             if (market['tickSize'])
