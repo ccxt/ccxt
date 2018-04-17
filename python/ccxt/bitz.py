@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
@@ -21,8 +22,8 @@ class bitz (Exchange):
             'countries': 'HK',
             'rateLimit': 1000,
             'version': 'v1',
+            'userAgent': self.userAgents['chrome'],
             'has': {
-                'fetchBalance': False,  # so far the only exchange that has createOrder but not fetchBalance %)
                 'fetchTickers': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
@@ -54,6 +55,7 @@ class bitz (Exchange):
                 },
                 'private': {
                     'post': [
+                        'balances',
                         'tradeAdd',
                         'tradeCancel',
                         'openOrders',
@@ -127,6 +129,9 @@ class bitz (Exchange):
                 'amount': 8,
                 'price': 8,
             },
+            'options': {
+                'lastNonceTimestamp': 0,
+            },
         })
 
     def fetch_markets(self):
@@ -137,8 +142,9 @@ class bitz (Exchange):
         for i in range(0, len(ids)):
             id = ids[i]
             market = markets[id]
-            idUpper = id.upper()
-            base, quote = idUpper.split('_')
+            baseId, quoteId = id.split('_')
+            base = baseId.upper()
+            quote = quoteId.upper()
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
@@ -147,14 +153,39 @@ class bitz (Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': True,
                 'info': market,
             })
         return result
 
+    def fetch_balance(self, params={}):
+        self.load_markets()
+        response = self.privatePostBalances(params)
+        data = response['data']
+        balances = self.omit(data, 'uid')
+        result = {'info': response}
+        keys = list(balances.keys())
+        for i in range(0, len(keys)):
+            id = keys[i]
+            idHasUnderscore = (id.find('_') >= 0)
+            if not idHasUnderscore:
+                code = id.upper()
+                if id in self.currencies_by_id:
+                    code = self.currencies_by_id[id]['code']
+                account = self.account()
+                usedField = id + '_lock'
+                account['used'] = self.safe_float(balances, usedField)
+                account['total'] = self.safe_float(balances, id)
+                account['free'] = account['total'] - account['used']
+                result[code] = account
+        return self.parse_balance(result)
+
     def parse_ticker(self, ticker, market=None):
         timestamp = ticker['date'] * 1000
         symbol = market['symbol']
+        last = float(ticker['last'])
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -162,12 +193,14 @@ class bitz (Exchange):
             'high': float(ticker['high']),
             'low': float(ticker['low']),
             'bid': float(ticker['buy']),
+            'bidVolume': None,
             'ask': float(ticker['sell']),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
@@ -247,21 +280,31 @@ class bitz (Exchange):
             'coin': market['id'],
             'type': self.timeframes[timeframe],
         }, params))
-        ohlcv = self.unjson(response['data']['datas']['data'])
+        ohlcv = json.loads(response['data']['datas']['data'])
         return self.parse_ohlcvs(ohlcv, market, timeframe, since, limit)
 
-    def parse_order(self, order, market):
+    def parse_order(self, order, market=None):
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
+        side = self.safe_string(order, 'side')
+        if side is None:
+            side = self.safe_string(order, 'type')
+            if side is not None:
+                side = 'buy' if (side == 'in') else 'sell'
+        timestamp = None
+        iso8601 = None
+        if 'datetime' in order:
+            timestamp = self.parse8601(order['datetime'])
+            iso8601 = self.iso8601(timestamp)
         return {
             'id': order['id'],
-            'datetime': None,
-            'timestamp': None,
+            'datetime': iso8601,
+            'timestamp': timestamp,
             'status': 'open',
             'symbol': symbol,
             'type': 'limit',
-            'side': order['type'],
+            'side': side,
             'price': order['price'],
             'cost': None,
             'amount': order['number'],
@@ -275,9 +318,10 @@ class bitz (Exchange):
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         market = self.market(symbol)
+        orderType = 'in' if (side == 'buy') else 'out'
         request = {
             'coin': market['id'],
-            'type': side,
+            'type': orderType,
             'price': self.price_to_precision(symbol, price),
             'number': self.amount_to_string(symbol, amount),
             'tradepwd': self.password,
@@ -288,7 +332,7 @@ class bitz (Exchange):
             'id': id,
             'price': price,
             'number': amount,
-            'type': side,
+            'side': side,
         }, market)
         self.orders[id] = order
         return order
@@ -306,11 +350,15 @@ class bitz (Exchange):
         response = self.privatePostOpenOrders(self.extend({
             'coin': market['id'],
         }, params))
-        return self.parse_orders(response['data'], market)
+        return self.parse_orders(response['data'], market, since, limit)
 
     def nonce(self):
-        milliseconds = self.milliseconds()
-        return(milliseconds % 1000000)
+        currentTimestamp = self.seconds()
+        if currentTimestamp > self.options['lastNonceTimestamp']:
+            self.options['lastNonceTimestamp'] = currentTimestamp
+            self.options['lastNonce'] = 100000
+        self.options['lastNonce'] += 1
+        return self.options['lastNonce']
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + path

@@ -31,7 +31,10 @@ module.exports = class gateio extends Exchange {
                 },
                 'www': 'https://gate.io/',
                 'doc': 'https://gate.io/api2',
-                'fees': 'https://gate.io/fee',
+                'fees': [
+                    'https://gate.io/fee',
+                    'https://support.gate.io/hc/en-us/articles/115003577673',
+                ],
             },
             'api': {
                 'public': {
@@ -62,6 +65,14 @@ module.exports = class gateio extends Exchange {
                         'tradeHistory',
                         'withdraw',
                     ],
+                },
+            },
+            'fees': {
+                'trading': {
+                    'tierBased': true,
+                    'percentage': true,
+                    'maker': 0.002,
+                    'taker': 0.002,
                 },
             },
         });
@@ -145,9 +156,7 @@ module.exports = class gateio extends Exchange {
         let orderbook = await this.publicGetOrderBookId (this.extend ({
             'id': this.marketId (symbol),
         }, params));
-        let result = this.parseOrderBook (orderbook);
-        result['asks'] = this.sortBy (result['asks'], 0);
-        return result;
+        return this.parseOrderBook (orderbook);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -155,6 +164,7 @@ module.exports = class gateio extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        let last = parseFloat (ticker['last']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -162,12 +172,14 @@ module.exports = class gateio extends Exchange {
             'high': parseFloat (ticker['high24hr']),
             'low': parseFloat (ticker['low24hr']),
             'bid': parseFloat (ticker['highestBid']),
+            'bidVolume': undefined,
             'ask': parseFloat (ticker['lowestAsk']),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': parseFloat (ticker['percentChange']),
             'percentage': undefined,
             'average': undefined,
@@ -221,7 +233,7 @@ module.exports = class gateio extends Exchange {
             'symbol': market['symbol'],
             'type': undefined,
             'side': trade['type'],
-            'price': trade['rate'],
+            'price': parseFloat (trade['rate']),
             'amount': this.safeFloat (trade, 'amount'),
         };
     }
@@ -273,15 +285,16 @@ module.exports = class gateio extends Exchange {
         };
     }
 
-    async createDepositAddress (currency, params = {}) {
+    async createDepositAddress (currency, params = {}) { // CHANGE
         return await this.queryDepositAddress ('New', currency, params);
     }
 
-    async fetchDepositAddress (currency, params = {}) {
+    async fetchDepositAddress (currency, params = {}) {  // CHANGE
         return await this.queryDepositAddress ('Deposit', currency, params);
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
         await this.loadMarkets ();
         let response = await this.privatePostWithdraw (this.extend ({
             'currency': currency.toLowerCase (),
@@ -318,9 +331,18 @@ module.exports = class gateio extends Exchange {
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('result' in response)
-            if (response['result'] !== 'true')
-                throw new ExchangeError (this.id + ' ' + this.json (response));
+        if ('result' in response) {
+            let result = response['result'];
+            let message = this.id + ' ' + this.json (response);
+            if (typeof result === 'undefined')
+                throw new ExchangeError (message);
+            if (typeof result === 'string') {
+                if (result !== 'true')
+                    throw new ExchangeError (message);
+            } else if (!result) {
+                throw new ExchangeError (message);
+            }
+        }
         return response;
     }
 };

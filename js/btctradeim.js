@@ -16,7 +16,7 @@ module.exports = class btctradeim extends coinegg {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/36770531-c2142444-1c5b-11e8-91e2-a4d90dc85fe8.jpg',
                 'api': {
-                    'web': 'https://www.btctrade.im/coin',
+                    'web': 'https://api.btctrade.im/coin',
                     'rest': 'https://api.btctrade.im/api/v1',
                 },
                 'www': 'https://www.btctrade.im',

@@ -161,7 +161,9 @@ module.exports = class bithumb extends Exchange {
             'high': this.safeFloat (ticker, 'max_price'),
             'low': this.safeFloat (ticker, 'min_price'),
             'bid': this.safeFloat (ticker, 'buy_price'),
+            'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'sell_price'),
+            'askVolume': undefined,
             'vwap': vwap,
             'open': open,
             'close': close,
@@ -288,6 +290,7 @@ module.exports = class bithumb extends Exchange {
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
         let request = {
             'units': amount,
             'address': address,

@@ -30,6 +30,7 @@ class btcmarkets (Exchange):
                 'fetchClosedOrders': 'emulated',
                 'fetchOpenOrders': True,
                 'fetchMyTrades': True,
+                'cancelOrders': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/29142911-0e1acfc2-7d5c-11e7-98c4-07d9532b29d7.jpg',
@@ -152,6 +153,7 @@ class btcmarkets (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
+        last = float(ticker['lastPrice'])
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -159,12 +161,14 @@ class btcmarkets (Exchange):
             'high': None,
             'low': None,
             'bid': float(ticker['bestBid']),
+            'bidVolume': None,
             'ask': float(ticker['bestAsk']),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['lastPrice']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,

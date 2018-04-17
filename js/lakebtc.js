@@ -92,8 +92,8 @@ module.exports = class lakebtc extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
             let code = id;
-            if (id in this.currencies) {
-                let currency = this.currencies[id];
+            if (id in this.currencies_by_id) {
+                let currency = this.currencies_by_id[id];
                 code = currency['code'];
             }
             let balance = parseFloat (balances[id]);
@@ -120,6 +120,7 @@ module.exports = class lakebtc extends Exchange {
         let symbol = undefined;
         if (typeof market !== 'undefined')
             symbol = market['symbol'];
+        let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -127,12 +128,14 @@ module.exports = class lakebtc extends Exchange {
             'high': this.safeFloat (ticker, 'high'),
             'low': this.safeFloat (ticker, 'low'),
             'bid': this.safeFloat (ticker, 'bid'),
+            'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'ask'),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': this.safeFloat (ticker, 'last'),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,

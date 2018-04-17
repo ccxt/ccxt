@@ -171,6 +171,7 @@ class luno (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
+        last = float(ticker['last_trade'])
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -178,12 +179,14 @@ class luno (Exchange):
             'high': None,
             'low': None,
             'bid': float(ticker['bid']),
+            'bidVolume': None,
             'ask': float(ticker['ask']),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['last_trade']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
@@ -240,10 +243,10 @@ class luno (Exchange):
         response = await self.publicGetTrades(self.extend(request, params))
         return self.parse_trades(response['trades'], market, since, limit)
 
-    async def create_order(self, market, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         method = 'privatePost'
-        order = {'pair': self.market_id(market)}
+        order = {'pair': self.market_id(symbol)}
         if type == 'market':
             method += 'Marketorder'
             order['type'] = side.upper()

@@ -539,18 +539,18 @@ class coinexchange (Exchange):
                 'amount': 8,
                 'price': 8,
             },
+            'commonCurrencies': {
+                'BON': 'BonPeKaO',
+                'ETN': 'Ethernex',
+                'GDC': 'GoldenCryptoCoin',
+                'GTC': 'GlobalTourCoin',
+                'HNC': 'Huncoin',
+                'MARS': 'MarsBux',
+                'MER': 'TheMermaidCoin',
+                'RUB': 'RubbleCoin',
+                'UP': 'UpscaleToken',
+            },
         })
-
-    def common_currency_code(self, currency):
-        substitutions = {
-            'BON': 'BonPeKaO',
-            'ETN': 'Ethernex',
-            'HNC': 'Huncoin',
-            'MARS': 'MarsBux',
-        }
-        if currency in substitutions:
-            return substitutions[currency]
-        return currency
 
     async def fetch_currencies(self, params={}):
         response = await self.publicGetGetcurrencies(params)
@@ -628,6 +628,7 @@ class coinexchange (Exchange):
         if market:
             symbol = market['symbol']
         timestamp = self.milliseconds()
+        last = self.safe_float(ticker, 'LastPrice')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -635,12 +636,14 @@ class coinexchange (Exchange):
             'high': self.safe_float(ticker, 'HighPrice'),
             'low': self.safe_float(ticker, 'LowPrice'),
             'bid': self.safe_float(ticker, 'BidPrice'),
+            'bidVolume': None,
             'ask': self.safe_float(ticker, 'AskPrice'),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': self.safe_float(ticker, 'LastPrice'),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': self.safe_float(ticker, 'Change'),
             'percentage': None,
             'average': None,

@@ -19,6 +19,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 
 
@@ -30,8 +31,11 @@ class coinegg (Exchange):
             'name': 'CoinEgg',
             'countries': ['CN', 'UK'],
             'has': {
-                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrders': True,
+                'fetchOpenOrders': 'emulated',
                 'fetchMyTrades': True,
+                'fetchTickers': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/36770310-adfa764e-1c5a-11e8-8e09-449daac3d2fb.jpg',
@@ -61,10 +65,8 @@ class coinegg (Exchange):
                     ],
                 },
                 'private': {
-                    'get': [
-                        'balance',
-                    ],
                     'post': [
+                        'balance',
                         'trade_add/{quote}',
                         'trade_cancel/{quote}',
                         'trade_view/{quote}',
@@ -135,6 +137,27 @@ class coinegg (Exchange):
                 '203': OrderNotFound,
                 '402': DDoSProtection,
             },
+            'errorMessages': {
+                '100': 'Required parameters can not be empty',
+                '101': 'Illegal parameter',
+                '102': 'coin does not exist',
+                '103': 'Key does not exist',
+                '104': 'Signature does not match',
+                '105': 'Insufficient permissions',
+                '106': 'Request expired(nonce error)',
+                '200': 'Lack of balance',
+                '201': 'Too small for the number of trading',
+                '202': 'Price must be in 0 - 1000000',
+                '203': 'Order does not exist',
+                '204': 'Pending order amount must be above 0.001 BTC',
+                '205': 'Restrict pending order prices',
+                '206': 'Decimal place error',
+                '401': 'System error',
+                '402': 'Requests are too frequent',
+                '403': 'Non-open API',
+                '404': 'IP restriction does not request the resource',
+                '405': 'Currency transactions are temporarily closed',
+            },
         })
 
     async def fetch_markets(self):
@@ -145,10 +168,12 @@ class coinegg (Exchange):
             bases = await self.webGetQuoteAllcoin({
                 'quote': quoteId,
             })
+            if bases is None:
+                raise ExchangeNotAvailable(self.id + ' fetchMarkets() for "' + quoteId + '" returned: "' + self.json(bases) + '"')
             baseIds = list(bases.keys())
             numBaseIds = len(baseIds)
             if numBaseIds < 1:
-                raise ExchangeError(self.id + ' fetchMarkets() failed for ' + quoteId)
+                raise ExchangeNotAvailable(self.id + ' fetchMarkets() for "' + quoteId + '" returned: "' + self.json(bases) + '"')
             for i in range(0, len(baseIds)):
                 baseId = baseIds[i]
                 market = bases[baseId]
@@ -194,6 +219,7 @@ class coinegg (Exchange):
     def parse_ticker(self, ticker, market=None):
         symbol = market['symbol']
         timestamp = self.milliseconds()
+        last = float(ticker['last'])
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -201,12 +227,14 @@ class coinegg (Exchange):
             'high': float(ticker['high']),
             'low': float(ticker['low']),
             'bid': float(ticker['buy']),
+            'bidVolume': None,
             'ask': float(ticker['sell']),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': self.safe_float(ticker, 'change'),
             'percentage': None,
             'average': None,
@@ -240,18 +268,19 @@ class coinegg (Exchange):
                 baseId = baseIds[i]
                 ticker = tickers[baseId]
                 id = baseId + quoteId
-                market = self.marketsById[id]
-                symbol = market['symbol']
-                result[symbol] = self.parse_ticker({
-                    'high': ticker[4],
-                    'low': ticker[5],
-                    'buy': ticker[2],
-                    'sell': ticker[3],
-                    'last': ticker[1],
-                    'change': ticker[8],
-                    'vol': ticker[6],
-                    'quoteVol': ticker[7],
-                }, market)
+                if id in self.markets_by_id:
+                    market = self.marketsById[id]
+                    symbol = market['symbol']
+                    result[symbol] = self.parse_ticker({
+                        'high': ticker[4],
+                        'low': ticker[5],
+                        'buy': ticker[2],
+                        'sell': ticker[3],
+                        'last': ticker[1],
+                        'change': ticker[8],
+                        'vol': ticker[6],
+                        'quoteVol': ticker[7],
+                    }, market)
         return result
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
@@ -295,30 +324,29 @@ class coinegg (Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        balances = await self.privateGetBalance(params)
-        result = {'info': balances}
-        balances = self.omit(balances['data'], 'uid')
-        rows = list(balances.keys())
-        for i in range(0, len(rows)):
-            row = rows[i]
-            id, type = row.split('_')
-            id = id.upper()
-            type = type.upper()
-            currency = self.common_currency_code(id)
-            if currency in self.currencies:
-                if not(currency in list(result.keys())):
-                    result[currency] = {
-                        'free': None,
-                        'used': None,
-                        'total': None,
-                    }
-                type = (type == 'used' if 'LOCK' else 'free')
-                result[currency][type] = float(balances[row])
+        response = await self.privatePostBalance(params)
+        result = {}
+        balances = self.omit(response['data'], 'uid')
+        keys = list(balances.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            currencyId, accountType = key.split('_')
+            code = currencyId
+            if currencyId in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
+            if not(code in list(result.keys())):
+                result[code] = {
+                    'free': None,
+                    'used': None,
+                    'total': None,
+                }
+            accountType = 'used' if (accountType == 'lock') else 'free'
+            result[code][accountType] = float(balances[key])
         currencies = list(result.keys())
         for i in range(0, len(currencies)):
             currency = currencies[i]
             result[currency]['total'] = self.sum(result[currency]['free'], result[currency]['used'])
-        return self.parse_balance(result)
+        return self.parse_balance(self.extend({'info': response}, result))
 
     def parse_order(self, order, market=None):
         symbol = market['symbol']
@@ -361,9 +389,7 @@ class coinegg (Exchange):
             'amount': amount,
             'price': price,
         }, params))
-        if not response['status']:
-            raise InvalidOrder(self.json(response))
-        id = response['id']
+        id = str(response['id'])
         order = self.parse_order({
             'id': id,
             'datetime': self.ymdhms(self.milliseconds()),
@@ -384,8 +410,6 @@ class coinegg (Exchange):
             'coin': market['baseId'],
             'quote': market['quoteId'],
         }, params))
-        if not response['status']:
-            raise ExchangeError(self.json(response))
         return response
 
     async def fetch_order(self, id, symbol=None, params={}):
@@ -436,7 +460,7 @@ class coinegg (Exchange):
                 'key': self.apiKey,
                 'nonce': self.nonce(),
             }, query))
-            secret = self.hash(self.secret)
+            secret = self.hash(self.encode(self.secret))
             signature = self.hmac(self.encode(query), self.encode(secret))
             query += '&' + 'signature=' + signature
             if method == 'GET':
@@ -449,36 +473,30 @@ class coinegg (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body):
-        errorMessages = {
-            '100': 'Required parameters can not be empty',
-            '101': 'Illegal parameter',
-            '102': 'coin does not exist',
-            '103': 'Key does not exist',
-            '104': 'Signature does not match',
-            '105': 'Insufficient permissions',
-            '106': 'Request expired(nonce error)',
-            '200': 'Lack of balance',
-            '201': 'Too small for the number of trading',
-            '202': 'Price must be in 0 - 1000000',
-            '203': 'Order does not exist',
-            '204': 'Pending order amount must be above 0.001 BTC',
-            '205': 'Restrict pending order prices',
-            '206': 'Decimal place error',
-            '401': 'System error',
-            '402': 'Requests are too frequent',
-            '403': 'Non-open API',
-            '404': 'IP restriction does not request the resource',
-            '405': 'Currency transactions are temporarily closed',
-        }
         # checks against error codes
-        if isinstance(body, basestring):
-            if len(body) > 0:
-                if body[0] == '{':
-                    response = json.loads(body)
-                    error = self.safe_string(response, 'code')
-                    message = self.safe_string(errorMessages, code, 'Error')
-                    if error is not None:
-                        if error in self.exceptions:
-                            raise self.exceptions[error](self.id + ' ' + message)
-                        else:
-                            raise ExchangeError(self.id + message)
+        if not isinstance(body, basestring):
+            return
+        if len(body) == 0:
+            return
+        if body[0] != '{':
+            return
+        response = json.loads(body)
+        # private endpoints return the following structure:
+        # {"result":true,"data":{...}} - success
+        # {"result":false,"code":"103"} - failure
+        # {"code":0,"msg":"Suceess","data":{"uid":"2716039","btc_balance":"0.00000000","btc_lock":"0.00000000","xrp_balance":"0.00000000","xrp_lock":"0.00000000"}}
+        result = self.safe_value(response, 'result')
+        if result is None:
+            # public endpoint ← self comment left here by the contributor, in fact a missing result does not necessarily mean a public endpoint...
+            # we should just check the code and don't rely on the result at all here...
+            return
+        if result is True:
+            # success
+            return
+        errorCode = self.safe_string(response, 'code')
+        errorMessages = self.errorMessages
+        message = self.safe_string(errorMessages, errorCode, 'Unknown Error')
+        if errorCode in self.exceptions:
+            raise self.exceptions[errorCode](self.id + ' ' + message)
+        else:
+            raise ExchangeError(self.id + ' ' + message)

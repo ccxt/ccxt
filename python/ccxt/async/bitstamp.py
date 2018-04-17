@@ -80,6 +80,7 @@ class bitstamp (Exchange):
                         'xrp_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
+                        'withdrawal-requests/',
                         'withdrawal/open/',
                         'withdrawal/status/',
                         'withdrawal/cancel/',
@@ -221,6 +222,7 @@ class bitstamp (Exchange):
         vwap = float(ticker['vwap'])
         baseVolume = float(ticker['volume'])
         quoteVolume = baseVolume * vwap
+        last = float(ticker['last'])
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -228,12 +230,14 @@ class bitstamp (Exchange):
             'high': float(ticker['high']),
             'low': float(ticker['low']),
             'bid': float(ticker['bid']),
+            'bidVolume': None,
             'ask': float(ticker['ask']),
+            'askVolume': None,
             'vwap': vwap,
             'open': float(ticker['open']),
-            'close': None,
-            'first': None,
-            'last': float(ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
@@ -250,9 +254,12 @@ class bitstamp (Exchange):
             'tid',
             'type',
             'order_id',
+            'side',
         ])
         currencyIds = list(trade.keys())
         numCurrencyIds = len(currencyIds)
+        if numCurrencyIds > 2:
+            raise ExchangeError(self.id + ' getMarketFromTrade too many keys: ' + self.json(currencyIds) + ' in the trade: ' + self.json(trade))
         if numCurrencyIds == 2:
             marketId = currencyIds[0] + currencyIds[1]
             if marketId in self.markets_by_id:
@@ -336,7 +343,7 @@ class bitstamp (Exchange):
         market = self.market(symbol)
         response = await self.publicGetTransactionsPair(self.extend({
             'pair': market['id'],
-            'time': 'minute',
+            'time': 'hour',
         }, params))
         return self.parse_trades(response, market, since, limit)
 
@@ -528,15 +535,19 @@ class bitstamp (Exchange):
         method += 'Deposit' if v1 else ''
         method += 'Address'
         response = await getattr(self, method)(params)
+        address = response if v1 else self.safe_string(response, 'address')
+        tag = None if v1 else self.safe_string(response, 'destination_tag')
+        self.check_address(address)
         return {
             'currency': code,
             'status': 'ok',
-            'address': self.safe_string(response, 'address'),
-            'tag': self.safe_string(response, 'destination_tag'),
+            'address': address,
+            'tag': tag,
             'info': response,
         }
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        self.check_address(address)
         if self.is_fiat(code):
             raise NotSupported(self.id + ' fiat withdraw() for ' + code + ' is not implemented yet')
         name = self.get_currency_name(code)

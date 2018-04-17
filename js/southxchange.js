@@ -16,6 +16,7 @@ module.exports = class southxchange extends Exchange {
             'rateLimit': 1000,
             'has': {
                 'CORS': true,
+                'createDepositAddress': true,
                 'fetchOpenOrders': true,
                 'fetchTickers': true,
                 'withdraw': true,
@@ -56,6 +57,9 @@ module.exports = class southxchange extends Exchange {
                     'taker': 0.2 / 100,
                 },
             },
+            'commonCurrencies': {
+                'SMT': 'SmartNode',
+            },
         });
     }
 
@@ -64,8 +68,10 @@ module.exports = class southxchange extends Exchange {
         let result = [];
         for (let p = 0; p < markets.length; p++) {
             let market = markets[p];
-            let base = market[0];
-            let quote = market[1];
+            let baseId = market[0];
+            let quoteId = market[1];
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
             let id = symbol;
             result.push ({
@@ -73,6 +79,8 @@ module.exports = class southxchange extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'info': market,
             });
         }
@@ -87,17 +95,21 @@ module.exports = class southxchange extends Exchange {
         let result = { 'info': balances };
         for (let b = 0; b < balances.length; b++) {
             let balance = balances[b];
-            let currency = balance['Currency'];
-            let uppercase = currency.toUpperCase ();
+            let currencyId = balance['Currency'];
+            let uppercase = currencyId.toUpperCase ();
+            let currency = this.currencies_by_id[uppercase];
+            let code = currency['code'];
             let free = parseFloat (balance['Available']);
-            let used = parseFloat (balance['Unconfirmed']);
-            let total = this.sum (free, used);
+            let deposited = parseFloat (balance['Deposited']);
+            let unconfirmed = parseFloat (balance['Unconfirmed']);
+            let total = this.sum (deposited, unconfirmed);
+            let used = total - free;
             let account = {
                 'free': free,
                 'used': used,
                 'total': total,
             };
-            result[uppercase] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
@@ -115,6 +127,7 @@ module.exports = class southxchange extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        let last = this.safeFloat (ticker, 'Last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -122,12 +135,14 @@ module.exports = class southxchange extends Exchange {
             'high': undefined,
             'low': undefined,
             'bid': this.safeFloat (ticker, 'Bid'),
+            'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'Ask'),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': this.safeFloat (ticker, 'Last'),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': this.safeFloat (ticker, 'Variation24Hr'),
             'percentage': undefined,
             'average': undefined,
@@ -212,8 +227,8 @@ module.exports = class southxchange extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'type': orderType,
-            'side': undefined,
+            'type': 'limit',
+            'side': orderType,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -259,12 +274,38 @@ module.exports = class southxchange extends Exchange {
         }, params));
     }
 
+    async createDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let response = await this.privatePostGeneratenewaddress (this.extend ({
+            'currency': currency['id'],
+        }, params));
+        let parts = response.split ('|');
+        let numParts = parts.length;
+        let address = parts[0];
+        this.checkAddress (address);
+        let tag = undefined;
+        if (numParts > 1)
+            tag = parts[1];
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'status': 'ok',
+            'info': response,
+        };
+    }
+
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
-        let response = await this.privatePostWithdraw (this.extend ({
+        this.checkAddress (address);
+        let request = {
             'currency': currency,
             'address': address,
             'amount': amount,
-        }, params));
+        };
+        if (typeof tag !== 'undefined')
+            request['address'] = address + '|' + tag;
+        let response = await this.privatePostWithdraw (this.extend (request, params));
         return {
             'info': response,
             'id': undefined,

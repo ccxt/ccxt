@@ -71,7 +71,7 @@ module.exports = class zb extends Exchange {
                     'public': 'http://api.zb.com/data', // no https for public API
                     'private': 'https://trade.zb.com/api',
                 },
-                'www': 'https://trade.zb.com/api',
+                'www': 'https://www.zb.com',
                 'doc': 'https://www.zb.com/i/developer',
                 'fees': 'https://www.zb.com/i/rate',
             },
@@ -87,6 +87,7 @@ module.exports = class zb extends Exchange {
                 },
                 'private': {
                     'get': [
+                        // spot API
                         'order',
                         'cancelOrder',
                         'getOrder',
@@ -102,6 +103,18 @@ module.exports = class zb extends Exchange {
                         'getCnyWithdrawRecord',
                         'getCnyChargeRecord',
                         'withdraw',
+                        // leverage API
+                        'getLeverAssetsInfo',
+                        'getLeverBills',
+                        'transferInLever',
+                        'transferOutLever',
+                        'loan',
+                        'cancelLoan',
+                        'getLoans',
+                        'getLoanRecords',
+                        'borrow',
+                        'repay',
+                        'getRepayments',
                     ],
                 },
             },
@@ -233,24 +246,7 @@ module.exports = class zb extends Exchange {
         let request = {};
         request[marketFieldName] = market['id'];
         let orderbook = await this.publicGetDepth (this.extend (request, params));
-        let timestamp = this.milliseconds ();
-        let bids = undefined;
-        let asks = undefined;
-        if ('bids' in orderbook)
-            bids = orderbook['bids'];
-        if ('asks' in orderbook)
-            asks = orderbook['asks'];
-        let result = {
-            'bids': bids,
-            'asks': asks,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-        };
-        if (result['bids'])
-            result['bids'] = this.sortBy (result['bids'], 0, true);
-        if (result['asks'])
-            result['asks'] = this.sortBy (result['asks'], 0);
-        return result;
+        return this.parseOrderBook (orderbook);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -262,6 +258,7 @@ module.exports = class zb extends Exchange {
         let response = await this.publicGetTicker (this.extend (request, params));
         let ticker = response['ticker'];
         let timestamp = this.milliseconds ();
+        let last = parseFloat (ticker['last']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -269,12 +266,14 @@ module.exports = class zb extends Exchange {
             'high': parseFloat (ticker['high']),
             'low': parseFloat (ticker['low']),
             'bid': parseFloat (ticker['buy']),
+            'bidVolume': undefined,
             'ask': parseFloat (ticker['sell']),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
@@ -354,6 +353,8 @@ module.exports = class zb extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        if (typeof symbol === 'undefined')
+            throw new ExchangeError (this.id + ' fetchOrder() requires a symbol argument');
         await this.loadMarkets ();
         let order = {
             'id': id.toString (),
@@ -382,10 +383,8 @@ module.exports = class zb extends Exchange {
         try {
             response = await this[method] (this.extend (request, params));
         } catch (e) {
-            if (this.last_json_response) {
-                let code = this.safeString (this.last_json_response, 'code');
-                if (code === '3001')
-                    return [];
+            if (e instanceof OrderNotFound) {
+                return [];
             }
             throw e;
         }
@@ -410,10 +409,8 @@ module.exports = class zb extends Exchange {
         try {
             response = await this[method] (this.extend (request, params));
         } catch (e) {
-            if (this.last_json_response) {
-                let code = this.safeString (this.last_json_response, 'code');
-                if (code === '3001')
-                    return [];
+            if (e instanceof OrderNotFound) {
+                return [];
             }
             throw e;
         }
@@ -513,12 +510,12 @@ module.exports = class zb extends Exchange {
         if (body[0] === '{') {
             let response = JSON.parse (body);
             if ('code' in response) {
-                let error = this.safeString (response, 'code');
+                let code = this.safeString (response, 'code');
                 let message = this.id + ' ' + this.json (response);
-                if (error in this.exceptions) {
-                    let ExceptionClass = this.exceptions[error];
+                if (code in this.exceptions) {
+                    let ExceptionClass = this.exceptions[code];
                     throw new ExceptionClass (message);
-                } else if (error !== '1000') {
+                } else if (code !== '1000') {
                     throw new ExchangeError (message);
                 }
             }

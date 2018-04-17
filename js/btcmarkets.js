@@ -22,6 +22,7 @@ module.exports = class btcmarkets extends Exchange {
                 'fetchClosedOrders': 'emulated',
                 'fetchOpenOrders': true,
                 'fetchMyTrades': true,
+                'cancelOrders': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/29142911-0e1acfc2-7d5c-11e7-98c4-07d9532b29d7.jpg',
@@ -150,6 +151,7 @@ module.exports = class btcmarkets extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        let last = parseFloat (ticker['lastPrice']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -157,12 +159,14 @@ module.exports = class btcmarkets extends Exchange {
             'high': undefined,
             'low': undefined,
             'bid': parseFloat (ticker['bestBid']),
+            'bidVolume': undefined,
             'ask': parseFloat (ticker['bestAsk']),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['lastPrice']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,

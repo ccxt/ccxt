@@ -4,10 +4,19 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import hashlib
 import math
+import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
@@ -28,11 +37,13 @@ class bibox (Exchange):
                 'fetchBalance': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
+                'fetchFundingFees': True,
                 'fetchTickers': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'createMarketOrder': False,  # or they will return https://github.com/ccxt/ccxt/issues/2338
                 'withdraw': True,
             },
             'timeframes': {
@@ -87,6 +98,17 @@ class bibox (Exchange):
                     'deposit': {},
                 },
             },
+            'exceptions': {
+                '2015': AuthenticationError,  # Google authenticator is wrong
+                '2033': OrderNotFound,  # operation failednot  Orders have been completed or revoked
+                '2067': InvalidOrder,  # Does not support market orders
+                '2068': InvalidOrder,  # The number of orders can not be less than
+                '3012': AuthenticationError,  # invalid apiKey
+                '3024': PermissionDenied,  # wrong apikey permissions
+                '3025': AuthenticationError,  # signature failed
+                '4000': ExchangeNotAvailable,  # current network is unstable
+                '4003': DDoSProtection,  # server busy please try again later
+            },
         })
 
     async def fetch_markets(self, params={}):
@@ -97,10 +119,10 @@ class bibox (Exchange):
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
-            base = market['coin_symbol']
-            quote = market['currency_symbol']
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            baseId = market['coin_symbol']
+            quoteId = market['currency_symbol']
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
             id = base + '_' + quote
             precision = {
@@ -112,7 +134,9 @@ class bibox (Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'active': None,
+                'baseId': base,
+                'quoteId': quote,
+                'active': True,
                 'info': market,
                 'lot': math.pow(10, -precision['amount']),
                 'precision': precision,
@@ -136,6 +160,7 @@ class bibox (Exchange):
             symbol = market['symbol']
         else:
             symbol = ticker['coin_symbol'] + '/' + ticker['currency_symbol']
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -143,16 +168,18 @@ class bibox (Exchange):
             'high': self.safe_float(ticker, 'high'),
             'low': self.safe_float(ticker, 'low'),
             'bid': self.safe_float(ticker, 'buy'),
+            'bidVolume': None,
             'ask': self.safe_float(ticker, 'sell'),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': self.safe_float(ticker, 'last'),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': self.safe_string(ticker, 'percent'),
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'vol'),
+            'baseVolume': self.safe_float(ticker, 'vol24H'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -166,19 +193,17 @@ class bibox (Exchange):
         }, params))
         return self.parse_ticker(response['result'], market)
 
+    def parse_tickers(self, rawTickers, symbols=None):
+        tickers = []
+        for i in range(0, len(rawTickers)):
+            tickers.append(self.parse_ticker(rawTickers[i]))
+        return self.filter_by_array(tickers, 'symbol', symbols)
+
     async def fetch_tickers(self, symbols=None, params={}):
         response = await self.publicGetMdata(self.extend({
             'cmd': 'marketAll',
         }, params))
-        tickers = response['result']
-        result = {}
-        for t in range(0, len(tickers)):
-            ticker = self.parse_ticker(tickers[t])
-            symbol = ticker['symbol']
-            if symbols and(not(symbol in list(symbols.keys()))):
-                continue
-            result[symbol] = ticker
-        return result
+        return self.parse_tickers(response['result'], symbols)
 
     def parse_trade(self, trade, market=None):
         timestamp = trade['time']
@@ -198,15 +223,15 @@ class bibox (Exchange):
                 'currency': None,
             }
         return {
-            'id': None,
+            'id': self.safe_string(trade, 'id'),
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
             'type': 'limit',
             'side': side,
-            'price': float(trade['price']),
-            'amount': float(trade['amount']),
+            'price': self.safe_float(trade, 'price'),
+            'amount': self.safe_float(trade, 'amount'),
             'fee': fee,
         }
 
@@ -312,20 +337,27 @@ class bibox (Exchange):
         if 'assets_list' in balances:
             indexed = self.index_by(balances['assets_list'], 'coin_symbol')
         else:
-            indexed = {}
+            indexed = balances
         keys = list(indexed.keys())
         for i in range(0, len(keys)):
             id = keys[i]
-            currency = self.common_currency_code(id)
+            code = id.upper()
+            if code.find('TOTAL_') >= 0:
+                code = code[6:]
+            if code in self.currencies_by_id:
+                code = self.currencies_by_id[code]['code']
             account = self.account()
             balance = indexed[id]
-            used = float(balance['freeze'])
-            free = float(balance['balance'])
-            total = self.sum(free, used)
-            account['free'] = free
-            account['used'] = used
-            account['total'] = total
-            result[currency] = account
+            if isinstance(balance, basestring):
+                balance = float(balance)
+                account['free'] = balance
+                account['used'] = 0.0
+                account['total'] = balance
+            else:
+                account['free'] = float(balance['balance'])
+                account['used'] = float(balance['freeze'])
+                account['total'] = self.sum(account['free'], account['used'])
+            result[code] = account
         return self.parse_balance(result)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -367,7 +399,7 @@ class bibox (Exchange):
             symbol = order['coin_symbol'] + '/' + order['currency_symbol']
         type = 'market' if (order['order_type'] == 1) else 'limit'
         timestamp = order['createdAt']
-        price = order['price']
+        price = self.safe_float(order, 'price')
         filled = self.safe_float(order, 'deal_amount')
         amount = self.safe_float(order, 'amount')
         cost = self.safe_float(order, 'money')
@@ -464,24 +496,26 @@ class bibox (Exchange):
             }, params),
         })
         trades = self.safe_value(response['result'], 'items', [])
-        return self.parse_trades(trades, market, since, limit)
+        return self.parse_orders(trades, market, since, limit)
 
     async def fetch_deposit_address(self, code, params={}):
         await self.load_markets()
         currency = self.currency(code)
         response = await self.privatePostTransfer({
-            'cmd': 'transfer/transferOutInfo',
+            'cmd': 'transfer/transferIn',
             'body': self.extend({
                 'coin_symbol': currency['id'],
             }, params),
         })
+        address = self.safe_string(response, 'result')
         result = {
             'info': response,
-            'address': None,
+            'address': address,
         }
         return result
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        self.check_address(address)
         await self.load_markets()
         currency = self.currency(code)
         if self.password is None:
@@ -506,6 +540,31 @@ class bibox (Exchange):
             'id': None,
         }
 
+    async def fetch_funding_fees(self, codes=None, params={}):
+        #  by default it will try load withdrawal fees of all currencies(with separate requests)
+        #  however if you define codes = ['ETH', 'BTC'] in args it will only load those
+        await self.load_markets()
+        withdrawFees = {}
+        info = {}
+        if codes is None:
+            codes = list(self.currencies.keys())
+        for i in range(0, len(codes)):
+            code = codes[i]
+            currency = self.currency(code)
+            response = await self.privatePostTransfer({
+                'cmd': 'transfer/transferOutInfo',
+                'body': self.extend({
+                    'coin_symbol': currency['id'],
+                }, params),
+            })
+            info[code] = response
+            withdrawFees[code] = response['result']['withdraw_fee']
+        return {
+            'info': info,
+            'withdraw': withdrawFees,
+            'deposit': {},
+        }
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + path
         cmds = self.json([params])
@@ -526,34 +585,25 @@ class bibox (Exchange):
         headers = {'Content-Type': 'application/json'}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
+    def handle_errors(self, code, reason, url, method, headers, body):
+        if len(body) > 0:
+            if body[0] == '{':
+                response = json.loads(body)
+                if 'error' in response:
+                    if 'code' in response['error']:
+                        code = self.safe_string(response['error'], 'code')
+                        feedback = self.id + ' ' + body
+                        exceptions = self.exceptions
+                        if code in exceptions:
+                            raise exceptions[code](feedback)
+                        else:
+                            raise ExchangeError(feedback)
+                    raise ExchangeError(self.id + ': "error" in response: ' + body)
+                if not('result' in list(response.keys())):
+                    raise ExchangeError(self.id + ' ' + body)
+
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = await self.fetch2(path, api, method, params, headers, body)
-        message = self.id + ' ' + self.json(response)
-        if 'error' in response:
-            if 'code' in response['error']:
-                code = response['error']['code']
-                if code == '2033':
-                    # \u64cd\u4f5c\u5931\u8d25\uff01\u8ba2\u5355\u5df2\u5b8c\u6210\u6216\u5df2\u64a4\u9500
-                    # operation failednot  Orders have been completed or revoked
-                    # e.g. trying to cancel a filled order
-                    raise OrderNotFound(message)
-                elif code == '2068':
-                    # \u4e0b\u5355\u6570\u91cf\u4e0d\u80fd\u4f4e\u4e8e
-                    # The number of orders can not be less than
-                    raise InvalidOrder(message)
-                elif code == '3012':
-                    raise AuthenticationError(message)  # invalid api key
-                elif code == '3025':
-                    raise AuthenticationError(message)  # signature failed
-                elif code == '4000':
-                    # \u5f53\u524d\u7f51\u7edc\u8fde\u63a5\u4e0d\u7a33\u5b9a\uff0c\u8bf7\u7a0d\u5019\u91cd\u8bd5
-                    # The current network connection is unstable. Please try again later
-                    raise ExchangeNotAvailable(message)
-                elif code == '4003':
-                    raise DDoSProtection(message)  # server is busy, try again later
-            raise ExchangeError(message)
-        if not('result' in list(response.keys())):
-            raise ExchangeError(message)
         if method == 'GET':
             return response
         else:

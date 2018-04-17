@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.liqui import liqui
+import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import DDoSProtection
@@ -65,58 +66,51 @@ class yobit (liqui):
                     'withdraw': {},
                 },
             },
+            'commonCurrencies': {
+                'AIR': 'AirCoin',
+                'ANI': 'ANICoin',
+                'ANT': 'AntsCoin',
+                'AST': 'Astral',
+                'ATM': 'Autumncoin',
+                'BCC': 'BCH',
+                'BCS': 'BitcoinStake',
+                'BLN': 'Bulleon',
+                'BTS': 'Bitshares2',
+                'CPC': 'Capricoin',
+                'CS': 'CryptoSpots',
+                'DCT': 'Discount',
+                'DGD': 'DarkGoldCoin',
+                'ERT': 'Eristica Token',
+                'ICN': 'iCoin',
+                'KNC': 'KingN Coin',
+                'LIZI': 'LiZi',
+                'LOC': 'LocoCoin',
+                'LOCX': 'LOC',
+                'LUN': 'LunarCoin',
+                'MDT': 'Midnight',
+                'NAV': 'NavajoCoin',
+                'OMG': 'OMGame',
+                'PAY': 'EPAY',
+                'PLC': 'Platin Coin',
+                'REP': 'Republicoin',
+                'RUR': 'RUB',
+                'XIN': 'XINCoin',
+            },
             'options': {
                 'fetchOrdersRequiresSymbol': True,
             },
         })
 
-    def common_currency_code(self, currency):
-        substitutions = {
-            'AIR': 'AirCoin',
-            'ANI': 'ANICoin',
-            'ANT': 'AntsCoin',
-            'ATM': 'Autumncoin',
-            'BCC': 'BCH',
-            'BCS': 'BitcoinStake',
-            'BTS': 'Bitshares2',
-            'DCT': 'Discount',
-            'DGD': 'DarkGoldCoin',
-            'ICN': 'iCoin',
-            'LIZI': 'LiZi',
-            'LUN': 'LunarCoin',
-            'MDT': 'Midnight',
-            'NAV': 'NavajoCoin',
-            'OMG': 'OMGame',
-            'PAY': 'EPAY',
-            'REP': 'Republicoin',
+    def parse_order_status(self, status):
+        statuses = {
+            '0': 'open',
+            '1': 'closed',
+            '2': 'canceled',
+            '3': 'open',  # or partially-filled and closed? https://github.com/ccxt/ccxt/issues/1594
         }
-        if currency in substitutions:
-            return substitutions[currency]
-        return currency
-
-    def currency_id(self, commonCode):
-        substitutions = {
-            'AirCoin': 'AIR',
-            'ANICoin': 'ANI',
-            'AntsCoin': 'ANT',
-            'Autumncoin': 'ATM',
-            'BCH': 'BCC',
-            'BitcoinStake': 'BCS',
-            'Bitshares2': 'BTS',
-            'Discount': 'DCT',
-            'DarkGoldCoin': 'DGD',
-            'iCoin': 'ICN',
-            'LiZi': 'LIZI',
-            'LunarCoin': 'LUN',
-            'Midnight': 'MDT',
-            'NavajoCoin': 'NAV',
-            'OMGame': 'OMG',
-            'EPAY': 'PAY',
-            'Republicoin': 'REP',
-        }
-        if commonCode in substitutions:
-            return substitutions[commonCode]
-        return commonCode
+        if status in statuses:
+            return statuses[status]
+        return status
 
     def fetch_balance(self, params={}):
         self.load_markets()
@@ -145,33 +139,37 @@ class yobit (liqui):
                     result[currency] = account
         return self.parse_balance(result)
 
-    def create_deposit_address(self, currency, params={}):
-        response = self.fetch_deposit_address(currency, self.extend({
+    def create_deposit_address(self, code, params={}):
+        response = self.fetch_deposit_address(code, self.extend({
             'need_new': 1,
         }, params))
+        address = self.safe_string(response, 'address')
+        self.check_address(address)
         return {
-            'currency': currency,
-            'address': response['address'],
+            'currency': code,
+            'address': address,
             'status': 'ok',
             'info': response['info'],
         }
 
-    def fetch_deposit_address(self, currency, params={}):
-        currencyId = self.currency_id(currency)
+    def fetch_deposit_address(self, code, params={}):
+        currency = self.currency(code)
         request = {
-            'coinName': currencyId,
+            'coinName': currency['id'],
             'need_new': 0,
         }
         response = self.privatePostGetDepositAddress(self.extend(request, params))
         address = self.safe_string(response['return'], 'address')
+        self.check_address(address)
         return {
-            'currency': currency,
+            'currency': code,
             'address': address,
             'status': 'ok',
             'info': response,
         }
 
     def withdraw(self, currency, amount, address, tag=None, params={}):
+        self.check_address(address)
         self.load_markets()
         response = self.privatePostWithdrawCoinsToAddress(self.extend({
             'coinName': currency,
@@ -183,16 +181,16 @@ class yobit (liqui):
             'id': None,
         }
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
-        if 'success' in response:
-            if not response['success']:
-                if response['error'].find('Insufficient funds') >= 0:  # not enougTh is a typo inside Liqui's own API...
-                    raise InsufficientFunds(self.id + ' ' + self.json(response))
-                elif response['error'] == 'Requests too often':
-                    raise DDoSProtection(self.id + ' ' + self.json(response))
-                elif (response['error'] == 'not available') or (response['error'] == 'external service unavailable'):
-                    raise DDoSProtection(self.id + ' ' + self.json(response))
-                else:
-                    raise ExchangeError(self.id + ' ' + self.json(response))
-        return response
+    def handle_errors(self, code, reason, url, method, headers, body):
+        if body[0] == '{':
+            response = json.loads(body)
+            if 'success' in response:
+                if not response['success']:
+                    if response['error_log'].find('Insufficient funds') >= 0:  # not enougTh is a typo inside Liqui's own API...
+                        raise InsufficientFunds(self.id + ' ' + self.json(response))
+                    elif response['error_log'] == 'Requests too often':
+                        raise DDoSProtection(self.id + ' ' + self.json(response))
+                    elif (response['error_log'] == 'not available') or (response['error_log'] == 'external service unavailable'):
+                        raise DDoSProtection(self.id + ' ' + self.json(response))
+                    else:
+                        raise ExchangeError(self.id + ' ' + self.json(response))

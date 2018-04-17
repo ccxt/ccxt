@@ -92,8 +92,8 @@ class lakebtc (Exchange):
         for i in range(0, len(ids)):
             id = ids[i]
             code = id
-            if id in self.currencies:
-                currency = self.currencies[id]
+            if id in self.currencies_by_id:
+                currency = self.currencies_by_id[id]
                 code = currency['code']
             balance = float(balances[id])
             account = {
@@ -116,6 +116,7 @@ class lakebtc (Exchange):
         symbol = None
         if market is not None:
             symbol = market['symbol']
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -123,12 +124,14 @@ class lakebtc (Exchange):
             'high': self.safe_float(ticker, 'high'),
             'low': self.safe_float(ticker, 'low'),
             'bid': self.safe_float(ticker, 'bid'),
+            'bidVolume': None,
             'ask': self.safe_float(ticker, 'ask'),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': self.safe_float(ticker, 'last'),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,

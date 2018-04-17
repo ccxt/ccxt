@@ -174,6 +174,7 @@ class coinsecure (Exchange):
         })
 
     def fetch_balance(self, params={}):
+        self.load_markets()
         response = self.privateGetUserExchangeBankSummary()
         balance = response['message']
         coin = {
@@ -194,6 +195,7 @@ class coinsecure (Exchange):
         return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
+        self.load_markets()
         bids = self.publicGetExchangeBidOrders(params)
         asks = self.publicGetExchangeAskOrders(params)
         orderbook = {
@@ -203,6 +205,7 @@ class coinsecure (Exchange):
         return self.parse_order_book(orderbook, None, 'bids', 'asks', 'rate', 'vol')
 
     def fetch_ticker(self, symbol, params={}):
+        self.load_markets()
         response = self.publicGetExchangeTicker(params)
         ticker = response['message']
         timestamp = ticker['timestamp']
@@ -212,6 +215,7 @@ class coinsecure (Exchange):
             baseVolume = baseVolume * satoshi
         quoteVolume = float(ticker['fiatvolume']) / 100
         vwap = quoteVolume / baseVolume
+        last = float(ticker['lastPrice']) / 100
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -219,12 +223,14 @@ class coinsecure (Exchange):
             'high': float(ticker['high']) / 100,
             'low': float(ticker['low']) / 100,
             'bid': float(ticker['bid']) / 100,
+            'bidVolume': None,
             'ask': float(ticker['ask']) / 100,
+            'askVolume': None,
             'vwap': vwap,
             'open': float(ticker['open']) / 100,
-            'close': None,
-            'first': None,
-            'last': float(ticker['lastPrice']) / 100,
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
@@ -251,12 +257,15 @@ class coinsecure (Exchange):
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
         result = self.publicGetExchangeTrades(params)
         if 'message' in result:
             trades = result['message']
-            return self.parse_trades(trades, symbol)
+            return self.parse_trades(trades, market)
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
+        self.load_markets()
         method = 'privatePutUserExchange'
         order = {}
         if type == 'market':
@@ -277,6 +286,7 @@ class coinsecure (Exchange):
         }
 
     def cancel_order(self, id, symbol=None, params={}):
+        self.load_markets()
         # method = 'privateDeleteUserExchangeAskCancelOrderId'  # TODO fixme, have to specify order side here
         # return getattr(self, method)({'orderID': id})
         raise NotSupported(self.id + ' cancelOrder() is not fully implemented yet')

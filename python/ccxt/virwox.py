@@ -165,7 +165,9 @@ class virwox (Exchange):
             'high': float(ticker['high']),
             'low': float(ticker['low']),
             'bid': None,
+            'bidVolume': None,
             'ask': None,
+            'askVolume': None,
             'vwap': None,
             'open': float(ticker['open']),
             'close': close,
@@ -198,13 +200,14 @@ class virwox (Exchange):
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
+        market = self.market(symbol)
         response = self.publicGetGetRawTradeData(self.extend({
             'instrument': symbol,
             'timespan': 3600,
         }, params))
         result = response['result']
         trades = result['data']
-        return self.parse_trades(trades, symbol)
+        return self.parse_trades(trades, market)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

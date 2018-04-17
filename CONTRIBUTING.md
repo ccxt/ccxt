@@ -217,6 +217,7 @@ If the transpiling process finishes successfully, but generates incorrect Python
 And structurally:
 
 - if you need another base method you will have to implement it in all three languages
+- do not issue more than one HTTP request from a unified method
 - try to reduce syntax to basic one-liner expressions
 - multiple lines are ok, but you should avoid deep nesting with lots of brackets
 - avoid changing the contents of the arguments and params passed by reference into function calls
@@ -224,6 +225,7 @@ And structurally:
 - do not use heavy ternary conditionals
 - avoid operators clutter (**don't do this**: `a && b || c ? d + 80 : e ** f`)
 - never use `.toString()` on floats: `Number (0.00000001).toString () === '1e-8'`
+- do not use the `in` operator to check if a value is in a non-associative array (list)
 - don't add custom currency or symbol/pair conversions and formatting, copy from existing code instead
 - keep it simple, don't do more than one statement in one line
 

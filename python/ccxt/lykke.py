@@ -22,6 +22,7 @@ class lykke (Exchange):
                 'fetchTrades': False,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
+                'fetchOrder': True,
                 'fetchOrders': True,
             },
             'requiredCredentials': {
@@ -184,12 +185,14 @@ class lykke (Exchange):
             'high': None,
             'low': None,
             'bid': float(ticker['Rate']['Bid']),
+            'bidVolume': None,
             'ask': float(ticker['Rate']['Ask']),
+            'askVolume': None,
             'vwap': None,
             'open': None,
             'close': None,
-            'first': None,
             'last': None,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
@@ -237,11 +240,11 @@ class lykke (Exchange):
         if market:
             symbol = market['symbol']
         timestamp = None
-        if 'LastMatchTime' in order:
+        if ('LastMatchTime' in list(order.keys())) and(order['LastMatchTime']):
             timestamp = self.parse8601(order['LastMatchTime'])
-        elif 'Registered' in order:
+        elif ('Registered' in list(order.keys())) and(order['Registered']):
             timestamp = self.parse8601(order['Registered'])
-        elif 'CreatedAt' in order:
+        elif ('CreatedAt' in list(order.keys())) and(order['CreatedAt']):
             timestamp = self.parse8601(order['CreatedAt'])
         price = self.safe_float(order, 'Price')
         amount = self.safe_float(order, 'Volume')
@@ -268,22 +271,26 @@ class lykke (Exchange):
         return result
 
     def fetch_order(self, id, symbol=None, params={}):
+        self.load_markets()
         response = self.privateGetOrdersId(self.extend({
             'id': id,
         }, params))
         return self.parse_order(response)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
         response = self.privateGetOrders()
         return self.parse_orders(response, None, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
         response = self.privateGetOrders(self.extend({
             'status': 'InOrderBook',
         }, params))
         return self.parse_orders(response, None, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
         response = self.privateGetOrders(self.extend({
             'status': 'Matched',
         }, params))
@@ -306,14 +313,9 @@ class lykke (Exchange):
                 orderbook['bids'] = self.array_concat(orderbook['bids'], side['Prices'])
             else:
                 orderbook['asks'] = self.array_concat(orderbook['asks'], side['Prices'])
-            timestamp = self.parse8601(side['Timestamp'])
-            if not orderbook['timestamp']:
-                orderbook['timestamp'] = timestamp
-            else:
-                orderbook['timestamp'] = max(orderbook['timestamp'], timestamp)
-        if not timestamp:
-            timestamp = self.milliseconds()
-        return self.parse_order_book(orderbook, orderbook['timestamp'], 'bids', 'asks', 'Price', 'Volume')
+            sideTimestamp = self.parse8601(side['Timestamp'])
+            timestamp = sideTimestamp if (timestamp is None) else max(timestamp, sideTimestamp)
+        return self.parse_order_book(orderbook, timestamp, 'bids', 'asks', 'Price', 'Volume')
 
     def parse_bid_ask(self, bidask, priceKey=0, amountKey=1):
         price = float(bidask[priceKey])

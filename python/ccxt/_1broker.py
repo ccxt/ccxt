@@ -24,7 +24,7 @@ class _1broker (Exchange):
                 'fetchOHLCV': True,
             },
             'timeframes': {
-                '1m': '60',
+                '1m': '60',  # not working for some reason, returns {"server_time":"2018-03-26T03:52:27.912Z","error":true,"warning":false,"response":null,"error_code":-1,"error_message":"Error while trying to fetch historical market data. An invalid resolution was probably used."}
                 '15m': '900',
                 '1h': '3600',
                 '1d': '86400',
@@ -146,6 +146,7 @@ class _1broker (Exchange):
             'datetime': self.iso8601(timestamp),
             'bids': [bid],
             'asks': [ask],
+            'nonce': None,
         }
 
     def fetch_trades(self, symbol):
@@ -170,7 +171,9 @@ class _1broker (Exchange):
             'high': float(ticker['h']),
             'low': float(ticker['l']),
             'bid': None,
+            'bidVolume': None,
             'ask': None,
+            'askVolume': None,
             'vwap': None,
             'open': open,
             'close': close,

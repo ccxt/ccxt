@@ -106,9 +106,7 @@ module.exports = class vaultoro extends Exchange {
             'bids': response['data'][0]['b'],
             'asks': response['data'][1]['s'],
         };
-        let result = this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'Gold_Price', 'Gold_Amount');
-        result['bids'] = this.sortBy (result['bids'], 0, true);
-        return result;
+        return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'Gold_Price', 'Gold_Amount');
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -120,6 +118,7 @@ module.exports = class vaultoro extends Exchange {
         let response = await this.publicGetMarkets (params);
         let ticker = response['data'];
         let timestamp = this.milliseconds ();
+        let last = parseFloat (ticker['LastPrice']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -127,12 +126,14 @@ module.exports = class vaultoro extends Exchange {
             'high': parseFloat (ticker['24hHigh']),
             'low': parseFloat (ticker['24hLow']),
             'bid': bid[0],
+            'bidVolume': undefined,
             'ask': ask[0],
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['LastPrice']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,

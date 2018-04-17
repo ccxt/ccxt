@@ -29,6 +29,7 @@ class qryptos (Exchange):
                 'fetchOrders': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
+                'fetchMyTrades': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30953915-b1611dc0-a436-11e7-8947-c95bd5a42086.jpg',
@@ -93,6 +94,9 @@ class qryptos (Exchange):
                     'Order not found': OrderNotFound,
                     'user': {
                         'not_enough_free_balance': InsufficientFunds,
+                    },
+                    'price': {
+                        'must_be_positive': InvalidOrder,
                     },
                     'quantity': {
                         'less_than_order_size': InvalidOrder,
@@ -194,12 +198,14 @@ class qryptos (Exchange):
             'high': self.safe_float(ticker, 'high_market_ask'),
             'low': self.safe_float(ticker, 'low_market_bid'),
             'bid': self.safe_float(ticker, 'market_bid'),
+            'bidVolume': None,
             'ask': self.safe_float(ticker, 'market_ask'),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
+            'close': last,
             'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
@@ -230,7 +236,21 @@ class qryptos (Exchange):
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market):
+        # {            id:  12345,
+        #         quantity: "6.789",
+        #            price: "98765.4321",
+        #       taker_side: "sell",
+        #       created_at:  1512345678,
+        #          my_side: "buy"           }
         timestamp = trade['created_at'] * 1000
+        # 'taker_side' gets filled for both fetchTrades and fetchMyTrades
+        takerSide = self.safe_string(trade, 'taker_side')
+        # 'my_side' gets filled for fetchMyTrades only and may differ from 'taker_side'
+        mySide = self.safe_string(trade, 'my_side')
+        side = mySide if (mySide is not None) else takerSide
+        takerOrMaker = None
+        if mySide is not None:
+            takerOrMaker = 'taker' if (takerSide == mySide) else 'maker'
         return {
             'info': trade,
             'id': str(trade['id']),
@@ -239,7 +259,8 @@ class qryptos (Exchange):
             'datetime': self.iso8601(timestamp),
             'symbol': market['symbol'],
             'type': None,
-            'side': trade['taker_side'],
+            'side': side,
+            'takerOrMaker': takerOrMaker,
             'price': float(trade['price']),
             'amount': float(trade['quantity']),
         }
@@ -253,6 +274,17 @@ class qryptos (Exchange):
         if limit is not None:
             request['limit'] = limit
         response = await self.publicGetExecutions(self.extend(request, params))
+        return self.parse_trades(response['models'], market, since, limit)
+
+    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'product_id': market['id'],
+        }
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.privateGetExecutionsMe(self.extend(request, params))
         return self.parse_trades(response['models'], market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -341,6 +373,8 @@ class qryptos (Exchange):
                 request['status'] = 'filled'
             elif status == 'canceled':
                 request['status'] = 'cancelled'
+        if limit is not None:
+            request['limit'] = limit
         result = await self.privateGetOrders(self.extend(request, params))
         orders = result['models']
         return self.parse_orders(orders, market, since, limit)
@@ -409,7 +443,7 @@ class qryptos (Exchange):
             # {"errors": {"quantity": ["less_than_order_size"]}}
             if 'errors' in response:
                 errors = response['errors']
-                errorTypes = ['user', 'quantity']
+                errorTypes = ['user', 'quantity', 'price']
                 for i in range(0, len(errorTypes)):
                     errorType = errorTypes[i]
                     if errorType in errors:

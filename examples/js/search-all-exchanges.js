@@ -42,7 +42,7 @@ log ('\nLooking up for:', argument.bright, strict ? '(strict search)' : '(non-st
 
 const checkAgainst = strict ?
     (a, b) => ((a == b.toLowerCase ()) || (a == b.toUpperCase ())) :
-    (a, b) => (a.includes (b.toLowerCase ()) || a.includes (b.toUpperCase ()))
+    (a, b) => a.toLowerCase ().includes (b.toLowerCase ())
 
 ;(async function test () {
 
@@ -81,6 +81,10 @@ const checkAgainst = strict ?
                     exchange: exchange.id[(market.active !== false) ? 'green' : 'yellow'],
                 }))))
         .filter (market =>
+            checkAgainst (market['base'],  argument) ||
+            checkAgainst (market['quote'], argument) ||
+            (market['baseId']  ? checkAgainst (market['baseId'],  argument) : false) ||
+            (market['quoteId'] ? checkAgainst (market['quoteId'], argument) : false) ||
             checkAgainst (market['symbol'], argument) ||
             checkAgainst (market['id'].toString (), argument))
 

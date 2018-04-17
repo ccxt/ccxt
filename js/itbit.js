@@ -87,22 +87,27 @@ module.exports = class itbit extends Exchange {
         if (!serverTimeUTC)
             throw new ExchangeError (this.id + ' fetchTicker returned a bad response: ' + this.json (ticker));
         let timestamp = this.parse8601 (ticker['serverTimeUTC']);
-        let vwap = parseFloat (ticker['vwap24h']);
-        let baseVolume = parseFloat (ticker['volume24h']);
-        let quoteVolume = baseVolume * vwap;
+        let vwap = this.safeFloat (ticker, 'vwap24h');
+        let baseVolume = this.safeFloat (ticker, 'volume24h');
+        let quoteVolume = undefined;
+        if (typeof baseVolume !== 'undefined' && typeof vwap !== 'undefined')
+            quoteVolume = baseVolume * vwap;
+        let last = this.safeFloat (ticker, 'lastPrice');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high24h']),
-            'low': parseFloat (ticker['low24h']),
+            'high': this.safeFloat (ticker, 'high24h'),
+            'low': this.safeFloat (ticker, 'low24h'),
             'bid': this.safeFloat (ticker, 'bid'),
+            'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'ask'),
+            'askVolume': undefined,
             'vwap': vwap,
-            'open': parseFloat (ticker['openToday']),
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['lastPrice']),
+            'open': this.safeFloat (ticker, 'openToday'),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,

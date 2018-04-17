@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.10.1267'
+__version__ = '1.12.179'
 
 # -----------------------------------------------------------------------------
 
@@ -138,6 +138,9 @@ class Exchange(BaseExchange):
         except concurrent.futures._base.TimeoutError as e:
             self.raise_error(RequestTimeout, method, url, e, None)
 
+        except aiohttp.client_exceptions.ClientConnectionError as e:
+            self.raise_error(ExchangeNotAvailable, url, method, e, None)
+
         except aiohttp.client_exceptions.ClientError as e:
             self.raise_error(ExchangeError, url, method, e, None)
 
@@ -173,6 +176,15 @@ class Exchange(BaseExchange):
             'bids': self.sort_by(self.aggregate(orderbook['bids']), 0, True),
             'asks': self.sort_by(self.aggregate(orderbook['asks']), 0),
         })
+
+    async def perform_order_book_request(self, market, limit=None, params={}):
+        raise NotSupported(self.id + ' performOrderBookRequest not supported yet')
+
+    async def fetch_order_book(self, symbol, limit=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        orderbook = await self.perform_order_book_request(market, limit, params)
+        return self.parse_order_book(orderbook, market, limit, params)
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         if not self.has['fetchTrades']:
