@@ -64,14 +64,12 @@ class Exchange(BaseExchange):
         }, self.tokenBucket))
 
     def __del__(self):
-        if self.session is not None:
+        if not self.session.closed:
             self.logger.warning(self.id + ' requires to release all resources with an explicit call to the .close() coroutine.')
 
     async def close(self):
-        if self.session is not None:
-            if self.own_session:
-                await self.session.close()
-            self.session = None
+        # Assume session is a aiohttp.ClientSession object
+        await self.session.close()
 
     async def wait_for_token(self):
         while self.rateLimitTokens <= 1:
