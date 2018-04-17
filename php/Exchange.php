@@ -1355,7 +1355,7 @@ abstract class Exchange {
     }
 
     public function purge_cached_orders ($before) {
-        $this->orders = $this->index_by (array_filter ($this->orders, function ($orders) use ($before) {
+        $this->orders = $this->index_by (array_filter ($this->orders, function ($order) use ($before) {
             return ($order['status'] === 'open') || ($order['timestamp'] >= $before);
         }), 'id');
         return $this->orders;
