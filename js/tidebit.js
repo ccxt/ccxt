@@ -63,8 +63,8 @@ module.exports = class tidebit extends Exchange {
                     'get': [
                         'v2/deposits', // V2DepositsJson
                         'v2/deposit_address', // V2DepositAddressJson
-                        'v2/deposit', //  V2DepositJson
-                        'v2/members/me', //  V2MembersMeJson
+                        'v2/deposit', // V2DepositJson
+                        'v2/members/me', // V2MembersMeJson
                         'v2/addresses/{address}', // V2AddressesAddressJson
                     ],
                     'post': [
