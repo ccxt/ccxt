@@ -770,11 +770,15 @@ class kucoin extends Exchange {
             $amount = $this->safe_float($trade, 'amount');
             $cost = $this->safe_float($trade, 'dealValue');
             $feeCurrency = null;
-            if (is_array ($trade) && array_key_exists ('coinType', $trade)) {
-                $feeCurrency = $this->safe_string($trade, 'coinType');
-                if ($feeCurrency !== null)
+            if ($market !== null) {
+                $feeCurrency = ($side === 'sell') ? $market['quote'] : $market['base'];
+            } else {
+                $feeCurrencyField = ($side === 'sell') ? 'coinTypePair' : 'coinType';
+                $feeCurrency = $this->safe_string($order, $feeCurrencyField);
+                if ($feeCurrency !== null) {
                     if (is_array ($this->currencies_by_id) && array_key_exists ($feeCurrency, $this->currencies_by_id))
                         $feeCurrency = $this->currencies_by_id[$feeCurrency]['code'];
+                }
             }
             $fee = array (
                 'cost' => $this->safe_float($trade, 'fee'),
