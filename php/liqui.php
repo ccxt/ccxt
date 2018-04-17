@@ -647,10 +647,25 @@ class liqui extends Exchange {
                 'Key' => $this->apiKey,
                 'Sign' => $signature,
             );
-        } else {
+        } else if ($api === 'public') {
             $url .= $this->get_version_string() . '/' . $this->implode_params($path, $params);
-            if ($query)
+            if ($query) {
                 $url .= '?' . $this->urlencode ($query);
+            }
+        } else {
+            $url .= '/' . $this->implode_params($path, $params);
+            if ($method === 'GET') {
+                if ($query) {
+                    $url .= '?' . $this->urlencode ($query);
+                }
+            } else {
+                if ($query) {
+                    $body = $this->json ($query);
+                    $headers = array (
+                        'Content-Type' => 'application/json',
+                    );
+                }
+            }
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

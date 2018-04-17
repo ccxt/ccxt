@@ -609,10 +609,21 @@ class liqui (Exchange):
                 'Key': self.apiKey,
                 'Sign': signature,
             }
-        else:
+        elif api == 'public':
             url += self.get_version_string() + '/' + self.implode_params(path, params)
             if query:
                 url += '?' + self.urlencode(query)
+        else:
+            url += '/' + self.implode_params(path, params)
+            if method == 'GET':
+                if query:
+                    url += '?' + self.urlencode(query)
+            else:
+                if query:
+                    body = self.json(query)
+                    headers = {
+                        'Content-Type': 'application/json',
+                    }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body):
