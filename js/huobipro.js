@@ -106,58 +106,10 @@ module.exports = class huobipro extends Exchange {
                 'order-orderstate-error': OrderNotFound, // canceling an already canceled order
                 'order-queryorder-invalid': OrderNotFound, // querying a non-existent order
             },
+            'options': {
+                'fetchMarketsMethod': 'publicGetCommonSymbols',
+            },
         });
-    }
-
-    parseMarkets (markets) {
-        let numMarkets = markets.length;
-        if (numMarkets < 1)
-            throw new ExchangeError (this.id + ' publicGetCommonSymbols returned empty response: ' + this.json (markets));
-        let result = [];
-        for (let i = 0; i < markets.length; i++) {
-            let market = markets[i];
-            let baseId = market['base-currency'];
-            let quoteId = market['quote-currency'];
-            let base = baseId.toUpperCase ();
-            let quote = quoteId.toUpperCase ();
-            let id = baseId + quoteId;
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
-            let symbol = base + '/' + quote;
-            let precision = {
-                'amount': market['amount-precision'],
-                'price': market['price-precision'],
-            };
-            let lot = Math.pow (10, -precision['amount']);
-            let maker = (base === 'OMG') ? 0 : 0.2 / 100;
-            let taker = (base === 'OMG') ? 0 : 0.2 / 100;
-            result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'lot': lot,
-                'precision': precision,
-                'taker': taker,
-                'maker': maker,
-                'limits': {
-                    'amount': {
-                        'min': lot,
-                        'max': Math.pow (10, precision['amount']),
-                    },
-                    'price': {
-                        'min': Math.pow (10, -precision['price']),
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': 0,
-                        'max': undefined,
-                    },
-                },
-                'info': market,
-            });
-        }
-        return result;
     }
 
     async loadTradingLimits (symbols = undefined, reload = false, params = {}) {
@@ -213,8 +165,57 @@ module.exports = class huobipro extends Exchange {
     }
 
     async fetchMarkets () {
-        let response = await this.publicGetCommonSymbols ();
-        return this.parseMarkets (response['data']);
+        let method = this.options['fetchMarketsMethod'];
+        let response = await this[method] ();
+        let markets = response['data'];
+        let numMarkets = markets.length;
+        if (numMarkets < 1)
+            throw new ExchangeError (this.id + ' publicGetCommonSymbols returned empty response: ' + this.json (markets));
+        let result = [];
+        for (let i = 0; i < markets.length; i++) {
+            let market = markets[i];
+            let baseId = market['base-currency'];
+            let quoteId = market['quote-currency'];
+            let base = baseId.toUpperCase ();
+            let quote = quoteId.toUpperCase ();
+            let id = baseId + quoteId;
+            base = this.commonCurrencyCode (base);
+            quote = this.commonCurrencyCode (quote);
+            let symbol = base + '/' + quote;
+            let precision = {
+                'amount': market['amount-precision'],
+                'price': market['price-precision'],
+            };
+            let lot = Math.pow (10, -precision['amount']);
+            let maker = (base === 'OMG') ? 0 : 0.2 / 100;
+            let taker = (base === 'OMG') ? 0 : 0.2 / 100;
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'lot': lot,
+                'precision': precision,
+                'taker': taker,
+                'maker': maker,
+                'limits': {
+                    'amount': {
+                        'min': lot,
+                        'max': Math.pow (10, precision['amount']),
+                    },
+                    'price': {
+                        'min': Math.pow (10, -precision['price']),
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': 0,
+                        'max': undefined,
+                    },
+                },
+                'info': market,
+            });
+        }
+        return result;
     }
 
     parseTicker (ticker, market = undefined) {

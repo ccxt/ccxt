@@ -28,11 +28,9 @@ module.exports = class hadax extends huobipro {
                     ],
                 },
             },
+            'options': {
+                'fetchMarketsMethod': 'publicGetHadaxCommonSymbols',
+            },
         });
-    }
-
-    async fetchMarkets () {
-        let response = await this.publicGetHadaxCommonSymbols ();
-        return this.parseMarkets (response['data']);
     }
 };

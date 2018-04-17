@@ -30,11 +30,9 @@ class hadax extends huobipro {
                     ),
                 ),
             ),
+            'options' => array (
+                'fetchMarketsMethod' => 'publicGetHadaxCommonSymbols',
+            ),
         ));
-    }
-
-    public function fetch_markets () {
-        $response = $this->publicGetHadaxCommonSymbols ();
-        return $this->parseMarkets ($response['data']);
     }
 }

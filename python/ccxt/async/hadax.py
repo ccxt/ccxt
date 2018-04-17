@@ -29,8 +29,7 @@ class hadax (huobipro):
                     ],
                 },
             },
+            'options': {
+                'fetchMarketsMethod': 'publicGetHadaxCommonSymbols',
+            },
         })
-
-    async def fetch_markets(self):
-        response = await self.publicGetHadaxCommonSymbols()
-        return self.parseMarkets(response['data'])

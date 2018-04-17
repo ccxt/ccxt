@@ -119,56 +119,10 @@ class huobipro (Exchange):
                 'order-orderstate-error': OrderNotFound,  # canceling an already canceled order
                 'order-queryorder-invalid': OrderNotFound,  # querying a non-existent order
             },
+            'options': {
+                'fetchMarketsMethod': 'publicGetCommonSymbols',
+            },
         })
-
-    def parse_markets(self, markets):
-        numMarkets = len(markets)
-        if numMarkets < 1:
-            raise ExchangeError(self.id + ' publicGetCommonSymbols returned empty response: ' + self.json(markets))
-        result = []
-        for i in range(0, len(markets)):
-            market = markets[i]
-            baseId = market['base-currency']
-            quoteId = market['quote-currency']
-            base = baseId.upper()
-            quote = quoteId.upper()
-            id = baseId + quoteId
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
-            symbol = base + '/' + quote
-            precision = {
-                'amount': market['amount-precision'],
-                'price': market['price-precision'],
-            }
-            lot = math.pow(10, -precision['amount'])
-            maker = 0 if (base == 'OMG') else 0.2 / 100
-            taker = 0 if (base == 'OMG') else 0.2 / 100
-            result.append({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'lot': lot,
-                'precision': precision,
-                'taker': taker,
-                'maker': maker,
-                'limits': {
-                    'amount': {
-                        'min': lot,
-                        'max': math.pow(10, precision['amount']),
-                    },
-                    'price': {
-                        'min': math.pow(10, -precision['price']),
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': 0,
-                        'max': None,
-                    },
-                },
-                'info': market,
-            })
-        return result
 
     async def load_trading_limits(self, symbols=None, reload=False, params={}):
         if reload or not('limitsLoaded' in list(self.options.keys())):
@@ -216,8 +170,56 @@ class huobipro (Exchange):
         }
 
     async def fetch_markets(self):
-        response = await self.publicGetCommonSymbols()
-        return self.parse_markets(response['data'])
+        method = self.options['fetchMarketsMethod']
+        response = await getattr(self, method)()
+        markets = response['data']
+        numMarkets = len(markets)
+        if numMarkets < 1:
+            raise ExchangeError(self.id + ' publicGetCommonSymbols returned empty response: ' + self.json(markets))
+        result = []
+        for i in range(0, len(markets)):
+            market = markets[i]
+            baseId = market['base-currency']
+            quoteId = market['quote-currency']
+            base = baseId.upper()
+            quote = quoteId.upper()
+            id = baseId + quoteId
+            base = self.common_currency_code(base)
+            quote = self.common_currency_code(quote)
+            symbol = base + '/' + quote
+            precision = {
+                'amount': market['amount-precision'],
+                'price': market['price-precision'],
+            }
+            lot = math.pow(10, -precision['amount'])
+            maker = 0 if (base == 'OMG') else 0.2 / 100
+            taker = 0 if (base == 'OMG') else 0.2 / 100
+            result.append({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'lot': lot,
+                'precision': precision,
+                'taker': taker,
+                'maker': maker,
+                'limits': {
+                    'amount': {
+                        'min': lot,
+                        'max': math.pow(10, precision['amount']),
+                    },
+                    'price': {
+                        'min': math.pow(10, -precision['price']),
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': 0,
+                        'max': None,
+                    },
+                },
+                'info': market,
+            })
+        return result
 
     def parse_ticker(self, ticker, market=None):
         symbol = None

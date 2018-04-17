@@ -255,6 +255,9 @@ module.exports = class qryptos extends Exchange {
         // 'my_side' gets filled for fetchMyTrades only and may differ from 'taker_side'
         let mySide = this.safeString (trade, 'my_side');
         let side = (typeof mySide !== 'undefined') ? mySide : takerSide;
+        let takerOrMaker = undefined;
+        if (typeof mySide !== 'undefined')
+            takerOrMaker = (takerSide === mySide) ? 'taker' : 'maker';
         return {
             'info': trade,
             'id': trade['id'].toString (),
@@ -264,6 +267,7 @@ module.exports = class qryptos extends Exchange {
             'symbol': market['symbol'],
             'type': undefined,
             'side': side,
+            'takerOrMaker': takerOrMaker,
             'price': parseFloat (trade['price']),
             'amount': parseFloat (trade['quantity']),
         };
