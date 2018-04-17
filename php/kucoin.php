@@ -28,7 +28,7 @@ class kucoin extends Exchange {
                 'fetchOrders' => false,
                 'fetchClosedOrders' => true,
                 'fetchOpenOrders' => true,
-                'fetchMyTrades' => true,
+                'fetchMyTrades' => 'emulated', // this method is to be deleted, see implementation and comments below
                 'fetchCurrencies' => true,
                 'withdraw' => true,
             ),
@@ -764,19 +764,21 @@ class kucoin extends Exchange {
             $order = $this->safe_string($trade, 'orderOid');
             $id = $this->safe_string($trade, 'oid');
             $side = $this->safe_string($trade, 'direction');
-            // https://github.com/ccxt/ccxt/issues/2409
-            // $side = $this->safe_string($trade, 'dealDirection');
             if ($side !== null)
                 $side = strtolower ($side);
             $price = $this->safe_float($trade, 'dealPrice');
             $amount = $this->safe_float($trade, 'amount');
             $cost = $this->safe_float($trade, 'dealValue');
             $feeCurrency = null;
-            if (is_array ($trade) && array_key_exists ('coinType', $trade)) {
-                $feeCurrency = $this->safe_string($trade, 'coinType');
-                if ($feeCurrency !== null)
+            if ($market !== null) {
+                $feeCurrency = ($side === 'sell') ? $market['quote'] : $market['base'];
+            } else {
+                $feeCurrencyField = ($side === 'sell') ? 'coinTypePair' : 'coinType';
+                $feeCurrency = $this->safe_string($order, $feeCurrencyField);
+                if ($feeCurrency !== null) {
                     if (is_array ($this->currencies_by_id) && array_key_exists ($feeCurrency, $this->currencies_by_id))
                         $feeCurrency = $this->currencies_by_id[$feeCurrency]['code'];
+                }
             }
             $fee = array (
                 'cost' => $this->safe_float($trade, 'fee'),
@@ -812,8 +814,12 @@ class kucoin extends Exchange {
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        // todo => this method is deprecated and to be deleted shortly
+        // it improperly mimics fetchMyTrades with closed orders
+        // kucoin does not have any means of fetching personal trades at all
+        // this will effectively simplify current convoluted implementations of parseOrder and parseTrade
         if (!$symbol)
-            throw new ExchangeError ($this->id . ' fetchMyTrades requires a $symbol argument');
+            throw new ExchangeError ($this->id . ' fetchMyTrades is deprecated and requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (

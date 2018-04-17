@@ -37,7 +37,7 @@ class kucoin (Exchange):
                 'fetchOrders': False,
                 'fetchClosedOrders': True,
                 'fetchOpenOrders': True,
-                'fetchMyTrades': True,
+                'fetchMyTrades': 'emulated',  # self method is to be deleted, see implementation and comments below
                 'fetchCurrencies': True,
                 'withdraw': True,
             },
@@ -729,16 +729,17 @@ class kucoin (Exchange):
             order = self.safe_string(trade, 'orderOid')
             id = self.safe_string(trade, 'oid')
             side = self.safe_string(trade, 'direction')
-            # https://github.com/ccxt/ccxt/issues/2409
-            # side = self.safe_string(trade, 'dealDirection')
             if side is not None:
                 side = side.lower()
             price = self.safe_float(trade, 'dealPrice')
             amount = self.safe_float(trade, 'amount')
             cost = self.safe_float(trade, 'dealValue')
             feeCurrency = None
-            if 'coinType' in trade:
-                feeCurrency = self.safe_string(trade, 'coinType')
+            if market is not None:
+                feeCurrency = market['quote'] if (side == 'sell') else market['base']
+            else:
+                feeCurrencyField = 'coinTypePair' if (side == 'sell') else 'coinType'
+                feeCurrency = self.safe_string(order, feeCurrencyField)
                 if feeCurrency is not None:
                     if feeCurrency in self.currencies_by_id:
                         feeCurrency = self.currencies_by_id[feeCurrency]['code']
@@ -773,8 +774,12 @@ class kucoin (Exchange):
         return self.parse_trades(response['data'], market, since, limit)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        # todo: self method is deprecated and to be deleted shortly
+        # it improperly mimics fetchMyTrades with closed orders
+        # kucoin does not have any means of fetching personal trades at all
+        # self will effectively simplify current convoluted implementations of parseOrder and parseTrade
         if not symbol:
-            raise ExchangeError(self.id + ' fetchMyTrades requires a symbol argument')
+            raise ExchangeError(self.id + ' fetchMyTrades is deprecated and requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {

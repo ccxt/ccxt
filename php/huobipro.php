@@ -107,58 +107,10 @@ class huobipro extends Exchange {
                 'order-orderstate-error' => '\\ccxt\\OrderNotFound', // canceling an already canceled order
                 'order-queryorder-invalid' => '\\ccxt\\OrderNotFound', // querying a non-existent order
             ),
+            'options' => array (
+                'fetchMarketsMethod' => 'publicGetCommonSymbols',
+            ),
         ));
-    }
-
-    public function parse_markets ($markets) {
-        $numMarkets = is_array ($markets) ? count ($markets) : 0;
-        if ($numMarkets < 1)
-            throw new ExchangeError ($this->id . ' publicGetCommonSymbols returned empty response => ' . $this->json ($markets));
-        $result = array ();
-        for ($i = 0; $i < count ($markets); $i++) {
-            $market = $markets[$i];
-            $baseId = $market['base-currency'];
-            $quoteId = $market['quote-currency'];
-            $base = strtoupper ($baseId);
-            $quote = strtoupper ($quoteId);
-            $id = $baseId . $quoteId;
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
-            $symbol = $base . '/' . $quote;
-            $precision = array (
-                'amount' => $market['amount-precision'],
-                'price' => $market['price-precision'],
-            );
-            $lot = pow (10, -$precision['amount']);
-            $maker = ($base === 'OMG') ? 0 : 0.2 / 100;
-            $taker = ($base === 'OMG') ? 0 : 0.2 / 100;
-            $result[] = array (
-                'id' => $id,
-                'symbol' => $symbol,
-                'base' => $base,
-                'quote' => $quote,
-                'lot' => $lot,
-                'precision' => $precision,
-                'taker' => $taker,
-                'maker' => $maker,
-                'limits' => array (
-                    'amount' => array (
-                        'min' => $lot,
-                        'max' => pow (10, $precision['amount']),
-                    ),
-                    'price' => array (
-                        'min' => pow (10, -$precision['price']),
-                        'max' => null,
-                    ),
-                    'cost' => array (
-                        'min' => 0,
-                        'max' => null,
-                    ),
-                ),
-                'info' => $market,
-            );
-        }
-        return $result;
     }
 
     public function load_trading_limits ($symbols = null, $reload = false, $params = array ()) {
@@ -214,8 +166,57 @@ class huobipro extends Exchange {
     }
 
     public function fetch_markets () {
-        $response = $this->publicGetCommonSymbols ();
-        return $this->parse_markets ($response['data']);
+        $method = $this->options['fetchMarketsMethod'];
+        $response = $this->$method ();
+        $markets = $response['data'];
+        $numMarkets = is_array ($markets) ? count ($markets) : 0;
+        if ($numMarkets < 1)
+            throw new ExchangeError ($this->id . ' publicGetCommonSymbols returned empty $response => ' . $this->json ($markets));
+        $result = array ();
+        for ($i = 0; $i < count ($markets); $i++) {
+            $market = $markets[$i];
+            $baseId = $market['base-currency'];
+            $quoteId = $market['quote-currency'];
+            $base = strtoupper ($baseId);
+            $quote = strtoupper ($quoteId);
+            $id = $baseId . $quoteId;
+            $base = $this->common_currency_code($base);
+            $quote = $this->common_currency_code($quote);
+            $symbol = $base . '/' . $quote;
+            $precision = array (
+                'amount' => $market['amount-precision'],
+                'price' => $market['price-precision'],
+            );
+            $lot = pow (10, -$precision['amount']);
+            $maker = ($base === 'OMG') ? 0 : 0.2 / 100;
+            $taker = ($base === 'OMG') ? 0 : 0.2 / 100;
+            $result[] = array (
+                'id' => $id,
+                'symbol' => $symbol,
+                'base' => $base,
+                'quote' => $quote,
+                'lot' => $lot,
+                'precision' => $precision,
+                'taker' => $taker,
+                'maker' => $maker,
+                'limits' => array (
+                    'amount' => array (
+                        'min' => $lot,
+                        'max' => pow (10, $precision['amount']),
+                    ),
+                    'price' => array (
+                        'min' => pow (10, -$precision['price']),
+                        'max' => null,
+                    ),
+                    'cost' => array (
+                        'min' => 0,
+                        'max' => null,
+                    ),
+                ),
+                'info' => $market,
+            );
+        }
+        return $result;
     }
 
     public function parse_ticker ($ticker, $market = null) {
@@ -426,7 +427,7 @@ class huobipro extends Exchange {
         $market = $this->market ($symbol);
         $response = $this->privateGetOrderOrders (array_merge (array (
             'symbol' => $market['id'],
-            'states' => 'pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled',
+            'states' => $states,
         )));
         return $this->parse_orders($response['data'], $market, $since, $limit);
     }

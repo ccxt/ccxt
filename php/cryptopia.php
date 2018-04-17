@@ -100,10 +100,10 @@ class cryptopia extends Exchange {
             $market = $markets[$i];
             $id = $market['Id'];
             $symbol = $market['Label'];
-            $base = $market['Symbol'];
-            $quote = $market['BaseSymbol'];
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+            $baseId = $market['Symbol'];
+            $quoteId = $market['BaseSymbol'];
+            $base = $this->common_currency_code($baseId);
+            $quote = $this->common_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => 8,
@@ -132,6 +132,8 @@ class cryptopia extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
                 'info' => $market,
                 'maker' => $market['TradeFee'] / 100,
                 'taker' => $market['TradeFee'] / 100,
