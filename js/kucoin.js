@@ -27,7 +27,7 @@ module.exports = class kucoin extends Exchange {
                 'fetchOrders': false,
                 'fetchClosedOrders': true,
                 'fetchOpenOrders': true,
-                'fetchMyTrades': true,
+                'fetchMyTrades': 'emulated', // this method is to be deleted, see implementation and comments below
                 'fetchCurrencies': true,
                 'withdraw': true,
             },
@@ -763,8 +763,6 @@ module.exports = class kucoin extends Exchange {
             order = this.safeString (trade, 'orderOid');
             id = this.safeString (trade, 'oid');
             side = this.safeString (trade, 'direction');
-            // https://github.com/ccxt/ccxt/issues/2409
-            // side = this.safeString (trade, 'dealDirection');
             if (typeof side !== 'undefined')
                 side = side.toLowerCase ();
             price = this.safeFloat (trade, 'dealPrice');
@@ -811,8 +809,12 @@ module.exports = class kucoin extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        // todo: this method is deprecated and to be deleted shortly
+        // it improperly mimics fetchMyTrades with closed orders
+        // kucoin does not have any means of fetching personal trades at all
+        // this will effectively simplify current convoluted implementations of parseOrder and parseTrade
         if (!symbol)
-            throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol argument');
+            throw new ExchangeError (this.id + ' fetchMyTrades is deprecated and requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
