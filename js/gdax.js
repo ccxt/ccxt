@@ -545,6 +545,78 @@ module.exports = class gdax extends Exchange {
         };
     }
 
+    async fetchTransactions (currency = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (typeof currency === 'undefined') {
+            throw new ExchangeError (this.id + ' needs currency for deposit history');
+        }
+        let accountId = undefined;
+        let accounts = await this.privateGetAccounts ();
+        for (let a = 0; a < accounts.length; a++) {
+            let account = accounts[a];
+            let curr = account['currency'];
+            if (curr === currency) {
+                accountId = account['id'];
+                break;
+            }
+        }
+        if (typeof accountId === 'undefined') {
+            throw new ExchangeError (this.id + ' could not find account id for ' + currency);
+        }
+        let request = {
+            'limit': limit,
+            'id': accountId,
+        };
+        let response = await this.privateGetAccountsIdTransfers (this.extend (request, params));
+        for (let i = 0; i < response.length; i++) {
+            response[i]['currency'] = currency;
+        }
+        return this.parseTransactions (response);
+    }
+
+    parseTransactions (transactions, side = undefined, market = undefined, since = undefined, limit = undefined) {
+        let result = Object.values (transactions || []).map (transaction => this.parseTransaction (transaction, side));
+        result = this.sortBy (result, 'timestamp');
+        let symbol = (typeof market !== 'undefined') ? market['symbol'] : undefined;
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
+    }
+
+    parseTransactionStatus (transaction) {
+        if (transaction['canceled_at'] != null) {
+            return 'canceled';
+        } else if (transaction['completed_at'] != null) {
+            return 'ok';
+        } else if (transaction['procesed_at'] != null) {
+            return 'pending';
+        } else {
+            return 'error';
+        }
+    }
+
+    parseTransaction (transaction, side = undefined) {
+        let timestamp = this.safeInteger (transaction, 'created_at');
+        let datetime = undefined;
+        if (typeof timestamp !== 'undefined') {
+            datetime = this.iso8601 (timestamp);
+        }
+        return {
+            'info': transaction,
+            'id': this.safeString (transaction, 'id'),
+            'txid': this.safeString (transaction['details'], 'crypto_transaction_hash'),
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'currency': transaction['currency'],
+            'status': this.parseTransactionStatus (transaction),
+            'side': this.safeString (transaction, 'type', side),
+            'price': undefined,
+            'amount': this.safeFloat (transaction, 'amount'),
+            'fee': {
+                'cost': undefined,
+                'rate': undefined,
+            },
+        };
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
