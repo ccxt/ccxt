@@ -29,7 +29,6 @@ module.exports = class huobipro extends Exchange {
                 'fetchOrders': false,
                 'fetchTradingLimits': true,
                 'withdraw': true,
-                'fetchCurrencies': true,
             },
             'timeframes': {
                 '1m': '1min',
@@ -66,7 +65,6 @@ module.exports = class huobipro extends Exchange {
                         'common/currencys', // 查询系统支持的所有币种
                         'common/timestamp', // 查询系统当前时间
                         'common/exchange', // order limits
-                        'settings/currencys', // ?language=en-US
                     ],
                 },
                 'private': {
@@ -392,51 +390,6 @@ module.exports = class huobipro extends Exchange {
         await this.loadMarkets ();
         let response = await this.privateGetAccountAccounts ();
         return response['data'];
-    }
-
-    async fetchCurrencies (params = {}) {
-        params.language = params.language || 'en-US';
-        let currencies = await this.publicGetSettingsCurrencys (params);
-        let result = {};
-        for (let i = 0; i < currencies.data.length; i++) {
-            let currency = currencies.data[i];
-            let name = this.safeValue (currency, 'name');
-            let precision = +this.safeValue (currency, 'show-precision');
-            let code = this.commonCurrencyCode (name.toUpperCase ());
-            result[code] = {
-                'id': name,
-                'code': code,
-                'type': 'crypto',
-                'payin': currency['deposit-enabled'],
-                'payout': currency['withdraw-enabled'],
-                'transfer': undefined,
-                'info': currency,
-                'name': currency['display-name'],
-                'active': currency.visible,
-                'status': currency.visible ? 'ok' : 'disabled',
-                'fee': undefined, // todo need to fetch from fee endpoint
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
-                    },
-                    'price': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': Math.pow (10, precision),
-                    },
-                },
-            };
-        }
-        return result;
     }
 
     async fetchBalance (params = {}) {
