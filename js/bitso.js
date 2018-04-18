@@ -434,7 +434,8 @@ module.exports = class bitso extends Exchange {
             'address': address,
             'destination_tag': tag,
         };
-        let response = await this['privatePost' + method + 'Withdrawal'] (this.extend (request, params));
+        let classMethod = 'privatePost' + method + 'Withdrawal';
+        let response = await this[classMethod] (this.extend (request, params));
         return {
             'info': response,
             'id': this.safeString (response['payload'], 'wid'),
