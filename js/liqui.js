@@ -61,6 +61,15 @@ module.exports = class liqui extends Exchange {
                         'RedeemCoupon',
                     ],
                 },
+                'web': {
+                    'get': [
+                        'User/Balances',
+                    ],
+                    'post': [
+                        'User/Login/',
+                        'User/Session/Activate/',
+                    ],
+                },
                 'cacheapi': {
                     'get': [
                         'Pairs',
