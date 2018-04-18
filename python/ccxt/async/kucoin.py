@@ -469,7 +469,7 @@ class kucoin (Exchange):
         #
         return self.parse_order(response['data'], market)
 
-    async def parse_orders_by_status(self, orders, market, since, limit, status):
+    def parse_orders_by_status(self, orders, market, since, limit, status):
         result = []
         for i in range(0, len(orders)):
             order = self.parse_order(self.extend(orders[i], {
