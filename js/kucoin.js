@@ -486,7 +486,7 @@ module.exports = class kucoin extends Exchange {
         return this.parseOrder (response['data'], market);
     }
 
-    async parseOrdersByStatus (orders, market, since, limit, status) {
+    parseOrdersByStatus (orders, market, since, limit, status) {
         let result = [];
         for (let i = 0; i < orders.length; i++) {
             let order = this.parseOrder (this.extend (orders[i], {
