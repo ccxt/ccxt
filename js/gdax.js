@@ -574,13 +574,6 @@ module.exports = class gdax extends Exchange {
         return this.parseTransactions (response);
     }
 
-    parseTransactions (transactions, side = undefined, market = undefined, since = undefined, limit = undefined) {
-        let result = Object.values (transactions || []).map (transaction => this.parseTransaction (transaction, side));
-        result = this.sortBy (result, 'timestamp');
-        let symbol = (typeof market !== 'undefined') ? market['symbol'] : undefined;
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
-    }
-
     parseTransactionStatus (transaction) {
         if (transaction['canceled_at'] != null) {
             return 'canceled';

@@ -779,6 +779,13 @@ module.exports = class Exchange {
         }
     }
 
+    parseTransactions (transactions, side = undefined, market = undefined, since = undefined, limit = undefined) {
+        let result = Object.values (transactions || []).map (transaction => this.parseTransaction (transaction, side));
+        result = this.sortBy (result, 'timestamp');
+        let symbol = (typeof market !== 'undefined') ? market['symbol'] : undefined;
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
+    }
+
     getCurrencyUsedOnOpenOrders (currency) {
         return Object.values (this.orders).filter (order => (order['status'] === 'open')).reduce ((total, order) => {
             let symbol = order['symbol'];
