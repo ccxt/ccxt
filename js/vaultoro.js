@@ -23,6 +23,9 @@ module.exports = class vaultoro extends Exchange {
                 'www': 'https://www.vaultoro.com',
                 'doc': 'https://api.vaultoro.com',
             },
+            'commonCurrencies': {
+                'GLD': 'Gold',
+            },
             'api': {
                 'public': {
                     'get': [
