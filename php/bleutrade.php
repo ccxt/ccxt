@@ -148,7 +148,9 @@ class bleutrade extends bittrex {
         if ($limit !== null)
             $request['depth'] = $limit; // 50
         $response = $this->publicGetOrderbook (array_merge ($request, $params));
-        $orderbook = $response['result'];
+        $orderbook = $this->safe_value($response, 'result');
+        if (!$orderbook)
+            throw new ExchangeError ($this->id . ' publicGetOrderbook() returneded no result ' . $this->json ($response));
         return $this->parse_order_book($orderbook, null, 'buy', 'sell', 'Rate', 'Quantity');
     }
 }
