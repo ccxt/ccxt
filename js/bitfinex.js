@@ -157,6 +157,8 @@ module.exports = class bitfinex extends Exchange {
                     'tierBased': false, // true for tier-based/progressive
                     'percentage': false, // fixed commission
                     // Actually deposit fees are free for larger deposits (> $1000 USD equivalent)
+                    // these values below are deprecated, we should not hardcode fees and limits anymore
+                    // to be reimplemented with bitfinex funding fees from their API or web endpoints
                     'deposit': {
                         'BTC': 0.0004,
                         'IOTA': 0.5,
