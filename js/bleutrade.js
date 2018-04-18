@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const bittrex = require ('./bittrex.js');
-const { AuthenticationError, InvalidOrder, InsufficientFunds } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, InvalidOrder, InsufficientFunds } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -148,6 +148,8 @@ module.exports = class bleutrade extends bittrex {
             request['depth'] = limit; // 50
         let response = await this.publicGetOrderbook (this.extend (request, params));
         let orderbook = response['result'];
+        if (!orderbook)
+            throw new ExchangeError (this.id + ' publicGetOrderbook() returned no result ' + JSON.stringify (response));
         return this.parseOrderBook (orderbook, undefined, 'buy', 'sell', 'Rate', 'Quantity');
     }
 };
