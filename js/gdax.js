@@ -575,11 +575,11 @@ module.exports = class gdax extends Exchange {
     }
 
     parseTransactionStatus (transaction) {
-        if (transaction['canceled_at'] != null) {
+        if (transaction['canceled_at']) {
             return 'canceled';
-        } else if (transaction['completed_at'] != null) {
+        } else if (transaction['completed_at']) {
             return 'ok';
-        } else if (transaction['procesed_at'] != null) {
+        } else if (transaction['procesed_at']) {
             return 'pending';
         } else {
             return 'error';
