@@ -66,6 +66,15 @@ class liqui extends Exchange {
                         'RedeemCoupon',
                     ),
                 ),
+                'web' => array (
+                    'get' => array (
+                        'User/Balances',
+                    ),
+                    'post' => array (
+                        'User/Login/',
+                        'User/Session/Activate/',
+                    ),
+                ),
                 'cacheapi' => array (
                     'get' => array (
                         'Pairs',
