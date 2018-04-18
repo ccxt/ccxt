@@ -558,10 +558,7 @@ module.exports = class huobipro extends Exchange {
             'filled': filled,
             'remaining': remaining,
             'status': status,
-            'fee': {
-                'cost': parseFloat (order['field-fees']),
-                'currency': market ? market['quote'] : undefined,
-            },
+            'fee': undefined,
         };
         return result;
     }
