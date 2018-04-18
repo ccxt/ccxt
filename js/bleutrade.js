@@ -147,9 +147,9 @@ module.exports = class bleutrade extends bittrex {
         if (typeof limit !== 'undefined')
             request['depth'] = limit; // 50
         let response = await this.publicGetOrderbook (this.extend (request, params));
-        let orderbook = response['result'];
+        let orderbook = this.safeValue (response, 'result');
         if (!orderbook)
-            throw new ExchangeError (this.id + ' publicGetOrderbook() returned no result ' + JSON.stringify (response));
+            throw new ExchangeError (this.id + ' publicGetOrderbook() returneded no result ' + this.json (response));
         return this.parseOrderBook (orderbook, undefined, 'buy', 'sell', 'Rate', 'Quantity');
     }
 };
