@@ -138,14 +138,12 @@ class cobinhood extends Exchange {
             $currency = $currencies[$i];
             $id = $currency['currency'];
             $code = $this->common_currency_code($id);
-            $fundingNotFrozen = !$currency['funding_frozen'];
-            $active = $currency['is_active'] && $fundingNotFrozen;
             $minUnit = floatval ($currency['min_unit']);
             $result[$code] = array (
                 'id' => $id,
                 'code' => $code,
                 'name' => $currency['name'],
-                'active' => $active,
+                'active' => true,
                 'status' => 'ok',
                 'fiat' => false,
                 'precision' => $this->precision_from_string($currency['min_unit']),
@@ -169,11 +167,9 @@ class cobinhood extends Exchange {
                 ),
                 'funding' => array (
                     'withdraw' => array (
-                        'active' => $fundingNotFrozen,
                         'fee' => floatval ($currency['withdrawal_fee']),
                     ),
                     'deposit' => array (
-                        'active' => $fundingNotFrozen,
                         'fee' => floatval ($currency['deposit_fee']),
                     ),
                 ),
@@ -198,9 +194,7 @@ class cobinhood extends Exchange {
                 'amount' => 8,
                 'price' => $this->precision_from_string($market['quote_increment']),
             );
-            $active = $this->safe_value($market, 'is_active');
-            if ($active === null)
-                $active = false;
+            $active = $this->safe_value($market, 'is_active', true);
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
