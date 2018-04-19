@@ -989,7 +989,6 @@ Exchanges may return the stack of orders in various levels of details for analys
     - https://tools.ietf.org/html/rfc1123#section-5.2.14
     - https://tools.ietf.org/html/rfc822#section-5
 
-
 ### Market Depth
 
 Some exchanges accept a dictionary of extra parameters to the `fetchOrderBook () / fetch_order_book ()` function. **All extra `params` are exchange-specific (non-unified)**. You will need to consult exchanges docs if you want to override a particular param, like the depth of the order book. You can get a limited count of returned orders or a desired level of aggregation (aka *market depth*) by specifying an limit argument and exchange-specific extra `params` like so:
