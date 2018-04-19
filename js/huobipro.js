@@ -425,7 +425,7 @@ module.exports = class huobipro extends Exchange {
             //             'safe-confirms':  30                                                             }
             //
             let id = this.safeValue (currency, 'name');
-            let precision = this.safeInt (currency, 'withdraw-precision');
+            let precision = this.safeInteger (currency, 'withdraw-precision');
             let code = this.commonCurrencyCode (id.toUpperCase ());
             let active = currency['visible'] && currency['deposit-enabled'] && currency['withdraw-enabled'];
             result[code] = {
