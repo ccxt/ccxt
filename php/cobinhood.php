@@ -198,6 +198,9 @@ class cobinhood extends Exchange {
                 'amount' => 8,
                 'price' => $this->precision_from_string($market['quote_increment']),
             );
+            $active = $this->safe_value($market, 'is_active');
+            if ($active === null)
+                $active = false;
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -205,7 +208,7 @@ class cobinhood extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'active' => $market['is_active'],
+                'active' => $active,
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
