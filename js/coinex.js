@@ -18,6 +18,7 @@ module.exports = class coinex extends Exchange {
             'has': {
                 'fetchTickers': true,
                 'fetchOHLCV': true,
+                'fetchOrder': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchMyTrades': true,

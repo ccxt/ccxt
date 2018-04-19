@@ -18,6 +18,8 @@ class negociecoins (Exchange):
             'rateLimit': 1000,
             'version': 'v3',
             'has': {
+                'fetchOrder': True,
+                'fetchOrders': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
             },

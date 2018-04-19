@@ -16,7 +16,7 @@ module.exports = class southxchange extends Exchange {
             'rateLimit': 1000,
             'has': {
                 'CORS': true,
-                'createDepositAddres': true,
+                'createDepositAddress': true,
                 'fetchOpenOrders': true,
                 'fetchTickers': true,
                 'withdraw': true,
@@ -100,8 +100,10 @@ module.exports = class southxchange extends Exchange {
             let currency = this.currencies_by_id[uppercase];
             let code = currency['code'];
             let free = parseFloat (balance['Available']);
-            let used = parseFloat (balance['Unconfirmed']);
-            let total = this.sum (free, used);
+            let deposited = parseFloat (balance['Deposited']);
+            let unconfirmed = parseFloat (balance['Unconfirmed']);
+            let total = this.sum (deposited, unconfirmed);
+            let used = total - free;
             let account = {
                 'free': free,
                 'used': used,

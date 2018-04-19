@@ -16,6 +16,7 @@ class exx extends Exchange {
             'countries' => 'CN',
             'rateLimit' => 1000 / 10,
             'has' => array (
+                'fetchOrder' => true,
                 'fetchTickers' => true,
                 'fetchOpenOrders' => true,
             ),

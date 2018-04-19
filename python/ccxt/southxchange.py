@@ -18,7 +18,7 @@ class southxchange (Exchange):
             'rateLimit': 1000,
             'has': {
                 'CORS': True,
-                'createDepositAddres': True,
+                'createDepositAddress': True,
                 'fetchOpenOrders': True,
                 'fetchTickers': True,
                 'withdraw': True,
@@ -99,8 +99,10 @@ class southxchange (Exchange):
             currency = self.currencies_by_id[uppercase]
             code = currency['code']
             free = float(balance['Available'])
-            used = float(balance['Unconfirmed'])
-            total = self.sum(free, used)
+            deposited = float(balance['Deposited'])
+            unconfirmed = float(balance['Unconfirmed'])
+            total = self.sum(deposited, unconfirmed)
+            used = total - free
             account = {
                 'free': free,
                 'used': used,

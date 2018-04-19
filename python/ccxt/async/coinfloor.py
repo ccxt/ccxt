@@ -19,6 +19,7 @@ class coinfloor (Exchange):
             'countries': 'UK',
             'has': {
                 'CORS': False,
+                'fetchOpenOrders': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28246081-623fc164-6a1c-11e7-913f-bac0d5576c90.jpg',

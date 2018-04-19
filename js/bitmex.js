@@ -159,16 +159,33 @@ module.exports = class bitmex extends Exchange {
                 future = true;
                 type = 'future';
             }
-            let maker = market['makerFee'];
-            let taker = market['takerFee'];
+            let precision = {
+                'amount': undefined,
+                'price': undefined,
+            };
+            if (market['lotSize'])
+                precision['amount'] = this.precisionFromString (this.truncate_to_string (market['lotSize'], 16));
+            if (market['tickSize'])
+                precision['price'] = this.precisionFromString (this.truncate_to_string (market['tickSize'], 16));
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'active': active,
-                'taker': taker,
-                'maker': maker,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': market['lotSize'],
+                        'max': market['maxOrderQty'],
+                    },
+                    'price': {
+                        'min': market['tickSize'],
+                        'max': market['maxPrice'],
+                    },
+                },
+                'taker': market['takerFee'],
+                'maker': market['makerFee'],
                 'type': type,
                 'spot': false,
                 'swap': swap,

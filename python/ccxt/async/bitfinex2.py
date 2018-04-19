@@ -27,6 +27,7 @@ class bitfinex2 (bitfinex):
                 'createOrder': False,
                 'deposit': False,
                 'editOrder': False,
+                'fetchDepositAddress': False,
                 'fetchClosedOrders': False,
                 'fetchFundingFees': False,
                 'fetchMyTrades': False,
@@ -374,6 +375,9 @@ class bitfinex2 (bitfinex):
 
     async def fetch_order(self, id, symbol=None, params={}):
         raise NotSupported(self.id + ' fetchOrder not implemented yet')
+
+    async def fetch_deposit_address(self, currency, params={}):
+        raise NotSupported(self.id + ' fetchDepositAddress() not implemented yet.')
 
     async def withdraw(self, currency, amount, address, tag=None, params={}):
         raise NotSupported(self.id + ' withdraw not implemented yet')

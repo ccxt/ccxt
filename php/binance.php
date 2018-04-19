@@ -580,24 +580,35 @@ class binance extends Exchange {
             $timestamp = $order['time'];
         else if (is_array ($order) && array_key_exists ('transactTime', $order))
             $timestamp = $order['transactTime'];
-        else
-            throw new ExchangeError ($this->id . ' malformed $order => ' . $this->json ($order));
-        $price = floatval ($order['price']);
-        $amount = floatval ($order['origQty']);
+        $iso8601 = null;
+        if ($timestamp !== null)
+            $iso8601 = $this->iso8601 ($timestamp);
+        $price = $this->safe_float($order, 'price');
+        $amount = $this->safe_float($order, 'origQty');
         $filled = $this->safe_float($order, 'executedQty', 0.0);
-        $remaining = max ($amount - $filled, 0.0);
+        $remaining = null;
         $cost = null;
-        if ($price !== null)
-            if ($filled !== null)
+        if ($filled !== null) {
+            if ($amount !== null)
+                $remaining = max ($amount - $filled, 0.0);
+            if ($price !== null)
                 $cost = $price * $filled;
+        }
+        $id = $this->safe_string($order, 'orderId');
+        $type = $this->safe_string($order, 'type');
+        if ($type !== null)
+            $type = strtolower ($type);
+        $side = $this->safe_string($order, 'side');
+        if ($side !== null)
+            $side = strtolower ($side);
         $result = array (
             'info' => $order,
-            'id' => (string) $order['orderId'],
+            'id' => $id,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $iso8601,
             'symbol' => $symbol,
-            'type' => strtolower ($order['type']),
-            'side' => strtolower ($order['side']),
+            'type' => $type,
+            'side' => $side,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
@@ -612,6 +623,13 @@ class binance extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
+        // the next 5 lines are added to support for testing orders
+        $method = 'privatePostOrder';
+        $test = $this->safe_value($params, 'test', false);
+        if ($test) {
+            $method .= 'Test';
+            $params = $this->omit ($params, 'test');
+        }
         $order = array (
             'symbol' => $market['id'],
             'quantity' => $this->amount_to_string($symbol, $amount),
@@ -624,7 +642,7 @@ class binance extends Exchange {
                 'timeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
             ));
         }
-        $response = $this->privatePostOrder (array_merge ($order, $params));
+        $response = $this->$method (array_merge ($order, $params));
         return $this->parse_order($response);
     }
 
@@ -831,7 +849,11 @@ class binance extends Exchange {
                 $success = $this->safe_value($response, 'success', true);
                 if (!$success) {
                     if (is_array ($response) && array_key_exists ('msg', $response))
-                        $response = json_decode ($response['msg'], $as_associative_array = true);
+                        try {
+                            $response = json_decode ($response['msg'], $as_associative_array = true);
+                        } catch (Exception $e) {
+                            $response = array ();
+                        }
                 }
                 // checks against $error codes
                 $error = $this->safe_string($response, 'code');

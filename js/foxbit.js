@@ -60,14 +60,36 @@ module.exports = class foxbit extends Exchange {
                 'BTC/PKR': { 'id': 'BTCPKR', 'symbol': 'BTC/PKR', 'base': 'BTC', 'quote': 'PKR', 'brokerId': 8, 'broker': 'UrduBit' },
                 'BTC/CLP': { 'id': 'BTCCLP', 'symbol': 'BTC/CLP', 'base': 'BTC', 'quote': 'CLP', 'brokerId': 9, 'broker': 'ChileBit' },
             },
+            'options': {
+                'brokerId': '4', // https://blinktrade.com/docs/#brokers
+            },
         });
     }
 
-    fetchBalance (params = {}) {
-        // todo parse balance
-        return this.privatePostU2 ({
+    async fetchBalance (params = {}) {
+        let response = await this.privatePostU2 ({
             'BalanceReqID': this.nonce (),
         });
+        let balances = this.safeValue (response['Responses'], this.options['brokerId']);
+        let result = { 'info': response };
+        if (typeof balances !== 'undefined') {
+            let currencyIds = Object.keys (this.currencies_by_id);
+            for (let i = 0; i < currencyIds.length; i++) {
+                let currencyId = currencyIds[i];
+                let currency = this.currencies_by_id[currencyId];
+                let code = currency['code'];
+                // we only set the balance for the currency if that currency is present in response
+                // otherwise we will lose the info if the currency balance has been funded or traded or not
+                if (currencyId in balances) {
+                    let account = this.account ();
+                    account['used'] = parseFloat (balances[currencyId + '_locked']) * 1e-8;
+                    account['total'] = parseFloat (balances[currencyId]) * 1e-8;
+                    account['free'] = account['total'] - account['used'];
+                    result[code] = account;
+                }
+            }
+        }
+        return this.parseBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

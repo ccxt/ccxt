@@ -17,10 +17,11 @@ class bit2c extends Exchange {
             'rateLimit' => 3000,
             'has' => array (
                 'CORS' => false,
+                'fetchOpenOrders' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg',
-                'api' => 'https://www.bit2c.co.il',
+                'api' => 'https://bit2c.co.il',
                 'www' => 'https://www.bit2c.co.il',
                 'doc' => array (
                     'https://www.bit2c.co.il/home/api',
@@ -33,23 +34,31 @@ class bit2c extends Exchange {
                         'Exchanges/{pair}/Ticker',
                         'Exchanges/{pair}/orderbook',
                         'Exchanges/{pair}/trades',
+                        'Exchanges/{pair}/lasttrades',
                     ),
                 ),
                 'private' => array (
                     'post' => array (
-                        'Account/Balance',
-                        'Account/Balance/v2',
                         'Merchant/CreateCheckout',
-                        'Order/AccountHistory',
                         'Order/AddCoinFundsRequest',
                         'Order/AddFund',
                         'Order/AddOrder',
                         'Order/AddOrderMarketPriceBuy',
                         'Order/AddOrderMarketPriceSell',
                         'Order/CancelOrder',
-                        'Order/MyOrders',
+                        'Order/AddCoinFundsRequest',
+                        'Order/AddStopOrder',
                         'Payment/GetMyId',
                         'Payment/Send',
+                        'Payment/Pay',
+                    ),
+                    'get' => array (
+                        'Account/Balance',
+                        'Account/Balance/v2',
+                        'Order/MyOrders',
+                        'Order/GetById',
+                        'Order/AccountHistory',
+                        'Order/OrderHistory',
                     ),
                 ),
             ),
@@ -69,7 +78,7 @@ class bit2c extends Exchange {
     }
 
     public function fetch_balance ($params = array ()) {
-        $balance = $this->privatePostAccountBalanceV2 ();
+        $balance = $this->privateGetAccountBalanceV2 ();
         $result = array ( 'info' => $balance );
         $currencies = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
         for ($i = 0; $i < count ($currencies); $i++) {
@@ -194,5 +203,53 @@ class bit2c extends Exchange {
             );
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        if ($symbol === null)
+            throw new ExchangeError ($this->id . ' fetchOpenOrders() requires a $symbol argument');
+        $market = $this->market ($symbol);
+        $response = $this->privateGetOrderMyOrders (array_merge (array (
+            'pair' => $market['id'],
+        ), $params));
+        $orders = $this->safe_value($response, $market['id'], array ());
+        $asks = $this->safe_value($orders, 'ask');
+        $bids = $this->safe_value($orders, 'bid');
+        return $this->parse_orders($this->array_concat($asks, $bids), $market, $since, $limit);
+    }
+
+    public function parse_order ($order, $market = null) {
+        $timestamp = $order['created'];
+        $price = $order['price'];
+        $amount = $order['amount'];
+        $cost = $price * $amount;
+        $symbol = null;
+        if ($market !== null)
+            $symbol = $market['symbol'];
+        $side = $this->safe_value($order, 'type');
+        if ($side === 0) {
+            $side = 'buy';
+        } else if ($side === 1) {
+            $side = 'sell';
+        }
+        $id = $this->safe_string($order, 'id');
+        return array (
+            'id' => $id,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'status' => $this->safe_string($order, 'status'),
+            'symbol' => $symbol,
+            'type' => null,
+            'side' => $side,
+            'price' => $price,
+            'amount' => $amount,
+            'filled' => null,
+            'remaining' => null,
+            'cost' => $cost,
+            'trades' => null,
+            'fee' => null,
+            'info' => $order,
+        );
     }
 }

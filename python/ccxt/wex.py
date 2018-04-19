@@ -149,7 +149,7 @@ class wex (liqui):
                         # returned by fetchOpenOrders if no open orders(fix for  #489) -> not an error
                         return
                     feedback = self.id + ' ' + self.json(response)
-                    messages = self.exceptions.messages
+                    messages = self.exceptions['messages']
                     if error in messages:
                         raise messages[error](feedback)
                     if error.find('It is not enough') >= 0:

@@ -307,7 +307,6 @@ let tryAllProxies = async function (exchange, proxies) {
                 exchange.origin = exchange.uuid ()
 
             await testExchange (exchange)
-
             break
 
         } catch (e) {

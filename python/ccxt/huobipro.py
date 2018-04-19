@@ -35,13 +35,14 @@ class huobipro (Exchange):
             'has': {
                 'CORS': False,
                 'fetchDepositAddress': True,
-                'fetchClosedOrders': 'emulated',
                 'fetchOHCLV': True,
                 'fetchOpenOrders': True,
+                'fetchClosedOrders': True,
                 'fetchOrder': True,
-                'fetchOrders': True,
+                'fetchOrders': False,
                 'fetchTradingLimits': True,
                 'withdraw': True,
+                'fetchCurrencies': True,
             },
             'timeframes': {
                 '1m': '1min',
@@ -78,6 +79,7 @@ class huobipro (Exchange):
                         'common/currencys',  # 查询系统支持的所有币种
                         'common/timestamp',  # 查询系统当前时间
                         'common/exchange',  # order limits
+                        'settings/currencys',  # ?language=en-US
                     ],
                 },
                 'private': {
@@ -90,6 +92,7 @@ class huobipro (Exchange):
                         'order/matchresults',  # 查询当前成交、历史成交
                         'dw/withdraw-virtual/addresses',  # 查询虚拟币提现地址
                         'dw/deposit-virtual/addresses',
+                        'query/deposit-withdraw',
                     ],
                     'post': [
                         'order/orders/place',  # 创建并执行一个新订单(一步下单， 推荐使用)
@@ -118,56 +121,11 @@ class huobipro (Exchange):
                 'order-orderstate-error': OrderNotFound,  # canceling an already canceled order
                 'order-queryorder-invalid': OrderNotFound,  # querying a non-existent order
             },
+            'options': {
+                'fetchMarketsMethod': 'publicGetCommonSymbols',
+                'language': 'en-US',
+            },
         })
-
-    def parse_markets(self, markets):
-        numMarkets = len(markets)
-        if numMarkets < 1:
-            raise ExchangeError(self.id + ' publicGetCommonSymbols returned empty response: ' + self.json(markets))
-        result = []
-        for i in range(0, len(markets)):
-            market = markets[i]
-            baseId = market['base-currency']
-            quoteId = market['quote-currency']
-            base = baseId.upper()
-            quote = quoteId.upper()
-            id = baseId + quoteId
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
-            symbol = base + '/' + quote
-            precision = {
-                'amount': market['amount-precision'],
-                'price': market['price-precision'],
-            }
-            lot = math.pow(10, -precision['amount'])
-            maker = 0 if (base == 'OMG') else 0.2 / 100
-            taker = 0 if (base == 'OMG') else 0.2 / 100
-            result.append({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'lot': lot,
-                'precision': precision,
-                'taker': taker,
-                'maker': maker,
-                'limits': {
-                    'amount': {
-                        'min': lot,
-                        'max': math.pow(10, precision['amount']),
-                    },
-                    'price': {
-                        'min': math.pow(10, -precision['price']),
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': 0,
-                        'max': None,
-                    },
-                },
-                'info': market,
-            })
-        return result
 
     def load_trading_limits(self, symbols=None, reload=False, params={}):
         if reload or not('limitsLoaded' in list(self.options.keys())):
@@ -215,8 +173,56 @@ class huobipro (Exchange):
         }
 
     def fetch_markets(self):
-        response = self.publicGetCommonSymbols()
-        return self.parse_markets(response['data'])
+        method = self.options['fetchMarketsMethod']
+        response = getattr(self, method)()
+        markets = response['data']
+        numMarkets = len(markets)
+        if numMarkets < 1:
+            raise ExchangeError(self.id + ' publicGetCommonSymbols returned empty response: ' + self.json(markets))
+        result = []
+        for i in range(0, len(markets)):
+            market = markets[i]
+            baseId = market['base-currency']
+            quoteId = market['quote-currency']
+            base = baseId.upper()
+            quote = quoteId.upper()
+            id = baseId + quoteId
+            base = self.common_currency_code(base)
+            quote = self.common_currency_code(quote)
+            symbol = base + '/' + quote
+            precision = {
+                'amount': market['amount-precision'],
+                'price': market['price-precision'],
+            }
+            lot = math.pow(10, -precision['amount'])
+            maker = 0 if (base == 'OMG') else 0.2 / 100
+            taker = 0 if (base == 'OMG') else 0.2 / 100
+            result.append({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'lot': lot,
+                'precision': precision,
+                'taker': taker,
+                'maker': maker,
+                'limits': {
+                    'amount': {
+                        'min': lot,
+                        'max': math.pow(10, precision['amount']),
+                    },
+                    'price': {
+                        'min': math.pow(10, -precision['price']),
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': 0,
+                        'max': None,
+                    },
+                },
+                'info': market,
+            })
+        return result
 
     def parse_ticker(self, ticker, market=None):
         symbol = None
@@ -371,6 +377,77 @@ class huobipro (Exchange):
         response = self.privateGetAccountAccounts()
         return response['data']
 
+    def fetch_currencies(self, params={}):
+        response = self.publicGetSettingsCurrencys(self.extend({
+            'language': self.options['language'],
+        }, params))
+        currencies = response['data']
+        result = {}
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
+            #
+            #  {                    name: "ctxc",
+            #              'display-name': "CTXC",
+            #        'withdraw-precision':  8,
+            #             'currency-type': "eth",
+            #        'currency-partition': "pro",
+            #             'support-sites':  null,
+            #                'otc-enable':  0,
+            #        'deposit-min-amount': "2",
+            #       'withdraw-min-amount': "4",
+            #            'show-precision': "8",
+            #                      weight: "2988",
+            #                     visible:  True,
+            #              'deposit-desc': "Please don’t deposit any other digital assets except CTXC t…",
+            #             'withdraw-desc': "Minimum withdrawal amount: 4 CTXC. not >_<not For security reason…",
+            #           'deposit-enabled':  True,
+            #          'withdraw-enabled':  True,
+            #    'currency-addr-with-tag':  False,
+            #             'fast-confirms':  15,
+            #             'safe-confirms':  30                                                             }
+            #
+            id = self.safe_value(currency, 'name')
+            precision = self.safe_integer(currency, 'withdraw-precision')
+            code = self.common_currency_code(id.upper())
+            active = currency['visible'] and currency['deposit-enabled'] and currency['withdraw-enabled']
+            result[code] = {
+                'id': id,
+                'code': code,
+                'type': 'crypto',
+                # 'payin': currency['deposit-enabled'],
+                # 'payout': currency['withdraw-enabled'],
+                # 'transfer': None,
+                'name': currency['display-name'],
+                'active': active,
+                'status': 'ok' if active else 'disabled',
+                'fee': None,  # todo need to fetch from fee endpoint
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': math.pow(10, -precision),
+                        'max': math.pow(10, precision),
+                    },
+                    'price': {
+                        'min': math.pow(10, -precision),
+                        'max': math.pow(10, precision),
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'deposit': {
+                        'min': self.safe_float(currency, 'deposit-min-amount'),
+                        'max': math.pow(10, precision),
+                    },
+                    'withdraw': {
+                        'min': self.safe_float(currency, 'withdraw-min-amount'),
+                        'max': math.pow(10, precision),
+                    },
+                },
+                'info': currency,
+            }
+        return result
+
     def fetch_balance(self, params={}):
         self.load_markets()
         self.load_accounts()
@@ -396,39 +473,25 @@ class huobipro (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_orders_by_states(self, states, symbol=None, since=None, limit=None, params={}):
         if not symbol:
             raise ExchangeError(self.id + ' fetchOrders() requires a symbol parameter')
         self.load_markets()
         market = self.market(symbol)
-        status = None
-        if 'type' in params:
-            status = params['type']
-        elif 'status' in params:
-            status = params['status']
-        else:
-            raise ExchangeError(self.id + ' fetchOrders() requires a type param or status param for spot market ' + symbol + '(0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)')
-        if (status == 0) or (status == 'open'):
-            status = 'pre-submitted,submitted,partial-filled'
-        elif (status == 1) or (status == 'closed'):
-            status = 'filled,partial-canceled,canceled'
-        else:
-            status = 'pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled'
         response = self.privateGetOrderOrders(self.extend({
             'symbol': market['id'],
-            'states': status,
+            'states': states,
         }))
         return self.parse_orders(response['data'], market, since, limit)
 
+    def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        return self.fetch_orders_by_states('pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled', symbol, since, limit, params)
+
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        return self.fetch_orders(symbol, None, None, self.extend({
-            'status': 0,  # 0 for unfilled orders, 1 for filled orders
-        }, params))
+        return self.fetch_orders_by_states('pre-submitted,submitted,partial-filled', symbol, since, limit, params)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        return self.fetch_orders(symbol, None, None, self.extend({
-            'status': 1,  # 0 for unfilled orders, 1 for filled orders
-        }, params))
+        return self.fetch_orders_by_states('filled,partial-canceled,canceled', symbol, since, limit, params)
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
@@ -440,6 +503,8 @@ class huobipro (Exchange):
     def parse_order_status(self, status):
         if status == 'partial-filled':
             return 'open'
+        elif status == 'partial-canceled':
+            return 'canceled'
         elif status == 'filled':
             return 'closed'
         elif status == 'canceled':
