@@ -78,6 +78,7 @@ module.exports = class yobit extends liqui {
                 'CS': 'CryptoSpots',
                 'DCT': 'Discount',
                 'DGD': 'DarkGoldCoin',
+                'DROP': 'FaucetCoin',
                 'ERT': 'Eristica Token',
                 'ICN': 'iCoin',
                 'KNC': 'KingN Coin',
