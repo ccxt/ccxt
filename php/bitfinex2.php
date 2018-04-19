@@ -23,6 +23,7 @@ class bitfinex2 extends bitfinex {
                 'createOrder' => false,
                 'deposit' => false,
                 'editOrder' => false,
+                'fetchDepositAddress' => false,
                 'fetchClosedOrders' => false,
                 'fetchFundingFees' => false,
                 'fetchMyTrades' => false,
@@ -390,6 +391,10 @@ class bitfinex2 extends bitfinex {
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         throw new NotSupported ($this->id . ' fetchOrder not implemented yet');
+    }
+
+    public function fetch_deposit_address ($currency, $params = array ()) {
+        throw new NotSupported ($this->id . ' fetchDepositAddress() not implemented yet.');
     }
 
     public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.12.159'
+__version__ = '1.13.7'
 
 # -----------------------------------------------------------------------------
 
@@ -137,6 +137,7 @@ class Exchange(object):
         'uid': False,
         'login': False,
         'password': False,
+        'twofa': False,  # 2-factor authentication (one-time password key)
     }
 
     # API method metainfo
@@ -900,7 +901,7 @@ class Exchange(object):
         return self.fees
 
     def fetch_markets(self):
-        return self.markets
+        return self.to_array(self.markets)
 
     def fetch_fees(self):
         trading = {}

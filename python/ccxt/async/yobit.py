@@ -76,6 +76,7 @@ class yobit (liqui):
                 'BCS': 'BitcoinStake',
                 'BLN': 'Bulleon',
                 'BTS': 'Bitshares2',
+                'CPC': 'Capricoin',
                 'CS': 'CryptoSpots',
                 'DCT': 'Discount',
                 'DGD': 'DarkGoldCoin',

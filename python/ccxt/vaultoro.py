@@ -24,6 +24,9 @@ class vaultoro (Exchange):
                 'www': 'https://www.vaultoro.com',
                 'doc': 'https://api.vaultoro.com',
             },
+            'commonCurrencies': {
+                'GLD': 'Gold',
+            },
             'api': {
                 'public': {
                     'get': [
@@ -59,11 +62,11 @@ class vaultoro (Exchange):
         result = []
         markets = self.publicGetMarkets()
         market = markets['data']
-        base = market['BaseCurrency']
-        quote = market['MarketCurrency']
+        baseId = market['BaseCurrency']
+        quoteId = market['MarketCurrency']
+        base = self.common_currency_code(baseId)
+        quote = self.common_currency_code(quoteId)
         symbol = base + '/' + quote
-        baseId = base
-        quoteId = quote
         id = market['MarketName']
         result.append({
             'id': id,
@@ -83,8 +86,10 @@ class vaultoro (Exchange):
         result = {'info': balances}
         for b in range(0, len(balances)):
             balance = balances[b]
-            currency = balance['currency_code']
-            uppercase = currency.upper()
+            currencyId = balance['currency_code'].upper()
+            code = currencyId
+            if currencyId in self.currencies_by_id[currencyId]:
+                code = self.currencies_by_id[currencyId]['code']
             free = balance['cash']
             used = balance['reserved']
             total = self.sum(free, used)
@@ -93,7 +98,7 @@ class vaultoro (Exchange):
                 'used': used,
                 'total': total,
             }
-            result[uppercase] = account
+            result[code] = account
         return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
