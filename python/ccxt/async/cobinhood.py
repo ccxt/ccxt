@@ -196,6 +196,9 @@ class cobinhood (Exchange):
                 'amount': 8,
                 'price': self.precision_from_string(market['quote_increment']),
             }
+            active = self.safe_value(market, 'is_active')
+            if active is None:
+                active = False
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -203,7 +206,7 @@ class cobinhood (Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'active': market['is_active'],
+                'active': active,
                 'precision': precision,
                 'limits': {
                     'amount': {
