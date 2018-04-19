@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
-
+import datetime
 
 class bit2c (Exchange):
 
@@ -19,6 +19,7 @@ class bit2c (Exchange):
             'has': {
                 'CORS': False,
                 'fetchOpenOrders': True,
+                'fetchMyTrades': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg',
@@ -236,4 +237,83 @@ class bit2c (Exchange):
             'trades': None,
             'fee': None,
             'info': order,
+        }
+
+    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        market = None
+               
+        method = 'privateGetOrderOrderhistory'
+        toTime = datetime.datetime.now()
+        fromTime = datetime.datetime.fromtimestamp(since)
+        
+        request = {}
+        request['take'] = limit
+        if since is not None:
+            request['toTime'] = toTime.strftime('%m.%d.%Y')     
+            request['fromTime'] = fromTime.strftime('%m.%d.%Y')        
+
+        if symbol is not None:
+            market = self.market(symbol)
+            request['pair'] = market['id']
+
+        response = getattr(self, method)(self.extend(request, params))
+        return self.parse_trades(response, market, since, limit)
+
+    def parse_trade(self, trade, market=None):
+        timestamp = None
+        id = None
+        price = None
+        amount = None
+        orderId = None
+        feeCost = None
+        side = None
+        symbol = market['symbol'] if market is not None else None
+
+        # Private Trade
+        if('reference' in trade):
+            timestamp = self.safe_integer(trade, 'ticks') * 1000
+            price = self.safe_float(trade, 'price')
+            amount = self.safe_float(trade, 'firstAmount')
+            if(symbol is None):
+                marketId = self.safe_string(trade, 'pair')
+                symbol = [self.markets[market]['symbol'] for market in self.markets if self.markets[market]['id'] == marketId][0]
+
+            reference = self.safe_string(trade, 'reference').split('|') # reference contain: 'pair|orderId|tradeId'
+            orderId = reference[1]
+            id = reference[2]
+            
+            action = self.safe_integer(trade, 'action')
+            if action == 0:
+                side = 'buy'
+            elif action == 1:
+                side = 'sell'
+
+            feeCost = self.safe_float(trade, 'feeAmount')
+        
+        # Public Trade
+        else:
+            timestamp = self.safe_integer(trade, 'date') * 1000
+            id = self.safe_integer(trade, 'tid')
+            price = self.safe_float(trade, 'price')
+            amount = self.safe_float(trade, 'amount')
+
+        return  {
+            'info': trade,
+            'id': id,          
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': symbol,
+            'order': orderId,
+            'type': None,
+            'side': side,
+            'takerOrMaker': None,
+            'price': price,
+            'amount': amount,
+            'cost': price * amount,
+            'fee': {
+                'cost': feeCost,
+                'currency': 'NIS',
+                'rate': None,
+            },
         }
