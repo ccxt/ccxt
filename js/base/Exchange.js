@@ -116,6 +116,7 @@ module.exports = class Exchange {
                 'uid':      false,
                 'login':    false,
                 'password': false,
+                'twofa':    false, // 2-factor authentication (one-time password key)
             },
             'markets': undefined, // to be filled manually or by fetchMarkets
             'currencies': {}, // to be filled manually or by fetchMarkets

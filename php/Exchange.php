@@ -638,6 +638,7 @@ abstract class Exchange {
             'uid' => false,
             'login' => false,
             'password' => false,
+            'twofa' => false, // 2-factor authentication (one-time password key)
         );
 
         // API methods metainfo

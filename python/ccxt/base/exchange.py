@@ -137,6 +137,7 @@ class Exchange(object):
         'uid': False,
         'login': False,
         'password': False,
+        'twofa': False,  # 2-factor authentication (one-time password key)
     }
 
     # API method metainfo
