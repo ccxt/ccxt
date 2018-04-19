@@ -30,6 +30,7 @@ class huobipro extends Exchange {
                 'fetchOrders' => false,
                 'fetchTradingLimits' => true,
                 'withdraw' => true,
+                'fetchCurrencies' => true,
             ),
             'timeframes' => array (
                 '1m' => '1min',
@@ -66,6 +67,7 @@ class huobipro extends Exchange {
                         'common/currencys', // 查询系统支持的所有币种
                         'common/timestamp', // 查询系统当前时间
                         'common/exchange', // order limits
+                        'settings/currencys', // ?language=en-US
                     ),
                 ),
                 'private' => array (
@@ -109,6 +111,7 @@ class huobipro extends Exchange {
             ),
             'options' => array (
                 'fetchMarketsMethod' => 'publicGetCommonSymbols',
+                'language' => 'en-US',
             ),
         ));
     }
@@ -391,6 +394,79 @@ class huobipro extends Exchange {
         $this->load_markets();
         $response = $this->privateGetAccountAccounts ();
         return $response['data'];
+    }
+
+    public function fetch_currencies ($params = array ()) {
+        $response = $this->publicGetSettingsCurrencys (array_merge (array (
+            'language' => $this->options['language'],
+        ), $params));
+        $currencies = $response['data'];
+        $result = array ();
+        for ($i = 0; $i < count ($currencies); $i++) {
+            $currency = $currencies[$i];
+            //
+            //  {                     name => "ctxc",
+            //              'display-name' => "CTXC",
+            //        'withdraw-precision' =>  8,
+            //             'currency-type' => "eth",
+            //        'currency-partition' => "pro",
+            //             'support-sites' =>  null,
+            //                'otc-enable' =>  0,
+            //        'deposit-min-amount' => "2",
+            //       'withdraw-min-amount' => "4",
+            //            'show-precision' => "8",
+            //                      weight => "2988",
+            //                     visible =>  true,
+            //              'deposit-desc' => "Please don’t deposit any other digital assets except CTXC t…",
+            //             'withdraw-desc' => "Minimum withdrawal amount => 4 CTXC. !>_<!For security reason…",
+            //           'deposit-enabled' =>  true,
+            //          'withdraw-enabled' =>  true,
+            //    'currency-addr-with-tag' =>  false,
+            //             'fast-confirms' =>  15,
+            //             'safe-confirms' =>  30                                                             }
+            //
+            $id = $this->safe_value($currency, 'name');
+            $precision = $this->safe_integer($currency, 'withdraw-precision');
+            $code = $this->common_currency_code(strtoupper ($id));
+            $active = $currency['visible'] && $currency['deposit-enabled'] && $currency['withdraw-enabled'];
+            $result[$code] = array (
+                'id' => $id,
+                'code' => $code,
+                'type' => 'crypto',
+                // 'payin' => $currency['deposit-enabled'],
+                // 'payout' => $currency['withdraw-enabled'],
+                // 'transfer' => null,
+                'name' => $currency['display-name'],
+                'active' => $active,
+                'status' => $active ? 'ok' : 'disabled',
+                'fee' => null, // todo need to fetch from fee endpoint
+                'precision' => $precision,
+                'limits' => array (
+                    'amount' => array (
+                        'min' => pow (10, -$precision),
+                        'max' => pow (10, $precision),
+                    ),
+                    'price' => array (
+                        'min' => pow (10, -$precision),
+                        'max' => pow (10, $precision),
+                    ),
+                    'cost' => array (
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'deposit' => array (
+                        'min' => $this->safe_float($currency, 'deposit-min-amount'),
+                        'max' => pow (10, $precision),
+                    ),
+                    'withdraw' => array (
+                        'min' => $this->safe_float($currency, 'withdraw-min-amount'),
+                        'max' => pow (10, $precision),
+                    ),
+                ),
+                'info' => $currency,
+            );
+        }
+        return $result;
     }
 
     public function fetch_balance ($params = array ()) {

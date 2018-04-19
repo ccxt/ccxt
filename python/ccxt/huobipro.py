@@ -42,6 +42,7 @@ class huobipro (Exchange):
                 'fetchOrders': False,
                 'fetchTradingLimits': True,
                 'withdraw': True,
+                'fetchCurrencies': True,
             },
             'timeframes': {
                 '1m': '1min',
@@ -78,6 +79,7 @@ class huobipro (Exchange):
                         'common/currencys',  # 查询系统支持的所有币种
                         'common/timestamp',  # 查询系统当前时间
                         'common/exchange',  # order limits
+                        'settings/currencys',  # ?language=en-US
                     ],
                 },
                 'private': {
@@ -121,6 +123,7 @@ class huobipro (Exchange):
             },
             'options': {
                 'fetchMarketsMethod': 'publicGetCommonSymbols',
+                'language': 'en-US',
             },
         })
 
@@ -373,6 +376,77 @@ class huobipro (Exchange):
         self.load_markets()
         response = self.privateGetAccountAccounts()
         return response['data']
+
+    def fetch_currencies(self, params={}):
+        response = self.publicGetSettingsCurrencys(self.extend({
+            'language': self.options['language'],
+        }, params))
+        currencies = response['data']
+        result = {}
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
+            #
+            #  {                    name: "ctxc",
+            #              'display-name': "CTXC",
+            #        'withdraw-precision':  8,
+            #             'currency-type': "eth",
+            #        'currency-partition': "pro",
+            #             'support-sites':  null,
+            #                'otc-enable':  0,
+            #        'deposit-min-amount': "2",
+            #       'withdraw-min-amount': "4",
+            #            'show-precision': "8",
+            #                      weight: "2988",
+            #                     visible:  True,
+            #              'deposit-desc': "Please don’t deposit any other digital assets except CTXC t…",
+            #             'withdraw-desc': "Minimum withdrawal amount: 4 CTXC. not >_<not For security reason…",
+            #           'deposit-enabled':  True,
+            #          'withdraw-enabled':  True,
+            #    'currency-addr-with-tag':  False,
+            #             'fast-confirms':  15,
+            #             'safe-confirms':  30                                                             }
+            #
+            id = self.safe_value(currency, 'name')
+            precision = self.safe_integer(currency, 'withdraw-precision')
+            code = self.common_currency_code(id.upper())
+            active = currency['visible'] and currency['deposit-enabled'] and currency['withdraw-enabled']
+            result[code] = {
+                'id': id,
+                'code': code,
+                'type': 'crypto',
+                # 'payin': currency['deposit-enabled'],
+                # 'payout': currency['withdraw-enabled'],
+                # 'transfer': None,
+                'name': currency['display-name'],
+                'active': active,
+                'status': 'ok' if active else 'disabled',
+                'fee': None,  # todo need to fetch from fee endpoint
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': math.pow(10, -precision),
+                        'max': math.pow(10, precision),
+                    },
+                    'price': {
+                        'min': math.pow(10, -precision),
+                        'max': math.pow(10, precision),
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'deposit': {
+                        'min': self.safe_float(currency, 'deposit-min-amount'),
+                        'max': math.pow(10, precision),
+                    },
+                    'withdraw': {
+                        'min': self.safe_float(currency, 'withdraw-min-amount'),
+                        'max': math.pow(10, precision),
+                    },
+                },
+                'info': currency,
+            }
+        return result
 
     def fetch_balance(self, params={}):
         self.load_markets()

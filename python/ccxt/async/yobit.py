@@ -76,6 +76,8 @@ class yobit (liqui):
                 'BCS': 'BitcoinStake',
                 'BLN': 'Bulleon',
                 'BTS': 'Bitshares2',
+                'CAT': 'BitClave',
+                'COV': 'Coven Coin',
                 'CPC': 'Capricoin',
                 'CS': 'CryptoSpots',
                 'DCT': 'Discount',
@@ -90,6 +92,7 @@ class yobit (liqui):
                 'MDT': 'Midnight',
                 'NAV': 'NavajoCoin',
                 'OMG': 'OMGame',
+                'STK': 'StakeCoin',
                 'PAY': 'EPAY',
                 'PLC': 'Platin Coin',
                 'REP': 'Republicoin',
@@ -186,11 +189,11 @@ class yobit (liqui):
             response = json.loads(body)
             if 'success' in response:
                 if not response['success']:
-                    if response['error_log'].find('Insufficient funds') >= 0:  # not enougTh is a typo inside Liqui's own API...
-                        raise InsufficientFunds(self.id + ' ' + self.json(response))
-                    elif response['error_log'] == 'Requests too often':
-                        raise DDoSProtection(self.id + ' ' + self.json(response))
-                    elif (response['error_log'] == 'not available') or (response['error_log'] == 'external service unavailable'):
-                        raise DDoSProtection(self.id + ' ' + self.json(response))
-                    else:
-                        raise ExchangeError(self.id + ' ' + self.json(response))
+                    if 'error_log' in response:
+                        if response['error_log'].find('Insufficient funds') >= 0:  # not enougTh is a typo inside Liqui's own API...
+                            raise InsufficientFunds(self.id + ' ' + self.json(response))
+                        elif response['error_log'] == 'Requests too often':
+                            raise DDoSProtection(self.id + ' ' + self.json(response))
+                        elif (response['error_log'] == 'not available') or (response['error_log'] == 'external service unavailable'):
+                            raise DDoSProtection(self.id + ' ' + self.json(response))
+                    raise ExchangeError(self.id + ' ' + self.json(response))

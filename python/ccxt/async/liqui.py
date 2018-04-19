@@ -568,17 +568,21 @@ class liqui (Exchange):
             'amount': self.amount_to_precision(symbol, amount),
             'rate': self.price_to_precision(symbol, price),
         }
-        response = await self.privatePostTrade(self.extend(request, params))
-        id = self.safe_string(response['return'], self.get_order_id_key())
-        timestamp = self.milliseconds()
         price = float(price)
         amount = float(amount)
+        response = await self.privatePostTrade(self.extend(request, params))
+        id = None
         status = 'open'
-        if id == '0':
-            id = self.safe_string(response['return'], 'init_order_id')
-            status = 'closed'
-        filled = self.safe_float(response['return'], 'received', 0.0)
-        remaining = self.safe_float(response['return'], 'remains', amount)
+        filled = 0.0
+        remaining = amount
+        if 'return' in response:
+            id = self.safe_string(response['return'], self.get_order_id_key())
+            if id == '0':
+                id = self.safe_string(response['return'], 'init_order_id')
+                status = 'closed'
+            filled = self.safe_float(response['return'], 'received', 0.0)
+            remaining = self.safe_float(response['return'], 'remains', amount)
+        timestamp = self.milliseconds()
         order = {
             'id': id,
             'timestamp': timestamp,

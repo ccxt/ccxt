@@ -585,18 +585,23 @@ class liqui extends Exchange {
             'amount' => $this->amount_to_precision($symbol, $amount),
             'rate' => $this->price_to_precision($symbol, $price),
         );
-        $response = $this->privatePostTrade (array_merge ($request, $params));
-        $id = $this->safe_string($response['return'], $this->get_order_id_key ());
-        $timestamp = $this->milliseconds ();
         $price = floatval ($price);
         $amount = floatval ($amount);
+        $response = $this->privatePostTrade (array_merge ($request, $params));
+        $id = null;
         $status = 'open';
-        if ($id === '0') {
-            $id = $this->safe_string($response['return'], 'init_order_id');
-            $status = 'closed';
+        $filled = 0.0;
+        $remaining = $amount;
+        if (is_array ($response) && array_key_exists ('return', $response)) {
+            $id = $this->safe_string($response['return'], $this->get_order_id_key ());
+            if ($id === '0') {
+                $id = $this->safe_string($response['return'], 'init_order_id');
+                $status = 'closed';
+            }
+            $filled = $this->safe_float($response['return'], 'received', 0.0);
+            $remaining = $this->safe_float($response['return'], 'remains', $amount);
         }
-        $filled = $this->safe_float($response['return'], 'received', 0.0);
-        $remaining = $this->safe_float($response['return'], 'remains', $amount);
+        $timestamp = $this->milliseconds ();
         $order = array (
             'id' => $id,
             'timestamp' => $timestamp,

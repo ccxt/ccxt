@@ -93,6 +93,9 @@ class bibox extends Exchange {
                 '4000' => '\\ccxt\\ExchangeNotAvailable', // current network is unstable
                 '4003' => '\\ccxt\\DDoSProtection', // server busy please try again later
             ),
+            'commonCurrencies' => array (
+                'KEY' => 'Bihu',
+            ),
         ));
     }
 

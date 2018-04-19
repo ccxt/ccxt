@@ -109,6 +109,9 @@ class bibox (Exchange):
                 '4000': ExchangeNotAvailable,  # current network is unstable
                 '4003': DDoSProtection,  # server busy please try again later
             },
+            'commonCurrencies': {
+                'KEY': 'Bihu',
+            },
         })
 
     def fetch_markets(self, params={}):
