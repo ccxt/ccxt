@@ -197,6 +197,9 @@ module.exports = class cobinhood extends Exchange {
                 'amount': 8,
                 'price': this.precisionFromString (market['quote_increment']),
             };
+            let active = this.safeValue (market, 'is_active');
+            if (typeof active === 'undefined')
+                active = false;
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -204,7 +207,7 @@ module.exports = class cobinhood extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'active': market['is_active'],
+                'active': active,
                 'precision': precision,
                 'limits': {
                     'amount': {
