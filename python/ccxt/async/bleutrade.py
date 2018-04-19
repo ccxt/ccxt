@@ -5,6 +5,7 @@
 
 from ccxt.async.bittrex import bittrex
 import math
+from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
@@ -147,5 +148,7 @@ class bleutrade (bittrex):
         if limit is not None:
             request['depth'] = limit  # 50
         response = await self.publicGetOrderbook(self.extend(request, params))
-        orderbook = response['result']
+        orderbook = self.safe_value(response, 'result')
+        if not orderbook:
+            raise ExchangeError(self.id + ' publicGetOrderbook() returneded no result ' + self.json(response))
         return self.parse_order_book(orderbook, None, 'buy', 'sell', 'Rate', 'Quantity')
