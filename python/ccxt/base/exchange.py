@@ -551,7 +551,7 @@ class Exchange(object):
 
     @staticmethod
     def sort_by(array, key, descending=False):
-        return sorted(array, key=lambda k: k[key], reverse=descending)
+        return sorted(array, key=lambda k: k[key] if key in k and k[key] else "", reverse=descending)
 
     @staticmethod
     def array_concat(a, b):
