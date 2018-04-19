@@ -110,6 +110,7 @@ module.exports = class huobipro extends Exchange {
             },
             'options': {
                 'fetchMarketsMethod': 'publicGetCommonSymbols',
+                'language': 'en-US',
             },
         });
     }
@@ -395,25 +396,27 @@ module.exports = class huobipro extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        params.language = params.language || 'en-US';
-        let currencies = await this.publicGetSettingsCurrencys (params);
+        let response = await this.publicGetSettingsCurrencys (this.extend ({
+            'language': this.options['language'],
+        }, params));
+        let currencies = response['data'];
         let result = {};
-        for (let i = 0; i < currencies.data.length; i++) {
-            let currency = currencies.data[i];
-            let name = this.safeValue (currency, 'name');
-            let precision = +this.safeValue (currency, 'show-precision');
-            let code = this.commonCurrencyCode (name.toUpperCase ());
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
+            let id = this.safeValue (currency, 'name');
+            let precision = this.safeValue (currency, 'show-precision');
+            let code = this.commonCurrencyCode (id.toUpperCase ());
+            let active = currency['visible'];
             result[code] = {
-                'id': name,
+                'id': id,
                 'code': code,
                 'type': 'crypto',
-                'payin': currency['deposit-enabled'],
-                'payout': currency['withdraw-enabled'],
-                'transfer': undefined,
-                'info': currency,
+                // 'payin': currency['deposit-enabled'],
+                // 'payout': currency['withdraw-enabled'],
+                // 'transfer': undefined,
                 'name': currency['display-name'],
-                'active': currency.visible,
-                'status': currency.visible ? 'ok' : 'disabled',
+                'active': active,
+                'status': active ? 'ok' : 'disabled',
                 'fee': undefined, // todo need to fetch from fee endpoint
                 'precision': precision,
                 'limits': {
@@ -434,6 +437,7 @@ module.exports = class huobipro extends Exchange {
                         'max': Math.pow (10, precision),
                     },
                 },
+                'info': currency,
             };
         }
         return result;
