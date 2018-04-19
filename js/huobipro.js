@@ -403,10 +403,31 @@ module.exports = class huobipro extends Exchange {
         let result = {};
         for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];
+            //
+            //  {                     name: "ctxc",
+            //              'display-name': "CTXC",
+            //        'withdraw-precision':  8,
+            //             'currency-type': "eth",
+            //        'currency-partition': "pro",
+            //             'support-sites':  null,
+            //                'otc-enable':  0,
+            //        'deposit-min-amount': "2",
+            //       'withdraw-min-amount': "4",
+            //            'show-precision': "8",
+            //                      weight: "2988",
+            //                     visible:  true,
+            //              'deposit-desc': "Please don’t deposit any other digital assets except CTXC t…",
+            //             'withdraw-desc': "Minimum withdrawal amount: 4 CTXC. !>_<!For security reason…",
+            //           'deposit-enabled':  true,
+            //          'withdraw-enabled':  true,
+            //    'currency-addr-with-tag':  false,
+            //             'fast-confirms':  15,
+            //             'safe-confirms':  30                                                             }
+            //
             let id = this.safeValue (currency, 'name');
-            let precision = this.safeValue (currency, 'show-precision');
+            let precision = this.safeInt (currency, 'withdraw-precision');
             let code = this.commonCurrencyCode (id.toUpperCase ());
-            let active = currency['visible'];
+            let active = currency['visible'] && currency['deposit-enabled'] && currency['withdraw-enabled'];
             result[code] = {
                 'id': id,
                 'code': code,
@@ -432,8 +453,12 @@ module.exports = class huobipro extends Exchange {
                         'min': undefined,
                         'max': undefined,
                     },
+                    'deposit': {
+                        'min': this.safeFloat (currency, 'deposit-min-amount'),
+                        'max': Math.pow (10, precision),
+                    },
                     'withdraw': {
-                        'min': undefined,
+                        'min': this.safeFloat (currency, 'withdraw-min-amount'),
                         'max': Math.pow (10, precision),
                     },
                 },
