@@ -30,6 +30,9 @@ class bitz extends Exchange {
                 '1h' => '1h',
                 '1d' => '1d',
             ),
+            'requiredCredentials' => array (
+                'password' => true,
+            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/35862606-4f554f14-0b5d-11e8-957d-35058c504b6f.jpg',
                 'api' => 'https://www.bit-z.com/api_v1',
