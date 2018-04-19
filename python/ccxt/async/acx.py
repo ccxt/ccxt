@@ -23,6 +23,7 @@ class acx (Exchange):
                 'fetchTickers': True,
                 'fetchOHLCV': True,
                 'withdraw': True,
+                'fetchOrder': True,
             },
             'timeframes': {
                 '1m': '1',
@@ -291,6 +292,13 @@ class acx (Exchange):
             'fee': None,
             'info': order,
         }
+
+    async def fetch_order(self, id, symbol=None, params={}):
+        await self.load_markets()
+        response = await self.privateGetOrder(self.extend({
+            'id': int(id),
+        }, params))
+        return self.parse_order(response)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
