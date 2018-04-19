@@ -322,6 +322,7 @@ class liqui (Exchange):
                 'name': currency['Name'],
                 'active': active,
                 'status': 'ok',
+                'type': 'crypto',
                 'fee': currency['WithdrawFee'],  # todo: redesign
                 'precision': precision,
                 'limits': {
