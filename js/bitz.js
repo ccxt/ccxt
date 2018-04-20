@@ -29,9 +29,6 @@ module.exports = class bitz extends Exchange {
                 '1h': '1h',
                 '1d': '1d',
             },
-            'requiredCredentials': {
-                'password': true,
-            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/35862606-4f554f14-0b5d-11e8-957d-35058c504b6f.jpg',
                 'api': 'https://www.bit-z.com/api_v1',
@@ -333,6 +330,8 @@ module.exports = class bitz extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let orderType = (side === 'buy') ? 'in' : 'out';
+        if (!this.password)
+            throw new ExchangeError (this.id + ' createOrder() requires you to set exchange.password = "YOUR_TRADING_PASSWORD" (a trade password is NOT THE SAME as your login password)');
         let request = {
             'coin': market['id'],
             'type': orderType,
