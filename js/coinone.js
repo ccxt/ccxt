@@ -18,6 +18,7 @@ module.exports = class coinone extends Exchange {
             'has': {
                 'CORS': false,
                 'createMarketOrder': false,
+                'fetchTickers': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg',
@@ -39,36 +40,36 @@ module.exports = class coinone extends Exchange {
                 },
                 'private': {
                     'post': [
-                        'v2/account/btc_deposit_address/',
-                        'v2/account/balance/',
-                        'v2/account/daily_balance/',
-                        'v2/account/user_info/',
-                        'v2/account/virtual_account/',
-                        'v2/order/cancel_all/',
-                        'v2/order/cancel/',
-                        'v2/order/limit_buy/',
-                        'v2/order/limit_sell/',
-                        'v2/order/complete_orders/',
-                        'v2/order/limit_orders/',
-                        'v2/order/order_info/',
-                        'v2/transaction/auth_number/',
-                        'v2/transaction/history/',
-                        'v2/transaction/krw/history/',
-                        'v2/transaction/btc/',
-                        'v2/transaction/coin/',
+                        'account/btc_deposit_address/',
+                        'account/balance/',
+                        'account/daily_balance/',
+                        'account/user_info/',
+                        'account/virtual_account/',
+                        'order/cancel_all/',
+                        'order/cancel/',
+                        'order/limit_buy/',
+                        'order/limit_sell/',
+                        'order/complete_orders/',
+                        'order/limit_orders/',
+                        'order/order_info/',
+                        'transaction/auth_number/',
+                        'transaction/history/',
+                        'transaction/krw/history/',
+                        'transaction/btc/',
+                        'transaction/coin/',
                     ],
                 },
             },
             'markets': {
-                'BCH/KRW': { 'id': 'bch', 'symbol': 'BCH/KRW', 'base': 'BCH', 'quote': 'KRW' },
-                'BTC/KRW': { 'id': 'btc', 'symbol': 'BTC/KRW', 'base': 'BTC', 'quote': 'KRW' },
-                'BTG/KRW': { 'id': 'btg', 'symbol': 'BTG/KRW', 'base': 'BTG', 'quote': 'KRW' },
-                'ETC/KRW': { 'id': 'etc', 'symbol': 'ETC/KRW', 'base': 'ETC', 'quote': 'KRW' },
-                'ETH/KRW': { 'id': 'eth', 'symbol': 'ETH/KRW', 'base': 'ETH', 'quote': 'KRW' },
-                'IOT/KRW': { 'id': 'iota', 'symbol': 'IOT/KRW', 'base': 'IOT', 'quote': 'KRW' },
-                'LTC/KRW': { 'id': 'ltc', 'symbol': 'LTC/KRW', 'base': 'LTC', 'quote': 'KRW' },
-                'QTUM/KRW': { 'id': 'qtum', 'symbol': 'QTUM/KRW', 'base': 'QTUM', 'quote': 'KRW' },
-                'XRP/KRW': { 'id': 'xrp', 'symbol': 'XRP/KRW', 'base': 'XRP', 'quote': 'KRW' },
+                'BCH/KRW': { 'id': 'bch', 'symbol': 'BCH/KRW', 'base': 'BCH', 'quote': 'KRW', 'baseId': 'bch', 'quoteId': 'krw' },
+                'BTC/KRW': { 'id': 'btc', 'symbol': 'BTC/KRW', 'base': 'BTC', 'quote': 'KRW', 'baseId': 'btc', 'quoteId': 'krw' },
+                'BTG/KRW': { 'id': 'btg', 'symbol': 'BTG/KRW', 'base': 'BTG', 'quote': 'KRW', 'baseId': 'btg', 'quoteId': 'krw' },
+                'ETC/KRW': { 'id': 'etc', 'symbol': 'ETC/KRW', 'base': 'ETC', 'quote': 'KRW', 'baseId': 'etc', 'quoteId': 'krw' },
+                'ETH/KRW': { 'id': 'eth', 'symbol': 'ETH/KRW', 'base': 'ETH', 'quote': 'KRW', 'baseId': 'eth', 'quoteId': 'krw' },
+                'IOTA/KRW': { 'id': 'iota', 'symbol': 'IOTA/KRW', 'base': 'IOTA', 'quote': 'KRW', 'baseId': 'iota', 'quoteId': 'krw' },
+                'LTC/KRW': { 'id': 'ltc', 'symbol': 'LTC/KRW', 'base': 'LTC', 'quote': 'KRW', 'baseId': 'ltc', 'quoteId': 'krw' },
+                'QTUM/KRW': { 'id': 'qtum', 'symbol': 'QTUM/KRW', 'base': 'QTUM', 'quote': 'KRW', 'baseId': 'qtum', 'quoteId': 'krw' },
+                'XRP/KRW': { 'id': 'xrp', 'symbol': 'XRP/KRW', 'base': 'XRP', 'quote': 'KRW', 'baseId': 'xrp', 'quoteId': 'krw' },
             },
             'fees': {
                 'trading': {
@@ -109,23 +110,24 @@ module.exports = class coinone extends Exchange {
     }
 
     async fetchBalance (params = {}) {
-        let response = await this.privatePostV2AccountBalance ();
+        let response = await this.privatePostAccountBalance ();
         let result = { 'info': response };
-        let currencies = Object.keys (this.currencies);
-        for (let i = 0; i < currencies.length; i++) {
-            let currency = currencies[i];
-            let lowercase = currency.toLowerCase ();
-            if (lowercase == 'iot')
-                lowercase = 'iota';
-            if (lowercase in response) {
-                let balance = response[lowercase];
-                let account = {
-                    'free': parseFloat (balance['avail']),
-                    'used': parseFloat (balance['balance']) - parseFloat (balance['avail']),
-                    'total': parseFloat (balance['balance']),
-                };
-                result[currency] = account;
-            }
+        let ids = Object.keys (response);
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
+            let balance = response[id];
+            let code = id.toUpperCase ();
+            if (id in this.currencies_by_id)
+                code = this.currencies_by_id[id]['code'];
+            let free = parseFloat (balance['avail']);
+            let total = parseFloat (balance['balance']);
+            let used = total - free;
+            let account = {
+                'free': free,
+                'used': used,
+                'total': total,
+            };
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
@@ -240,7 +242,7 @@ module.exports = class coinone extends Exchange {
             'currency': this.marketId (symbol),
             'qty': amount,
         };
-        let method = 'privatePostV2Order' + this.capitalize (type) + this.capitalize (side);
+        let method = 'privatePostOrder' + this.capitalize (type) + this.capitalize (side);
         let response = await this[method] (this.extend (order, params));
         // todo: return the full order structure
         // return this.parseOrder (response, market);
@@ -252,25 +254,30 @@ module.exports = class coinone extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        return await this.privatePostV2OrderCancel ({ 'orderID': id });
+        return await this.privatePostOrderCancel ({ 'orderID': id });
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        let url = this.urls['api'] + '/' + request;
-        headers = {};
+        let url = this.urls['api'] + '/';
         if (api === 'public') {
+            url += request;
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
         } else {
             this.checkRequiredCredentials ();
+            url += this.version + '/' + request;
             let nonce = this.nonce ().toString ();
-            let payloadjson = this.json ({ 'access_token': this.apiKey, 'nonce': nonce });
-            let payload = this.stringToBase64 (this.encode (payloadjson));
+            let json = this.json ({
+                'access_token': this.apiKey,
+                'nonce': nonce,
+            });
+            let payload = this.stringToBase64 (this.encode (json));
             body = this.decode (payload);
-            let signature = this.hmac (payload, this.encode (this.secret.toUpperCase ()), 'sha512', 'hex');
+            let secret = this.secret.toUpperCase ();
+            let signature = this.hmac (payload, this.encode (secret), 'sha512');
             headers = {
                 'content-type': 'application/json',
                 'X-COINONE-PAYLOAD': payload,
