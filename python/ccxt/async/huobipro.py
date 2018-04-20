@@ -203,6 +203,7 @@ class huobipro (Exchange):
                 'base': base,
                 'quote': quote,
                 'lot': lot,
+                'active': True,
                 'precision': precision,
                 'taker': taker,
                 'maker': maker,

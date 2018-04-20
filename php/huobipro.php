@@ -199,6 +199,7 @@ class huobipro extends Exchange {
                 'base' => $base,
                 'quote' => $quote,
                 'lot' => $lot,
+                'active' => true,
                 'precision' => $precision,
                 'taker' => $taker,
                 'maker' => $maker,
