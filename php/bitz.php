@@ -30,9 +30,6 @@ class bitz extends Exchange {
                 '1h' => '1h',
                 '1d' => '1d',
             ),
-            'requiredCredentials' => array (
-                'password' => true,
-            ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/35862606-4f554f14-0b5d-11e8-957d-35058c504b6f.jpg',
                 'api' => 'https://www.bit-z.com/api_v1',
@@ -334,6 +331,8 @@ class bitz extends Exchange {
         $this->load_markets();
         $market = $this->market ($symbol);
         $orderType = ($side === 'buy') ? 'in' : 'out';
+        if (!$this->password)
+            throw new ExchangeError ($this->id . ' createOrder() requires you to set exchange.password = "YOUR_TRADING_PASSWORD" (a trade password is NOT THE SAME as your login password)');
         $request = array (
             'coin' => $market['id'],
             'type' => $orderType,
