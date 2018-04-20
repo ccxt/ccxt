@@ -25,6 +25,7 @@ exchange = ccxt.poloniex({
     # This gets passed to the `python-requests` implementation directly
     # You can also enable this with environment variables, as described here:
     # http://docs.python-requests.org/en/master/user/advanced/#proxies
+    # The environment variables should be set before importing ccxt (!)
     # This is the setting you should be using with synchronous version of ccxt in Python 2 and 3
     #
     'proxies': {
