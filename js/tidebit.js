@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { InsufficientFunds, OrderNotFound } = require ('./base/errors');
-// const { ROUND, TRUNCATE, SIGNIFICANT_DIGITS } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -37,8 +36,7 @@ module.exports = class tidebit extends Exchange {
                 '1w': '10080',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/629338/37326862-f836f4de-26ce-11e8-93ac-7003b3e8a280.png',
-                'extension': '.json',
+                'logo': 'https://user-images.githubusercontent.com/1294454/39034921-e3acf016-4480-11e8-9945-a6086a1082fe.jpg',
                 'api': 'https://www.tidebit.com/api',
                 'www': 'https://www.tidebit.com',
                 'doc': 'https://www.tidebit.com/documents/api_v2',
@@ -123,14 +121,16 @@ module.exports = class tidebit extends Exchange {
             let market = markets[p];
             let id = market['id'];
             let symbol = market['name'];
-            let [base, quote] = symbol.split ('/');
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
+            let [ baseId, quoteId ] = symbol.split ('/');
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'info': market,
             });
         }
@@ -144,15 +144,17 @@ module.exports = class tidebit extends Exchange {
         let result = { 'info': balances };
         for (let b = 0; b < balances.length; b++) {
             let balance = balances[b];
-            let currency = balance['currency'];
-            let uppercase = currency.toUpperCase ();
+            let currencyId = balance['currency'];
+            let code = currencyId.toUpperCase ();
+            if (currencyId in this.currencies_by_id)
+                code = this.currencies_by_id[currencyId]['code'];
             let account = {
                 'free': parseFloat (balance['balance']),
                 'used': parseFloat (balance['locked']),
                 'total': 0.0,
             };
             account['total'] = this.sum (account['free'], account['used']);
-            result[uppercase] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
@@ -168,37 +170,35 @@ module.exports = class tidebit extends Exchange {
         request['market'] = market['id'];
         let orderbook = await this.publicGetV2Depth (this.extend (request, params));
         let timestamp = orderbook['timestamp'] * 1000;
-        let result = this.parseOrderBook (orderbook, timestamp);
-        result['bids'] = this.sortBy (result['bids'], 0, true);
-        result['asks'] = this.sortBy (result['asks'], 0);
-        return result;
+        return this.parseOrderBook (orderbook, timestamp);
     }
 
     parseTicker (ticker, market = undefined) {
         let timestamp = ticker['at'] * 1000;
         ticker = ticker['ticker'];
         let symbol = undefined;
-        if (market)
+        if (typeof market !== 'undefined')
             symbol = market['symbol'];
+        let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high', 0.0),
-            'low': this.safeFloat (ticker, 'low', 0.0),
-            'bid': this.safeFloat (ticker, 'buy', 0.0),
-            'ask': this.safeFloat (ticker, 'sell', 0.0),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'buy'),
+            'ask': this.safeFloat (ticker, 'sell'),
             'bidVolume': undefined,
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': this.safeFloat (ticker, 'last', undefined),
-            'last': this.safeFloat (ticker, 'last', undefined),
+            'close': last,
+            'last': last,
             'change': undefined,
             'percentage': undefined,
             'previousClose': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'vol', 0.0),
+            'baseVolume': this.safeFloat (ticker, 'vol'),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -381,9 +381,7 @@ module.exports = class tidebit extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let request = this.implodeParams (path, params);
-        if ('extension' in this.urls)
-            request += this.urls['extension'];
+        let request = this.implodeParams (path, params) + '.json';
         let query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'] + '/' + request;
         if (api === 'public') {
@@ -393,12 +391,12 @@ module.exports = class tidebit extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
-            let query = this.encodeParams (this.extend ({
+            let query = this.urlencode (this.extend ({
                 'access_key': this.apiKey,
                 'tonce': nonce,
             }, params));
             let payload = method + '|' + request + '|' + query;
-            let signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256');
+            let signature = this.hmac (this.encode (payload), this.encode (this.secret));
             let suffix = query + '&signature=' + signature;
             if (method === 'GET') {
                 url += '?' + suffix;
