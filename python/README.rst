@@ -23,7 +23,7 @@ Current feature list:
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 113 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 114 cryptocurrency exchange markets and trading APIs:
 
 +----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | id                   | name                                                           | ver   | doc                                                                                               | countries                                  |
@@ -231,6 +231,8 @@ The ccxt library currently supports the following 113 cryptocurrency exchange ma
 | surbitcoin           | `SurBitcoin <https://surbitcoin.com>`__                        | 1     | `API <https://blinktrade.com/docs>`__                                                             | Venezuela                                  |
 +----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | therock              | `TheRockTrading <https://therocktrading.com>`__                | 1     | `API <https://api.therocktrading.com/doc/v1/index.html>`__                                        | Malta                                      |
++----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
+| tidebit              | `TideBit <https://www.tidebit.com>`__                          | 2     | `API <https://www.tidebit.com/documents/api_v2>`__                                                | Hong Kong                                  |
 +----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | tidex                | `Tidex <https://tidex.com>`__                                  | 3     | `API <https://tidex.com/exchange/public-api>`__                                                   | UK                                         |
 +----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -559,7 +561,7 @@ Thank you!
    :target: https://nodesecurity.io/orgs/ccxt/projects/856d3088-8b46-4515-9324-6b7cd2470522
 .. |Gitter| image:: https://badges.gitter.im/ccxt-dev/ccxt.svg
    :target: https://gitter.im/ccxt-dev/ccxt?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge
-.. |Supported Exchanges| image:: https://img.shields.io/badge/exchanges-113-blue.svg
+.. |Supported Exchanges| image:: https://img.shields.io/badge/exchanges-114-blue.svg
    :target: https://github.com/ccxt/ccxt/wiki/Exchange-Markets
 .. |Open Collective| image:: https://opencollective.com/ccxt/backers/badge.svg
    :target: https://opencollective.com/ccxt
@@ -665,6 +667,7 @@ Thank you!
 .. |southxchange| image:: https://user-images.githubusercontent.com/1294454/27838912-4f94ec8a-60f6-11e7-9e5d-bbf9bd50a559.jpg
 .. |surbitcoin| image:: https://user-images.githubusercontent.com/1294454/27991511-f0a50194-6481-11e7-99b5-8f02932424cc.jpg
 .. |therock| image:: https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg
+.. |tidebit| image:: https://user-images.githubusercontent.com/1294454/39034921-e3acf016-4480-11e8-9945-a6086a1082fe.jpg
 .. |tidex| image:: https://user-images.githubusercontent.com/1294454/30781780-03149dc4-a12e-11e7-82bb-313b269d24d4.jpg
 .. |urdubit| image:: https://user-images.githubusercontent.com/1294454/27991453-156bf3ae-6480-11e7-82eb-7295fe1b5bb4.jpg
 .. |vaultoro| image:: https://user-images.githubusercontent.com/1294454/27766880-f205e870-5ee9-11e7-8fe2-0d5b15880752.jpg

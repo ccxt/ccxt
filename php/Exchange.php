@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.13.17';
+$version = '1.13.18';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -149,6 +149,7 @@ abstract class Exchange {
         'southxchange',
         'surbitcoin',
         'therock',
+        'tidebit',
         'tidex',
         'urdubit',
         'vaultoro',
