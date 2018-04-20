@@ -39,23 +39,23 @@ module.exports = class coinone extends Exchange {
                 },
                 'private': {
                     'post': [
-                        'account/btc_deposit_address/',
-                        'account/balance/',
-                        'account/daily_balance/',
-                        'account/user_info/',
-                        'account/virtual_account/',
-                        'order/cancel_all/',
-                        'order/cancel/',
-                        'order/limit_buy/',
-                        'order/limit_sell/',
-                        'order/complete_orders/',
-                        'order/limit_orders/',
-                        'order/order_info/',
-                        'transaction/auth_number/',
-                        'transaction/history/',
-                        'transaction/krw/history/',
-                        'transaction/btc/',
-                        'transaction/coin/',
+                        'v2/account/btc_deposit_address/',
+                        'v2/account/balance/',
+                        'v2/account/daily_balance/',
+                        'v2/account/user_info/',
+                        'v2/account/virtual_account/',
+                        'v2/order/cancel_all/',
+                        'v2/order/cancel/',
+                        'v2/order/limit_buy/',
+                        'v2/order/limit_sell/',
+                        'v2/order/complete_orders/',
+                        'v2/order/limit_orders/',
+                        'v2/order/order_info/',
+                        'v2/transaction/auth_number/',
+                        'v2/transaction/history/',
+                        'v2/transaction/krw/history/',
+                        'v2/transaction/btc/',
+                        'v2/transaction/coin/',
                     ],
                 },
             },
@@ -109,33 +109,57 @@ module.exports = class coinone extends Exchange {
     }
 
     async fetchBalance (params = {}) {
-        let response = await this.privateGetV2AccountBalance ();
+        let response = await this.privatePostV2AccountBalance ();
         let result = { 'info': response };
-        let ids = Object.keys (this.markets);
-        for (let i = 0; i < ids.length; i++) {
-            let market = ids[i];
-            let id = market['id'];
-            let symbol = market['symbol'];
-            if (id in response) {
-                let balance = response[id];
+        let currencies = Object.keys (this.currencies);
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
+            let lowercase = currency.toLowerCase ();
+            if (lowercase == 'iot')
+                lowercase = 'iota';
+            if (lowercase in response) {
+                let balance = response[lowercase];
                 let account = {
                     'free': parseFloat (balance['avail']),
                     'used': parseFloat (balance['balance']) - parseFloat (balance['avail']),
                     'total': parseFloat (balance['balance']),
                 };
-                result[symbol] = account;
+                result[currency] = account;
             }
         }
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let market = this.market (symbol);
         let response = await this.publicGetOrderbook (this.extend ({
             'currency': market['id'],
             'format': 'json',
         }, params));
         return this.parseOrderBook (response, undefined, 'bid', 'ask', 'price', 'qty');
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.publicGetTicker (this.extend ({
+            'currency': 'all',
+            'format': 'json',
+        }, params));
+        let result = {};
+        let tickers = response;
+        let ids = Object.keys (tickers);
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
+            let symbol = id;
+            let market = undefined;
+            if (id in this.markets_by_id) {
+                market = this.markets_by_id[id];
+                symbol = market['symbol'];
+                let ticker = tickers[id];
+                result[symbol] = this.parseTicker (ticker, market);
+            }
+        }
+        return result;
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -216,7 +240,7 @@ module.exports = class coinone extends Exchange {
             'currency': this.marketId (symbol),
             'qty': amount,
         };
-        let method = 'privatePostOrder' + this.capitalize (type) + this.capitalize (side);
+        let method = 'privatePostV2Order' + this.capitalize (type) + this.capitalize (side);
         let response = await this[method] (this.extend (order, params));
         // todo: return the full order structure
         // return this.parseOrder (response, market);
@@ -228,7 +252,7 @@ module.exports = class coinone extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        return await this.privatePostOrderCancel ({ 'orderID': id });
+        return await this.privatePostV2OrderCancel ({ 'orderID': id });
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -243,8 +267,9 @@ module.exports = class coinone extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
-            let payload = this.stringToBase64 (this.json ({ 'access_token': this.apiKey, 'nonce': nonce }));
-            body = payload;
+            let payloadjson = this.json ({ 'access_token': this.apiKey, 'nonce': nonce });
+            let payload = this.stringToBase64 (this.encode (payloadjson));
+            body = this.decode (payload);
             let signature = this.hmac (payload, this.encode (this.secret.toUpperCase ()), 'sha512', 'hex');
             headers = {
                 'content-type': 'application/json',
