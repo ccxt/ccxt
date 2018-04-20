@@ -54,6 +54,7 @@ import time
 import uuid
 import zlib
 from decimal import Decimal
+from pprint import pprint
 
 # -----------------------------------------------------------------------------
 
@@ -551,7 +552,7 @@ class Exchange(object):
 
     @staticmethod
     def sort_by(array, key, descending=False):
-        return sorted(array, key=lambda k: k[key] if key in k and k[key] else "", reverse=descending)
+        return sorted(array, key=lambda k: k[key] if k[key] is not None else "", reverse=descending)
 
     @staticmethod
     def array_concat(a, b):
@@ -1009,9 +1010,13 @@ class Exchange(object):
         })
 
     def parse_order_book(self, orderbook, timestamp=None, bids_key='bids', asks_key='asks', price_key=0, amount_key=1):
+        bb = self.parse_bids_asks(orderbook[bids_key], price_key, amount_key) if (bids_key in orderbook) and isinstance(orderbook[bids_key], list) else []
+        aa = self.parse_bids_asks(orderbook[asks_key], price_key, amount_key) if (asks_key in orderbook) and isinstance(orderbook[asks_key], list) else []
+        print(self.sort_by(bb, 0, True))
+        print(self.sort_by(aa, 0, True))
         return {
-            'bids': self.sort_by(self.parse_bids_asks(orderbook[bids_key], price_key, amount_key) if (bids_key in orderbook) and isinstance(orderbook[bids_key], list) else [], 0, True),
-            'asks': self.sort_by(self.parse_bids_asks(orderbook[asks_key], price_key, amount_key) if (asks_key in orderbook) and isinstance(orderbook[asks_key], list) else [], 0),
+            'bids': self.sort_by(bb, 0, True),
+            'asks': self.sort_by(aa, 0),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp) if timestamp is not None else None,
             'nonce': None,
