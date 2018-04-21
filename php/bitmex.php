@@ -452,6 +452,7 @@ class bitmex extends Exchange {
             'id' => (string) $order['orderID'],
             'timestamp' => $timestamp,
             'datetime' => $iso8601,
+            'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => strtolower ($order['ordType']),
             'side' => strtolower ($order['side']),

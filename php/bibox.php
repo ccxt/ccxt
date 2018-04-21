@@ -433,6 +433,7 @@ class bibox extends Exchange {
             'id' => $this->safe_string($order, 'id'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,

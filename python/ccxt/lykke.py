@@ -256,6 +256,7 @@ class lykke (Exchange):
             'id': order['Id'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': None,
             'side': None,

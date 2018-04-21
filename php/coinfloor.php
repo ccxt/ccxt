@@ -195,6 +195,7 @@ class coinfloor extends Exchange {
             'id' => $id,
             'datetime' => $datetime,
             'timestamp' => $timestamp,
+            'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
             'type' => 'limit',

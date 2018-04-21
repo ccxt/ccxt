@@ -351,6 +351,7 @@ class qryptos extends Exchange {
             'id' => (string) $order['id'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => null,
             'type' => $order['order_type'],
             'status' => $status,
             'symbol' => $symbol,

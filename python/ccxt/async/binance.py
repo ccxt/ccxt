@@ -586,6 +586,7 @@ class binance (Exchange):
             'id': id,
             'timestamp': timestamp,
             'datetime': iso8601,
+            'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
             'side': side,

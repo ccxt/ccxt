@@ -606,6 +606,7 @@ class binance extends Exchange {
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $iso8601,
+            'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,

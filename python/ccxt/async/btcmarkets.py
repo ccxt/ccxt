@@ -293,6 +293,7 @@ class btcmarkets (Exchange):
             'id': str(order['id']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'symbol': market['symbol'],
             'type': type,
             'side': side,

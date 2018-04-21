@@ -334,6 +334,7 @@ class qryptos (Exchange):
             'id': str(order['id']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'type': order['order_type'],
             'status': status,
             'symbol': symbol,

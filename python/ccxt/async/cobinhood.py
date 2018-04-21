@@ -395,6 +395,7 @@ class cobinhood (Exchange):
             'id': order['id'],
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
+            'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
             'type': order['type'],  # market, limit, stop, stop_limit, trailing_stop, fill_or_kill

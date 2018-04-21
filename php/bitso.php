@@ -326,6 +326,7 @@ class bitso extends Exchange {
             'id' => $order['oid'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $orderType,
             'side' => $side,

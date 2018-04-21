@@ -224,6 +224,7 @@ class indodax (Exchange):
             'id': order['order_id'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': 'limit',
             'side': side,

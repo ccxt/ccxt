@@ -412,6 +412,7 @@ class livecoin (Exchange):
             'id': order['id'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
             'type': type,
