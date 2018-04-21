@@ -660,10 +660,13 @@ class kucoin (Exchange):
         else:
             symbol = ticker['coinType'] + '/' + ticker['coinTypePair']
         # TNC coin doesn't have changerate for some reason
-        change = self.safe_float(ticker, 'changeRate')
-        if change is not None:
-            change *= 100
+        change = self.safe_float(ticker, 'change')
         last = self.safe_float(ticker, 'lastDealPrice')
+        open = None
+        if last is not None:
+            if change is not None:
+                open = last - change
+        changePercentage = self.safe_float(ticker, 'changeRate')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -675,12 +678,12 @@ class kucoin (Exchange):
             'ask': self.safe_float(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
-            'open': None,
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': None,
             'change': change,
-            'percentage': None,
+            'percentage': changePercentage,
             'average': None,
             'baseVolume': self.safe_float(ticker, 'vol'),
             'quoteVolume': self.safe_float(ticker, 'volValue'),
