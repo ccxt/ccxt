@@ -1343,7 +1343,7 @@ abstract class Exchange {
         throw new NotSupported ($this->id . ' API does not allow to fetch all tickers at once with a single call to fetch_tickers () for now');
     }
 
-    public function fetchTickers ($symbols, $params = array ()) {
+    public function fetchTickers ($symbols = null, $params = array ()) {
         return $this->fetch_tickers ($symbols, $params);
     }
 
