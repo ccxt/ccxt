@@ -312,6 +312,7 @@ class bitz extends Exchange {
             'id' => $order['id'],
             'datetime' => $iso8601,
             'timestamp' => $timestamp,
+            'lastTradeTimestamp' => null,
             'status' => 'open',
             'symbol' => $symbol,
             'type' => 'limit',

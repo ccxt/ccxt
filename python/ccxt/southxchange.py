@@ -214,6 +214,7 @@ class southxchange (Exchange):
             'id': str(order['Code']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': 'limit',
             'side': orderType,

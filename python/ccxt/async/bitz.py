@@ -301,6 +301,7 @@ class bitz (Exchange):
             'id': order['id'],
             'datetime': iso8601,
             'timestamp': timestamp,
+            'lastTradeTimestamp': None,
             'status': 'open',
             'symbol': symbol,
             'type': 'limit',

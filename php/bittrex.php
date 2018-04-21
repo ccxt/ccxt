@@ -560,6 +560,7 @@ class bittrex extends Exchange {
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => 'limit',
             'side' => $side,

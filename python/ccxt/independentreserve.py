@@ -209,6 +209,7 @@ class independentreserve (Exchange):
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': orderType,
             'side': side,

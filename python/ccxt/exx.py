@@ -267,6 +267,7 @@ class exx (Exchange):
             'id': self.safe_string(order, 'id'),
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
+            'lastTradeTimestamp': None,
             'status': 'open',
             'symbol': symbol,
             'type': 'limit',
