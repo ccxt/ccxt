@@ -412,6 +412,7 @@ module.exports = class cobinhood extends Exchange {
             'id': order['id'],
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
+            'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
             'type': order['type'], // market, limit, stop, stop_limit, trailing_stop, fill_or_kill

@@ -432,6 +432,7 @@ module.exports = class bibox extends Exchange {
             'id': this.safeString (order, 'id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
             'side': side,

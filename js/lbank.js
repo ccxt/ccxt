@@ -303,6 +303,7 @@ module.exports = class lbank extends Exchange {
             'id': this.safeString (order, 'order_id'),
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
+            'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
             'type': this.safeString (order, 'order_type'),

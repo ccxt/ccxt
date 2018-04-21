@@ -325,6 +325,7 @@ module.exports = class bitso extends Exchange {
             'id': order['oid'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': orderType,
             'side': side,

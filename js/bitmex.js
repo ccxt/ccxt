@@ -451,6 +451,7 @@ module.exports = class bitmex extends Exchange {
             'id': order['orderID'].toString (),
             'timestamp': timestamp,
             'datetime': iso8601,
+            'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': order['ordType'].toLowerCase (),
             'side': order['side'].toLowerCase (),

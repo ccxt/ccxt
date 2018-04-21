@@ -228,6 +228,7 @@ module.exports = class indodax extends Exchange {
             'id': order['order_id'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': 'limit',
             'side': side,
