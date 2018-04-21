@@ -137,6 +137,7 @@ class bittrex extends Exchange {
                 ),
             ),
             'exceptions' => array (
+                'Call to Cancel was throttled. Try again in 60 seconds.' => '\\ccxt\\DDoSProtection',
                 'APISIGN_NOT_PROVIDED' => '\\ccxt\\AuthenticationError',
                 'INVALID_SIGNATURE' => '\\ccxt\\AuthenticationError',
                 'INVALID_CURRENCY' => '\\ccxt\\ExchangeError',
