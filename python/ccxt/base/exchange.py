@@ -1045,6 +1045,37 @@ class Exchange(object):
         trades = self.fetch_trades(symbol, since, limit, params)
         return self.build_ohlcv(trades, timeframe, since, limit)
 
+    def convert_trading_view_to_ohlcv(self, ohlcvs):
+        result = []
+        for i in range(0, len(ohlcvs['t'])):
+            result.append([
+                ohlcvs['t'][i] * 1000,
+                ohlcvs['o'][i],
+                ohlcvs['h'][i],
+                ohlcvs['l'][i],
+                ohlcvs['c'][i],
+                ohlcvs['v'][i],
+            ])
+        return result
+
+    def convert_ohlcv_to_trading_view(self, ohlcvs):
+        result = {
+            't': [],
+            'o': [],
+            'h': [],
+            'l': [],
+            'c': [],
+            'v': [],
+        }
+        for i in range(0, len(ohlcvs)):
+            result['t'].append(int(ohlcvs[i][0] / 1000))
+            result['o'].append(ohlcvs[i][1])
+            result['h'].append(ohlcvs[i][2])
+            result['l'].append(ohlcvs[i][3])
+            result['c'].append(ohlcvs[i][4])
+            result['v'].append(ohlcvs[i][5])
+        return result
+
     def build_ohlcv(self, trades, timeframe='1m', since=None, limit=None):
         ms = self.parse_timeframe(timeframe) * 1000
         ohlcvs = []

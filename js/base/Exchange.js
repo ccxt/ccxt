@@ -593,6 +593,41 @@ module.exports = class Exchange {
         return ohlcvc.map (c => c.slice (0, -1))
     }
 
+    convertTradingViewToOHLCV (ohlcvs) {
+        let result = [];
+        for (let i = 0; i < ohlcvs['t'].length; i++) {
+            result.push ([
+                ohlcvs['t'][i] * 1000,
+                ohlcvs['o'][i],
+                ohlcvs['h'][i],
+                ohlcvs['l'][i],
+                ohlcvs['c'][i],
+                ohlcvs['v'][i],
+            ]);
+        }
+        return result;
+    }
+
+    convertOHLCVToTradingView (ohlcvs) {
+        let result = {
+            't': [],
+            'o': [],
+            'h': [],
+            'l': [],
+            'c': [],
+            'v': [],
+        };
+        for (let i = 0; i < ohlcvs.length; i++) {
+            result['t'].push (parseInt (ohlcvs[i][0] / 1000));
+            result['o'].push (ohlcvs[i][1]);
+            result['h'].push (ohlcvs[i][2]);
+            result['l'].push (ohlcvs[i][3]);
+            result['c'].push (ohlcvs[i][4]);
+            result['v'].push (ohlcvs[i][5]);
+        }
+        return result;
+    }
+
     fetchTickers (symbols = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchTickers not supported yet')
     }

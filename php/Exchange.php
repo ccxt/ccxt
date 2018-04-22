@@ -1455,6 +1455,41 @@ abstract class Exchange {
         return $this->fetch_ohlcv ($symbol, $timeframe, $since, $limit, $params);
     }
 
+    public function convert_trading_view_to_ohlcv ($ohlcvs) {
+        $result = array ();
+        for ($i = 0; $i < count ($ohlcvs['t']); $i++) {
+            $result[] = [
+                $ohlcvs['t'][$i] * 1000,
+                $ohlcvs['o'][$i],
+                $ohlcvs['h'][$i],
+                $ohlcvs['l'][$i],
+                $ohlcvs['c'][$i],
+                $ohlcvs['v'][$i],
+            ];
+        }
+        return $result;
+    }
+
+    public function convert_ohlcv_to_trading_view ($ohlcvs) {
+        $result = array (
+            't' => array (),
+            'o' => array (),
+            'h' => array (),
+            'l' => array (),
+            'c' => array (),
+            'v' => array (),
+        );
+        for ($i = 0; $i < count ($ohlcvs); $i++) {
+            $result['t'][] = intval ($ohlcvs[$i][0] / 1000);
+            $result['o'][] = $ohlcvs[$i][1];
+            $result['h'][] = $ohlcvs[$i][2];
+            $result['l'][] = $ohlcvs[$i][3];
+            $result['c'][] = $ohlcvs[$i][4];
+            $result['v'][] = $ohlcvs[$i][5];
+        }
+        return $result;
+    }
+
     public function edit_limit_buy_order ($id, $symbol, $amount, $price, $params = array ()) {
         return $this->edit_limit_order ($id, $symbol, 'buy', $amount, $price, $params);
     }

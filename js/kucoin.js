@@ -835,18 +835,8 @@ module.exports = class kucoin extends Exchange {
         return this.parseTrades (response['data']['datas'], market, since, limit);
     }
 
-    parseTradingViewOHLCVs (ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        let result = [];
-        for (let i = 0; i < ohlcvs['t'].length; i++) {
-            result.push ([
-                ohlcvs['t'][i] * 1000,
-                ohlcvs['o'][i],
-                ohlcvs['h'][i],
-                ohlcvs['l'][i],
-                ohlcvs['c'][i],
-                ohlcvs['v'][i],
-            ]);
-        }
+    parseTradingViewOHLCV (ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        let result = this.convertTradingViewToOHLCV (ohlcvs);
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
@@ -885,7 +875,7 @@ module.exports = class kucoin extends Exchange {
             'to': end,
         };
         let response = await this.publicGetOpenChartHistory (this.extend (request, params));
-        return this.parseTradingViewOHLCVs (response, market, timeframe, since, limit);
+        return this.parseTradingViewOHLCV (response, market, timeframe, since, limit);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
