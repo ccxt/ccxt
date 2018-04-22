@@ -125,7 +125,7 @@ class poloniex extends Exchange {
             'commonCurrencies' => array (
                 'BTM' => 'Bitmark',
                 'STR' => 'XLM',
-                'BCC' => 'BCC',
+                'BCC' => 'BTCtalkcoin',
             ),
         ));
     }
