@@ -123,6 +123,7 @@ class bitfinex (Exchange):
                         'orders',
                         'orders/hist',
                         'position/claim',
+                        'position/close',
                         'positions',
                         'summary',
                         'taken_funds',
