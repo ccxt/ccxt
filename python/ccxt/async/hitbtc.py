@@ -486,6 +486,7 @@ class hitbtc (Exchange):
                 },
             },
             'commonCurrencies': {
+                'BCC': 'BCC',
                 'XBT': 'BTC',
                 'DRK': 'DASH',
                 'CAT': 'BitClave',
