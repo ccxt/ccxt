@@ -17,6 +17,7 @@ import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import ExchangeNotAvailable
 
 
 class huobipro (Exchange):
@@ -120,6 +121,7 @@ class huobipro (Exchange):
                 'order-limitorder-amount-min-error': InvalidOrder,  # limit order amount error, min: `0.001`
                 'order-orderstate-error': OrderNotFound,  # canceling an already canceled order
                 'order-queryorder-invalid': OrderNotFound,  # querying a non-existent order
+                'order-update-error': ExchangeNotAvailable,  # undocumented error
             },
             'options': {
                 'fetchMarketsMethod': 'publicGetCommonSymbols',
@@ -573,9 +575,24 @@ class huobipro (Exchange):
         if type == 'limit':
             order['price'] = self.price_to_precision(symbol, price)
         response = self.privatePostOrderOrdersPlace(self.extend(order, params))
+        timestamp = self.milliseconds()
         return {
             'info': response,
             'id': response['data'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
+            'status': None,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'filled': None,
+            'remaining': None,
+            'cost': None,
+            'trades': None,
+            'fee': None,
         }
 
     def cancel_order(self, id, symbol=None, params={}):
