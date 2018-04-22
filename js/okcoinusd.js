@@ -418,6 +418,10 @@ module.exports = class okcoinusd extends Exchange {
         return {
             'info': response,
             'id': response['order_id'].toString (),
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'status': 'open',
         };
     }
 

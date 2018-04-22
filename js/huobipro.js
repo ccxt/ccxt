@@ -610,6 +610,10 @@ module.exports = class huobipro extends Exchange {
         return {
             'info': response,
             'id': response['data'],
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'status': 'open',
         };
     }
 
