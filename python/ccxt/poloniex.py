@@ -137,6 +137,7 @@ class poloniex (Exchange):
             'commonCurrencies': {
                 'BTM': 'Bitmark',
                 'STR': 'XLM',
+                'BCC': 'BCC',
             },
         })
 
