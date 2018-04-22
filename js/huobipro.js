@@ -607,13 +607,24 @@ module.exports = class huobipro extends Exchange {
         if (type === 'limit')
             order['price'] = this.priceToPrecision (symbol, price);
         let response = await this.privatePostOrderOrdersPlace (this.extend (order, params));
+        let timestamp = this.milliseconds ();
         return {
             'info': response,
             'id': response['data'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'status': undefined,
             'symbol': symbol,
             'type': type,
             'side': side,
-            'status': 'open',
+            'price': price,
+            'amount': amount,
+            'filled': undefined,
+            'remaining': undefined,
+            'cost': undefined,
+            'trades': undefined,
+            'fee': undefined,
         };
     }
 
