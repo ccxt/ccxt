@@ -124,7 +124,7 @@ module.exports = class poloniex extends Exchange {
             'commonCurrencies': {
                 'BTM': 'Bitmark',
                 'STR': 'XLM',
-                'BCC': 'BCC',
+                'BCC': 'BTCtalkcoin',
             },
         });
     }
