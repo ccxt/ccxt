@@ -162,7 +162,7 @@ module.exports = class coinex extends Exchange {
         let timestamp = ticker['date'];
         let symbol = market['symbol'];
         ticker = ticker['ticker'];
-        let last = parseFloat (ticker['last']);
+        let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
