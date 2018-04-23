@@ -1585,9 +1585,9 @@ To set up an exchange for trading just assign the API credentials to an existing
     include 'ccxt.php'
 
     // any time
-    $quoine = new \ccxt\quoine ();
-    $quoine->apiKey = 'YOUR_QUOINE_API_KEY';
-    $quoine->secret = 'YOUR_QUOINE_SECRET_KEY';
+    $quoinex = new \ccxt\quoinex ();
+    $quoinex->apiKey = 'YOUR_QUOINE_API_KEY';
+    $quoinex->secret = 'YOUR_QUOINE_SECRET_KEY';
 
     // upon instantiation
     $zaif = new \ccxt\zaif (array (

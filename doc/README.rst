@@ -487,7 +487,7 @@ PHP
 
     $poloniex = new \ccxt\poloniex ();
     $bittrex  = new \ccxt\bittrex  (array ('verbose' => true));
-    $quoine   = new \ccxt\quoine   ();
+    $quoinex  = new \ccxt\quoinex   ();
     $zaif     = new \ccxt\zaif     (array (
         'apiKey' => 'YOUR_PUBLIC_API_KEY',
         'secret' => 'YOUR_SECRET_PRIVATE_KEY',
@@ -497,11 +497,11 @@ PHP
 
     var_dump ($poloniex_markets);
     var_dump ($bittrex->load_markets ());
-    var_dump ($quoine->load_markets ());
+    var_dump ($quoinex->load_markets ());
 
     var_dump ($poloniex->fetch_order_book ($poloniex->symbols[0]));
     var_dump ($bittrex->fetch_trades ('BTC/USD'));
-    var_dump ($quoine->fetch_ticker ('ETH/EUR'));
+    var_dump ($quoinex->fetch_ticker ('ETH/EUR'));
     var_dump ($zaif->fetch_ticker ('BTC/JPY'));
 
     var_dump ($zaif->fetch_balance ());
