@@ -473,16 +473,17 @@ class binance (Exchange):
             float(ohlcv[5]),
         ]
 
-    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=500, params={}):
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
             'interval': self.timeframes[timeframe],
-            'limit': limit,  # default == max == 500
         }
         if since is not None:
             request['startTime'] = since
+        if limit is not None:
+            request['limit'] = limit  # default == max == 500
         response = self.publicGetKlines(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
