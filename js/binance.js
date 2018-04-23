@@ -490,7 +490,6 @@ module.exports = class binance extends Exchange {
         let request = {
             'symbol': market['id'],
             'interval': this.timeframes[timeframe],
-
         };
         if (typeof since !== 'undefined')
             request['startTime'] = since;
