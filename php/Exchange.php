@@ -367,6 +367,10 @@ abstract class Exchange {
         return call_user_func_array ('array_merge', array_filter(func_get_args(), 'is_array'));
     }
 
+    public static function in_array ($needle, $haystack) {
+        return in_array ($needle, $haystack);
+    }
+
     public static function keysort ($array) {
         $result = $array;
         ksort ($result);

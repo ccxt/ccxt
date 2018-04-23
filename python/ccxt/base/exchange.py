@@ -558,6 +558,10 @@ class Exchange(object):
         return a + b
 
     @staticmethod
+    def in_array(needle, haystack):
+        return needle in haystack
+
+    @staticmethod
     def extract_params(string):
         return re.findall(r'{([\w-]+)}', string)
 
