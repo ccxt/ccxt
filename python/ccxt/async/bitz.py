@@ -132,6 +132,9 @@ class bitz (Exchange):
             'options': {
                 'lastNonceTimestamp': 0,
             },
+            'commonCurrencies': {
+                'PXC': 'Pixiecoin',
+            },
         })
 
     async def fetch_markets(self):
