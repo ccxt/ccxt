@@ -191,21 +191,74 @@ module.exports = class yobit extends liqui {
         };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('success' in response) {
-            if (!response['success']) {
-                if (response['error'].indexOf ('Insufficient funds') >= 0) { // not enougTh is a typo inside Liqui's own API...
-                    throw new InsufficientFunds (this.id + ' ' + this.json (response));
-                } else if (response['error'] === 'Requests too often') {
-                    throw new DDoSProtection (this.id + ' ' + this.json (response));
-                } else if ((response['error'] === 'not available') || (response['error'] === 'external service unavailable')) {
-                    throw new DDoSProtection (this.id + ' ' + this.json (response));
-                } else {
+    parseOrder (order, market = undefined) {
+        let id = order['id'].toString ();
+        let status = this.safeString (order, 'status');
+        if (status !== 'undefined')
+            status = this.parseOrderStatus (status);
+        let timestamp = parseInt (order['timestamp_created']) * 1000;
+        let symbol = undefined;
+        if (!market)
+            market = this.markets_by_id[order['pair']];
+        if (market)
+            symbol = market['symbol'];
+        let remaining = undefined;
+        let amount = undefined;
+        let price = this.safeFloat (order, 'rate');
+        let filled = undefined;
+        let cost = undefined;
+        if ('start_amount' in order) {
+            amount = this.safeFloat (order, 'start_amount');
+            remaining = this.safeFloat (order, 'amount');
+        } else {
+            remaining = this.safeFloat (order, 'amount');
+            if (id in this.orders)
+                amount = this.orders[id]['amount'];
+        }
+        if (typeof amount !== 'undefined') {
+            if (typeof remaining !== 'undefined') {
+                filled = amount - remaining;
+                cost = price * filled;
+            }
+        }
+        let fee = undefined;
+        let result = {
+            'info': order,
+            'id': id,
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'type': 'limit',
+            'side': order['type'],
+            'price': price,
+            'cost': cost,
+            'amount': amount,
+            'remaining': remaining,
+            'filled': filled,
+            'status': status,
+            'fee': fee,
+        };
+        return result;
+    }
+
+    handleErrors (code, reason, url, method, headers, body) {
+        if (body[0] === '{') {
+            let response = JSON.parse (body);
+            if ('success' in response) {
+                if (!response['success']) {
+                    if ('error_log' in response) {
+                        if (response['error_log'].indexOf ('Insufficient funds') >= 0) { // not enougTh is a typo inside Liqui's own API...
+                            throw new InsufficientFunds (this.id + ' ' + this.json (response));
+                        } else if (response['error_log'] === 'Requests too often') {
+                            throw new DDoSProtection (this.id + ' ' + this.json (response));
+                        } else if ((response['error_log'] === 'not available') || (response['error_log'] === 'external service unavailable')) {
+                            throw new DDoSProtection (this.id + ' ' + this.json (response));
+                        }
+                    }
                     throw new ExchangeError (this.id + ' ' + this.json (response));
                 }
             }
         }
-        return response;
     }
 };
