@@ -174,9 +174,7 @@ class Exchange(object):
         'withdraw': False,
     }
 
-    decimal_to_precision = decimal_to_precision
     precisionMode = DECIMAL_PLACES
-
     minFundingAddressLength = 10  # used in check_address
     substituteCommonCurrencyCodes = True
     lastRestRequestTimestamp = 0
@@ -208,6 +206,8 @@ class Exchange(object):
         self.trades = {} if self.trades is None else self.trades
         self.currencies = {} if self.currencies is None else self.currencies
         self.options = {} if self.options is None else self.options  # Python does not allow to define properties in run-time with setattr
+
+        self.decimalToPrecision = self.decimal_to_precision = decimal_to_precision
 
         # version = '.'.join(map(str, sys.version_info[:3]))
         # self.userAgent = {
