@@ -18,6 +18,7 @@ from ccxt.base.errors import InvalidAddress
 
 # -----------------------------------------------------------------------------
 
+from ccxt.base.decimal_to_precision import decimal_to_precision
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 
 # -----------------------------------------------------------------------------
@@ -105,7 +106,6 @@ class Exchange(object):
         },
     }
     ids = None
-    currencies = None
     tickers = None
     api = None
     parseJsonResponse = True
@@ -174,6 +174,7 @@ class Exchange(object):
         'withdraw': False,
     }
 
+    decimal_to_precision = decimal_to_precision
     precisionMode = DECIMAL_PLACES
 
     minFundingAddressLength = 10  # used in check_address
