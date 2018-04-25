@@ -43,6 +43,7 @@ const commonRegexes = [
     [ /\.safeString\s/g, '.safe_string'],
     [ /\.safeValue\s/g, '.safe_value'],
     [ /\.inArray\s/g, '.in_array'],
+    [ /\.toArray\s/g, '.to_array'],
     [ /\.arrayConcat\s/g, '.array_concat'],
     [ /\.binaryConcat\s/g, '.binary_concat'],
     [ /\.binaryToString\s/g, '.binary_to_string' ],

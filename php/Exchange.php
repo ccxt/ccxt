@@ -371,6 +371,10 @@ abstract class Exchange {
         return in_array ($needle, $haystack);
     }
 
+    public static function to_array ($object) {
+        return array_values ($object);
+    }
+
     public static function keysort ($array) {
         $result = $array;
         ksort ($result);
