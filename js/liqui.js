@@ -730,7 +730,6 @@ module.exports = class liqui extends Exchange {
         }
         let openOrdersIndexedById = this.indexBy (openOrders, 'id');
         let cachedOrderIds = Object.keys (this.orders);
-        let result = [];
         for (let k = 0; k < cachedOrderIds.length; k++) {
             // match each cached order to an order in the open orders array
             // possible reasons why a cached order may be missing in the open orders array:
@@ -758,9 +757,8 @@ module.exports = class liqui extends Exchange {
                     this.orders[cachedOrderId] = cachedOrder;
                 }
             }
-            result.push (cachedOrder);
         }
-        return result;
+        return this.toArray (this.orders);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
