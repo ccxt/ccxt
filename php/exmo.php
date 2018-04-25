@@ -322,6 +322,7 @@ class exmo extends Exchange {
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
             'type' => $type,
@@ -427,7 +428,7 @@ class exmo extends Exchange {
             $orders = $this->array_concat($orders, $parsedOrders);
         }
         $this->update_cached_orders ($orders, $symbol);
-        return $this->filter_by_symbol_since_limit($this->orders, $symbol, $since, $limit);
+        return $this->filter_by_symbol_since_limit($this->to_array($this->orders), $symbol, $since, $limit);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -527,6 +528,7 @@ class exmo extends Exchange {
             'id' => $id,
             'datetime' => $iso8601,
             'timestamp' => $timestamp,
+            'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
             'type' => 'limit',

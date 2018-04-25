@@ -137,6 +137,7 @@ class bittrex extends Exchange {
                 ),
             ),
             'exceptions' => array (
+                'Call to Cancel was throttled. Try again in 60 seconds.' => '\\ccxt\\DDoSProtection',
                 'APISIGN_NOT_PROVIDED' => '\\ccxt\\AuthenticationError',
                 'INVALID_SIGNATURE' => '\\ccxt\\AuthenticationError',
                 'INVALID_CURRENCY' => '\\ccxt\\ExchangeError',
@@ -520,10 +521,12 @@ class bittrex extends Exchange {
         $timestamp = null;
         if (is_array ($order) && array_key_exists ('Opened', $order))
             $timestamp = $this->parse8601 ($order['Opened'] . '+00:00');
-        if (is_array ($order) && array_key_exists ('TimeStamp', $order))
-            $timestamp = $this->parse8601 ($order['TimeStamp'] . '+00:00');
         if (is_array ($order) && array_key_exists ('Created', $order))
             $timestamp = $this->parse8601 ($order['Created'] . '+00:00');
+        $iso8601 = ($timestamp !== null) ? $this->iso8601 ($timestamp) : null;
+        $lastTradeTimestamp = null;
+        if ((is_array ($order) && array_key_exists ('TimeStamp', $order)) && ($order['TimeStamp'] != null))
+            $lastTradeTimestamp = $this->parse8601 ($order['TimeStamp'] . '+00:00');
         $fee = null;
         $commission = null;
         if (is_array ($order) && array_key_exists ('Commission', $order)) {
@@ -559,7 +562,8 @@ class bittrex extends Exchange {
             'info' => $order,
             'id' => $id,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $iso8601,
+            'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
             'type' => 'limit',
             'side' => $side,

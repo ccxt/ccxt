@@ -92,6 +92,9 @@ module.exports = class bibox extends Exchange {
                 '4000': ExchangeNotAvailable, // current network is unstable
                 '4003': DDoSProtection, // server busy please try again later
             },
+            'commonCurrencies': {
+                'KEY': 'Bihu',
+            },
         });
     }
 
@@ -429,6 +432,7 @@ module.exports = class bibox extends Exchange {
             'id': this.safeString (order, 'id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
             'side': side,

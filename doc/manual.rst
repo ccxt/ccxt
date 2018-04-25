@@ -55,7 +55,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 Exchanges
 =========
 
-The ccxt library currently supports the following 113 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 114 cryptocurrency exchange markets and trading APIs:
 
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 |                        | id                   | name                                                           | ver   | doc                                                                                               | countries                                  |
@@ -263,6 +263,8 @@ The ccxt library currently supports the following 113 cryptocurrency exchange ma
 | |surbitcoin|           | surbitcoin           | `SurBitcoin <https://surbitcoin.com>`__                        | 1     | `API <https://blinktrade.com/docs>`__                                                             | Venezuela                                  |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |therock|              | therock              | `TheRockTrading <https://therocktrading.com>`__                | 1     | `API <https://api.therocktrading.com/doc/v1/index.html>`__                                        | Malta                                      |
++------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
+| |tidebit|              | tidebit              | `TideBit <https://www.tidebit.com>`__                          | 2     | `API <https://www.tidebit.com/documents/api_v2>`__                                                | Hong Kong                                  |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |tidex|                | tidex                | `Tidex <https://tidex.com>`__                                  | 3     | `API <https://tidex.com/exchange/public-api>`__                                                   | UK                                         |
 +------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -1134,6 +1136,16 @@ Prices and amounts are floats. The bids array is sorted by price in descending o
 
 Exchanges may return the stack of orders in various levels of details for analysis. It is either in full detail containing each and every order, or it is aggregated having slightly less detail where orders are grouped and merged by price and volume. Having greater detail requires more traffic and bandwidth and is slower in general but gives a benefit of higher precision. Having less detail is usually faster, but may not be enough in some very specific cases.
 
+Notes On Order Book Structure
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-  ``orderbook['timestamp']`` is the time when the exchange generated this orderbook response (before replying it back to you). This may be missing (``undefined/None/null``), as documented in the Manual, not all exchanges provide a timestamp there. If it is defined, then it is the UTC timestamp **in milliseconds** since 1 Jan 1970 00:00:00.
+-  ``exchange.last_response_headers['Date']`` is the date-time string of the last HTTP response received (from HTTP headers). The 'Date' parser should respect the timezone designated there. The precision of the date-time is 1 second, 1000 milliseconds. This date should be set by the exchange server when the message originated according to the following standards:
+
+   -  https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.18
+   -  https://tools.ietf.org/html/rfc1123#section-5.2.14
+   -  https://tools.ietf.org/html/rfc822#section-5
+
 Market Depth
 ~~~~~~~~~~~~
 
@@ -1573,9 +1585,9 @@ To set up an exchange for trading just assign the API credentials to an existing
     include 'ccxt.php'
 
     // any time
-    $quoine = new \ccxt\quoine ();
-    $quoine->apiKey = 'YOUR_QUOINE_API_KEY';
-    $quoine->secret = 'YOUR_QUOINE_SECRET_KEY';
+    $quoinex = new \ccxt\quoinex ();
+    $quoinex->apiKey = 'YOUR_QUOINE_API_KEY';
+    $quoinex->secret = 'YOUR_QUOINE_SECRET_KEY';
 
     // upon instantiation
     $zaif = new \ccxt\zaif (array (
@@ -1863,30 +1875,33 @@ Most of methods returning orders within ccxt unified API will usually yield an o
 .. code:: javascript
 
     {
-        'id':        '12345-67890:09876/54321', // string
-        'datetime':  '2017-08-17 12:42:48.000', // ISO8601 datetime with milliseconds
-        'timestamp':  1502962946216, // order placing/opening Unix timestamp in milliseconds
-        'status':    'open',         // 'open', 'closed', 'canceled'
-        'symbol':    'ETH/BTC',      // symbol
-        'type':      'limit',        // 'market', 'limit'
-        'side':      'buy',          // 'buy', 'sell'
-        'price':      0.06917684,    // float price in quote currency
-        'amount':     1.5,           // ordered amount of base currency
-        'filled':     1.1,           // filled amount of base currency
-        'remaining':  0.4,           // remaining amount to fill
-        'cost':       0.076094524,   // 'filled' * 'price'
-        'trades':   [ ... ],         // a list of order trades/executions
-        'fee':      {                // fee info, if available
-            'currency': 'BTC',       // which currency the fee is (usually quote)
-            'cost': 0.0009,          // the fee amount in that currency
-            'rate': 0.002,           // the fee rate (if available)
+        'id':                '12345-67890:09876/54321', // string
+        'datetime':          '2017-08-17 12:42:48.000', // ISO8601 datetime of 'timestamp' with milliseconds
+        'timestamp':          1502962946216, // order placing/opening Unix timestamp in milliseconds
+        'lastTradeTimestamp': 1502962956216, // Unix timestamp of the most recent trade on this order
+        'status':     'open',         // 'open', 'closed', 'canceled'
+        'symbol':     'ETH/BTC',      // symbol
+        'type':       'limit',        // 'market', 'limit'
+        'side':       'buy',          // 'buy', 'sell'
+        'price':       0.06917684,    // float price in quote currency
+        'amount':      1.5,           // ordered amount of base currency
+        'filled':      1.1,           // filled amount of base currency
+        'remaining':   0.4,           // remaining amount to fill
+        'cost':        0.076094524,   // 'filled' * 'price'
+        'trades':    [ ... ],         // a list of order trades/executions
+        'fee': {                      // fee info, if available
+            'currency': 'BTC',        // which currency the fee is (usually quote)
+            'cost': 0.0009,           // the fee amount in that currency
+            'rate': 0.002,            // the fee rate (if available)
         },
-        'info':     { ... },         // the original unparsed order structure as is
+        'info': { ... },              // the original unparsed order structure as is
     }
 
-**The work on ``'fee'`` info is still in progress, fee info may be missing partially or entirely, depending on the exchange capabilities**.
-
-**The ``fee`` currency may be different from both traded currencies (for example, an ETH/BTC order with fees in USD).**
+-  The work on ``'fee'`` info is still in progress, fee info may be missing partially or entirely, depending on the exchange capabilities.
+-  The ``fee`` currency may be different from both traded currencies (for example, an ETH/BTC order with fees in USD).
+-  The ``lastTradeTimestamp`` timestamp may have no value and may be ``undefined/None/null`` where not supported by the exchange or in case of an open order (an order that has not been filled nor partially filled yet).
+-  The ``lastTradeTimestamp``, if any, designates the timestamp of the last trade, in case the order is filled fully or partially, otherwise ``lastTradeTimestamp`` is ``undefined/None/null``.
+-  Order ``status`` prevails or has precedence over the ``lastTradeTimestamp``.
 
 Placing Orders
 ~~~~~~~~~~~~~~
@@ -2551,6 +2566,7 @@ Notes
 .. |southxchange| image:: https://user-images.githubusercontent.com/1294454/27838912-4f94ec8a-60f6-11e7-9e5d-bbf9bd50a559.jpg
 .. |surbitcoin| image:: https://user-images.githubusercontent.com/1294454/27991511-f0a50194-6481-11e7-99b5-8f02932424cc.jpg
 .. |therock| image:: https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg
+.. |tidebit| image:: https://user-images.githubusercontent.com/1294454/39034921-e3acf016-4480-11e8-9945-a6086a1082fe.jpg
 .. |tidex| image:: https://user-images.githubusercontent.com/1294454/30781780-03149dc4-a12e-11e7-82bb-313b269d24d4.jpg
 .. |urdubit| image:: https://user-images.githubusercontent.com/1294454/27991453-156bf3ae-6480-11e7-82eb-7295fe1b5bb4.jpg
 .. |vaultoro| image:: https://user-images.githubusercontent.com/1294454/27766880-f205e870-5ee9-11e7-8fe2-0d5b15880752.jpg

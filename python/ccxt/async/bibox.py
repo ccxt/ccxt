@@ -109,6 +109,9 @@ class bibox (Exchange):
                 '4000': ExchangeNotAvailable,  # current network is unstable
                 '4003': DDoSProtection,  # server busy please try again later
             },
+            'commonCurrencies': {
+                'KEY': 'Bihu',
+            },
         })
 
     async def fetch_markets(self, params={}):
@@ -418,6 +421,7 @@ class bibox (Exchange):
             'id': self.safe_string(order, 'id'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
             'side': side,

@@ -237,6 +237,7 @@ module.exports = class bit2c extends Exchange {
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
             'status': this.safeString (order, 'status'),
             'symbol': symbol,
             'type': undefined,

@@ -428,6 +428,7 @@ class kucoin (Exchange):
             'id': orderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': 'limit',
             'side': side,
@@ -469,7 +470,7 @@ class kucoin (Exchange):
         #
         return self.parse_order(response['data'], market)
 
-    async def parse_orders_by_status(self, orders, market, since, limit, status):
+    def parse_orders_by_status(self, orders, market, since, limit, status):
         result = []
         for i in range(0, len(orders)):
             order = self.parse_order(self.extend(orders[i], {
@@ -571,6 +572,7 @@ class kucoin (Exchange):
             'id': orderId,
             'timestamp': timestamp,
             'datetime': iso8601,
+            'lastTradeTimestamp': None,
             'symbol': market['symbol'],
             'type': type,
             'side': side,
@@ -658,10 +660,13 @@ class kucoin (Exchange):
         else:
             symbol = ticker['coinType'] + '/' + ticker['coinTypePair']
         # TNC coin doesn't have changerate for some reason
-        change = self.safe_float(ticker, 'changeRate')
-        if change is not None:
-            change *= 100
+        change = self.safe_float(ticker, 'change')
         last = self.safe_float(ticker, 'lastDealPrice')
+        open = None
+        if last is not None:
+            if change is not None:
+                open = last - change
+        changePercentage = self.safe_float(ticker, 'changeRate')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -673,12 +678,12 @@ class kucoin (Exchange):
             'ask': self.safe_float(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
-            'open': None,
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': None,
             'change': change,
-            'percentage': None,
+            'percentage': changePercentage,
             'average': None,
             'baseVolume': self.safe_float(ticker, 'vol'),
             'quoteVolume': self.safe_float(ticker, 'volValue'),
@@ -790,17 +795,8 @@ class kucoin (Exchange):
         response = await self.privateGetDealOrders(self.extend(request, params))
         return self.parse_trades(response['data']['datas'], market, since, limit)
 
-    def parse_trading_view_ohlc_vs(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
-        result = []
-        for i in range(0, len(ohlcvs['t'])):
-            result.append([
-                ohlcvs['t'][i] * 1000,
-                ohlcvs['o'][i],
-                ohlcvs['h'][i],
-                ohlcvs['l'][i],
-                ohlcvs['c'][i],
-                ohlcvs['v'][i],
-            ])
+    def parse_trading_view_ohlcv(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
+        result = self.convert_trading_view_to_ohlcv(ohlcvs)
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -836,7 +832,7 @@ class kucoin (Exchange):
             'to': end,
         }
         response = await self.publicGetOpenChartHistory(self.extend(request, params))
-        return self.parse_trading_view_ohlc_vs(response, market, timeframe, since, limit)
+        return self.parse_trading_view_ohlcv(response, market, timeframe, since, limit)
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)

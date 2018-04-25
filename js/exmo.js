@@ -321,6 +321,7 @@ module.exports = class exmo extends Exchange {
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
             'type': type,
@@ -426,7 +427,7 @@ module.exports = class exmo extends Exchange {
             orders = this.arrayConcat (orders, parsedOrders);
         }
         this.updateCachedOrders (orders, symbol);
-        return this.filterBySymbolSinceLimit (this.orders, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (this.toArray (this.orders), symbol, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -526,6 +527,7 @@ module.exports = class exmo extends Exchange {
             'id': id,
             'datetime': iso8601,
             'timestamp': timestamp,
+            'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
             'type': 'limit',

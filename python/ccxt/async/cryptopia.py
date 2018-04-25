@@ -91,6 +91,7 @@ class cryptopia (Exchange):
                 'FUEL': 'FC2',  # FuelCoin != FUEL
                 'HAV': 'Havecoin',
                 'LDC': 'LADACoin',
+                'MARKS': 'Bitmark',
                 'NET': 'NetCoin',
                 'QBT': 'Cubits',
                 'WRC': 'WarCoin',
@@ -417,6 +418,7 @@ class cryptopia (Exchange):
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'status': 'open',
             'symbol': symbol,
             'type': type,
@@ -470,6 +472,7 @@ class cryptopia (Exchange):
             'info': self.omit(order, 'status'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'status': order['status'],
             'symbol': symbol,
             'type': 'limit',

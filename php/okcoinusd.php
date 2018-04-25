@@ -416,9 +416,24 @@ class okcoinusd extends Exchange {
         $params = $this->omit ($params, 'cost');
         $method .= 'Trade';
         $response = $this->$method (array_merge ($order, $params));
+        $timestamp = $this->milliseconds ();
         return array (
             'info' => $response,
             'id' => (string) $response['order_id'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => null,
+            'status' => null,
+            'symbol' => $symbol,
+            'type' => $type,
+            'side' => $side,
+            'price' => $price,
+            'amount' => $amount,
+            'filled' => null,
+            'remaining' => null,
+            'cost' => null,
+            'trades' => null,
+            'fee' => null,
         );
     }
 
@@ -512,6 +527,7 @@ class okcoinusd extends Exchange {
             'id' => (string) $order['order_id'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,

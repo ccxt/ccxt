@@ -153,6 +153,7 @@ class bittrex (Exchange):
                 },
             },
             'exceptions': {
+                'Call to Cancel was throttled. Try again in 60 seconds.': DDoSProtection,
                 'APISIGN_NOT_PROVIDED': AuthenticationError,
                 'INVALID_SIGNATURE': AuthenticationError,
                 'INVALID_CURRENCY': ExchangeError,
@@ -501,10 +502,12 @@ class bittrex (Exchange):
         timestamp = None
         if 'Opened' in order:
             timestamp = self.parse8601(order['Opened'] + '+00:00')
-        if 'TimeStamp' in order:
-            timestamp = self.parse8601(order['TimeStamp'] + '+00:00')
         if 'Created' in order:
             timestamp = self.parse8601(order['Created'] + '+00:00')
+        iso8601 = self.iso8601(timestamp) if (timestamp is not None) else None
+        lastTradeTimestamp = None
+        if ('TimeStamp' in list(order.keys())) and(order['TimeStamp'] is not None):
+            lastTradeTimestamp = self.parse8601(order['TimeStamp'] + '+00:00')
         fee = None
         commission = None
         if 'Commission' in order:
@@ -536,7 +539,8 @@ class bittrex (Exchange):
             'info': order,
             'id': id,
             'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'datetime': iso8601,
+            'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': 'limit',
             'side': side,

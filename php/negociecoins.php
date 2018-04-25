@@ -223,6 +223,7 @@ class negociecoins extends Exchange {
             'id' => (string) $order['id'],
             'datetime' => $this->iso8601 ($timestamp),
             'timestamp' => $timestamp,
+            'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
             'type' => 'limit',

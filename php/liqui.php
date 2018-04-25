@@ -200,6 +200,182 @@ class liqui extends Exchange {
         return $result;
     }
 
+    public function fetch_markets_from_cache () {
+        $markets = $this->cacheapiGetPairs ();
+        $result = array ();
+        for ($i = 0; $i < count ($markets); $i++) {
+            $market = $markets[$i];
+            //
+            //  {              Id =>  249,
+            //              Order =>  62,
+            //     BaseCurrencyId =>  110,
+            //    QuoteCurrencyId =>  35,
+            //            IsTrade =>  true,
+            //          IsVisible =>  true,
+            //           MinTotal =>  1,
+            //           MinPrice =>  0.00001,
+            //           MaxPrice =>  1000,
+            //         PricePoint =>  8,
+            //          MinAmount =>  1e-8,
+            //          MaxAmount =>  1000000,
+            //        AmountPoint =>  8,
+            //         DisableFee =>  false,
+            //           MakerFee =>  0.001,
+            //           TakerFee =>  0.0025,
+            //           BaseName => "ENJ",
+            //          QuoteName => "USDT",
+            //               Name => "ENJ/USDT" }
+            //
+            $baseId = $market['BaseName'];
+            $quoteId = $market['QuoteName'];
+            $base = $this->common_currency_code($baseId);
+            $quote = $this->common_currency_code($quoteId);
+            $id = strtolower ($baseId) . '_' . strtolower ($quoteId);
+            $symbol = $base . '/' . $quote;
+            $precision = array (
+                'amount' => $this->safe_integer($market, 'AmountPoint'),
+                'price' => $this->safe_integer($market, 'PricePoint'),
+            );
+            $amountLimits = array (
+                'min' => $this->safe_float($market, 'MinAmount'),
+                'max' => $this->safe_float($market, 'MaxAmount'),
+            );
+            $priceLimits = array (
+                'min' => $this->safe_float($market, 'MinPrice'),
+                'max' => $this->safe_float($market, 'MaxPrice'),
+            );
+            $costLimits = array (
+                'min' => $this->safe_float($market, 'MinTotal'),
+            );
+            $limits = array (
+                'amount' => $amountLimits,
+                'price' => $priceLimits,
+                'cost' => $costLimits,
+            );
+            $isTrading = $this->safe_value($market, 'IsTrade');
+            $isVisible = $this->safe_value($market, 'IsVisible');
+            $active = ($isTrading && $isVisible);
+            $result[] = array (
+                'id' => $id,
+                'marketId' => $market['Id'],
+                'baseNumericId' => $market['BaseCurrencyId'],
+                'quoteNumericId' => $market['QuoteCurrencyId'],
+                'symbol' => $symbol,
+                'base' => $base,
+                'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
+                'active' => $active,
+                'taker' => $market['TakerFee'],
+                'maker' => $market['MakerFee'],
+                'lot' => $amountLimits['min'],
+                'precision' => $precision,
+                'limits' => $limits,
+                'info' => $market,
+            );
+        }
+        return $result;
+    }
+
+    public function fetch_currencies_from_cache ($params = array ()) {
+        $currencies = $this->cacheapiGetCurrencies ($params);
+        $result = array ();
+        for ($i = 0; $i < count ($currencies); $i++) {
+            $currency = $currencies[$i];
+            //
+            //  {               Id =>    12,
+            //              Symbol =>   "ETH",
+            //                Type =>    2,
+            //                Name =>   "Ethereum",
+            //               Order =>    9,
+            //         AmountPoint =>    8,
+            //       DepositEnable =>    true,
+            //    DepositMinAmount =>    0.05,
+            //      WithdrawEnable =>    true,
+            //         WithdrawFee =>    0.01,
+            //    WithdrawMinAmout =>    0.01,
+            //            Settings => array (        Blockchain => "https://etherscan.io/",
+            //                                    TxUrl => "https://etherscan.io/tx/{0}",
+            //                                  AddrUrl => "https://etherscan.io/address/{0}",
+            //                        ConfirmationCount =>  30,
+            //                                 NeedMemo =>  false                              ),
+            //
+            $id = $currency['Symbol'];
+            // todo => will need to rethink the fees
+            // to add support for multiple withdrawal/deposit methods and
+            // differentiated fees for each particular method
+            $code = $this->common_currency_code($id);
+            $precision = $currency['AmountPoint']; // default $precision, todo => fix "magic constants"
+            $active = $currency['DepositEnable'] && $currency['WithdrawEnable'] && $currency['Visible'];
+            $result[$code] = array (
+                'id' => $id,
+                'code' => $code,
+                'numericId' => $currency['Id'],
+                'info' => $currency,
+                'name' => $currency['Name'],
+                'active' => $active,
+                'status' => 'ok',
+                'type' => 'crypto',
+                'fee' => $currency['WithdrawFee'], // todo => redesign
+                'precision' => $precision,
+                'limits' => array (
+                    'amount' => array (
+                        'min' => $currency['DepositMinAmount'],
+                        'max' => pow (10, $precision),
+                    ),
+                    'price' => array (
+                        'min' => pow (10, -$precision),
+                        'max' => pow (10, $precision),
+                    ),
+                    'cost' => array (
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'withdraw' => array (
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
+            );
+        }
+        return $result;
+    }
+
+    public function fetch_balance_from_web ($params = array ()) {
+        // this is an alternative implementation of Liqui website $balances
+        // for use with numeric currency ids from their cache API
+        $this->load_markets();
+        if (!(is_array ($this->options) && array_key_exists ('currenciesByNumericId', $this->options)))
+            $this->options['currenciesByNumericId'] = $this->index_by($this->currencies, 'numericId');
+        $balances = $this->webGetUserBalances ($params);
+        $result = array ( 'info' => $balances );
+        for ($i = 0; $i < count ($balances); $i++) {
+            $balance = $balances[$i];
+            //
+            //  { CurrencyId => 12,
+            //         Value => 1.1990027336966798,
+            //      InOrders => 0.11752418,
+            //    InInterest => 0,
+            //       Changes => 0                   }
+            //
+            $numericId = $balance['CurrencyId'];
+            $code = (string) $numericId;
+            if (is_array ($this->options['currenciesByNumericId']) && array_key_exists ($numericId, $this->options['currenciesByNumericId'])) {
+                $code = $this->options['currenciesByNumericId'][$numericId]['code'];
+            }
+            $used = $this->sum ($balance['InOrders'], $balance['InInterest']);
+            $total = $balance['Value'];
+            $free = $total - $used;
+            $account = array (
+                'free' => $free,
+                'used' => $used,
+                'total' => $total,
+            );
+            $result[$code] = $account;
+        }
+        return $this->parse_balance($result);
+    }
+
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostGetInfo ();
@@ -409,22 +585,28 @@ class liqui extends Exchange {
             'amount' => $this->amount_to_precision($symbol, $amount),
             'rate' => $this->price_to_precision($symbol, $price),
         );
-        $response = $this->privatePostTrade (array_merge ($request, $params));
-        $id = $this->safe_string($response['return'], $this->get_order_id_key ());
-        $timestamp = $this->milliseconds ();
         $price = floatval ($price);
         $amount = floatval ($amount);
+        $response = $this->privatePostTrade (array_merge ($request, $params));
+        $id = null;
         $status = 'open';
-        if ($id === '0') {
-            $id = $this->safe_string($response['return'], 'init_order_id');
-            $status = 'closed';
+        $filled = 0.0;
+        $remaining = $amount;
+        if (is_array ($response) && array_key_exists ('return', $response)) {
+            $id = $this->safe_string($response['return'], $this->get_order_id_key ());
+            if ($id === '0') {
+                $id = $this->safe_string($response['return'], 'init_order_id');
+                $status = 'closed';
+            }
+            $filled = $this->safe_float($response['return'], 'received', 0.0);
+            $remaining = $this->safe_float($response['return'], 'remains', $amount);
         }
-        $filled = $this->safe_float($response['return'], 'received', 0.0);
-        $remaining = $this->safe_float($response['return'], 'remains', $amount);
+        $timestamp = $this->milliseconds ();
         $order = array (
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
             'type' => $type,
@@ -506,6 +688,7 @@ class liqui extends Exchange {
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => null,
             'type' => 'limit',
             'side' => $order['type'],
             'price' => $price,

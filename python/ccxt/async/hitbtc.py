@@ -486,6 +486,7 @@ class hitbtc (Exchange):
                 },
             },
             'commonCurrencies': {
+                'BCC': 'BCC',
                 'XBT': 'BTC',
                 'DRK': 'DASH',
                 'CAT': 'BitClave',
@@ -775,6 +776,7 @@ class hitbtc (Exchange):
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
             'type': order['type'],

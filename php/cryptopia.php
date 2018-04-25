@@ -85,6 +85,7 @@ class cryptopia extends Exchange {
                 'FUEL' => 'FC2', // FuelCoin != FUEL
                 'HAV' => 'Havecoin',
                 'LDC' => 'LADACoin',
+                'MARKS' => 'Bitmark',
                 'NET' => 'NetCoin',
                 'QBT' => 'Cubits',
                 'WRC' => 'WarCoin',
@@ -444,6 +445,7 @@ class cryptopia extends Exchange {
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => null,
             'status' => 'open',
             'symbol' => $symbol,
             'type' => $type,
@@ -504,6 +506,7 @@ class cryptopia extends Exchange {
             'info' => $this->omit ($order, 'status'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => null,
             'status' => $order['status'],
             'symbol' => $symbol,
             'type' => 'limit',

@@ -136,6 +136,7 @@ module.exports = class bittrex extends Exchange {
                 },
             },
             'exceptions': {
+                'Call to Cancel was throttled. Try again in 60 seconds.': DDoSProtection,
                 'APISIGN_NOT_PROVIDED': AuthenticationError,
                 'INVALID_SIGNATURE': AuthenticationError,
                 'INVALID_CURRENCY': ExchangeError,
@@ -519,10 +520,12 @@ module.exports = class bittrex extends Exchange {
         let timestamp = undefined;
         if ('Opened' in order)
             timestamp = this.parse8601 (order['Opened'] + '+00:00');
-        if ('TimeStamp' in order)
-            timestamp = this.parse8601 (order['TimeStamp'] + '+00:00');
         if ('Created' in order)
             timestamp = this.parse8601 (order['Created'] + '+00:00');
+        let iso8601 = (typeof timestamp !== 'undefined') ? this.iso8601 (timestamp) : undefined;
+        let lastTradeTimestamp = undefined;
+        if (('TimeStamp' in order) && (typeof order['TimeStamp'] !== 'undefined'))
+            lastTradeTimestamp = this.parse8601 (order['TimeStamp'] + '+00:00');
         let fee = undefined;
         let commission = undefined;
         if ('Commission' in order) {
@@ -558,7 +561,8 @@ module.exports = class bittrex extends Exchange {
             'info': order,
             'id': id,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': iso8601,
+            'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': 'limit',
             'side': side,

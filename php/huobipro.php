@@ -30,6 +30,7 @@ class huobipro extends Exchange {
                 'fetchOrders' => false,
                 'fetchTradingLimits' => true,
                 'withdraw' => true,
+                'fetchCurrencies' => true,
             ),
             'timeframes' => array (
                 '1m' => '1min',
@@ -66,6 +67,7 @@ class huobipro extends Exchange {
                         'common/currencys', // 查询系统支持的所有币种
                         'common/timestamp', // 查询系统当前时间
                         'common/exchange', // order limits
+                        'settings/currencys', // ?language=en-US
                     ),
                 ),
                 'private' => array (
@@ -106,9 +108,11 @@ class huobipro extends Exchange {
                 'order-limitorder-amount-min-error' => '\\ccxt\\InvalidOrder', // limit order amount error, min => `0.001`
                 'order-orderstate-error' => '\\ccxt\\OrderNotFound', // canceling an already canceled order
                 'order-queryorder-invalid' => '\\ccxt\\OrderNotFound', // querying a non-existent order
+                'order-update-error' => '\\ccxt\\ExchangeNotAvailable', // undocumented error
             ),
             'options' => array (
                 'fetchMarketsMethod' => 'publicGetCommonSymbols',
+                'language' => 'en-US',
             ),
         ));
     }
@@ -196,6 +200,7 @@ class huobipro extends Exchange {
                 'base' => $base,
                 'quote' => $quote,
                 'lot' => $lot,
+                'active' => true,
                 'precision' => $precision,
                 'taker' => $taker,
                 'maker' => $maker,
@@ -393,6 +398,79 @@ class huobipro extends Exchange {
         return $response['data'];
     }
 
+    public function fetch_currencies ($params = array ()) {
+        $response = $this->publicGetSettingsCurrencys (array_merge (array (
+            'language' => $this->options['language'],
+        ), $params));
+        $currencies = $response['data'];
+        $result = array ();
+        for ($i = 0; $i < count ($currencies); $i++) {
+            $currency = $currencies[$i];
+            //
+            //  {                     name => "ctxc",
+            //              'display-name' => "CTXC",
+            //        'withdraw-precision' =>  8,
+            //             'currency-type' => "eth",
+            //        'currency-partition' => "pro",
+            //             'support-sites' =>  null,
+            //                'otc-enable' =>  0,
+            //        'deposit-min-amount' => "2",
+            //       'withdraw-min-amount' => "4",
+            //            'show-precision' => "8",
+            //                      weight => "2988",
+            //                     visible =>  true,
+            //              'deposit-desc' => "Please don’t deposit any other digital assets except CTXC t…",
+            //             'withdraw-desc' => "Minimum withdrawal amount => 4 CTXC. !>_<!For security reason…",
+            //           'deposit-enabled' =>  true,
+            //          'withdraw-enabled' =>  true,
+            //    'currency-addr-with-tag' =>  false,
+            //             'fast-confirms' =>  15,
+            //             'safe-confirms' =>  30                                                             }
+            //
+            $id = $this->safe_value($currency, 'name');
+            $precision = $this->safe_integer($currency, 'withdraw-precision');
+            $code = $this->common_currency_code(strtoupper ($id));
+            $active = $currency['visible'] && $currency['deposit-enabled'] && $currency['withdraw-enabled'];
+            $result[$code] = array (
+                'id' => $id,
+                'code' => $code,
+                'type' => 'crypto',
+                // 'payin' => $currency['deposit-enabled'],
+                // 'payout' => $currency['withdraw-enabled'],
+                // 'transfer' => null,
+                'name' => $currency['display-name'],
+                'active' => $active,
+                'status' => $active ? 'ok' : 'disabled',
+                'fee' => null, // todo need to fetch from fee endpoint
+                'precision' => $precision,
+                'limits' => array (
+                    'amount' => array (
+                        'min' => pow (10, -$precision),
+                        'max' => pow (10, $precision),
+                    ),
+                    'price' => array (
+                        'min' => pow (10, -$precision),
+                        'max' => pow (10, $precision),
+                    ),
+                    'cost' => array (
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'deposit' => array (
+                        'min' => $this->safe_float($currency, 'deposit-min-amount'),
+                        'max' => pow (10, $precision),
+                    ),
+                    'withdraw' => array (
+                        'min' => $this->safe_float($currency, 'withdraw-min-amount'),
+                        'max' => pow (10, $precision),
+                    ),
+                ),
+                'info' => $currency,
+            );
+        }
+        return $result;
+    }
+
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $this->load_accounts ();
@@ -502,6 +580,7 @@ class huobipro extends Exchange {
             'id' => (string) $order['id'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
@@ -530,9 +609,24 @@ class huobipro extends Exchange {
         if ($type === 'limit')
             $order['price'] = $this->price_to_precision($symbol, $price);
         $response = $this->privatePostOrderOrdersPlace (array_merge ($order, $params));
+        $timestamp = $this->milliseconds ();
         return array (
             'info' => $response,
             'id' => $response['data'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => null,
+            'status' => null,
+            'symbol' => $symbol,
+            'type' => $type,
+            'side' => $side,
+            'price' => $price,
+            'amount' => $amount,
+            'filled' => null,
+            'remaining' => null,
+            'cost' => null,
+            'trades' => null,
+            'fee' => null,
         );
     }
 

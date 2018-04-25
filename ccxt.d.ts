@@ -393,6 +393,7 @@ declare module 'ccxt' {
     export class southxchange extends Exchange {}
     export class surbitcoin extends foxbit {}
     export class therock extends Exchange {}
+    export class tidebit extends Exchange {}
     export class tidex extends liqui {}
     export class urdubit extends foxbit {}
     export class vaultoro extends Exchange {}

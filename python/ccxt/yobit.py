@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.liqui import liqui
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import DDoSProtection
@@ -76,10 +75,13 @@ class yobit (liqui):
                 'BCS': 'BitcoinStake',
                 'BLN': 'Bulleon',
                 'BTS': 'Bitshares2',
+                'CAT': 'BitClave',
+                'COV': 'Coven Coin',
                 'CPC': 'Capricoin',
                 'CS': 'CryptoSpots',
                 'DCT': 'Discount',
                 'DGD': 'DarkGoldCoin',
+                'DROP': 'FaucetCoin',
                 'ERT': 'Eristica Token',
                 'ICN': 'iCoin',
                 'KNC': 'KingN Coin',
@@ -90,6 +92,7 @@ class yobit (liqui):
                 'MDT': 'Midnight',
                 'NAV': 'NavajoCoin',
                 'OMG': 'OMGame',
+                'STK': 'StakeCoin',
                 'PAY': 'EPAY',
                 'PLC': 'Platin Coin',
                 'REP': 'Republicoin',
@@ -181,16 +184,16 @@ class yobit (liqui):
             'id': None,
         }
 
-    def handle_errors(self, code, reason, url, method, headers, body):
-        if body[0] == '{':
-            response = json.loads(body)
-            if 'success' in response:
-                if not response['success']:
-                    if response['error_log'].find('Insufficient funds') >= 0:  # not enougTh is a typo inside Liqui's own API...
-                        raise InsufficientFunds(self.id + ' ' + self.json(response))
-                    elif response['error_log'] == 'Requests too often':
-                        raise DDoSProtection(self.id + ' ' + self.json(response))
-                    elif (response['error_log'] == 'not available') or (response['error_log'] == 'external service unavailable'):
-                        raise DDoSProtection(self.id + ' ' + self.json(response))
-                    else:
-                        raise ExchangeError(self.id + ' ' + self.json(response))
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = self.fetch2(path, api, method, params, headers, body)
+        if 'success' in response:
+            if not response['success']:
+                if response['error'].find('Insufficient funds') >= 0:  # not enougTh is a typo inside Liqui's own API...
+                    raise InsufficientFunds(self.id + ' ' + self.json(response))
+                elif response['error'] == 'Requests too often':
+                    raise DDoSProtection(self.id + ' ' + self.json(response))
+                elif (response['error'] == 'not available') or (response['error'] == 'external service unavailable'):
+                    raise DDoSProtection(self.id + ' ' + self.json(response))
+                else:
+                    raise ExchangeError(self.id + ' ' + self.json(response))
+        return response

@@ -23,6 +23,7 @@ class coinone (Exchange):
             'has': {
                 'CORS': False,
                 'createMarketOrder': False,
+                'fetchTickers': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg',
@@ -65,15 +66,15 @@ class coinone (Exchange):
                 },
             },
             'markets': {
-                'BCH/KRW': {'id': 'bch', 'symbol': 'BCH/KRW', 'base': 'BCH', 'quote': 'KRW'},
-                'BTC/KRW': {'id': 'btc', 'symbol': 'BTC/KRW', 'base': 'BTC', 'quote': 'KRW'},
-                'BTG/KRW': {'id': 'btg', 'symbol': 'BTG/KRW', 'base': 'BTG', 'quote': 'KRW'},
-                'ETC/KRW': {'id': 'etc', 'symbol': 'ETC/KRW', 'base': 'ETC', 'quote': 'KRW'},
-                'ETH/KRW': {'id': 'eth', 'symbol': 'ETH/KRW', 'base': 'ETH', 'quote': 'KRW'},
-                'IOT/KRW': {'id': 'iota', 'symbol': 'IOT/KRW', 'base': 'IOT', 'quote': 'KRW'},
-                'LTC/KRW': {'id': 'ltc', 'symbol': 'LTC/KRW', 'base': 'LTC', 'quote': 'KRW'},
-                'QTUM/KRW': {'id': 'qtum', 'symbol': 'QTUM/KRW', 'base': 'QTUM', 'quote': 'KRW'},
-                'XRP/KRW': {'id': 'xrp', 'symbol': 'XRP/KRW', 'base': 'XRP', 'quote': 'KRW'},
+                'BCH/KRW': {'id': 'bch', 'symbol': 'BCH/KRW', 'base': 'BCH', 'quote': 'KRW', 'baseId': 'bch', 'quoteId': 'krw'},
+                'BTC/KRW': {'id': 'btc', 'symbol': 'BTC/KRW', 'base': 'BTC', 'quote': 'KRW', 'baseId': 'btc', 'quoteId': 'krw'},
+                'BTG/KRW': {'id': 'btg', 'symbol': 'BTG/KRW', 'base': 'BTG', 'quote': 'KRW', 'baseId': 'btg', 'quoteId': 'krw'},
+                'ETC/KRW': {'id': 'etc', 'symbol': 'ETC/KRW', 'base': 'ETC', 'quote': 'KRW', 'baseId': 'etc', 'quoteId': 'krw'},
+                'ETH/KRW': {'id': 'eth', 'symbol': 'ETH/KRW', 'base': 'ETH', 'quote': 'KRW', 'baseId': 'eth', 'quoteId': 'krw'},
+                'IOTA/KRW': {'id': 'iota', 'symbol': 'IOTA/KRW', 'base': 'IOTA', 'quote': 'KRW', 'baseId': 'iota', 'quoteId': 'krw'},
+                'LTC/KRW': {'id': 'ltc', 'symbol': 'LTC/KRW', 'base': 'LTC', 'quote': 'KRW', 'baseId': 'ltc', 'quoteId': 'krw'},
+                'QTUM/KRW': {'id': 'qtum', 'symbol': 'QTUM/KRW', 'base': 'QTUM', 'quote': 'KRW', 'baseId': 'qtum', 'quoteId': 'krw'},
+                'XRP/KRW': {'id': 'xrp', 'symbol': 'XRP/KRW', 'base': 'XRP', 'quote': 'KRW', 'baseId': 'xrp', 'quoteId': 'krw'},
             },
             'fees': {
                 'trading': {
@@ -113,30 +114,53 @@ class coinone (Exchange):
         })
 
     async def fetch_balance(self, params={}):
-        response = await self.privateGetV2AccountBalance()
+        response = await self.privatePostAccountBalance()
         result = {'info': response}
-        ids = list(self.markets.keys())
+        ids = list(response.keys())
         for i in range(0, len(ids)):
-            market = ids[i]
-            id = market['id']
-            symbol = market['symbol']
-            if id in response:
-                balance = response[id]
-                account = {
-                    'free': float(balance['avail']),
-                    'used': float(balance['balance']) - float(balance['avail']),
-                    'total': float(balance['balance']),
-                }
-                result[symbol] = account
+            id = ids[i]
+            balance = response[id]
+            code = id.upper()
+            if id in self.currencies_by_id:
+                code = self.currencies_by_id[id]['code']
+            free = float(balance['avail'])
+            total = float(balance['balance'])
+            used = total - free
+            account = {
+                'free': free,
+                'used': used,
+                'total': total,
+            }
+            result[code] = account
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         market = self.market(symbol)
         response = await self.publicGetOrderbook(self.extend({
             'currency': market['id'],
             'format': 'json',
         }, params))
         return self.parse_order_book(response, None, 'bid', 'ask', 'price', 'qty')
+
+    async def fetch_tickers(self, symbols=None, params={}):
+        await self.load_markets()
+        response = await self.publicGetTicker(self.extend({
+            'currency': 'all',
+            'format': 'json',
+        }, params))
+        result = {}
+        tickers = response
+        ids = list(tickers.keys())
+        for i in range(0, len(ids)):
+            id = ids[i]
+            symbol = id
+            market = None
+            if id in self.markets_by_id:
+                market = self.markets_by_id[id]
+                symbol = market['symbol']
+                ticker = tickers[id]
+                result[symbol] = self.parse_ticker(ticker, market)
+        return result
 
     async def fetch_ticker(self, symbol, params={}):
         market = self.market(symbol)
@@ -228,17 +252,23 @@ class coinone (Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        url = self.urls['api'] + '/' + request
-        headers = {}
+        url = self.urls['api'] + '/'
         if api == 'public':
+            url += request
             if query:
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
+            url += self.version + '/' + request
             nonce = str(self.nonce())
-            payload = base64.b64encode(self.json({'access_token': self.apiKey, 'nonce': nonce}))
-            body = payload
-            signature = self.hmac(payload, self.encode(self.secret.upper()), hashlib.sha512, 'hex')
+            json = self.json({
+                'access_token': self.apiKey,
+                'nonce': nonce,
+            })
+            payload = base64.b64encode(self.encode(json))
+            body = self.decode(payload)
+            secret = self.secret.upper()
+            signature = self.hmac(payload, self.encode(secret), hashlib.sha512)
             headers = {
                 'content-type': 'application/json',
                 'X-COINONE-PAYLOAD': payload,

@@ -73,10 +73,13 @@ class yobit extends liqui {
                 'BCS' => 'BitcoinStake',
                 'BLN' => 'Bulleon',
                 'BTS' => 'Bitshares2',
+                'CAT' => 'BitClave',
+                'COV' => 'Coven Coin',
                 'CPC' => 'Capricoin',
                 'CS' => 'CryptoSpots',
                 'DCT' => 'Discount',
                 'DGD' => 'DarkGoldCoin',
+                'DROP' => 'FaucetCoin',
                 'ERT' => 'Eristica Token',
                 'ICN' => 'iCoin',
                 'KNC' => 'KingN Coin',
@@ -87,6 +90,7 @@ class yobit extends liqui {
                 'MDT' => 'Midnight',
                 'NAV' => 'NavajoCoin',
                 'OMG' => 'OMGame',
+                'STK' => 'StakeCoin',
                 'PAY' => 'EPAY',
                 'PLC' => 'Platin Coin',
                 'REP' => 'Republicoin',
@@ -188,22 +192,21 @@ class yobit extends liqui {
         );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
-        if ($body[0] === '{') {
-            $response = json_decode ($body, $as_associative_array = true);
-            if (is_array ($response) && array_key_exists ('success', $response)) {
-                if (!$response['success']) {
-                    if (mb_strpos ($response['error_log'], 'Insufficient funds') !== false) { // not enougTh is a typo inside Liqui's own API...
-                        throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
-                    } else if ($response['error_log'] === 'Requests too often') {
-                        throw new DDoSProtection ($this->id . ' ' . $this->json ($response));
-                    } else if (($response['error_log'] === 'not available') || ($response['error_log'] === 'external service unavailable')) {
-                        throw new DDoSProtection ($this->id . ' ' . $this->json ($response));
-                    } else {
-                        throw new ExchangeError ($this->id . ' ' . $this->json ($response));
-                    }
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
+        if (is_array ($response) && array_key_exists ('success', $response)) {
+            if (!$response['success']) {
+                if (mb_strpos ($response['error'], 'Insufficient funds') !== false) { // not enougTh is a typo inside Liqui's own API...
+                    throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
+                } else if ($response['error'] === 'Requests too often') {
+                    throw new DDoSProtection ($this->id . ' ' . $this->json ($response));
+                } else if (($response['error'] === 'not available') || ($response['error'] === 'external service unavailable')) {
+                    throw new DDoSProtection ($this->id . ' ' . $this->json ($response));
+                } else {
+                    throw new ExchangeError ($this->id . ' ' . $this->json ($response));
                 }
             }
         }
+        return $response;
     }
 }

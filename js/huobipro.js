@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InvalidOrder, OrderNotFound } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, InvalidOrder, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -29,6 +29,7 @@ module.exports = class huobipro extends Exchange {
                 'fetchOrders': false,
                 'fetchTradingLimits': true,
                 'withdraw': true,
+                'fetchCurrencies': true,
             },
             'timeframes': {
                 '1m': '1min',
@@ -65,6 +66,7 @@ module.exports = class huobipro extends Exchange {
                         'common/currencys', // 查询系统支持的所有币种
                         'common/timestamp', // 查询系统当前时间
                         'common/exchange', // order limits
+                        'settings/currencys', // ?language=en-US
                     ],
                 },
                 'private': {
@@ -105,9 +107,11 @@ module.exports = class huobipro extends Exchange {
                 'order-limitorder-amount-min-error': InvalidOrder, // limit order amount error, min: `0.001`
                 'order-orderstate-error': OrderNotFound, // canceling an already canceled order
                 'order-queryorder-invalid': OrderNotFound, // querying a non-existent order
+                'order-update-error': ExchangeNotAvailable, // undocumented error
             },
             'options': {
                 'fetchMarketsMethod': 'publicGetCommonSymbols',
+                'language': 'en-US',
             },
         });
     }
@@ -195,6 +199,7 @@ module.exports = class huobipro extends Exchange {
                 'base': base,
                 'quote': quote,
                 'lot': lot,
+                'active': true,
                 'precision': precision,
                 'taker': taker,
                 'maker': maker,
@@ -392,6 +397,79 @@ module.exports = class huobipro extends Exchange {
         return response['data'];
     }
 
+    async fetchCurrencies (params = {}) {
+        let response = await this.publicGetSettingsCurrencys (this.extend ({
+            'language': this.options['language'],
+        }, params));
+        let currencies = response['data'];
+        let result = {};
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
+            //
+            //  {                     name: "ctxc",
+            //              'display-name': "CTXC",
+            //        'withdraw-precision':  8,
+            //             'currency-type': "eth",
+            //        'currency-partition': "pro",
+            //             'support-sites':  null,
+            //                'otc-enable':  0,
+            //        'deposit-min-amount': "2",
+            //       'withdraw-min-amount': "4",
+            //            'show-precision': "8",
+            //                      weight: "2988",
+            //                     visible:  true,
+            //              'deposit-desc': "Please don’t deposit any other digital assets except CTXC t…",
+            //             'withdraw-desc': "Minimum withdrawal amount: 4 CTXC. !>_<!For security reason…",
+            //           'deposit-enabled':  true,
+            //          'withdraw-enabled':  true,
+            //    'currency-addr-with-tag':  false,
+            //             'fast-confirms':  15,
+            //             'safe-confirms':  30                                                             }
+            //
+            let id = this.safeValue (currency, 'name');
+            let precision = this.safeInteger (currency, 'withdraw-precision');
+            let code = this.commonCurrencyCode (id.toUpperCase ());
+            let active = currency['visible'] && currency['deposit-enabled'] && currency['withdraw-enabled'];
+            result[code] = {
+                'id': id,
+                'code': code,
+                'type': 'crypto',
+                // 'payin': currency['deposit-enabled'],
+                // 'payout': currency['withdraw-enabled'],
+                // 'transfer': undefined,
+                'name': currency['display-name'],
+                'active': active,
+                'status': active ? 'ok' : 'disabled',
+                'fee': undefined, // todo need to fetch from fee endpoint
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': Math.pow (10, -precision),
+                        'max': Math.pow (10, precision),
+                    },
+                    'price': {
+                        'min': Math.pow (10, -precision),
+                        'max': Math.pow (10, precision),
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': this.safeFloat (currency, 'deposit-min-amount'),
+                        'max': Math.pow (10, precision),
+                    },
+                    'withdraw': {
+                        'min': this.safeFloat (currency, 'withdraw-min-amount'),
+                        'max': Math.pow (10, precision),
+                    },
+                },
+                'info': currency,
+            };
+        }
+        return result;
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         await this.loadAccounts ();
@@ -501,6 +579,7 @@ module.exports = class huobipro extends Exchange {
             'id': order['id'].toString (),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
             'side': side,
@@ -529,9 +608,24 @@ module.exports = class huobipro extends Exchange {
         if (type === 'limit')
             order['price'] = this.priceToPrecision (symbol, price);
         let response = await this.privatePostOrderOrdersPlace (this.extend (order, params));
+        let timestamp = this.milliseconds ();
         return {
             'info': response,
             'id': response['data'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'status': undefined,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'filled': undefined,
+            'remaining': undefined,
+            'cost': undefined,
+            'trades': undefined,
+            'fee': undefined,
         };
     }
 

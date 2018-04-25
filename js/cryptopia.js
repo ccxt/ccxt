@@ -84,6 +84,7 @@ module.exports = class cryptopia extends Exchange {
                 'FUEL': 'FC2', // FuelCoin != FUEL
                 'HAV': 'Havecoin',
                 'LDC': 'LADACoin',
+                'MARKS': 'Bitmark',
                 'NET': 'NetCoin',
                 'QBT': 'Cubits',
                 'WRC': 'WarCoin',
@@ -443,6 +444,7 @@ module.exports = class cryptopia extends Exchange {
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
             'status': 'open',
             'symbol': symbol,
             'type': type,
@@ -503,6 +505,7 @@ module.exports = class cryptopia extends Exchange {
             'info': this.omit (order, 'status'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
             'status': order['status'],
             'symbol': symbol,
             'type': 'limit',

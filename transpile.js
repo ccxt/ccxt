@@ -42,6 +42,8 @@ const commonRegexes = [
     [ /\.safeInteger\s/g, '.safe_integer'],
     [ /\.safeString\s/g, '.safe_string'],
     [ /\.safeValue\s/g, '.safe_value'],
+    [ /\.inArray\s/g, '.in_array'],
+    [ /\.toArray\s/g, '.to_array'],
     [ /\.arrayConcat\s/g, '.array_concat'],
     [ /\.binaryConcat\s/g, '.binary_concat'],
     [ /\.binaryToString\s/g, '.binary_to_string' ],
@@ -115,6 +117,8 @@ const commonRegexes = [
     [ /\.handleErrors\s/g, '.handle_errors'],
     [ /\.checkRequiredCredentials\s/g, '.check_required_credentials'],
     [ /\.checkAddress\s/g, '.check_address'],
+    [ /\.convertTradingViewToOHLCV\s/g, '.convert_trading_view_to_ohlcv'],
+    [ /\.convertOHLCVToTradingView\s/g, '.convert_ohlcv_to_trading_view'],
 ]
 
 // ----------------------------------------------------------------------------
