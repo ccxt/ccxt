@@ -104,7 +104,7 @@ module.exports = class gdax extends Exchange {
                     'tierBased': true, // complicated tier system per coin
                     'percentage': true,
                     'maker': 0.0,
-                    'taker': 0.25 / 100, // Fee is 0.25%, 0.3% for ETH/LTC pairs
+                    'taker': 0.3 / 100, // tiered fee starts at 0.3%
                 },
                 'funding': {
                     'tierBased': false,
