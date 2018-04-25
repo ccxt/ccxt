@@ -428,7 +428,7 @@ class exmo extends Exchange {
             $orders = $this->array_concat($orders, $parsedOrders);
         }
         $this->update_cached_orders ($orders, $symbol);
-        return $this->filter_by_symbol_since_limit($this->orders, $symbol, $since, $limit);
+        return $this->filter_by_symbol_since_limit($this->to_array($this->orders), $symbol, $since, $limit);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {

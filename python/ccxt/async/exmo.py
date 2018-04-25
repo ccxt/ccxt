@@ -411,7 +411,7 @@ class exmo (Exchange):
             parsedOrders = self.parse_orders(response[marketId], market)
             orders = self.array_concat(orders, parsedOrders)
         self.update_cached_orders(orders, symbol)
-        return self.filter_by_symbol_since_limit(self.orders, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(self.to_array(self.orders), symbol, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.fetch_orders(symbol, since, limit, params)
