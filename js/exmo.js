@@ -427,7 +427,7 @@ module.exports = class exmo extends Exchange {
             orders = this.arrayConcat (orders, parsedOrders);
         }
         this.updateCachedOrders (orders, symbol);
-        return this.filterBySymbolSinceLimit (this.orders, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (this.toArray (this.orders), symbol, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
