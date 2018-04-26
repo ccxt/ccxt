@@ -1247,6 +1247,8 @@ To get the list of available timeframes for your exchange see the `timeframes` p
 
 **Note that the info from the last (current) candle may be incomplete until the candle is closed (until the next candle starts).**
 
+Like with most other unified and implicit methods, the `fetchOHLCV` method accepts as its last argument an associative array (a dictionary) of extra `params`, which is used to override default values that are sent in requests to the exchanges. The contents of `params` are exchange-specific, consult the exchanges' API documentation for supported fields and values.
+
 ### OHLCV Structure
 
 The fetchOHLCV method shown above returns a list (a flat array) of OHLCV candles represented by the following structure:
@@ -1265,9 +1267,7 @@ The fetchOHLCV method shown above returns a list (a flat array) of OHLCV candles
 ]
 ```
 
-The list of candles is returned sorted in ascending order, oldest candle first, most recent candle last.
-
-Like with most other unified and implicit methods, the `fetchOHLCV` method accepts as its last argument an associative array (a dictionary) of extra `params`, which is used to override default values that are sent in requests to the exchanges. The contents of `params` are exchange-specific, consult the exchanges' API documentation for supported fields and values.
+The list of candles is returned sorted in ascending (historical) order, oldest candle first, most recent candle last.
 
 ### OHLCV Emulation
 
