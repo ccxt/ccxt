@@ -809,7 +809,7 @@ module.exports = class kraken extends Exchange {
             if (this.options['cacheDepositMethodsOnFetchDepositAddress']) {
                 // cache depositMethods
                 if (!(code in this.options['depositMethods']))
-                    this.options['depositMethods'][code] = this.fetchDepositMethods (code);
+                    this.options['depositMethods'][code] = await this.fetchDepositMethods (code);
                 method = this.options['depositMethods'][code][0]['method'];
             } else {
                 throw new ExchangeError (this.id + ' fetchDepositAddress() requires an extra `method` parameter. Use fetchDepositMethods ("' + code + '") to get a list of available deposit methods or enable the exchange property .options["cacheDepositMethodsOnFetchDepositAddress"] = true');
