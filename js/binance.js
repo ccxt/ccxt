@@ -526,7 +526,7 @@ module.exports = class binance extends Exchange {
         }
         let takerOrMaker = undefined;
         if ('isMaker' in trade)
-            takerOrMaker = (trade['isMaker'] === false) ? 'taker' : 'maker';
+            takerOrMaker = trade['isMaker'] ? 'maker' : 'taker';
         return {
             'info': trade,
             'timestamp': timestamp,
