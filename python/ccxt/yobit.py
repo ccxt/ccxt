@@ -174,8 +174,8 @@ class yobit (liqui):
 
     def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
-        currency = self.currency(code)
         self.load_markets()
+        currency = self.currency(code)
         response = self.privatePostWithdrawCoinsToAddress(self.extend({
             'coinName': currency['id'],
             'amount': amount,

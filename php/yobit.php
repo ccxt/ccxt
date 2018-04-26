@@ -181,8 +181,8 @@ class yobit extends liqui {
 
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
-        $currency = $this->currency ($code);
         $this->load_markets();
+        $currency = $this->currency ($code);
         $response = $this->privatePostWithdrawCoinsToAddress (array_merge (array (
             'coinName' => $currency['id'],
             'amount' => $amount,
