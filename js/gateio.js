@@ -247,6 +247,67 @@ module.exports = class gateio extends Exchange {
         return this.parseTrades (response['data'], market, since, limit);
     }
 
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privatePostGetOrder (this.extend ({
+            'orderNumber': id,
+            'currencyPair': this.marketId (symbol),
+        }, params));
+        return this.parseOrder (response['order']);
+    }
+
+    parseOrderStatus (status) {
+        let statuses = {
+            'cancelled': 'canceled',
+            'closed': 'closed',
+            'open': 'open',
+        };
+        if (status in statuses)
+            return statuses[status];
+        return status;
+    }
+
+    parseOrder (order, market = undefined) {
+        let symbol = undefined;
+        if (!market)
+            market = this.safeValue (this.marketsById, order['currencyPair']);
+        if (market)
+            symbol = market['symbol'];
+        let timestamp = this.safeInteger (order, 'timestamp');// * 1000;
+        let price = this.safeFloat (order, 'filledRate');
+        let amount = this.safeFloat (order, 'initialAmount');
+        let filled = this.safeFloat (order, 'filledAmount');
+        let remaining = this.safeFloat (order, 'amount');
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
+        let feeCost = this.safeFloat (order, 'feeValue');
+        let feeCurrency = this.safeString (order, 'feeCurrency');
+        if (typeof feeCurrency !== 'undefined') {
+            if (feeCurrency in this.currencies_by_id) {
+                feeCurrency = this.currencies_by_id[feeCurrency]['code'];
+            }
+        }
+        return {
+            'id': this.safeString (order, 'orderNumber'),
+            'datetime': this.iso8601 (timestamp),
+            'timestamp': timestamp,
+            'status': status,
+            'symbol': symbol,
+            'type': 'limit',
+            'side': this.safeString (order, 'type'),
+            'price': price,
+            'cost': undefined,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'trades': undefined,
+            'fee': {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            },
+            'info': this.safeValue (order, 'info', order),
+        };
+    }
+
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         if (type === 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
@@ -260,13 +321,16 @@ module.exports = class gateio extends Exchange {
         let response = await this[method] (this.extend (order, params));
         return {
             'info': response,
-            'id': response['orderNumber'],
+            'id': response['orderNumber'].toString (),
         };
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        return await this.privatePostCancelOrder ({ 'orderNumber': id });
+        return await this.privatePostCancelOrder ({
+            'orderNumber': id,
+            'currencyPair': this.marketId (symbol),
+        });
     }
 
     async queryDepositAddress (method, currency, params = {}) {
@@ -275,11 +339,19 @@ module.exports = class gateio extends Exchange {
             'currency': currency,
         }, params));
         let address = undefined;
-        if ('addr' in response)
+        let tag = undefined;
+        if ('addr' in response) {
             address = this.safeString (response, 'addr');
+            if (currency === 'XRP') {
+                let parts = address.split ('/', 2);
+                address = parts[0];
+                tag = parts[1];
+            }
+        }
         return {
             'currency': currency,
             'address': address,
+            'tag': tag,
             'status': (typeof address !== 'undefined') ? 'ok' : 'none',
             'info': response,
         };
