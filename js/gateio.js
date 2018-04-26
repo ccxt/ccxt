@@ -273,7 +273,7 @@ module.exports = class gateio extends Exchange {
             market = this.safeValue (this.marketsById, order['currencyPair']);
         if (market)
             symbol = market['symbol'];
-        let timestamp = this.safeInteger (order, 'timestamp');// * 1000;
+        let timestamp = this.safeInteger (order, 'timestamp'); // * 1000;
         let price = this.safeFloat (order, 'filledRate');
         let amount = this.safeFloat (order, 'initialAmount');
         let filled = this.safeFloat (order, 'filledAmount');
