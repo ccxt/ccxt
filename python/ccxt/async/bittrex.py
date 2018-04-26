@@ -508,6 +508,8 @@ class bittrex (Exchange):
         lastTradeTimestamp = None
         if ('TimeStamp' in list(order.keys())) and(order['TimeStamp'] is not None):
             lastTradeTimestamp = self.parse8601(order['TimeStamp'] + '+00:00')
+        if ('Closed' in list(order.keys())) and(order['Closed'] is not None):
+            lastTradeTimestamp = self.parse8601(order['Closed'] + '+00:00')
         fee = None
         commission = None
         if 'Commission' in order:
