@@ -180,8 +180,8 @@ module.exports = class yobit extends liqui {
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
-        let currency = this.currency (code);
         await this.loadMarkets ();
+        let currency = this.currency (code);
         let response = await this.privatePostWithdrawCoinsToAddress (this.extend ({
             'coinName': currency['id'],
             'amount': amount,
