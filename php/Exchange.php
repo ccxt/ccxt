@@ -562,7 +562,10 @@ abstract class Exchange {
             throw new InvalidAddress ($this->id . ' address is undefined');
         }
 
-        if (count (array_unique (str_split ($address))) == 1 || strlen ($address) < $this->minFundingAddressLength || strpos($address, ' ') !== false) {
+        if ((count (array_unique (str_split ($address))) === 1)    ||
+            (strlen ($address) < $this->minFundingAddressLength) ||
+            (strpos ($address, ' ') !== false)) {
+
             throw new InvalidAddress ($this->id . ' address is invalid or has less than ' . strval ($this->minFundingAddressLength) . ' characters: "' . strval ($address) . '"');
         }
 
@@ -636,7 +639,7 @@ abstract class Exchange {
             'chrome' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
             'chrome39' => 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36',
         );
-        $this->minFundingAddressLength = 10; // used in check_address
+        $this->minFundingAddressLength = 1; // used in check_address
         $this->substituteCommonCurrencyCodes = true;
         $this->timeframes = null;
         $this->parseJsonResponse = true;

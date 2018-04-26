@@ -176,7 +176,7 @@ class Exchange(object):
 
     precisionMode = DECIMAL_PLACES
 
-    minFundingAddressLength = 10  # used in check_address
+    minFundingAddressLength = 1  # used in check_address
     substituteCommonCurrencyCodes = True
     lastRestRequestTimestamp = 0
     lastRestPollTimestamp = 0
