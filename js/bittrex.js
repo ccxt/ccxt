@@ -526,6 +526,8 @@ module.exports = class bittrex extends Exchange {
         let lastTradeTimestamp = undefined;
         if (('TimeStamp' in order) && (typeof order['TimeStamp'] !== 'undefined'))
             lastTradeTimestamp = this.parse8601 (order['TimeStamp'] + '+00:00');
+        if (('Closed' in order) && (typeof order['Closed'] !== 'undefined'))
+            lastTradeTimestamp = this.parse8601 (order['Closed'] + '+00:00');
         let fee = undefined;
         let commission = undefined;
         if ('Commission' in order) {
