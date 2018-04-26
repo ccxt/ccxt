@@ -156,6 +156,7 @@ class yobit (liqui):
         }
 
     async def fetch_deposit_address(self, code, params={}):
+        await self.load_markets()
         currency = self.currency(code)
         request = {
             'coinName': currency['id'],
@@ -171,11 +172,12 @@ class yobit (liqui):
             'info': response,
         }
 
-    async def withdraw(self, currency, amount, address, tag=None, params={}):
+    async def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
+        currency = self.currency(code)
         await self.load_markets()
         response = await self.privatePostWithdrawCoinsToAddress(self.extend({
-            'coinName': currency,
+            'coinName': currency['id'],
             'amount': amount,
             'address': address,
         }, params))
