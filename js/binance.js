@@ -524,6 +524,9 @@ module.exports = class binance extends Exchange {
                 'currency': this.commonCurrencyCode (trade['commissionAsset']),
             };
         }
+        let takerOrMaker = undefined;
+        if ('isMaker' in trade)
+            takerOrMaker = (trade['isMaker'] === false) ? 'taker' : 'maker';
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -532,6 +535,7 @@ module.exports = class binance extends Exchange {
             'id': id,
             'order': order,
             'type': undefined,
+            'takerOrMaker': takerOrMaker,
             'side': side,
             'price': price,
             'cost': price * amount,
