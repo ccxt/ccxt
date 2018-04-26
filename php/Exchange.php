@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.13.45';
+$version = '1.13.46';
 
 // rounding mode
 const TRUNCATE = 0;
