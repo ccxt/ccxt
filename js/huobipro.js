@@ -123,7 +123,7 @@ module.exports = class huobipro extends Exchange {
             let keys = Object.keys (limits);
             for (let i = 0; i < keys.length; i++) {
                 let symbol = keys[i];
-                this.markets[symbol] = this.extend (this.markets[symbol], {
+                this.markets[symbol] = this.deepExtend (this.markets[symbol], {
                     'limits': limits[symbol],
                 });
             }
