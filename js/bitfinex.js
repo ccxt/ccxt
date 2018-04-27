@@ -831,6 +831,8 @@ module.exports = class bitfinex extends Exchange {
     }
 
     findBroadlyMatchedKey (map, broadString) {
+        if (typeof broadString === 'undefined')
+            return undefined;
         const partialKeys = Object.keys (map);
         for (let i = 0; i < partialKeys.length; i++) {
             const partialKey = partialKeys[i];
@@ -843,24 +845,25 @@ module.exports = class bitfinex extends Exchange {
     handleErrors (code, reason, url, method, headers, body) {
         if (body.length < 2)
             return;
+        let response = JSON.parse (body);
+        let message = undefined;
+        const feedback = this.id + ' ' + this.json (response);
+        if (this.json (response)[0] === '[' && response.length === 1) {
+            response = response[0];
+        }
+        if ('message' in response)
+            message = response['message'];
+        else if ('error' in response)
+            message = response['error'];
+        const broad = this.exceptions['broad'];
+        const broadKey = this.findBroadlyMatchedKey (broad, message);
+        if (typeof broadKey !== 'undefined')
+            throw new broad[broadKey] (feedback);
         if (code >= 400) {
             if (body[0] === '{') {
-                const response = JSON.parse (body);
-                const feedback = this.id + ' ' + this.json (response);
-                let message = undefined;
-                if ('message' in response)
-                    message = response['message'];
-                else if ('error' in response)
-                    message = response['error'];
-                else
-                    throw new ExchangeError (feedback); // malformed (to our knowledge) response
                 const exact = this.exceptions['exact'];
                 if (message in exact)
                     throw new exact[message] (feedback);
-                const broad = this.exceptions['broad'];
-                const broadKey = this.findBroadlyMatchedKey (broad, message);
-                if (typeof broadKey !== 'undefined')
-                    throw new broad[broadKey] (feedback);
                 throw new ExchangeError (feedback); // unknown message
             }
         }
