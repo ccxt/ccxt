@@ -330,7 +330,7 @@ module.exports = class huobipro extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, since = undefined, limit = 2000, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = 1000, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
