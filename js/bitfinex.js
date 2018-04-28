@@ -781,8 +781,15 @@ module.exports = class bitfinex extends Exchange {
         let responses = await this.privatePostWithdraw (this.extend (request, params));
         let response = responses[0];
         let id = response['withdrawal_id'];
-        if (id === 0)
+        let message = response['message'];
+        let errorMessage = this.findBroadlyMatchedKey (this.exceptions['broad'], message);
+        if (id === 0) {
+            if (typeof errorMessage !== 'undefined') {
+                let Exception = this.exceptions['broad'][errorMessage];
+                throw new Exception (this.id + ' ' + message);
+            }
             throw new ExchangeError (this.id + ' withdraw returned an id of zero: ' + this.json (response));
+        }
         return {
             'info': response,
             'id': id,
