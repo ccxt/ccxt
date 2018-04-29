@@ -193,10 +193,6 @@ module.exports = class yobit extends liqui {
         };
     }
 
-    async fetchMyTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        return this.fetchTrades (symbol, since, limit, params);
-    }
-
     handleErrors (code, reason, url, method, headers, body) {
         if (body[0] === '{') {
             let response = JSON.parse (body);
