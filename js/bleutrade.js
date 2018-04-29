@@ -89,6 +89,9 @@ module.exports = class bleutrade extends bittrex {
                 'Invalid Order ID': InvalidOrder,
                 'Invalid apikey or apisecret': AuthenticationError,
             },
+            'options': {
+                'parseOrderStatus': true,
+            },
         });
     }
 

@@ -150,6 +150,9 @@ module.exports = class bittrex extends Exchange {
                 'RATE_NOT_PROVIDED': InvalidOrder, // createLimitBuyOrder ('ETH/BTC', 1, 0)
                 'WHITELIST_VIOLATION_IP': PermissionDenied,
             },
+            'options': {
+                'parseOrderStatus': false,
+            },
         });
     }
 
@@ -506,7 +509,7 @@ module.exports = class bittrex extends Exchange {
             status = 'closed';
         if (('CancelInitiated' in order) && order['CancelInitiated'])
             status = 'canceled';
-        if (('Status' in order) && (this.id === 'bleutrade'))
+        if (('Status' in order) && (this.options['parseOrderStatus'])
             status = this.parseOrderStatus (order['Status']);
         let symbol = undefined;
         if ('Exchange' in order) {
