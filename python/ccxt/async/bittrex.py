@@ -100,6 +100,7 @@ class bittrex (Exchange):
                         'depositaddress',
                         'deposithistory',
                         'order',
+                        'orders',
                         'orderhistory',
                         'withdrawalhistory',
                         'withdraw',
@@ -165,6 +166,9 @@ class bittrex (Exchange):
                 'UUID_INVALID': OrderNotFound,
                 'RATE_NOT_PROVIDED': InvalidOrder,  # createLimitBuyOrder('ETH/BTC', 1, 0)
                 'WHITELIST_VIOLATION_IP': PermissionDenied,
+            },
+            'options': {
+                'parseOrderStatus': False,
             },
         })
 
@@ -489,16 +493,18 @@ class bittrex (Exchange):
             status = 'closed'
         if ('CancelInitiated' in list(order.keys())) and order['CancelInitiated']:
             status = 'canceled'
+        if ('Status' in list(order.keys())) and self.options['parseOrderStatus']:
+            status = self.parse_order_status(order['Status'])
         symbol = None
-        if not market:
-            if 'Exchange' in order:
-                marketId = order['Exchange']
-                if marketId in self.markets_by_id:
-                    market = self.markets_by_id[marketId]
-                else:
-                    symbol = self.parse_symbol(marketId)
-        if market:
-            symbol = market['symbol']
+        if 'Exchange' in order:
+            marketId = order['Exchange']
+            if marketId in self.markets_by_id:
+                symbol = self.markets_by_id[marketId]['symbol']
+            else:
+                symbol = self.parse_symbol(marketId)
+        else:
+            if market:
+                symbol = market['symbol']
         timestamp = None
         if 'Opened' in order:
             timestamp = self.parse8601(order['Opened'] + '+00:00')
