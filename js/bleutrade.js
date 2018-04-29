@@ -150,6 +150,10 @@ module.exports = class bleutrade extends bittrex {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        // Possible params
+        // orderstatus (ALL, OK, OPEN, CANCELED)
+        // ordertype (ALL, BUY, SELL)
+        // depth (optional, default is 500, max is 20000)
         await this.loadMarkets ();
         let market = undefined;
         if (symbol) {
