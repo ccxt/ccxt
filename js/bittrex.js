@@ -509,7 +509,7 @@ module.exports = class bittrex extends Exchange {
             status = 'closed';
         if (('CancelInitiated' in order) && order['CancelInitiated'])
             status = 'canceled';
-        if (('Status' in order) && (this.options['parseOrderStatus'])
+        if (('Status' in order) && this.options['parseOrderStatus'])
             status = this.parseOrderStatus (order['Status']);
         let symbol = undefined;
         if ('Exchange' in order) {
