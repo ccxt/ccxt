@@ -315,7 +315,7 @@ module.exports = class bittrex extends Exchange {
                 'name': currency['CurrencyLong'],
                 'active': currency['IsActive'],
                 'status': 'ok',
-                'fee': currency['TxFee'], // todo: redesign
+                'fee': this.safeFloat (currency, 'TxFee'), // todo: redesign
                 'precision': precision,
                 'limits': {
                     'amount': {
