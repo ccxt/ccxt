@@ -194,10 +194,7 @@ module.exports = class yobit extends liqui {
     }
 
     async fetchMyTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        this.loadMarkets ();
-        let market = this.market (symbol);
-        let trades = this.fetchTrades (symbol, since, limit, params);
-        return this.parseTrades (trades, market, since, limit);
+        return this.fetchTrades (symbol, since, limit, params);
     }
 
     handleErrors (code, reason, url, method, headers, body) {
