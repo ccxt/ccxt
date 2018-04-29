@@ -161,6 +161,7 @@ module.exports = class yobit extends liqui {
     }
 
     async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
         let currency = this.currency (code);
         let request = {
             'coinName': currency['id'],
@@ -177,11 +178,12 @@ module.exports = class yobit extends liqui {
         };
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
+        let currency = this.currency (code);
         let response = await this.privatePostWithdrawCoinsToAddress (this.extend ({
-            'coinName': currency,
+            'coinName': currency['id'],
             'amount': amount,
             'address': address,
         }, params));
@@ -189,57 +191,6 @@ module.exports = class yobit extends liqui {
             'info': response,
             'id': undefined,
         };
-    }
-
-    parseOrder (order, market = undefined) {
-        let id = order['id'].toString ();
-        let status = this.safeString (order, 'status');
-        if (status !== 'undefined')
-            status = this.parseOrderStatus (status);
-        let timestamp = parseInt (order['timestamp_created']) * 1000;
-        let symbol = undefined;
-        if (!market)
-            market = this.markets_by_id[order['pair']];
-        if (market)
-            symbol = market['symbol'];
-        let remaining = undefined;
-        let amount = undefined;
-        let price = this.safeFloat (order, 'rate');
-        let filled = undefined;
-        let cost = undefined;
-        if ('start_amount' in order) {
-            amount = this.safeFloat (order, 'start_amount');
-            remaining = this.safeFloat (order, 'amount');
-        } else {
-            remaining = this.safeFloat (order, 'amount');
-            if (id in this.orders)
-                amount = this.orders[id]['amount'];
-        }
-        if (typeof amount !== 'undefined') {
-            if (typeof remaining !== 'undefined') {
-                filled = amount - remaining;
-                cost = price * filled;
-            }
-        }
-        let fee = undefined;
-        let result = {
-            'info': order,
-            'id': id,
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
-            'type': 'limit',
-            'side': order['type'],
-            'price': price,
-            'cost': cost,
-            'amount': amount,
-            'remaining': remaining,
-            'filled': filled,
-            'status': status,
-            'fee': fee,
-        };
-        return result;
     }
 
     handleErrors (code, reason, url, method, headers, body) {
