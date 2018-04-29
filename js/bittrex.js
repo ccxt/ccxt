@@ -83,6 +83,7 @@ module.exports = class bittrex extends Exchange {
                         'depositaddress',
                         'deposithistory',
                         'order',
+                        'orders',
                         'orderhistory',
                         'withdrawalhistory',
                         'withdraw',
@@ -505,18 +506,20 @@ module.exports = class bittrex extends Exchange {
             status = 'closed';
         if (('CancelInitiated' in order) && order['CancelInitiated'])
             status = 'canceled';
+        if (('Status' in order) && (this.id === 'bleutrade'))
+            status = this.parseOrderStatus (order['Status']);
         let symbol = undefined;
-        if (!market) {
-            if ('Exchange' in order) {
-                let marketId = order['Exchange'];
-                if (marketId in this.markets_by_id)
-                    market = this.markets_by_id[marketId];
-                else
-                    symbol = this.parseSymbol (marketId);
+        if ('Exchange' in order) {
+            let marketId = order['Exchange'];
+            if (marketId in this.markets_by_id)
+                symbol = this.markets_by_id[marketId]['symbol'];
+            else
+                symbol = this.parseSymbol (marketId);
+        } else {
+            if (market) {
+                symbol = market['symbol'];
             }
         }
-        if (market)
-            symbol = market['symbol'];
         let timestamp = undefined;
         if ('Opened' in order)
             timestamp = this.parse8601 (order['Opened'] + '+00:00');
