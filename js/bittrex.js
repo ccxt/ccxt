@@ -83,6 +83,7 @@ module.exports = class bittrex extends Exchange {
                         'depositaddress',
                         'deposithistory',
                         'order',
+                        'orders',
                         'orderhistory',
                         'withdrawalhistory',
                         'withdraw',
@@ -148,6 +149,9 @@ module.exports = class bittrex extends Exchange {
                 'UUID_INVALID': OrderNotFound,
                 'RATE_NOT_PROVIDED': InvalidOrder, // createLimitBuyOrder ('ETH/BTC', 1, 0)
                 'WHITELIST_VIOLATION_IP': PermissionDenied,
+            },
+            'options': {
+                'parseOrderStatus': false,
             },
         });
     }
@@ -315,7 +319,7 @@ module.exports = class bittrex extends Exchange {
                 'name': currency['CurrencyLong'],
                 'active': currency['IsActive'],
                 'status': 'ok',
-                'fee': currency['TxFee'], // todo: redesign
+                'fee': this.safeFloat (currency, 'TxFee'), // todo: redesign
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -505,18 +509,20 @@ module.exports = class bittrex extends Exchange {
             status = 'closed';
         if (('CancelInitiated' in order) && order['CancelInitiated'])
             status = 'canceled';
+        if (('Status' in order) && this.options['parseOrderStatus'])
+            status = this.parseOrderStatus (order['Status']);
         let symbol = undefined;
-        if (!market) {
-            if ('Exchange' in order) {
-                let marketId = order['Exchange'];
-                if (marketId in this.markets_by_id)
-                    market = this.markets_by_id[marketId];
-                else
-                    symbol = this.parseSymbol (marketId);
+        if ('Exchange' in order) {
+            let marketId = order['Exchange'];
+            if (marketId in this.markets_by_id)
+                symbol = this.markets_by_id[marketId]['symbol'];
+            else
+                symbol = this.parseSymbol (marketId);
+        } else {
+            if (market) {
+                symbol = market['symbol'];
             }
         }
-        if (market)
-            symbol = market['symbol'];
         let timestamp = undefined;
         if ('Opened' in order)
             timestamp = this.parse8601 (order['Opened'] + '+00:00');
@@ -526,6 +532,8 @@ module.exports = class bittrex extends Exchange {
         let lastTradeTimestamp = undefined;
         if (('TimeStamp' in order) && (typeof order['TimeStamp'] !== 'undefined'))
             lastTradeTimestamp = this.parse8601 (order['TimeStamp'] + '+00:00');
+        if (('Closed' in order) && (typeof order['Closed'] !== 'undefined'))
+            lastTradeTimestamp = this.parse8601 (order['Closed'] + '+00:00');
         let fee = undefined;
         let commission = undefined;
         if ('Commission' in order) {

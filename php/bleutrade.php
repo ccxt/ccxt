@@ -19,6 +19,8 @@ class bleutrade extends bittrex {
             'has' => array (
                 'CORS' => true,
                 'fetchTickers' => true,
+                'fetchOrders' => true,
+                'fetchClosedOrders' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/30303000-b602dbe6-976d-11e7-956d-36c5049c01e7.jpg',
@@ -88,6 +90,9 @@ class bleutrade extends bittrex {
                 'Invalid Order ID' => '\\ccxt\\InvalidOrder',
                 'Invalid apikey or apisecret' => '\\ccxt\\AuthenticationError',
             ),
+            'options' => array (
+                'parseOrderStatus' => true,
+            ),
         ));
     }
 
@@ -133,6 +138,41 @@ class bleutrade extends bittrex {
             );
         }
         return $result;
+    }
+
+    public function parse_order_status ($status) {
+        $statuses = array (
+            'OK' => 'closed',
+            'OPEN' => 'open',
+            'CANCELED' => 'canceled',
+        );
+        if (is_array ($statuses) && array_key_exists ($status, $statuses)) {
+            return $statuses[$status];
+        } else {
+            return $status;
+        }
+    }
+
+    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        // Possible $params
+        // orderstatus (ALL, OK, OPEN, CANCELED)
+        // ordertype (ALL, BUY, SELL)
+        // depth (optional, default is 500, max is 20000)
+        $this->load_markets();
+        $market = null;
+        if ($symbol) {
+            $this->load_markets();
+            $market = $this->market ($symbol);
+        } else {
+            $market = null;
+        }
+        $response = $this->accountGetOrders (array_merge (array ( 'market' => 'ALL', 'orderstatus' => 'ALL' ), $params));
+        return $this->parse_orders($response['result'], $market, $since, $limit);
+    }
+
+    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $response = $this->fetch_orders($symbol, $since, $limit, $params);
+        return $this->filter_by($response, 'status', 'closed');
     }
 
     public function get_order_id_field () {

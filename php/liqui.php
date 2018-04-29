@@ -728,43 +728,42 @@ class liqui extends Exchange {
 
     public function update_cached_orders ($openOrders, $symbol) {
         // update local cache with open orders
+        // this will add unseen orders and overwrite existing ones
         for ($j = 0; $j < count ($openOrders); $j++) {
             $id = $openOrders[$j]['id'];
             $this->orders[$id] = $openOrders[$j];
         }
         $openOrdersIndexedById = $this->index_by($openOrders, 'id');
         $cachedOrderIds = is_array ($this->orders) ? array_keys ($this->orders) : array ();
-        $result = array ();
         for ($k = 0; $k < count ($cachedOrderIds); $k++) {
-            // match each cached $order to an $order in the open orders array
-            // possible reasons why a cached $order may be missing in the open orders array:
-            // - $order was closed or canceled -> update cache
+            // match each cached order to an order in the open orders array
+            // possible reasons why a cached order may be missing in the open orders array:
+            // - order was closed or canceled -> update cache
             // - $symbol mismatch (e.g. cached BTC/USDT, fetched ETH/USDT) -> skip
-            $id = $cachedOrderIds[$k];
-            $order = $this->orders[$id];
-            $result[] = $order;
-            if (!(is_array ($openOrdersIndexedById) && array_key_exists ($id, $openOrdersIndexedById))) {
-                // cached $order is not in open orders array
-                // if we fetched orders by $symbol and it doesn't match the cached $order -> won't update the cached $order
-                if ($symbol !== null && $symbol !== $order['symbol'])
+            $cachedOrderId = $cachedOrderIds[$k];
+            $cachedOrder = $this->orders[$cachedOrderId];
+            if (!(is_array ($openOrdersIndexedById) && array_key_exists ($cachedOrderId, $openOrdersIndexedById))) {
+                // cached order is not in open orders array
+                // if we fetched orders by $symbol and it doesn't match the cached order -> won't update the cached order
+                if ($symbol !== null && $symbol !== $cachedOrder['symbol'])
                     continue;
-                // $order is cached but not present in the list of open orders -> mark the cached $order as closed
-                if ($order['status'] === 'open') {
-                    $order = array_merge ($order, array (
+                // cached order is absent from the list of open orders -> mark the cached order as closed
+                if ($cachedOrder['status'] === 'open') {
+                    $cachedOrder = array_merge ($cachedOrder, array (
                         'status' => 'closed', // likewise it might have been canceled externally (unnoticed by "us")
                         'cost' => null,
-                        'filled' => $order['amount'],
+                        'filled' => $cachedOrder['amount'],
                         'remaining' => 0.0,
                     ));
-                    if ($order['cost'] == null) {
-                        if ($order['filled'] != null)
-                            $order['cost'] = $order['filled'] * $order['price'];
+                    if ($cachedOrder['cost'] == null) {
+                        if ($cachedOrder['filled'] != null)
+                            $cachedOrder['cost'] = $cachedOrder['filled'] * $cachedOrder['price'];
                     }
-                    $this->orders[$id] = $order;
+                    $this->orders[$cachedOrderId] = $cachedOrder;
                 }
             }
         }
-        return $result;
+        return $this->to_array($this->orders);
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {

@@ -23,6 +23,8 @@ class bleutrade (bittrex):
             'has': {
                 'CORS': True,
                 'fetchTickers': True,
+                'fetchOrders': True,
+                'fetchClosedOrders': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30303000-b602dbe6-976d-11e7-956d-36c5049c01e7.jpg',
@@ -92,6 +94,9 @@ class bleutrade (bittrex):
                 'Invalid Order ID': InvalidOrder,
                 'Invalid apikey or apisecret': AuthenticationError,
             },
+            'options': {
+                'parseOrderStatus': True,
+            },
         })
 
     async def fetch_markets(self):
@@ -135,6 +140,36 @@ class bleutrade (bittrex):
                 },
             })
         return result
+
+    def parse_order_status(self, status):
+        statuses = {
+            'OK': 'closed',
+            'OPEN': 'open',
+            'CANCELED': 'canceled',
+        }
+        if status in statuses:
+            return statuses[status]
+        else:
+            return status
+
+    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        # Possible params
+        # orderstatus(ALL, OK, OPEN, CANCELED)
+        # ordertype(ALL, BUY, SELL)
+        # depth(optional, default is 500, max is 20000)
+        await self.load_markets()
+        market = None
+        if symbol:
+            await self.load_markets()
+            market = self.market(symbol)
+        else:
+            market = None
+        response = await self.accountGetOrders(self.extend({'market': 'ALL', 'orderstatus': 'ALL'}, params))
+        return self.parse_orders(response['result'], market, since, limit)
+
+    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        response = await self.fetch_orders(symbol, since, limit, params)
+        return self.filter_by(response, 'status', 'closed')
 
     def get_order_id_field(self):
         return 'orderid'

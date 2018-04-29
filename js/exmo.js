@@ -380,7 +380,6 @@ module.exports = class exmo extends Exchange {
         }
         let openOrdersIndexedById = this.indexBy (openOrders, 'id');
         let cachedOrderIds = Object.keys (this.orders);
-        let result = [];
         for (let k = 0; k < cachedOrderIds.length; k++) {
             // match each cached order to an order in the open orders array
             // possible reasons why a cached order may be missing in the open orders array:
@@ -388,7 +387,6 @@ module.exports = class exmo extends Exchange {
             // - symbol mismatch (e.g. cached BTC/USDT, fetched ETH/USDT) -> skip
             let id = cachedOrderIds[k];
             let order = this.orders[id];
-            result.push (order);
             if (!(id in openOrdersIndexedById)) {
                 // cached order is not in open orders array
                 // if we fetched orders by symbol and it doesn't match the cached order -> won't update the cached order
@@ -410,7 +408,7 @@ module.exports = class exmo extends Exchange {
                 }
             }
         }
-        return result;
+        return this.toArray (this.orders);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -427,7 +425,7 @@ module.exports = class exmo extends Exchange {
             orders = this.arrayConcat (orders, parsedOrders);
         }
         this.updateCachedOrders (orders, symbol);
-        return this.filterBySymbolSinceLimit (this.orders, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (this.toArray (this.orders), symbol, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {

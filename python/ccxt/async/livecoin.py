@@ -244,7 +244,7 @@ class livecoin (Exchange):
         currencies = [
             {'id': 'USD', 'code': 'USD', 'name': 'US Dollar'},
             {'id': 'EUR', 'code': 'EUR', 'name': 'Euro'},
-            {'id': 'RUR', 'code': 'RUR', 'name': 'Russian ruble'},
+            {'id': 'RUR', 'code': 'RUB', 'name': 'Russian ruble'},
         ]
         for i in range(0, len(currencies)):
             currency = currencies[i]

@@ -18,6 +18,8 @@ module.exports = class bleutrade extends bittrex {
             'has': {
                 'CORS': true,
                 'fetchTickers': true,
+                'fetchOrders': true,
+                'fetchClosedOrders': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30303000-b602dbe6-976d-11e7-956d-36c5049c01e7.jpg',
@@ -87,6 +89,9 @@ module.exports = class bleutrade extends bittrex {
                 'Invalid Order ID': InvalidOrder,
                 'Invalid apikey or apisecret': AuthenticationError,
             },
+            'options': {
+                'parseOrderStatus': true,
+            },
         });
     }
 
@@ -132,6 +137,41 @@ module.exports = class bleutrade extends bittrex {
             });
         }
         return result;
+    }
+
+    parseOrderStatus (status) {
+        let statuses = {
+            'OK': 'closed',
+            'OPEN': 'open',
+            'CANCELED': 'canceled',
+        };
+        if (status in statuses) {
+            return statuses[status];
+        } else {
+            return status;
+        }
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        // Possible params
+        // orderstatus (ALL, OK, OPEN, CANCELED)
+        // ordertype (ALL, BUY, SELL)
+        // depth (optional, default is 500, max is 20000)
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol) {
+            await this.loadMarkets ();
+            market = this.market (symbol);
+        } else {
+            market = undefined;
+        }
+        let response = await this.accountGetOrders (this.extend ({ 'market': 'ALL', 'orderstatus': 'ALL' }, params));
+        return this.parseOrders (response['result'], market, since, limit);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        let response = await this.fetchOrders (symbol, since, limit, params);
+        return this.filterBy (response, 'status', 'closed');
     }
 
     getOrderIdField () {
