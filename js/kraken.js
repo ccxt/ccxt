@@ -589,7 +589,7 @@ module.exports = class kraken extends Exchange {
         let response = await this.privatePostBalance ();
         let balances = this.safeValue (response, 'result');
         if (typeof balances === 'undefined')
-            throw new ExchangeError (this.id + ' fetchBalance failed due to a malformed response');
+            throw new ExchangeError (this.id + ' fetchBalance failed due to a malformed response ' + this.json (response));
         let result = { 'info': balances };
         let currencies = Object.keys (balances);
         for (let c = 0; c < currencies.length; c++) {
