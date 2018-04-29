@@ -316,7 +316,7 @@ class bittrex extends Exchange {
                 'name' => $currency['CurrencyLong'],
                 'active' => $currency['IsActive'],
                 'status' => 'ok',
-                'fee' => $currency['TxFee'], // todo => redesign
+                'fee' => $this->safe_float($currency, 'TxFee'), // todo => redesign
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (

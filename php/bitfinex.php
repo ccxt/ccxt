@@ -781,8 +781,15 @@ class bitfinex extends Exchange {
         $responses = $this->privatePostWithdraw (array_merge ($request, $params));
         $response = $responses[0];
         $id = $response['withdrawal_id'];
-        if ($id === 0)
+        $message = $response['message'];
+        $errorMessage = $this->find_broadly_matched_key ($this->exceptions['broad'], $message);
+        if ($id === 0) {
+            if ($errorMessage !== null) {
+                $Exception = $this->exceptions['broad'][$errorMessage];
+                throw new $Exception ($this->id . ' ' . $message);
+            }
             throw new ExchangeError ($this->id . ' withdraw returned an $id of zero => ' . $this->json ($response));
+        }
         return array (
             'info' => $response,
             'id' => $id,

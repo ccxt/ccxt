@@ -318,7 +318,7 @@ class bittrex (Exchange):
                 'name': currency['CurrencyLong'],
                 'active': currency['IsActive'],
                 'status': 'ok',
-                'fee': currency['TxFee'],  # todo: redesign
+                'fee': self.safe_float(currency, 'TxFee'),  # todo: redesign
                 'precision': precision,
                 'limits': {
                     'amount': {

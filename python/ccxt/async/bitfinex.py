@@ -752,7 +752,12 @@ class bitfinex (Exchange):
         responses = await self.privatePostWithdraw(self.extend(request, params))
         response = responses[0]
         id = response['withdrawal_id']
+        message = response['message']
+        errorMessage = self.find_broadly_matched_key(self.exceptions['broad'], message)
         if id == 0:
+            if errorMessage is not None:
+                Exception = self.exceptions['broad'][errorMessage]
+                raise Exception(self.id + ' ' + message)
             raise ExchangeError(self.id + ' withdraw returned an id of zero: ' + self.json(response))
         return {
             'info': response,
