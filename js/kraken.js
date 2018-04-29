@@ -587,7 +587,9 @@ module.exports = class kraken extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostBalance ();
-        let balances = response['result'];
+        let balances = this.safeValue (response, 'result');
+        if (typeof balances === 'undefined')
+            throw new ExchangeError (this.id + ' fetchBalance failed due to a malformed response');
         let result = { 'info': balances };
         let currencies = Object.keys (balances);
         for (let c = 0; c < currencies.length; c++) {
@@ -898,10 +900,13 @@ module.exports = class kraken extends Exchange {
                             throw new ExchangeNotAvailable (message);
                         if (response['error'][i] === 'EService:Busy')
                             throw new DDoSProtection (message);
+                        if (response['error'][i] === 'EAPI:Rate limit exceeded')
+                            throw new DDoSProtection (message);
                     }
                     throw new ExchangeError (message);
                 }
             }
         return response;
+        // TODO switch to handleErrors and use an exception map like in bittrex or binance
     }
 };
