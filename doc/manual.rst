@@ -524,6 +524,8 @@ Exchanges usually impose what is called a *rate limit*. Exchanges will remember 
 
 Most exchanges allow **up to 1 or 2 requests per second**. Exchanges may temporarily restrict your access to their API or ban you for some period of time if you are too aggressive with your requests.
 
+**The ``exchange.rateLimit`` property is set to a safe default which is sub-optimal. Some exchanges may have varying rate limits for different endpoints. It is up to the library user to tweak ``rateLimit`` according to application-specific purposes.**
+
 DDoS Protection By Cloudflare / Incapsula
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
