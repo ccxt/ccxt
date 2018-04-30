@@ -188,6 +188,14 @@ module.exports = class kraken extends Exchange {
                 'cacheDepositMethodsOnFetchDepositAddress': true, // will issue up to two calls in fetchDepositAddress
                 'depositMethods': {},
             },
+            'exceptions': {
+                'EFunding:Unknown withdraw key': ExchangeError,
+                'EService:Unavailable': ExchangeNotAvailable,
+                'EDatabase:Internal error': ExchangeNotAvailable,
+                'EService:Busy': DDoSProtection,
+                'EAPI:Rate limit exceeded': DDoSProtection,
+                'EQuery:Unknown asset': ExchangeError,
+            },
         });
     }
 
@@ -197,19 +205,6 @@ module.exports = class kraken extends Exchange {
 
     feeToPrecision (symbol, fee) {
         return this.truncate (parseFloat (fee), this.markets[symbol]['precision']['amount']);
-    }
-
-    handleErrors (code, reason, url, method, headers, body) {
-        if (body.indexOf ('Invalid order') >= 0)
-            throw new InvalidOrder (this.id + ' ' + body);
-        if (body.indexOf ('Invalid nonce') >= 0)
-            throw new InvalidNonce (this.id + ' ' + body);
-        if (body.indexOf ('Insufficient funds') >= 0)
-            throw new InsufficientFunds (this.id + ' ' + body);
-        if (body.indexOf ('Cancel pending') >= 0)
-            throw new CancelPending (this.id + ' ' + body);
-        if (body.indexOf ('Invalid arguments:volume') >= 0)
-            throw new InvalidOrder (this.id + ' ' + body);
     }
 
     async fetchMinOrderSizes () {
@@ -884,29 +879,33 @@ module.exports = class kraken extends Exchange {
         return this.milliseconds ();
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if (typeof response !== 'string')
-            if ('error' in response) {
-                let numErrors = response['error'].length;
-                if (numErrors) {
-                    let message = this.id + ' ' + this.json (response);
-                    for (let i = 0; i < response['error'].length; i++) {
-                        if (response['error'][i] === 'EFunding:Unknown withdraw key')
-                            throw new ExchangeError (message);
-                        if (response['error'][i] === 'EService:Unavailable')
-                            throw new ExchangeNotAvailable (message);
-                        if (response['error'][i] === 'EDatabase:Internal error')
-                            throw new ExchangeNotAvailable (message);
-                        if (response['error'][i] === 'EService:Busy')
-                            throw new DDoSProtection (message);
-                        if (response['error'][i] === 'EAPI:Rate limit exceeded')
-                            throw new DDoSProtection (message);
+    handleErrors (code, reason, url, method, headers, body) {
+        if (body.indexOf ('Invalid order') >= 0)
+            throw new InvalidOrder (this.id + ' ' + body);
+        if (body.indexOf ('Invalid nonce') >= 0)
+            throw new InvalidNonce (this.id + ' ' + body);
+        if (body.indexOf ('Insufficient funds') >= 0)
+            throw new InsufficientFunds (this.id + ' ' + body);
+        if (body.indexOf ('Cancel pending') >= 0)
+            throw new CancelPending (this.id + ' ' + body);
+        if (body.indexOf ('Invalid arguments:volume') >= 0)
+            throw new InvalidOrder (this.id + ' ' + body);
+        if (body[0] === '{') {
+            let response = JSON.parse (body);
+            if (typeof response !== 'string') {
+                if ('error' in response) {
+                    let numErrors = response['error'].length;
+                    if (numErrors) {
+                        let message = this.id + ' ' + this.json (response);
+                        for (let i = 0; i < response['error'].length; i++) {
+                            if (response['error'][i] in this.exceptions) {
+                                throw new this.exceptions[response['error'][i]] (message);
+                            }
+                        }
+                        throw new ExchangeError (message);
                     }
-                    throw new ExchangeError (message);
                 }
             }
-        return response;
-        // TODO switch to handleErrors and use an exception map like in bittrex or binance
+        }
     }
 };
