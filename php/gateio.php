@@ -278,6 +278,8 @@ class gateio extends Exchange {
         $address = null;
         if (is_array ($response) && array_key_exists ('addr', $response))
             $address = $this->safe_string($response, 'addr');
+        if (($address !== null) && (mb_strpos ($address, 'address') !== false))
+            throw new InvalidAddress ($this->id . ' queryDepositAddress ' . $address);
         return array (
             'currency' => $currency,
             'address' => $address,
