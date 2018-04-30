@@ -535,6 +535,8 @@ class bittrex extends Exchange {
             $lastTradeTimestamp = $this->parse8601 ($order['TimeStamp'] . '+00:00');
         if ((is_array ($order) && array_key_exists ('Closed', $order)) && ($order['Closed'] != null))
             $lastTradeTimestamp = $this->parse8601 ($order['Closed'] . '+00:00');
+        if ($timestamp === null)
+            $timestamp = $lastTradeTimestamp;
         $fee = null;
         $commission = null;
         if (is_array ($order) && array_key_exists ('Commission', $order)) {
