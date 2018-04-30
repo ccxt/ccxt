@@ -526,6 +526,8 @@ module.exports = class liqui extends Exchange {
         let id = this.safeString (trade, 'tid');
         if ('trade_id' in trade)
             id = this.safeString (trade, 'trade_id');
+        if ('order_id' in trade)
+            id = this.safeString (trade, 'order_id');
         let order = this.safeString (trade, this.getOrderIdKey ());
         if ('pair' in trade) {
             let marketId = trade['pair'];
