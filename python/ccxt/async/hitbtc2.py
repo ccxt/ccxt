@@ -1089,9 +1089,3 @@ class hitbtc2 (hitbtc):
                         elif message == 'Duplicate clientOrderId':
                             raise InvalidOrder(self.id + ' ' + body)
             raise ExchangeError(self.id + ' ' + body)
-
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = await self.fetch2(path, api, method, params, headers, body)
-        if 'error' in response:
-            raise ExchangeError(self.id + ' ' + self.json(response))
-        return response
