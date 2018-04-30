@@ -256,6 +256,9 @@ class qryptos extends Exchange {
         // 'my_side' gets filled for fetchMyTrades only and may differ from 'taker_side'
         $mySide = $this->safe_string($trade, 'my_side');
         $side = ($mySide !== null) ? $mySide : $takerSide;
+        $takerOrMaker = null;
+        if ($mySide !== null)
+            $takerOrMaker = ($takerSide === $mySide) ? 'taker' : 'maker';
         return array (
             'info' => $trade,
             'id' => (string) $trade['id'],
@@ -265,6 +268,7 @@ class qryptos extends Exchange {
             'symbol' => $market['symbol'],
             'type' => null,
             'side' => $side,
+            'takerOrMaker' => $takerOrMaker,
             'price' => floatval ($trade['price']),
             'amount' => floatval ($trade['quantity']),
         );
@@ -347,6 +351,7 @@ class qryptos extends Exchange {
             'id' => (string) $order['id'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => null,
             'type' => $order['order_type'],
             'status' => $status,
             'symbol' => $symbol,

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.12.153'
+__version__ = '1.13.54'
 
 # -----------------------------------------------------------------------------
 
@@ -138,6 +138,7 @@ from ccxt.async.quoinex import quoinex                          # noqa: F401
 from ccxt.async.southxchange import southxchange                # noqa: F401
 from ccxt.async.surbitcoin import surbitcoin                    # noqa: F401
 from ccxt.async.therock import therock                          # noqa: F401
+from ccxt.async.tidebit import tidebit                          # noqa: F401
 from ccxt.async.tidex import tidex                              # noqa: F401
 from ccxt.async.urdubit import urdubit                          # noqa: F401
 from ccxt.async.vaultoro import vaultoro                        # noqa: F401
@@ -253,6 +254,7 @@ exchanges = [
     'southxchange',
     'surbitcoin',
     'therock',
+    'tidebit',
     'tidex',
     'urdubit',
     'vaultoro',

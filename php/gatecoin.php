@@ -189,6 +189,9 @@ class gatecoin extends Exchange {
                     'taker' => 0.0035,
                 ),
             ),
+            'commonCurrencies' => array (
+                'MAN' => 'MANA',
+            ),
         ));
     }
 
@@ -201,8 +204,8 @@ class gatecoin extends Exchange {
             $id = $market['tradingCode'];
             $baseId = $market['baseCurrency'];
             $quoteId = $market['quoteCurrency'];
-            $base = $baseId;
-            $quote = $quoteId;
+            $base = $this->common_currency_code($baseId);
+            $quote = $this->common_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => 8,
@@ -245,7 +248,10 @@ class gatecoin extends Exchange {
         $result = array ( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
-            $currency = $balance['currency'];
+            $currencyId = $balance['currency'];
+            $code = $currencyId;
+            if (is_array ($this->currencies_by_id) && array_key_exists ($currencyId, $this->currencies_by_id))
+                $code = $this->currencies_by_id[$currencyId]['code'];
             $account = array (
                 'free' => $balance['availableBalance'],
                 'used' => $this->sum (
@@ -255,7 +261,7 @@ class gatecoin extends Exchange {
                 ),
                 'total' => $balance['balance'],
             );
-            $result[$currency] = $account;
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
@@ -529,6 +535,7 @@ class gatecoin extends Exchange {
             'id' => $id,
             'datetime' => $this->iso8601 ($timestamp),
             'timestamp' => $timestamp,
+            'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
             'type' => $type,

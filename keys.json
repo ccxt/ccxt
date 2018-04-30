@@ -60,6 +60,7 @@
     "livecoin":      { "skip": true, "apiKey": "W5z7bvQM2pEShvGmqq1bXZkb1MR32GKw", "secret": "n8FrknvqwsRnTpGeNAbC51waYdE4xxSB" },
     "luno":          { "apiKey": "nrpzg7rkd8pnf", "secret": "Ps0DXw0TpTzdJ2Yek8V5TzFDfTWzyU5vfLdCiBP6vsI" },
     "mercado":       { "skip": true },
+    "nova":          { "skip": true },
     "okcoincny":     { "skip": true },
     "okcoinusd":     { },
     "okex":          { },

@@ -227,6 +227,7 @@ class mercado extends Exchange {
             'id' => (string) $order['order_id'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => 'limit',
             'side' => $side,

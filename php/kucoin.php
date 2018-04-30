@@ -28,7 +28,7 @@ class kucoin extends Exchange {
                 'fetchOrders' => false,
                 'fetchClosedOrders' => true,
                 'fetchOpenOrders' => true,
-                'fetchMyTrades' => true,
+                'fetchMyTrades' => 'emulated', // this method is to be deleted, see implementation and comments below
                 'fetchCurrencies' => true,
                 'withdraw' => true,
             ),
@@ -444,6 +444,7 @@ class kucoin extends Exchange {
             'id' => $orderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => 'limit',
             'side' => $side,
@@ -594,6 +595,7 @@ class kucoin extends Exchange {
             'id' => $orderId,
             'timestamp' => $timestamp,
             'datetime' => $iso8601,
+            'lastTradeTimestamp' => null,
             'symbol' => $market['symbol'],
             'type' => $type,
             'side' => $side,
@@ -688,10 +690,13 @@ class kucoin extends Exchange {
             $symbol = $ticker['coinType'] . '/' . $ticker['coinTypePair'];
         }
         // TNC coin doesn't have changerate for some reason
-        $change = $this->safe_float($ticker, 'changeRate');
-        if ($change !== null)
-            $change *= 100;
+        $change = $this->safe_float($ticker, 'change');
         $last = $this->safe_float($ticker, 'lastDealPrice');
+        $open = null;
+        if ($last !== null)
+            if ($change !== null)
+                $open = $last - $change;
+        $changePercentage = $this->safe_float($ticker, 'changeRate');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -703,12 +708,12 @@ class kucoin extends Exchange {
             'ask' => $this->safe_float($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => null,
-            'open' => null,
+            'open' => $open,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
             'change' => $change,
-            'percentage' => null,
+            'percentage' => $changePercentage,
             'average' => null,
             'baseVolume' => $this->safe_float($ticker, 'vol'),
             'quoteVolume' => $this->safe_float($ticker, 'volValue'),
@@ -764,19 +769,21 @@ class kucoin extends Exchange {
             $order = $this->safe_string($trade, 'orderOid');
             $id = $this->safe_string($trade, 'oid');
             $side = $this->safe_string($trade, 'direction');
-            // https://github.com/ccxt/ccxt/issues/2409
-            // $side = $this->safe_string($trade, 'dealDirection');
             if ($side !== null)
                 $side = strtolower ($side);
             $price = $this->safe_float($trade, 'dealPrice');
             $amount = $this->safe_float($trade, 'amount');
             $cost = $this->safe_float($trade, 'dealValue');
             $feeCurrency = null;
-            if (is_array ($trade) && array_key_exists ('coinType', $trade)) {
-                $feeCurrency = $this->safe_string($trade, 'coinType');
-                if ($feeCurrency !== null)
+            if ($market !== null) {
+                $feeCurrency = ($side === 'sell') ? $market['quote'] : $market['base'];
+            } else {
+                $feeCurrencyField = ($side === 'sell') ? 'coinTypePair' : 'coinType';
+                $feeCurrency = $this->safe_string($order, $feeCurrencyField);
+                if ($feeCurrency !== null) {
                     if (is_array ($this->currencies_by_id) && array_key_exists ($feeCurrency, $this->currencies_by_id))
                         $feeCurrency = $this->currencies_by_id[$feeCurrency]['code'];
+                }
             }
             $fee = array (
                 'cost' => $this->safe_float($trade, 'fee'),
@@ -812,8 +819,12 @@ class kucoin extends Exchange {
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        // todo => this method is deprecated and to be deleted shortly
+        // it improperly mimics fetchMyTrades with closed orders
+        // kucoin does not have any means of fetching personal trades at all
+        // this will effectively simplify current convoluted implementations of parseOrder and parseTrade
         if (!$symbol)
-            throw new ExchangeError ($this->id . ' fetchMyTrades requires a $symbol argument');
+            throw new ExchangeError ($this->id . ' fetchMyTrades is deprecated and requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
@@ -825,18 +836,8 @@ class kucoin extends Exchange {
         return $this->parse_trades($response['data']['datas'], $market, $since, $limit);
     }
 
-    public function parse_trading_view_ohlc_vs ($ohlcvs, $market = null, $timeframe = '1m', $since = null, $limit = null) {
-        $result = array ();
-        for ($i = 0; $i < count ($ohlcvs['t']); $i++) {
-            $result[] = [
-                $ohlcvs['t'][$i] * 1000,
-                $ohlcvs['o'][$i],
-                $ohlcvs['h'][$i],
-                $ohlcvs['l'][$i],
-                $ohlcvs['c'][$i],
-                $ohlcvs['v'][$i],
-            ];
-        }
+    public function parse_trading_view_ohlcv ($ohlcvs, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        $result = $this->convert_trading_view_to_ohlcv($ohlcvs);
         return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
     }
 
@@ -875,7 +876,7 @@ class kucoin extends Exchange {
             'to' => $end,
         );
         $response = $this->publicGetOpenChartHistory (array_merge ($request, $params));
-        return $this->parse_trading_view_ohlc_vs ($response, $market, $timeframe, $since, $limit);
+        return $this->parse_trading_view_ohlcv ($response, $market, $timeframe, $since, $limit);
     }
 
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {

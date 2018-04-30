@@ -126,6 +126,9 @@ class bitz extends Exchange {
             'options' => array (
                 'lastNonceTimestamp' => 0,
             ),
+            'commonCurrencies' => array (
+                'PXC' => 'Pixiecoin',
+            ),
         ));
     }
 
@@ -312,6 +315,7 @@ class bitz extends Exchange {
             'id' => $order['id'],
             'datetime' => $iso8601,
             'timestamp' => $timestamp,
+            'lastTradeTimestamp' => null,
             'status' => 'open',
             'symbol' => $symbol,
             'type' => 'limit',
@@ -331,6 +335,8 @@ class bitz extends Exchange {
         $this->load_markets();
         $market = $this->market ($symbol);
         $orderType = ($side === 'buy') ? 'in' : 'out';
+        if (!$this->password)
+            throw new ExchangeError ($this->id . ' createOrder() requires you to set exchange.password = "YOUR_TRADING_PASSWORD" (a trade password is NOT THE SAME as your login password)');
         $request = array (
             'coin' => $market['id'],
             'type' => $orderType,

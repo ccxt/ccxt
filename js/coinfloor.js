@@ -194,6 +194,7 @@ module.exports = class coinfloor extends Exchange {
             'id': id,
             'datetime': datetime,
             'timestamp': timestamp,
+            'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
             'type': 'limit',

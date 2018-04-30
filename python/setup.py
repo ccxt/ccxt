@@ -65,14 +65,14 @@ setup(
     packages=find_packages(),
 
     install_requires=[
-        'setuptools==38.5.1',
-        'certifi==2018.1.18',
-        'requests==2.18.4'
+        'setuptools>=38.5.1',
+        'certifi>=2018.1.18',
+        'requests>=2.18.4'
     ],
 
     extras_require={
         ':python_version>="3.5.3"': [
-            'aiohttp==3.0.1',
+            'aiohttp>=3.0.1',
             'cchardet==2.1.1',
             'aiodns==1.1.1',
             'yarl==1.1.0'

@@ -304,6 +304,7 @@ module.exports = class btcmarkets extends Exchange {
             'id': order['id'].toString (),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
             'symbol': market['symbol'],
             'type': type,
             'side': side,
@@ -332,7 +333,7 @@ module.exports = class btcmarkets extends Exchange {
         return this.parseOrder (order);
     }
 
-    async prepareHistoryRequest (market, since = undefined, limit = undefined) {
+    prepareHistoryRequest (market, since = undefined, limit = undefined) {
         let request = this.ordered ({
             'currency': market['quote'],
             'instrument': market['base'],

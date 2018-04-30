@@ -319,6 +319,7 @@ class bitso (Exchange):
             'id': order['oid'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': orderType,
             'side': side,

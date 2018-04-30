@@ -255,6 +255,7 @@ let testExchange = async exchange => {
     // } catch (e) {
     //     console.log (exchange.id, 'error', 'limit buy', e)
     // }
+
 }
 
 //-----------------------------------------------------------------------------

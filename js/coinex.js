@@ -162,16 +162,16 @@ module.exports = class coinex extends Exchange {
         let timestamp = ticker['date'];
         let symbol = market['symbol'];
         ticker = ticker['ticker'];
-        let last = parseFloat (ticker['last']);
+        let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']),
-            'low': parseFloat (ticker['low']),
-            'bid': parseFloat (ticker['buy']),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'buy'),
             'bidVolume': undefined,
-            'ask': parseFloat (ticker['sell']),
+            'ask': this.safeFloat (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -181,7 +181,7 @@ module.exports = class coinex extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': parseFloat (ticker['vol']),
+            'baseVolume': this.safeFloat (ticker, 'vol'),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -332,6 +332,7 @@ module.exports = class coinex extends Exchange {
             'id': this.safeString (order, 'id'),
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
+            'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
             'type': order['order_type'],

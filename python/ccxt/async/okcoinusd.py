@@ -399,9 +399,24 @@ class okcoinusd (Exchange):
         params = self.omit(params, 'cost')
         method += 'Trade'
         response = await getattr(self, method)(self.extend(order, params))
+        timestamp = self.milliseconds()
         return {
             'info': response,
             'id': str(response['order_id']),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
+            'status': None,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'filled': None,
+            'remaining': None,
+            'cost': None,
+            'trades': None,
+            'fee': None,
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
@@ -487,6 +502,7 @@ class okcoinusd (Exchange):
             'id': str(order['order_id']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
             'side': side,
@@ -563,6 +579,7 @@ class okcoinusd (Exchange):
                 method += 'OrdersInfo'
                 request = self.extend(request, {
                     'type': status,
+                    'order_id': params['order_id'],
                 })
             else:
                 method += 'OrderHistory'
@@ -578,16 +595,16 @@ class okcoinusd (Exchange):
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         open = 0  # 0 for unfilled orders, 1 for filled orders
-        return await self.fetch_orders(symbol, None, None, self.extend({
+        return await self.fetch_orders(symbol, since, limit, self.extend({
             'status': open,
         }, params))
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         closed = 1  # 0 for unfilled orders, 1 for filled orders
-        orders = await self.fetch_orders(symbol, None, None, self.extend({
+        orders = await self.fetch_orders(symbol, since, limit, self.extend({
             'status': closed,
         }, params))
-        return self.filter_by(orders, 'status', 'closed')
+        return orders
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)

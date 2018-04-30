@@ -25,6 +25,9 @@ class vaultoro extends Exchange {
                 'www' => 'https://www.vaultoro.com',
                 'doc' => 'https://api.vaultoro.com',
             ),
+            'commonCurrencies' => array (
+                'GLD' => 'Gold',
+            ),
             'api' => array (
                 'public' => array (
                     'get' => array (
@@ -61,11 +64,11 @@ class vaultoro extends Exchange {
         $result = array ();
         $markets = $this->publicGetMarkets ();
         $market = $markets['data'];
-        $base = $market['BaseCurrency'];
-        $quote = $market['MarketCurrency'];
+        $baseId = $market['BaseCurrency'];
+        $quoteId = $market['MarketCurrency'];
+        $base = $this->common_currency_code($baseId);
+        $quote = $this->common_currency_code($quoteId);
         $symbol = $base . '/' . $quote;
-        $baseId = $base;
-        $quoteId = $quote;
         $id = $market['MarketName'];
         $result[] = array (
             'id' => $id,
@@ -86,8 +89,10 @@ class vaultoro extends Exchange {
         $result = array ( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
-            $currency = $balance['currency_code'];
-            $uppercase = strtoupper ($currency);
+            $currencyId = strtoupper ($balance['currency_code']);
+            $code = $currencyId;
+            if (is_array ($this->currencies_by_id[$currencyId]) && array_key_exists ($currencyId, $this->currencies_by_id[$currencyId]))
+                $code = $this->currencies_by_id[$currencyId]['code'];
             $free = $balance['cash'];
             $used = $balance['reserved'];
             $total = $this->sum ($free, $used);
@@ -96,7 +101,7 @@ class vaultoro extends Exchange {
                 'used' => $used,
                 'total' => $total,
             );
-            $result[$uppercase] = $account;
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }

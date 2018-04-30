@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, DDoSProtection, InsufficientFunds, OrderNotFound, OrderNotCached, InvalidOrder, CancelPending, InvalidNonce } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, AuthenticationError, DDoSProtection, InsufficientFunds, OrderNotFound, OrderNotCached, InvalidOrder, CancelPending, InvalidNonce } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -124,6 +124,7 @@ module.exports = class poloniex extends Exchange {
             'commonCurrencies': {
                 'BTM': 'Bitmark',
                 'STR': 'XLM',
+                'BCC': 'BTCtalkcoin',
             },
         });
     }
@@ -521,6 +522,7 @@ module.exports = class poloniex extends Exchange {
             'id': order['orderNumber'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
             'status': order['status'],
             'symbol': symbol,
             'type': order['type'],
@@ -821,6 +823,8 @@ module.exports = class poloniex extends Exchange {
             const feedback = this.id + ' ' + this.json (response);
             if (error === 'Invalid order number, or you are not the person who placed the order.') {
                 throw new OrderNotFound (feedback);
+            } else if (error === 'Internal error. Please try again.') {
+                throw new ExchangeNotAvailable (feedback);
             } else if (error === 'Order not found, or you are not the person who placed it.') {
                 throw new OrderNotFound (feedback);
             } else if (error === 'Invalid API key/secret pair.') {

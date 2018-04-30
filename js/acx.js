@@ -20,6 +20,7 @@ module.exports = class acx extends Exchange {
                 'fetchTickers': true,
                 'fetchOHLCV': true,
                 'withdraw': true,
+                'fetchOrder': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -293,6 +294,7 @@ module.exports = class acx extends Exchange {
             'id': order['id'].toString (),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
             'type': order['ord_type'],
@@ -305,6 +307,14 @@ module.exports = class acx extends Exchange {
             'fee': undefined,
             'info': order,
         };
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privateGetOrder (this.extend ({
+            'id': parseInt (id),
+        }, params));
+        return this.parseOrder (response);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

@@ -305,6 +305,7 @@ class btcmarkets extends Exchange {
             'id' => (string) $order['id'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => null,
             'symbol' => $market['symbol'],
             'type' => $type,
             'side' => $side,

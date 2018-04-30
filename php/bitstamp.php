@@ -514,6 +514,7 @@ class bitstamp extends Exchange {
             'id' => $id,
             'datetime' => $iso8601,
             'timestamp' => $timestamp,
+            'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
             'type' => null,

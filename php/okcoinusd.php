@@ -416,9 +416,24 @@ class okcoinusd extends Exchange {
         $params = $this->omit ($params, 'cost');
         $method .= 'Trade';
         $response = $this->$method (array_merge ($order, $params));
+        $timestamp = $this->milliseconds ();
         return array (
             'info' => $response,
             'id' => (string) $response['order_id'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => null,
+            'status' => null,
+            'symbol' => $symbol,
+            'type' => $type,
+            'side' => $side,
+            'price' => $price,
+            'amount' => $amount,
+            'filled' => null,
+            'remaining' => null,
+            'cost' => null,
+            'trades' => null,
+            'fee' => null,
         );
     }
 
@@ -512,6 +527,7 @@ class okcoinusd extends Exchange {
             'id' => (string) $order['order_id'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
@@ -594,6 +610,7 @@ class okcoinusd extends Exchange {
                 $method .= 'OrdersInfo';
                 $request = array_merge ($request, array (
                     'type' => $status,
+                    'order_id' => $params['order_id'],
                 ));
             } else {
                 $method .= 'OrderHistory';
@@ -612,17 +629,17 @@ class okcoinusd extends Exchange {
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $open = 0; // 0 for unfilled orders, 1 for filled orders
-        return $this->fetch_orders($symbol, null, null, array_merge (array (
+        return $this->fetch_orders($symbol, $since, $limit, array_merge (array (
             'status' => $open,
         ), $params));
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $closed = 1; // 0 for unfilled $orders, 1 for filled $orders
-        $orders = $this->fetch_orders($symbol, null, null, array_merge (array (
+        $orders = $this->fetch_orders($symbol, $since, $limit, array_merge (array (
             'status' => $closed,
         ), $params));
-        return $this->filter_by($orders, 'status', 'closed');
+        return $orders;
     }
 
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {

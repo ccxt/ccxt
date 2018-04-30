@@ -15,6 +15,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import OrderNotCached
 from ccxt.base.errors import CancelPending
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 
 
@@ -136,6 +137,7 @@ class poloniex (Exchange):
             'commonCurrencies': {
                 'BTM': 'Bitmark',
                 'STR': 'XLM',
+                'BCC': 'BTCtalkcoin',
             },
         })
 
@@ -496,6 +498,7 @@ class poloniex (Exchange):
             'id': order['orderNumber'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'status': order['status'],
             'symbol': symbol,
             'type': order['type'],
@@ -769,6 +772,8 @@ class poloniex (Exchange):
             feedback = self.id + ' ' + self.json(response)
             if error == 'Invalid order number, or you are not the person who placed the order.':
                 raise OrderNotFound(feedback)
+            elif error == 'Internal error. Please try again.':
+                raise ExchangeNotAvailable(feedback)
             elif error == 'Order not found, or you are not the person who placed it.':
                 raise OrderNotFound(feedback)
             elif error == 'Invalid API key/secret pair.':

@@ -85,6 +85,7 @@ class livecoin extends Exchange {
                 ),
             ),
             'commonCurrencies' => array (
+                'CPC' => 'Capricoin',
                 'CRC' => 'CryCash',
                 'ORE' => 'Orectic',
                 'RUR' => 'RUB',
@@ -232,7 +233,7 @@ class livecoin extends Exchange {
         $currencies = array (
             array ( 'id' => 'USD', 'code' => 'USD', 'name' => 'US Dollar' ),
             array ( 'id' => 'EUR', 'code' => 'EUR', 'name' => 'Euro' ),
-            array ( 'id' => 'RUR', 'code' => 'RUR', 'name' => 'Russian ruble' ),
+            array ( 'id' => 'RUR', 'code' => 'RUB', 'name' => 'Russian ruble' ),
         );
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
@@ -415,6 +416,7 @@ class livecoin extends Exchange {
             'id' => $order['id'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
             'type' => $type,

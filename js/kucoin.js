@@ -27,7 +27,7 @@ module.exports = class kucoin extends Exchange {
                 'fetchOrders': false,
                 'fetchClosedOrders': true,
                 'fetchOpenOrders': true,
-                'fetchMyTrades': true,
+                'fetchMyTrades': 'emulated', // this method is to be deleted, see implementation and comments below
                 'fetchCurrencies': true,
                 'withdraw': true,
             },
@@ -443,6 +443,7 @@ module.exports = class kucoin extends Exchange {
             'id': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': 'limit',
             'side': side,
@@ -486,7 +487,7 @@ module.exports = class kucoin extends Exchange {
         return this.parseOrder (response['data'], market);
     }
 
-    async parseOrdersByStatus (orders, market, since, limit, status) {
+    parseOrdersByStatus (orders, market, since, limit, status) {
         let result = [];
         for (let i = 0; i < orders.length; i++) {
             let order = this.parseOrder (this.extend (orders[i], {
@@ -593,6 +594,7 @@ module.exports = class kucoin extends Exchange {
             'id': orderId,
             'timestamp': timestamp,
             'datetime': iso8601,
+            'lastTradeTimestamp': undefined,
             'symbol': market['symbol'],
             'type': type,
             'side': side,
@@ -687,10 +689,13 @@ module.exports = class kucoin extends Exchange {
             symbol = ticker['coinType'] + '/' + ticker['coinTypePair'];
         }
         // TNC coin doesn't have changerate for some reason
-        let change = this.safeFloat (ticker, 'changeRate');
-        if (typeof change !== 'undefined')
-            change *= 100;
+        let change = this.safeFloat (ticker, 'change');
         let last = this.safeFloat (ticker, 'lastDealPrice');
+        let open = undefined;
+        if (typeof last !== 'undefined')
+            if (typeof change !== 'undefined')
+                open = last - change;
+        let changePercentage = this.safeFloat (ticker, 'changeRate');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -702,12 +707,12 @@ module.exports = class kucoin extends Exchange {
             'ask': this.safeFloat (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': undefined,
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': change,
-            'percentage': undefined,
+            'percentage': changePercentage,
             'average': undefined,
             'baseVolume': this.safeFloat (ticker, 'vol'),
             'quoteVolume': this.safeFloat (ticker, 'volValue'),
@@ -763,19 +768,21 @@ module.exports = class kucoin extends Exchange {
             order = this.safeString (trade, 'orderOid');
             id = this.safeString (trade, 'oid');
             side = this.safeString (trade, 'direction');
-            // https://github.com/ccxt/ccxt/issues/2409
-            // side = this.safeString (trade, 'dealDirection');
             if (typeof side !== 'undefined')
                 side = side.toLowerCase ();
             price = this.safeFloat (trade, 'dealPrice');
             amount = this.safeFloat (trade, 'amount');
             cost = this.safeFloat (trade, 'dealValue');
             let feeCurrency = undefined;
-            if ('coinType' in trade) {
-                feeCurrency = this.safeString (trade, 'coinType');
-                if (typeof feeCurrency !== 'undefined')
+            if (typeof market !== 'undefined') {
+                feeCurrency = (side === 'sell') ? market['quote'] : market['base'];
+            } else {
+                let feeCurrencyField = (side === 'sell') ? 'coinTypePair' : 'coinType';
+                let feeCurrency = this.safeString (order, feeCurrencyField);
+                if (typeof feeCurrency !== 'undefined') {
                     if (feeCurrency in this.currencies_by_id)
                         feeCurrency = this.currencies_by_id[feeCurrency]['code'];
+                }
             }
             fee = {
                 'cost': this.safeFloat (trade, 'fee'),
@@ -811,8 +818,12 @@ module.exports = class kucoin extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        // todo: this method is deprecated and to be deleted shortly
+        // it improperly mimics fetchMyTrades with closed orders
+        // kucoin does not have any means of fetching personal trades at all
+        // this will effectively simplify current convoluted implementations of parseOrder and parseTrade
         if (!symbol)
-            throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol argument');
+            throw new ExchangeError (this.id + ' fetchMyTrades is deprecated and requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
@@ -824,18 +835,8 @@ module.exports = class kucoin extends Exchange {
         return this.parseTrades (response['data']['datas'], market, since, limit);
     }
 
-    parseTradingViewOHLCVs (ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        let result = [];
-        for (let i = 0; i < ohlcvs['t'].length; i++) {
-            result.push ([
-                ohlcvs['t'][i] * 1000,
-                ohlcvs['o'][i],
-                ohlcvs['h'][i],
-                ohlcvs['l'][i],
-                ohlcvs['c'][i],
-                ohlcvs['v'][i],
-            ]);
-        }
+    parseTradingViewOHLCV (ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        let result = this.convertTradingViewToOHLCV (ohlcvs);
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
@@ -874,7 +875,7 @@ module.exports = class kucoin extends Exchange {
             'to': end,
         };
         let response = await this.publicGetOpenChartHistory (this.extend (request, params));
-        return this.parseTradingViewOHLCVs (response, market, timeframe, since, limit);
+        return this.parseTradingViewOHLCV (response, market, timeframe, since, limit);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {

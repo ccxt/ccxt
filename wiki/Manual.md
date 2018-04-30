@@ -53,7 +53,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 
 # Exchanges
 
-The ccxt library currently supports the following 113 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 114 cryptocurrency exchange markets and trading APIs:
 
 |                                                                                                                           | id                 | name                                                      | ver | doc                                                                                          | countries                               |
 |---------------------------------------------------------------------------------------------------------------------------|--------------------|-----------------------------------------------------------|:---:|:--------------------------------------------------------------------------------------------:|-----------------------------------------|
@@ -159,6 +159,7 @@ The ccxt library currently supports the following 113 cryptocurrency exchange ma
 |![southxchange](https://user-images.githubusercontent.com/1294454/27838912-4f94ec8a-60f6-11e7-9e5d-bbf9bd50a559.jpg)       | southxchange       | [SouthXchange](https://www.southxchange.com)              | *   | [API](https://www.southxchange.com/Home/Api)                                                 | Argentina                               |
 |![surbitcoin](https://user-images.githubusercontent.com/1294454/27991511-f0a50194-6481-11e7-99b5-8f02932424cc.jpg)         | surbitcoin         | [SurBitcoin](https://surbitcoin.com)                      | 1   | [API](https://blinktrade.com/docs)                                                           | Venezuela                               |
 |![therock](https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg)            | therock            | [TheRockTrading](https://therocktrading.com)              | 1   | [API](https://api.therocktrading.com/doc/v1/index.html)                                      | Malta                                   |
+|![tidebit](https://user-images.githubusercontent.com/1294454/39034921-e3acf016-4480-11e8-9945-a6086a1082fe.jpg)            | tidebit            | [TideBit](https://www.tidebit.com)                        | 2   | [API](https://www.tidebit.com/documents/api_v2)                                              | Hong Kong                               |
 |![tidex](https://user-images.githubusercontent.com/1294454/30781780-03149dc4-a12e-11e7-82bb-313b269d24d4.jpg)              | tidex              | [Tidex](https://tidex.com)                                | 3   | [API](https://tidex.com/exchange/public-api)                                                 | UK                                      |
 |![urdubit](https://user-images.githubusercontent.com/1294454/27991453-156bf3ae-6480-11e7-82eb-7295fe1b5bb4.jpg)            | urdubit            | [UrduBit](https://urdubit.com)                            | 1   | [API](https://blinktrade.com/docs)                                                           | Pakistan                                |
 |![vaultoro](https://user-images.githubusercontent.com/1294454/27766880-f205e870-5ee9-11e7-8fe2-0d5b15880752.jpg)           | vaultoro           | [Vaultoro](https://www.vaultoro.com)                      | 1   | [API](https://api.vaultoro.com)                                                              | Switzerland                             |
@@ -669,6 +670,7 @@ Historically various symbolic names have been used to designate same trading pai
 - `BCC → BCH`: The Bitcoin Cash fork is often called with two different symbolic names: `BCC` and `BCH`. The name `BCC` is ambiguous for Bitcoin Cash, it is confused with BitConnect. The ccxt library will convert `BCC` to `BCH` where it is appropriate (some exchanges and aggregators confuse them).
 - `DRK → DASH`: `DASH` was Darkcoin then became Dash ([read more](https://minergate.com/blog/dashcoin-and-dash/)).
 - `DSH → DASH`: Try not to confuse symbols and currencies. The `DSH` (Dashcoin) is not the same as `DASH` (Dash). Some exchanges have `DASH` labelled inconsistently as `DSH`, the ccxt library does a correction for that as well (`DSH → DASH`), but only on certain exchanges that have these two currencies confused, whereas most exchanges have them both correct. Just remember that `DASH/BTC` is not the same as `DSH/BTC`.
+- `NANO` → `XRB`: `NANO` is the newer code for Raiblocks, however, CCXT unified API uses the older `XRB` for backward-compatibility with existing exchanges and data providers.
 
 ### Consistency Of Base And Quote Currencies
 
@@ -980,6 +982,14 @@ Prices and amounts are floats. The bids array is sorted by price in descending o
 
 Exchanges may return the stack of orders in various levels of details for analysis. It is either in full detail containing each and every order, or it is aggregated having slightly less detail where orders are grouped and merged by price and volume. Having greater detail requires more traffic and bandwidth and is slower in general but gives a benefit of higher precision. Having less detail is usually faster, but may not be  enough in some very specific cases.
 
+### Notes On Order Book Structure
+
+- `orderbook['timestamp']` is the time when the exchange generated this orderbook response (before replying it back to you). This may be missing (`undefined/None/null`), as documented in the Manual, not all exchanges provide a timestamp there. If it is defined, then it is the UTC timestamp **in milliseconds** since 1 Jan 1970 00:00:00.
+- `exchange.last_response_headers['Date']` is the date-time string of the last HTTP response received (from HTTP headers). The 'Date' parser should respect the timezone designated there. The precision of the date-time is 1 second, 1000 milliseconds. This date should be set by the exchange server when the message originated according to the following standards:
+    - https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.18
+    - https://tools.ietf.org/html/rfc1123#section-5.2.14
+    - https://tools.ietf.org/html/rfc822#section-5
+
 ### Market Depth
 
 Some exchanges accept a dictionary of extra parameters to the `fetchOrderBook () / fetch_order_book ()` function. **All extra `params` are exchange-specific (non-unified)**. You will need to consult exchanges docs if you want to override a particular param, like the depth of the order book. You can get a limited count of returned orders or a desired level of aggregation (aka *market depth*) by specifying an limit argument and exchange-specific extra `params` like so:
@@ -1082,12 +1092,17 @@ A price ticker contains statistics for a particular market/symbol for some perio
     'change':        float, // absolute change, `last - open`
     'percentage':    float, // relative change, `(change/open) * 100`
     'average':       float, // average price, `(last + open) / 2`
-    'baseVolume':    float, // volume of base currency
-    'quoteVolume':   float, // volume of quote currency
+    'baseVolume':    float, // volume of base currency traded for last 24 hours
+    'quoteVolume':   float, // volume of quote currency traded for last 24 hours
 }
 ```
 
-**All prices in ticker structure are in quote currency**.
+- The `bidVolume` is the volume (amount) of current best bid in the orderbook.
+- The `askVolume` is the volume (amount) of current best ask in the orderbook.
+- The `baseVolume` is the amount of base currency traded (bought or sold) in last 24 hours.
+- The `quoteVolume` is the amount of quote currency traded (bought or sold) in last 24 hours.
+
+**All prices in ticker structure are in quote currency. Some fields in a returned ticker structure may be undefined/None/null.**
 
 ```
 base currency ↓
@@ -1100,6 +1115,8 @@ base currency ↓
 Timestamp and datetime are both Universal Time Coordinated (UTC).
 
 Although some exchanges do mix-in orderbook's top bid/ask prices into their tickers (and some even top bid/asks volumes) you should not treat ticker as a `fetchOrderBook` replacement. The main purpose of a ticker is to serve statistical data, as such, treat it as "live 24h OHLCV". It is known that exchanges discourage frequent `fetchTicker` requests by imposing stricter rate limits on these queries. If you need a unified way to access bid/asks you should use `fetchL[123]OrderBook` family instead.
+
+To get historical prices and volumes use the unified [`fetchOHLCV`](https://github.com/ccxt/ccxt/wiki/Manual#ohlcv-candlestick-charts) method where available.
 
 ### Individually By Symbol
 
@@ -1226,9 +1243,13 @@ if ($exchange->has['fetchOHLCV'])
 
 To get the list of available timeframes for your exchange see the `timeframes` property. Note that it is only populated when `has['fetchTickers']` is true as well.
 
- **There's a limit on how far back in time your requests can go.** Most of exchanges will not allow to query detailed candlestick history (like those for 1-minute and 5-minute timeframes) too far in the past. They usually keep a reasonable amount of most recent candles, like 1000 last candles for any timeframe is more than enough for most of needs. You can work around that limitation by continuously fetching (aka *REST polling*) latest OHLCVs and storing them in a CSV file or in a database.
+**There's a limit on how far back in time your requests can go.** Most of exchanges will not allow to query detailed candlestick history (like those for 1-minute and 5-minute timeframes) too far in the past. They usually keep a reasonable amount of most recent candles, like 1000 last candles for any timeframe is more than enough for most of needs. You can work around that limitation by continuously fetching (aka *REST polling*) latest OHLCVs and storing them in a CSV file or in a database.
 
- **Note that the info from the last (current) candle may be incomplete until the candle is closed (until the next candle starts).**
+**Note that the info from the last (current) candle may be incomplete until the candle is closed (until the next candle starts).**
+
+Like with most other unified and implicit methods, the `fetchOHLCV` method accepts as its last argument an associative array (a dictionary) of extra `params`, which is used to override default values that are sent in requests to the exchanges. The contents of `params` are exchange-specific, consult the exchanges' API documentation for supported fields and values.
+
+### OHLCV Structure
 
 The fetchOHLCV method shown above returns a list (a flat array) of OHLCV candles represented by the following structure:
 
@@ -1246,7 +1267,7 @@ The fetchOHLCV method shown above returns a list (a flat array) of OHLCV candles
 ]
 ```
 
-Like with most other unified and implicit methods, the `fetchOHLCV` method accepts as its last argument an associative array (a dictionary) of extra `params`, which is used to override default values that are sent in requests to the exchanges. The contents of `params` are exchange-specific, consult the exchanges' API documentation for supported fields and values.
+The list of candles is returned sorted in ascending (historical) order, oldest candle first, most recent candle last.
 
 ### OHLCV Emulation
 
@@ -1399,9 +1420,9 @@ hitbtc = ccxt.hitbtc ({
 include 'ccxt.php'
 
 // any time
-$quoine = new \ccxt\quoine ();
-$quoine->apiKey = 'YOUR_QUOINE_API_KEY';
-$quoine->secret = 'YOUR_QUOINE_SECRET_KEY';
+$quoinex = new \ccxt\quoinex ();
+$quoinex->apiKey = 'YOUR_QUOINE_API_KEY';
+$quoinex->secret = 'YOUR_QUOINE_SECRET_KEY';
 
 // upon instantiation
 $zaif = new \ccxt\zaif (array (
@@ -1680,31 +1701,34 @@ Most of methods returning orders within ccxt unified API will usually yield an o
 
 ```JavaScript
 {
-    'id':        '12345-67890:09876/54321', // string
-    'datetime':  '2017-08-17 12:42:48.000', // ISO8601 datetime with milliseconds
-    'timestamp':  1502962946216, // order placing/opening Unix timestamp in milliseconds
-    'status':    'open',         // 'open', 'closed', 'canceled'
-    'symbol':    'ETH/BTC',      // symbol
-    'type':      'limit',        // 'market', 'limit'
-    'side':      'buy',          // 'buy', 'sell'
-    'price':      0.06917684,    // float price in quote currency
-    'amount':     1.5,           // ordered amount of base currency
-    'filled':     1.1,           // filled amount of base currency
-    'remaining':  0.4,           // remaining amount to fill
-    'cost':       0.076094524,   // 'filled' * 'price'
-    'trades':   [ ... ],         // a list of order trades/executions
-    'fee':      {                // fee info, if available
-        'currency': 'BTC',       // which currency the fee is (usually quote)
-        'cost': 0.0009,          // the fee amount in that currency
-        'rate': 0.002,           // the fee rate (if available)
+    'id':                '12345-67890:09876/54321', // string
+    'datetime':          '2017-08-17 12:42:48.000', // ISO8601 datetime of 'timestamp' with milliseconds
+    'timestamp':          1502962946216, // order placing/opening Unix timestamp in milliseconds
+    'lastTradeTimestamp': 1502962956216, // Unix timestamp of the most recent trade on this order
+    'status':     'open',         // 'open', 'closed', 'canceled'
+    'symbol':     'ETH/BTC',      // symbol
+    'type':       'limit',        // 'market', 'limit'
+    'side':       'buy',          // 'buy', 'sell'
+    'price':       0.06917684,    // float price in quote currency
+    'amount':      1.5,           // ordered amount of base currency
+    'filled':      1.1,           // filled amount of base currency
+    'remaining':   0.4,           // remaining amount to fill
+    'cost':        0.076094524,   // 'filled' * 'price'
+    'trades':    [ ... ],         // a list of order trades/executions
+    'fee': {                      // fee info, if available
+        'currency': 'BTC',        // which currency the fee is (usually quote)
+        'cost': 0.0009,           // the fee amount in that currency
+        'rate': 0.002,            // the fee rate (if available)
     },
-    'info':     { ... },         // the original unparsed order structure as is
+    'info': { ... },              // the original unparsed order structure as is
 }
 ```
 
-**The work on `'fee'` info is still in progress, fee info may be missing partially or entirely, depending on the exchange capabilities**.
-
-**The `fee` currency may be different from both traded currencies (for example, an ETH/BTC order with fees in USD).**
+- The work on `'fee'` info is still in progress, fee info may be missing partially or entirely, depending on the exchange capabilities.
+- The `fee` currency may be different from both traded currencies (for example, an ETH/BTC order with fees in USD).
+- The `lastTradeTimestamp` timestamp may have no value and may be `undefined/None/null` where not supported by the exchange or in case of an open order (an order that has not been filled nor partially filled yet).
+- The `lastTradeTimestamp`, if any, designates the timestamp of the last trade, in case the order is filled fully or partially, otherwise `lastTradeTimestamp` is `undefined/None/null`.
+- Order `status` prevails or has precedence over the `lastTradeTimestamp`.
 
 ### Placing Orders
 

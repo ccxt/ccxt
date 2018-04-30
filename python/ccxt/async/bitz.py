@@ -132,6 +132,9 @@ class bitz (Exchange):
             'options': {
                 'lastNonceTimestamp': 0,
             },
+            'commonCurrencies': {
+                'PXC': 'Pixiecoin',
+            },
         })
 
     async def fetch_markets(self):
@@ -301,6 +304,7 @@ class bitz (Exchange):
             'id': order['id'],
             'datetime': iso8601,
             'timestamp': timestamp,
+            'lastTradeTimestamp': None,
             'status': 'open',
             'symbol': symbol,
             'type': 'limit',
@@ -319,6 +323,8 @@ class bitz (Exchange):
         await self.load_markets()
         market = self.market(symbol)
         orderType = 'in' if (side == 'buy') else 'out'
+        if not self.password:
+            raise ExchangeError(self.id + ' createOrder() requires you to set exchange.password = "YOUR_TRADING_PASSWORD"(a trade password is NOT THE SAME as your login password)')
         request = {
             'coin': market['id'],
             'type': orderType,

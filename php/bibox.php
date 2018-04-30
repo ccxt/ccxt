@@ -93,6 +93,9 @@ class bibox extends Exchange {
                 '4000' => '\\ccxt\\ExchangeNotAvailable', // current network is unstable
                 '4003' => '\\ccxt\\DDoSProtection', // server busy please try again later
             ),
+            'commonCurrencies' => array (
+                'KEY' => 'Bihu',
+            ),
         ));
     }
 
@@ -430,6 +433,7 @@ class bibox extends Exchange {
             'id' => $this->safe_string($order, 'id'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,

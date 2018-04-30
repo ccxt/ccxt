@@ -268,6 +268,7 @@ module.exports = class lykke extends Exchange {
             'id': order['Id'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': undefined,
             'side': undefined,

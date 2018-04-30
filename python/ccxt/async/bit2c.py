@@ -224,6 +224,7 @@ class bit2c (Exchange):
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'status': self.safe_string(order, 'status'),
             'symbol': symbol,
             'type': None,

@@ -243,13 +243,16 @@ module.exports = class bitbank extends Exchange {
         for (let i = 0; i < balances.length; i++) {
             let balance = balances[i];
             let id = balance['asset'];
-            let currency = this.commonCurrencyCode (id);
+            let code = id;
+            if (id in this.currencies_by_id) {
+                code = this.currencies_by_id[id]['code'];
+            }
             let account = {
                 'free': parseFloat (balance['free_amount']),
                 'used': parseFloat (balance['locked_amount']),
                 'total': parseFloat (balance['onhand_amount']),
             };
-            result[currency] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
@@ -285,6 +288,7 @@ module.exports = class bitbank extends Exchange {
             'id': this.safeString (order, 'order_id'),
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
+            'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
             'type': order['type'],

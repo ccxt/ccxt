@@ -128,6 +128,8 @@ The ccxt library currently supports the following cryptocurrency exchange market
 +----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | Hong Kong                  | |mixcoins|             | mixcoins             | `MixCoins <https://mixcoins.com>`__                            | 1     | `API <https://mixcoins.com/help/api/>`__                                                          |
 +----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
+| Hong Kong                  | |tidebit|              | tidebit              | `TideBit <https://www.tidebit.com>`__                          | 2     | `API <https://www.tidebit.com/documents/api_v2>`__                                                |
++----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | Iceland                    | |btcx|                 | btcx                 | `BTCX <https://btc-x.is>`__                                    | 1     | `API <https://btc-x.is/custom/api-document.html>`__                                               |
 +----------------------------+------------------------+----------------------+----------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | India                      | |coinexchange|         | coinexchange         | `CoinExchange <https://www.coinexchange.io>`__                 | \*    | `API <https://coinexchangeio.github.io/slate/>`__                                                 |
@@ -372,6 +374,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
 .. |gatecoin| image:: https://user-images.githubusercontent.com/1294454/28646817-508457f2-726c-11e7-9eeb-3528d2413a58.jpg
 .. |kucoin| image:: https://user-images.githubusercontent.com/1294454/33795655-b3c46e48-dcf6-11e7-8abe-dc4588ba7901.jpg
 .. |mixcoins| image:: https://user-images.githubusercontent.com/1294454/30237212-ed29303c-9535-11e7-8af8-fcd381cfa20c.jpg
+.. |tidebit| image:: https://user-images.githubusercontent.com/1294454/39034921-e3acf016-4480-11e8-9945-a6086a1082fe.jpg
 .. |coinexchange| image:: https://user-images.githubusercontent.com/1294454/34842303-29c99fca-f71c-11e7-83c1-09d900cb2334.jpg
 .. |coinsecure| image:: https://user-images.githubusercontent.com/1294454/27766472-9cbd200a-5ed9-11e7-9551-2267ad7bac08.jpg
 .. |coincheck| image:: https://user-images.githubusercontent.com/1294454/27766464-3b5c3c74-5ed9-11e7-840e-31b32968e1da.jpg

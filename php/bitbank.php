@@ -244,13 +244,16 @@ class bitbank extends Exchange {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $id = $balance['asset'];
-            $currency = $this->common_currency_code($id);
+            $code = $id;
+            if (is_array ($this->currencies_by_id) && array_key_exists ($id, $this->currencies_by_id)) {
+                $code = $this->currencies_by_id[$id]['code'];
+            }
             $account = array (
                 'free' => floatval ($balance['free_amount']),
                 'used' => floatval ($balance['locked_amount']),
                 'total' => floatval ($balance['onhand_amount']),
             );
-            $result[$currency] = $account;
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
@@ -286,6 +289,7 @@ class bitbank extends Exchange {
             'id' => $this->safe_string($order, 'order_id'),
             'datetime' => $this->iso8601 ($timestamp),
             'timestamp' => $timestamp,
+            'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
             'type' => $order['type'],

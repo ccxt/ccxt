@@ -22,12 +22,11 @@ class bittrex extends Exchange {
                 'CORS' => true,
                 'createMarketOrder' => false,
                 'fetchDepositAddress' => true,
-                'fetchClosedOrders' => 'emulated',
+                'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchMyTrades' => false,
                 'fetchOHLCV' => true,
                 'fetchOrder' => true,
-                'fetchOrders' => true,
                 'fetchOpenOrders' => true,
                 'fetchTickers' => true,
                 'withdraw' => true,
@@ -85,6 +84,7 @@ class bittrex extends Exchange {
                         'depositaddress',
                         'deposithistory',
                         'order',
+                        'orders',
                         'orderhistory',
                         'withdrawalhistory',
                         'withdraw',
@@ -138,6 +138,7 @@ class bittrex extends Exchange {
                 ),
             ),
             'exceptions' => array (
+                'Call to Cancel was throttled. Try again in 60 seconds.' => '\\ccxt\\DDoSProtection',
                 'APISIGN_NOT_PROVIDED' => '\\ccxt\\AuthenticationError',
                 'INVALID_SIGNATURE' => '\\ccxt\\AuthenticationError',
                 'INVALID_CURRENCY' => '\\ccxt\\ExchangeError',
@@ -149,6 +150,9 @@ class bittrex extends Exchange {
                 'UUID_INVALID' => '\\ccxt\\OrderNotFound',
                 'RATE_NOT_PROVIDED' => '\\ccxt\\InvalidOrder', // createLimitBuyOrder ('ETH/BTC', 1, 0)
                 'WHITELIST_VIOLATION_IP' => '\\ccxt\\PermissionDenied',
+            ),
+            'options' => array (
+                'parseOrderStatus' => false,
             ),
         ));
     }
@@ -316,7 +320,7 @@ class bittrex extends Exchange {
                 'name' => $currency['CurrencyLong'],
                 'active' => $currency['IsActive'],
                 'status' => 'ok',
-                'fee' => $currency['TxFee'], // todo => redesign
+                'fee' => $this->safe_float($currency, 'TxFee'), // todo => redesign
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
@@ -506,25 +510,31 @@ class bittrex extends Exchange {
             $status = 'closed';
         if ((is_array ($order) && array_key_exists ('CancelInitiated', $order)) && $order['CancelInitiated'])
             $status = 'canceled';
+        if ((is_array ($order) && array_key_exists ('Status', $order)) && $this->options['parseOrderStatus'])
+            $status = $this->parse_order_status($order['Status']);
         $symbol = null;
-        if (!$market) {
-            if (is_array ($order) && array_key_exists ('Exchange', $order)) {
-                $marketId = $order['Exchange'];
-                if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
-                    $market = $this->markets_by_id[$marketId];
-                else
-                    $symbol = $this->parse_symbol ($marketId);
+        if (is_array ($order) && array_key_exists ('Exchange', $order)) {
+            $marketId = $order['Exchange'];
+            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
+                $symbol = $this->markets_by_id[$marketId]['symbol'];
+            else
+                $symbol = $this->parse_symbol ($marketId);
+        } else {
+            if ($market) {
+                $symbol = $market['symbol'];
             }
         }
-        if ($market)
-            $symbol = $market['symbol'];
         $timestamp = null;
         if (is_array ($order) && array_key_exists ('Opened', $order))
             $timestamp = $this->parse8601 ($order['Opened'] . '+00:00');
-        if (is_array ($order) && array_key_exists ('TimeStamp', $order))
-            $timestamp = $this->parse8601 ($order['TimeStamp'] . '+00:00');
         if (is_array ($order) && array_key_exists ('Created', $order))
             $timestamp = $this->parse8601 ($order['Created'] . '+00:00');
+        $iso8601 = ($timestamp !== null) ? $this->iso8601 ($timestamp) : null;
+        $lastTradeTimestamp = null;
+        if ((is_array ($order) && array_key_exists ('TimeStamp', $order)) && ($order['TimeStamp'] != null))
+            $lastTradeTimestamp = $this->parse8601 ($order['TimeStamp'] . '+00:00');
+        if ((is_array ($order) && array_key_exists ('Closed', $order)) && ($order['Closed'] != null))
+            $lastTradeTimestamp = $this->parse8601 ($order['Closed'] . '+00:00');
         $fee = null;
         $commission = null;
         if (is_array ($order) && array_key_exists ('Commission', $order)) {
@@ -560,7 +570,8 @@ class bittrex extends Exchange {
             'info' => $order,
             'id' => $id,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $iso8601,
+            'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
             'type' => 'limit',
             'side' => $side,
@@ -595,7 +606,7 @@ class bittrex extends Exchange {
         return $this->parse_order($response['result']);
     }
 
-    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array ();
         $market = null;
@@ -608,11 +619,6 @@ class bittrex extends Exchange {
         if ($symbol)
             return $this->filter_by_symbol($orders, $symbol);
         return $orders;
-    }
-
-    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $orders = $this->fetch_orders($symbol, $since, $limit, $params);
-        return $this->filter_by($orders, 'status', 'closed');
     }
 
     public function fetch_deposit_address ($code, $params = array ()) {

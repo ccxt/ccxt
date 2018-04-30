@@ -483,6 +483,7 @@ class hitbtc extends Exchange {
                 ),
             ),
             'commonCurrencies' => array (
+                'BCC' => 'BCC',
                 'XBT' => 'BTC',
                 'DRK' => 'DASH',
                 'CAT' => 'BitClave',
@@ -793,6 +794,7 @@ class hitbtc extends Exchange {
             'info' => $order,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
             'type' => $order['type'],

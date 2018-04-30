@@ -152,6 +152,7 @@ class luno extends Exchange {
             'id' => $order['order_id'],
             'datetime' => $this->iso8601 ($timestamp),
             'timestamp' => $timestamp,
+            'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
             'type' => null,
