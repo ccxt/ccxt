@@ -371,6 +371,41 @@ module.exports = class liqui extends Exchange {
         return this.parseBalance (result);
     }
 
+    async fetchSessionFromWeb (params = {}) {
+        let response = await this.webPostUserLogin (this.extend ({
+            'login': this.login, // "username" for tidex
+            'password': this.password,
+        }, params));
+        //
+        //  {  Info: {  IsSuccess:  true,
+        //             ServerTime: "00:00:00.0492898",
+        //                   Time: "00:00:00",
+        //                 Errors:  null               },
+        //    Value: { ConfirmType:    3,
+        //                 Attempt:    0,
+        //               ResetTime:   "00:00:00",
+        //                 Session: {    SessionId:    2720739,
+        //                              SessionKey:   "pu8elzu1njne057ulb6h86alv1n39z84",
+        //                               SessionIp:   "5.228.227.214",
+        //                             CountryCode:    null,
+        //                               IsConfirm:    false,
+        //                                 IsNewIp:    false,
+        //                                YellowIp:    false,
+        //                                  UserId:    53500,
+        //                                   Login:    null,
+        //                                   Email:    null,
+        //                                    Info:    null,
+        //                              CreateTime:    1524108487,
+        //                                 Current:    false,
+        //                              Permission: {            DenyLogin: false,
+        //                                                       DenyTrade: false,
+        //                                                    DenyWithdraw: false,
+        //                                            DenySecuritySettings: false  },
+        //                            DenySecTrade:    true                               } } }
+        //
+        return response['Value']['Session']['SessionKey'];
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostGetInfo ();
