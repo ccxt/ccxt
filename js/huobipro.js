@@ -671,12 +671,14 @@ module.exports = class huobipro extends Exchange {
         };
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        await this.loadMarkets ();
         this.checkAddress (address);
+        let currency = this.currency (code);
         let request = {
             'address': address, // only supports existing addresses in your withdraw address list
             'amount': amount,
-            'currency': currency.toLowerCase (),
+            'currency': currency['id'],
         };
         if (tag)
             request['addr-tag'] = tag; // only for XRP?
