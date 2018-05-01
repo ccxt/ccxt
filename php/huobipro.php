@@ -672,12 +672,14 @@ class huobipro extends Exchange {
         );
     }
 
-    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+        $this->load_markets();
         $this->check_address($address);
+        $currency = $this->currency ($code);
         $request = array (
             'address' => $address, // only supports existing addresses in your withdraw $address list
             'amount' => $amount,
-            'currency' => strtolower ($currency),
+            'currency' => $currency['id'],
         );
         if ($tag)
             $request['addr-tag'] = $tag; // only for XRP?
