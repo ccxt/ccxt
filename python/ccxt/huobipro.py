@@ -632,12 +632,14 @@ class huobipro (Exchange):
             'cost': float(self.fee_to_precision(market[key], cost)),
         }
 
-    def withdraw(self, currency, amount, address, tag=None, params={}):
+    def withdraw(self, code, amount, address, tag=None, params={}):
+        self.load_markets()
         self.check_address(address)
+        currency = self.currency(code)
         request = {
             'address': address,  # only supports existing addresses in your withdraw address list
             'amount': amount,
-            'currency': currency.lower(),
+            'currency': currency['id'],
         }
         if tag:
             request['addr-tag'] = tag  # only for XRP?

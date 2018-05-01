@@ -162,8 +162,11 @@ class bibox (Exchange):
         if market:
             symbol = market['symbol']
         else:
-            symbol = ticker['coin_symbol'] + '/' + ticker['currency_symbol']
+            base = ticker['coin_symbol']
+            quote = ticker['currency_symbol']
+            symbol = self.common_currency_code(base) + '/' + self.common_currency_code(quote)
         last = self.safe_float(ticker, 'last')
+        change = self.safe_float(ticker, 'change')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -175,15 +178,15 @@ class bibox (Exchange):
             'ask': self.safe_float(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
-            'open': None,
+            'open': last - change,
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': None,
+            'change': change,
             'percentage': self.safe_string(ticker, 'percent'),
             'average': None,
             'baseVolume': self.safe_float(ticker, 'vol24H'),
-            'quoteVolume': None,
+            'quoteVolume': self.safe_float(ticker, 'amount'),
             'info': ticker,
         }
 
@@ -295,7 +298,7 @@ class bibox (Exchange):
             precision = 8
             deposit = currency['enable_deposit']
             withdraw = currency['enable_withdraw']
-            active = (deposit and withdraw)
+            active = True if (deposit and withdraw) else False
             result[code] = {
                 'id': id,
                 'code': code,
