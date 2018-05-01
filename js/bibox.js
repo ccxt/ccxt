@@ -151,6 +151,7 @@ module.exports = class bibox extends Exchange {
             symbol = ticker['coin_symbol'] + '/' + ticker['currency_symbol'];
         }
         let last = this.safeFloat (ticker, 'last');
+        let change = this.safeFloat (ticker, 'change');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -162,15 +163,15 @@ module.exports = class bibox extends Exchange {
             'ask': this.safeFloat (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': undefined,
+            'open': last - change,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': undefined,
+            'change': change,
             'percentage': this.safeString (ticker, 'percent'),
             'average': undefined,
             'baseVolume': this.safeFloat (ticker, 'vol24H'),
-            'quoteVolume': undefined,
+            'quoteVolume': this.safeFloat (ticker, 'amount'),
             'info': ticker,
         };
     }
