@@ -653,7 +653,7 @@ module.exports = class okcoinusd extends Exchange {
             'symbol': currencyId,
             'withdraw_address': address,
             'withdraw_amount': amount,
-            'target': 'address', // or okcn, okcom, okex
+            'target': 'address', // or 'okcn', 'okcom', 'okex'
         };
         let query = params;
         if ('chargefee' in query) {
