@@ -179,7 +179,7 @@ module.exports = class bittrex extends Exchange {
                 'amount': 8,
                 'price': 8,
             };
-            let active = market['IsActive'];
+            let active = market['IsActive'] || market['IsActive'] === 'true';
             result.push ({
                 'id': id,
                 'symbol': symbol,
