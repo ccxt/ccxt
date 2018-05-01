@@ -298,7 +298,7 @@ module.exports = class bibox extends Exchange {
             let precision = 8;
             let deposit = currency['enable_deposit'];
             let withdraw = currency['enable_withdraw'];
-            let active = (deposit && withdraw);
+            let active = (deposit && withdraw) ? true : false;
             result[code] = {
                 'id': id,
                 'code': code,
