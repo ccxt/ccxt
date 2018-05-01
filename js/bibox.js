@@ -143,12 +143,15 @@ module.exports = class bibox extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        this.loadMarkets ();
         let timestamp = this.safeInteger (ticker, 'timestamp', this.seconds ());
         let symbol = undefined;
         if (market) {
             symbol = market['symbol'];
         } else {
-            symbol = ticker['coin_symbol'] + '/' + ticker['currency_symbol'];
+            let base = ticker['coin_symbol'];
+            let quote = ticker['currency_symbol'];
+            symbol = this.commonCurrencyCode (base) + '/' + this.commonCurrencyCode (quote);
         }
         let last = this.safeFloat (ticker, 'last');
         let change = this.safeFloat (ticker, 'change');
