@@ -378,6 +378,40 @@ class liqui (Exchange):
             result[code] = account
         return self.parse_balance(result)
 
+    async def fetch_session_from_web(self, params={}):
+        response = await self.webPostUserLogin(self.extend({
+            'login': self.login,  # "username" for tidex
+            'password': self.password,
+        }, params))
+        #
+        #  { Info: { IsSuccess:  True,
+        #             ServerTime: "00:00:00.0492898",
+        #                   Time: "00:00:00",
+        #                 Errors:  null               },
+        #    Value: {ConfirmType:    3,
+        #                 Attempt:    0,
+        #               ResetTime:   "00:00:00",
+        #                 Session: {   SessionId:    2720739,
+        #                              SessionKey:   "pu8elzu1njne057ulb6h86alv1n39z84",
+        #                               SessionIp:   "5.228.227.214",
+        #                             CountryCode:    null,
+        #                               IsConfirm:    False,
+        #                                 IsNewIp:    False,
+        #                                YellowIp:    False,
+        #                                  UserId:    53500,
+        #                                   Login:    null,
+        #                                   Email:    null,
+        #                                    Info:    null,
+        #                              CreateTime:    1524108487,
+        #                                 Current:    False,
+        #                              Permission: {           DenyLogin: False,
+        #                                                       DenyTrade: False,
+        #                                                    DenyWithdraw: False,
+        #                                            DenySecuritySettings: False  },
+        #                            DenySecTrade:    True                               }} }
+        #
+        return response['Value']['Session']['SessionKey']
+
     async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privatePostGetInfo()

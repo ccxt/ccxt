@@ -376,6 +376,41 @@ class liqui extends Exchange {
         return $this->parse_balance($result);
     }
 
+    public function fetch_session_from_web ($params = array ()) {
+        $response = $this->webPostUserLogin (array_merge (array (
+            'login' => $this->login, // "username" for tidex
+            'password' => $this->password,
+        ), $params));
+        //
+        //  {  Info => array (  IsSuccess =>  true,
+        //             ServerTime => "00:00:00.0492898",
+        //                   Time => "00:00:00",
+        //                 Errors =>  null               ),
+        //    Value => { ConfirmType =>    3,
+        //                 Attempt =>    0,
+        //               ResetTime =>   "00:00:00",
+        //                 Session => {    SessionId =>    2720739,
+        //                              SessionKey =>   "pu8elzu1njne057ulb6h86alv1n39z84",
+        //                               SessionIp =>   "5.228.227.214",
+        //                             CountryCode =>    null,
+        //                               IsConfirm =>    false,
+        //                                 IsNewIp =>    false,
+        //                                YellowIp =>    false,
+        //                                  UserId =>    53500,
+        //                                   Login =>    null,
+        //                                   Email =>    null,
+        //                                    Info =>    null,
+        //                              CreateTime =>    1524108487,
+        //                                 Current =>    false,
+        //                              Permission => array (            DenyLogin => false,
+        //                                                       DenyTrade => false,
+        //                                                    DenyWithdraw => false,
+        //                                            DenySecuritySettings => false  ),
+        //                            DenySecTrade =>    true                               } } }
+        //
+        return $response['Value']['Session']['SessionKey'];
+    }
+
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostGetInfo ();
