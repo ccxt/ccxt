@@ -180,7 +180,7 @@ class bittrex extends Exchange {
                 'amount' => 8,
                 'price' => 8,
             );
-            $active = $market['IsActive'];
+            $active = $market['IsActive'] || $market['IsActive'] === 'true';
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,

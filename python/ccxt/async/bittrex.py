@@ -193,7 +193,7 @@ class bittrex (Exchange):
                 'amount': 8,
                 'price': 8,
             }
-            active = market['IsActive']
+            active = market['IsActive'] or market['IsActive'] == 'true'
             result.append({
                 'id': id,
                 'symbol': symbol,
