@@ -138,6 +138,7 @@ module.exports = class bittrex extends Exchange {
             },
             'exceptions': {
                 'Call to Cancel was throttled. Try again in 60 seconds.': DDoSProtection,
+                'Call to GetBalances was throttled. Try again in 60 seconds.': DDoSProtection,
                 'APISIGN_NOT_PROVIDED': AuthenticationError,
                 'INVALID_SIGNATURE': AuthenticationError,
                 'INVALID_CURRENCY': ExchangeError,
