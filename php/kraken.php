@@ -561,6 +561,7 @@ class kraken extends Exchange {
             'side' => $side,
             'price' => $price,
             'amount' => $amount,
+            'cost' => $price * $amount,
             'fee' => $fee,
         );
     }
