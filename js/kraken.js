@@ -190,6 +190,7 @@ module.exports = class kraken extends Exchange {
             },
             'exceptions': {
                 'EFunding:Unknown withdraw key': ExchangeError,
+                'EFunding:Invalid amount': InsufficientFunds,
                 'EService:Unavailable': ExchangeNotAvailable,
                 'EDatabase:Internal error': ExchangeNotAvailable,
                 'EService:Busy': DDoSProtection,
@@ -754,22 +755,22 @@ module.exports = class kraken extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        let market = this.market (symbol);
         let request = {};
         if (typeof since !== 'undefined')
             request['start'] = parseInt (since / 1000);
         let response = await this.privatePostOpenOrders (this.extend (request, params));
-        let orders = this.parseOrders (response['result']['open'], undefined, since, limit);
-        return this.filterBySymbol (orders, symbol);
+        return this.parseOrders (response['result']['open'], market, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        let market = this.market (symbol);
         let request = {};
         if (typeof since !== 'undefined')
             request['start'] = parseInt (since / 1000);
         let response = await this.privatePostClosedOrders (this.extend (request, params));
-        let orders = this.parseOrders (response['result']['closed'], undefined, since, limit);
-        return this.filterBySymbol (orders, symbol);
+        return this.parseOrders (response['result']['closed'], market, since, limit);
     }
 
     async fetchDepositMethods (code, params = {}) {
