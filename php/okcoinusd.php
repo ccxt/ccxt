@@ -654,7 +654,7 @@ class okcoinusd extends Exchange {
             'symbol' => $currencyId,
             'withdraw_address' => $address,
             'withdraw_amount' => $amount,
-            'target' => 'address', // or okcn, okcom, okex
+            'target' => 'address', // or 'okcn', 'okcom', 'okex'
         );
         $query = $params;
         if (is_array ($query) && array_key_exists ('chargefee', $query)) {

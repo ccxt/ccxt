@@ -138,7 +138,8 @@ class bittrex extends Exchange {
                 ),
             ),
             'exceptions' => array (
-                'Call to Cancel was throttled. Try again in 60 seconds.' => '\\ccxt\\DDoSProtection',
+                // 'Call to Cancel was throttled. Try again in 60 seconds.' => '\\ccxt\\DDoSProtection',
+                // 'Call to GetBalances was throttled. Try again in 60 seconds.' => '\\ccxt\\DDoSProtection',
                 'APISIGN_NOT_PROVIDED' => '\\ccxt\\AuthenticationError',
                 'INVALID_SIGNATURE' => '\\ccxt\\AuthenticationError',
                 'INVALID_CURRENCY' => '\\ccxt\\ExchangeError',
@@ -716,6 +717,8 @@ class bittrex extends Exchange {
                 $exceptions = $this->exceptions;
                 if (is_array ($exceptions) && array_key_exists ($message, $exceptions))
                     throw new $exceptions[$message] ($feedback);
+                if (($message !== null) && (mb_strpos ($message, 'throttled. Try again') !== false))
+                    throw new DDoSProtection ($feedback);
                 if ($message === 'APIKEY_INVALID') {
                     if ($this->hasAlreadyAuthenticatedSuccessfully) {
                         throw new DDoSProtection ($feedback);

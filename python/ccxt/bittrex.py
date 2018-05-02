@@ -154,7 +154,8 @@ class bittrex (Exchange):
                 },
             },
             'exceptions': {
-                'Call to Cancel was throttled. Try again in 60 seconds.': DDoSProtection,
+                # 'Call to Cancel was throttled. Try again in 60 seconds.': DDoSProtection,
+                # 'Call to GetBalances was throttled. Try again in 60 seconds.': DDoSProtection,
                 'APISIGN_NOT_PROVIDED': AuthenticationError,
                 'INVALID_SIGNATURE': AuthenticationError,
                 'INVALID_CURRENCY': ExchangeError,
@@ -681,6 +682,8 @@ class bittrex (Exchange):
                 exceptions = self.exceptions
                 if message in exceptions:
                     raise exceptions[message](feedback)
+                if (message is not None) and(message.find('throttled. Try again') >= 0):
+                    raise DDoSProtection(feedback)
                 if message == 'APIKEY_INVALID':
                     if self.hasAlreadyAuthenticatedSuccessfully:
                         raise DDoSProtection(feedback)
