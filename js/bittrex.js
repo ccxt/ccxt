@@ -716,7 +716,7 @@ module.exports = class bittrex extends Exchange {
                 const exceptions = this.exceptions;
                 if (message in exceptions)
                     throw new exceptions[message] (feedback);
-                if (message.indexOf ('throttled. Try again') >= 0)
+                if ((typeof message !== 'undefined') && (message.indexOf ('throttled. Try again') >= 0))
                     throw new DDoSProtection (feedback);
                 if (message === 'APIKEY_INVALID') {
                     if (this.hasAlreadyAuthenticatedSuccessfully) {
