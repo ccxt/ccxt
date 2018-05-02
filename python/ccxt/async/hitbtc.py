@@ -16,7 +16,7 @@ class hitbtc (Exchange):
         return self.deep_extend(super(hitbtc, self).describe(), {
             'id': 'hitbtc',
             'name': 'HitBTC',
-            'countries': 'UK',
+            'countries': 'HK',
             'rateLimit': 1500,
             'version': '1',
             'has': {
