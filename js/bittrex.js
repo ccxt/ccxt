@@ -137,8 +137,8 @@ module.exports = class bittrex extends Exchange {
                 },
             },
             'exceptions': {
-                'Call to Cancel was throttled. Try again in 60 seconds.': DDoSProtection,
-                'Call to GetBalances was throttled. Try again in 60 seconds.': DDoSProtection,
+                // 'Call to Cancel was throttled. Try again in 60 seconds.': DDoSProtection,
+                // 'Call to GetBalances was throttled. Try again in 60 seconds.': DDoSProtection,
                 'APISIGN_NOT_PROVIDED': AuthenticationError,
                 'INVALID_SIGNATURE': AuthenticationError,
                 'INVALID_CURRENCY': ExchangeError,
@@ -716,6 +716,8 @@ module.exports = class bittrex extends Exchange {
                 const exceptions = this.exceptions;
                 if (message in exceptions)
                     throw new exceptions[message] (feedback);
+                if (message.indexOf ('throttled. Try again') >= 0)
+                    throw new DDoSProtection (feedback);
                 if (message === 'APIKEY_INVALID') {
                     if (this.hasAlreadyAuthenticatedSuccessfully) {
                         throw new DDoSProtection (feedback);
