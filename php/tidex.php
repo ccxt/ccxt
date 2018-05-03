@@ -53,12 +53,10 @@ class tidex extends liqui {
                         'trade-data',
                         'user/warning-states',
                         'deposits/dw-pack',
+                        'register/logout',
                     ),
                     'post' => array (
                         'token',
-                    ),
-                    'options' => array (
-                        'register/logout',
                     ),
                 ),
             ),
@@ -78,6 +76,7 @@ class tidex extends liqui {
                 'fetchBalanceFromWebMethod' => 'gateGetDepositsDwPack',
                 'fetchMarketsFromWebMethod' => 'webGetPairs',
                 'fetchCurrenciesFromWebMethod' => 'webGetCurrency',
+                'logoutMethod' => 'gateGetRegisterLogout',
                 'capitalizeFields' => false,
             ),
         ));
@@ -179,7 +178,8 @@ class tidex extends liqui {
 
     public function logout () {
         // does not work yet
-        $response = $this->gateOptionsRegisterLogout ();
+        $method = $this->options['logoutMethod'];
+        $response = $this->$method ();
         return array (
             'info' => $response,
         );

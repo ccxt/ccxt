@@ -53,12 +53,10 @@ class tidex (liqui):
                         'trade-data',
                         'user/warning-states',
                         'deposits/dw-pack',
+                        'register/logout',
                     ],
                     'post': [
                         'token',
-                    ],
-                    'options': [
-                        'register/logout',
                     ],
                 },
             },
@@ -78,6 +76,7 @@ class tidex (liqui):
                 'fetchBalanceFromWebMethod': 'gateGetDepositsDwPack',
                 'fetchMarketsFromWebMethod': 'webGetPairs',
                 'fetchCurrenciesFromWebMethod': 'webGetCurrency',
+                'logoutMethod': 'gateGetRegisterLogout',
                 'capitalizeFields': False,
             },
         })
@@ -171,7 +170,8 @@ class tidex (liqui):
 
     def logout(self):
         # does not work yet
-        response = self.gateOptionsRegisterLogout()
+        method = self.options['logoutMethod']
+        response = getattr(self, method)()
         return {
             'info': response,
         }
