@@ -46,17 +46,6 @@ module.exports = class tidex extends liqui {
                         'trade-data/{id}',
                     ],
                 },
-                'gate': {
-                    'get': [
-                        'trade-data',
-                        'user/warning-states',
-                        'deposits/dw-pack',
-                        'register/logout',
-                    ],
-                    'post': [
-                        'token',
-                    ],
-                },
             },
             'fees': {
                 'trading': {
@@ -69,13 +58,6 @@ module.exports = class tidex extends liqui {
             'commonCurrencies': {
                 'MGO': 'WMGO',
                 'EMGO': 'MGO',
-            },
-            'options': {
-                'fetchBalanceFromWebMethod': 'gateGetDepositsDwPack',
-                'fetchMarketsFromWebMethod': 'webGetPairs',
-                'fetchCurrenciesFromWebMethod': 'webGetCurrency',
-                'logoutMethod': 'gateGetRegisterLogout',
-                'capitalizeFields': false,
             },
         });
     }
@@ -146,41 +128,6 @@ module.exports = class tidex extends liqui {
 
     getVersionString () {
         return '';
-    }
-
-    async fetchSession (params = {}) {
-        let response = await this.gatePostToken (this.extend ({
-            'username': this.login,
-            'password': this.password,
-        }, params));
-        // { Session: "2p4kah9c0sls0fetcaoetmb7792m3og9", IsTwoFa: true, Type: 3 }
-        return {
-            'info': response,
-            'session': response['Session'],
-        };
-    }
-
-    async activateSession (session, twofa, params = {}) {
-        let request = {
-            'username': this.login,
-            'password': this.password,
-            'key': session,
-            'code': twofa,
-        };
-        const response = await this.gatePostToken (request);
-        this.headers['Authorization'] = 'Bearer ' + response['access_token'];
-        return {
-            'info': response,
-        };
-    }
-
-    async logout () {
-        // does not work yet
-        let method = this.options['logoutMethod'];
-        const response = await this[method] ();
-        return {
-            'info': response,
-        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
