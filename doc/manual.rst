@@ -2075,9 +2075,9 @@ As the price and amount of the incoming sell (ask) order cover more than one bid
 
 3. Order ``b`` now has a status of ``closed`` and a filled volume of 100. It contains one trade against the selling order. The selling order has ``open`` status and a filled volume of 100. It contains one trade against order ``b``. Thus each order has just one fill-trade so far.
 
-4. The incoming sell order has a filled amount of 100 and has yet to fill the reamining amount of 50 from its initial amount of 150 in total.
+4. The incoming sell order has a filled amount of 100 and has yet to fill the remaining amount of 50 from its initial amount of 150 in total.
 
-5. Order ``i`` is matched against the remaining part of incoming sell, because their prices intersect. The amount of buying order ``i`` which is 200 completely annihilates the reamining sell amount of 50. The order ``i`` is filled partially by 50, but the rest of its volume, namely the remaining amount of 150 will stay in the orderbook. The selling order, however, is filled completely by this second match.
+5. Order ``i`` is matched against the remaining part of incoming sell, because their prices intersect. The amount of buying order ``i`` which is 200 completely annihilates the remaining sell amount of 50. The order ``i`` is filled partially by 50, but the rest of its volume, namely the remaining amount of 150 will stay in the orderbook. The selling order, however, is filled completely by this second match.
 
 6. A trade is generated for the order ``i`` against the incoming sell order. That trade partially fills order ``i``. And completes the filling of the sell order. Again, this is just one trade for a pair of matched orders.
 
