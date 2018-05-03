@@ -420,7 +420,7 @@ class Exchange(object):
     def parse_json(self, response, url, method):
         try:
             return response.json()
-        except ValueError as e:  # ValueError == JsonDecodeError
+        except json.JSONDecodeError as e:
             self.default_error_handler(e, response.status_code, response.text, url, method)
 
             message = response.text + '\nExchange downtime, exchange closed for maintenance or offline, DDoS protection or rate-limiting in effect.'
