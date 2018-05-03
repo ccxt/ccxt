@@ -257,6 +257,7 @@ class binance extends Exchange {
             ),
             // exchange-specific options
             'options' => array (
+                'hasAlreadyAuthenticatedSuccessfully' => false,
                 'warnOnFetchOpenOrdersWithoutSymbol' => true,
                 'recvWindow' => 5 * 1000, // 5 sec, binance default
                 'timeDifference' => 0, // the difference between system clock and Binance clock
@@ -866,6 +867,12 @@ class binance extends Exchange {
                 if ($error !== null) {
                     $exceptions = $this->exceptions;
                     if (is_array ($exceptions) && array_key_exists ($error, $exceptions)) {
+                        // a workaround for array ("$code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
+                        // despite that their message is very confusing, it is raised by Binance
+                        // on a temporary ban (the API key is valid, but disabled for a while)
+                        if (($error === '-2015') && $this->options['hasAlreadyAuthenticatedSuccessfully']) {
+                            throw new DDoSProtection ($this->id . ' temporary banned => ' . $body);
+                        }
                         throw new $exceptions[$error] ($this->id . ' ' . $body);
                     } else {
                         throw new ExchangeError ($this->id . ' => unknown $error $code => ' . $body . ' ' . $error);
@@ -876,5 +883,13 @@ class binance extends Exchange {
                 }
             }
         }
+    }
+
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
+        // a workaround for array ("code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
+        if (($api === 'private') || ($api === 'wapi'))
+            $this->options['hasAlreadyAuthenticatedSuccessfully'] = true;
+        return $response;
     }
 }

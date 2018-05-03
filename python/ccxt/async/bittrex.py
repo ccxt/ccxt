@@ -32,7 +32,6 @@ class bittrex (Exchange):
             'countries': 'US',
             'version': 'v1.1',
             'rateLimit': 1500,
-            'hasAlreadyAuthenticatedSuccessfully': False,  # a workaround for APIKEY_INVALID
             # new metainfo interface
             'has': {
                 'CORS': True,
@@ -170,6 +169,7 @@ class bittrex (Exchange):
             },
             'options': {
                 'parseOrderStatus': False,
+                'hasAlreadyAuthenticatedSuccessfully': False,  # a workaround for APIKEY_INVALID
             },
         })
 
@@ -685,7 +685,7 @@ class bittrex (Exchange):
                 if (message is not None) and(message.find('throttled. Try again') >= 0):
                     raise DDoSProtection(feedback)
                 if message == 'APIKEY_INVALID':
-                    if self.hasAlreadyAuthenticatedSuccessfully:
+                    if self.options['hasAlreadyAuthenticatedSuccessfully']:
                         raise DDoSProtection(feedback)
                     else:
                         raise AuthenticationError(feedback)
@@ -697,5 +697,5 @@ class bittrex (Exchange):
         response = await self.fetch2(path, api, method, params, headers, body)
         # a workaround for APIKEY_INVALID
         if (api == 'account') or (api == 'market'):
-            self.hasAlreadyAuthenticatedSuccessfully = True
+            self.options['hasAlreadyAuthenticatedSuccessfully'] = True
         return response

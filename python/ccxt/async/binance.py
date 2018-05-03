@@ -265,6 +265,7 @@ class binance (Exchange):
             },
             # exchange-specific options
             'options': {
+                'hasAlreadyAuthenticatedSuccessfully': False,
                 'warnOnFetchOpenOrdersWithoutSymbol': True,
                 'recvWindow': 5 * 1000,  # 5 sec, binance default
                 'timeDifference': 0,  # the difference between system clock and Binance clock
@@ -823,8 +824,20 @@ class binance (Exchange):
                 if error is not None:
                     exceptions = self.exceptions
                     if error in exceptions:
+                        # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
+                        # despite that their message is very confusing, it is raised by Binance
+                        # on a temporary ban(the API key is valid, but disabled for a while)
+                        if (error == '-2015') and self.options['hasAlreadyAuthenticatedSuccessfully']:
+                            raise DDoSProtection(self.id + ' temporary banned: ' + body)
                         raise exceptions[error](self.id + ' ' + body)
                     else:
                         raise ExchangeError(self.id + ': unknown error code: ' + body + ' ' + error)
                 if not success:
                     raise ExchangeError(self.id + ': success value False: ' + body)
+
+    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = await self.fetch2(path, api, method, params, headers, body)
+        # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
+        if (api == 'private') or (api == 'wapi'):
+            self.options['hasAlreadyAuthenticatedSuccessfully'] = True
+        return response
