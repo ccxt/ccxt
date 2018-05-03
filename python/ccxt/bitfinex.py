@@ -381,13 +381,17 @@ class bitfinex (Exchange):
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]
         rate = market[takerOrMaker]
-        cost = amount * price
+        cost = amount * rate
         key = 'quote'
+        if side == 'sell':
+            cost *= price
+        else:
+            key = 'base'
         return {
             'type': takerOrMaker,
             'currency': market[key],
             'rate': rate,
-            'cost': float(self.fee_to_precision(market[key], rate * cost)),
+            'cost': float(self.fee_to_precision(market[key], cost)),
         }
 
     def fetch_balance(self, params={}):
