@@ -164,27 +164,27 @@ module.exports = class gateio extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
-        let last = parseFloat (ticker['last']);
+        let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high24hr']),
-            'low': parseFloat (ticker['low24hr']),
-            'bid': parseFloat (ticker['highestBid']),
+            'high': this.safeFloat (ticker, 'high24hr'),
+            'low': this.safeFloat (ticker, 'low24hr'),
+            'bid': this.safeFloat (ticker, 'highestBid'),
             'bidVolume': undefined,
-            'ask': parseFloat (ticker['lowestAsk']),
+            'ask': this.safeFloat (ticker, 'lowestAsk'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': parseFloat (ticker['percentChange']),
+            'change': this.safeFloat (ticker, 'percentChange'),
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': parseFloat (ticker['quoteVolume']),
-            'quoteVolume': parseFloat (ticker['baseVolume']),
+            'baseVolume': this.safeFloat (ticker, 'quoteVolume'),
+            'quoteVolume': this.safeFloat (ticker, 'baseVolume'),
             'info': ticker,
         };
     }
@@ -233,7 +233,7 @@ module.exports = class gateio extends Exchange {
             'symbol': market['symbol'],
             'type': undefined,
             'side': trade['type'],
-            'price': parseFloat (trade['rate']),
+            'price': this.safeFloat (trade, 'rate'),
             'amount': this.safeFloat (trade, 'amount'),
         };
     }
