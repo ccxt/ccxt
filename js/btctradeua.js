@@ -302,8 +302,8 @@ module.exports = class btctradeua extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (!symbol)
-            throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol param');
+        if (typeof symbol === 'undefined')
+            throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol argument');
         let market = this.market (symbol);
         let response = await this.privatePostMyOrdersSymbol (this.extend ({
             'symbol': market['id'],
