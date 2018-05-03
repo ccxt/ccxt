@@ -345,7 +345,7 @@ module.exports = class liqui extends Exchange {
     }
 
     capitalizeField (field) {
-        if (this.options['capitalizeFields'])
+        if (this.options['capitalizeWebFields'])
             return this.capitalize (field);
         return field;
     }
