@@ -51,12 +51,10 @@ module.exports = class tidex extends liqui {
                         'trade-data',
                         'user/warning-states',
                         'deposits/dw-pack',
+                        'register/logout',
                     ],
                     'post': [
                         'token',
-                    ],
-                    'options': [
-                        'register/logout',
                     ],
                 },
             },
@@ -76,6 +74,7 @@ module.exports = class tidex extends liqui {
                 'fetchBalanceFromWebMethod': 'gateGetDepositsDwPack',
                 'fetchMarketsFromWebMethod': 'webGetPairs',
                 'fetchCurrenciesFromWebMethod': 'webGetCurrency',
+                'logoutMethod': 'gateGetRegisterLogout',
                 'capitalizeFields': false,
             },
         });
@@ -177,7 +176,8 @@ module.exports = class tidex extends liqui {
 
     async logout () {
         // does not work yet
-        const response = await this.gateOptionsRegisterLogout ();
+        let method = this.options['logoutMethod'];
+        const response = await this[method] ();
         return {
             'info': response,
         };
