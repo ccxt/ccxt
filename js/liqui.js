@@ -29,10 +29,6 @@ module.exports = class liqui extends Exchange {
                 'api': {
                     'public': 'https://api.liqui.io/api',
                     'private': 'https://api.liqui.io/tapi',
-                    'web': 'https://liqui.io',
-                    'cacheapi': 'https://cacheapi.liqui.io/Market',
-                    'webapi': 'https://webapi.liqui.io/Market',
-                    'charts': 'https://charts.liqui.io/chart',
                 },
                 'www': 'https://liqui.io',
                 'doc': 'https://liqui.io/api',
