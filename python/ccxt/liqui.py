@@ -355,7 +355,7 @@ class liqui (Exchange):
         return result
 
     def capitalize_field(self, field):
-        if self.options['capitalizeFields']:
+        if self.options['capitalizeWebFields']:
             return self.capitalize(field)
         return field
 

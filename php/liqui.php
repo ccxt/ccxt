@@ -350,7 +350,7 @@ class liqui extends Exchange {
     }
 
     public function capitalize_field ($field) {
-        if ($this->options['capitalizeFields'])
+        if ($this->options['capitalizeWebFields'])
             return $this->capitalize ($field);
         return $field;
     }
