@@ -281,8 +281,8 @@ class btctradeua (Exchange):
         }
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        if not symbol:
-            raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol param')
+        if symbol is None:
+            raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol argument')
         market = self.market(symbol)
         response = await self.privatePostMyOrdersSymbol(self.extend({
             'symbol': market['id'],

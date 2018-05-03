@@ -303,8 +303,8 @@ class btctradeua extends Exchange {
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if (!$symbol)
-            throw new ExchangeError ($this->id . ' fetchOpenOrders requires a $symbol param');
+        if ($symbol === null)
+            throw new ExchangeError ($this->id . ' fetchOpenOrders requires a $symbol argument');
         $market = $this->market ($symbol);
         $response = $this->privatePostMyOrdersSymbol (array_merge (array (
             'symbol' => $market['id'],
