@@ -167,6 +167,14 @@ class bibox (Exchange):
             symbol = self.common_currency_code(base) + '/' + self.common_currency_code(quote)
         last = self.safe_float(ticker, 'last')
         change = self.safe_float(ticker, 'change')
+        baseVolume = None
+        if 'vol' in ticker:
+            baseVolume = self.safe_float(ticker, 'vol')
+        else:
+            baseVolume = self.safe_float(ticker, 'vol24H')
+        open = None
+        if (last is not None) and(change is not None):
+            open = last - change
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -178,14 +186,14 @@ class bibox (Exchange):
             'ask': self.safe_float(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
-            'open': last - change,
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': None,
             'change': change,
             'percentage': self.safe_string(ticker, 'percent'),
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'vol24H'),
+            'baseVolume': baseVolume,
             'quoteVolume': self.safe_float(ticker, 'amount'),
             'info': ticker,
         }

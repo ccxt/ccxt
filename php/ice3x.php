@@ -131,8 +131,8 @@ class ice3x extends Exchange {
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
             $id = $market['pair_id'];
-            $baseId = $market['currency_id_from'];
-            $quoteId = $market['currency_id_to'];
+            $baseId = (string) $market['currency_id_from'];
+            $quoteId = (string) $market['currency_id_to'];
             $baseCurrency = $this->currencies_by_id[$baseId];
             $quoteCurrency = $this->currencies_by_id[$quoteId];
             $base = $this->common_currency_code($baseCurrency['code']);
