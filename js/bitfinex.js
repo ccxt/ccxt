@@ -377,13 +377,18 @@ module.exports = class bitfinex extends Exchange {
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         let market = this.markets[symbol];
         let rate = market[takerOrMaker];
-        let cost = amount * price;
+        let cost = amount * rate;
         let key = 'quote';
+        if (side === 'sell') {
+            cost *= price;
+        } else {
+            key = 'base';
+        }
         return {
             'type': takerOrMaker,
             'currency': market[key],
             'rate': rate,
-            'cost': parseFloat (this.feeToPrecision (market[key], rate * cost)),
+            'cost': parseFloat (this.feeToPrecision (market[key], cost)),
         };
     }
 
