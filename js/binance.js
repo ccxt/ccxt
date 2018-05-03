@@ -256,6 +256,7 @@ module.exports = class binance extends Exchange {
             },
             // exchange-specific options
             'options': {
+                'hasAlreadyAuthenticatedSuccessfully': false,
                 'warnOnFetchOpenOrdersWithoutSymbol': true,
                 'recvWindow': 5 * 1000, // 5 sec, binance default
                 'timeDifference': 0, // the difference between system clock and Binance clock
@@ -865,6 +866,12 @@ module.exports = class binance extends Exchange {
                 if (typeof error !== 'undefined') {
                     const exceptions = this.exceptions;
                     if (error in exceptions) {
+                        // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
+                        // despite that their message is very confusing, it is raised by Binance
+                        // on a temporary ban (the API key is valid, but disabled for a while)
+                        if ((error === '-2015') && this.options['hasAlreadyAuthenticatedSuccessfully']) {
+                            throw new DDoSProtection (this.id + ' temporary banned: ' + body);
+                        }
                         throw new exceptions[error] (this.id + ' ' + body);
                     } else {
                         throw new ExchangeError (this.id + ': unknown error code: ' + body + ' ' + error);
@@ -876,4 +883,13 @@ module.exports = class binance extends Exchange {
             }
         }
     }
+
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let response = await this.fetch2 (path, api, method, params, headers, body);
+        // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
+        if ((api === 'private') || (api === 'wapi'))
+            this.options['hasAlreadyAuthenticatedSuccessfully'] = true;
+        return response;
+    }
+
 };

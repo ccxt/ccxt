@@ -15,7 +15,6 @@ module.exports = class bittrex extends Exchange {
             'countries': 'US',
             'version': 'v1.1',
             'rateLimit': 1500,
-            'hasAlreadyAuthenticatedSuccessfully': false, // a workaround for APIKEY_INVALID
             // new metainfo interface
             'has': {
                 'CORS': true,
@@ -153,6 +152,7 @@ module.exports = class bittrex extends Exchange {
             },
             'options': {
                 'parseOrderStatus': false,
+                'hasAlreadyAuthenticatedSuccessfully': false, // a workaround for APIKEY_INVALID
             },
         });
     }
@@ -719,7 +719,7 @@ module.exports = class bittrex extends Exchange {
                 if ((typeof message !== 'undefined') && (message.indexOf ('throttled. Try again') >= 0))
                     throw new DDoSProtection (feedback);
                 if (message === 'APIKEY_INVALID') {
-                    if (this.hasAlreadyAuthenticatedSuccessfully) {
+                    if (this.options['hasAlreadyAuthenticatedSuccessfully']) {
                         throw new DDoSProtection (feedback);
                     } else {
                         throw new AuthenticationError (feedback);
@@ -736,7 +736,7 @@ module.exports = class bittrex extends Exchange {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         // a workaround for APIKEY_INVALID
         if ((api === 'account') || (api === 'market'))
-            this.hasAlreadyAuthenticatedSuccessfully = true;
+            this.options['hasAlreadyAuthenticatedSuccessfully'] = true;
         return response;
     }
 };
