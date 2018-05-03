@@ -891,5 +891,4 @@ module.exports = class binance extends Exchange {
             this.options['hasAlreadyAuthenticatedSuccessfully'] = true;
         return response;
     }
-
 };
