@@ -118,6 +118,12 @@ module.exports = class liqui extends Exchange {
                 '832': InsufficientFunds, // "Not enougth X to create sell order." (selling with balance.base < order.amount)
                 '833': OrderNotFound, // "Order with id X was not found." (cancelling non-existent, closed and cancelled order)
             },
+            'options': {
+                'fetchBalanceFromWebMethod': 'webGetUserBalances',
+                'fetchMarketsFromWebMethod': 'cacheapiGetPairs',
+                'fetchCurrenciesFromWebMethod': 'cacheapiGetCurrencies',
+                'capitalizeWebFields': true,
+            },
         });
     }
 
@@ -195,8 +201,9 @@ module.exports = class liqui extends Exchange {
         return result;
     }
 
-    async fetchMarketsFromCache () {
-        let markets = await this.cacheapiGetPairs ();
+    async fetchMarketsFromWeb () {
+        let method = this.options['fetchMarketsFromWebMethod'];
+        let markets = await this[method] ();
         let result = [];
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
@@ -221,48 +228,48 @@ module.exports = class liqui extends Exchange {
             //          QuoteName: "USDT",
             //               Name: "ENJ/USDT" }
             //
-            let baseId = market['BaseName'];
-            let quoteId = market['QuoteName'];
+            let baseId = market[this.capitalizeField ('baseName')];
+            let quoteId = market[this.capitalizeField ('quoteName')];
             let base = this.commonCurrencyCode (baseId);
             let quote = this.commonCurrencyCode (quoteId);
             let id = baseId.toLowerCase () + '_' + quoteId.toLowerCase ();
             let symbol = base + '/' + quote;
             let precision = {
-                'amount': this.safeInteger (market, 'AmountPoint'),
-                'price': this.safeInteger (market, 'PricePoint'),
+                'amount': this.safeInteger (market, this.capitalizeField ('amountPoint')),
+                'price': this.safeInteger (market, this.capitalizeField ('pricePoint')),
             };
             let amountLimits = {
-                'min': this.safeFloat (market, 'MinAmount'),
-                'max': this.safeFloat (market, 'MaxAmount'),
+                'min': this.safeFloat (market, this.capitalizeField ('minAmount')),
+                'max': this.safeFloat (market, this.capitalizeField ('maxAmount')),
             };
             let priceLimits = {
-                'min': this.safeFloat (market, 'MinPrice'),
-                'max': this.safeFloat (market, 'MaxPrice'),
+                'min': this.safeFloat (market, this.capitalizeField ('minPrice')),
+                'max': this.safeFloat (market, this.capitalizeField ('maxPrice')),
             };
             let costLimits = {
-                'min': this.safeFloat (market, 'MinTotal'),
+                'min': this.safeFloat (market, this.capitalizeField ('minTotal')),
             };
             let limits = {
                 'amount': amountLimits,
                 'price': priceLimits,
                 'cost': costLimits,
             };
-            let isTrading = this.safeValue (market, 'IsTrade');
-            let isVisible = this.safeValue (market, 'IsVisible');
+            let isTrading = this.safeValue (market, this.capitalizeField ('isTrade'));
+            let isVisible = this.safeValue (market, this.capitalizeField ('isVisible'));
             let active = (isTrading && isVisible);
             result.push ({
                 'id': id,
-                'marketId': market['Id'],
-                'baseNumericId': market['BaseCurrencyId'],
-                'quoteNumericId': market['QuoteCurrencyId'],
+                'marketId': market[this.capitalizeField ('id')],
+                'baseNumericId': market[this.capitalizeField ('baseCurrencyId')],
+                'quoteNumericId': market[this.capitalizeField ('quoteCurrencyId')],
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': active,
-                'taker': market['TakerFee'],
-                'maker': market['MakerFee'],
+                'taker': market[this.capitalizeField ('takerFee')],
+                'maker': market[this.capitalizeField ('makerFee')],
                 'lot': amountLimits['min'],
                 'precision': precision,
                 'limits': limits,
@@ -272,8 +279,9 @@ module.exports = class liqui extends Exchange {
         return result;
     }
 
-    async fetchCurrenciesFromCache (params = {}) {
-        let currencies = await this.cacheapiGetCurrencies (params);
+    async fetchCurrenciesFromWeb (params = {}) {
+        let method = this.options['fetchCurrenciesFromWebMethod'];
+        let currencies = await this[method] (params);
         let result = {};
         for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];
@@ -295,27 +303,27 @@ module.exports = class liqui extends Exchange {
             //                        ConfirmationCount:  30,
             //                                 NeedMemo:  false                              },
             //
-            let id = currency['Symbol'];
+            let id = currency[this.capitalizeField ('symbol')];
             // todo: will need to rethink the fees
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
             let code = this.commonCurrencyCode (id);
-            let precision = currency['AmountPoint']; // default precision, todo: fix "magic constants"
-            let active = currency['DepositEnable'] && currency['WithdrawEnable'] && currency['Visible'];
+            let precision = currency[this.capitalizeField ('amountPoint')]; // default precision, todo: fix "magic constants"
+            let active = currency[this.capitalizeField ('depositEnable')] && currency[this.capitalizeField ('withdrawEnable')] && currency[this.capitalizeField ('visible')];
             result[code] = {
                 'id': id,
                 'code': code,
-                'numericId': currency['Id'],
+                'numericId': currency[this.capitalizeField ('id')],
                 'info': currency,
-                'name': currency['Name'],
+                'name': currency[this.capitalizeField ('name')],
                 'active': active,
                 'status': 'ok',
                 'type': 'crypto',
-                'fee': currency['WithdrawFee'], // todo: redesign
+                'fee': currency[this.capitalizeField ('withdrawFee')], // todo: redesign
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': currency['DepositMinAmount'],
+                        'min': currency[this.capitalizeField ('depositMinAmount')],
                         'max': Math.pow (10, precision),
                     },
                     'price': {
@@ -336,14 +344,22 @@ module.exports = class liqui extends Exchange {
         return result;
     }
 
+    capitalizeField (field) {
+        if (this.options['capitalizeFields'])
+            return this.capitalize (field);
+        return field;
+    }
+
     async fetchBalanceFromWeb (params = {}) {
         // this is an alternative implementation of Liqui website balances
         // for use with numeric currency ids from their cache API
         await this.loadMarkets ();
         if (!('currenciesByNumericId' in this.options))
             this.options['currenciesByNumericId'] = this.indexBy (this.currencies, 'numericId');
-        let balances = await this.webGetUserBalances (params);
-        let result = { 'info': balances };
+        let method = this.options['fetchBalanceFromWebMethod'];
+        let response = await this[method] (params);
+        let result = { 'info': response };
+        let balances = response['balances'];
         for (let i = 0; i < balances.length; i++) {
             let balance = balances[i];
             //
@@ -353,13 +369,13 @@ module.exports = class liqui extends Exchange {
             //    InInterest: 0,
             //       Changes: 0                   }
             //
-            let numericId = balance['CurrencyId'];
+            let numericId = balance[this.capitalizeField ('currencyId')];
             let code = numericId.toString ();
             if (numericId in this.options['currenciesByNumericId']) {
                 code = this.options['currenciesByNumericId'][numericId]['code'];
             }
-            let used = this.sum (balance['InOrders'], balance['InInterest']);
-            let total = balance['Value'];
+            let used = this.sum (balance[this.capitalizeField ('inOrders')], balance[this.capitalizeField ('inInterest')]);
+            let total = balance[this.capitalizeField ('value')];
             let free = total - used;
             let account = {
                 'free': free,
@@ -371,9 +387,9 @@ module.exports = class liqui extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchSessionFromWeb (params = {}) {
+    async fetchSession (params = {}) {
         let response = await this.webPostUserLogin (this.extend ({
-            'login': this.login, // "username" for tidex
+            'login': this.login,
             'password': this.password,
         }, params));
         //
@@ -385,8 +401,8 @@ module.exports = class liqui extends Exchange {
         //                 Attempt:    0,
         //               ResetTime:   "00:00:00",
         //                 Session: {    SessionId:    2720739,
-        //                              SessionKey:   "pu8elzu1njne057ulb6h86alv1n39z84",
-        //                               SessionIp:   "5.228.227.214",
+        //                              SessionKey:   "pu8elzu1njn750ulb6h86alv1n39z84",
+        //                               SessionIp:   "25.228.227.124",
         //                             CountryCode:    null,
         //                               IsConfirm:    false,
         //                                 IsNewIp:    false,
@@ -403,7 +419,29 @@ module.exports = class liqui extends Exchange {
         //                                            DenySecuritySettings: false  },
         //                            DenySecTrade:    true                               } } }
         //
-        return response['Value']['Session']['SessionKey'];
+        return {
+            'info': response,
+            'session': response['Value']['Session']['SessionKey'],
+        };
+    }
+
+    async activateSession (session, twofa, params = {}) {
+        let request = {
+            'Key': session,
+            'Code': twofa,
+        };
+        const response = await this.webPostUserSessionActivate (request);
+        this.headers['Cookie'] += '; sessionKey=' + session;
+        //
+        //  {  Info: {  IsSuccess:  true,
+        //             ServerTime: "00:00:00.4608687",
+        //                   Time: "00:00:00",
+        //                 Errors:  null               },
+        //    Value:   "pu8elzu1njne750ulb6h86alv1n39z84" }
+        //
+        return {
+            'info': response,
+        };
     }
 
     async fetchBalance (params = {}) {
