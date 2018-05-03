@@ -49,8 +49,16 @@ class tidex (liqui):
                     ],
                 },
                 'gate': {
+                    'get': [
+                        'trade-data',
+                        'user/warning-states',
+                        'deposits/dw-pack',
+                    ],
                     'post': [
                         'token',
+                    ],
+                    'options': [
+                        'register/logout',
                     ],
                 },
             },
@@ -65,6 +73,12 @@ class tidex (liqui):
             'commonCurrencies': {
                 'MGO': 'WMGO',
                 'EMGO': 'MGO',
+            },
+            'options': {
+                'fetchBalanceFromWebMethod': 'gateGetDepositsDwPack',
+                'fetchMarketsFromWebMethod': 'webGetPairs',
+                'fetchCurrenciesFromWebMethod': 'webGetCurrency',
+                'capitalizeFields': False,
             },
         })
 
@@ -131,10 +145,66 @@ class tidex (liqui):
     def get_version_string(self):
         return ''
 
-    async def fetch_session_from_web(self, params={}):
+    async def fetch_session(self, params={}):
         response = await self.gatePostToken(self.extend({
             'username': self.login,
             'password': self.password,
         }, params))
-        # {Session: "2p4kah9c0sls0fetcaoetmb7792m3og7", IsTwoFa: True, Type: 3}
-        return response['Session']
+        # {Session: "2p4kah9c0sls0fetcaoetmb7792m3og9", IsTwoFa: True, Type: 3}
+        return {
+            'info': response,
+            'session': response['Session'],
+        }
+
+    async def activate_session(self, session, twofa, params={}):
+        request = {
+            'username': self.login,
+            'password': self.password,
+            'key': session,
+            'code': twofa,
+        }
+        response = await self.gatePostToken(request)
+        self.headers['Authorization'] = 'Bearer ' + response['access_token']
+        return {
+            'info': response,
+        }
+
+    async def logout(self):
+        # does not work yet
+        response = await self.gateOptionsRegisterLogout()
+        return {
+            'info': response,
+        }
+
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        url = self.urls['api'][api]
+        query = self.omit(params, self.extract_params(path))
+        if api == 'private':
+            self.check_required_credentials()
+            nonce = self.nonce()
+            body = self.urlencode(self.extend({
+                'nonce': nonce,
+                'method': path,
+            }, query))
+            signature = self.signBodyWithSecret(body)
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Key': self.apiKey,
+                'Sign': signature,
+            }
+        elif api == 'public':
+            url += self.get_version_string() + '/' + self.implode_params(path, params)
+            if query:
+                url += '?' + self.urlencode(query)
+        else:
+            url += '/' + self.implode_params(path, params)
+            if method == 'GET':
+                if query:
+                    url += '?' + self.urlencode(query)
+            else:
+                if query:
+                    body = self.urlencode(query)
+                    headers = {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    }
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}

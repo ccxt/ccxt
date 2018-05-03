@@ -130,8 +130,8 @@ class ice3x (Exchange):
         for i in range(0, len(markets)):
             market = markets[i]
             id = market['pair_id']
-            baseId = market['currency_id_from']
-            quoteId = market['currency_id_to']
+            baseId = str(market['currency_id_from'])
+            quoteId = str(market['currency_id_to'])
             baseCurrency = self.currencies_by_id[baseId]
             quoteCurrency = self.currencies_by_id[quoteId]
             base = self.common_currency_code(baseCurrency['code'])

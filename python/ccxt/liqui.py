@@ -138,6 +138,12 @@ class liqui (Exchange):
                 '832': InsufficientFunds,  # "Not enougth X to create sell order."(selling with balance.base < order.amount)
                 '833': OrderNotFound,  # "Order with id X was not found."(cancelling non-existent, closed and cancelled order)
             },
+            'options': {
+                'fetchBalanceFromWebMethod': 'webGetUserBalances',
+                'fetchMarketsFromWebMethod': 'cacheapiGetPairs',
+                'fetchCurrenciesFromWebMethod': 'cacheapiGetCurrencies',
+                'capitalizeWebFields': True,
+            },
         })
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
@@ -209,8 +215,9 @@ class liqui (Exchange):
             })
         return result
 
-    def fetch_markets_from_cache(self):
-        markets = self.cacheapiGetPairs()
+    def fetch_markets_from_web(self):
+        method = self.options['fetchMarketsFromWebMethod']
+        markets = getattr(self, method)()
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
@@ -235,48 +242,48 @@ class liqui (Exchange):
             #          QuoteName: "USDT",
             #               Name: "ENJ/USDT"}
             #
-            baseId = market['BaseName']
-            quoteId = market['QuoteName']
+            baseId = market[self.capitalize_field('baseName')]
+            quoteId = market[self.capitalize_field('quoteName')]
             base = self.common_currency_code(baseId)
             quote = self.common_currency_code(quoteId)
             id = baseId.lower() + '_' + quoteId.lower()
             symbol = base + '/' + quote
             precision = {
-                'amount': self.safe_integer(market, 'AmountPoint'),
-                'price': self.safe_integer(market, 'PricePoint'),
+                'amount': self.safe_integer(market, self.capitalize_field('amountPoint')),
+                'price': self.safe_integer(market, self.capitalize_field('pricePoint')),
             }
             amountLimits = {
-                'min': self.safe_float(market, 'MinAmount'),
-                'max': self.safe_float(market, 'MaxAmount'),
+                'min': self.safe_float(market, self.capitalize_field('minAmount')),
+                'max': self.safe_float(market, self.capitalize_field('maxAmount')),
             }
             priceLimits = {
-                'min': self.safe_float(market, 'MinPrice'),
-                'max': self.safe_float(market, 'MaxPrice'),
+                'min': self.safe_float(market, self.capitalize_field('minPrice')),
+                'max': self.safe_float(market, self.capitalize_field('maxPrice')),
             }
             costLimits = {
-                'min': self.safe_float(market, 'MinTotal'),
+                'min': self.safe_float(market, self.capitalize_field('minTotal')),
             }
             limits = {
                 'amount': amountLimits,
                 'price': priceLimits,
                 'cost': costLimits,
             }
-            isTrading = self.safe_value(market, 'IsTrade')
-            isVisible = self.safe_value(market, 'IsVisible')
+            isTrading = self.safe_value(market, self.capitalize_field('isTrade'))
+            isVisible = self.safe_value(market, self.capitalize_field('isVisible'))
             active = (isTrading and isVisible)
             result.append({
                 'id': id,
-                'marketId': market['Id'],
-                'baseNumericId': market['BaseCurrencyId'],
-                'quoteNumericId': market['QuoteCurrencyId'],
+                'marketId': market[self.capitalize_field('id')],
+                'baseNumericId': market[self.capitalize_field('baseCurrencyId')],
+                'quoteNumericId': market[self.capitalize_field('quoteCurrencyId')],
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': active,
-                'taker': market['TakerFee'],
-                'maker': market['MakerFee'],
+                'taker': market[self.capitalize_field('takerFee')],
+                'maker': market[self.capitalize_field('makerFee')],
                 'lot': amountLimits['min'],
                 'precision': precision,
                 'limits': limits,
@@ -284,8 +291,9 @@ class liqui (Exchange):
             })
         return result
 
-    def fetch_currencies_from_cache(self, params={}):
-        currencies = self.cacheapiGetCurrencies(params)
+    def fetch_currencies_from_web(self, params={}):
+        method = self.options['fetchCurrenciesFromWebMethod']
+        currencies = getattr(self, method)(params)
         result = {}
         for i in range(0, len(currencies)):
             currency = currencies[i]
@@ -307,27 +315,27 @@ class liqui (Exchange):
             #                        ConfirmationCount:  30,
             #                                 NeedMemo:  False                              },
             #
-            id = currency['Symbol']
+            id = currency[self.capitalize_field('symbol')]
             # todo: will need to rethink the fees
             # to add support for multiple withdrawal/deposit methods and
             # differentiated fees for each particular method
             code = self.common_currency_code(id)
-            precision = currency['AmountPoint']  # default precision, todo: fix "magic constants"
-            active = currency['DepositEnable'] and currency['WithdrawEnable'] and currency['Visible']
+            precision = currency[self.capitalize_field('amountPoint')]  # default precision, todo: fix "magic constants"
+            active = currency[self.capitalize_field('depositEnable')] and currency[self.capitalize_field('withdrawEnable')] and currency[self.capitalize_field('visible')]
             result[code] = {
                 'id': id,
                 'code': code,
-                'numericId': currency['Id'],
+                'numericId': currency[self.capitalize_field('id')],
                 'info': currency,
-                'name': currency['Name'],
+                'name': currency[self.capitalize_field('name')],
                 'active': active,
                 'status': 'ok',
                 'type': 'crypto',
-                'fee': currency['WithdrawFee'],  # todo: redesign
+                'fee': currency[self.capitalize_field('withdrawFee')],  # todo: redesign
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': currency['DepositMinAmount'],
+                        'min': currency[self.capitalize_field('depositMinAmount')],
                         'max': math.pow(10, precision),
                     },
                     'price': {
@@ -346,14 +354,21 @@ class liqui (Exchange):
             }
         return result
 
+    def capitalize_field(self, field):
+        if self.options['capitalizeFields']:
+            return self.capitalize(field)
+        return field
+
     def fetch_balance_from_web(self, params={}):
         # self is an alternative implementation of Liqui website balances
         # for use with numeric currency ids from their cache API
         self.load_markets()
         if not('currenciesByNumericId' in list(self.options.keys())):
             self.options['currenciesByNumericId'] = self.index_by(self.currencies, 'numericId')
-        balances = self.webGetUserBalances(params)
-        result = {'info': balances}
+        method = self.options['fetchBalanceFromWebMethod']
+        response = getattr(self, method)(params)
+        result = {'info': response}
+        balances = response['balances']
         for i in range(0, len(balances)):
             balance = balances[i]
             #
@@ -363,12 +378,12 @@ class liqui (Exchange):
             #    InInterest: 0,
             #       Changes: 0                   }
             #
-            numericId = balance['CurrencyId']
+            numericId = balance[self.capitalize_field('currencyId')]
             code = str(numericId)
             if numericId in self.options['currenciesByNumericId']:
                 code = self.options['currenciesByNumericId'][numericId]['code']
-            used = self.sum(balance['InOrders'], balance['InInterest'])
-            total = balance['Value']
+            used = self.sum(balance[self.capitalize_field('inOrders')], balance[self.capitalize_field('inInterest')])
+            total = balance[self.capitalize_field('value')]
             free = total - used
             account = {
                 'free': free,
@@ -378,9 +393,9 @@ class liqui (Exchange):
             result[code] = account
         return self.parse_balance(result)
 
-    def fetch_session_from_web(self, params={}):
+    def fetch_session(self, params={}):
         response = self.webPostUserLogin(self.extend({
-            'login': self.login,  # "username" for tidex
+            'login': self.login,
             'password': self.password,
         }, params))
         #
@@ -392,8 +407,8 @@ class liqui (Exchange):
         #                 Attempt:    0,
         #               ResetTime:   "00:00:00",
         #                 Session: {   SessionId:    2720739,
-        #                              SessionKey:   "pu8elzu1njne057ulb6h86alv1n39z84",
-        #                               SessionIp:   "5.228.227.214",
+        #                              SessionKey:   "pu8elzu1njn750ulb6h86alv1n39z84",
+        #                               SessionIp:   "25.228.227.124",
         #                             CountryCode:    null,
         #                               IsConfirm:    False,
         #                                 IsNewIp:    False,
@@ -410,7 +425,28 @@ class liqui (Exchange):
         #                                            DenySecuritySettings: False  },
         #                            DenySecTrade:    True                               }} }
         #
-        return response['Value']['Session']['SessionKey']
+        return {
+            'info': response,
+            'session': response['Value']['Session']['SessionKey'],
+        }
+
+    def activate_session(self, session, twofa, params={}):
+        request = {
+            'Key': session,
+            'Code': twofa,
+        }
+        response = self.webPostUserSessionActivate(request)
+        self.headers['Cookie'] += ' sessionKey=' + session
+        #
+        #  { Info: { IsSuccess:  True,
+        #             ServerTime: "00:00:00.4608687",
+        #                   Time: "00:00:00",
+        #                 Errors:  null               },
+        #    Value:   "pu8elzu1njne750ulb6h86alv1n39z84"}
+        #
+        return {
+            'info': response,
+        }
 
     def fetch_balance(self, params={}):
         self.load_markets()

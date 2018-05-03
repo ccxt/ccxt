@@ -49,8 +49,16 @@ class tidex extends liqui {
                     ),
                 ),
                 'gate' => array (
+                    'get' => array (
+                        'trade-data',
+                        'user/warning-states',
+                        'deposits/dw-pack',
+                    ),
                     'post' => array (
                         'token',
+                    ),
+                    'options' => array (
+                        'register/logout',
                     ),
                 ),
             ),
@@ -65,6 +73,12 @@ class tidex extends liqui {
             'commonCurrencies' => array (
                 'MGO' => 'WMGO',
                 'EMGO' => 'MGO',
+            ),
+            'options' => array (
+                'fetchBalanceFromWebMethod' => 'gateGetDepositsDwPack',
+                'fetchMarketsFromWebMethod' => 'webGetPairs',
+                'fetchCurrenciesFromWebMethod' => 'webGetCurrency',
+                'capitalizeFields' => false,
             ),
         ));
     }
@@ -137,12 +151,76 @@ class tidex extends liqui {
         return '';
     }
 
-    public function fetch_session_from_web ($params = array ()) {
+    public function fetch_session ($params = array ()) {
         $response = $this->gatePostToken (array_merge (array (
             'username' => $this->login,
             'password' => $this->password,
         ), $params));
-        // array ( Session => "2p4kah9c0sls0fetcaoetmb7792m3og7", IsTwoFa => true, Type => 3 )
-        return $response['Session'];
+        // array ( Session => "2p4kah9c0sls0fetcaoetmb7792m3og9", IsTwoFa => true, Type => 3 )
+        return array (
+            'info' => $response,
+            'session' => $response['Session'],
+        );
+    }
+
+    public function activate_session ($session, $twofa, $params = array ()) {
+        $request = array (
+            'username' => $this->login,
+            'password' => $this->password,
+            'key' => $session,
+            'code' => $twofa,
+        );
+        $response = $this->gatePostToken ($request);
+        $this->headers['Authorization'] = 'Bearer ' . $response['access_token'];
+        return array (
+            'info' => $response,
+        );
+    }
+
+    public function logout () {
+        // does not work yet
+        $response = $this->gateOptionsRegisterLogout ();
+        return array (
+            'info' => $response,
+        );
+    }
+
+    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = $this->urls['api'][$api];
+        $query = $this->omit ($params, $this->extract_params($path));
+        if ($api === 'private') {
+            $this->check_required_credentials();
+            $nonce = $this->nonce ();
+            $body = $this->urlencode (array_merge (array (
+                'nonce' => $nonce,
+                'method' => $path,
+            ), $query));
+            $signature = $this->signBodyWithSecret ($body);
+            $headers = array (
+                'Content-Type' => 'application/x-www-form-urlencoded',
+                'Key' => $this->apiKey,
+                'Sign' => $signature,
+            );
+        } else if ($api === 'public') {
+            $url .= $this->get_version_string() . '/' . $this->implode_params($path, $params);
+            if ($query) {
+                $url .= '?' . $this->urlencode ($query);
+            }
+        } else {
+            $url .= '/' . $this->implode_params($path, $params);
+            if ($method === 'GET') {
+                if ($query) {
+                    $url .= '?' . $this->urlencode ($query);
+                }
+            } else {
+                if ($query) {
+                    $body = $this->urlencode ($query);
+                    $headers = array (
+                        'Content-Type' => 'application/x-www-form-urlencoded',
+                    );
+                }
+            }
+        }
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }

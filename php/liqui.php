@@ -123,6 +123,12 @@ class liqui extends Exchange {
                 '832' => '\\ccxt\\InsufficientFunds', // "Not enougth X to create sell order." (selling with balance.base < order.amount)
                 '833' => '\\ccxt\\OrderNotFound', // "Order with id X was not found." (cancelling non-existent, closed and cancelled order)
             ),
+            'options' => array (
+                'fetchBalanceFromWebMethod' => 'webGetUserBalances',
+                'fetchMarketsFromWebMethod' => 'cacheapiGetPairs',
+                'fetchCurrenciesFromWebMethod' => 'cacheapiGetCurrencies',
+                'capitalizeWebFields' => true,
+            ),
         ));
     }
 
@@ -200,8 +206,9 @@ class liqui extends Exchange {
         return $result;
     }
 
-    public function fetch_markets_from_cache () {
-        $markets = $this->cacheapiGetPairs ();
+    public function fetch_markets_from_web () {
+        $method = $this->options['fetchMarketsFromWebMethod'];
+        $markets = $this->$method ();
         $result = array ();
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
@@ -226,48 +233,48 @@ class liqui extends Exchange {
             //          QuoteName => "USDT",
             //               Name => "ENJ/USDT" }
             //
-            $baseId = $market['BaseName'];
-            $quoteId = $market['QuoteName'];
+            $baseId = $market[$this->capitalize_field ('baseName')];
+            $quoteId = $market[$this->capitalize_field ('quoteName')];
             $base = $this->common_currency_code($baseId);
             $quote = $this->common_currency_code($quoteId);
             $id = strtolower ($baseId) . '_' . strtolower ($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
-                'amount' => $this->safe_integer($market, 'AmountPoint'),
-                'price' => $this->safe_integer($market, 'PricePoint'),
+                'amount' => $this->safe_integer($market, $this->capitalize_field ('amountPoint')),
+                'price' => $this->safe_integer($market, $this->capitalize_field ('pricePoint')),
             );
             $amountLimits = array (
-                'min' => $this->safe_float($market, 'MinAmount'),
-                'max' => $this->safe_float($market, 'MaxAmount'),
+                'min' => $this->safe_float($market, $this->capitalize_field ('minAmount')),
+                'max' => $this->safe_float($market, $this->capitalize_field ('maxAmount')),
             );
             $priceLimits = array (
-                'min' => $this->safe_float($market, 'MinPrice'),
-                'max' => $this->safe_float($market, 'MaxPrice'),
+                'min' => $this->safe_float($market, $this->capitalize_field ('minPrice')),
+                'max' => $this->safe_float($market, $this->capitalize_field ('maxPrice')),
             );
             $costLimits = array (
-                'min' => $this->safe_float($market, 'MinTotal'),
+                'min' => $this->safe_float($market, $this->capitalize_field ('minTotal')),
             );
             $limits = array (
                 'amount' => $amountLimits,
                 'price' => $priceLimits,
                 'cost' => $costLimits,
             );
-            $isTrading = $this->safe_value($market, 'IsTrade');
-            $isVisible = $this->safe_value($market, 'IsVisible');
+            $isTrading = $this->safe_value($market, $this->capitalize_field ('isTrade'));
+            $isVisible = $this->safe_value($market, $this->capitalize_field ('isVisible'));
             $active = ($isTrading && $isVisible);
             $result[] = array (
                 'id' => $id,
-                'marketId' => $market['Id'],
-                'baseNumericId' => $market['BaseCurrencyId'],
-                'quoteNumericId' => $market['QuoteCurrencyId'],
+                'marketId' => $market[$this->capitalize_field ('id')],
+                'baseNumericId' => $market[$this->capitalize_field ('baseCurrencyId')],
+                'quoteNumericId' => $market[$this->capitalize_field ('quoteCurrencyId')],
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'active' => $active,
-                'taker' => $market['TakerFee'],
-                'maker' => $market['MakerFee'],
+                'taker' => $market[$this->capitalize_field ('takerFee')],
+                'maker' => $market[$this->capitalize_field ('makerFee')],
                 'lot' => $amountLimits['min'],
                 'precision' => $precision,
                 'limits' => $limits,
@@ -277,8 +284,9 @@ class liqui extends Exchange {
         return $result;
     }
 
-    public function fetch_currencies_from_cache ($params = array ()) {
-        $currencies = $this->cacheapiGetCurrencies ($params);
+    public function fetch_currencies_from_web ($params = array ()) {
+        $method = $this->options['fetchCurrenciesFromWebMethod'];
+        $currencies = $this->$method ($params);
         $result = array ();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
@@ -300,27 +308,27 @@ class liqui extends Exchange {
             //                        ConfirmationCount =>  30,
             //                                 NeedMemo =>  false                              ),
             //
-            $id = $currency['Symbol'];
+            $id = $currency[$this->capitalize_field ('symbol')];
             // todo => will need to rethink the fees
             // to add support for multiple withdrawal/deposit methods and
-            // differentiated fees for each particular method
+            // differentiated fees for each particular $method
             $code = $this->common_currency_code($id);
-            $precision = $currency['AmountPoint']; // default $precision, todo => fix "magic constants"
-            $active = $currency['DepositEnable'] && $currency['WithdrawEnable'] && $currency['Visible'];
+            $precision = $currency[$this->capitalize_field ('amountPoint')]; // default $precision, todo => fix "magic constants"
+            $active = $currency[$this->capitalize_field ('depositEnable')] && $currency[$this->capitalize_field ('withdrawEnable')] && $currency[$this->capitalize_field ('visible')];
             $result[$code] = array (
                 'id' => $id,
                 'code' => $code,
-                'numericId' => $currency['Id'],
+                'numericId' => $currency[$this->capitalize_field ('id')],
                 'info' => $currency,
-                'name' => $currency['Name'],
+                'name' => $currency[$this->capitalize_field ('name')],
                 'active' => $active,
                 'status' => 'ok',
                 'type' => 'crypto',
-                'fee' => $currency['WithdrawFee'], // todo => redesign
+                'fee' => $currency[$this->capitalize_field ('withdrawFee')], // todo => redesign
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => $currency['DepositMinAmount'],
+                        'min' => $currency[$this->capitalize_field ('depositMinAmount')],
                         'max' => pow (10, $precision),
                     ),
                     'price' => array (
@@ -341,14 +349,22 @@ class liqui extends Exchange {
         return $result;
     }
 
+    public function capitalize_field ($field) {
+        if ($this->options['capitalizeFields'])
+            return $this->capitalize ($field);
+        return $field;
+    }
+
     public function fetch_balance_from_web ($params = array ()) {
         // this is an alternative implementation of Liqui website $balances
         // for use with numeric currency ids from their cache API
         $this->load_markets();
         if (!(is_array ($this->options) && array_key_exists ('currenciesByNumericId', $this->options)))
             $this->options['currenciesByNumericId'] = $this->index_by($this->currencies, 'numericId');
-        $balances = $this->webGetUserBalances ($params);
-        $result = array ( 'info' => $balances );
+        $method = $this->options['fetchBalanceFromWebMethod'];
+        $response = $this->$method ($params);
+        $result = array ( 'info' => $response );
+        $balances = $response['balances'];
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             //
@@ -358,13 +374,13 @@ class liqui extends Exchange {
             //    InInterest => 0,
             //       Changes => 0                   }
             //
-            $numericId = $balance['CurrencyId'];
+            $numericId = $balance[$this->capitalize_field ('currencyId')];
             $code = (string) $numericId;
             if (is_array ($this->options['currenciesByNumericId']) && array_key_exists ($numericId, $this->options['currenciesByNumericId'])) {
                 $code = $this->options['currenciesByNumericId'][$numericId]['code'];
             }
-            $used = $this->sum ($balance['InOrders'], $balance['InInterest']);
-            $total = $balance['Value'];
+            $used = $this->sum ($balance[$this->capitalize_field ('inOrders')], $balance[$this->capitalize_field ('inInterest')]);
+            $total = $balance[$this->capitalize_field ('value')];
             $free = $total - $used;
             $account = array (
                 'free' => $free,
@@ -376,9 +392,9 @@ class liqui extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_session_from_web ($params = array ()) {
+    public function fetch_session ($params = array ()) {
         $response = $this->webPostUserLogin (array_merge (array (
-            'login' => $this->login, // "username" for tidex
+            'login' => $this->login,
             'password' => $this->password,
         ), $params));
         //
@@ -390,8 +406,8 @@ class liqui extends Exchange {
         //                 Attempt =>    0,
         //               ResetTime =>   "00:00:00",
         //                 Session => {    SessionId =>    2720739,
-        //                              SessionKey =>   "pu8elzu1njne057ulb6h86alv1n39z84",
-        //                               SessionIp =>   "5.228.227.214",
+        //                              SessionKey =>   "pu8elzu1njn750ulb6h86alv1n39z84",
+        //                               SessionIp =>   "25.228.227.124",
         //                             CountryCode =>    null,
         //                               IsConfirm =>    false,
         //                                 IsNewIp =>    false,
@@ -408,7 +424,29 @@ class liqui extends Exchange {
         //                                            DenySecuritySettings => false  ),
         //                            DenySecTrade =>    true                               } } }
         //
-        return $response['Value']['Session']['SessionKey'];
+        return array (
+            'info' => $response,
+            'session' => $response['Value']['Session']['SessionKey'],
+        );
+    }
+
+    public function activate_session ($session, $twofa, $params = array ()) {
+        $request = array (
+            'Key' => $session,
+            'Code' => $twofa,
+        );
+        $response = $this->webPostUserSessionActivate ($request);
+        $this->headers['Cookie'] .= '; sessionKey=' . $session;
+        //
+        //  {  Info => array (  IsSuccess =>  true,
+        //             ServerTime => "00:00:00.4608687",
+        //                   Time => "00:00:00",
+        //                 Errors =>  null               ),
+        //    Value =>   "pu8elzu1njne750ulb6h86alv1n39z84" }
+        //
+        return array (
+            'info' => $response,
+        );
     }
 
     public function fetch_balance ($params = array ()) {
