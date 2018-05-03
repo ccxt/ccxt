@@ -48,17 +48,6 @@ class tidex extends liqui {
                         'trade-data/{id}',
                     ),
                 ),
-                'gate' => array (
-                    'get' => array (
-                        'trade-data',
-                        'user/warning-states',
-                        'deposits/dw-pack',
-                        'register/logout',
-                    ),
-                    'post' => array (
-                        'token',
-                    ),
-                ),
             ),
             'fees' => array (
                 'trading' => array (
@@ -71,13 +60,6 @@ class tidex extends liqui {
             'commonCurrencies' => array (
                 'MGO' => 'WMGO',
                 'EMGO' => 'MGO',
-            ),
-            'options' => array (
-                'fetchBalanceFromWebMethod' => 'gateGetDepositsDwPack',
-                'fetchMarketsFromWebMethod' => 'webGetPairs',
-                'fetchCurrenciesFromWebMethod' => 'webGetCurrency',
-                'logoutMethod' => 'gateGetRegisterLogout',
-                'capitalizeFields' => false,
             ),
         ));
     }
@@ -148,41 +130,6 @@ class tidex extends liqui {
 
     public function get_version_string () {
         return '';
-    }
-
-    public function fetch_session ($params = array ()) {
-        $response = $this->gatePostToken (array_merge (array (
-            'username' => $this->login,
-            'password' => $this->password,
-        ), $params));
-        // array ( Session => "2p4kah9c0sls0fetcaoetmb7792m3og9", IsTwoFa => true, Type => 3 )
-        return array (
-            'info' => $response,
-            'session' => $response['Session'],
-        );
-    }
-
-    public function activate_session ($session, $twofa, $params = array ()) {
-        $request = array (
-            'username' => $this->login,
-            'password' => $this->password,
-            'key' => $session,
-            'code' => $twofa,
-        );
-        $response = $this->gatePostToken ($request);
-        $this->headers['Authorization'] = 'Bearer ' . $response['access_token'];
-        return array (
-            'info' => $response,
-        );
-    }
-
-    public function logout () {
-        // does not work yet
-        $method = $this->options['logoutMethod'];
-        $response = $this->$method ();
-        return array (
-            'info' => $response,
-        );
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

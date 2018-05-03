@@ -48,17 +48,6 @@ class tidex (liqui):
                         'trade-data/{id}',
                     ],
                 },
-                'gate': {
-                    'get': [
-                        'trade-data',
-                        'user/warning-states',
-                        'deposits/dw-pack',
-                        'register/logout',
-                    ],
-                    'post': [
-                        'token',
-                    ],
-                },
             },
             'fees': {
                 'trading': {
@@ -71,13 +60,6 @@ class tidex (liqui):
             'commonCurrencies': {
                 'MGO': 'WMGO',
                 'EMGO': 'MGO',
-            },
-            'options': {
-                'fetchBalanceFromWebMethod': 'gateGetDepositsDwPack',
-                'fetchMarketsFromWebMethod': 'webGetPairs',
-                'fetchCurrenciesFromWebMethod': 'webGetCurrency',
-                'logoutMethod': 'gateGetRegisterLogout',
-                'capitalizeFields': False,
             },
         })
 
@@ -143,38 +125,6 @@ class tidex (liqui):
 
     def get_version_string(self):
         return ''
-
-    async def fetch_session(self, params={}):
-        response = await self.gatePostToken(self.extend({
-            'username': self.login,
-            'password': self.password,
-        }, params))
-        # {Session: "2p4kah9c0sls0fetcaoetmb7792m3og9", IsTwoFa: True, Type: 3}
-        return {
-            'info': response,
-            'session': response['Session'],
-        }
-
-    async def activate_session(self, session, twofa, params={}):
-        request = {
-            'username': self.login,
-            'password': self.password,
-            'key': session,
-            'code': twofa,
-        }
-        response = await self.gatePostToken(request)
-        self.headers['Authorization'] = 'Bearer ' + response['access_token']
-        return {
-            'info': response,
-        }
-
-    async def logout(self):
-        # does not work yet
-        method = self.options['logoutMethod']
-        response = await getattr(self, method)()
-        return {
-            'info': response,
-        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]
