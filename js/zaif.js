@@ -122,11 +122,11 @@ module.exports = class zaif extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': parseFloat (market['item_unit_min']),
+                        'min': this.safeFloat (market, 'item_unit_min'),
                         'max': undefined,
                     },
                     'price': {
-                        'min': parseFloat (market['aux_unit_min']),
+                        'min': this.safeFloat (market, 'aux_unit_min'),
                         'max': undefined,
                     },
                     'cost': {

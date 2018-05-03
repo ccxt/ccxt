@@ -211,16 +211,16 @@ module.exports = class exmo extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
-        const last = parseFloat (ticker['last_trade']);
+        const last = this.safeFloat (ticker, 'last_trade');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']),
-            'low': parseFloat (ticker['low']),
-            'bid': parseFloat (ticker['buy_price']),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'buy_price'),
             'bidVolume': undefined,
-            'ask': parseFloat (ticker['sell_price']),
+            'ask': this.safeFloat (ticker, 'sell_price'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -229,9 +229,9 @@ module.exports = class exmo extends Exchange {
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
-            'average': parseFloat (ticker['avg']),
-            'baseVolume': parseFloat (ticker['vol']),
-            'quoteVolume': parseFloat (ticker['vol_curr']),
+            'average': this.safeFloat (ticker, 'avg'),
+            'baseVolume': this.safeFloat (ticker, 'vol'),
+            'quoteVolume': this.safeFloat (ticker, 'vol_curr'),
             'info': ticker,
         };
     }
@@ -269,8 +269,8 @@ module.exports = class exmo extends Exchange {
             'order': this.safeString (trade, 'order_id'),
             'type': undefined,
             'side': trade['type'],
-            'price': parseFloat (trade['price']),
-            'amount': parseFloat (trade['quantity']),
+            'price': this.safeFloat (trade, 'price'),
+            'amount': this.safeFloat (trade, 'quantity'),
             'cost': this.safeFloat (trade, 'amount'),
         };
     }

@@ -136,26 +136,26 @@ module.exports = class exx extends Exchange {
         let symbol = market['symbol'];
         let timestamp = parseInt (ticker['date']);
         ticker = ticker['ticker'];
-        let last = parseFloat (ticker['last']);
+        let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']),
-            'low': parseFloat (ticker['low']),
-            'bid': parseFloat (ticker['buy']),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'buy'),
             'bidVolume': undefined,
-            'ask': parseFloat (ticker['sell']),
+            'ask': this.safeFloat (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': parseFloat (ticker['riseRate']),
+            'change': this.safeFloat (ticker, 'riseRate'),
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': parseFloat (ticker['vol']),
+            'baseVolume': this.safeFloat (ticker, 'vol'),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -201,8 +201,8 @@ module.exports = class exx extends Exchange {
 
     parseTrade (trade, market = undefined) {
         let timestamp = trade['date'] * 1000;
-        let price = parseFloat (trade['price']);
-        let amount = parseFloat (trade['amount']);
+        let price = this.safeFloat (trade, 'price');
+        let amount = this.safeFloat (trade, 'amount');
         let symbol = market['symbol'];
         let cost = this.costToPrecision (symbol, price * amount);
         return {
@@ -253,7 +253,7 @@ module.exports = class exx extends Exchange {
     parseOrder (order, market = undefined) {
         let symbol = market['symbol'];
         let timestamp = parseInt (order['trade_date']);
-        let price = parseFloat (order['price']);
+        let price = this.safeFloat (order, 'price');
         let cost = this.safeFloat (order, 'trade_money');
         let amount = this.safeFloat (order, 'total_amount');
         let filled = this.safeFloat (order, 'trade_amount', 0.0);

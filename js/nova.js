@@ -99,13 +99,13 @@ module.exports = class nova extends Exchange {
         }, params));
         let ticker = response['markets'][0];
         let timestamp = this.milliseconds ();
-        let last = parseFloat (ticker['last_price']);
+        let last = this.safeFloat (ticker, 'last_price');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high24h']),
-            'low': parseFloat (ticker['low24h']),
+            'high': this.safeFloat (ticker, 'high24h'),
+            'low': this.safeFloat (ticker, 'low24h'),
             'bid': this.safeFloat (ticker, 'bid'),
             'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'ask'),
@@ -115,11 +115,11 @@ module.exports = class nova extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': parseFloat (ticker['change24h']),
+            'change': this.safeFloat (ticker, 'change24h'),
             'percentage': undefined,
             'average': undefined,
             'baseVolume': undefined,
-            'quoteVolume': parseFloat (ticker['volume24h']),
+            'quoteVolume': this.safeFloat (ticker, 'volume24h'),
             'info': ticker,
         };
     }
@@ -135,8 +135,8 @@ module.exports = class nova extends Exchange {
             'order': undefined,
             'type': undefined,
             'side': trade['tradetype'].toLowerCase (),
-            'price': parseFloat (trade['price']),
-            'amount': parseFloat (trade['amount']),
+            'price': this.safeFloat (trade, 'price'),
+            'amount': this.safeFloat (trade, 'amount'),
         };
     }
 
