@@ -156,7 +156,7 @@ module.exports = class bibox extends Exchange {
         let change = this.safeFloat (ticker, 'change');
         let baseVolume = undefined;
         if ('vol' in ticker) {
-            baseVolume = ticker['vol'];
+            baseVolume = this.safeFloat (ticker, 'vol');
         } else {
             baseVolume = this.safeFloat (ticker, 'vol24H');
         }
