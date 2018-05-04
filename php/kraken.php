@@ -739,7 +739,10 @@ class kraken extends Exchange {
         for ($i = 0; $i < count ($ids); $i++) {
             $trades[$ids[$i]]['id'] = $ids[$i];
         }
-        return $this->parse_trades($trades, null, $since, $limit);
+        $market = null;
+        if ($symbol !== null)
+            $market = $this->market ($symbol);
+        return $this->parse_trades($trades, $market, $since, $limit);
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
