@@ -711,7 +711,10 @@ class kraken (Exchange):
         ids = list(trades.keys())
         for i in range(0, len(ids)):
             trades[ids[i]]['id'] = ids[i]
-        return self.parse_trades(trades, None, since, limit)
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        return self.parse_trades(trades, market, since, limit)
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
