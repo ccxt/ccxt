@@ -31,9 +31,9 @@ class exmo extends Exchange {
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg',
                 'api' => 'https://api.exmo.com',
-                'www' => 'https://exmo.me',
+                'www' => 'https://exmo.me/?ref=131685',
                 'doc' => array (
-                    'https://exmo.me/en/api_doc',
+                    'https://exmo.me/en/api_doc?ref=131685',
                     'https://github.com/exmo-dev/exmo_api_lib/tree/master/nodejs',
                 ),
                 'fees' => 'https://exmo.com/en/docs/fees',
