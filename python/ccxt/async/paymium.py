@@ -102,8 +102,8 @@ class paymium (Exchange):
             'id': self.market_id(symbol),
         }, params))
         timestamp = ticker['at'] * 1000
-        vwap = float(ticker['vwap'])
-        baseVolume = float(ticker['volume'])
+        vwap = self.safe_float(ticker, 'vwap')
+        baseVolume = self.safe_float(ticker, 'volume')
         quoteVolume = baseVolume * vwap
         last = self.safe_float(ticker, 'price')
         return {

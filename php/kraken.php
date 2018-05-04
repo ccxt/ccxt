@@ -433,7 +433,7 @@ class kraken extends Exchange {
             'ask' => floatval ($ticker['a'][0]),
             'askVolume' => null,
             'vwap' => $vwap,
-            'open' => floatval ($ticker['o']),
+            'open' => $this->safe_float($ticker, 'o'),
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
@@ -528,14 +528,14 @@ class kraken extends Exchange {
             $timestamp = intval ($trade['time'] * 1000);
             $side = $trade['type'];
             $type = $trade['ordertype'];
-            $price = floatval ($trade['price']);
-            $amount = floatval ($trade['vol']);
+            $price = $this->safe_float($trade, 'price');
+            $amount = $this->safe_float($trade, 'vol');
             if (is_array ($trade) && array_key_exists ('fee', $trade)) {
                 $currency = null;
                 if ($market)
                     $currency = $market['quote'];
                 $fee = array (
-                    'cost' => floatval ($trade['fee']),
+                    'cost' => $this->safe_float($trade, 'fee'),
                     'currency' => $currency,
                 );
             }
@@ -655,8 +655,8 @@ class kraken extends Exchange {
         if (!$market)
             $market = $this->find_market_by_altname_or_id ($description['pair']);
         $timestamp = intval ($order['opentm'] * 1000);
-        $amount = floatval ($order['vol']);
-        $filled = floatval ($order['vol_exec']);
+        $amount = $this->safe_float($order, 'vol');
+        $filled = $this->safe_float($order, 'vol_exec');
         $remaining = $amount - $filled;
         $fee = null;
         $cost = $this->safe_float($order, 'cost');

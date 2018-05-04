@@ -96,13 +96,13 @@ class nova (Exchange):
         }, params))
         ticker = response['markets'][0]
         timestamp = self.milliseconds()
-        last = float(ticker['last_price'])
+        last = self.safe_float(ticker, 'last_price')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high24h']),
-            'low': float(ticker['low24h']),
+            'high': self.safe_float(ticker, 'high24h'),
+            'low': self.safe_float(ticker, 'low24h'),
             'bid': self.safe_float(ticker, 'bid'),
             'bidVolume': None,
             'ask': self.safe_float(ticker, 'ask'),
@@ -112,11 +112,11 @@ class nova (Exchange):
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': float(ticker['change24h']),
+            'change': self.safe_float(ticker, 'change24h'),
             'percentage': None,
             'average': None,
             'baseVolume': None,
-            'quoteVolume': float(ticker['volume24h']),
+            'quoteVolume': self.safe_float(ticker, 'volume24h'),
             'info': ticker,
         }
 
@@ -131,8 +131,8 @@ class nova (Exchange):
             'order': None,
             'type': None,
             'side': trade['tradetype'].lower(),
-            'price': float(trade['price']),
-            'amount': float(trade['amount']),
+            'price': self.safe_float(trade, 'price'),
+            'amount': self.safe_float(trade, 'amount'),
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):

@@ -343,17 +343,17 @@ class binance extends Exchange {
                 $filter = $filters['PRICE_FILTER'];
                 $entry['precision']['price'] = $this->precision_from_string($filter['tickSize']);
                 $entry['limits']['price'] = array (
-                    'min' => floatval ($filter['minPrice']),
-                    'max' => floatval ($filter['maxPrice']),
+                    'min' => $this->safe_float($filter, 'minPrice'),
+                    'max' => $this->safe_float($filter, 'maxPrice'),
                 );
             }
             if (is_array ($filters) && array_key_exists ('LOT_SIZE', $filters)) {
                 $filter = $filters['LOT_SIZE'];
                 $entry['precision']['amount'] = $this->precision_from_string($filter['stepSize']);
-                $entry['lot'] = floatval ($filter['stepSize']); // $lot size is deprecated as of 2018.02.06
+                $entry['lot'] = $this->safe_float($filter, 'stepSize'); // $lot size is deprecated as of 2018.02.06
                 $entry['limits']['amount'] = array (
-                    'min' => floatval ($filter['minQty']),
-                    'max' => floatval ($filter['maxQty']),
+                    'min' => $this->safe_float($filter, 'minQty'),
+                    'max' => $this->safe_float($filter, 'maxQty'),
                 );
             }
             if (is_array ($filters) && array_key_exists ('MIN_NOTIONAL', $filters)) {
@@ -522,7 +522,7 @@ class binance extends Exchange {
         $fee = null;
         if (is_array ($trade) && array_key_exists ('commission', $trade)) {
             $fee = array (
-                'cost' => floatval ($trade['commission']),
+                'cost' => $this->safe_float($trade, 'commission'),
                 'currency' => $this->common_currency_code($trade['commissionAsset']),
             );
         }

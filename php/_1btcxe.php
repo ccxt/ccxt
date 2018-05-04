@@ -119,27 +119,27 @@ class _1btcxe extends Exchange {
             'currency' => $this->market_id($symbol),
         ), $params));
         $ticker = $response['stats'];
-        $last = floatval ($ticker['last_price']);
+        $last = $this->safe_float($ticker, 'last_price');
         return array (
             'symbol' => $symbol,
             'timestamp' => null,
             'datetime' => null,
-            'high' => floatval ($ticker['max']),
-            'low' => floatval ($ticker['min']),
-            'bid' => floatval ($ticker['bid']),
+            'high' => $this->safe_float($ticker, 'max'),
+            'low' => $this->safe_float($ticker, 'min'),
+            'bid' => $this->safe_float($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => floatval ($ticker['ask']),
+            'ask' => $this->safe_float($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
-            'open' => floatval ($ticker['open']),
+            'open' => $this->safe_float($ticker, 'open'),
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => floatval ($ticker['daily_change']),
+            'change' => $this->safe_float($ticker, 'daily_change'),
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => floatval ($ticker['total_btc_traded']),
+            'quoteVolume' => $this->safe_float($ticker, 'total_btc_traded'),
             'info' => $ticker,
         );
     }
@@ -176,8 +176,8 @@ class _1btcxe extends Exchange {
             'order' => null,
             'type' => null,
             'side' => $trade['maker_type'],
-            'price' => floatval ($trade['price']),
-            'amount' => floatval ($trade['amount']),
+            'price' => $this->safe_float($trade, 'price'),
+            'amount' => $this->safe_float($trade, 'amount'),
         );
     }
 

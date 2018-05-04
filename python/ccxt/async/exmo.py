@@ -217,16 +217,16 @@ class exmo (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
-        last = float(ticker['last_trade'])
+        last = self.safe_float(ticker, 'last_trade')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['buy_price']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'buy_price'),
             'bidVolume': None,
-            'ask': float(ticker['sell_price']),
+            'ask': self.safe_float(ticker, 'sell_price'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -235,9 +235,9 @@ class exmo (Exchange):
             'previousClose': None,
             'change': None,
             'percentage': None,
-            'average': float(ticker['avg']),
-            'baseVolume': float(ticker['vol']),
-            'quoteVolume': float(ticker['vol_curr']),
+            'average': self.safe_float(ticker, 'avg'),
+            'baseVolume': self.safe_float(ticker, 'vol'),
+            'quoteVolume': self.safe_float(ticker, 'vol_curr'),
             'info': ticker,
         }
 
@@ -271,8 +271,8 @@ class exmo (Exchange):
             'order': self.safe_string(trade, 'order_id'),
             'type': None,
             'side': trade['type'],
-            'price': float(trade['price']),
-            'amount': float(trade['quantity']),
+            'price': self.safe_float(trade, 'price'),
+            'amount': self.safe_float(trade, 'quantity'),
             'cost': self.safe_float(trade, 'amount'),
         }
 

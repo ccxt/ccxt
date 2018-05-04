@@ -247,8 +247,8 @@ class poloniex (Exchange):
         fees = await self.privatePostReturnFeeInfo()
         return {
             'info': fees,
-            'maker': float(fees['makerFee']),
-            'taker': float(fees['takerFee']),
+            'maker': self.safe_float(fees, 'makerFee'),
+            'taker': self.safe_float(fees, 'takerFee'),
             'withdraw': {},
             'deposit': {},
         }
@@ -273,8 +273,8 @@ class poloniex (Exchange):
         open = None
         change = None
         average = None
-        last = float(ticker['last'])
-        relativeChange = float(ticker['percentChange'])
+        last = self.safe_float(ticker, 'last')
+        relativeChange = self.safe_float(ticker, 'percentChange')
         if relativeChange != -1:
             open = last / self.sum(1, relativeChange)
             change = last - open
@@ -283,11 +283,11 @@ class poloniex (Exchange):
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high24hr']),
-            'low': float(ticker['low24hr']),
-            'bid': float(ticker['highestBid']),
+            'high': self.safe_float(ticker, 'high24hr'),
+            'low': self.safe_float(ticker, 'low24hr'),
+            'bid': self.safe_float(ticker, 'highestBid'),
             'bidVolume': None,
-            'ask': float(ticker['lowestAsk']),
+            'ask': self.safe_float(ticker, 'lowestAsk'),
             'askVolume': None,
             'vwap': None,
             'open': open,
@@ -297,8 +297,8 @@ class poloniex (Exchange):
             'change': change,
             'percentage': relativeChange * 100,
             'average': average,
-            'baseVolume': float(ticker['quoteVolume']),
-            'quoteVolume': float(ticker['baseVolume']),
+            'baseVolume': self.safe_float(ticker, 'quoteVolume'),
+            'quoteVolume': self.safe_float(ticker, 'baseVolume'),
             'info': ticker,
         }
 
@@ -389,9 +389,9 @@ class poloniex (Exchange):
         side = trade['type']
         fee = None
         cost = self.safe_float(trade, 'total')
-        amount = float(trade['amount'])
+        amount = self.safe_float(trade, 'amount')
         if 'fee' in trade:
-            rate = float(trade['fee'])
+            rate = self.safe_float(trade, 'fee')
             feeCost = None
             currency = None
             if side == 'buy':
@@ -416,7 +416,7 @@ class poloniex (Exchange):
             'order': self.safe_string(trade, 'orderNumber'),
             'type': 'limit',
             'side': side,
-            'price': float(trade['rate']),
+            'price': self.safe_float(trade, 'rate'),
             'amount': amount,
             'cost': cost,
             'fee': fee,

@@ -207,16 +207,16 @@ class coinegg extends Exchange {
     public function parse_ticker ($ticker, $market = null) {
         $symbol = $market['symbol'];
         $timestamp = $this->milliseconds ();
-        $last = floatval ($ticker['last']);
+        $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['high']),
-            'low' => floatval ($ticker['low']),
-            'bid' => floatval ($ticker['buy']),
+            'high' => $this->safe_float($ticker, 'high'),
+            'low' => $this->safe_float($ticker, 'low'),
+            'bid' => $this->safe_float($ticker, 'buy'),
             'bidVolume' => null,
-            'ask' => floatval ($ticker['sell']),
+            'ask' => $this->safe_float($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -226,7 +226,7 @@ class coinegg extends Exchange {
             'change' => $this->safe_float($ticker, 'change'),
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($ticker['vol']),
+            'baseVolume' => $this->safe_float($ticker, 'vol'),
             'quoteVolume' => $this->safe_float($ticker, 'quoteVol'),
             'info' => $ticker,
         );
@@ -290,8 +290,8 @@ class coinegg extends Exchange {
 
     public function parse_trade ($trade, $market = null) {
         $timestamp = intval ($trade['date']) * 1000;
-        $price = floatval ($trade['price']);
-        $amount = floatval ($trade['amount']);
+        $price = $this->safe_float($trade, 'price');
+        $amount = $this->safe_float($trade, 'amount');
         $symbol = $market['symbol'];
         $cost = $this->cost_to_precision($symbol, $price * $amount);
         return array (
@@ -354,9 +354,9 @@ class coinegg extends Exchange {
     public function parse_order ($order, $market = null) {
         $symbol = $market['symbol'];
         $timestamp = $this->parse8601 ($order['datetime']);
-        $price = floatval ($order['price']);
-        $amount = floatval ($order['amount_original']);
-        $remaining = floatval ($order['amount_outstanding']);
+        $price = $this->safe_float($order, 'price');
+        $amount = $this->safe_float($order, 'amount_original');
+        $remaining = $this->safe_float($order, 'amount_outstanding');
         $filled = $amount - $remaining;
         $status = $this->safe_string($order, 'status');
         if ($status === 'cancelled') {

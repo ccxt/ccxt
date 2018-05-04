@@ -188,16 +188,16 @@ class ccex (Exchange):
         symbol = None
         if market is not None:
             symbol = market['symbol']
-        last = float(ticker['lastprice'])
+        last = self.safe_float(ticker, 'lastprice')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['buy']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'buy'),
             'bidVolume': None,
-            'ask': float(ticker['sell']),
+            'ask': self.safe_float(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -206,7 +206,7 @@ class ccex (Exchange):
             'previousClose': None,
             'change': None,
             'percentage': None,
-            'average': float(ticker['avg']),
+            'average': self.safe_float(ticker, 'avg'),
             'baseVolume': None,
             'quoteVolume': self.safe_float(ticker, 'buysupport'),
             'info': ticker,

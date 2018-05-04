@@ -137,26 +137,26 @@ class exx extends Exchange {
         $symbol = $market['symbol'];
         $timestamp = intval ($ticker['date']);
         $ticker = $ticker['ticker'];
-        $last = floatval ($ticker['last']);
+        $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['high']),
-            'low' => floatval ($ticker['low']),
-            'bid' => floatval ($ticker['buy']),
+            'high' => $this->safe_float($ticker, 'high'),
+            'low' => $this->safe_float($ticker, 'low'),
+            'bid' => $this->safe_float($ticker, 'buy'),
             'bidVolume' => null,
-            'ask' => floatval ($ticker['sell']),
+            'ask' => $this->safe_float($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => floatval ($ticker['riseRate']),
+            'change' => $this->safe_float($ticker, 'riseRate'),
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($ticker['vol']),
+            'baseVolume' => $this->safe_float($ticker, 'vol'),
             'quoteVolume' => null,
             'info' => $ticker,
         );
@@ -202,8 +202,8 @@ class exx extends Exchange {
 
     public function parse_trade ($trade, $market = null) {
         $timestamp = $trade['date'] * 1000;
-        $price = floatval ($trade['price']);
-        $amount = floatval ($trade['amount']);
+        $price = $this->safe_float($trade, 'price');
+        $amount = $this->safe_float($trade, 'amount');
         $symbol = $market['symbol'];
         $cost = $this->cost_to_precision($symbol, $price * $amount);
         return array (
@@ -254,7 +254,7 @@ class exx extends Exchange {
     public function parse_order ($order, $market = null) {
         $symbol = $market['symbol'];
         $timestamp = intval ($order['trade_date']);
-        $price = floatval ($order['price']);
+        $price = $this->safe_float($order, 'price');
         $cost = $this->safe_float($order, 'trade_money');
         $amount = $this->safe_float($order, 'total_amount');
         $filled = $this->safe_float($order, 'trade_amount', 0.0);

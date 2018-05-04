@@ -548,14 +548,14 @@ class hitbtc2 extends hitbtc {
             $base = $this->common_currency_code($baseId);
             $quote = $this->common_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
-            $lot = floatval ($market['quantityIncrement']);
-            $step = floatval ($market['tickSize']);
+            $lot = $this->safe_float($market, 'quantityIncrement');
+            $step = $this->safe_float($market, 'tickSize');
             $precision = array (
                 'price' => $this->precision_from_string($market['tickSize']),
                 'amount' => $this->precision_from_string($market['quantityIncrement']),
             );
-            $taker = floatval ($market['takeLiquidityRate']);
-            $maker = floatval ($market['provideLiquidityRate']);
+            $taker = $this->safe_float($market, 'takeLiquidityRate');
+            $maker = $this->safe_float($market, 'provideLiquidityRate');
             $result[] = array_merge ($this->fees['trading'], array (
                 'info' => $market,
                 'id' => $id,
@@ -794,15 +794,15 @@ class hitbtc2 extends hitbtc {
         if (is_array ($trade) && array_key_exists ('fee', $trade)) {
             $currency = $market ? $market['quote'] : null;
             $fee = array (
-                'cost' => floatval ($trade['fee']),
+                'cost' => $this->safe_float($trade, 'fee'),
                 'currency' => $currency,
             );
         }
         $orderId = null;
         if (is_array ($trade) && array_key_exists ('clientOrderId', $trade))
             $orderId = $trade['clientOrderId'];
-        $price = floatval ($trade['price']);
-        $amount = floatval ($trade['quantity']);
+        $price = $this->safe_float($trade, 'price');
+        $amount = $this->safe_float($trade, 'quantity');
         $cost = $price * $amount;
         return array (
             'info' => $trade,

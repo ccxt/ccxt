@@ -116,16 +116,16 @@ class gemini (Exchange):
         timestamp = ticker['volume']['timestamp']
         baseVolume = market['base']
         quoteVolume = market['quote']
-        last = float(ticker['last'])
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': float(ticker['bid']),
+            'bid': self.safe_float(ticker, 'bid'),
             'bidVolume': None,
-            'ask': float(ticker['ask']),
+            'ask': self.safe_float(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -153,11 +153,11 @@ class gemini (Exchange):
                     currency = self.currencies_by_id[currency]['code']
                 currency = self.common_currency_code(currency)
             fee = {
-                'cost': float(trade['fee_amount']),
+                'cost': self.safe_float(trade, 'fee_amount'),
                 'currency': currency,
             }
-        price = float(trade['price'])
-        amount = float(trade['amount'])
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'amount')
         return {
             'id': str(trade['tid']),
             'order': order,

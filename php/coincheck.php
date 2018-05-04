@@ -127,16 +127,16 @@ class coincheck extends Exchange {
             throw new NotSupported ($this->id . ' fetchTicker () supports BTC/JPY only');
         $ticker = $this->publicGetTicker ($params);
         $timestamp = $ticker['timestamp'] * 1000;
-        $last = floatval ($ticker['last']);
+        $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['high']),
-            'low' => floatval ($ticker['low']),
-            'bid' => floatval ($ticker['bid']),
+            'high' => $this->safe_float($ticker, 'high'),
+            'low' => $this->safe_float($ticker, 'low'),
+            'bid' => $this->safe_float($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => floatval ($ticker['ask']),
+            'ask' => $this->safe_float($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -146,7 +146,7 @@ class coincheck extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($ticker['volume']),
+            'baseVolume' => $this->safe_float($ticker, 'volume'),
             'quoteVolume' => null,
             'info' => $ticker,
         );
@@ -161,8 +161,8 @@ class coincheck extends Exchange {
             'symbol' => $market['symbol'],
             'type' => null,
             'side' => $trade['order_type'],
-            'price' => floatval ($trade['rate']),
-            'amount' => floatval ($trade['amount']),
+            'price' => $this->safe_float($trade, 'rate'),
+            'amount' => $this->safe_float($trade, 'amount'),
             'info' => $trade,
         );
     }

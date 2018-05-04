@@ -206,8 +206,8 @@ class lbank (Exchange):
     def parse_trade(self, trade, market=None):
         symbol = market['symbol']
         timestamp = int(trade['date_ms'])
-        price = float(trade['price'])
-        amount = float(trade['amount'])
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'amount')
         cost = self.cost_to_precision(symbol, price * amount)
         return {
             'timestamp': timestamp,
@@ -279,7 +279,7 @@ class lbank (Exchange):
         timestamp = self.safe_integer(order, 'create_time')
         # Limit Order Request Returns: Order Price
         # Market Order Returns: cny amount of market order
-        price = float(order['price'])
+        price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'amount')
         filled = self.safe_float(order, 'deal_amount')
         cost = filled * self.safe_float(order, 'avg_price')

@@ -348,16 +348,16 @@ class binance (Exchange):
                 filter = filters['PRICE_FILTER']
                 entry['precision']['price'] = self.precision_from_string(filter['tickSize'])
                 entry['limits']['price'] = {
-                    'min': float(filter['minPrice']),
-                    'max': float(filter['maxPrice']),
+                    'min': self.safe_float(filter, 'minPrice'),
+                    'max': self.safe_float(filter, 'maxPrice'),
                 }
             if 'LOT_SIZE' in filters:
                 filter = filters['LOT_SIZE']
                 entry['precision']['amount'] = self.precision_from_string(filter['stepSize'])
-                entry['lot'] = float(filter['stepSize'])  # lot size is deprecated as of 2018.02.06
+                entry['lot'] = self.safe_float(filter, 'stepSize')  # lot size is deprecated as of 2018.02.06
                 entry['limits']['amount'] = {
-                    'min': float(filter['minQty']),
-                    'max': float(filter['maxQty']),
+                    'min': self.safe_float(filter, 'minQty'),
+                    'max': self.safe_float(filter, 'maxQty'),
                 }
             if 'MIN_NOTIONAL' in filters:
                 entry['limits']['cost']['min'] = float(filters['MIN_NOTIONAL']['minNotional'])
@@ -508,7 +508,7 @@ class binance (Exchange):
         fee = None
         if 'commission' in trade:
             fee = {
-                'cost': float(trade['commission']),
+                'cost': self.safe_float(trade, 'commission'),
                 'currency': self.common_currency_code(trade['commissionAsset']),
             }
         takerOrMaker = None

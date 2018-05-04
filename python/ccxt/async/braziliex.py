@@ -248,10 +248,10 @@ class braziliex (Exchange):
             timestamp = self.parse8601(trade['date_exec'])
         else:
             timestamp = self.parse8601(trade['date'])
-        price = float(trade['price'])
-        amount = float(trade['amount'])
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'amount')
         symbol = market['symbol']
-        cost = float(trade['total'])
+        cost = self.safe_float(trade, 'total')
         orderId = self.safe_string(trade, 'order_number')
         return {
             'timestamp': timestamp,
@@ -306,7 +306,7 @@ class braziliex (Exchange):
         timestamp = self.safe_value(order, 'timestamp')
         if not timestamp:
             timestamp = self.parse8601(order['date'])
-        price = float(order['price'])
+        price = self.safe_float(order, 'price')
         cost = self.safe_float(order, 'total', 0.0)
         amount = self.safe_float(order, 'amount')
         filledPercentage = self.safe_float(order, 'progress')

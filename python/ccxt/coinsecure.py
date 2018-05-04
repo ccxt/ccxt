@@ -209,25 +209,25 @@ class coinsecure (Exchange):
         response = self.publicGetExchangeTicker(params)
         ticker = response['message']
         timestamp = ticker['timestamp']
-        baseVolume = float(ticker['coinvolume'])
+        baseVolume = self.safe_float(ticker, 'coinvolume')
         if symbol == 'BTC/INR':
             satoshi = 0.00000001
             baseVolume = baseVolume * satoshi
-        quoteVolume = float(ticker['fiatvolume']) / 100
+        quoteVolume = self.safe_float(ticker, 'fiatvolume') / 100
         vwap = quoteVolume / baseVolume
-        last = float(ticker['lastPrice']) / 100
+        last = self.safe_float(ticker, 'lastPrice') / 100
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']) / 100,
-            'low': float(ticker['low']) / 100,
-            'bid': float(ticker['bid']) / 100,
+            'high': self.safe_float(ticker, 'high') / 100,
+            'low': self.safe_float(ticker, 'low') / 100,
+            'bid': self.safe_float(ticker, 'bid') / 100,
             'bidVolume': None,
-            'ask': float(ticker['ask']) / 100,
+            'ask': self.safe_float(ticker, 'ask') / 100,
             'askVolume': None,
             'vwap': vwap,
-            'open': float(ticker['open']) / 100,
+            'open': self.safe_float(ticker, 'open') / 100,
             'close': last,
             'last': last,
             'previousClose': None,

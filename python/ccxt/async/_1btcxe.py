@@ -114,27 +114,27 @@ class _1btcxe (Exchange):
             'currency': self.market_id(symbol),
         }, params))
         ticker = response['stats']
-        last = float(ticker['last_price'])
+        last = self.safe_float(ticker, 'last_price')
         return {
             'symbol': symbol,
             'timestamp': None,
             'datetime': None,
-            'high': float(ticker['max']),
-            'low': float(ticker['min']),
-            'bid': float(ticker['bid']),
+            'high': self.safe_float(ticker, 'max'),
+            'low': self.safe_float(ticker, 'min'),
+            'bid': self.safe_float(ticker, 'bid'),
             'bidVolume': None,
-            'ask': float(ticker['ask']),
+            'ask': self.safe_float(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
-            'open': float(ticker['open']),
+            'open': self.safe_float(ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': float(ticker['daily_change']),
+            'change': self.safe_float(ticker, 'daily_change'),
             'percentage': None,
             'average': None,
             'baseVolume': None,
-            'quoteVolume': float(ticker['total_btc_traded']),
+            'quoteVolume': self.safe_float(ticker, 'total_btc_traded'),
             'info': ticker,
         }
 
@@ -168,8 +168,8 @@ class _1btcxe (Exchange):
             'order': None,
             'type': None,
             'side': trade['maker_type'],
-            'price': float(trade['price']),
-            'amount': float(trade['amount']),
+            'price': self.safe_float(trade, 'price'),
+            'amount': self.safe_float(trade, 'amount'),
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):

@@ -243,8 +243,8 @@ class btctradeua extends Exchange {
             'symbol' => $market['symbol'],
             'type' => 'limit',
             'side' => $trade['type'],
-            'price' => floatval ($trade['price']),
-            'amount' => floatval ($trade['amnt_trade']),
+            'price' => $this->safe_float($trade, 'price'),
+            'amount' => $this->safe_float($trade, 'amnt_trade'),
         );
     }
 
