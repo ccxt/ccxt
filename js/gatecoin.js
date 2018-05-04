@@ -189,7 +189,12 @@ module.exports = class gatecoin extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'BCP': 'BCPT',
+                'FLI': 'FLIXX',
                 'MAN': 'MANA',
+                'SLT': 'SALT',
+                'TRA': 'TRAC',
+                'WGS': 'WINGS',
             },
         });
     }
@@ -640,11 +645,7 @@ module.exports = class gatecoin extends Exchange {
             'DigiCurrency': currency['id'],
         };
         let response = await this.privatePostElectronicWalletDepositWalletsDigiCurrency (this.extend (request, params));
-        let result = response['addresses'];
-        let numResults = result.length;
-        if (numResults < 1)
-            throw new InvalidAddress (this.id + ' privatePostElectronicWalletDepositWalletsDigiCurrency() returned no addresses');
-        let address = this.safeString (result[0], 'address');
+        let address = response['address'];
         this.checkAddress (address);
         return {
             'currency': code,
