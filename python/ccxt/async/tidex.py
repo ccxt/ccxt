@@ -27,7 +27,6 @@ class tidex (liqui):
                     'web': 'https://web.tidex.com/api',
                     'public': 'https://api.tidex.com/api/3',
                     'private': 'https://api.tidex.com/tapi',
-                    'gate': 'https://gate.tidex.com/api',
                 },
                 'www': 'https://tidex.com',
                 'doc': 'https://tidex.com/exchange/public-api',
