@@ -282,7 +282,12 @@ class gdax (Exchange):
         status = self.get_order_status(order['status'])
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'size')
+        if order['type'] == 'market':
+            # Market orders don't have a price nor amount fields
+            amount = self.safe_float(order, 'filled_size')
+            price = self.safe_float(order, 'funds') / amount
         filled = self.safe_float(order, 'filled_size')
+
         remaining = amount - filled
         cost = self.safe_float(order, 'executed_value')
         if market:
