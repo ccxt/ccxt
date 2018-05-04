@@ -138,7 +138,7 @@ class yobit extends liqui {
                         $account = $this->account ();
                     }
                     $account[$key] = $balances[$side][$lowercase];
-                    if ($account['total'] && $account['free'])
+                    if (($account['total'] != null) && ($account['free'] != null))
                         $account['used'] = $account['total'] - $account['free'];
                     $result[$currency] = $account;
                 }
