@@ -831,6 +831,8 @@ class poloniex extends Exchange {
             $feedback = $this->id . ' ' . $this->json ($response);
             if ($error === 'Invalid order number, or you are not the person who placed the order.') {
                 throw new OrderNotFound ($feedback);
+            } else if ($error === 'Connection timed out. Please try again.') {
+                throw new RequestTimeout ($feedback);
             } else if ($error === 'Internal $error. Please try again.') {
                 throw new ExchangeNotAvailable ($feedback);
             } else if ($error === 'Order not found, or you are not the person who placed it.') {

@@ -15,6 +15,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import OrderNotCached
 from ccxt.base.errors import CancelPending
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import RequestTimeout
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 
@@ -772,6 +773,8 @@ class poloniex (Exchange):
             feedback = self.id + ' ' + self.json(response)
             if error == 'Invalid order number, or you are not the person who placed the order.':
                 raise OrderNotFound(feedback)
+            elif error == 'Connection timed out. Please try again.':
+                raise RequestTimeout(feedback)
             elif error == 'Internal error. Please try again.':
                 raise ExchangeNotAvailable(feedback)
             elif error == 'Order not found, or you are not the person who placed it.':
