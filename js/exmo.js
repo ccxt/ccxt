@@ -32,7 +32,7 @@ module.exports = class exmo extends Exchange {
                 'api': 'https://api.exmo.com',
                 'www': 'https://exmo.me/?ref=131685',
                 'doc': [
-                    'https://exmo.me/en/api_doc',
+                    'https://exmo.me/en/api_doc?ref=131685',
                     'https://github.com/exmo-dev/exmo_api_lib/tree/master/nodejs',
                 ],
                 'fees': 'https://exmo.com/en/docs/fees',
