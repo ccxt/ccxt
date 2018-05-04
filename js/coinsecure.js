@@ -209,26 +209,26 @@ module.exports = class coinsecure extends Exchange {
         let response = await this.publicGetExchangeTicker (params);
         let ticker = response['message'];
         let timestamp = ticker['timestamp'];
-        let baseVolume = parseFloat (ticker['coinvolume']);
+        let baseVolume = this.safeFloat (ticker, 'coinvolume');
         if (symbol === 'BTC/INR') {
             let satoshi = 0.00000001;
             baseVolume = baseVolume * satoshi;
         }
-        let quoteVolume = parseFloat (ticker['fiatvolume']) / 100;
+        let quoteVolume = this.safeFloat (ticker, 'fiatvolume') / 100;
         let vwap = quoteVolume / baseVolume;
-        let last = parseFloat (ticker['lastPrice']) / 100;
+        let last = this.safeFloat (ticker, 'lastPrice') / 100;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']) / 100,
-            'low': parseFloat (ticker['low']) / 100,
-            'bid': parseFloat (ticker['bid']) / 100,
+            'high': this.safeFloat (ticker, 'high') / 100,
+            'low': this.safeFloat (ticker, 'low') / 100,
+            'bid': this.safeFloat (ticker, 'bid') / 100,
             'bidVolume': undefined,
-            'ask': parseFloat (ticker['ask']) / 100,
+            'ask': this.safeFloat (ticker, 'ask') / 100,
             'askVolume': undefined,
             'vwap': vwap,
-            'open': parseFloat (ticker['open']) / 100,
+            'open': this.safeFloat (ticker, 'open') / 100,
             'close': last,
             'last': last,
             'previousClose': undefined,

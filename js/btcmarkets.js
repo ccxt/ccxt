@@ -151,16 +151,16 @@ module.exports = class btcmarkets extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
-        let last = parseFloat (ticker['lastPrice']);
+        let last = this.safeFloat (ticker, 'lastPrice');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
             'low': undefined,
-            'bid': parseFloat (ticker['bestBid']),
+            'bid': this.safeFloat (ticker, 'bestBid'),
             'bidVolume': undefined,
-            'ask': parseFloat (ticker['bestAsk']),
+            'ask': this.safeFloat (ticker, 'bestAsk'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -170,7 +170,7 @@ module.exports = class btcmarkets extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': parseFloat (ticker['volume24h']),
+            'baseVolume': this.safeFloat (ticker, 'volume24h'),
             'quoteVolume': undefined,
             'info': ticker,
         };

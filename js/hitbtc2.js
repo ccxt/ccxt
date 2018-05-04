@@ -547,14 +547,14 @@ module.exports = class hitbtc2 extends hitbtc {
             let base = this.commonCurrencyCode (baseId);
             let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
-            let lot = parseFloat (market['quantityIncrement']);
-            let step = parseFloat (market['tickSize']);
+            let lot = this.safeFloat (market, 'quantityIncrement');
+            let step = this.safeFloat (market, 'tickSize');
             let precision = {
                 'price': this.precisionFromString (market['tickSize']),
                 'amount': this.precisionFromString (market['quantityIncrement']),
             };
-            let taker = parseFloat (market['takeLiquidityRate']);
-            let maker = parseFloat (market['provideLiquidityRate']);
+            let taker = this.safeFloat (market, 'takeLiquidityRate');
+            let maker = this.safeFloat (market, 'provideLiquidityRate');
             result.push (this.extend (this.fees['trading'], {
                 'info': market,
                 'id': id,
@@ -793,15 +793,15 @@ module.exports = class hitbtc2 extends hitbtc {
         if ('fee' in trade) {
             let currency = market ? market['quote'] : undefined;
             fee = {
-                'cost': parseFloat (trade['fee']),
+                'cost': this.safeFloat (trade, 'fee'),
                 'currency': currency,
             };
         }
         let orderId = undefined;
         if ('clientOrderId' in trade)
             orderId = trade['clientOrderId'];
-        let price = parseFloat (trade['price']);
-        let amount = parseFloat (trade['quantity']);
+        let price = this.safeFloat (trade, 'price');
+        let amount = this.safeFloat (trade, 'quantity');
         let cost = price * amount;
         return {
             'info': trade,

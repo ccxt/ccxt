@@ -209,8 +209,8 @@ module.exports = class lbank extends Exchange {
     parseTrade (trade, market = undefined) {
         let symbol = market['symbol'];
         let timestamp = parseInt (trade['date_ms']);
-        let price = parseFloat (trade['price']);
-        let amount = parseFloat (trade['amount']);
+        let price = this.safeFloat (trade, 'price');
+        let amount = this.safeFloat (trade, 'amount');
         let cost = this.costToPrecision (symbol, price * amount);
         return {
             'timestamp': timestamp,
@@ -287,7 +287,7 @@ module.exports = class lbank extends Exchange {
         let timestamp = this.safeInteger (order, 'create_time');
         // Limit Order Request Returns: Order Price
         // Market Order Returns: cny amount of market order
-        let price = parseFloat (order['price']);
+        let price = this.safeFloat (order, 'price');
         let amount = this.safeFloat (order, 'amount');
         let filled = this.safeFloat (order, 'deal_amount');
         let cost = filled * this.safeFloat (order, 'avg_price');

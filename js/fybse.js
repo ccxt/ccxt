@@ -83,18 +83,18 @@ module.exports = class fybse extends Exchange {
         let last = undefined;
         let volume = undefined;
         if ('last' in ticker)
-            last = parseFloat (ticker['last']);
+            last = this.safeFloat (ticker, 'last');
         if ('vol' in ticker)
-            volume = parseFloat (ticker['vol']);
+            volume = this.safeFloat (ticker, 'vol');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
             'low': undefined,
-            'bid': parseFloat (ticker['bid']),
+            'bid': this.safeFloat (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': parseFloat (ticker['ask']),
+            'ask': this.safeFloat (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -121,8 +121,8 @@ module.exports = class fybse extends Exchange {
             'symbol': market['symbol'],
             'type': undefined,
             'side': undefined,
-            'price': parseFloat (trade['price']),
-            'amount': parseFloat (trade['amount']),
+            'price': this.safeFloat (trade, 'price'),
+            'amount': this.safeFloat (trade, 'amount'),
         };
     }
 

@@ -342,17 +342,17 @@ module.exports = class binance extends Exchange {
                 let filter = filters['PRICE_FILTER'];
                 entry['precision']['price'] = this.precisionFromString (filter['tickSize']);
                 entry['limits']['price'] = {
-                    'min': parseFloat (filter['minPrice']),
-                    'max': parseFloat (filter['maxPrice']),
+                    'min': this.safeFloat (filter, 'minPrice'),
+                    'max': this.safeFloat (filter, 'maxPrice'),
                 };
             }
             if ('LOT_SIZE' in filters) {
                 let filter = filters['LOT_SIZE'];
                 entry['precision']['amount'] = this.precisionFromString (filter['stepSize']);
-                entry['lot'] = parseFloat (filter['stepSize']); // lot size is deprecated as of 2018.02.06
+                entry['lot'] = this.safeFloat (filter, 'stepSize'); // lot size is deprecated as of 2018.02.06
                 entry['limits']['amount'] = {
-                    'min': parseFloat (filter['minQty']),
-                    'max': parseFloat (filter['maxQty']),
+                    'min': this.safeFloat (filter, 'minQty'),
+                    'max': this.safeFloat (filter, 'maxQty'),
                 };
             }
             if ('MIN_NOTIONAL' in filters) {
@@ -521,7 +521,7 @@ module.exports = class binance extends Exchange {
         let fee = undefined;
         if ('commission' in trade) {
             fee = {
-                'cost': parseFloat (trade['commission']),
+                'cost': this.safeFloat (trade, 'commission'),
                 'currency': this.commonCurrencyCode (trade['commissionAsset']),
             };
         }
