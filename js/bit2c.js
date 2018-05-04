@@ -1,23 +1,26 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class bit2c extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bit2c',
             'name': 'Bit2C',
             'countries': 'IL', // Israel
             'rateLimit': 3000,
-            'hasCORS': false,
+            'has': {
+                'CORS': false,
+                'fetchOpenOrders': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg',
-                'api': 'https://www.bit2c.co.il',
+                'api': 'https://bit2c.co.il',
                 'www': 'https://www.bit2c.co.il',
                 'doc': [
                     'https://www.bit2c.co.il/home/api',
@@ -30,23 +33,31 @@ module.exports = class bit2c extends Exchange {
                         'Exchanges/{pair}/Ticker',
                         'Exchanges/{pair}/orderbook',
                         'Exchanges/{pair}/trades',
+                        'Exchanges/{pair}/lasttrades',
                     ],
                 },
                 'private': {
                     'post': [
-                        'Account/Balance',
-                        'Account/Balance/v2',
                         'Merchant/CreateCheckout',
-                        'Order/AccountHistory',
                         'Order/AddCoinFundsRequest',
                         'Order/AddFund',
                         'Order/AddOrder',
                         'Order/AddOrderMarketPriceBuy',
                         'Order/AddOrderMarketPriceSell',
                         'Order/CancelOrder',
-                        'Order/MyOrders',
+                        'Order/AddCoinFundsRequest',
+                        'Order/AddStopOrder',
                         'Payment/GetMyId',
                         'Payment/Send',
+                        'Payment/Pay',
+                    ],
+                    'get': [
+                        'Account/Balance',
+                        'Account/Balance/v2',
+                        'Order/MyOrders',
+                        'Order/GetById',
+                        'Order/AccountHistory',
+                        'Order/OrderHistory',
                     ],
                 },
             },
@@ -54,6 +65,7 @@ module.exports = class bit2c extends Exchange {
                 'BTC/NIS': { 'id': 'BtcNis', 'symbol': 'BTC/NIS', 'base': 'BTC', 'quote': 'NIS' },
                 'BCH/NIS': { 'id': 'BchNis', 'symbol': 'BCH/NIS', 'base': 'BCH', 'quote': 'NIS' },
                 'LTC/NIS': { 'id': 'LtcNis', 'symbol': 'LTC/NIS', 'base': 'LTC', 'quote': 'NIS' },
+                'BTG/NIS': { 'id': 'BtgNis', 'symbol': 'BTG/NIS', 'base': 'BTG', 'quote': 'NIS' },
             },
             'fees': {
                 'trading': {
@@ -65,10 +77,11 @@ module.exports = class bit2c extends Exchange {
     }
 
     async fetchBalance (params = {}) {
-        let balance = await this.privatePostAccountBalanceV2 ();
+        let balance = await this.privateGetAccountBalanceV2 ();
         let result = { 'info': balance };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        let currencies = Object.keys (this.currencies);
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
             let account = this.account ();
             if (currency in balance) {
                 let available = 'AVAILABLE_' + currency;
@@ -81,7 +94,7 @@ module.exports = class bit2c extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let orderbook = await this.publicGetExchangesPairOrderbook (this.extend ({
             'pair': this.marketId (symbol),
         }, params));
@@ -96,6 +109,7 @@ module.exports = class bit2c extends Exchange {
         let averagePrice = parseFloat (ticker['av']);
         let baseVolume = parseFloat (ticker['a']);
         let quoteVolume = baseVolume * averagePrice;
+        let last = parseFloat (ticker['ll']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -103,12 +117,14 @@ module.exports = class bit2c extends Exchange {
             'high': undefined,
             'low': undefined,
             'bid': parseFloat (ticker['h']),
+            'bidVolume': undefined,
             'ask': parseFloat (ticker['l']),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['ll']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': averagePrice,
@@ -142,7 +158,7 @@ module.exports = class bit2c extends Exchange {
         let response = await this.publicGetExchangesPairTrades (this.extend ({
             'pair': market['id'],
         }, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -151,12 +167,12 @@ module.exports = class bit2c extends Exchange {
             'Amount': amount,
             'Pair': this.marketId (symbol),
         };
-        if (type == 'market') {
+        if (type === 'market') {
             method += 'MarketPrice' + this.capitalize (side);
         } else {
             order['Price'] = price;
             order['Total'] = amount * price;
-            order['IsBid'] = (side == 'buy');
+            order['IsBid'] = (side === 'buy');
         }
         let result = await this[method] (this.extend (order, params));
         return {
@@ -171,9 +187,10 @@ module.exports = class bit2c extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
-        if (api == 'public') {
+        if (api === 'public') {
             url += '.json';
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             let query = this.extend ({ 'nonce': nonce }, params);
             body = this.urlencode (query);
@@ -186,4 +203,53 @@ module.exports = class bit2c extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-}
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (typeof symbol === 'undefined')
+            throw new ExchangeError (this.id + ' fetchOpenOrders() requires a symbol argument');
+        let market = this.market (symbol);
+        let response = await this.privateGetOrderMyOrders (this.extend ({
+            'pair': market['id'],
+        }, params));
+        let orders = this.safeValue (response, market['id'], {});
+        let asks = this.safeValue (orders, 'ask');
+        let bids = this.safeValue (orders, 'bid');
+        return this.parseOrders (this.arrayConcat (asks, bids), market, since, limit);
+    }
+
+    parseOrder (order, market = undefined) {
+        let timestamp = order['created'];
+        let price = order['price'];
+        let amount = order['amount'];
+        let cost = price * amount;
+        let symbol = undefined;
+        if (typeof market !== 'undefined')
+            symbol = market['symbol'];
+        let side = this.safeValue (order, 'type');
+        if (side === 0) {
+            side = 'buy';
+        } else if (side === 1) {
+            side = 'sell';
+        }
+        let id = this.safeString (order, 'id');
+        return {
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'status': this.safeString (order, 'status'),
+            'symbol': symbol,
+            'type': undefined,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'filled': undefined,
+            'remaining': undefined,
+            'cost': cost,
+            'trades': undefined,
+            'fee': undefined,
+            'info': order,
+        };
+    }
+};

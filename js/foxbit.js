@@ -1,20 +1,22 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class foxbit extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'foxbit',
             'name': 'FoxBit',
             'countries': 'BR',
-            'hasCORS': false,
+            'has': {
+                'CORS': false,
+                'createMarketOrder': false,
+            },
             'rateLimit': 1000,
             'version': 'v1',
             'urls': {
@@ -58,17 +60,39 @@ module.exports = class foxbit extends Exchange {
                 'BTC/PKR': { 'id': 'BTCPKR', 'symbol': 'BTC/PKR', 'base': 'BTC', 'quote': 'PKR', 'brokerId': 8, 'broker': 'UrduBit' },
                 'BTC/CLP': { 'id': 'BTCCLP', 'symbol': 'BTC/CLP', 'base': 'BTC', 'quote': 'CLP', 'brokerId': 9, 'broker': 'ChileBit' },
             },
+            'options': {
+                'brokerId': '4', // https://blinktrade.com/docs/#brokers
+            },
         });
     }
 
-    fetchBalance (params = {}) {
-        // todo parse balance
-        return this.privatePostU2 ({
+    async fetchBalance (params = {}) {
+        let response = await this.privatePostU2 ({
             'BalanceReqID': this.nonce (),
         });
+        let balances = this.safeValue (response['Responses'], this.options['brokerId']);
+        let result = { 'info': response };
+        if (typeof balances !== 'undefined') {
+            let currencyIds = Object.keys (this.currencies_by_id);
+            for (let i = 0; i < currencyIds.length; i++) {
+                let currencyId = currencyIds[i];
+                let currency = this.currencies_by_id[currencyId];
+                let code = currency['code'];
+                // we only set the balance for the currency if that currency is present in response
+                // otherwise we will lose the info if the currency balance has been funded or traded or not
+                if (currencyId in balances) {
+                    let account = this.account ();
+                    account['used'] = parseFloat (balances[currencyId + '_locked']) * 1e-8;
+                    account['total'] = parseFloat (balances[currencyId]) * 1e-8;
+                    account['free'] = account['total'] - account['used'];
+                    result[code] = account;
+                }
+            }
+        }
+        return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let market = this.market (symbol);
         let orderbook = await this.publicGetCurrencyOrderbook (this.extend ({
             'currency': market['quote'],
@@ -86,6 +110,7 @@ module.exports = class foxbit extends Exchange {
         let timestamp = this.milliseconds ();
         let lowercaseQuote = market['quote'].toLowerCase ();
         let quoteVolume = 'vol_' + lowercaseQuote;
+        let last = parseFloat (ticker['last']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -93,12 +118,14 @@ module.exports = class foxbit extends Exchange {
             'high': parseFloat (ticker['high']),
             'low': parseFloat (ticker['low']),
             'bid': parseFloat (ticker['buy']),
+            'bidVolume': undefined,
             'ask': parseFloat (ticker['sell']),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
@@ -111,7 +138,7 @@ module.exports = class foxbit extends Exchange {
     parseTrade (trade, market) {
         let timestamp = trade['date'] * 1000;
         return {
-            'id': trade['tid'],
+            'id': this.safeString (trade, 'tid'),
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -129,17 +156,18 @@ module.exports = class foxbit extends Exchange {
             'currency': market['quote'],
             'crypto_currency': market['base'],
         }, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (type == 'market')
+        if (type === 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
         let market = this.market (symbol);
+        let orderSide = (side === 'buy') ? '1' : '2';
         let order = {
             'ClOrdID': this.nonce (),
             'Symbol': market['id'],
-            'Side': this.capitalize (side),
+            'Side': orderSide,
             'OrdType': '2',
             'Price': price,
             'OrderQty': amount,
@@ -163,10 +191,11 @@ module.exports = class foxbit extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             let request = this.extend ({ 'MsgType': path }, query);
             body = this.json (request);
@@ -183,8 +212,8 @@ module.exports = class foxbit extends Exchange {
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('Status' in response)
-            if (response['Status'] != 200)
+            if (response['Status'] !== 200)
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
     }
-}
+};

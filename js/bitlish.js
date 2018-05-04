@@ -1,30 +1,70 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { NotSupported } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class bitlish extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitlish',
-            'name': 'bitlish',
+            'name': 'Bitlish',
             'countries': [ 'GB', 'EU', 'RU' ],
             'rateLimit': 1500,
             'version': 'v1',
-            'hasCORS': false,
-            'hasFetchTickers': true,
-            'hasFetchOHLCV': true,
-            'hasWithdraw': true,
+            'has': {
+                'CORS': false,
+                'fetchTickers': true,
+                'fetchOHLCV': true,
+                'withdraw': true,
+            },
+            'timeframes': {
+                '1h': 3600,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766275-dcfc6c30-5ed3-11e7-839d-00a846385d0b.jpg',
                 'api': 'https://bitlish.com/api',
                 'www': 'https://bitlish.com',
                 'doc': 'https://bitlish.com/api',
+            },
+            'requiredCredentials': {
+                'apiKey': true,
+                'secret': false,
+            },
+            'fees': {
+                'trading': {
+                    'tierBased': false,
+                    'percentage': true,
+                    'taker': 0.3 / 100, // anonymous 0.3%, verified 0.2%
+                    'maker': 0,
+                },
+                'funding': {
+                    'tierBased': false,
+                    'percentage': false,
+                    'withdraw': {
+                        'BTC': 0.001,
+                        'LTC': 0.001,
+                        'DOGE': 0.001,
+                        'ETH': 0.001,
+                        'XMR': 0,
+                        'ZEC': 0.001,
+                        'DASH': 0.0001,
+                        'EUR': 50,
+                    },
+                    'deposit': {
+                        'BTC': 0,
+                        'LTC': 0,
+                        'DOGE': 0,
+                        'ETH': 0,
+                        'XMR': 0,
+                        'ZEC': 0,
+                        'DASH': 0,
+                        'EUR': 0,
+                    },
+                },
             },
             'api': {
                 'public': {
@@ -75,21 +115,11 @@ module.exports = class bitlish extends Exchange {
                     ],
                 },
             },
+            'commonCurrencies': {
+                'DSH': 'DASH',
+                'XDG': 'DOGE',
+            },
         });
-    }
-
-    commonCurrencyCode (currency) {
-        if (!this.substituteCommonCurrencyCodes)
-            return currency;
-        if (currency == 'XBT')
-            return 'BTC';
-        if (currency == 'BCC')
-            return 'BCH';
-        if (currency == 'DRK')
-            return 'DASH';
-        if (currency == 'DSH')
-            currency = 'DASH';
-        return currency;
     }
 
     async fetchMarkets () {
@@ -120,21 +150,24 @@ module.exports = class bitlish extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        let last = this.safeFloat (ticker, 'last');
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'high': this.safeFloat (ticker, 'max'),
             'low': this.safeFloat (ticker, 'min'),
-            'bid': undefined,
-            'ask': undefined,
+            'bid': this.safeFloat (ticker, 'bid'),
+            'bidVolume': undefined,
+            'ask': this.safeFloat (ticker, 'ask'),
+            'askVolume': undefined,
             'vwap': undefined,
-            'open': undefined,
-            'close': undefined,
-            'first': this.safeFloat (ticker, 'first'),
-            'last': this.safeFloat (ticker, 'last'),
+            'open': this.safeFloat (ticker, 'first'),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
-            'percentage': this.safeFloat (ticker, 'prc'),
+            'percentage': this.safeFloat (ticker, 'prc') * 100,
             'average': undefined,
             'baseVolume': this.safeFloat (ticker, 'sum'),
             'quoteVolume': undefined,
@@ -165,28 +198,33 @@ module.exports = class bitlish extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         // let market = this.market (symbol);
         let now = this.seconds ();
         let start = now - 86400 * 30; // last 30 days
+        if (typeof since !== 'undefined')
+            start = parseInt (since / 1000);
         let interval = [ start.toString (), undefined ];
         return await this.publicPostOhlcv (this.extend ({
             'time_range': interval,
         }, params));
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetTradesDepth (this.extend ({
             'pair_id': this.marketId (symbol),
         }, params));
-        let timestamp = parseInt (parseInt (orderbook['last']) / 1000);
+        let timestamp = undefined;
+        let last = this.safeInteger (orderbook, 'last');
+        if (last)
+            timestamp = parseInt (last / 1000);
         return this.parseOrderBook (orderbook, timestamp, 'bid', 'ask', 'price', 'volume');
     }
 
     parseTrade (trade, market = undefined) {
-        let side = (trade['dir'] == 'bid') ? 'buy' : 'sell';
+        let side = (trade['dir'] === 'bid') ? 'buy' : 'sell';
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
@@ -211,7 +249,7 @@ module.exports = class bitlish extends Exchange {
         let response = await this.publicGetTradesHistory (this.extend ({
             'pair_id': market['id'],
         }, params));
-        return this.parseTrades (response['list'], market);
+        return this.parseTrades (response['list'], market, since, limit);
     }
 
     async fetchBalance (params = {}) {
@@ -225,12 +263,15 @@ module.exports = class bitlish extends Exchange {
             let account = response[currency];
             currency = currency.toUpperCase ();
             // issue #4 bitlish names Dash as DSH, instead of DASH
-            if (currency == 'DSH')
+            if (currency === 'DSH')
                 currency = 'DASH';
+            if (currency === 'XDG')
+                currency = 'DOGE';
             balance[currency] = account;
         }
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        currencies = Object.keys (this.currencies);
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
             let account = this.account ();
             if (currency in balance) {
                 account['free'] = parseFloat (balance[currency]['funds']);
@@ -253,10 +294,10 @@ module.exports = class bitlish extends Exchange {
         await this.loadMarkets ();
         let order = {
             'pair_id': this.marketId (symbol),
-            'dir': (side == 'buy') ? 'bid' : 'ask',
+            'dir': (side === 'buy') ? 'bid' : 'ask',
             'amount': amount,
         };
-        if (type == 'limit')
+        if (type === 'limit')
             order['price'] = price;
         let result = await this.privatePostCreateTrade (this.extend (order, params));
         return {
@@ -270,9 +311,10 @@ module.exports = class bitlish extends Exchange {
         return await this.privatePostCancelTrade ({ 'id': id });
     }
 
-    async withdraw (currency, amount, address, params = {}) {
+    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
         await this.loadMarkets ();
-        if (currency != 'BTC') {
+        if (currency !== 'BTC') {
             // they did not document other types...
             throw new NotSupported (this.id + ' currently supports BTC withdrawals only, until they document other currencies...');
         }
@@ -290,19 +332,19 @@ module.exports = class bitlish extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
-        if (api == 'public') {
-            if (method == 'GET') {
+        if (api === 'public') {
+            if (method === 'GET') {
                 if (Object.keys (params).length)
                     url += '?' + this.urlencode (params);
-            }
-            else {
+            } else {
                 body = this.json (params);
                 headers = { 'Content-Type': 'application/json' };
             }
         } else {
+            this.checkRequiredCredentials ();
             body = this.json (this.extend ({ 'token': this.apiKey }, params));
             headers = { 'Content-Type': 'application/json' };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-}
+};

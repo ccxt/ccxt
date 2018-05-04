@@ -6,6 +6,7 @@ from codecs import open
 from os import path
 import json
 
+
 here = path.abspath(path.dirname(__file__))
 root = path.dirname(here)
 
@@ -63,18 +64,24 @@ setup(
     keywords=package['keywords'],
     packages=find_packages(),
 
-    install_requires=['setuptools'],
+    install_requires=[
+        'setuptools>=38.5.1',
+        'certifi>=2018.1.18',
+        'requests>=2.18.4'
+    ],
+
     extras_require={
-        ':python_version>="3.5"': [
-            'aiohttp',
-            'cchardet',
-            'aiodns',
+        ':python_version>="3.5.3"': [
+            'aiohttp>=3.0.1',
+            'cchardet==2.1.1',
+            'aiodns==1.1.1',
+            'yarl==1.1.0'
         ],
         'qa': [
-            'flake8'
+            'flake8==3.5.0'
         ],
         'doc': [
-            'Sphinx'
+            'Sphinx==1.7.0'
         ]
     }
 )

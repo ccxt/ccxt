@@ -1,21 +1,24 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class btctradeua extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'btctradeua',
             'name': 'BTC Trade UA',
             'countries': 'UA', // Ukraine,
             'rateLimit': 3000,
-            'hasCORS': true,
+            'has': {
+                'CORS': true,
+                'createMarketOrder': false,
+                'fetchOpenOrders': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27941483-79fc7350-62d9-11e7-9f61-ac47f28fcd96.jpg',
                 'api': 'https://btc-trade.com.ua/api',
@@ -46,24 +49,36 @@ module.exports = class btctradeua extends Exchange {
                 },
             },
             'markets': {
+                'BCH/UAH': { 'id': 'bch_uah', 'symbol': 'BCH/UAH', 'base': 'BCH', 'quote': 'UAH' },
                 'BTC/UAH': { 'id': 'btc_uah', 'symbol': 'BTC/UAH', 'base': 'BTC', 'quote': 'UAH', 'precision': { 'price': 1 }, 'limits': { 'amount': { 'min': 0.0000000001 }}},
-                'ETH/UAH': { 'id': 'eth_uah', 'symbol': 'ETH/UAH', 'base': 'ETH', 'quote': 'UAH' },
-                'LTC/UAH': { 'id': 'ltc_uah', 'symbol': 'LTC/UAH', 'base': 'LTC', 'quote': 'UAH' },
-                'DOGE/UAH': { 'id': 'doge_uah', 'symbol': 'DOGE/UAH', 'base': 'DOGE', 'quote': 'UAH' },
-                'DASH/UAH': { 'id': 'dash_uah', 'symbol': 'DASH/UAH', 'base': 'DASH', 'quote': 'UAH' },
-                'SIB/UAH': { 'id': 'sib_uah', 'symbol': 'SIB/UAH', 'base': 'SIB', 'quote': 'UAH' },
-                'KRB/UAH': { 'id': 'krb_uah', 'symbol': 'KRB/UAH', 'base': 'KRB', 'quote': 'UAH' },
-                'NVC/UAH': { 'id': 'nvc_uah', 'symbol': 'NVC/UAH', 'base': 'NVC', 'quote': 'UAH' },
-                'LTC/BTC': { 'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
-                'NVC/BTC': { 'id': 'nvc_btc', 'symbol': 'NVC/BTC', 'base': 'NVC', 'quote': 'BTC' },
-                'ITI/UAH': { 'id': 'iti_uah', 'symbol': 'ITI/UAH', 'base': 'ITI', 'quote': 'UAH' },
-                'DOGE/BTC': { 'id': 'doge_btc', 'symbol': 'DOGE/BTC', 'base': 'DOGE', 'quote': 'BTC' },
                 'DASH/BTC': { 'id': 'dash_btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC' },
+                'DASH/UAH': { 'id': 'dash_uah', 'symbol': 'DASH/UAH', 'base': 'DASH', 'quote': 'UAH' },
+                'DOGE/BTC': { 'id': 'doge_btc', 'symbol': 'DOGE/BTC', 'base': 'DOGE', 'quote': 'BTC' },
+                'DOGE/UAH': { 'id': 'doge_uah', 'symbol': 'DOGE/UAH', 'base': 'DOGE', 'quote': 'UAH' },
+                'ETH/UAH': { 'id': 'eth_uah', 'symbol': 'ETH/UAH', 'base': 'ETH', 'quote': 'UAH' },
+                'ITI/UAH': { 'id': 'iti_uah', 'symbol': 'ITI/UAH', 'base': 'ITI', 'quote': 'UAH' },
+                'KRB/UAH': { 'id': 'krb_uah', 'symbol': 'KRB/UAH', 'base': 'KRB', 'quote': 'UAH' },
+                'LTC/BTC': { 'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
+                'LTC/UAH': { 'id': 'ltc_uah', 'symbol': 'LTC/UAH', 'base': 'LTC', 'quote': 'UAH' },
+                'NVC/BTC': { 'id': 'nvc_btc', 'symbol': 'NVC/BTC', 'base': 'NVC', 'quote': 'BTC' },
+                'NVC/UAH': { 'id': 'nvc_uah', 'symbol': 'NVC/UAH', 'base': 'NVC', 'quote': 'UAH' },
+                'PPC/BTC': { 'id': 'ppc_btc', 'symbol': 'PPC/BTC', 'base': 'PPC', 'quote': 'BTC' },
+                'SIB/UAH': { 'id': 'sib_uah', 'symbol': 'SIB/UAH', 'base': 'SIB', 'quote': 'UAH' },
+                'XMR/UAH': { 'id': 'xmr_uah', 'symbol': 'XMR/UAH', 'base': 'XMR', 'quote': 'UAH' },
+                'ZEC/UAH': { 'id': 'zec_uah', 'symbol': 'ZEC/UAH', 'base': 'ZEC', 'quote': 'UAH' },
             },
             'fees': {
                 'trading': {
                     'maker': 0.1 / 100,
                     'taker': 0.1 / 100,
+                },
+                'funding': {
+                    'withdraw': {
+                        'BTC': 0.0006,
+                        'LTC': 0.01,
+                        'NVC': 0.01,
+                        'DOGE': 10,
+                    },
                 },
             },
         });
@@ -92,7 +107,7 @@ module.exports = class btctradeua extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let market = this.market (symbol);
         let bids = await this.publicGetTradesBuySymbol (this.extend ({
             'symbol': market['id'],
@@ -119,15 +134,6 @@ module.exports = class btctradeua extends Exchange {
         let response = await this.publicGetJapanStatHighSymbol (this.extend ({
             'symbol': this.marketId (symbol),
         }, params));
-        let orderbook = await this.fetchOrderBook (symbol);
-        let bid = undefined;
-        let numBids = orderbook['bids'].length;
-        if (numBids > 0)
-            bid = orderbook['bids'][0][0];
-        let ask = undefined;
-        let numAsks = orderbook['asks'].length;
-        if (numAsks > 0)
-            ask = orderbook['asks'][0][0];
         let ticker = response['trades'];
         let timestamp = this.milliseconds ();
         let result = {
@@ -136,13 +142,15 @@ module.exports = class btctradeua extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
             'low': undefined,
-            'bid': bid,
-            'ask': ask,
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
             'close': undefined,
-            'first': undefined,
             'last': undefined,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
@@ -155,48 +163,43 @@ module.exports = class btctradeua extends Exchange {
             let start = Math.max (tickerLength - 48, 0);
             for (let t = start; t < ticker.length; t++) {
                 let candle = ticker[t];
-                if (typeof result['open'] == 'undefined')
+                if (typeof result['open'] === 'undefined')
                     result['open'] = candle[1];
-                if ((typeof result['high'] == 'undefined') || (result['high'] < candle[2]))
+                if ((typeof result['high'] === 'undefined') || (result['high'] < candle[2]))
                     result['high'] = candle[2];
-                if ((typeof result['low'] == 'undefined') || (result['low'] > candle[3]))
+                if ((typeof result['low'] === 'undefined') || (result['low'] > candle[3]))
                     result['low'] = candle[3];
-                if (typeof result['baseVolume'] == 'undefined')
+                if (typeof result['baseVolume'] === 'undefined')
                     result['baseVolume'] = -candle[5];
                 else
                     result['baseVolume'] -= candle[5];
             }
             let last = tickerLength - 1;
-            result['close'] = ticker[last][4];
+            result['last'] = ticker[last][4];
+            result['close'] = result['last'];
             result['baseVolume'] = -1 * result['baseVolume'];
         }
         return result;
     }
 
     convertCyrillicMonthNameToString (cyrillic) {
-        let months = [
-            'января',
-            'февраля',
-            'марта',
-            'апреля',
-            'мая',
-            'июня',
-            'июля',
-            'августа',
-            'сентября',
-            'октября',
-            'ноября',
-            'декабря',
-        ];
+        let months = {
+            'января': '01',
+            'февраля': '02',
+            'марта': '03',
+            'апреля': '04',
+            'мая': '05',
+            'июня': '06',
+            'июля': '07',
+            'августа': '08',
+            'сентября': '09',
+            'октября': '10',
+            'ноября': '11',
+            'декабря': '12',
+        };
         let month = undefined;
-        for (let i = 0; i < months.length; i++) {
-            if (cyrillic == months[i]) {
-                month = i + 1;
-                month = month.toString ();
-                if (i < 9)
-                    month = '0' + month;
-            }
-        }
+        if (cyrillic in months)
+            month = months[cyrillic];
         return month;
     }
 
@@ -209,14 +212,24 @@ module.exports = class btctradeua extends Exchange {
         let year = parts[2];
         let hms = parts[4];
         let hmsLength = hms.length;
-        if (hmsLength == 7) {
+        if (hmsLength === 7) {
             hms = '0' + hms;
+        }
+        if (day.length === 1) {
+            day = '0' + day;
         }
         let ymd = [ year, month, day ].join ('-');
         let ymdhms = ymd + 'T' + hms;
         let timestamp = this.parse8601 (ymdhms);
-        timestamp = timestamp - 10800000; // server reports local GMT+3 time, adjust to UTC
-        return timestamp;
+        // server reports local time, adjust to UTC
+        let md = [ month, day ].join ('');
+        md = parseInt (md);
+        // a special case for DST
+        // subtract 2 hours during winter
+        if (md < 325 || md > 1028)
+            return timestamp - 7200000;
+        // subtract 3 hours during summer
+        return timestamp - 10800000;
     }
 
     parseTrade (trade, market) {
@@ -227,8 +240,8 @@ module.exports = class btctradeua extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
-            'type': undefined,
-            'side': undefined,
+            'type': 'limit',
+            'side': trade['type'],
             'price': parseFloat (trade['price']),
             'amount': parseFloat (trade['amnt_trade']),
         };
@@ -239,17 +252,19 @@ module.exports = class btctradeua extends Exchange {
         let response = await this.publicGetDealsSymbol (this.extend ({
             'symbol': market['id'],
         }, params));
+        // they report each trade twice (once for both of the two sides of the fill)
+        // deduplicate trades for that reason
         let trades = [];
         for (let i = 0; i < response.length; i++) {
             if (response[i]['id'] % 2) {
                 trades.push (response[i]);
             }
         }
-        return this.parseTrades (trades, market);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (type == 'market')
+        if (type === 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
         let market = this.market (symbol);
         let method = 'privatePost' + this.capitalize (side) + 'Id';
@@ -272,6 +287,7 @@ module.exports = class btctradeua extends Exchange {
             'id': trade['id'],
             'timestamp': timestamp, // until they fix their timestamp
             'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
             'status': 'open',
             'symbol': market['symbol'],
             'type': undefined,
@@ -286,14 +302,14 @@ module.exports = class btctradeua extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (!symbol)
-            throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol param');
+        if (typeof symbol === 'undefined')
+            throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol argument');
         let market = this.market (symbol);
         let response = await this.privatePostMyOrdersSymbol (this.extend ({
             'symbol': market['id'],
         }, params));
         let orders = response['your_open_orders'];
-        return this.parseOrders (orders, market);
+        return this.parseOrders (orders, market, since, limit);
     }
 
     nonce () {
@@ -303,10 +319,11 @@ module.exports = class btctradeua extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (query).length)
                 url += this.implodeParams (path, query);
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             body = this.urlencode (this.extend ({
                 'out_order_id': nonce,
@@ -321,4 +338,4 @@ module.exports = class btctradeua extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-}
+};

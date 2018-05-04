@@ -1,22 +1,26 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
+const Exchange = require ('./base/Exchange');
+let { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class southxchange extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'southxchange',
             'name': 'SouthXchange',
             'countries': 'AR', // Argentina
             'rateLimit': 1000,
-            'hasFetchTickers': true,
-            'hasCORS': false,
-            'hasWithdraw': true,
+            'has': {
+                'CORS': true,
+                'createDepositAddress': true,
+                'fetchOpenOrders': true,
+                'fetchTickers': true,
+                'withdraw': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27838912-4f94ec8a-60f6-11e7-9e5d-bbf9bd50a559.jpg',
                 'api': 'https://www.southxchange.com/api',
@@ -45,6 +49,17 @@ module.exports = class southxchange extends Exchange {
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'tierBased': false,
+                    'percentage': true,
+                    'maker': 0.2 / 100,
+                    'taker': 0.2 / 100,
+                },
+            },
+            'commonCurrencies': {
+                'SMT': 'SmartNode',
+            },
         });
     }
 
@@ -53,8 +68,10 @@ module.exports = class southxchange extends Exchange {
         let result = [];
         for (let p = 0; p < markets.length; p++) {
             let market = markets[p];
-            let base = market[0];
-            let quote = market[1];
+            let baseId = market[0];
+            let quoteId = market[1];
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
             let id = symbol;
             result.push ({
@@ -62,6 +79,8 @@ module.exports = class southxchange extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'info': market,
             });
         }
@@ -71,25 +90,31 @@ module.exports = class southxchange extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let balances = await this.privatePostListBalances ();
+        if (!balances)
+            throw new ExchangeError (this.id + ' fetchBalance got an unrecognized response');
         let result = { 'info': balances };
         for (let b = 0; b < balances.length; b++) {
             let balance = balances[b];
-            let currency = balance['Currency'];
-            let uppercase = currency.toUpperCase ();
+            let currencyId = balance['Currency'];
+            let uppercase = currencyId.toUpperCase ();
+            let currency = this.currencies_by_id[uppercase];
+            let code = currency['code'];
             let free = parseFloat (balance['Available']);
-            let used = parseFloat (balance['Unconfirmed']);
-            let total = this.sum (free, used);
+            let deposited = parseFloat (balance['Deposited']);
+            let unconfirmed = parseFloat (balance['Unconfirmed']);
+            let total = this.sum (deposited, unconfirmed);
+            let used = total - free;
             let account = {
                 'free': free,
                 'used': used,
                 'total': total,
             };
-            result[uppercase] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetBookSymbol (this.extend ({
             'symbol': this.marketId (symbol),
@@ -102,6 +127,7 @@ module.exports = class southxchange extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        let last = this.safeFloat (ticker, 'Last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -109,12 +135,14 @@ module.exports = class southxchange extends Exchange {
             'high': undefined,
             'low': undefined,
             'bid': this.safeFloat (ticker, 'Bid'),
+            'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'Ask'),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': this.safeFloat (ticker, 'Last'),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': this.safeFloat (ticker, 'Variation24Hr'),
             'percentage': undefined,
             'average': undefined,
@@ -132,8 +160,12 @@ module.exports = class southxchange extends Exchange {
         let result = {};
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
-            let market = this.markets_by_id[id];
-            let symbol = market['symbol'];
+            let symbol = id;
+            let market = undefined;
+            if (id in this.markets_by_id) {
+                market = this.markets_by_id[id];
+                symbol = market['symbol'];
+            }
             let ticker = tickers[id];
             result[symbol] = this.parseTicker (ticker, market);
         }
@@ -171,7 +203,51 @@ module.exports = class southxchange extends Exchange {
         let response = await this.publicGetTradesSymbol (this.extend ({
             'symbol': market['id'],
         }, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
+    }
+
+    parseOrder (order, market = undefined) {
+        let status = 'open';
+        let symbol = order['ListingCurrency'] + '/' + order['ReferenceCurrency'];
+        let timestamp = undefined;
+        let price = parseFloat (order['LimitPrice']);
+        let amount = this.safeFloat (order, 'OriginalAmount');
+        let remaining = this.safeFloat (order, 'Amount');
+        let filled = undefined;
+        let cost = undefined;
+        if (typeof amount !== 'undefined') {
+            cost = price * amount;
+            if (typeof remaining !== 'undefined')
+                filled = amount - remaining;
+        }
+        let orderType = order['Type'].toLowerCase ();
+        let result = {
+            'info': order,
+            'id': order['Code'].toString (),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'symbol': symbol,
+            'type': 'limit',
+            'side': orderType,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': undefined,
+        };
+        return result;
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (typeof symbol !== 'undefined')
+            market = this.market (symbol);
+        let response = await this.privatePostListOrders ();
+        return this.parseOrders (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -183,7 +259,7 @@ module.exports = class southxchange extends Exchange {
             'type': side,
             'amount': amount,
         };
-        if (type == 'limit')
+        if (type === 'limit')
             order['limitPrice'] = price;
         let response = await this.privatePostPlaceOrder (this.extend (order, params));
         return {
@@ -199,12 +275,38 @@ module.exports = class southxchange extends Exchange {
         }, params));
     }
 
-    async withdraw (currency, amount, address, params = {}) {
-        let response = await this.privatePostWithdraw (this.extend ({
+    async createDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let response = await this.privatePostGeneratenewaddress (this.extend ({
+            'currency': currency['id'],
+        }, params));
+        let parts = response.split ('|');
+        let numParts = parts.length;
+        let address = parts[0];
+        this.checkAddress (address);
+        let tag = undefined;
+        if (numParts > 1)
+            tag = parts[1];
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'status': 'ok',
+            'info': response,
+        };
+    }
+
+    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
+        let request = {
             'currency': currency,
             'address': address,
             'amount': amount,
-        }, params));
+        };
+        if (typeof tag !== 'undefined')
+            request['address'] = address + '|' + tag;
+        let response = await this.privatePostWithdraw (this.extend (request, params));
         return {
             'info': response,
             'id': undefined,
@@ -214,7 +316,8 @@ module.exports = class southxchange extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (api == 'private') {
+        if (api === 'private') {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             query = this.extend ({
                 'key': this.apiKey,
@@ -228,9 +331,4 @@ module.exports = class southxchange extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        return response;
-    }
-}
+};

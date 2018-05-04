@@ -1,13 +1,13 @@
-"use strict";
+'use strict';
 
 // ---------------------------------------------------------------------------
 
-const liqui = require ('./liqui.js')
+const liqui = require ('./liqui.js');
+const { ExchangeError, InsufficientFunds, DDoSProtection } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
 module.exports = class yobit extends liqui {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'yobit',
@@ -15,9 +15,12 @@ module.exports = class yobit extends liqui {
             'countries': 'RU',
             'rateLimit': 3000, // responses are cached every 2 seconds
             'version': '3',
-            'hasCORS': false,
-            'hasWithdraw': true,
-            'hasFetchTickers': false,
+            'has': {
+                'createDepositAddress': true,
+                'fetchDepositAddress': true,
+                'CORS': false,
+                'withdraw': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg',
                 'api': {
@@ -26,6 +29,7 @@ module.exports = class yobit extends liqui {
                 },
                 'www': 'https://www.yobit.net',
                 'doc': 'https://www.yobit.net/en/api/',
+                'fees': 'https://www.yobit.net/en/fees/',
             },
             'api': {
                 'public': {
@@ -54,32 +58,60 @@ module.exports = class yobit extends liqui {
                     'maker': 0.002,
                     'taker': 0.002,
                 },
-                'funding': 0.0,
+                'funding': {
+                    'withdraw': {},
+                },
+            },
+            'commonCurrencies': {
+                'AIR': 'AirCoin',
+                'ANI': 'ANICoin',
+                'ANT': 'AntsCoin',
+                'AST': 'Astral',
+                'ATM': 'Autumncoin',
+                'BCC': 'BCH',
+                'BCS': 'BitcoinStake',
+                'BLN': 'Bulleon',
+                'BTS': 'Bitshares2',
+                'CAT': 'BitClave',
+                'COV': 'Coven Coin',
+                'CPC': 'Capricoin',
+                'CS': 'CryptoSpots',
+                'DCT': 'Discount',
+                'DGD': 'DarkGoldCoin',
+                'DROP': 'FaucetCoin',
+                'ERT': 'Eristica Token',
+                'ICN': 'iCoin',
+                'KNC': 'KingN Coin',
+                'LIZI': 'LiZi',
+                'LOC': 'LocoCoin',
+                'LOCX': 'LOC',
+                'LUN': 'LunarCoin',
+                'MDT': 'Midnight',
+                'NAV': 'NavajoCoin',
+                'OMG': 'OMGame',
+                'STK': 'StakeCoin',
+                'PAY': 'EPAY',
+                'PLC': 'Platin Coin',
+                'REP': 'Republicoin',
+                'RUR': 'RUB',
+                'XIN': 'XINCoin',
+            },
+            'options': {
+                'fetchOrdersRequiresSymbol': true,
             },
         });
     }
 
-    commonCurrencyCode (currency) {
-        let substitutions = {
-            'AIR': 'AirCoin',
-            'ANI': 'ANICoin',
-            'ANT': 'AntsCoin',
-            'ATM': 'Autumncoin',
-            'BCC': 'BCH',
-            'BTS': 'Bitshares2',
-            'DCT': 'Discount',
-            'DGD': 'DarkGoldCoin',
-            'ICN': 'iCoin',
-            'LIZI': 'LiZi',
-            'LUN': 'LunarCoin',
-            'NAV': 'NavajoCoin',
-            'OMG': 'OMGame',
-            'PAY': 'EPAY',
-            'REP': 'Republicoin',
+    parseOrderStatus (status) {
+        let statuses = {
+            '0': 'open',
+            '1': 'closed',
+            '2': 'canceled',
+            '3': 'open', // or partially-filled and closed? https://github.com/ccxt/ccxt/issues/1594
         };
-        if (currency in substitutions)
-            return substitutions[currency];
-        return currency;
+        if (status in statuses)
+            return statuses[status];
+        return status;
     }
 
     async fetchBalance (params = {}) {
@@ -105,7 +137,7 @@ module.exports = class yobit extends liqui {
                         account = this.account ();
                     }
                     account[key] = balances[side][lowercase];
-                    if (account['total'] && account['free'])
+                    if ((typeof account['total'] !== 'undefined') && (typeof account['free'] !== 'undefined'))
                         account['used'] = account['total'] - account['free'];
                     result[currency] = account;
                 }
@@ -114,10 +146,44 @@ module.exports = class yobit extends liqui {
         return this.parseBalance (result);
     }
 
-    async withdraw (currency, amount, address, params = {}) {
+    async createDepositAddress (code, params = {}) {
+        let response = await this.fetchDepositAddress (code, this.extend ({
+            'need_new': 1,
+        }, params));
+        let address = this.safeString (response, 'address');
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'status': 'ok',
+            'info': response['info'],
+        };
+    }
+
+    async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
+        let currency = this.currency (code);
+        let request = {
+            'coinName': currency['id'],
+            'need_new': 0,
+        };
+        let response = await this.privatePostGetDepositAddress (this.extend (request, params));
+        let address = this.safeString (response['return'], 'address');
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'status': 'ok',
+            'info': response,
+        };
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
+        await this.loadMarkets ();
+        let currency = this.currency (code);
         let response = await this.privatePostWithdrawCoinsToAddress (this.extend ({
-            'coinName': currency,
+            'coinName': currency['id'],
             'amount': amount,
             'address': address,
         }, params));
@@ -127,22 +193,23 @@ module.exports = class yobit extends liqui {
         };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('success' in response) {
-            if (!response['success']) {
-                if (response['error'].indexOf ('Insufficient funds') >= 0) { // not enougTh is a typo inside Liqui's own API...
-                    throw new InsufficientFunds (this.id + ' ' + this.json (response));
-                } else if (response['error'] == 'Requests too often') {
-                    throw new DDoSProtection (this.id + ' ' + this.json (response));
-                } else if ((response['error'] == 'not available') || (response['error'] == 'external service unavailable')) {
-                    throw new DDoSProtection (this.id + ' ' + this.json (response));
-                } else {
+    handleErrors (code, reason, url, method, headers, body) {
+        if (body[0] === '{') {
+            let response = JSON.parse (body);
+            if ('success' in response) {
+                if (!response['success']) {
+                    if ('error_log' in response) {
+                        if (response['error_log'].indexOf ('Insufficient funds') >= 0) { // not enougTh is a typo inside Liqui's own API...
+                            throw new InsufficientFunds (this.id + ' ' + this.json (response));
+                        } else if (response['error_log'] === 'Requests too often') {
+                            throw new DDoSProtection (this.id + ' ' + this.json (response));
+                        } else if ((response['error_log'] === 'not available') || (response['error_log'] === 'external service unavailable')) {
+                            throw new DDoSProtection (this.id + ' ' + this.json (response));
+                        }
+                    }
                     throw new ExchangeError (this.id + ' ' + this.json (response));
                 }
             }
         }
-        return response;
     }
-
-}
+};

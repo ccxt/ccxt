@@ -1,5 +1,6 @@
 <?php
 
+error_reporting (E_ALL | E_STRICT);
 date_default_timezone_set ('UTC');
 
 include_once 'ccxt.php';
@@ -36,6 +37,8 @@ $keys_global = './keys.json';
 $keys_local = './keys.local.json';
 $keys_file = file_exists ($keys_local) ? $keys_local : $keys_global;
 
+var_dump ($keys_file);
+
 $config = json_decode (file_get_contents ($keys_file), true);
 
 foreach ($config as $id => $params)
@@ -43,7 +46,7 @@ foreach ($config as $id => $params)
         if (array_key_exists ($id, $exchanges))
             $exchanges[$id]->$key = $value;
 
-// $exchanges['gdax']->urls['api'] = 'https://api-public.sandbox.gdax.com';
+$exchanges['gdax']->urls['api'] = 'https://api-public.sandbox.gdax.com';
 $exchanges['anxpro']->proxy = 'https://cors-anywhere.herokuapp.com/';
 
 function test_ticker ($exchange, $symbol) {
@@ -77,7 +80,7 @@ function test_order_book ($exchange, $symbol) {
 
 function test_trades ($exchange, $symbol) {
 
-    if ($exchange->hasFetchTrades) {
+    if ($exchange->has['fetchTrades']) {
 
         $delay = $exchange->rateLimit * 1000;
         usleep ($delay);
@@ -122,6 +125,11 @@ function try_all_proxies ($exchange, $proxies) {
         try {
 
             $exchange->proxy = $proxies[$current_proxy];
+
+            // add random origin to proxied requests
+            if (strlen ($exchange->proxy) > 0)
+                $exchange->origin = $exchange->uuid ();
+
             $current_proxy = (++$current_proxy) % count ($proxies);
 
             load_exchange ($exchange);
@@ -152,7 +160,7 @@ function test_exchange ($exchange) {
 
     $delay = $exchange->rateLimit * 1000;
 
-    $symbol = $exchange->symbols[0];
+    $symbol = is_array ($exchange->symbols) ? current($exchange->symbols) : '';
     $symbols = array (
         'BTC/USD',
         'BTC/CNY',
@@ -198,7 +206,7 @@ function test_exchange ($exchange) {
 $proxies = array (
     '',
     'https://cors-anywhere.herokuapp.com/',
-    'https://crossorigin.me/',
+    // 'https://crossorigin.me/',
 );
 
 if (count ($argv) > 1) {
@@ -233,5 +241,3 @@ if (count ($argv) > 1) {
     }
 
 }
-
-?>

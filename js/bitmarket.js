@@ -1,23 +1,24 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class bitmarket extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitmarket',
             'name': 'BitMarket',
             'countries': [ 'PL', 'EU' ],
             'rateLimit': 1500,
-            'hasCORS': false,
-            'hasFetchOHLCV': true,
-            'hasWithdraw': true,
+            'has': {
+                'CORS': false,
+                'fetchOHLCV': true,
+                'withdraw': true,
+            },
             'timeframes': {
                 '90m': '90m',
                 '6h': '6h',
@@ -97,6 +98,8 @@ module.exports = class bitmarket extends Exchange {
                 },
             },
             'markets': {
+                'BCH/PLN': { 'id': 'BCCPLN', 'symbol': 'BCH/PLN', 'base': 'BCH', 'quote': 'PLN' },
+                'BTG/PLN': { 'id': 'BTGPLN', 'symbol': 'BTG/PLN', 'base': 'BTG', 'quote': 'PLN' },
                 'BTC/PLN': { 'id': 'BTCPLN', 'symbol': 'BTC/PLN', 'base': 'BTC', 'quote': 'PLN' },
                 'BTC/EUR': { 'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
                 'LTC/PLN': { 'id': 'LTCPLN', 'symbol': 'LTC/PLN', 'base': 'LTC', 'quote': 'PLN' },
@@ -105,8 +108,70 @@ module.exports = class bitmarket extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': 0.0015,
-                    'taker': 0.0045,
+                    'tierBased': true,
+                    'percentage': true,
+                    'taker': 0.45 / 100,
+                    'maker': 0.15 / 100,
+                    'tiers': {
+                        'taker': [
+                            [0, 0.45 / 100],
+                            [99.99, 0.44 / 100],
+                            [299.99, 0.43 / 100],
+                            [499.99, 0.42 / 100],
+                            [999.99, 0.41 / 100],
+                            [1999.99, 0.40 / 100],
+                            [2999.99, 0.39 / 100],
+                            [4999.99, 0.38 / 100],
+                            [9999.99, 0.37 / 100],
+                            [19999.99, 0.36 / 100],
+                            [29999.99, 0.35 / 100],
+                            [49999.99, 0.34 / 100],
+                            [99999.99, 0.33 / 100],
+                            [199999.99, 0.32 / 100],
+                            [299999.99, 0.31 / 100],
+                            [499999.99, 0.0 / 100],
+                        ],
+                        'maker': [
+                            [0, 0.15 / 100],
+                            [99.99, 0.14 / 100],
+                            [299.99, 0.13 / 100],
+                            [499.99, 0.12 / 100],
+                            [999.99, 0.11 / 100],
+                            [1999.99, 0.10 / 100],
+                            [2999.99, 0.9 / 100],
+                            [4999.99, 0.8 / 100],
+                            [9999.99, 0.7 / 100],
+                            [19999.99, 0.6 / 100],
+                            [29999.99, 0.5 / 100],
+                            [49999.99, 0.4 / 100],
+                            [99999.99, 0.3 / 100],
+                            [199999.99, 0.2 / 100],
+                            [299999.99, 0.1 / 100],
+                            [499999.99, 0.0 / 100],
+                        ],
+                    },
+                },
+                'funding': {
+                    'tierBased': false,
+                    'percentage': false,
+                    'withdraw': {
+                        'BTC': 0.0008,
+                        'LTC': 0.005,
+                        'BCH': 0.0008,
+                        'BTG': 0.0008,
+                        'DOGE': 1,
+                        'EUR': 2,
+                        'PLN': 2,
+                    },
+                    'deposit': {
+                        'BTC': 0,
+                        'LTC': 0,
+                        'BCH': 0,
+                        'BTG': 0,
+                        'DOGE': 25,
+                        'EUR': 2, // SEPA. Transfer INT (SHA): 5 EUR
+                        'PLN': 0,
+                    },
                 },
             },
         });
@@ -118,8 +183,9 @@ module.exports = class bitmarket extends Exchange {
         let data = response['data'];
         let balance = data['balances'];
         let result = { 'info': data };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        let currencies = Object.keys (this.currencies);
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
             let account = this.account ();
             if (currency in balance['available'])
                 account['free'] = balance['available'][currency];
@@ -131,17 +197,11 @@ module.exports = class bitmarket extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let orderbook = await this.publicGetJsonMarketOrderbook (this.extend ({
             'market': this.marketId (symbol),
         }, params));
-        let timestamp = this.milliseconds ();
-        return {
-            'bids': orderbook['bids'],
-            'asks': orderbook['asks'],
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-        };
+        return this.parseOrderBook (orderbook);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -152,6 +212,7 @@ module.exports = class bitmarket extends Exchange {
         let vwap = parseFloat (ticker['vwap']);
         let baseVolume = parseFloat (ticker['volume']);
         let quoteVolume = baseVolume * vwap;
+        let last = parseFloat (ticker['last']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -159,12 +220,14 @@ module.exports = class bitmarket extends Exchange {
             'high': parseFloat (ticker['high']),
             'low': parseFloat (ticker['low']),
             'bid': parseFloat (ticker['bid']),
+            'bidVolume': undefined,
             'ask': parseFloat (ticker['ask']),
+            'askVolume': undefined,
             'vwap': vwap,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
@@ -175,7 +238,7 @@ module.exports = class bitmarket extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let side = (trade['type'] == 'bid') ? 'buy' : 'sell';
+        let side = (trade['type'] === 'bid') ? 'buy' : 'sell';
         let timestamp = trade['date'] * 1000;
         return {
             'id': trade['tid'].toString (),
@@ -196,7 +259,7 @@ module.exports = class bitmarket extends Exchange {
         let response = await this.publicGetJsonMarketTrades (this.extend ({
             'market': market['id'],
         }, params));
-        return this.parseTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '90m', since = undefined, limit = undefined) {
@@ -240,14 +303,15 @@ module.exports = class bitmarket extends Exchange {
     }
 
     isFiat (currency) {
-        if (currency == 'EUR')
+        if (currency === 'EUR')
             return true;
-        if (currency == 'PLN')
+        if (currency === 'PLN')
             return true;
         return false;
     }
 
-    async withdraw (currency, amount, address, params = {}) {
+    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
         await this.loadMarkets ();
         let method = undefined;
         let request = {
@@ -264,13 +328,13 @@ module.exports = class bitmarket extends Exchange {
             if ('account2' in params) {
                 request['account2'] = params['account2']; // bank SWIFT code (EUR only)
             } else {
-                if (currency == 'EUR')
+                if (currency === 'EUR')
                     throw new ExchangeError (this.id + ' requires account2 parameter to withdraw EUR');
             }
             if ('withdrawal_note' in params) {
                 request['withdrawal_note'] = params['withdrawal_note']; // a 10-character user-specified withdrawal note (PLN only)
             } else {
-                if (currency == 'PLN')
+                if (currency === 'PLN')
                     throw new ExchangeError (this.id + ' requires withdrawal_note parameter to withdraw PLN');
             }
         } else {
@@ -286,9 +350,10 @@ module.exports = class bitmarket extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
-        if (api == 'public') {
+        if (api === 'public') {
             url += '/' + this.implodeParams (path + '.json', params);
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             let query = this.extend ({
                 'tonce': nonce,
@@ -302,4 +367,4 @@ module.exports = class bitmarket extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-}
+};

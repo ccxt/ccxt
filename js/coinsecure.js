@@ -1,14 +1,13 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError, NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class coinsecure extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'coinsecure',
@@ -16,7 +15,9 @@ module.exports = class coinsecure extends Exchange {
             'countries': 'IN', // India
             'rateLimit': 1000,
             'version': 'v1',
-            'hasCORS': true,
+            'has': {
+                'CORS': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766472-9cbd200a-5ed9-11e7-9551-2267ad7bac08.jpg',
                 'api': 'https://api.coinsecure.in',
@@ -25,6 +26,10 @@ module.exports = class coinsecure extends Exchange {
                     'https://api.coinsecure.in',
                     'https://github.com/coinsecure/plugins',
                 ],
+            },
+            'requiredCredentials': {
+                'apiKey': true,
+                'secret': false,
             },
             'api': {
                 'public': {
@@ -167,6 +172,7 @@ module.exports = class coinsecure extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        await this.loadMarkets ();
         let response = await this.privateGetUserExchangeBankSummary ();
         let balance = response['message'];
         let coin = {
@@ -187,7 +193,8 @@ module.exports = class coinsecure extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         let bids = await this.publicGetExchangeBidOrders (params);
         let asks = await this.publicGetExchangeAskOrders (params);
         let orderbook = {
@@ -198,56 +205,87 @@ module.exports = class coinsecure extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
         let response = await this.publicGetExchangeTicker (params);
         let ticker = response['message'];
         let timestamp = ticker['timestamp'];
         let baseVolume = parseFloat (ticker['coinvolume']);
-        if (symbol == 'BTC/INR') {
+        if (symbol === 'BTC/INR') {
             let satoshi = 0.00000001;
             baseVolume = baseVolume * satoshi;
         }
+        let quoteVolume = parseFloat (ticker['fiatvolume']) / 100;
+        let vwap = quoteVolume / baseVolume;
+        let last = parseFloat (ticker['lastPrice']) / 100;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']),
-            'low': parseFloat (ticker['low']),
-            'bid': parseFloat (ticker['bid']),
-            'ask': parseFloat (ticker['ask']),
-            'vwap': undefined,
-            'open': parseFloat (ticker['open']),
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['lastPrice']),
+            'high': parseFloat (ticker['high']) / 100,
+            'low': parseFloat (ticker['low']) / 100,
+            'bid': parseFloat (ticker['bid']) / 100,
+            'bidVolume': undefined,
+            'ask': parseFloat (ticker['ask']) / 100,
+            'askVolume': undefined,
+            'vwap': vwap,
+            'open': parseFloat (ticker['open']) / 100,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
             'baseVolume': baseVolume,
-            'quoteVolume': parseFloat (ticker['fiatvolume']),
+            'quoteVolume': quoteVolume,
             'info': ticker,
         };
     }
 
-    fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        return this.publicGetExchangeTrades (params);
+    parseTrade (trade, symbol = undefined) {
+        let timestamp = trade['time'];
+        let side = (trade['ordType'] === 'bid') ? 'buy' : 'sell';
+        return {
+            'id': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'order': undefined,
+            'symbol': symbol,
+            'type': undefined,
+            'side': side,
+            'price': this.safeFloat (trade, 'rate') / 100,
+            'amount': this.safeFloat (trade, 'vol') / 100000000,
+            'fee': undefined,
+            'info': trade,
+        };
     }
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let result = await this.publicGetExchangeTrades (params);
+        if ('message' in result) {
+            let trades = result['message'];
+            return this.parseTrades (trades, market);
+        }
+    }
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
         let method = 'privatePutUserExchange';
         let order = {};
-        if (type == 'market') {
+        if (type === 'market') {
             method += 'Instant' + this.capitalize (side);
-            if (side == 'buy')
+            if (side === 'buy')
                 order['maxFiat'] = amount;
             else
                 order['maxVol'] = amount;
         } else {
-            let direction = (side == 'buy') ? 'Bid' : 'Ask';
+            let direction = (side === 'buy') ? 'Bid' : 'Ask';
             method += direction + 'New';
             order['rate'] = price;
             order['vol'] = amount;
         }
-        let response = await this[method] (self.extend (order, params));
+        let response = await this[method] (this.extend (order, params));
         return {
             'info': response,
             'id': response['message']['orderID'],
@@ -255,15 +293,17 @@ module.exports = class coinsecure extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        throw new ExchangeError (this.id + ' cancelOrder () is not fully implemented yet');
-        let method = 'privateDeleteUserExchangeAskCancelOrderId'; // TODO fixme, have to specify order side here
-        return await this[method] ({ 'orderID': id });
+        await this.loadMarkets ();
+        // let method = 'privateDeleteUserExchangeAskCancelOrderId'; // TODO fixme, have to specify order side here
+        // return await this[method] ({ 'orderID': id });
+        throw new NotSupported (this.id + ' cancelOrder () is not fully implemented yet');
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (api == 'private') {
+        if (api === 'private') {
+            this.checkRequiredCredentials ();
             headers = { 'Authorization': this.apiKey };
             if (Object.keys (query).length) {
                 body = this.json (query);
@@ -273,11 +313,25 @@ module.exports = class coinsecure extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('success' in response)
-            if (response['success'])
-                return response;
-        throw new ExchangeError (this.id + ' ' + this.json (response));
+    handleErrors (code, reason, url, method, headers, body) {
+        if (code === 200) {
+            if ((body[0] === '{') || (body[0] === '[')) {
+                let response = JSON.parse (body);
+                if ('success' in response) {
+                    let success = response['success'];
+                    if (!success) {
+                        throw new ExchangeError (this.id + ' error returned: ' + body);
+                    }
+                    if (!('message' in response)) {
+                        throw new ExchangeError (this.id + ' malformed response: no "message" in response: ' + body);
+                    }
+                } else {
+                    throw new ExchangeError (this.id + ' malformed response: no "success" in response: ' + body);
+                }
+            } else {
+                // if not a JSON response
+                throw new ExchangeError (this.id + ' returned a non-JSON reply: ' + body);
+            }
+        }
     }
-}
+};

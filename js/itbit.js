@@ -1,14 +1,13 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class itbit extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'itbit',
@@ -16,7 +15,10 @@ module.exports = class itbit extends Exchange {
             'countries': 'US',
             'rateLimit': 2000,
             'version': 'v1',
-            'hasCORS': true,
+            'has': {
+                'CORS': true,
+                'createMarketOrder': false,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27822159-66153620-60ad-11e7-89e7-005f6d7f3de0.jpg',
                 'api': 'https://api.itbit.com',
@@ -70,7 +72,7 @@ module.exports = class itbit extends Exchange {
         });
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let orderbook = await this.publicGetMarketsSymbolOrderBook (this.extend ({
             'symbol': this.marketId (symbol),
         }, params));
@@ -85,22 +87,27 @@ module.exports = class itbit extends Exchange {
         if (!serverTimeUTC)
             throw new ExchangeError (this.id + ' fetchTicker returned a bad response: ' + this.json (ticker));
         let timestamp = this.parse8601 (ticker['serverTimeUTC']);
-        let vwap = parseFloat (ticker['vwap24h']);
-        let baseVolume = parseFloat (ticker['volume24h']);
-        let quoteVolume = baseVolume * vwap;
+        let vwap = this.safeFloat (ticker, 'vwap24h');
+        let baseVolume = this.safeFloat (ticker, 'volume24h');
+        let quoteVolume = undefined;
+        if (typeof baseVolume !== 'undefined' && typeof vwap !== 'undefined')
+            quoteVolume = baseVolume * vwap;
+        let last = this.safeFloat (ticker, 'lastPrice');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high24h']),
-            'low': parseFloat (ticker['low24h']),
+            'high': this.safeFloat (ticker, 'high24h'),
+            'low': this.safeFloat (ticker, 'low24h'),
             'bid': this.safeFloat (ticker, 'bid'),
+            'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'ask'),
+            'askVolume': undefined,
             'vwap': vwap,
-            'open': parseFloat (ticker['openToday']),
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['lastPrice']),
+            'open': this.safeFloat (ticker, 'openToday'),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
@@ -132,7 +139,7 @@ module.exports = class itbit extends Exchange {
         let response = await this.publicGetMarketsSymbolTrades (this.extend ({
             'symbol': market['id'],
         }, params));
-        return this.parseTrades (response['recentTrades'], market);
+        return this.parseTrades (response['recentTrades'], market, since, limit);
     }
 
     async fetchBalance (params = {}) {
@@ -162,7 +169,7 @@ module.exports = class itbit extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (type == 'market')
+        if (type === 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
         let walletIdInParams = ('walletId' in params);
         if (!walletIdInParams)
@@ -198,10 +205,11 @@ module.exports = class itbit extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
+            this.checkRequiredCredentials ();
             if (Object.keys (query).length)
                 body = this.json (query);
             else
@@ -214,7 +222,7 @@ module.exports = class itbit extends Exchange {
             let binhash = this.binaryConcat (url, hash);
             let signature = this.hmac (binhash, this.encode (this.secret), 'sha512', 'base64');
             headers = {
-                'Authorization': self.apiKey + ':' + signature,
+                'Authorization': this.apiKey + ':' + signature,
                 'Content-Type': 'application/json',
                 'X-Auth-Timestamp': timestamp,
                 'X-Auth-Nonce': nonce,
@@ -229,4 +237,4 @@ module.exports = class itbit extends Exchange {
             throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
     }
-}
+};

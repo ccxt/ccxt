@@ -1,14 +1,13 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class anxpro extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'anxpro',
@@ -16,9 +15,12 @@ module.exports = class anxpro extends Exchange {
             'countries': [ 'JP', 'SG', 'HK', 'NZ' ],
             'version': '2',
             'rateLimit': 1500,
-            'hasCORS': false,
-            'hasFetchTrades': false,
-            'hasWithdraw': true,
+            'has': {
+                'CORS': false,
+                'fetchOHLCV': false,
+                'fetchTrades': false,
+                'withdraw': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg',
                 'api': 'https://anxpro.com/api',
@@ -52,19 +54,25 @@ module.exports = class anxpro extends Exchange {
                 },
             },
             'markets': {
-                'BTC/USD': { 'id': 'BTCUSD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },
-                'BTC/HKD': { 'id': 'BTCHKD', 'symbol': 'BTC/HKD', 'base': 'BTC', 'quote': 'HKD' },
-                'BTC/EUR': { 'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
-                'BTC/CAD': { 'id': 'BTCCAD', 'symbol': 'BTC/CAD', 'base': 'BTC', 'quote': 'CAD' },
-                'BTC/AUD': { 'id': 'BTCAUD', 'symbol': 'BTC/AUD', 'base': 'BTC', 'quote': 'AUD' },
-                'BTC/SGD': { 'id': 'BTCSGD', 'symbol': 'BTC/SGD', 'base': 'BTC', 'quote': 'SGD' },
-                'BTC/JPY': { 'id': 'BTCJPY', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY' },
-                'BTC/GBP': { 'id': 'BTCGBP', 'symbol': 'BTC/GBP', 'base': 'BTC', 'quote': 'GBP' },
-                'BTC/NZD': { 'id': 'BTCNZD', 'symbol': 'BTC/NZD', 'base': 'BTC', 'quote': 'NZD' },
-                'LTC/BTC': { 'id': 'LTCBTC', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
-                'DOGE/BTC': { 'id': 'DOGEBTC', 'symbol': 'DOGE/BTC', 'base': 'DOGE', 'quote': 'BTC' },
-                'STR/BTC': { 'id': 'STRBTC', 'symbol': 'STR/BTC', 'base': 'STR', 'quote': 'BTC' },
-                'XRP/BTC': { 'id': 'XRPBTC', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC' },
+                'BTC/USD': { 'id': 'BTCUSD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'multiplier': 100000 },
+                'BTC/HKD': { 'id': 'BTCHKD', 'symbol': 'BTC/HKD', 'base': 'BTC', 'quote': 'HKD', 'multiplier': 100000 },
+                'BTC/EUR': { 'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'multiplier': 100000 },
+                'BTC/CAD': { 'id': 'BTCCAD', 'symbol': 'BTC/CAD', 'base': 'BTC', 'quote': 'CAD', 'multiplier': 100000 },
+                'BTC/AUD': { 'id': 'BTCAUD', 'symbol': 'BTC/AUD', 'base': 'BTC', 'quote': 'AUD', 'multiplier': 100000 },
+                'BTC/SGD': { 'id': 'BTCSGD', 'symbol': 'BTC/SGD', 'base': 'BTC', 'quote': 'SGD', 'multiplier': 100000 },
+                'BTC/JPY': { 'id': 'BTCJPY', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY', 'multiplier': 100000 },
+                'BTC/GBP': { 'id': 'BTCGBP', 'symbol': 'BTC/GBP', 'base': 'BTC', 'quote': 'GBP', 'multiplier': 100000 },
+                'BTC/NZD': { 'id': 'BTCNZD', 'symbol': 'BTC/NZD', 'base': 'BTC', 'quote': 'NZD', 'multiplier': 100000 },
+                'LTC/BTC': { 'id': 'LTCBTC', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'multiplier': 100000 },
+                'STR/BTC': { 'id': 'STRBTC', 'symbol': 'STR/BTC', 'base': 'STR', 'quote': 'BTC', 'multiplier': 100000000 },
+                'XRP/BTC': { 'id': 'XRPBTC', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC', 'multiplier': 100000000 },
+                'DOGE/BTC': { 'id': 'DOGEBTC', 'symbol': 'DOGE/BTC', 'base': 'DOGE', 'quote': 'BTC', 'multiplier': 100000000 },
+            },
+            'fees': {
+                'trading': {
+                    'maker': 0.3 / 100,
+                    'taker': 0.6 / 100,
+                },
             },
         });
     }
@@ -88,7 +96,7 @@ module.exports = class anxpro extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let response = await this.publicGetCurrencyPairMoneyDepthFull (this.extend ({
             'currency_pair': this.marketId (symbol),
         }, params));
@@ -106,7 +114,9 @@ module.exports = class anxpro extends Exchange {
         let t = parseInt (ticker['dataUpdateTime']);
         let timestamp = parseInt (t / 1000);
         let bid = this.safeFloat (ticker['buy'], 'value');
-        let ask = this.safeFloat (ticker['sell'], 'value');;
+        let ask = this.safeFloat (ticker['sell'], 'value');
+        let baseVolume = parseFloat (ticker['vol']['value']);
+        let last = parseFloat (ticker['last']['value']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -114,51 +124,70 @@ module.exports = class anxpro extends Exchange {
             'high': parseFloat (ticker['high']['value']),
             'low': parseFloat (ticker['low']['value']),
             'bid': bid,
+            'bidVolume': undefined,
             'ask': ask,
-            'vwap': parseFloat (ticker['vwap']['value']),
+            'askVolume': undefined,
+            'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last']['value']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': parseFloat (ticker['avg']['value']),
-            'baseVolume': parseFloat (ticker['vol']['value']),
+            'baseVolume': baseVolume,
             'quoteVolume': undefined,
+            'info': ticker,
         };
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         throw new ExchangeError (this.id + ' switched off the trades endpoint, see their docs at http://docs.anxv2.apiary.io/reference/market-data/currencypairmoneytradefetch-disabled');
-        return this.publicGetCurrencyPairMoneyTradeFetch (this.extend ({
-            'currency_pair': this.marketId (symbol),
-        }, params));
     }
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        let market = this.market (symbol);
         let order = {
-            'currency_pair': this.marketId (market),
+            'currency_pair': market['id'],
             'amount_int': parseInt (amount * 100000000), // 10^8
-            'type': side,
         };
-        if (type == 'limit')
-            order['price_int'] = parseInt (price * 100000); // 10^5
-        let result = await this.privatePostCurrencyPairOrderAdd (this.extend (order, params));
+        if (type === 'limit') {
+            order['price_int'] = parseInt (price * market['multiplier']); // 10^5 or 10^8
+        }
+        order['type'] = (side === 'buy') ? 'bid' : 'ask';
+        let result = await this.privatePostCurrencyPairMoneyOrderAdd (this.extend (order, params));
         return {
             'info': result,
-            'id': result['data']
+            'id': result['data'],
         };
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        return await this.privatePostCurrencyPairOrderCancel ({ 'oid': id });
+        return await this.privatePostCurrencyPairMoneyOrderCancel ({ 'oid': id });
     }
 
-    async withdraw (currency, amount, address, params = {}) {
+    getAmountMultiplier (currency) {
+        if (currency === 'BTC') {
+            return 100000000;
+        } else if (currency === 'LTC') {
+            return 100000000;
+        } else if (currency === 'STR') {
+            return 100000000;
+        } else if (currency === 'XRP') {
+            return 100000000;
+        } else if (currency === 'DOGE') {
+            return 100000000;
+        }
+        return 100;
+    }
+
+    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
         await this.loadMarkets ();
+        let multiplier = this.getAmountMultiplier (currency);
         let response = await this.privatePostMoneyCurrencySendSimple (this.extend ({
             'currency': currency,
-            'amount_int': parseInt (amount * 100000000), // 10^8
+            'amount_int': parseInt (amount * multiplier),
             'address': address,
         }, params));
         return {
@@ -175,14 +204,15 @@ module.exports = class anxpro extends Exchange {
         let request = this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'] + '/' + this.version + '/' + request;
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             body = this.urlencode (this.extend ({ 'nonce': nonce }, query));
             let secret = this.base64ToBinary (this.secret);
-            let auth = request + "\0" + body;
+            let auth = request + '\0' + body;
             let signature = this.hmac (this.encode (auth), secret, 'sha512', 'base64');
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -195,9 +225,10 @@ module.exports = class anxpro extends Exchange {
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('result' in response)
-            if (response['result'] == 'success')
-                return response;
+        if (typeof response !== 'undefined')
+            if ('result' in response)
+                if (response['result'] === 'success')
+                    return response;
         throw new ExchangeError (this.id + ' ' + this.json (response));
     }
-}
+};

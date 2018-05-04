@@ -1,14 +1,13 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class huobi extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'huobi',
@@ -16,8 +15,10 @@ module.exports = class huobi extends Exchange {
             'countries': 'CN',
             'rateLimit': 2000,
             'version': 'v3',
-            'hasCORS': false,
-            'hasFetchOHLCV': true,
+            'has': {
+                'CORS': false,
+                'fetchOHLCV': true,
+            },
             'timeframes': {
                 '1m': '001',
                 '5m': '005',
@@ -88,8 +89,9 @@ module.exports = class huobi extends Exchange {
     async fetchBalance (params = {}) {
         let balances = await this.tradePostGetAccountInfo ();
         let result = { 'info': balances };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        let currencies = Object.keys (this.currencies);
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
             let lowercase = currency.toLowerCase ();
             let account = this.account ();
             let available = 'available_' + lowercase + '_display';
@@ -107,7 +109,7 @@ module.exports = class huobi extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let market = this.market (symbol);
         let method = market['type'] + 'GetDepthId';
         let orderbook = await this[method] (this.extend ({ 'id': market['id'] }, params));
@@ -166,7 +168,7 @@ module.exports = class huobi extends Exchange {
         let response = await this[method] (this.extend ({
             'id': market['id'],
         }, params));
-        return this.parseTrades (response['trades'], market);
+        return this.parseTrades (response['trades'], market, since, limit);
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
@@ -200,7 +202,7 @@ module.exports = class huobi extends Exchange {
             'amount': amount,
             'market': market['quote'].toLowerCase (),
         };
-        if (type == 'limit')
+        if (type === 'limit')
             order['price'] = price;
         else
             method += this.capitalize (type);
@@ -217,7 +219,8 @@ module.exports = class huobi extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'];
-        if (api == 'trade') {
+        if (api === 'trade') {
+            this.checkRequiredCredentials ();
             url += '/api' + this.version;
             let query = this.keysort (this.extend ({
                 'method': path,
@@ -244,10 +247,10 @@ module.exports = class huobi extends Exchange {
     async request (path, api = 'trade', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('status' in response)
-            if (response['status'] == 'error')
+            if (response['status'] === 'error')
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         if ('code' in response)
             throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
     }
-}
+};

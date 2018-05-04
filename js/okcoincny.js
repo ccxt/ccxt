@@ -1,24 +1,25 @@
-"use strict";
+'use strict';
 
 // ---------------------------------------------------------------------------
 
-const okcoinusd = require ('./okcoinusd.js')
+const okcoinusd = require ('./okcoinusd.js');
 
 // ---------------------------------------------------------------------------
 
 module.exports = class okcoincny extends okcoinusd {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'okcoincny',
             'name': 'OKCoin CNY',
             'countries': 'CN',
-            'hasCORS': false,
+            'has': {
+                'CORS': false,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766792-8be9157a-5ee5-11e7-926c-6d69b8d3378d.jpg',
                 'api': {
                     'web': 'https://www.okcoin.cn',
-                    'public': 'https://www.okcoin.cn/pai',
+                    'public': 'https://www.okcoin.cn/api',
                     'private': 'https://www.okcoin.cn/api',
                 },
                 'www': 'https://www.okcoin.cn',
@@ -33,4 +34,4 @@ module.exports = class okcoincny extends okcoinusd {
             },
         });
     }
-}
+};

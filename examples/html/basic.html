@@ -1,0 +1,43 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>CCXT Basic example for the browser</title>
+    <script type="text/javascript" src="https://unpkg.com/ccxt"></script>
+    <script>
+
+        document.addEventListener ("DOMContentLoaded", function () {
+
+            alert ('ccxt version ' + ccxt.version + ' supporting '+ ccxt.exchanges.length.toString () + ' exchanges');
+
+            const exchange = new ccxt.gdax ()
+            const symbol = 'ETH/BTC'
+
+            exchange.fetchTicker (symbol).then (ticker => {
+
+                const text = [
+                    exchange.id,
+                    symbol,
+                    JSON.stringify (ticker, undefined, '\n\t')
+                ]
+
+                document.getElementById ('content').innerHTML = text.join (' ')
+
+            }).catch (e => {
+
+                const text = [
+                    e.constructor.name,
+                    e.message,
+                ]
+
+                document.getElementById ('content').innerHTML = text.join (' ')
+
+            })
+
+        })
+    </script>
+</head>
+<body>
+<h1>Hello, CCXT!</h1>
+<pre id="content"></pre>
+</body>
+</html>

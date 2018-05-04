@@ -1,14 +1,13 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class nova extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'nova',
@@ -16,7 +15,10 @@ module.exports = class nova extends Exchange {
             'countries': 'TZ', // Tanzania
             'rateLimit': 2000,
             'version': 'v2',
-            'hasCORS': false,
+            'has': {
+                'CORS': false,
+                'createMarketOrder': false,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30518571-78ca0bca-9b8a-11e7-8840-64b83a4a94b2.jpg',
                 'api': 'https://novaexchange.com/remote',
@@ -82,7 +84,7 @@ module.exports = class nova extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetMarketOpenordersPairBoth (this.extend ({
             'pair': this.marketId (symbol),
@@ -97,6 +99,7 @@ module.exports = class nova extends Exchange {
         }, params));
         let ticker = response['markets'][0];
         let timestamp = this.milliseconds ();
+        let last = parseFloat (ticker['last_price']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -104,12 +107,14 @@ module.exports = class nova extends Exchange {
             'high': parseFloat (ticker['high24h']),
             'low': parseFloat (ticker['low24h']),
             'bid': this.safeFloat (ticker, 'bid'),
+            'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'ask'),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last_price']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': parseFloat (ticker['change24h']),
             'percentage': undefined,
             'average': undefined,
@@ -141,7 +146,7 @@ module.exports = class nova extends Exchange {
         let response = await this.publicGetMarketOrderhistoryPair (this.extend ({
             'pair': market['id'],
         }, params));
-        return this.parseTrades (response['items'], market);
+        return this.parseTrades (response['items'], market, since, limit);
     }
 
     async fetchBalance (params = {}) {
@@ -165,7 +170,7 @@ module.exports = class nova extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (type == 'market')
+        if (type === 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
         await this.loadMarkets ();
         amount = amount.toString ();
@@ -193,14 +198,15 @@ module.exports = class nova extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/';
-        if (api == 'private')
+        if (api === 'private')
             url += api + '/';
         url += this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             url += '?' + this.urlencode ({ 'nonce': nonce });
             let signature = this.hmac (this.encode (url), this.encode (this.secret), 'sha512', 'base64');
@@ -218,8 +224,8 @@ module.exports = class nova extends Exchange {
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('status' in response)
-            if (response['status'] != 'success')
+            if (response['status'] !== 'success')
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
     }
-}
+};

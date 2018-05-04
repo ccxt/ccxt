@@ -1,14 +1,13 @@
-"use strict";
+'use strict';
 
 // ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError, AuthenticationError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError, NotSupported } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
 module.exports = class _1broker extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': '_1broker',
@@ -16,12 +15,14 @@ module.exports = class _1broker extends Exchange {
             'countries': 'US',
             'rateLimit': 1500,
             'version': 'v2',
-            'hasPublicAPI': false,
-            'hasCORS': true,
-            'hasFetchTrades': false,
-            'hasFetchOHLCV': true,
+            'has': {
+                'publicAPI': false,
+                'CORS': true,
+                'fetchTrades': false,
+                'fetchOHLCV': true,
+            },
             'timeframes': {
-                '1m': '60',
+                '1m': '60', // not working for some reason, returns {"server_time":"2018-03-26T03:52:27.912Z","error":true,"warning":false,"response":null,"error_code":-1,"error_message":"Error while trying to fetch historical market data. An invalid resolution was probably used."}
                 '15m': '900',
                 '1h': '3600',
                 '1d': '86400',
@@ -31,6 +32,10 @@ module.exports = class _1broker extends Exchange {
                 'api': 'https://1broker.com/api',
                 'www': 'https://1broker.com',
                 'doc': 'https://1broker.com/?c=en/content/api-documentation',
+            },
+            'requiredCredentials': {
+                'apiKey': true,
+                'secret': false,
             },
             'api': {
                 'private': {
@@ -90,7 +95,7 @@ module.exports = class _1broker extends Exchange {
                 let symbol = undefined;
                 let base = undefined;
                 let quote = undefined;
-                if ((category == 'FOREX') || (category == 'CRYPTO')) {
+                if ((category === 'FOREX') || (category === 'CRYPTO')) {
                     symbol = market['name'];
                     let parts = symbol.split ('/');
                     base = parts[0];
@@ -108,10 +113,6 @@ module.exports = class _1broker extends Exchange {
                     'base': base,
                     'quote': quote,
                     'info': market,
-                    'otherfield': {
-                        'onemore': {
-                        },
-                    },
                 });
             }
         }
@@ -125,8 +126,9 @@ module.exports = class _1broker extends Exchange {
         let result = {
             'info': response,
         };
-        for (let c = 0; c < this.currencies.length; c++) {
-            let currency = this.currencies[c];
+        let currencies = Object.keys (this.currencies);
+        for (let c = 0; c < currencies.length; c++) {
+            let currency = currencies[c];
             result[currency] = this.account ();
         }
         let total = parseFloat (response['balance']);
@@ -135,7 +137,7 @@ module.exports = class _1broker extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privateGetMarketQuotes (this.extend ({
             'symbols': this.marketId (symbol),
@@ -151,11 +153,12 @@ module.exports = class _1broker extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'bids': [ bid ],
             'asks': [ ask ],
+            'nonce': undefined,
         };
     }
 
     async fetchTrades (symbol) {
-        throw new ExchangeError (this.id + ' fetchTrades () method not implemented yet');
+        throw new NotSupported (this.id + ' fetchTrades () method not implemented yet');
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -165,24 +168,28 @@ module.exports = class _1broker extends Exchange {
             'resolution': 60,
             'limit': 1,
         }, params));
-        let orderbook = await this.fetchOrderBook (symbol);
         let ticker = result['response'][0];
         let timestamp = this.parse8601 (ticker['date']);
+        let open = parseFloat (ticker['o']);
+        let close = parseFloat (ticker['c']);
+        let change = close - open;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': parseFloat (ticker['h']),
             'low': parseFloat (ticker['l']),
-            'bid': orderbook['bids'][0][0],
-            'ask': orderbook['asks'][0][0],
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
             'vwap': undefined,
-            'open': parseFloat (ticker['o']),
-            'close': parseFloat (ticker['c']),
-            'first': undefined,
-            'last': undefined,
-            'change': undefined,
-            'percentage': undefined,
+            'open': open,
+            'close': close,
+            'last': close,
+            'previousClose': undefined,
+            'change': change,
+            'percentage': change / open * 100,
             'average': undefined,
             'baseVolume': undefined,
             'quoteVolume': undefined,
@@ -208,9 +215,9 @@ module.exports = class _1broker extends Exchange {
             'symbol': market['id'],
             'resolution': this.timeframes[timeframe],
         };
-        if (since)
+        if (typeof since !== 'undefined')
             request['date_start'] = this.iso8601 (since); // they also support date_end
-        if (limit)
+        if (typeof limit !== 'undefined')
             request['limit'] = limit;
         let result = await this.privateGetMarketBars (this.extend (request, params));
         return this.parseOHLCVs (result['response'], market, timeframe, since, limit);
@@ -221,11 +228,11 @@ module.exports = class _1broker extends Exchange {
         let order = {
             'symbol': this.marketId (symbol),
             'margin': amount,
-            'direction': (side == 'sell') ? 'short' : 'long',
+            'direction': (side === 'sell') ? 'short' : 'long',
             'leverage': 1,
             'type': side,
         };
-        if (type == 'limit')
+        if (type === 'limit')
             order['price'] = price;
         else
             order['type'] += '_market';
@@ -242,8 +249,7 @@ module.exports = class _1broker extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        if (!this.apiKey)
-            throw new AuthenticationError (this.id + ' requires apiKey for all requests');
+        this.checkRequiredCredentials ();
         let url = this.urls['api'] + '/' + this.version + '/' + path + '.php';
         let query = this.extend ({ 'token': this.apiKey }, params);
         url += '?' + this.urlencode (query);
@@ -260,4 +266,4 @@ module.exports = class _1broker extends Exchange {
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
     }
-}
+};

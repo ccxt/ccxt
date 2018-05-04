@@ -1,21 +1,24 @@
-"use strict";
+'use strict';
 
 // ---------------------------------------------------------------------------
 
-const liqui = require ('./liqui.js')
+const liqui = require ('./liqui.js');
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
 module.exports = class wex extends liqui {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'wex',
             'name': 'WEX',
             'countries': 'NZ', // New Zealand
             'version': '3',
-            'hasFetchTickers': true,
-            'hasCORS': false,
+            'has': {
+                'CORS': false,
+                'fetchTickers': true,
+                'fetchDepositAddress': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30652751-d74ec8f8-9e31-11e7-98c5-71469fcef03e.jpg',
                 'api': {
@@ -27,6 +30,7 @@ module.exports = class wex extends liqui {
                     'https://wex.nz/api/3/docs',
                     'https://wex.nz/tapi/docs',
                 ],
+                'fees': 'https://wex.nz/fees',
             },
             'api': {
                 'public': {
@@ -53,6 +57,36 @@ module.exports = class wex extends liqui {
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'maker': 0.2 / 100,
+                    'taker': 0.2 / 100,
+                },
+                'funding': {
+                    'withdraw': {
+                        'BTC': 0.001,
+                        'LTC': 0.001,
+                        'NMC': 0.1,
+                        'NVC': 0.1,
+                        'PPC': 0.1,
+                        'DASH': 0.001,
+                        'ETH': 0.003,
+                        'BCH': 0.001,
+                        'ZEC': 0.001,
+                    },
+                },
+            },
+            'exceptions': {
+                'messages': {
+                    'bad status': OrderNotFound,
+                    'Requests too often': DDoSProtection,
+                    'not available': DDoSProtection,
+                    'external service unavailable': DDoSProtection,
+                },
+            },
+            'commonCurrencies': {
+                'RUR': 'RUB',
+            },
         });
     }
 
@@ -61,6 +95,7 @@ module.exports = class wex extends liqui {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -68,12 +103,14 @@ module.exports = class wex extends liqui {
             'high': this.safeFloat (ticker, 'high'),
             'low': this.safeFloat (ticker, 'low'),
             'bid': this.safeFloat (ticker, 'sell'),
+            'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'buy'),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': this.safeFloat (ticker, 'last'),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': this.safeFloat (ticker, 'avg'),
@@ -82,4 +119,48 @@ module.exports = class wex extends liqui {
             'info': ticker,
         };
     }
-}
+
+    async fetchDepositAddress (code, params = {}) {
+        let request = { 'coinName': this.commonCurrencyCode (code) };
+        let response = await this.privatePostCoinDepositAddress (this.extend (request, params));
+        return {
+            'currency': code,
+            'address': response['return']['address'],
+            'tag': undefined,
+            'status': 'ok',
+            'info': response,
+        };
+    }
+
+    handleErrors (code, reason, url, method, headers, body) {
+        if (code === 200) {
+            if (body[0] !== '{') {
+                // response is not JSON -> resort to default error handler
+                return;
+            }
+            let response = JSON.parse (body);
+            if ('success' in response) {
+                if (!response['success']) {
+                    const error = this.safeString (response, 'error');
+                    if (!error) {
+                        throw new ExchangeError (this.id + ' returned a malformed error: ' + body);
+                    }
+                    if (error === 'no orders') {
+                        // returned by fetchOpenOrders if no open orders (fix for #489) -> not an error
+                        return;
+                    }
+                    const feedback = this.id + ' ' + this.json (response);
+                    const messages = this.exceptions['messages'];
+                    if (error in messages) {
+                        throw new messages[error] (feedback);
+                    }
+                    if (error.indexOf ('It is not enough') >= 0) {
+                        throw new InsufficientFunds (feedback);
+                    } else {
+                        throw new ExchangeError (feedback);
+                    }
+                }
+            }
+        }
+    }
+};

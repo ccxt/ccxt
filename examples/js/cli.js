@@ -4,18 +4,22 @@
 
 const [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x => !x.startsWith ('--'))
 const verbose = process.argv.includes ('--verbose')
+const cloudscrape = process.argv.includes ('--cloudscrape')
+const poll = process.argv.includes ('--poll')
 
 //-----------------------------------------------------------------------------
 
-const ccxt      = require ('../../ccxt.js')
-const fs        = require ('fs')
-const asTable   = require ('as-table')
-const util      = require ('util')
-const log       = require ('ololog').configure ({ locate: false })
+const ccxt         = require ('../../ccxt.js')
+    , fs           = require ('fs')
+    , path         = require ('path')
+    , asTable      = require ('as-table')
+    , util         = require ('util')
+    , log          = require ('ololog').configure ({ locate: false })
+    , { ExchangeError, NetworkError } = ccxt
 
 //-----------------------------------------------------------------------------
 
-require ('ansicolor').nice;
+require ('ansicolor').nice
 
 //-----------------------------------------------------------------------------
 
@@ -23,14 +27,43 @@ process.on ('uncaughtException',  e => { log.bright.red.error (e); process.exit 
 process.on ('unhandledRejection', e => { log.bright.red.error (e); process.exit (1) })
 
 //-----------------------------------------------------------------------------
+// cloudscraper helper
 
-const exchange = new (ccxt)[exchangeId] ({ verbose })
+const scrapeCloudflareHttpHeaderCookie = (url) =>
+
+	(new Promise ((resolve, reject) => {
+
+        const cloudscraper = require ('cloudscraper')
+		return cloudscraper.get (url, function (error, response, body) {
+
+			if (error) {
+
+                log.red ('Cloudscraper error')
+				reject (error)
+
+			} else {
+
+				resolve (response.request.headers)
+			}
+        })
+    }))
 
 //-----------------------------------------------------------------------------
 
-let apiKeys = JSON.parse (fs.readFileSync ('./keys.json', 'utf8'))[exchangeId]
+const timeout = 30000
+const exchange = new (ccxt)[exchangeId] ({ verbose, timeout })
 
-Object.assign (exchange, apiKeys)
+//-----------------------------------------------------------------------------
+
+// set up keys and settings, if any
+const keysGlobal = path.resolve ('keys.json')
+const keysLocal = path.resolve ('keys.local.json')
+
+let globalKeysFile = fs.existsSync (keysGlobal) ? keysGlobal : false
+let localKeysFile = fs.existsSync (keysLocal) ? keysLocal : globalKeysFile
+let settings = localKeysFile ? (require (localKeysFile)[exchangeId] || {}) : {}
+
+Object.assign (exchange, settings)
 
 //-----------------------------------------------------------------------------
 
@@ -61,10 +94,68 @@ async function main () {
 
     } else {
 
-        let args = params.map (param =>
-            param.match (/[a-zA-Z]/g) ? param : parseFloat (param))
+        let args = params.map (param => {
+            if (param[0] === '{' || param[0] === '[')
+                return JSON.parse (param)
+            return param.match (/[a-zA-Z]/g) ? param : parseFloat (param)
+        })
 
-        console.log (await exchange[methodName] (... args))
+        if (typeof exchange[methodName] === 'function') {
+
+            if (cloudscrape)
+                exchange.headers = await scrapeCloudflareHttpHeaderCookie (exchange.urls.www)
+
+            log (exchange.id + '.' + methodName, '(' + args.join (', ') + ')')
+
+            while (true) {
+
+                try {
+
+                    const result = await exchange[methodName] (... args)
+
+                    if (Array.isArray (result)) {
+
+                        result.forEach (object => {
+                            log ('-------------------------------------------')
+                            log (object)
+                        })
+
+                        log (result.length > 0 ? asTable (result) : result)
+
+                    } else {
+
+                        log.maxDepth (10).maxArrayLength (1000) (result)
+                    }
+
+
+                } catch (e) {
+
+                    if (e instanceof ExchangeError) {
+
+                        log.red (e.constructor.name, e.message)
+
+                    } else if (e instanceof NetworkError) {
+
+                        log.yellow (e.constructor.name, e.message)
+
+                    }
+
+                    log.dim ('---------------------------------------------------')
+
+                    // rethrow for call-stack // other errors
+                    throw e
+
+                }
+
+                if (!poll)
+                    break;
+            }
+
+        } else if (typeof exchange[methodName] === 'undefined') {
+            log.red (exchange.id + '.' + methodName + ': no such property')
+        } else {
+            log (exchange[methodName])
+        }
 
     }
 }

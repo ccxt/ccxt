@@ -1,14 +1,14 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError, AuthenticationError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
+const { ROUND } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class flowbtc extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'flowbtc',
@@ -16,12 +16,19 @@ module.exports = class flowbtc extends Exchange {
             'countries': 'BR', // Brazil
             'version': 'v1',
             'rateLimit': 1000,
-            'hasCORS': true,
+            'has': {
+                'CORS': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28162465-cd815d4c-67cf-11e7-8e57-438bea0523a2.jpg',
-                'api': 'https://api.flowbtc.com:8400/ajax',
+                'api': 'https://api.flowbtc.com:8405/ajax',
                 'www': 'https://trader.flowbtc.com',
                 'doc': 'http://www.flowbtc.com.br/api/',
+            },
+            'requiredCredentials': {
+                'apiKey': true,
+                'secret': true,
+                'uid': true,
             },
             'api': {
                 'public': {
@@ -52,26 +59,53 @@ module.exports = class flowbtc extends Exchange {
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'tierBased': false,
+                    'percentage': true,
+                    'maker': 0.0035,
+                    'taker': 0.0035,
+                },
+            },
         });
     }
 
     async fetchMarkets () {
         let response = await this.publicPostGetProductPairs ();
         let markets = response['productPairs'];
-        let result = [];
+        let result = {};
         for (let p = 0; p < markets.length; p++) {
             let market = markets[p];
             let id = market['name'];
             let base = market['product1Label'];
             let quote = market['product2Label'];
+            let precision = {
+                'amount': this.safeInteger (market, 'product1DecimalPlaces'),
+                'price': this.safeInteger (market, 'product2DecimalPlaces'),
+            };
             let symbol = base + '/' + quote;
-            result.push ({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
                 'info': market,
-            });
+            };
         }
         return result;
     }
@@ -95,7 +129,7 @@ module.exports = class flowbtc extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let orderbook = await this.publicPostGetOrderBook (this.extend ({
@@ -111,6 +145,7 @@ module.exports = class flowbtc extends Exchange {
             'productPair': market['id'],
         }, params));
         let timestamp = this.milliseconds ();
+        let last = parseFloat (ticker['last']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -118,12 +153,14 @@ module.exports = class flowbtc extends Exchange {
             'high': parseFloat (ticker['high']),
             'low': parseFloat (ticker['low']),
             'bid': parseFloat (ticker['bid']),
+            'bidVolume': undefined,
             'ask': parseFloat (ticker['ask']),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
@@ -135,7 +172,7 @@ module.exports = class flowbtc extends Exchange {
 
     parseTrade (trade, market) {
         let timestamp = trade['unixtime'] * 1000;
-        let side = (trade['incomingOrderSide'] == 0) ? 'buy' : 'sell';
+        let side = (trade['incomingOrderSide'] === 0) ? 'buy' : 'sell';
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -157,18 +194,22 @@ module.exports = class flowbtc extends Exchange {
             'ins': market['id'],
             'startIndex': -1,
         }, params));
-        return this.parseTrades (response['trades'], market);
+        return this.parseTrades (response['trades'], market, since, limit);
+    }
+
+    priceToPrecision (symbol, price) {
+        return this.decimalToPrecision (price, ROUND, this.markets[symbol]['precision']['price'], this.precisionMode);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let orderType = (type == 'market') ? 1 : 0;
+        let orderType = (type === 'market') ? 1 : 0;
         let order = {
             'ins': this.marketId (symbol),
             'side': side,
             'orderType': orderType,
             'qty': amount,
-            'px': price,
+            'px': this.priceToPrecision (symbol, price),
         };
         let response = await this.privatePostCreateOrder (this.extend (order, params));
         return {
@@ -189,13 +230,12 @@ module.exports = class flowbtc extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (params).length) {
                 body = this.json (params);
             }
         } else {
-            if (!this.uid)
-                throw new AuthenticationError (this.id + ' requires `' + this.id + '.uid` property for authentication');
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             let auth = nonce.toString () + this.uid + this.apiKey;
             let signature = this.hmac (this.encode (auth), this.encode (this.secret));
@@ -218,4 +258,4 @@ module.exports = class flowbtc extends Exchange {
                 return response;
         throw new ExchangeError (this.id + ' ' + this.json (response));
     }
-}
+};

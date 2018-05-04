@@ -1,22 +1,24 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class bxinth extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bxinth',
             'name': 'BX.in.th',
             'countries': 'TH', // Thailand
             'rateLimit': 1500,
-            'hasCORS': false,
-            'hasFetchTickers': true,
+            'has': {
+                'CORS': false,
+                'fetchTickers': true,
+                'fetchOpenOrders': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766412-567b1eb4-5ed7-11e7-94a8-ff6a3884f6c5.jpg',
                 'api': 'https://bx.in.th/api',
@@ -66,6 +68,10 @@ module.exports = class bxinth extends Exchange {
                     'maker': 0.25 / 100,
                 },
             },
+            'commonCurrencies': {
+                'DAS': 'DASH',
+                'DOG': 'DOGE',
+            },
         });
     }
 
@@ -92,15 +98,6 @@ module.exports = class bxinth extends Exchange {
         return result;
     }
 
-    commonCurrencyCode (currency) {
-        // why would they use three letters instead of four for currency codes
-        if (currency == 'DAS')
-            return 'DASH';
-        if (currency == 'DOG')
-            return 'DOGE';
-        return currency;
-    }
-
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostBalance ();
@@ -121,7 +118,7 @@ module.exports = class bxinth extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetOrderbook (this.extend ({
             'pairing': this.marketId (symbol),
@@ -134,6 +131,7 @@ module.exports = class bxinth extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        let last = parseFloat (ticker['last_price']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -141,12 +139,14 @@ module.exports = class bxinth extends Exchange {
             'high': undefined,
             'low': undefined,
             'bid': parseFloat (ticker['orderbook']['bids']['highbid']),
+            'bidVolume': undefined,
             'ask': parseFloat (ticker['orderbook']['asks']['highbid']),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last_price']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': parseFloat (ticker['change']),
             'percentage': undefined,
             'average': undefined,
@@ -194,7 +194,7 @@ module.exports = class bxinth extends Exchange {
             'type': undefined,
             'side': trade['trade_type'],
             'price': parseFloat (trade['rate']),
-            'amount': trade['amount'],
+            'amount': parseFloat (trade['amount']),
         };
     }
 
@@ -204,7 +204,7 @@ module.exports = class bxinth extends Exchange {
         let response = await this.publicGetTrade (this.extend ({
             'pairing': market['id'],
         }, params));
-        return this.parseTrades (response['trades'], market);
+        return this.parseTrades (response['trades'], market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -230,13 +230,54 @@ module.exports = class bxinth extends Exchange {
         });
     }
 
+    async parseOrder (order, market = undefined) {
+        let side = this.safeString (order, 'order_type');
+        let symbol = undefined;
+        if (typeof market === 'undefined') {
+            let marketId = this.safeString (order, 'pairing_id');
+            if (typeof marketId !== 'undefined')
+                if (marketId in this.markets_by_id)
+                    market = this.markets_by_id[marketId];
+        }
+        if (typeof market !== 'undefined')
+            symbol = market['symbol'];
+        let timestamp = this.parse8601 (order['date']);
+        let price = this.safeFloat (order, 'rate');
+        let amount = this.safeFloat (order, 'amount');
+        return {
+            'info': order,
+            'id': order['order_id'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': 'limit',
+            'side': side,
+            'price': price,
+            'amount': amount,
+        };
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let request = {};
+        let market = undefined;
+        if (typeof symbol !== 'undefined') {
+            market = this.market (symbol);
+            request['pairing'] = market['id'];
+        }
+        let response = this.privatePostGetorders (this.extend (request, params));
+        let orders = this.parseOrders (response['orders'], market, since, limit);
+        return this.filterBySymbol (orders, symbol);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/';
         if (path)
             url += path + '/';
         if (Object.keys (params).length)
             url += '?' + this.urlencode (params);
-        if (api == 'private') {
+        if (api === 'private') {
+            this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             let auth = this.apiKey + nonce.toString () + this.secret;
             let signature = this.hash (this.encode (auth), 'sha256');
@@ -255,11 +296,11 @@ module.exports = class bxinth extends Exchange {
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
-        if (api == 'public')
+        if (api === 'public')
             return response;
         if ('success' in response)
             if (response['success'])
                 return response;
         throw new ExchangeError (this.id + ' ' + this.json (response));
     }
-}
+};
