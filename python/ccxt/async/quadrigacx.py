@@ -99,7 +99,7 @@ class quadrigacx (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         orderbook = await self.publicGetOrderBook(self.extend({
             'book': self.market_id(symbol),
         }, params))
@@ -114,6 +114,7 @@ class quadrigacx (Exchange):
         vwap = float(ticker['vwap'])
         baseVolume = float(ticker['volume'])
         quoteVolume = baseVolume * vwap
+        last = float(ticker['last'])
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -121,12 +122,14 @@ class quadrigacx (Exchange):
             'high': float(ticker['high']),
             'low': float(ticker['low']),
             'bid': float(ticker['bid']),
+            'bidVolume': None,
             'ask': float(ticker['ask']),
+            'askVolume': None,
             'vwap': vwap,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
@@ -187,6 +190,7 @@ class quadrigacx (Exchange):
         else:
             address = response
             status = 'ok'
+        self.check_address(address)
         return {
             'currency': currency,
             'address': address,
@@ -205,6 +209,7 @@ class quadrigacx (Exchange):
         return currencies[currency]
 
     async def withdraw(self, currency, amount, address, tag=None, params={}):
+        self.check_address(address)
         await self.load_markets()
         request = {
             'amount': amount,

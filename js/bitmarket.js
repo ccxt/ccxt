@@ -8,7 +8,6 @@ const { ExchangeError } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class bitmarket extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitmarket',
@@ -198,17 +197,11 @@ module.exports = class bitmarket extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let orderbook = await this.publicGetJsonMarketOrderbook (this.extend ({
             'market': this.marketId (symbol),
         }, params));
-        let timestamp = this.milliseconds ();
-        return {
-            'bids': orderbook['bids'],
-            'asks': orderbook['asks'],
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-        };
+        return this.parseOrderBook (orderbook);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -219,6 +212,7 @@ module.exports = class bitmarket extends Exchange {
         let vwap = parseFloat (ticker['vwap']);
         let baseVolume = parseFloat (ticker['volume']);
         let quoteVolume = baseVolume * vwap;
+        let last = parseFloat (ticker['last']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -226,12 +220,14 @@ module.exports = class bitmarket extends Exchange {
             'high': parseFloat (ticker['high']),
             'low': parseFloat (ticker['low']),
             'bid': parseFloat (ticker['bid']),
+            'bidVolume': undefined,
             'ask': parseFloat (ticker['ask']),
+            'askVolume': undefined,
             'vwap': vwap,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
@@ -315,6 +311,7 @@ module.exports = class bitmarket extends Exchange {
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
         await this.loadMarkets ();
         let method = undefined;
         let request = {
@@ -370,4 +367,4 @@ module.exports = class bitmarket extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-}
+};

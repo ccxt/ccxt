@@ -18,6 +18,7 @@ class bxinth (Exchange):
             'has': {
                 'CORS': False,
                 'fetchTickers': True,
+                'fetchOpenOrders': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766412-567b1eb4-5ed7-11e7-94a8-ff6a3884f6c5.jpg',
@@ -68,6 +69,10 @@ class bxinth (Exchange):
                     'maker': 0.25 / 100,
                 },
             },
+            'commonCurrencies': {
+                'DAS': 'DASH',
+                'DOG': 'DOGE',
+            },
         })
 
     async def fetch_markets(self):
@@ -91,14 +96,6 @@ class bxinth (Exchange):
             })
         return result
 
-    def common_currency_code(self, currency):
-        # why would they use three letters instead of four for currency codes
-        if currency == 'DAS':
-            return 'DASH'
-        if currency == 'DOG':
-            return 'DOGE'
-        return currency
-
     async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privatePostBalance()
@@ -117,7 +114,7 @@ class bxinth (Exchange):
             result[code] = account
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         orderbook = await self.publicGetOrderbook(self.extend({
             'pairing': self.market_id(symbol),
@@ -129,6 +126,7 @@ class bxinth (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
+        last = float(ticker['last_price'])
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -136,12 +134,14 @@ class bxinth (Exchange):
             'high': None,
             'low': None,
             'bid': float(ticker['orderbook']['bids']['highbid']),
+            'bidVolume': None,
             'ask': float(ticker['orderbook']['asks']['highbid']),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['last_price']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': float(ticker['change']),
             'percentage': None,
             'average': None,
@@ -216,6 +216,42 @@ class bxinth (Exchange):
             'order_id': id,
             'pairing': pairing,
         })
+
+    async def parse_order(self, order, market=None):
+        side = self.safe_string(order, 'order_type')
+        symbol = None
+        if market is None:
+            marketId = self.safe_string(order, 'pairing_id')
+            if marketId is not None:
+                if marketId in self.markets_by_id:
+                    market = self.markets_by_id[marketId]
+        if market is not None:
+            symbol = market['symbol']
+        timestamp = self.parse8601(order['date'])
+        price = self.safe_float(order, 'rate')
+        amount = self.safe_float(order, 'amount')
+        return {
+            'info': order,
+            'id': order['order_id'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': symbol,
+            'type': 'limit',
+            'side': side,
+            'price': price,
+            'amount': amount,
+        }
+
+    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        request = {}
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['pairing'] = market['id']
+        response = self.privatePostGetorders(self.extend(request, params))
+        orders = self.parse_orders(response['orders'], market, since, limit)
+        return self.filter_by_symbol(orders, symbol)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/'

@@ -5,6 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
+import math
 from ccxt.base.errors import ExchangeError
 
 
@@ -19,6 +20,7 @@ class zaif (Exchange):
             'version': '1',
             'has': {
                 'CORS': False,
+                'createMarketOrder': False,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'withdraw': True,
@@ -34,6 +36,14 @@ class zaif (Exchange):
                     'https://www.npmjs.com/package/zaif.jp',
                     'https://github.com/you21979/node-zaif',
                 ],
+                'fees': 'https://zaif.jp/fee?lang=en',
+            },
+            'fees': {
+                'trading': {
+                    'percentage': True,
+                    'taker': -0.0001,
+                    'maker': -0.0005,
+                },
             },
             'api': {
                 'public': {
@@ -101,11 +111,31 @@ class zaif (Exchange):
             id = market['currency_pair']
             symbol = market['name']
             base, quote = symbol.split('/')
+            precision = {
+                'amount': -math.log10(market['item_unit_step']),
+                'price': market['aux_unit_point'],
+            }
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'active': True,  # can trade or not
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': float(market['item_unit_min']),
+                        'max': None,
+                    },
+                    'price': {
+                        'min': float(market['aux_unit_min']),
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
                 'info': market,
             })
         return result
@@ -132,7 +162,7 @@ class zaif (Exchange):
             result[uppercase] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         orderbook = self.publicGetDepthPair(self.extend({
             'pair': self.market_id(symbol),
@@ -148,6 +178,7 @@ class zaif (Exchange):
         vwap = ticker['vwap']
         baseVolume = ticker['volume']
         quoteVolume = baseVolume * vwap
+        last = ticker['last']
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -155,12 +186,14 @@ class zaif (Exchange):
             'high': ticker['high'],
             'low': ticker['low'],
             'bid': ticker['bid'],
+            'bidVolume': None,
             'ask': ticker['ask'],
+            'askVolume': None,
             'vwap': vwap,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': ticker['last'],
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
@@ -227,6 +260,7 @@ class zaif (Exchange):
             'id': str(order['id']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'status': 'open',
             'symbol': market['symbol'],
             'type': 'limit',
@@ -283,6 +317,7 @@ class zaif (Exchange):
         return self.parse_orders(response['return'], market, since, limit)
 
     def withdraw(self, currency, amount, address, tag=None, params={}):
+        self.check_address(address)
         self.load_markets()
         if currency == 'JPY':
             raise ExchangeError(self.id + ' does not allow ' + currency + ' withdrawals')
@@ -298,6 +333,10 @@ class zaif (Exchange):
             'id': result['return']['txid'],
             'fee': result['return']['fee'],
         }
+
+    def nonce(self):
+        nonce = float(self.milliseconds() / 1000)
+        return '{:.8f}'.format(nonce)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/'

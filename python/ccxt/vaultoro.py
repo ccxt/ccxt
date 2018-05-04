@@ -24,6 +24,9 @@ class vaultoro (Exchange):
                 'www': 'https://www.vaultoro.com',
                 'doc': 'https://api.vaultoro.com',
             },
+            'commonCurrencies': {
+                'GLD': 'Gold',
+            },
             'api': {
                 'public': {
                     'get': [
@@ -59,11 +62,11 @@ class vaultoro (Exchange):
         result = []
         markets = self.publicGetMarkets()
         market = markets['data']
-        base = market['BaseCurrency']
-        quote = market['MarketCurrency']
+        baseId = market['BaseCurrency']
+        quoteId = market['MarketCurrency']
+        base = self.common_currency_code(baseId)
+        quote = self.common_currency_code(quoteId)
         symbol = base + '/' + quote
-        baseId = base
-        quoteId = quote
         id = market['MarketName']
         result.append({
             'id': id,
@@ -83,8 +86,10 @@ class vaultoro (Exchange):
         result = {'info': balances}
         for b in range(0, len(balances)):
             balance = balances[b]
-            currency = balance['currency_code']
-            uppercase = currency.upper()
+            currencyId = balance['currency_code'].upper()
+            code = currencyId
+            if currencyId in self.currencies_by_id[currencyId]:
+                code = self.currencies_by_id[currencyId]['code']
             free = balance['cash']
             used = balance['reserved']
             total = self.sum(free, used)
@@ -93,19 +98,17 @@ class vaultoro (Exchange):
                 'used': used,
                 'total': total,
             }
-            result[uppercase] = account
+            result[code] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         response = self.publicGetOrderbook(params)
         orderbook = {
             'bids': response['data'][0]['b'],
             'asks': response['data'][1]['s'],
         }
-        result = self.parse_order_book(orderbook, None, 'bids', 'asks', 'Gold_Price', 'Gold_Amount')
-        result['bids'] = self.sort_by(result['bids'], 0, True)
-        return result
+        return self.parse_order_book(orderbook, None, 'bids', 'asks', 'Gold_Price', 'Gold_Amount')
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -116,6 +119,7 @@ class vaultoro (Exchange):
         response = self.publicGetMarkets(params)
         ticker = response['data']
         timestamp = self.milliseconds()
+        last = float(ticker['LastPrice'])
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -123,12 +127,14 @@ class vaultoro (Exchange):
             'high': float(ticker['24hHigh']),
             'low': float(ticker['24hLow']),
             'bid': bid[0],
+            'bidVolume': None,
             'ask': ask[0],
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['LastPrice']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,

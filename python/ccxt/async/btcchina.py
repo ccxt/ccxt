@@ -28,7 +28,7 @@ class btcchina (Exchange):
                     'private': 'https://api.btcchina.com/api_trade_v1.php',
                 },
                 'www': 'https://www.btcchina.com',
-                'doc': 'https://www.btcchina.com/apidocs'
+                'doc': 'https://www.btcchina.com/apidocs',
             },
             'api': {
                 'plus': {
@@ -136,19 +136,18 @@ class btcchina (Exchange):
         request[field] = market['id']
         return request
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         method = market['api'] + 'GetOrderbook'
         request = self.create_market_request(market)
         orderbook = await getattr(self, method)(self.extend(request, params))
         timestamp = orderbook['date'] * 1000
-        result = self.parse_order_book(orderbook, timestamp)
-        result['asks'] = self.sort_by(result['asks'], 0)
-        return result
+        return self.parse_order_book(orderbook, timestamp)
 
     def parse_ticker(self, ticker, market):
         timestamp = ticker['date'] * 1000
+        last = float(ticker['last'])
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -158,9 +157,9 @@ class btcchina (Exchange):
             'ask': float(ticker['sell']),
             'vwap': float(ticker['vwap']),
             'open': float(ticker['open']),
-            'close': float(ticker['prev_close']),
-            'first': None,
-            'last': float(ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
@@ -184,8 +183,6 @@ class btcchina (Exchange):
             'ask': float(ticker['AskPrice']),
             'vwap': None,
             'open': float(ticker['Open']),
-            'close': float(ticker['PrevCls']),
-            'first': None,
             'last': float(ticker['Last']),
             'change': None,
             'percentage': None,

@@ -3,12 +3,11 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeNotAvailable, ExchangeError, InsufficientFunds, OrderNotFound, OrderNotCached, InvalidOrder } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, AuthenticationError, DDoSProtection, InsufficientFunds, OrderNotFound, OrderNotCached, InvalidOrder, CancelPending, InvalidNonce } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class poloniex extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'poloniex',
@@ -19,6 +18,8 @@ module.exports = class poloniex extends Exchange {
                 'createDepositAddress': true,
                 'fetchDepositAddress': true,
                 'CORS': false,
+                'editOrder': true,
+                'createMarketOrder': false,
                 'fetchOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOrder': 'emulated',
@@ -120,6 +121,11 @@ module.exports = class poloniex extends Exchange {
                 'amount': 8,
                 'price': 8,
             },
+            'commonCurrencies': {
+                'BTM': 'Bitmark',
+                'STR': 'XLM',
+                'BCC': 'BTCtalkcoin',
+            },
         });
     }
 
@@ -141,22 +147,6 @@ module.exports = class poloniex extends Exchange {
         };
     }
 
-    commonCurrencyCode (currency) {
-        if (currency === 'BTM')
-            return 'Bitmark';
-        if (currency === 'STR')
-            return 'XLM';
-        return currency;
-    }
-
-    currencyId (currency) {
-        if (currency === 'Bitmark')
-            return 'BTM';
-        if (currency === 'XLM')
-            return 'STR';
-        return currency;
-    }
-
     parseOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
         return [
             ohlcv['date'] * 1000,
@@ -164,7 +154,7 @@ module.exports = class poloniex extends Exchange {
             ohlcv['high'],
             ohlcv['low'],
             ohlcv['close'],
-            ohlcv['volume'],
+            ohlcv['quoteVolume'],
         ];
     }
 
@@ -201,7 +191,24 @@ module.exports = class poloniex extends Exchange {
                 'base': base,
                 'quote': quote,
                 'active': true,
-                'lot': this.limits['amount']['min'],
+                'precision': {
+                    'amount': 8,
+                    'price': 8,
+                },
+                'limits': {
+                    'amount': {
+                        'min': 0.00000001,
+                        'max': 1000000000,
+                    },
+                    'price': {
+                        'min': 0.00000001,
+                        'max': 1000000000,
+                    },
+                    'cost': {
+                        'min': 0.00000000,
+                        'max': 1000000000,
+                    },
+                },
                 'info': market,
             }));
         }
@@ -242,13 +249,17 @@ module.exports = class poloniex extends Exchange {
         };
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let orderbook = await this.publicGetReturnOrderBook (this.extend ({
+        let request = {
             'currencyPair': this.marketId (symbol),
-            // 'depth': 100,
-        }, params));
-        return this.parseOrderBook (orderbook);
+        };
+        if (typeof limit !== 'undefined')
+            request['depth'] = limit; // 100
+        let response = await this.publicGetReturnOrderBook (this.extend (request, params));
+        let orderbook = this.parseOrderBook (response);
+        orderbook['nonce'] = this.safeInteger (response, 'sec');
+        return orderbook;
     }
 
     parseTicker (ticker, market = undefined) {
@@ -256,6 +267,16 @@ module.exports = class poloniex extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        let open = undefined;
+        let change = undefined;
+        let average = undefined;
+        let last = parseFloat (ticker['last']);
+        let relativeChange = parseFloat (ticker['percentChange']);
+        if (relativeChange !== -1) {
+            open = last / this.sum (1, relativeChange);
+            change = last - open;
+            average = this.sum (last, open) / 2;
+        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -263,15 +284,17 @@ module.exports = class poloniex extends Exchange {
             'high': parseFloat (ticker['high24hr']),
             'low': parseFloat (ticker['low24hr']),
             'bid': parseFloat (ticker['highestBid']),
+            'bidVolume': undefined,
             'ask': parseFloat (ticker['lowestAsk']),
+            'askVolume': undefined,
             'vwap': undefined,
-            'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last']),
-            'change': parseFloat (ticker['percentChange']),
-            'percentage': undefined,
-            'average': undefined,
+            'open': open,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': change,
+            'percentage': relativeChange * 100,
+            'average': average,
             'baseVolume': parseFloat (ticker['quoteVolume']),
             'quoteVolume': parseFloat (ticker['baseVolume']),
             'info': ticker,
@@ -316,7 +339,7 @@ module.exports = class poloniex extends Exchange {
                 'name': currency['name'],
                 'active': active,
                 'status': status,
-                'fee': currency['txFee'], // todo: redesign
+                'fee': this.safeFloat (currency, 'txFee'), // todo: redesign
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -470,13 +493,16 @@ module.exports = class poloniex extends Exchange {
         if (market)
             symbol = market['symbol'];
         let price = this.safeFloat (order, 'price');
-        let cost = this.safeFloat (order, 'total', 0.0);
         let remaining = this.safeFloat (order, 'amount');
         let amount = this.safeFloat (order, 'startingAmount', remaining);
         let filled = undefined;
+        let cost = 0;
         if (typeof amount !== 'undefined') {
-            if (typeof remaining !== 'undefined')
+            if (typeof remaining !== 'undefined') {
                 filled = amount - remaining;
+                if (typeof price !== 'undefined')
+                    cost = filled * price;
+            }
         }
         if (typeof filled === 'undefined') {
             if (typeof trades !== 'undefined') {
@@ -496,6 +522,7 @@ module.exports = class poloniex extends Exchange {
             'id': order['orderNumber'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
             'status': order['status'],
             'symbol': symbol,
             'type': order['type'],
@@ -558,12 +585,17 @@ module.exports = class poloniex extends Exchange {
             } else {
                 let order = this.orders[id];
                 if (order['status'] === 'open') {
-                    this.orders[id] = this.extend (order, {
+                    order = this.extend (order, {
                         'status': 'closed',
-                        'cost': order['amount'] * order['price'],
+                        'cost': undefined,
                         'filled': order['amount'],
                         'remaining': 0.0,
                     });
+                    if (typeof order['cost'] === 'undefined') {
+                        if (typeof order['filled'] !== 'undefined')
+                            order['cost'] = order['filled'] * order['price'];
+                    }
+                    this.orders[id] = order;
                 }
             }
             let order = this.orders[id];
@@ -586,7 +618,7 @@ module.exports = class poloniex extends Exchange {
             if (orders[i]['id'] === id)
                 return orders[i];
         }
-        throw new OrderNotCached (this.id + ' order id ' + id.toString () + ' not found in cache');
+        throw new OrderNotCached (this.id + ' order id ' + id.toString () + ' is not in "open" state and not found in cache');
     }
 
     filterOrdersByStatus (orders, status) {
@@ -676,15 +708,25 @@ module.exports = class poloniex extends Exchange {
             response = await this.privatePostCancelOrder (this.extend ({
                 'orderNumber': id,
             }, params));
-            if (id in this.orders)
-                this.orders[id]['status'] = 'canceled';
         } catch (e) {
-            if (this.last_http_response) {
-                if (this.last_http_response.indexOf ('Invalid order') >= 0)
-                    throw new OrderNotFound (this.id + ' cancelOrder() error: ' + this.last_http_response);
+            if (e instanceof CancelPending) {
+                // A request to cancel the order has been sent already.
+                // If we then attempt to cancel the order the second time
+                // before the first request is processed the exchange will
+                // throw a CancelPending exception. Poloniex won't show the
+                // order in the list of active (open) orders and the cached
+                // order will be marked as 'closed' (see #1801 for details).
+                // To avoid that we proactively mark the order as 'canceled'
+                // here. If for some reason the order does not get canceled
+                // and still appears in the active list then the order cache
+                // will eventually get back in sync on a call to `fetchOrder`.
+                if (id in this.orders)
+                    this.orders[id]['status'] = 'canceled';
             }
             throw e;
         }
+        if (id in this.orders)
+            this.orders[id]['status'] = 'canceled';
         return response;
     }
 
@@ -703,42 +745,44 @@ module.exports = class poloniex extends Exchange {
         return this.parseTrades (trades);
     }
 
-    async createDepositAddress (currency, params = {}) {
-        let currencyId = this.currencyId (currency);
+    async createDepositAddress (code, params = {}) {
+        let currency = this.currency (code);
         let response = await this.privatePostGenerateNewAddress ({
-            'currency': currencyId,
+            'currency': currency['id'],
         });
         let address = undefined;
         if (response['success'] === 1)
             address = this.safeString (response, 'response');
-        if (!address)
-            throw new ExchangeError (this.id + ' createDepositAddress failed: ' + this.last_http_response);
+        this.checkAddress (address);
         return {
-            'currency': currency,
+            'currency': code,
             'address': address,
             'status': 'ok',
             'info': response,
         };
     }
 
-    async fetchDepositAddress (currency, params = {}) {
+    async fetchDepositAddress (code, params = {}) {
+        let currency = this.currency (code);
         let response = await this.privatePostReturnDepositAddresses ();
-        let currencyId = this.currencyId (currency);
+        let currencyId = currency['id'];
         let address = this.safeString (response, currencyId);
+        this.checkAddress (address);
         let status = address ? 'ok' : 'none';
         return {
-            'currency': currency,
+            'currency': code,
             'address': address,
             'status': status,
             'info': response,
         };
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
         await this.loadMarkets ();
-        let currencyId = this.currencyId (currency);
+        let currency = this.currency (code);
         let request = {
-            'currency': currencyId,
+            'currency': currency['id'],
             'amount': amount,
             'address': address,
         };
@@ -774,32 +818,37 @@ module.exports = class poloniex extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body) {
-        if (code >= 400) {
-            if (body[0] === '{') {
-                let response = JSON.parse (body);
-                if ('error' in response) {
-                    let error = this.id + ' ' + body;
-                    if (response['error'].indexOf ('Total must be at least') >= 0) {
-                        throw new InvalidOrder (error);
-                    } else if (response['error'].indexOf ('Not enough') >= 0) {
-                        throw new InsufficientFunds (error);
-                    } else if (response['error'].indexOf ('Nonce must be greater') >= 0) {
-                        throw new ExchangeNotAvailable (error);
-                    }
-                }
+        let response = undefined;
+        try {
+            response = JSON.parse (body);
+        } catch (e) {
+            // syntax error, resort to default error handler
+            return;
+        }
+        if ('error' in response) {
+            const error = response['error'];
+            const feedback = this.id + ' ' + this.json (response);
+            if (error === 'Invalid order number, or you are not the person who placed the order.') {
+                throw new OrderNotFound (feedback);
+            } else if (error === 'Internal error. Please try again.') {
+                throw new ExchangeNotAvailable (feedback);
+            } else if (error === 'Order not found, or you are not the person who placed it.') {
+                throw new OrderNotFound (feedback);
+            } else if (error === 'Invalid API key/secret pair.') {
+                throw new AuthenticationError (feedback);
+            } else if (error === 'Please do not make more than 8 API calls per second.') {
+                throw new DDoSProtection (feedback);
+            } else if (error.indexOf ('Total must be at least') >= 0) {
+                throw new InvalidOrder (feedback);
+            } else if (error.indexOf ('Not enough') >= 0) {
+                throw new InsufficientFunds (feedback);
+            } else if (error.indexOf ('Nonce must be greater') >= 0) {
+                throw new InvalidNonce (feedback);
+            } else if (error.indexOf ('You have already called cancelOrder or moveOrder on this order.') >= 0) {
+                throw new CancelPending (feedback);
+            } else {
+                throw new ExchangeError (this.id + ': unknown error: ' + this.json (response));
             }
         }
     }
-
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('error' in response) {
-            let error = this.id + ' ' + this.json (response);
-            let failed = response['error'].indexOf ('Not enough') >= 0;
-            if (failed)
-                throw new InsufficientFunds (error);
-            throw new ExchangeError (error);
-        }
-        return response;
-    }
-}
+};

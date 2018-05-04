@@ -8,7 +8,6 @@ const { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, Exch
 //  ---------------------------------------------------------------------------
 
 module.exports = class bitbay extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitbay',
@@ -17,7 +16,7 @@ module.exports = class bitbay extends Exchange {
             'rateLimit': 1000,
             'has': {
                 'CORS': true,
-                'withdraw': true
+                'withdraw': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg',
@@ -89,6 +88,14 @@ module.exports = class bitbay extends Exchange {
                 'GAME/EUR': { 'id': 'GAMEEUR', 'symbol': 'GAME/EUR', 'base': 'GAME', 'quote': 'EUR', 'baseId': 'GAME', 'quoteId': 'EUR' },
                 'GAME/PLN': { 'id': 'GAMEPLN', 'symbol': 'GAME/PLN', 'base': 'GAME', 'quote': 'PLN', 'baseId': 'GAME', 'quoteId': 'PLN' },
                 'GAME/BTC': { 'id': 'GAMEBTC', 'symbol': 'GAME/BTC', 'base': 'GAME', 'quote': 'BTC', 'baseId': 'GAME', 'quoteId': 'BTC' },
+                'XRP/USD': { 'id': 'XRPUSD', 'symbol': 'XRP/USD', 'base': 'XRP', 'quote': 'USD', 'baseId': 'XRP', 'quoteId': 'USD' },
+                'XRP/EUR': { 'id': 'XRPEUR', 'symbol': 'XRP/EUR', 'base': 'XRP', 'quote': 'EUR', 'baseId': 'XRP', 'quoteId': 'EUR' },
+                'XRP/PLN': { 'id': 'XRPPLN', 'symbol': 'XRP/PLN', 'base': 'XRP', 'quote': 'PLN', 'baseId': 'XRP', 'quoteId': 'PLN' },
+                'XRP/BTC': { 'id': 'XRPBTC', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC', 'baseId': 'XRP', 'quoteId': 'BTC' },
+                // 'XIN/USD': { 'id': 'XINUSD', 'symbol': 'XIN/USD', 'base': 'XIN', 'quote': 'USD', 'baseId': 'XIN', 'quoteId': 'USD' },
+                // 'XIN/EUR': { 'id': 'XINEUR', 'symbol': 'XIN/EUR', 'base': 'XIN', 'quote': 'EUR', 'baseId': 'XIN', 'quoteId': 'EUR' },
+                // 'XIN/PLN': { 'id': 'XINPLN', 'symbol': 'XIN/PLN', 'base': 'XIN', 'quote': 'PLN', 'baseId': 'XIN', 'quoteId': 'PLN' },
+                'XIN/BTC': { 'id': 'XINBTC', 'symbol': 'XIN/BTC', 'base': 'XIN', 'quote': 'BTC', 'baseId': 'XIN', 'quoteId': 'BTC' },
             },
             'fees': {
                 'trading': {
@@ -156,7 +163,7 @@ module.exports = class bitbay extends Exchange {
         throw new ExchangeError (this.id + ' empty balance response ' + this.json (response));
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let orderbook = await this.publicGetIdOrderbook (this.extend ({
             'id': this.marketId (symbol),
         }, params));
@@ -171,6 +178,7 @@ module.exports = class bitbay extends Exchange {
         let baseVolume = this.safeFloat (ticker, 'volume');
         let vwap = this.safeFloat (ticker, 'vwap');
         let quoteVolume = baseVolume * vwap;
+        let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -178,12 +186,14 @@ module.exports = class bitbay extends Exchange {
             'high': this.safeFloat (ticker, 'max'),
             'low': this.safeFloat (ticker, 'min'),
             'bid': this.safeFloat (ticker, 'bid'),
+            'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'ask'),
+            'askVolume': undefined,
             'vwap': vwap,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': this.safeFloat (ticker, 'last'),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': this.safeFloat (ticker, 'average'),
@@ -217,6 +227,8 @@ module.exports = class bitbay extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        if (type !== 'limit')
+            throw new ExchangeError (this.id + ' allows limit orders only');
         let market = this.market (symbol);
         return this.privatePostTrade (this.extend ({
             'type': side,
@@ -243,6 +255,7 @@ module.exports = class bitbay extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
         await this.loadMarkets ();
         let method = undefined;
         let currency = this.currency (code);
@@ -257,6 +270,8 @@ module.exports = class bitbay extends Exchange {
             // request['bic'] = '';
         } else {
             method = 'privatePostTransfer';
+            if (typeof tag !== 'undefined')
+                address += '?dt=' + tag.toString ();
             request['address'] = address;
         }
         let response = await this[method] (this.extend (request, params));
@@ -269,7 +284,9 @@ module.exports = class bitbay extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
         if (api === 'public') {
+            let query = this.omit (params, this.extractParams (path));
             url += '/' + this.implodeParams (path, params) + '.json';
+            url += '?' + this.urlencode (query);
         } else {
             this.checkRequiredCredentials ();
             body = this.urlencode (this.extend ({
@@ -301,6 +318,23 @@ module.exports = class bitbay extends Exchange {
                 //      { 'code': 502, 'message': 'Invalid sign' }
                 //      { 'code': 0, 'message': 'offer funds not exceeding minimums' }
                 //
+                //      400 At least one parameter wasn't set
+                //      401 Invalid order type
+                //      402 No orders with specified currencies
+                //      403 Invalid payment currency name
+                //      404 Error. Wrong transaction type
+                //      405 Order with this id doesn't exist
+                //      406 No enough money or crypto
+                //      408 Invalid currency name
+                //      501 Invalid public key
+                //      502 Invalid sign
+                //      503 Invalid moment parameter. Request time doesn't match current server time
+                //      504 Invalid method
+                //      505 Key has no permission for this action
+                //      506 Account locked. Please contact with customer service
+                //      509 The BIC/SWIFT is required for this currency
+                //      510 Invalid market name
+                //
                 let code = response['code']; // always an integer
                 const feedback = this.id + ' ' + this.json (response);
                 const exceptions = this.exceptions;
@@ -312,4 +346,4 @@ module.exports = class bitbay extends Exchange {
             }
         }
     }
-}
+};

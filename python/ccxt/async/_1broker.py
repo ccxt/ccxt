@@ -5,6 +5,7 @@
 
 from ccxt.async.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import NotSupported
 
 
 class _1broker (Exchange):
@@ -23,7 +24,7 @@ class _1broker (Exchange):
                 'fetchOHLCV': True,
             },
             'timeframes': {
-                '1m': '60',
+                '1m': '60',  # not working for some reason, returns {"server_time":"2018-03-26T03:52:27.912Z","error":true,"warning":false,"response":null,"error_code":-1,"error_message":"Error while trying to fetch historical market data. An invalid resolution was probably used."}
                 '15m': '900',
                 '1h': '3600',
                 '1d': '86400',
@@ -129,7 +130,7 @@ class _1broker (Exchange):
         result['BTC']['total'] = total
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         response = await self.privateGetMarketQuotes(self.extend({
             'symbols': self.market_id(symbol),
@@ -145,10 +146,11 @@ class _1broker (Exchange):
             'datetime': self.iso8601(timestamp),
             'bids': [bid],
             'asks': [ask],
+            'nonce': None,
         }
 
     async def fetch_trades(self, symbol):
-        raise ExchangeError(self.id + ' fetchTrades() method not implemented yet')
+        raise NotSupported(self.id + ' fetchTrades() method not implemented yet')
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
@@ -157,24 +159,28 @@ class _1broker (Exchange):
             'resolution': 60,
             'limit': 1,
         }, params))
-        orderbook = await self.fetch_order_book(symbol)
         ticker = result['response'][0]
         timestamp = self.parse8601(ticker['date'])
+        open = float(ticker['o'])
+        close = float(ticker['c'])
+        change = close - open
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': float(ticker['h']),
             'low': float(ticker['l']),
-            'bid': orderbook['bids'][0][0],
-            'ask': orderbook['asks'][0][0],
+            'bid': None,
+            'bidVolume': None,
+            'ask': None,
+            'askVolume': None,
             'vwap': None,
-            'open': float(ticker['o']),
-            'close': float(ticker['c']),
-            'first': None,
-            'last': None,
-            'change': None,
-            'percentage': None,
+            'open': open,
+            'close': close,
+            'last': close,
+            'previousClose': None,
+            'change': change,
+            'percentage': change / open * 100,
             'average': None,
             'baseVolume': None,
             'quoteVolume': None,

@@ -88,23 +88,24 @@ class bl3p (Exchange):
 
     def parse_bid_ask(self, bidask, priceKey=0, amountKey=0):
         return [
-            bidask['price_int'] / 100000.0,
-            bidask['amount_int'] / 100000000.0,
+            bidask[priceKey] / 100000.0,
+            bidask[amountKey] / 100000000.0,
         ]
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         market = self.market(symbol)
         response = self.publicGetMarketOrderbook(self.extend({
             'market': market['id'],
         }, params))
         orderbook = response['data']
-        return self.parse_order_book(orderbook)
+        return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price_int', 'amount_int')
 
     def fetch_ticker(self, symbol, params={}):
         ticker = self.publicGetMarketTicker(self.extend({
             'market': self.market_id(symbol),
         }, params))
         timestamp = ticker['timestamp'] * 1000
+        last = float(ticker['last'])
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -112,12 +113,14 @@ class bl3p (Exchange):
             'high': float(ticker['high']),
             'low': float(ticker['low']),
             'bid': float(ticker['bid']),
+            'bidVolume': None,
             'ask': float(ticker['ask']),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
@@ -178,6 +181,7 @@ class bl3p (Exchange):
             nonce = self.nonce()
             body = self.urlencode(self.extend({'nonce': nonce}, query))
             secret = base64.b64decode(self.secret)
+            # eslint-disable-next-line quotes
             auth = request + "\0" + body
             signature = self.hmac(self.encode(auth), secret, hashlib.sha512, 'base64')
             headers = {

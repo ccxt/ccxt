@@ -1,14 +1,13 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class coinspot extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'coinspot',
@@ -17,6 +16,7 @@ module.exports = class coinspot extends Exchange {
             'rateLimit': 1000,
             'has': {
                 'CORS': false,
+                'createMarketOrder': false,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28208429-3cacdf9a-6896-11e7-854e-4c79a772a30f.jpg',
@@ -72,7 +72,7 @@ module.exports = class coinspot extends Exchange {
                     'used': 0.0,
                     'total': balances[currency],
                 };
-                if (uppercase == 'DRK')
+                if (uppercase === 'DRK')
                     uppercase = 'DASH';
                 result[uppercase] = account;
             }
@@ -80,15 +80,12 @@ module.exports = class coinspot extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let market = this.market (symbol);
         let orderbook = await this.privatePostOrders (this.extend ({
             'cointype': market['id'],
         }, params));
-        let result = this.parseOrderBook (orderbook, undefined, 'buyorders', 'sellorders', 'rate', 'amount');
-        result['bids'] = this.sortBy (result['bids'], 0, true);
-        result['asks'] = this.sortBy (result['asks'], 0);
-        return result;
+        return this.parseOrderBook (orderbook, undefined, 'buyorders', 'sellorders', 'rate', 'amount');
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -97,6 +94,7 @@ module.exports = class coinspot extends Exchange {
         id = id.toLowerCase ();
         let ticker = response['prices'][id];
         let timestamp = this.milliseconds ();
+        let last = parseFloat (ticker['last']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -104,12 +102,14 @@ module.exports = class coinspot extends Exchange {
             'high': undefined,
             'low': undefined,
             'bid': parseFloat (ticker['bid']),
+            'bidVolume': undefined,
             'ask': parseFloat (ticker['ask']),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
@@ -125,12 +125,12 @@ module.exports = class coinspot extends Exchange {
         }, params));
     }
 
-    createOrder (market, type, side, amount, price = undefined, params = {}) {
+    createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         let method = 'privatePostMy' + this.capitalize (side);
-        if (type == 'market')
+        if (type === 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
         let order = {
-            'cointype': this.marketId (market),
+            'cointype': this.marketId (symbol),
             'amount': amount,
             'rate': price,
         };
@@ -138,16 +138,16 @@ module.exports = class coinspot extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        throw new ExchangeError (this.id + ' cancelOrder () is not fully implemented yet');
-        let method = 'privatePostMyBuy';
-        return await this[method] ({ 'id': id });
+        throw new NotSupported (this.id + ' cancelOrder () is not fully implemented yet');
+        // let method = 'privatePostMyBuy';
+        // return await this[method] ({ 'id': id });
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         if (!this.apiKey)
             throw new AuthenticationError (this.id + ' requires apiKey for all requests');
         let url = this.urls['api'][api] + '/' + path;
-        if (api == 'private') {
+        if (api === 'private') {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             body = this.json (this.extend ({ 'nonce': nonce }, params));
@@ -159,4 +159,4 @@ module.exports = class coinspot extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-}
+};

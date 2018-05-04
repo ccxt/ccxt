@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -8,7 +8,6 @@ const { ExchangeError, InvalidOrder, AuthenticationError } = require ('./base/er
 //  ---------------------------------------------------------------------------
 
 module.exports = class braziliex extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'braziliex',
@@ -16,10 +15,11 @@ module.exports = class braziliex extends Exchange {
             'countries': 'BR',
             'rateLimit': 1000,
             'has': {
-                'fetchDepositAddress': true,
+                'fetchCurrencies': true,
                 'fetchTickers': true,
                 'fetchOpenOrders': true,
                 'fetchMyTrades': true,
+                'fetchDepositAddress': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/34703593-c4498674-f504-11e7-8d14-ff8e44fb78c1.jpg',
@@ -71,17 +71,18 @@ module.exports = class braziliex extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
             let currency = currencies[id];
-            let precision = currency['decimal'];
+            let precision = this.safeInteger (currency, 'decimal');
             let uppercase = id.toUpperCase ();
             let code = this.commonCurrencyCode (uppercase);
-            let active = currency['active'] == 1;
+            let active = this.safeInteger (currency, 'active') === 1;
             let status = 'ok';
-            if (currency['under_maintenance'] != 0) {
+            let maintenance = this.safeInteger (currency, 'under_maintenance');
+            if (maintenance !== 0) {
                 active = false;
                 status = 'maintenance';
             }
-            let canWithdraw = currency['is_withdrawal_active'] == 1;
-            let canDeposit = currency['is_deposit_active'] == 1;
+            let canWithdraw = this.safeInteger (currency, 'is_withdrawal_active') === 1;
+            let canDeposit = this.safeInteger (currency, 'is_deposit_active') === 1;
             if (!canWithdraw || !canDeposit)
                 active = false;
             result[code] = {
@@ -91,9 +92,7 @@ module.exports = class braziliex extends Exchange {
                 'active': active,
                 'status': status,
                 'precision': precision,
-                'wallet': {
-                    'address': undefined,
-                    'extra': undefined,
+                'funding': {
                     'withdraw': {
                         'active': canWithdraw,
                         'fee': currency['txWithdrawalFee'],
@@ -144,7 +143,7 @@ module.exports = class braziliex extends Exchange {
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
-            let active = market['active'] == 1;
+            let active = this.safeInteger (market, 'active') === 1;
             let precision = {
                 'amount': 8,
                 'price': 8,
@@ -184,24 +183,27 @@ module.exports = class braziliex extends Exchange {
         let symbol = market['symbol'];
         let timestamp = ticker['date'];
         ticker = ticker['ticker'];
+        let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['highestBid24']),
-            'low': parseFloat (ticker['lowestAsk24']),
-            'bid': parseFloat (ticker['highestBid']),
-            'ask': parseFloat (ticker['lowestAsk']),
+            'high': this.safeFloat (ticker, 'highestBid24'),
+            'low': this.safeFloat (ticker, 'lowestAsk24'),
+            'bid': this.safeFloat (ticker, 'highestBid'),
+            'bidVolume': undefined,
+            'ask': this.safeFloat (ticker, 'lowestAsk'),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last']),
-            'change': parseFloat (ticker['percentChange']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': this.safeFloat (ticker, 'percentChange'),
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': parseFloat (ticker['baseVolume24']),
-            'quoteVolume': parseFloat (ticker['quoteVolume24']),
+            'baseVolume': this.safeFloat (ticker, 'baseVolume24'),
+            'quoteVolume': this.safeFloat (ticker, 'quoteVolume24'),
             'info': ticker,
         };
     }
@@ -238,7 +240,7 @@ module.exports = class braziliex extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetOrderbookMarket (this.extend ({
             'market': this.marketId (symbol),
@@ -329,6 +331,7 @@ module.exports = class braziliex extends Exchange {
             'id': order['order_number'],
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
+            'lastTradeTimestamp': undefined,
             'status': 'open',
             'symbol': symbol,
             'type': 'limit',
@@ -356,7 +359,7 @@ module.exports = class braziliex extends Exchange {
             'amount': amount,
         }, params));
         let success = this.safeInteger (response, 'success');
-        if (success != 1)
+        if (success !== 1)
             throw new InvalidOrder (this.id + ' ' + this.json (response));
         let parts = response['message'].split (' / ');
         parts = parts.slice (1);
@@ -409,18 +412,17 @@ module.exports = class braziliex extends Exchange {
         return this.parseTrades (trades['trade_history'], market, since, limit);
     }
 
-    async fetchDepositAddress (currencyCode, params = {}) {
+    async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        let currency = this.currency (currencyCode);
+        let currency = this.currency (code);
         let response = await this.privatePostDepositAddress (this.extend ({
             'currency': currency['id'],
         }, params));
         let address = this.safeString (response, 'deposit_address');
-        if (!address)
-            throw new ExchangeError (this.id + ' fetchDepositAddress failed: ' + this.last_http_response);
+        this.checkAddress (address);
         let tag = this.safeString (response, 'payment_id');
         return {
-            'currency': currencyCode,
+            'currency': code,
             'address': address,
             'tag': tag,
             'status': 'ok',
@@ -431,7 +433,7 @@ module.exports = class braziliex extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + api;
         let query = this.omit (params, this.extractParams (path));
-        if (api == 'public') {
+        if (api === 'public') {
             url += '/' + this.implodeParams (path, params);
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
@@ -456,13 +458,13 @@ module.exports = class braziliex extends Exchange {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         if ('success' in response) {
             let success = this.safeInteger (response, 'success');
-            if (success == 0) {
+            if (success === 0) {
                 let message = this.safeString (response, 'message');
-                if (message == 'Invalid APIKey')
+                if (message === 'Invalid APIKey')
                     throw new AuthenticationError (message);
                 throw new ExchangeError (message);
             }
         }
         return response;
     }
-}
+};

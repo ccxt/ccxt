@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -8,7 +8,6 @@ const { ExchangeError } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class btctradeua extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'btctradeua',
@@ -17,6 +16,8 @@ module.exports = class btctradeua extends Exchange {
             'rateLimit': 3000,
             'has': {
                 'CORS': true,
+                'createMarketOrder': false,
+                'fetchOpenOrders': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27941483-79fc7350-62d9-11e7-9f61-ac47f28fcd96.jpg',
@@ -106,7 +107,7 @@ module.exports = class btctradeua extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let market = this.market (symbol);
         let bids = await this.publicGetTradesBuySymbol (this.extend ({
             'symbol': market['id'],
@@ -133,15 +134,6 @@ module.exports = class btctradeua extends Exchange {
         let response = await this.publicGetJapanStatHighSymbol (this.extend ({
             'symbol': this.marketId (symbol),
         }, params));
-        let orderbook = await this.fetchOrderBook (symbol);
-        let bid = undefined;
-        let numBids = orderbook['bids'].length;
-        if (numBids > 0)
-            bid = orderbook['bids'][0][0];
-        let ask = undefined;
-        let numAsks = orderbook['asks'].length;
-        if (numAsks > 0)
-            ask = orderbook['asks'][0][0];
         let ticker = response['trades'];
         let timestamp = this.milliseconds ();
         let result = {
@@ -150,13 +142,15 @@ module.exports = class btctradeua extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
             'low': undefined,
-            'bid': bid,
-            'ask': ask,
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
             'close': undefined,
-            'first': undefined,
             'last': undefined,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
@@ -169,19 +163,20 @@ module.exports = class btctradeua extends Exchange {
             let start = Math.max (tickerLength - 48, 0);
             for (let t = start; t < ticker.length; t++) {
                 let candle = ticker[t];
-                if (typeof result['open'] == 'undefined')
+                if (typeof result['open'] === 'undefined')
                     result['open'] = candle[1];
-                if ((typeof result['high'] == 'undefined') || (result['high'] < candle[2]))
+                if ((typeof result['high'] === 'undefined') || (result['high'] < candle[2]))
                     result['high'] = candle[2];
-                if ((typeof result['low'] == 'undefined') || (result['low'] > candle[3]))
+                if ((typeof result['low'] === 'undefined') || (result['low'] > candle[3]))
                     result['low'] = candle[3];
-                if (typeof result['baseVolume'] == 'undefined')
+                if (typeof result['baseVolume'] === 'undefined')
                     result['baseVolume'] = -candle[5];
                 else
                     result['baseVolume'] -= candle[5];
             }
             let last = tickerLength - 1;
-            result['close'] = ticker[last][4];
+            result['last'] = ticker[last][4];
+            result['close'] = result['last'];
             result['baseVolume'] = -1 * result['baseVolume'];
         }
         return result;
@@ -217,10 +212,10 @@ module.exports = class btctradeua extends Exchange {
         let year = parts[2];
         let hms = parts[4];
         let hmsLength = hms.length;
-        if (hmsLength == 7) {
+        if (hmsLength === 7) {
             hms = '0' + hms;
         }
-        if (day.length == 1) {
+        if (day.length === 1) {
             day = '0' + day;
         }
         let ymd = [ year, month, day ].join ('-');
@@ -269,7 +264,7 @@ module.exports = class btctradeua extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (type == 'market')
+        if (type === 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
         let market = this.market (symbol);
         let method = 'privatePost' + this.capitalize (side) + 'Id';
@@ -292,6 +287,7 @@ module.exports = class btctradeua extends Exchange {
             'id': trade['id'],
             'timestamp': timestamp, // until they fix their timestamp
             'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
             'status': 'open',
             'symbol': market['symbol'],
             'type': undefined,
@@ -306,8 +302,8 @@ module.exports = class btctradeua extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (!symbol)
-            throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol param');
+        if (typeof symbol === 'undefined')
+            throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol argument');
         let market = this.market (symbol);
         let response = await this.privatePostMyOrdersSymbol (this.extend ({
             'symbol': market['id'],
@@ -323,7 +319,7 @@ module.exports = class btctradeua extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (query).length)
                 url += this.implodeParams (path, query);
         } else {
@@ -342,4 +338,4 @@ module.exports = class btctradeua extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-}
+};

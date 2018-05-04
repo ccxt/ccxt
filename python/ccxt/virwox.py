@@ -83,7 +83,7 @@ class virwox (Exchange):
         })
 
     def fetch_markets(self):
-        markets = self.publicGetInstruments()
+        markets = self.publicGetGetInstruments()
         keys = list(markets['result'].keys())
         result = []
         for p in range(0, len(keys)):
@@ -129,13 +129,15 @@ class virwox (Exchange):
             'ask': self.safe_float(result[0], 'bestSellPrice'),
         }
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
-        response = self.publicPostGetMarketDepth(self.extend({
+        request = {
             'symbols': [symbol],
-            'buyDepth': 100,
-            'sellDepth': 100,
-        }, params))
+        }
+        if limit is not None:
+            request['buyDepth'] = limit  # 100
+            request['sellDepth'] = limit  # 100
+        response = self.publicPostGetMarketDepth(self.extend(request, params))
         orderbook = response['result'][0]
         return self.parse_order_book(orderbook, None, 'buy', 'sell', 'price', 'volume')
 
@@ -143,32 +145,34 @@ class virwox (Exchange):
         self.load_markets()
         end = self.milliseconds()
         start = end - 86400000
-        response = self.publicGetTradedPriceVolume(self.extend({
+        response = self.publicGetGetTradedPriceVolume(self.extend({
             'instrument': symbol,
-            'endDate': self.YmdHMS(end),
-            'startDate': self.YmdHMS(start),
+            'endDate': self.ymdhms(end),
+            'startDate': self.ymdhms(start),
             'HLOC': 1,
         }, params))
-        marketPrice = self.fetch_market_price(symbol, params)
         tickers = response['result']['priceVolumeList']
         keys = list(tickers.keys())
         length = len(keys)
         lastKey = keys[length - 1]
         ticker = tickers[lastKey]
         timestamp = self.milliseconds()
+        close = float(ticker['close'])
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': float(ticker['high']),
             'low': float(ticker['low']),
-            'bid': marketPrice['bid'],
-            'ask': marketPrice['ask'],
+            'bid': None,
+            'bidVolume': None,
+            'ask': None,
+            'askVolume': None,
             'vwap': None,
             'open': float(ticker['open']),
-            'close': float(ticker['close']),
-            'first': None,
-            'last': None,
+            'close': close,
+            'last': close,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
@@ -196,18 +200,20 @@ class virwox (Exchange):
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
-        response = self.publicGetRawTradeData(self.extend({
+        market = self.market(symbol)
+        response = self.publicGetGetRawTradeData(self.extend({
             'instrument': symbol,
             'timespan': 3600,
         }, params))
         result = response['result']
         trades = result['data']
-        return self.parse_trades(trades, symbol)
+        return self.parse_trades(trades, market)
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
+        market = self.market(symbol)
         order = {
-            'instrument': self.symbol(market),
+            'instrument': market['symbol'],
             'orderType': side.upper(),
             'amount': amount,
         }
@@ -216,7 +222,7 @@ class virwox (Exchange):
         response = self.privatePostPlaceOrder(self.extend(order, params))
         return {
             'info': response,
-            'id': str(response['orderID']),
+            'id': str(response['result']['orderID']),
         }
 
     def cancel_order(self, id, symbol=None, params={}):

@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 // ---------------------------------------------------------------------------
 
@@ -7,7 +7,6 @@ const Exchange = require ('./base/Exchange');
 // ---------------------------------------------------------------------------
 
 module.exports = class bl3p extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bl3p',
@@ -95,18 +94,18 @@ module.exports = class bl3p extends Exchange {
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 0) {
         return [
-            bidask['price_int'] / 100000.0,
-            bidask['amount_int'] / 100000000.0,
+            bidask[priceKey] / 100000.0,
+            bidask[amountKey] / 100000000.0,
         ];
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let market = this.market (symbol);
         let response = await this.publicGetMarketOrderbook (this.extend ({
             'market': market['id'],
         }, params));
         let orderbook = response['data'];
-        return this.parseOrderBook (orderbook);
+        return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price_int', 'amount_int');
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -114,6 +113,7 @@ module.exports = class bl3p extends Exchange {
             'market': this.marketId (symbol),
         }, params));
         let timestamp = ticker['timestamp'] * 1000;
+        let last = parseFloat (ticker['last']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -121,12 +121,14 @@ module.exports = class bl3p extends Exchange {
             'high': parseFloat (ticker['high']),
             'low': parseFloat (ticker['low']),
             'bid': parseFloat (ticker['bid']),
+            'bidVolume': undefined,
             'ask': parseFloat (ticker['ask']),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
@@ -165,9 +167,9 @@ module.exports = class bl3p extends Exchange {
             'market': market['id'],
             'amount_int': parseInt (amount * 100000000),
             'fee_currency': market['quote'],
-            'type': (side == 'buy') ? 'bid' : 'ask',
+            'type': (side === 'buy') ? 'bid' : 'ask',
         };
-        if (type == 'limit')
+        if (type === 'limit')
             order['price_int'] = parseInt (price * 100000.0);
         let response = await this.privatePostMarketMoneyOrderAdd (this.extend (order, params));
         return {
@@ -184,7 +186,7 @@ module.exports = class bl3p extends Exchange {
         let request = this.implodeParams (path, params);
         let url = this.urls['api'] + '/' + this.version + '/' + request;
         let query = this.omit (params, this.extractParams (path));
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
@@ -192,6 +194,7 @@ module.exports = class bl3p extends Exchange {
             let nonce = this.nonce ();
             body = this.urlencode (this.extend ({ 'nonce': nonce }, query));
             let secret = this.base64ToBinary (this.secret);
+            // eslint-disable-next-line quotes
             let auth = request + "\0" + body;
             let signature = this.hmac (this.encode (auth), secret, 'sha512', 'base64');
             headers = {
@@ -202,4 +205,4 @@ module.exports = class bl3p extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-}
+};

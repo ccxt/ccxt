@@ -5,6 +5,7 @@
 
 from ccxt.async.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
+from ccxt.base.decimal_to_precision import ROUND
 
 
 class flowbtc (Exchange):
@@ -21,7 +22,7 @@ class flowbtc (Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28162465-cd815d4c-67cf-11e7-8e57-438bea0523a2.jpg',
-                'api': 'https://api.flowbtc.com:8400/ajax',
+                'api': 'https://api.flowbtc.com:8405/ajax',
                 'www': 'https://trader.flowbtc.com',
                 'doc': 'http://www.flowbtc.com.br/api/',
             },
@@ -59,25 +60,52 @@ class flowbtc (Exchange):
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'tierBased': False,
+                    'percentage': True,
+                    'maker': 0.0035,
+                    'taker': 0.0035,
+                },
+            },
         })
 
     async def fetch_markets(self):
         response = await self.publicPostGetProductPairs()
         markets = response['productPairs']
-        result = []
+        result = {}
         for p in range(0, len(markets)):
             market = markets[p]
             id = market['name']
             base = market['product1Label']
             quote = market['product2Label']
+            precision = {
+                'amount': self.safe_integer(market, 'product1DecimalPlaces'),
+                'price': self.safe_integer(market, 'product2DecimalPlaces'),
+            }
             symbol = base + '/' + quote
-            result.append({
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
                 'info': market,
-            })
+            }
         return result
 
     async def fetch_balance(self, params={}):
@@ -97,7 +125,7 @@ class flowbtc (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         orderbook = await self.publicPostGetOrderBook(self.extend({
@@ -112,6 +140,7 @@ class flowbtc (Exchange):
             'productPair': market['id'],
         }, params))
         timestamp = self.milliseconds()
+        last = float(ticker['last'])
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -119,12 +148,14 @@ class flowbtc (Exchange):
             'high': float(ticker['high']),
             'low': float(ticker['low']),
             'bid': float(ticker['bid']),
+            'bidVolume': None,
             'ask': float(ticker['ask']),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
@@ -158,6 +189,9 @@ class flowbtc (Exchange):
         }, params))
         return self.parse_trades(response['trades'], market, since, limit)
 
+    def price_to_precision(self, symbol, price):
+        return self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
+
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         orderType = 1 if (type == 'market') else 0
@@ -166,7 +200,7 @@ class flowbtc (Exchange):
             'side': side,
             'orderType': orderType,
             'qty': amount,
-            'px': price,
+            'px': self.price_to_precision(symbol, price),
         }
         response = await self.privatePostCreateOrder(self.extend(order, params))
         return {

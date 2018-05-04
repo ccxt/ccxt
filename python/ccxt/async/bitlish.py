@@ -22,6 +22,9 @@ class bitlish (Exchange):
                 'fetchOHLCV': True,
                 'withdraw': True,
             },
+            'timeframes': {
+                '1h': 3600,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766275-dcfc6c30-5ed3-11e7-839d-00a846385d0b.jpg',
                 'api': 'https://bitlish.com/api',
@@ -113,22 +116,11 @@ class bitlish (Exchange):
                     ],
                 },
             },
+            'commonCurrencies': {
+                'DSH': 'DASH',
+                'XDG': 'DOGE',
+            },
         })
-
-    def common_currency_code(self, currency):
-        if not self.substituteCommonCurrencyCodes:
-            return currency
-        if currency == 'XBT':
-            return 'BTC'
-        if currency == 'BCC':
-            return 'BCH'
-        if currency == 'DRK':
-            return 'DASH'
-        if currency == 'DSH':
-            currency = 'DASH'
-        if currency == 'XDG':
-            currency = 'DOGE'
-        return currency
 
     async def fetch_markets(self):
         markets = await self.publicGetPairs()
@@ -156,21 +148,24 @@ class bitlish (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
+        last = self.safe_float(ticker, 'last')
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
             'high': self.safe_float(ticker, 'max'),
             'low': self.safe_float(ticker, 'min'),
-            'bid': None,
-            'ask': None,
+            'bid': self.safe_float(ticker, 'bid'),
+            'bidVolume': None,
+            'ask': self.safe_float(ticker, 'ask'),
+            'askVolume': None,
             'vwap': None,
-            'open': None,
-            'close': None,
-            'first': self.safe_float(ticker, 'first'),
-            'last': self.safe_float(ticker, 'last'),
+            'open': self.safe_float(ticker, 'first'),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
-            'percentage': self.safe_float(ticker, 'prc'),
+            'percentage': self.safe_float(ticker, 'prc') * 100,
             'average': None,
             'baseVolume': self.safe_float(ticker, 'sum'),
             'quoteVolume': None,
@@ -197,17 +192,19 @@ class bitlish (Exchange):
         ticker = tickers[market['id']]
         return self.parse_ticker(ticker, market)
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol, timeframe='1h', since=None, limit=None, params={}):
         await self.load_markets()
         # market = self.market(symbol)
         now = self.seconds()
         start = now - 86400 * 30  # last 30 days
+        if since is not None:
+            start = int(since / 1000)
         interval = [str(start), None]
         return await self.publicPostOhlcv(self.extend({
             'time_range': interval,
         }, params))
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         orderbook = await self.publicGetTradesDepth(self.extend({
             'pair_id': self.market_id(symbol),
@@ -298,6 +295,7 @@ class bitlish (Exchange):
         return await self.privatePostCancelTrade({'id': id})
 
     async def withdraw(self, currency, amount, address, tag=None, params={}):
+        self.check_address(address)
         await self.load_markets()
         if currency != 'BTC':
             # they did not document other types...

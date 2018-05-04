@@ -87,7 +87,7 @@ class coinmate (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         response = await self.publicGetOrderBook(self.extend({
             'currencyPair': self.market_id(symbol),
             'groupByPriceLimit': 'False',
@@ -102,6 +102,7 @@ class coinmate (Exchange):
         }, params))
         ticker = response['data']
         timestamp = ticker['timestamp'] * 1000
+        last = float(ticker['last'])
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -109,12 +110,14 @@ class coinmate (Exchange):
             'high': float(ticker['high']),
             'low': float(ticker['low']),
             'bid': float(ticker['bid']),
+            'bidVolume': None,
             'ask': float(ticker['ask']),
             'vwap': None,
+            'askVolume': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,

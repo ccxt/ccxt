@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 // ---------------------------------------------------------------------------
 
@@ -7,7 +7,6 @@ const foxbit = require ('./foxbit.js');
 // ---------------------------------------------------------------------------
 
 module.exports = class surbitcoin extends foxbit {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'surbitcoin',
@@ -25,6 +24,9 @@ module.exports = class surbitcoin extends foxbit {
                 'www': 'https://surbitcoin.com',
                 'doc': 'https://blinktrade.com/docs',
             },
+            'options': {
+                'brokerId': '1', // https://blinktrade.com/docs/#brokers
+            },
         });
     }
-}
+};

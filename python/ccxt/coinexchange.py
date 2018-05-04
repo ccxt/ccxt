@@ -19,7 +19,13 @@ class coinexchange (Exchange):
             # new metainfo interface
             'has': {
                 'privateAPI': False,
+                'createOrder': False,
+                'createMarketOrder': False,
+                'createLimitOrder': False,
+                'cancelOrder': False,
+                'editOrder': False,
                 'fetchTrades': False,
+                'fetchOHLCV': False,
                 'fetchCurrencies': True,
                 'fetchTickers': True,
             },
@@ -533,15 +539,21 @@ class coinexchange (Exchange):
                 'amount': 8,
                 'price': 8,
             },
+            'commonCurrencies': {
+                'BON': 'BonPeKaO',
+                'ETN': 'Ethernex',
+                'GDC': 'GoldenCryptoCoin',
+                'GTC': 'GlobalTourCoin',
+                'HNC': 'Huncoin',
+                'MARS': 'MarsBux',
+                'MER': 'TheMermaidCoin',
+                'RUB': 'RubbleCoin',
+                'UP': 'UpscaleToken',
+            },
         })
 
-    def common_currency_code(self, currency):
-        if currency == 'HNC':
-            return 'Huncoin'
-        return currency
-
     def fetch_currencies(self, params={}):
-        response = self.publicGetCurrencies(params)
+        response = self.publicGetGetcurrencies(params)
         currencies = response['result']
         precision = self.precision['amount']
         result = {}
@@ -583,7 +595,7 @@ class coinexchange (Exchange):
         return result
 
     def fetch_markets(self):
-        response = self.publicGetMarkets()
+        response = self.publicGetGetmarkets()
         markets = response['result']
         result = []
         for i in range(0, len(markets)):
@@ -610,12 +622,13 @@ class coinexchange (Exchange):
         if not market:
             marketId = ticker['MarketID']
             if marketId in self.markets_by_id:
-                market = self.marketsById[marketId]
+                market = self.markets_by_id[marketId]
             else:
                 symbol = marketId
         if market:
             symbol = market['symbol']
         timestamp = self.milliseconds()
+        last = self.safe_float(ticker, 'LastPrice')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -623,12 +636,14 @@ class coinexchange (Exchange):
             'high': self.safe_float(ticker, 'HighPrice'),
             'low': self.safe_float(ticker, 'LowPrice'),
             'bid': self.safe_float(ticker, 'BidPrice'),
+            'bidVolume': None,
             'ask': self.safe_float(ticker, 'AskPrice'),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': self.safe_float(ticker, 'LastPrice'),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': self.safe_float(ticker, 'Change'),
             'percentage': None,
             'average': None,
@@ -640,14 +655,14 @@ class coinexchange (Exchange):
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
-        ticker = self.publicGetMarketsummary(self.extend({
+        ticker = self.publicGetGetmarketsummary(self.extend({
             'market_id': market['id'],
         }, params))
         return self.parse_ticker(ticker['result'], market)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        response = self.publicGetMarketsummaries(params)
+        response = self.publicGetGetmarketsummaries(params)
         tickers = response['result']
         result = {}
         for i in range(0, len(tickers)):
@@ -656,9 +671,9 @@ class coinexchange (Exchange):
             result[symbol] = ticker
         return result
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
-        orderbook = self.publicGetOrderbook(self.extend({
+        orderbook = self.publicGetGetorderbook(self.extend({
             'market_id': self.market_id(symbol),
         }, params))
         return self.parse_order_book(orderbook['result'], None, 'BuyOrders', 'SellOrders', 'Price', 'Quantity')

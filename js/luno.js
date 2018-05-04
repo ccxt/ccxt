@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -8,7 +8,6 @@ const { ExchangeError } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class luno extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'luno',
@@ -120,7 +119,7 @@ module.exports = class luno extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetOrderbook (this.extend ({
             'pair': this.marketId (symbol),
@@ -131,8 +130,8 @@ module.exports = class luno extends Exchange {
 
     parseOrder (order, market = undefined) {
         let timestamp = order['creation_timestamp'];
-        let status = (order['state'] == 'PENDING') ? 'open' : 'closed';
-        let side = (order['type'] == 'ASK') ? 'sell' : 'buy';
+        let status = (order['state'] === 'PENDING') ? 'open' : 'closed';
+        let side = (order['type'] === 'ASK') ? 'sell' : 'buy';
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
@@ -152,6 +151,7 @@ module.exports = class luno extends Exchange {
             'id': order['order_id'],
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
+            'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
             'type': undefined,
@@ -179,6 +179,7 @@ module.exports = class luno extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        let last = parseFloat (ticker['last_trade']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -186,12 +187,14 @@ module.exports = class luno extends Exchange {
             'high': undefined,
             'low': undefined,
             'bid': parseFloat (ticker['bid']),
+            'bidVolume': undefined,
             'ask': parseFloat (ticker['ask']),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last_trade']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
@@ -245,28 +248,31 @@ module.exports = class luno extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetTrades (this.extend ({
+        let request = {
             'pair': market['id'],
-        }, params));
+        };
+        if (typeof since !== 'undefined')
+            request['since'] = since;
+        let response = await this.publicGetTrades (this.extend (request, params));
         return this.parseTrades (response['trades'], market, since, limit);
     }
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let method = 'privatePost';
-        let order = { 'pair': this.marketId (market) };
-        if (type == 'market') {
+        let order = { 'pair': this.marketId (symbol) };
+        if (type === 'market') {
             method += 'Marketorder';
             order['type'] = side.toUpperCase ();
-            if (side == 'buy')
+            if (side === 'buy')
                 order['counter_volume'] = amount;
             else
                 order['base_volume'] = amount;
         } else {
-            method += 'Order';
+            method += 'Postorder';
             order['volume'] = amount;
             order['price'] = price;
-            if (side == 'buy')
+            if (side === 'buy')
                 order['type'] = 'BID';
             else
                 order['type'] = 'ASK';
@@ -288,7 +294,7 @@ module.exports = class luno extends Exchange {
         let query = this.omit (params, this.extractParams (path));
         if (Object.keys (query).length)
             url += '?' + this.urlencode (query);
-        if (api == 'private') {
+        if (api === 'private') {
             this.checkRequiredCredentials ();
             let auth = this.encode (this.apiKey + ':' + this.secret);
             auth = this.stringToBase64 (auth);
@@ -303,4 +309,4 @@ module.exports = class luno extends Exchange {
             throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
     }
-}
+};

@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -8,7 +8,6 @@ const { ExchangeError } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class paymium extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'paymium',
@@ -94,13 +93,11 @@ module.exports = class paymium extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let orderbook = await this.publicGetDataIdDepth (this.extend ({
             'id': this.marketId (symbol),
         }, params));
-        let result = this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'amount');
-        result['bids'] = this.sortBy (result['bids'], 0, true);
-        return result;
+        return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'amount');
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -111,6 +108,7 @@ module.exports = class paymium extends Exchange {
         let vwap = parseFloat (ticker['vwap']);
         let baseVolume = parseFloat (ticker['volume']);
         let quoteVolume = baseVolume * vwap;
+        let last = this.safeFloat (ticker, 'price');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -118,12 +116,14 @@ module.exports = class paymium extends Exchange {
             'high': this.safeFloat (ticker, 'high'),
             'low': this.safeFloat (ticker, 'low'),
             'bid': this.safeFloat (ticker, 'bid'),
+            'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'ask'),
+            'askVolume': undefined,
             'vwap': vwap,
             'open': this.safeFloat (ticker, 'open'),
-            'close': undefined,
-            'first': undefined,
-            'last': this.safeFloat (ticker, 'price'),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': this.safeFloat (ticker, 'variation'),
             'average': undefined,
@@ -158,14 +158,14 @@ module.exports = class paymium extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         let order = {
             'type': this.capitalize (type) + 'Order',
-            'currency': this.marketId (market),
+            'currency': this.marketId (symbol),
             'direction': side,
             'amount': amount,
         };
-        if (type == 'market')
+        if (type === 'market')
             order['price'] = price;
         let response = await this.privatePostUserOrders (this.extend (order, params));
         return {
@@ -183,17 +183,22 @@ module.exports = class paymium extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         } else {
             this.checkRequiredCredentials ();
-            body = this.json (params);
             let nonce = this.nonce ().toString ();
-            let auth = nonce + url + body;
+            let auth = nonce + url;
+            if (method === 'POST') {
+                if (Object.keys (query).length) {
+                    body = this.json (query);
+                    auth += body;
+                }
+            }
             headers = {
                 'Api-Key': this.apiKey,
-                'Api-Signature': this.hmac (this.encode (auth), this.secret),
+                'Api-Signature': this.hmac (this.encode (auth), this.encode (this.secret)),
                 'Api-Nonce': nonce,
                 'Content-Type': 'application/json',
             };
@@ -207,4 +212,4 @@ module.exports = class paymium extends Exchange {
             throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
     }
-}
+};

@@ -8,7 +8,6 @@ const { NotSupported } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class bitlish extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitlish',
@@ -21,6 +20,9 @@ module.exports = class bitlish extends Exchange {
                 'fetchTickers': true,
                 'fetchOHLCV': true,
                 'withdraw': true,
+            },
+            'timeframes': {
+                '1h': 3600,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766275-dcfc6c30-5ed3-11e7-839d-00a846385d0b.jpg',
@@ -113,23 +115,11 @@ module.exports = class bitlish extends Exchange {
                     ],
                 },
             },
+            'commonCurrencies': {
+                'DSH': 'DASH',
+                'XDG': 'DOGE',
+            },
         });
-    }
-
-    commonCurrencyCode (currency) {
-        if (!this.substituteCommonCurrencyCodes)
-            return currency;
-        if (currency === 'XBT')
-            return 'BTC';
-        if (currency === 'BCC')
-            return 'BCH';
-        if (currency === 'DRK')
-            return 'DASH';
-        if (currency === 'DSH')
-            currency = 'DASH';
-        if (currency === 'XDG')
-            currency = 'DOGE';
-        return currency;
     }
 
     async fetchMarkets () {
@@ -160,21 +150,24 @@ module.exports = class bitlish extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        let last = this.safeFloat (ticker, 'last');
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'high': this.safeFloat (ticker, 'max'),
             'low': this.safeFloat (ticker, 'min'),
-            'bid': undefined,
-            'ask': undefined,
+            'bid': this.safeFloat (ticker, 'bid'),
+            'bidVolume': undefined,
+            'ask': this.safeFloat (ticker, 'ask'),
+            'askVolume': undefined,
             'vwap': undefined,
-            'open': undefined,
-            'close': undefined,
-            'first': this.safeFloat (ticker, 'first'),
-            'last': this.safeFloat (ticker, 'last'),
+            'open': this.safeFloat (ticker, 'first'),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
-            'percentage': this.safeFloat (ticker, 'prc'),
+            'percentage': this.safeFloat (ticker, 'prc') * 100,
             'average': undefined,
             'baseVolume': this.safeFloat (ticker, 'sum'),
             'quoteVolume': undefined,
@@ -205,18 +198,20 @@ module.exports = class bitlish extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         // let market = this.market (symbol);
         let now = this.seconds ();
         let start = now - 86400 * 30; // last 30 days
+        if (typeof since !== 'undefined')
+            start = parseInt (since / 1000);
         let interval = [ start.toString (), undefined ];
         return await this.publicPostOhlcv (this.extend ({
             'time_range': interval,
         }, params));
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetTradesDepth (this.extend ({
             'pair_id': this.marketId (symbol),
@@ -317,6 +312,7 @@ module.exports = class bitlish extends Exchange {
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
         await this.loadMarkets ();
         if (currency !== 'BTC') {
             // they did not document other types...
@@ -351,4 +347,4 @@ module.exports = class bitlish extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-}
+};

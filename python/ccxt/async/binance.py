@@ -4,20 +4,15 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import math
 import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import InvalidNonce
 
 
 class binance (Exchange):
@@ -39,7 +34,9 @@ class binance (Exchange):
                 'fetchOrder': True,
                 'fetchOrders': True,
                 'fetchOpenOrders': True,
+                'fetchClosedOrders': True,
                 'withdraw': True,
+                'fetchFundingFees': True,
             },
             'timeframes': {
                 '1m': '1m',
@@ -89,6 +86,9 @@ class binance (Exchange):
                         'depositHistory',
                         'withdrawHistory',
                         'depositAddress',
+                        'accountStatus',
+                        'systemStatus',
+                        'withdrawFee',
                     ],
                 },
                 'v3': {
@@ -110,7 +110,11 @@ class binance (Exchange):
                         'ticker/allBookTickers',
                         'ticker/price',
                         'ticker/bookTicker',
+                        'exchangeInfo',
                     ],
+                    'put': ['userDataStream'],
+                    'post': ['userDataStream'],
+                    'delete': ['userDataStream'],
                 },
                 'private': {
                     'get': [
@@ -128,11 +132,6 @@ class binance (Exchange):
                         'order',
                     ],
                 },
-                'v1': {
-                    'put': ['userDataStream'],
-                    'post': ['userDataStream'],
-                    'delete': ['userDataStream'],
-                },
             },
             'fees': {
                 'trading': {
@@ -141,192 +140,155 @@ class binance (Exchange):
                     'taker': 0.001,
                     'maker': 0.001,
                 },
+                # should be deleted, these are outdated and inaccurate
                 'funding': {
                     'tierBased': False,
                     'percentage': False,
                     'withdraw': {
-                        'BNB': 0.7,
-                        'BTC': 0.001,
-                        'NEO': 0.0,
-                        'ETH': 0.01,
-                        'LTC': 0.01,
-                        'QTUM': 0.01,
-                        'EOS': 1.0,
-                        'SNT': 32.0,
-                        'BNT': 1.5,
-                        'GAS': 0,
+                        'ADA': 1.0,
+                        'ADX': 4.7,
+                        'AION': 1.9,
+                        'AMB': 11.4,
+                        'APPC': 6.5,
+                        'ARK': 0.1,
+                        'ARN': 3.1,
+                        'AST': 10.0,
+                        'BAT': 18.0,
+                        'BCD': 1.0,
                         'BCH': 0.001,
+                        'BCPT': 10.2,
+                        'BCX': 1.0,
+                        'BNB': 0.7,
+                        'BNT': 1.5,
+                        'BQX': 1.6,
+                        'BRD': 6.4,
+                        'BTC': 0.001,
+                        'BTG': 0.001,
                         'BTM': 5.0,
-                        'USDT': 23.0,
+                        'BTS': 1.0,
+                        'CDT': 67.0,
+                        'CMT': 37.0,
+                        'CND': 47.0,
+                        'CTR': 5.4,
+                        'DASH': 0.002,
+                        'DGD': 0.06,
+                        'DLT': 11.7,
+                        'DNT': 51.0,
+                        'EDO': 2.5,
+                        'ELF': 6.5,
+                        'ENG': 2.1,
+                        'ENJ': 42.0,
+                        'EOS': 1.0,
+                        'ETC': 0.01,
+                        'ETF': 1.0,
+                        'ETH': 0.01,
+                        'EVX': 2.5,
+                        'FUEL': 45.0,
+                        'FUN': 85.0,
+                        'GAS': 0,
+                        'GTO': 20.0,
+                        'GVT': 0.53,
+                        'GXS': 0.3,
                         'HCC': 0.0005,
                         'HSR': 0.0001,
-                        'OAX': 8.3,
-                        'DNT': 51.0,
-                        'MCO': 0.86,
                         'ICN': 3.5,
-                        'ZRX': 5.7,
-                        'OMG': 0.57,
-                        'WTC': 0.5,
-                        'LRC': 9.1,
-                        'LLT': 54.0,
-                        'YOYO': 39.0,
-                        'TRX': 129.0,
-                        'STRAT': 0.1,
-                        'SNGLS': 42,
-                        'BQX': 1.6,
-                        'KNC': 2.6,
-                        'SNM': 29.0,
-                        'FUN': 85.0,
-                        'LINK': 12.8,
-                        'XVG': 0.1,
-                        'CTR': 5.4,
-                        'SALT': 1.3,
-                        'MDA': 4.7,
-                        'IOTA': 0.5,
-                        'SUB': 7.4,
-                        'ETC': 0.01,
-                        'MTL': 1.9,
-                        'MTH': 34.0,
-                        'ENG': 2.1,
-                        'AST': 10.0,
-                        'DASH': 0.002,
-                        'BTG': 0.001,
-                        'EVX': 2.5,
-                        'REQ': 18.1,
-                        'VIB': 28.0,
-                        'POWR': 8.6,
-                        'ARK': 0.1,
-                        'XRP': 0.25,
-                        'MOD': 2.0,
-                        'ENJ': 42.0,
-                        'STORJ': 5.9,
-                        'VEN': 1.8,
-                        'KMD': 0.002,
-                        'RCN': 35.0,
-                        'NULS': 2.1,
-                        'RDN': 2.2,
-                        'XMR': 0.04,
-                        'DLT': 11.7,
-                        'AMB': 11.4,
-                        'BAT': 18.0,
-                        'ZEC': 0.005,
-                        'BCPT': 10.2,
-                        'ARN': 3.1,
-                        'GVT': 0.53,
-                        'CDT': 67.0,
-                        'GXS': 0.3,
-                        'POE': 88.0,
-                        'QSP': 21.0,
-                        'BTS': 1.0,
-                        'XZC': 0.02,
-                        'LSK': 0.1,
-                        'TNT': 47.0,
-                        'FUEL': 45.0,
-                        'MANA': 74.0,
-                        'BCD': 1.0,
-                        'DGD': 0.06,
-                        'ADX': 4.7,
-                        'ADA': 1.0,
-                        'PPT': 0.25,
-                        'CMT': 37.0,
-                        'XLM': 0.01,
-                        'CND': 47.0,
-                        'LEND': 54.0,
-                        'WABI': 3.5,
-                        'SBTC': 1.0,
-                        'BCX': 1.0,
-                        'WAVES': 0.002,
-                        'TNB': 82.0,
-                        'GTO': 20.0,
                         'ICX': 1.3,
-                        'OST': 17.0,
-                        'ELF': 6.5,
-                        'AION': 1.9,
-                        'ETF': 1.0,
-                        'BRD': 6.4,
-                        'NEBL': 0.01,
-                        'VIBE': 7.2,
-                        'LUN': 0.29,
-                        'RLC': 4.1,
                         'INS': 1.5,
-                        'EDO': 2.5,
-                        'WINGS': 9.3,
+                        'IOTA': 0.5,
+                        'KMD': 0.002,
+                        'KNC': 2.6,
+                        'LEND': 54.0,
+                        'LINK': 12.8,
+                        'LLT': 54.0,
+                        'LRC': 9.1,
+                        'LSK': 0.1,
+                        'LTC': 0.01,
+                        'LUN': 0.29,
+                        'MANA': 74.0,
+                        'MCO': 0.86,
+                        'MDA': 4.7,
+                        'MOD': 2.0,
+                        'MTH': 34.0,
+                        'MTL': 1.9,
                         'NAV': 0.2,
+                        'NEBL': 0.01,
+                        'NEO': 0.0,
+                        'NULS': 2.1,
+                        'OAX': 8.3,
+                        'OMG': 0.57,
+                        'OST': 17.0,
+                        'POE': 88.0,
+                        'POWR': 8.6,
+                        'PPT': 0.25,
+                        'QSP': 21.0,
+                        'QTUM': 0.01,
+                        'RCN': 35.0,
+                        'RDN': 2.2,
+                        'REQ': 18.1,
+                        'RLC': 4.1,
+                        'SALT': 1.3,
+                        'SBTC': 1.0,
+                        'SNGLS': 42,
+                        'SNM': 29.0,
+                        'SNT': 32.0,
+                        'STORJ': 5.9,
+                        'STRAT': 0.1,
+                        'SUB': 7.4,
+                        'TNB': 82.0,
+                        'TNT': 47.0,
                         'TRIG': 6.7,
-                        'APPC': 6.5,
+                        'TRX': 129.0,
+                        'USDT': 23.0,
+                        'VEN': 1.8,
+                        'VIB': 28.0,
+                        'VIBE': 7.2,
+                        'WABI': 3.5,
+                        'WAVES': 0.002,
+                        'WINGS': 9.3,
+                        'WTC': 0.5,
+                        'XLM': 0.01,
+                        'XMR': 0.04,
+                        'XRP': 0.25,
+                        'XVG': 0.1,
+                        'XZC': 0.02,
+                        'YOYOW': 39.0,
+                        'ZEC': 0.005,
+                        'ZRX': 5.7,
                     },
-                    'deposit': {
-                        'BNB': 0,
-                        'BTC': 0,
-                        'ETH': 0,
-                        'LTC': 0,
-                        'NEO': 0,
-                        'QTUM': 0,
-                        'SNT': 0,
-                        'BNT': 0,
-                        'EOS': 0,
-                        'BCH': 0,
-                        'GAS': 0,
-                        'USDT': 0,
-                        'OAX': 0,
-                        'DNT': 0,
-                        'MCO': 0,
-                        'ICN': 0,
-                        'WTC': 0,
-                        'OMG': 0,
-                        'ZRX': 0,
-                        'STRAT': 0,
-                        'SNGLS': 0,
-                        'BQX': 0,
-                        'KNC': 0,
-                        'FUN': 0,
-                        'SNM': 0,
-                        'LINK': 0,
-                        'XVG': 0,
-                        'CTR': 0,
-                        'SALT': 0,
-                        'IOTA': 0,
-                        'MDA': 0,
-                        'MTL': 0,
-                        'SUB': 0,
-                        'ETC': 0,
-                        'MTH': 0,
-                        'ENG': 0,
-                        'AST': 0,
-                        'BTG': 0,
-                        'DASH': 0,
-                        'EVX': 0,
-                        'REQ': 0,
-                        'LRC': 0,
-                        'VIB': 0,
-                        'HSR': 0,
-                        'TRX': 0,
-                        'POWR': 0,
-                        'ARK': 0,
-                        'YOYO': 0,
-                        'XRP': 0,
-                        'MOD': 0,
-                        'ENJ': 0,
-                        'STORJ': 0,
-                    },
+                    'deposit': {},
                 },
+            },
+            'commonCurrencies': {
+                'YOYO': 'YOYOW',
+                'BCC': 'BCH',
+                'NANO': 'XRB',
             },
             # exchange-specific options
             'options': {
+                'hasAlreadyAuthenticatedSuccessfully': False,
+                'warnOnFetchOpenOrdersWithoutSymbol': True,
                 'recvWindow': 5 * 1000,  # 5 sec, binance default
                 'timeDifference': 0,  # the difference between system clock and Binance clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
             },
+            'exceptions': {
+                '-1013': InvalidOrder,  # createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
+                '-1021': InvalidNonce,  # 'your time is ahead of server'
+                '-1100': InvalidOrder,  # createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
+                '-2010': InsufficientFunds,  # createOrder -> 'Account has insufficient balance for requested action.'
+                '-2011': OrderNotFound,  # cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
+                '-2013': OrderNotFound,  # fetchOrder(1, 'BTC/USDT') -> 'Order does not exist'
+                '-2015': AuthenticationError,  # "Invalid API-key, IP, or permissions for action."
+            },
         })
 
-    def milliseconds(self):
-        return super(binance, self).milliseconds() - self.options['timeDifference']
+    def nonce(self):
+        return self.milliseconds() - self.options['timeDifference']
 
     async def load_time_difference(self):
-        before = self.milliseconds()
         response = await self.publicGetTime()
         after = self.milliseconds()
-        self.options['timeDifference'] = (before + after) / 2 - response['serverTime']
+        self.options['timeDifference'] = int(after - response['serverTime'])
         return self.options['timeDifference']
 
     async def fetch_markets(self):
@@ -338,6 +300,7 @@ class binance (Exchange):
         for i in range(0, len(markets)):
             market = markets[i]
             id = market['symbol']
+            # "123456" is a "test symbol/market"
             if id == '123456':
                 continue
             baseId = market['baseAsset']
@@ -353,8 +316,9 @@ class binance (Exchange):
                 'price': market['quotePrecision'],
             }
             active = (market['status'] == 'TRADING')
+            # lot size is deprecated as of 2018.02.06
             lot = -1 * math.log10(precision['amount'])
-            entry = self.extend(self.fees['trading'], {
+            entry = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -362,16 +326,16 @@ class binance (Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
-                'lot': lot,
+                'lot': lot,  # lot size is deprecated as of 2018.02.06
                 'active': active,
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': lot,
+                        'min': math.pow(10, -precision['amount']),
                         'max': None,
                     },
                     'price': {
-                        'min': -1 * math.log10(precision['price']),
+                        'min': math.pow(10, -precision['price']),
                         'max': None,
                     },
                     'cost': {
@@ -379,7 +343,7 @@ class binance (Exchange):
                         'max': None,
                     },
                 },
-            })
+            }
             if 'PRICE_FILTER' in filters:
                 filter = filters['PRICE_FILTER']
                 entry['precision']['price'] = self.precision_from_string(filter['tickSize'])
@@ -390,7 +354,7 @@ class binance (Exchange):
             if 'LOT_SIZE' in filters:
                 filter = filters['LOT_SIZE']
                 entry['precision']['amount'] = self.precision_from_string(filter['stepSize'])
-                entry['lot'] = float(filter['stepSize'])
+                entry['lot'] = float(filter['stepSize'])  # lot size is deprecated as of 2018.02.06
                 entry['limits']['amount'] = {
                     'min': float(filter['minQty']),
                     'max': float(filter['maxQty']),
@@ -423,8 +387,9 @@ class binance (Exchange):
         balances = response['balances']
         for i in range(0, len(balances)):
             balance = balances[i]
-            asset = balance['asset']
-            currency = self.common_currency_code(asset)
+            currency = balance['asset']
+            if currency in self.currencies_by_id:
+                currency = self.currencies_by_id[currency]['code']
             account = {
                 'free': float(balance['free']),
                 'used': float(balance['locked']),
@@ -434,29 +399,28 @@ class binance (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        orderbook = await self.publicGetDepth(self.extend({
+        request = {
             'symbol': market['id'],
-            'limit': 100,  # default = maximum = 100
-        }, params))
-        return self.parse_order_book(orderbook)
+        }
+        if limit is not None:
+            request['limit'] = limit  # default = maximum = 100
+        response = await self.publicGetDepth(self.extend(request, params))
+        orderbook = self.parse_order_book(response)
+        orderbook['nonce'] = self.safe_integer(response, 'lastUpdateId')
+        return orderbook
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.safe_integer(ticker, 'closeTime')
-        if timestamp is None:
-            timestamp = self.milliseconds()
-        symbol = ticker['symbol']
-        if not market:
-            if symbol in self.markets_by_id:
-                market = self.markets_by_id[symbol]
-        if market:
-            symbol = market['symbol']
+        iso8601 = None if (timestamp is None) else self.iso8601(timestamp)
+        symbol = self.find_symbol(self.safe_string(ticker, 'symbol'), market)
+        last = self.safe_float(ticker, 'lastPrice')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'datetime': iso8601,
             'high': self.safe_float(ticker, 'highPrice'),
             'low': self.safe_float(ticker, 'lowPrice'),
             'bid': self.safe_float(ticker, 'bidPrice'),
@@ -465,11 +429,11 @@ class binance (Exchange):
             'askVolume': self.safe_float(ticker, 'askQty'),
             'vwap': self.safe_float(ticker, 'weightedAvgPrice'),
             'open': self.safe_float(ticker, 'openPrice'),
-            'close': self.safe_float(ticker, 'prevClosePrice'),
-            'first': None,
-            'last': self.safe_float(ticker, 'lastPrice'),
-            'change': self.safe_float(ticker, 'priceChangePercent'),
-            'percentage': None,
+            'close': last,
+            'last': last,
+            'previousClose': self.safe_float(ticker, 'prevClosePrice'),  # previous day close
+            'change': self.safe_float(ticker, 'priceChange'),
+            'percentage': self.safe_float(ticker, 'priceChangePercent'),
             'average': None,
             'baseVolume': self.safe_float(ticker, 'volume'),
             'quoteVolume': self.safe_float(ticker, 'quoteVolume'),
@@ -488,17 +452,7 @@ class binance (Exchange):
         tickers = []
         for i in range(0, len(rawTickers)):
             tickers.append(self.parse_ticker(rawTickers[i]))
-        tickersBySymbol = self.index_by(tickers, 'symbol')
-        # return all of them if no symbols were passed in the first argument
-        if symbols is None:
-            return tickersBySymbol
-        # otherwise filter by symbol
-        result = {}
-        for i in range(0, len(symbols)):
-            symbol = symbols[i]
-            if symbol in tickersBySymbol:
-                result[symbol] = tickersBySymbol[symbol]
-        return result
+        return self.filter_by_array(tickers, 'symbol', symbols)
 
     async def fetch_bid_asks(self, symbols=None, params={}):
         await self.load_markets()
@@ -527,9 +481,10 @@ class binance (Exchange):
             'symbol': market['id'],
             'interval': self.timeframes[timeframe],
         }
-        request['limit'] = limit if (limit) else 500  # default == max == 500
         if since is not None:
             request['startTime'] = since
+        if limit is not None:
+            request['limit'] = limit  # default == max == 500
         response = await self.publicGetKlines(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
@@ -556,6 +511,9 @@ class binance (Exchange):
                 'cost': float(trade['commission']),
                 'currency': self.common_currency_code(trade['commissionAsset']),
             }
+        takerOrMaker = None
+        if 'isMaker' in trade:
+            takerOrMaker = 'maker' if trade['isMaker'] else 'taker'
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -564,6 +522,7 @@ class binance (Exchange):
             'id': id,
             'order': order,
             'type': None,
+            'takerOrMaker': takerOrMaker,
             'side': side,
             'price': price,
             'cost': price * amount,
@@ -590,50 +549,56 @@ class binance (Exchange):
         return self.parse_trades(response, market, since, limit)
 
     def parse_order_status(self, status):
-        if status == 'NEW':
-            return 'open'
-        if status == 'PARTIALLY_FILLED':
-            return 'open'
-        if status == 'FILLED':
-            return 'closed'
-        if status == 'CANCELED':
-            return 'canceled'
-        return status.lower()
+        statuses = {
+            'NEW': 'open',
+            'PARTIALLY_FILLED': 'open',
+            'FILLED': 'closed',
+            'CANCELED': 'canceled',
+        }
+        return statuses[status] if (status in list(statuses.keys())) else status.lower()
 
     def parse_order(self, order, market=None):
         status = self.safe_value(order, 'status')
         if status is not None:
             status = self.parse_order_status(status)
-        symbol = None
-        if market:
-            symbol = market['symbol']
-        else:
-            id = order['symbol']
-            if id in self.markets_by_id:
-                market = self.markets_by_id[id]
-                symbol = market['symbol']
+        symbol = self.find_symbol(self.safe_string(order, 'symbol'), market)
         timestamp = None
         if 'time' in order:
             timestamp = order['time']
         elif 'transactTime' in order:
             timestamp = order['transactTime']
-        else:
-            raise ExchangeError(self.id + ' malformed order: ' + self.json(order))
-        price = float(order['price'])
-        amount = float(order['origQty'])
+        iso8601 = None
+        if timestamp is not None:
+            iso8601 = self.iso8601(timestamp)
+        price = self.safe_float(order, 'price')
+        amount = self.safe_float(order, 'origQty')
         filled = self.safe_float(order, 'executedQty', 0.0)
-        remaining = max(amount - filled, 0.0)
+        remaining = None
+        cost = None
+        if filled is not None:
+            if amount is not None:
+                remaining = max(amount - filled, 0.0)
+            if price is not None:
+                cost = price * filled
+        id = self.safe_string(order, 'orderId')
+        type = self.safe_string(order, 'type')
+        if type is not None:
+            type = type.lower()
+        side = self.safe_string(order, 'side')
+        if side is not None:
+            side = side.lower()
         result = {
             'info': order,
-            'id': str(order['orderId']),
+            'id': id,
             'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'datetime': iso8601,
+            'lastTradeTimestamp': None,
             'symbol': symbol,
-            'type': order['type'].lower(),
-            'side': order['side'].lower(),
+            'type': type,
+            'side': side,
             'price': price,
             'amount': amount,
-            'cost': price * amount,
+            'cost': cost,
             'filled': filled,
             'remaining': remaining,
             'status': status,
@@ -644,6 +609,12 @@ class binance (Exchange):
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        # the next 5 lines are added to support for testing orders
+        method = 'privatePostOrder'
+        test = self.safe_value(params, 'test', False)
+        if test:
+            method += 'Test'
+            params = self.omit(params, 'test')
         order = {
             'symbol': market['id'],
             'quantity': self.amount_to_string(symbol, amount),
@@ -655,7 +626,7 @@ class binance (Exchange):
                 'price': self.price_to_precision(symbol, price),
                 'timeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
             })
-        response = await self.privatePostOrder(self.extend(order, params))
+        response = await getattr(self, method)(self.extend(order, params))
         return self.parse_order(response)
 
     async def fetch_order(self, id, symbol=None, params={}):
@@ -663,10 +634,15 @@ class binance (Exchange):
             raise ExchangeError(self.id + ' fetchOrder requires a symbol param')
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.privateGetOrder(self.extend({
+        origClientOrderId = self.safe_value(params, 'origClientOrderId')
+        request = {
             'symbol': market['id'],
-            'orderId': int(id),
-        }, params))
+        }
+        if origClientOrderId is not None:
+            request['origClientOrderId'] = origClientOrderId
+        else:
+            request['orderId'] = int(id)
+        response = await self.privateGetOrder(self.extend(request, params))
         return self.parse_order(response, market)
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -683,14 +659,17 @@ class binance (Exchange):
         return self.parse_orders(response, market, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        # if not symbol:
-        #     raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol param')
         await self.load_markets()
         market = None
         request = {}
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
+        elif self.options['warnOnFetchOpenOrdersWithoutSymbol']:
+            symbols = self.symbols
+            numSymbols = len(symbols)
+            fetchOpenOrdersRateLimit = int(numSymbols / 2)
+            raise ExchangeError(self.id + ' fetchOpenOrders WARNING: fetching open orders without specifying a symbol is rate-limited to one call per ' + str(fetchOpenOrdersRateLimit) + ' seconds. Do not call self method frequently to avoid ban. Set ' + self.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = False to suppress self warning message.')
         response = await self.privateGetOpenOrders(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
@@ -703,17 +682,11 @@ class binance (Exchange):
             raise ExchangeError(self.id + ' cancelOrder requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        response = None
-        try:
-            response = await self.privateDeleteOrder(self.extend({
-                'symbol': market['id'],
-                'orderId': int(id),
-                # 'origClientOrderId': id,
-            }, params))
-        except Exception as e:
-            if self.last_http_response.find('UNKNOWN_ORDER') >= 0:
-                raise OrderNotFound(self.id + ' cancelOrder() error: ' + self.last_http_response)
-            raise e
+        response = await self.privateDeleteOrder(self.extend({
+            'symbol': market['id'],
+            'orderId': int(id),
+            # 'origClientOrderId': id,
+        }, params))
         return response
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
@@ -729,37 +702,53 @@ class binance (Exchange):
         response = await self.privateGetMyTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def common_currency_code(self, currency):
-        if currency == 'BCC':
-            return 'BCH'
-        return currency
-
-    def currency_id(self, currency):
-        if currency == 'BCH':
-            return 'BCC'
-        return currency
-
-    async def fetch_deposit_address(self, currency, params={}):
+    async def fetch_deposit_address(self, code, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
         response = await self.wapiGetDepositAddress(self.extend({
-            'asset': self.currency_id(currency),
+            'asset': currency['id'],
         }, params))
         if 'success' in response:
             if response['success']:
                 address = self.safe_string(response, 'address')
                 tag = self.safe_string(response, 'addressTag')
                 return {
-                    'currency': currency,
-                    'address': address,
+                    'currency': code,
+                    'address': self.check_address(address),
                     'tag': tag,
                     'status': 'ok',
                     'info': response,
                 }
-        raise ExchangeError(self.id + ' fetchDepositAddress failed: ' + self.last_http_response)
 
-    async def withdraw(self, currency, amount, address, tag=None, params={}):
+    async def fetch_funding_fees(self, codes=None, params={}):
+        #  by default it will try load withdrawal fees of all currencies(with separate requests)
+        #  however if you define codes = ['ETH', 'BTC'] in args it will only load those
+        await self.load_markets()
+        withdrawFees = {}
+        info = {}
+        if codes is None:
+            codes = list(self.currencies.keys())
+        for i in range(0, len(codes)):
+            code = codes[i]
+            currency = self.currency(code)
+            response = await self.wapiGetWithdrawFee({
+                'asset': currency['id'],
+            })
+            withdrawFees[code] = self.safe_float(response, 'withdrawFee')
+            info[code] = response
+        return {
+            'withdraw': withdrawFees,
+            'deposit': {},
+            'info': info,
+        }
+
+    async def withdraw(self, code, amount, address, tag=None, params={}):
+        self.check_address(address)
+        await self.load_markets()
+        currency = self.currency(code)
         name = address[0:20]
         request = {
-            'asset': self.currency_id(currency),
+            'asset': currency['id'],
             'address': address,
             'amount': float(amount),
             'name': name,
@@ -787,7 +776,7 @@ class binance (Exchange):
         elif (api == 'private') or (api == 'wapi'):
             self.check_required_credentials()
             query = self.urlencode(self.extend({
-                'timestamp': self.milliseconds(),
+                'timestamp': self.nonce(),
                 'recvWindow': self.options['recvWindow'],
             }, params))
             signature = self.hmac(self.encode(query), self.encode(self.secret))
@@ -806,28 +795,49 @@ class binance (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body):
+        if (code == 418) or (code == 429):
+            raise DDoSProtection(self.id + ' ' + str(code) + ' ' + reason + ' ' + body)
+        # error response in a form: {"code": -1013, "msg": "Invalid quantity."}
+        # following block cointains legacy checks against message patterns in "msg" property
+        # will switch "code" checks eventually, when we know all of them
         if code >= 400:
-            if (code == 418) or (code == 429):
-                raise DDoSProtection(self.id + ' ' + str(code) + ' ' + reason + ' ' + body)
             if body.find('Price * QTY is zero or less') >= 0:
                 raise InvalidOrder(self.id + ' order cost = amount * price is zero or less ' + body)
-            if body.find('MIN_NOTIONAL') >= 0:
-                raise InvalidOrder(self.id + ' order cost = amount * price is too small ' + body)
             if body.find('LOT_SIZE') >= 0:
                 raise InvalidOrder(self.id + ' order amount should be evenly divisible by lot size, use self.amount_to_lots(symbol, amount) ' + body)
             if body.find('PRICE_FILTER') >= 0:
                 raise InvalidOrder(self.id + ' order price exceeds allowed price precision or invalid, use self.price_to_precision(symbol, amount) ' + body)
-            if body.find('Order does not exist') >= 0:
-                raise OrderNotFound(self.id + ' ' + body)
-        if isinstance(body, basestring):
-            if len(body) > 0:
-                if body[0] == '{':
-                    response = json.loads(body)
-                    error = self.safe_value(response, 'code')
-                    if error is not None:
-                        if error == -2010:
-                            raise InsufficientFunds(self.id + ' ' + self.json(response))
-                        elif error == -2011:
-                            raise OrderNotFound(self.id + ' ' + self.json(response))
-                        elif error == -1013:  # Invalid quantity
-                            raise InvalidOrder(self.id + ' ' + self.json(response))
+        if len(body) > 0:
+            if body[0] == '{':
+                response = json.loads(body)
+                # check success value for wapi endpoints
+                # response in format {'msg': 'The coin does not exist.', 'success': True/false}
+                success = self.safe_value(response, 'success', True)
+                if not success:
+                    if 'msg' in response:
+                        try:
+                            response = json.loads(response['msg'])
+                        except Exception as e:
+                            response = {}
+                # checks against error codes
+                error = self.safe_string(response, 'code')
+                if error is not None:
+                    exceptions = self.exceptions
+                    if error in exceptions:
+                        # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
+                        # despite that their message is very confusing, it is raised by Binance
+                        # on a temporary ban(the API key is valid, but disabled for a while)
+                        if (error == '-2015') and self.options['hasAlreadyAuthenticatedSuccessfully']:
+                            raise DDoSProtection(self.id + ' temporary banned: ' + body)
+                        raise exceptions[error](self.id + ' ' + body)
+                    else:
+                        raise ExchangeError(self.id + ': unknown error code: ' + body + ' ' + error)
+                if not success:
+                    raise ExchangeError(self.id + ': success value False: ' + body)
+
+    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = await self.fetch2(path, api, method, params, headers, body)
+        # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
+        if (api == 'private') or (api == 'wapi'):
+            self.options['hasAlreadyAuthenticatedSuccessfully'] = True
+        return response

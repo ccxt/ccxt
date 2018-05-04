@@ -8,7 +8,6 @@ const { ExchangeError } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class btcturk extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'btcturk',
@@ -45,15 +44,15 @@ module.exports = class btcturk extends Exchange {
                         'userTransactions', // ?offset=0&limit=25&sort=asc
                     ],
                     'post': [
-                        'buy',
+                        'exchange',
                         'cancelOrder',
-                        'sell',
                     ],
                 },
             },
             'markets': {
                 'BTC/TRY': { 'id': 'BTCTRY', 'symbol': 'BTC/TRY', 'base': 'BTC', 'quote': 'TRY', 'maker': 0.002 * 1.18, 'taker': 0.0035 * 1.18 },
                 'ETH/TRY': { 'id': 'ETHTRY', 'symbol': 'ETH/TRY', 'base': 'ETH', 'quote': 'TRY', 'maker': 0.002 * 1.18, 'taker': 0.0035 * 1.18 },
+                'XRP/TRY': { 'id': 'XRPTRY', 'symbol': 'XRP/TRY', 'base': 'XRP', 'quote': 'TRY', 'maker': 0.002 * 1.18, 'taker': 0.0035 * 1.18 },
                 'ETH/BTC': { 'id': 'ETHBTC', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'maker': 0.002 * 1.18, 'taker': 0.0035 * 1.18 },
             },
         });
@@ -79,7 +78,7 @@ module.exports = class btcturk extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let market = this.market (symbol);
         let orderbook = await this.publicGetOrderbook (this.extend ({
             'pairSymbol': market['id'],
@@ -93,6 +92,7 @@ module.exports = class btcturk extends Exchange {
         if (market)
             symbol = market['symbol'];
         let timestamp = parseInt (ticker['timestamp']) * 1000;
+        let last = parseFloat (ticker['last']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -100,12 +100,14 @@ module.exports = class btcturk extends Exchange {
             'high': parseFloat (ticker['high']),
             'low': parseFloat (ticker['low']),
             'bid': parseFloat (ticker['bid']),
+            'bidVolume': undefined,
             'ask': parseFloat (ticker['ask']),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': parseFloat (ticker['open']),
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': parseFloat (ticker['average']),
@@ -188,21 +190,20 @@ module.exports = class btcturk extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        let method = 'privatePost' + this.capitalize (side);
+        await this.loadMarkets ();
         let order = {
-            'Type': (side === 'buy') ? 'BuyBtc' : 'SelBtc',
-            'IsMarketOrder': (type === 'market') ? 1 : 0,
+            'PairSymbol': this.marketId (symbol),
+            'OrderType': (side === 'buy') ? 0 : 1,
+            'OrderMethod': (type === 'market') ? 1 : 0,
         };
         if (type === 'market') {
-            if (side === 'buy')
-                order['Total'] = amount;
-            else
-                order['Amount'] = amount;
+            if (!('Total' in params))
+                throw new ExchangeError (this.id + ' createOrder requires the "Total" extra parameter for market orders (amount and price are both ignored)');
         } else {
             order['Price'] = price;
             order['Amount'] = amount;
         }
-        let response = await this[method] (this.extend (order, params));
+        let response = await this.privatePostExchange (this.extend (order, params));
         return {
             'info': response,
             'id': response['id'],
@@ -239,4 +240,4 @@ module.exports = class btcturk extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-}
+};

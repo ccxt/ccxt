@@ -72,7 +72,7 @@ class fybse (Exchange):
         result['info'] = balance
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         orderbook = self.publicGetOrderbook(params)
         return self.parse_order_book(orderbook)
 
@@ -92,12 +92,14 @@ class fybse (Exchange):
             'high': None,
             'low': None,
             'bid': float(ticker['bid']),
+            'bidVolume': None,
             'ask': float(ticker['ask']),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
+            'close': last,
             'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,

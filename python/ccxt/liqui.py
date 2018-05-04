@@ -33,6 +33,8 @@ class liqui (Exchange):
             'userAgent': self.userAgents['chrome'],
             'has': {
                 'CORS': False,
+                'createMarketOrder': False,
+                'fetchOrderBooks': True,
                 'fetchOrder': True,
                 'fetchOrders': 'emulated',
                 'fetchOpenOrders': True,
@@ -83,9 +85,12 @@ class liqui (Exchange):
                 'funding': {
                     'tierBased': False,
                     'percentage': False,
-                    'withdraw': None,
-                    'deposit': None,
+                    'withdraw': {},
+                    'deposit': {},
                 },
+            },
+            'commonCurrencies': {
+                'DSH': 'DASH',
             },
             'exceptions': {
                 '803': InvalidOrder,  # "Count could not be less than 0.001."(selling below minAmount)
@@ -114,20 +119,6 @@ class liqui (Exchange):
             'rate': rate,
             'cost': cost,
         }
-
-    def common_currency_code(self, currency):
-        if not self.substituteCommonCurrencyCodes:
-            return currency
-        if currency == 'XBT':
-            return 'BTC'
-        if currency == 'BCC':
-            return 'BCH'
-        if currency == 'DRK':
-            return 'DASH'
-        # they misspell DASH as dsh :/
-        if currency == 'DSH':
-            return 'DASH'
-        return currency
 
     def get_base_quote_from_market_id(self, id):
         uppercase = id.upper()
@@ -168,7 +159,7 @@ class liqui (Exchange):
             }
             hidden = self.safe_integer(market, 'hidden')
             active = (hidden == 0)
-            result.append(self.extend(self.fees['trading'], {
+            result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -179,7 +170,7 @@ class liqui (Exchange):
                 'precision': precision,
                 'limits': limits,
                 'info': market,
-            }))
+            })
         return result
 
     def fetch_balance(self, params={}):
@@ -206,20 +197,45 @@ class liqui (Exchange):
             result[uppercase] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetDepthPair(self.extend({
+        request = {
             'pair': market['id'],
-            # 'limit': 150,  # default = 150, max = 2000
-        }, params))
+        }
+        if limit is not None:
+            request['limit'] = limit  # default = 150, max = 2000
+        response = self.publicGetDepthPair(self.extend(request, params))
         market_id_in_reponse = (market['id'] in list(response.keys()))
         if not market_id_in_reponse:
             raise ExchangeError(self.id + ' ' + market['symbol'] + ' order book is empty or not available')
         orderbook = response[market['id']]
-        result = self.parse_order_book(orderbook)
-        result['bids'] = self.sort_by(result['bids'], 0, True)
-        result['asks'] = self.sort_by(result['asks'], 0)
+        return self.parse_order_book(orderbook)
+
+    def fetch_order_books(self, symbols=None, params={}):
+        self.load_markets()
+        ids = None
+        if not symbols:
+            ids = '-'.join(self.ids)
+            # max URL length is 2083 symbols, including http schema, hostname, tld, etc...
+            if len(ids) > 2048:
+                numIds = len(self.ids)
+                raise ExchangeError(self.id + ' has ' + str(numIds) + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks')
+        else:
+            ids = self.market_ids(symbols)
+            ids = '-'.join(ids)
+        response = self.publicGetDepthPair(self.extend({
+            'pair': ids,
+        }, params))
+        result = {}
+        ids = list(response.keys())
+        for i in range(0, len(ids)):
+            id = ids[i]
+            symbol = id
+            if id in self.markets_by_id:
+                market = self.markets_by_id[id]
+                symbol = market['symbol']
+            result[symbol] = self.parse_order_book(response[id])
         return result
 
     def parse_ticker(self, ticker, market=None):
@@ -227,6 +243,7 @@ class liqui (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -234,12 +251,14 @@ class liqui (Exchange):
             'high': self.safe_float(ticker, 'high'),
             'low': self.safe_float(ticker, 'low'),
             'bid': self.safe_float(ticker, 'buy'),
+            'bidVolume': None,
             'ask': self.safe_float(ticker, 'sell'),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': self.safe_float(ticker, 'last'),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': self.safe_float(ticker, 'avg'),
@@ -252,11 +271,9 @@ class liqui (Exchange):
         self.load_markets()
         ids = None
         if not symbols:
-            # numIds = len(self.ids)
-            # if numIds > 256:
-            #     raise ExchangeError(self.id + ' fetchTickers() requires symbols argument')
             ids = '-'.join(self.ids)
-            if len(ids) > 2083:
+            # max URL length is 2083 symbols, including http schema, hostname, tld, etc...
+            if len(ids) > 2048:
                 numIds = len(self.ids)
                 raise ExchangeError(self.id + ' has ' + str(numIds) + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchTickers')
         else:
@@ -304,14 +321,12 @@ class liqui (Exchange):
             symbol = market['symbol']
         amount = trade['amount']
         type = 'limit'  # all trades are still limit trades
-        fee = None
-        # self is filled by fetchMyTrades() only
-        # is_your_order is always False :\
-        # isYourOrder = self.safe_value(trade, 'is_your_order')
-        # takerOrMaker = 'taker'
-        # if isYourOrder:
-        #     takerOrMaker = 'maker'
-        # fee = self.calculate_fee(symbol, type, side, amount, price, takerOrMaker)
+        isYourOrder = self.safe_value(trade, 'is_your_order')
+        takerOrMaker = 'taker'
+        if isYourOrder is not None:
+            if isYourOrder:
+                takerOrMaker = 'maker'
+        fee = self.calculate_fee(symbol, type, side, amount, price, takerOrMaker)
         return {
             'id': id,
             'order': order,
@@ -348,21 +363,26 @@ class liqui (Exchange):
             'amount': self.amount_to_precision(symbol, amount),
             'rate': self.price_to_precision(symbol, price),
         }
-        response = self.privatePostTrade(self.extend(request, params))
-        id = self.safe_string(response['return'], self.get_order_id_key())
-        timestamp = self.milliseconds()
         price = float(price)
         amount = float(amount)
+        response = self.privatePostTrade(self.extend(request, params))
+        id = None
         status = 'open'
-        if id == '0':
-            id = self.safe_string(response['return'], 'init_order_id')
-            status = 'closed'
-        filled = self.safe_float(response['return'], 'received', 0.0)
-        remaining = self.safe_float(response['return'], 'remains', amount)
+        filled = 0.0
+        remaining = amount
+        if 'return' in response:
+            id = self.safe_string(response['return'], self.get_order_id_key())
+            if id == '0':
+                id = self.safe_string(response['return'], 'init_order_id')
+                status = 'closed'
+            filled = self.safe_float(response['return'], 'received', 0.0)
+            remaining = self.safe_float(response['return'], 'remains', amount)
+        timestamp = self.milliseconds()
         order = {
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
             'type': type,
@@ -392,15 +412,22 @@ class liqui (Exchange):
             self.orders[id]['status'] = 'canceled'
         return response
 
+    def parse_order_status(self, status):
+        statuses = {
+            '0': 'open',
+            '1': 'closed',
+            '2': 'canceled',
+            '3': 'canceled',  # or partially-filled and still open? https://github.com/ccxt/ccxt/issues/1594
+        }
+        if status in statuses:
+            return statuses[status]
+        return status
+
     def parse_order(self, order, market=None):
         id = str(order['id'])
-        status = self.safe_integer(order, 'status')
-        if status == 0:
-            status = 'open'
-        elif status == 1:
-            status = 'closed'
-        elif (status == 2) or (status == 3):
-            status = 'canceled'
+        status = self.safe_string(order, 'status')
+        if status != 'None':
+            status = self.parse_order_status(status)
         timestamp = int(order['timestamp_created']) * 1000
         symbol = None
         if not market:
@@ -430,6 +457,7 @@ class liqui (Exchange):
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'type': 'limit',
             'side': order['type'],
             'price': price,
@@ -463,72 +491,79 @@ class liqui (Exchange):
         self.orders[id] = self.extend(oldOrder, newOrder)
         return self.orders[id]
 
+    def update_cached_orders(self, openOrders, symbol):
+        # update local cache with open orders
+        # self will add unseen orders and overwrite existing ones
+        for j in range(0, len(openOrders)):
+            id = openOrders[j]['id']
+            self.orders[id] = openOrders[j]
+        openOrdersIndexedById = self.index_by(openOrders, 'id')
+        cachedOrderIds = list(self.orders.keys())
+        for k in range(0, len(cachedOrderIds)):
+            # match each cached order to an order in the open orders array
+            # possible reasons why a cached order may be missing in the open orders array:
+            # - order was closed or canceled -> update cache
+            # - symbol mismatch(e.g. cached BTC/USDT, fetched ETH/USDT) -> skip
+            cachedOrderId = cachedOrderIds[k]
+            cachedOrder = self.orders[cachedOrderId]
+            if not(cachedOrderId in list(openOrdersIndexedById.keys())):
+                # cached order is not in open orders array
+                # if we fetched orders by symbol and it doesn't match the cached order -> won't update the cached order
+                if symbol is not None and symbol != cachedOrder['symbol']:
+                    continue
+                # cached order is absent from the list of open orders -> mark the cached order as closed
+                if cachedOrder['status'] == 'open':
+                    cachedOrder = self.extend(cachedOrder, {
+                        'status': 'closed',  # likewise it might have been canceled externally(unnoticed by "us")
+                        'cost': None,
+                        'filled': cachedOrder['amount'],
+                        'remaining': 0.0,
+                    })
+                    if cachedOrder['cost'] is None:
+                        if cachedOrder['filled'] is not None:
+                            cachedOrder['cost'] = cachedOrder['filled'] * cachedOrder['price']
+                    self.orders[cachedOrderId] = cachedOrder
+        return self.to_array(self.orders)
+
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
-        # if not symbol:
-        #     raise ExchangeError(self.id + ' fetchOrders requires a symbol')
+        if 'fetchOrdersRequiresSymbol' in self.options:
+            if self.options['fetchOrdersRequiresSymbol']:
+                if symbol is None:
+                    raise ExchangeError(self.id + ' fetchOrders requires a symbol argument')
         self.load_markets()
         request = {}
         market = None
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['pair'] = market['id']
         response = self.privatePostActiveOrders(self.extend(request, params))
+        # liqui etc can only return 'open' orders(i.e. no way to fetch 'closed' orders)
         openOrders = []
         if 'return' in response:
             openOrders = self.parse_orders(response['return'], market)
-        for j in range(0, len(openOrders)):
-            self.orders[openOrders[j]['id']] = openOrders[j]
-        openOrdersIndexedById = self.index_by(openOrders, 'id')
-        cachedOrderIds = list(self.orders.keys())
-        result = []
-        for k in range(0, len(cachedOrderIds)):
-            id = cachedOrderIds[k]
-            if id in openOrdersIndexedById:
-                self.orders[id] = self.extend(self.orders[id], openOrdersIndexedById[id])
-            else:
-                order = self.orders[id]
-                if order['status'] == 'open':
-                    self.orders[id] = self.extend(order, {
-                        'status': 'closed',
-                        'cost': order['amount'] * order['price'],
-                        'filled': order['amount'],
-                        'remaining': 0.0,
-                    })
-            order = self.orders[id]
-            if symbol:
-                if order['symbol'] == symbol:
-                    result.append(order)
-            else:
-                result.append(order)
+        allOrders = self.update_cached_orders(openOrders, symbol)
+        result = self.filter_by_symbol(allOrders, symbol)
         return self.filter_by_since_limit(result, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         orders = self.fetch_orders(symbol, since, limit, params)
-        result = []
-        for i in range(0, len(orders)):
-            if orders[i]['status'] == 'open':
-                result.append(orders[i])
-        return result
+        return self.filter_by(orders, 'status', 'open')
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         orders = self.fetch_orders(symbol, since, limit, params)
-        result = []
-        for i in range(0, len(orders)):
-            if orders[i]['status'] == 'closed':
-                result.append(orders[i])
-        return result
+        return self.filter_by(orders, 'status', 'closed')
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         market = None
         request = {
-            # 'from': 123456789,  # trade ID, from which the display starts numerical 0
+            # 'from': 123456789,  # trade ID, from which the display starts numerical 0(test result: liqui ignores self field)
             # 'count': 1000,  # the number of trades for display numerical, default = 1000
             # 'from_id': trade ID, from which the display starts numerical 0
             # 'end_id': trade ID on which the display ends numerical ∞
-            # 'order': 'ASC',  # sorting, default = DESC
-            # 'since': 1234567890,  # UTC start time, default = 0
-            # 'end': 1234567890,  # UTC end time, default = ∞
+            # 'order': 'ASC',  # sorting, default = DESC(test result: liqui ignores self field, most recent trade always goes last)
+            # 'since': 1234567890,  # UTC start time, default = 0(test result: liqui ignores self field)
+            # 'end': 1234567890,  # UTC end time, default = ∞(test result: liqui ignores self field)
             # 'pair': 'eth_btc',  # default = all markets
         }
         if symbol is not None:
@@ -545,6 +580,7 @@ class liqui (Exchange):
         return self.parse_trades(trades, market, since, limit)
 
     def withdraw(self, currency, amount, address, tag=None, params={}):
+        self.check_address(address)
         self.load_markets()
         response = self.privatePostWithdrawCoin(self.extend({
             'coinName': currency,
@@ -578,10 +614,21 @@ class liqui (Exchange):
                 'Key': self.apiKey,
                 'Sign': signature,
             }
-        else:
+        elif api == 'public':
             url += self.get_version_string() + '/' + self.implode_params(path, params)
             if query:
                 url += '?' + self.urlencode(query)
+        else:
+            url += '/' + self.implode_params(path, params)
+            if method == 'GET':
+                if query:
+                    url += '?' + self.urlencode(query)
+            else:
+                if query:
+                    body = self.json(query)
+                    headers = {
+                        'Content-Type': 'application/json',
+                    }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body):
@@ -639,9 +686,13 @@ class liqui (Exchange):
                         raise AuthenticationError(feedback)
                     elif message.find('invalid parameter') >= 0:  # errorCode 0, returned on buy(symbol, 0, 0)
                         raise InvalidOrder(feedback)
+                    elif message == 'invalid order':
+                        raise InvalidOrder(feedback)
                     elif message == 'Requests too often':
                         raise DDoSProtection(feedback)
                     elif message == 'not available':
+                        raise DDoSProtection(feedback)
+                    elif message == 'data unavailable':
                         raise DDoSProtection(feedback)
                     elif message == 'external service unavailable':
                         raise DDoSProtection(feedback)

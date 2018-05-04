@@ -19,6 +19,7 @@ class nova (Exchange):
             'version': 'v2',
             'has': {
                 'CORS': False,
+                'createMarketOrder': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30518571-78ca0bca-9b8a-11e7-8840-64b83a4a94b2.jpg',
@@ -81,7 +82,7 @@ class nova (Exchange):
                 })
         return result
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         orderbook = await self.publicGetMarketOpenordersPairBoth(self.extend({
             'pair': self.market_id(symbol),
@@ -95,6 +96,7 @@ class nova (Exchange):
         }, params))
         ticker = response['markets'][0]
         timestamp = self.milliseconds()
+        last = float(ticker['last_price'])
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -102,12 +104,14 @@ class nova (Exchange):
             'high': float(ticker['high24h']),
             'low': float(ticker['low24h']),
             'bid': self.safe_float(ticker, 'bid'),
+            'bidVolume': None,
             'ask': self.safe_float(ticker, 'ask'),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['last_price']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': float(ticker['change24h']),
             'percentage': None,
             'average': None,

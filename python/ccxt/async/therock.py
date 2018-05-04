@@ -70,7 +70,7 @@ class therock (Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.02 / 100,
+                    'maker': 0.2 / 100,
                     'taker': 0.2 / 100,
                 },
                 'funding': {
@@ -135,7 +135,7 @@ class therock (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         orderbook = await self.publicGetFundsIdOrderbook(self.extend({
             'id': self.market_id(symbol),
@@ -148,6 +148,7 @@ class therock (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
+        last = float(ticker['last'])
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -155,12 +156,14 @@ class therock (Exchange):
             'high': float(ticker['high']),
             'low': float(ticker['low']),
             'bid': float(ticker['bid']),
+            'bidVolume': None,
             'ask': float(ticker['ask']),
+            'askVolume': None,
             'vwap': None,
             'open': float(ticker['open']),
-            'close': float(ticker['close']),
-            'first': None,
-            'last': float(ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': float(ticker['close']),  # previous day close, if any
             'change': None,
             'percentage': None,
             'average': None,

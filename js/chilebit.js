@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 // ---------------------------------------------------------------------------
 
@@ -7,7 +7,6 @@ const foxbit = require ('./foxbit.js');
 // ---------------------------------------------------------------------------
 
 module.exports = class chilebit extends foxbit {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'chilebit',
@@ -25,6 +24,9 @@ module.exports = class chilebit extends foxbit {
                 'www': 'https://chilebit.net',
                 'doc': 'https://blinktrade.com/docs',
             },
+            'options': {
+                'brokerId': '9', // https://blinktrade.com/docs/#brokers
+            },
         });
     }
-}
+};

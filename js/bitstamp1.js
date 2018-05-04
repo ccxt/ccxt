@@ -8,7 +8,6 @@ const { ExchangeError, NotSupported } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class bitstamp1 extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitstamp1',
@@ -76,7 +75,7 @@ module.exports = class bitstamp1 extends Exchange {
         });
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         if (symbol !== 'BTC/USD')
             throw new ExchangeError (this.id + ' ' + this.version + " fetchOrderBook doesn't support " + symbol + ', use it for BTC/USD only');
         let orderbook = await this.publicGetOrderBook (params);
@@ -92,6 +91,7 @@ module.exports = class bitstamp1 extends Exchange {
         let vwap = parseFloat (ticker['vwap']);
         let baseVolume = parseFloat (ticker['volume']);
         let quoteVolume = baseVolume * vwap;
+        let last = parseFloat (ticker['last']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -99,12 +99,14 @@ module.exports = class bitstamp1 extends Exchange {
             'high': parseFloat (ticker['high']),
             'low': parseFloat (ticker['low']),
             'bid': parseFloat (ticker['bid']),
+            'bidVolume': undefined,
             'ask': parseFloat (ticker['ask']),
+            'askVolume': undefined,
             'vwap': vwap,
             'open': parseFloat (ticker['open']),
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
@@ -254,4 +256,4 @@ module.exports = class bitstamp1 extends Exchange {
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
     }
-}
+};

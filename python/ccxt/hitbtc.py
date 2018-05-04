@@ -16,12 +16,13 @@ class hitbtc (Exchange):
         return self.deep_extend(super(hitbtc, self).describe(), {
             'id': 'hitbtc',
             'name': 'HitBTC',
-            'countries': 'UK',
+            'countries': 'HK',
             'rateLimit': 1500,
             'version': '1',
             'has': {
                 'CORS': False,
                 'fetchTrades': True,
+                'fetchTickers': True,
                 'fetchOrder': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
@@ -79,6 +80,7 @@ class hitbtc (Exchange):
                     ],
                 },
             },
+            # hardcoded fees are deprecated and should only be used when there's no other way to get fee info
             'fees': {
                 'trading': {
                     'tierBased': False,
@@ -90,7 +92,7 @@ class hitbtc (Exchange):
                     'tierBased': False,
                     'percentage': False,
                     'withdraw': {
-                        'BTC': 0.00085,
+                        'BTC': 0.001,
                         'BCC': 0.0018,
                         'ETH': 0.00215,
                         'BCH': 0.0018,
@@ -483,19 +485,15 @@ class hitbtc (Exchange):
                     },
                 },
             },
+            'commonCurrencies': {
+                'BCC': 'BCC',
+                'XBT': 'BTC',
+                'DRK': 'DASH',
+                'CAT': 'BitClave',
+                'USD': 'USDT',
+                'EMGO': 'MGO',
+            },
         })
-
-    def common_currency_code(self, currency):
-        currencies = {
-            'XBT': 'BTC',
-            'DRK': 'DASH',
-            'CAT': 'BitClave',
-            'USD': 'USDT',
-            'EMGO': 'MGO',
-        }
-        if currency in currencies:
-            return currencies[currency]
-        return currency
 
     def fetch_markets(self):
         markets = self.publicGetSymbols()
@@ -520,6 +518,8 @@ class hitbtc (Exchange):
                 'lot': lot,
                 'step': step,
                 'info': market,
+                'maker': self.safe_float(market, 'provideLiquidityRate'),
+                'taker': self.safe_float(market, 'takeLiquidityRate'),
                 'precision': {
                     'amount': self.precision_from_string(market['lot']),
                     'price': self.precision_from_string(market['step']),
@@ -564,7 +564,7 @@ class hitbtc (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         orderbook = self.publicGetSymbolOrderbook(self.extend({
             'symbol': self.market_id(symbol),
@@ -576,6 +576,7 @@ class hitbtc (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -583,12 +584,14 @@ class hitbtc (Exchange):
             'high': self.safe_float(ticker, 'high'),
             'low': self.safe_float(ticker, 'low'),
             'bid': self.safe_float(ticker, 'bid'),
+            'bidVolume': None,
             'ask': self.safe_float(ticker, 'ask'),
+            'askVolume': None,
             'vwap': None,
             'open': self.safe_float(ticker, 'open'),
-            'close': None,
-            'first': None,
-            'last': self.safe_float(ticker, 'last'),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
@@ -773,6 +776,7 @@ class hitbtc (Exchange):
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
             'type': order['type'],
@@ -834,6 +838,7 @@ class hitbtc (Exchange):
         return self.parse_trades(response['trades'], market, since, limit)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
         request = {

@@ -93,7 +93,7 @@ module.exports = class quadrigacx extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let orderbook = await this.publicGetOrderBook (this.extend ({
             'book': this.marketId (symbol),
         }, params));
@@ -109,6 +109,7 @@ module.exports = class quadrigacx extends Exchange {
         let vwap = parseFloat (ticker['vwap']);
         let baseVolume = parseFloat (ticker['volume']);
         let quoteVolume = baseVolume * vwap;
+        let last = parseFloat (ticker['last']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -116,12 +117,14 @@ module.exports = class quadrigacx extends Exchange {
             'high': parseFloat (ticker['high']),
             'low': parseFloat (ticker['low']),
             'bid': parseFloat (ticker['bid']),
+            'bidVolume': undefined,
             'ask': parseFloat (ticker['ask']),
+            'askVolume': undefined,
             'vwap': vwap,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
@@ -188,6 +191,7 @@ module.exports = class quadrigacx extends Exchange {
             address = response;
             status = 'ok';
         }
+        this.checkAddress (address);
         return {
             'currency': currency,
             'address': address,
@@ -208,6 +212,7 @@ module.exports = class quadrigacx extends Exchange {
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
         await this.loadMarkets ();
         let request = {
             'amount': amount,

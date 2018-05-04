@@ -18,6 +18,8 @@ class southxchange (Exchange):
             'rateLimit': 1000,
             'has': {
                 'CORS': True,
+                'createDepositAddress': True,
+                'fetchOpenOrders': True,
                 'fetchTickers': True,
                 'withdraw': True,
             },
@@ -57,6 +59,9 @@ class southxchange (Exchange):
                     'taker': 0.2 / 100,
                 },
             },
+            'commonCurrencies': {
+                'SMT': 'SmartNode',
+            },
         })
 
     def fetch_markets(self):
@@ -64,8 +69,10 @@ class southxchange (Exchange):
         result = []
         for p in range(0, len(markets)):
             market = markets[p]
-            base = market[0]
-            quote = market[1]
+            baseId = market[0]
+            quoteId = market[1]
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
             id = symbol
             result.append({
@@ -73,6 +80,8 @@ class southxchange (Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'info': market,
             })
         return result
@@ -85,20 +94,24 @@ class southxchange (Exchange):
         result = {'info': balances}
         for b in range(0, len(balances)):
             balance = balances[b]
-            currency = balance['Currency']
-            uppercase = currency.upper()
+            currencyId = balance['Currency']
+            uppercase = currencyId.upper()
+            currency = self.currencies_by_id[uppercase]
+            code = currency['code']
             free = float(balance['Available'])
-            used = float(balance['Unconfirmed'])
-            total = self.sum(free, used)
+            deposited = float(balance['Deposited'])
+            unconfirmed = float(balance['Unconfirmed'])
+            total = self.sum(deposited, unconfirmed)
+            used = total - free
             account = {
                 'free': free,
                 'used': used,
                 'total': total,
             }
-            result[uppercase] = account
+            result[code] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         orderbook = self.publicGetBookSymbol(self.extend({
             'symbol': self.market_id(symbol),
@@ -110,6 +123,7 @@ class southxchange (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
+        last = self.safe_float(ticker, 'Last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -117,12 +131,14 @@ class southxchange (Exchange):
             'high': None,
             'low': None,
             'bid': self.safe_float(ticker, 'Bid'),
+            'bidVolume': None,
             'ask': self.safe_float(ticker, 'Ask'),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': self.safe_float(ticker, 'Last'),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': self.safe_float(ticker, 'Variation24Hr'),
             'percentage': None,
             'average': None,
@@ -179,6 +195,47 @@ class southxchange (Exchange):
         }, params))
         return self.parse_trades(response, market, since, limit)
 
+    def parse_order(self, order, market=None):
+        status = 'open'
+        symbol = order['ListingCurrency'] + '/' + order['ReferenceCurrency']
+        timestamp = None
+        price = float(order['LimitPrice'])
+        amount = self.safe_float(order, 'OriginalAmount')
+        remaining = self.safe_float(order, 'Amount')
+        filled = None
+        cost = None
+        if amount is not None:
+            cost = price * amount
+            if remaining is not None:
+                filled = amount - remaining
+        orderType = order['Type'].lower()
+        result = {
+            'info': order,
+            'id': str(order['Code']),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
+            'symbol': symbol,
+            'type': 'limit',
+            'side': orderType,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': None,
+        }
+        return result
+
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        response = self.privatePostListOrders()
+        return self.parse_orders(response, market, since, limit)
+
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         market = self.market(symbol)
@@ -202,12 +259,37 @@ class southxchange (Exchange):
             'orderCode': id,
         }, params))
 
+    def create_deposit_address(self, code, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        response = self.privatePostGeneratenewaddress(self.extend({
+            'currency': currency['id'],
+        }, params))
+        parts = response.split('|')
+        numParts = len(parts)
+        address = parts[0]
+        self.check_address(address)
+        tag = None
+        if numParts > 1:
+            tag = parts[1]
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'status': 'ok',
+            'info': response,
+        }
+
     def withdraw(self, currency, amount, address, tag=None, params={}):
-        response = self.privatePostWithdraw(self.extend({
+        self.check_address(address)
+        request = {
             'currency': currency,
             'address': address,
             'amount': amount,
-        }, params))
+        }
+        if tag is not None:
+            request['address'] = address + '|' + tag
+        response = self.privatePostWithdraw(self.extend(request, params))
         return {
             'info': response,
             'id': None,
@@ -229,7 +311,3 @@ class southxchange (Exchange):
                 'Hash': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512),
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
-
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
-        return response

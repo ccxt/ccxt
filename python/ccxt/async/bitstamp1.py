@@ -76,7 +76,7 @@ class bitstamp1 (Exchange):
             },
         })
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         if symbol != 'BTC/USD':
             raise ExchangeError(self.id + ' ' + self.version + " fetchOrderBook doesn't support " + symbol + ', use it for BTC/USD only')
         orderbook = await self.publicGetOrderBook(params)
@@ -91,6 +91,7 @@ class bitstamp1 (Exchange):
         vwap = float(ticker['vwap'])
         baseVolume = float(ticker['volume'])
         quoteVolume = baseVolume * vwap
+        last = float(ticker['last'])
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -98,12 +99,14 @@ class bitstamp1 (Exchange):
             'high': float(ticker['high']),
             'low': float(ticker['low']),
             'bid': float(ticker['bid']),
+            'bidVolume': None,
             'ask': float(ticker['ask']),
+            'askVolume': None,
             'vwap': vwap,
             'open': float(ticker['open']),
-            'close': None,
-            'first': None,
-            'last': float(ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,

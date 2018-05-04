@@ -19,6 +19,7 @@ class itbit (Exchange):
             'version': 'v1',
             'has': {
                 'CORS': True,
+                'createMarketOrder': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27822159-66153620-60ad-11e7-89e7-005f6d7f3de0.jpg',
@@ -72,7 +73,7 @@ class itbit (Exchange):
             },
         })
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         orderbook = await self.publicGetMarketsSymbolOrderBook(self.extend({
             'symbol': self.market_id(symbol),
         }, params))
@@ -86,22 +87,27 @@ class itbit (Exchange):
         if not serverTimeUTC:
             raise ExchangeError(self.id + ' fetchTicker returned a bad response: ' + self.json(ticker))
         timestamp = self.parse8601(ticker['serverTimeUTC'])
-        vwap = float(ticker['vwap24h'])
-        baseVolume = float(ticker['volume24h'])
-        quoteVolume = baseVolume * vwap
+        vwap = self.safe_float(ticker, 'vwap24h')
+        baseVolume = self.safe_float(ticker, 'volume24h')
+        quoteVolume = None
+        if baseVolume is not None and vwap is not None:
+            quoteVolume = baseVolume * vwap
+        last = self.safe_float(ticker, 'lastPrice')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high24h']),
-            'low': float(ticker['low24h']),
+            'high': self.safe_float(ticker, 'high24h'),
+            'low': self.safe_float(ticker, 'low24h'),
             'bid': self.safe_float(ticker, 'bid'),
+            'bidVolume': None,
             'ask': self.safe_float(ticker, 'ask'),
+            'askVolume': None,
             'vwap': vwap,
-            'open': float(ticker['openToday']),
-            'close': None,
-            'first': None,
-            'last': float(ticker['lastPrice']),
+            'open': self.safe_float(ticker, 'openToday'),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,

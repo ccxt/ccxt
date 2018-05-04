@@ -6,6 +6,7 @@
 from ccxt.base.exchange import Exchange
 import base64
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import NotSupported
 
 
 class coinfloor (Exchange):
@@ -18,6 +19,7 @@ class coinfloor (Exchange):
             'countries': 'UK',
             'has': {
                 'CORS': False,
+                'fetchOpenOrders': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28246081-623fc164-6a1c-11e7-913f-bac0d5576c90.jpg',
@@ -30,7 +32,8 @@ class coinfloor (Exchange):
             },
             'requiredCredentials': {
                 'apiKey': True,
-                'secret': True,
+                'secret': False,
+                'password': True,
                 'uid': True,
             },
             'api': {
@@ -78,7 +81,7 @@ class coinfloor (Exchange):
             'id': self.market_id(symbol),
         })
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         orderbook = self.publicGetIdOrderBook(self.extend({
             'id': self.market_id(symbol),
         }, params))
@@ -95,6 +98,7 @@ class coinfloor (Exchange):
         quoteVolume = None
         if vwap is not None:
             quoteVolume = baseVolume * vwap
+        last = float(ticker['last'])
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -102,12 +106,14 @@ class coinfloor (Exchange):
             'high': float(ticker['high']),
             'low': float(ticker['low']),
             'bid': float(ticker['bid']),
+            'bidVolume': None,
             'ask': float(ticker['ask']),
+            'askVolume': None,
             'vwap': vwap,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
@@ -159,6 +165,53 @@ class coinfloor (Exchange):
     def cancel_order(self, id, symbol=None, params={}):
         return self.privatePostIdCancelOrder({'id': id})
 
+    def parse_order(self, order, market=None):
+        timestamp = self.parse_date(order['datetime'])
+        datetime = self.iso8601(timestamp)
+        price = self.safe_float(order, 'price')
+        amount = self.safe_float(order, 'amount')
+        cost = price * amount
+        side = None
+        status = self.safe_string(order, 'status')
+        if order['type'] == 0:
+            side = 'buy'
+        elif order['type'] == 1:
+            side = 'sell'
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
+        id = str(order['id'])
+        return {
+            'info': order,
+            'id': id,
+            'datetime': datetime,
+            'timestamp': timestamp,
+            'lastTradeTimestamp': None,
+            'status': status,
+            'symbol': symbol,
+            'type': 'limit',
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'filled': None,
+            'remaining': None,
+            'cost': cost,
+            'fee': None,
+        }
+
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        if not symbol:
+            raise NotSupported(self.id + ' fetchOpenOrders requires a symbol param')
+        self.load_markets()
+        market = self.market(symbol)
+        orders = self.privatePostIdOpenOrders({
+            'id': market['id'],
+        })
+        for i in range(0, len(orders)):
+            # Coinfloor open orders would always be limit orders
+            orders[i] = self.extend(orders[i], {'status': 'open'})
+        return self.parse_orders(orders, market, since, limit)
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         # curl -k -u '[User ID]/[API key]:[Passphrase]' https://webapi.coinfloor.co.uk:8090/bist/XBT/GBP/balance/
         url = self.urls['api'] + '/' + self.implode_params(path, params)
@@ -171,7 +224,7 @@ class coinfloor (Exchange):
             nonce = self.nonce()
             body = self.urlencode(self.extend({'nonce': nonce}, query))
             auth = self.uid + '/' + self.apiKey + ':' + self.password
-            signature = base64.b64encode(auth)
+            signature = self.decode(base64.b64encode(self.encode(auth)))
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Authorization': 'Basic ' + signature,

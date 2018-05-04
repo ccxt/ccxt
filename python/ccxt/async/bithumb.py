@@ -80,7 +80,7 @@ class bithumb (Exchange):
                 base = id
                 quote = 'KRW'
                 symbol = id + '/' + quote
-                result.append(self.extend(self.fees['trading'], {
+                result.append({
                     'id': id,
                     'symbol': symbol,
                     'base': base,
@@ -106,7 +106,7 @@ class bithumb (Exchange):
                             'max': None,
                         },
                     },
-                }))
+                })
         return result
 
     async def fetch_balance(self, params={}):
@@ -127,13 +127,15 @@ class bithumb (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetOrderbookCurrency(self.extend({
-            'count': 50,  # max = 50
+        request = {
             'currency': market['base'],
-        }, params))
+        }
+        if limit is not None:
+            request['count'] = limit  # max = 50
+        response = await self.publicGetOrderbookCurrency(self.extend(request, params))
         orderbook = response['data']
         timestamp = int(orderbook['timestamp'])
         return self.parse_order_book(orderbook, timestamp, 'bids', 'asks', 'price', 'quantity')
@@ -143,6 +145,11 @@ class bithumb (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
+        open = self.safe_float(ticker, 'opening_price')
+        close = self.safe_float(ticker, 'closing_price')
+        change = close - open
+        vwap = self.safe_float(ticker, 'average_price')
+        baseVolume = self.safe_float(ticker, 'volume_1day')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -150,17 +157,19 @@ class bithumb (Exchange):
             'high': self.safe_float(ticker, 'max_price'),
             'low': self.safe_float(ticker, 'min_price'),
             'bid': self.safe_float(ticker, 'buy_price'),
+            'bidVolume': None,
             'ask': self.safe_float(ticker, 'sell_price'),
-            'vwap': None,
-            'open': self.safe_float(ticker, 'opening_price'),
-            'close': self.safe_float(ticker, 'closing_price'),
-            'first': None,
-            'last': self.safe_float(ticker, 'last_trade'),
-            'change': None,
-            'percentage': None,
-            'average': self.safe_float(ticker, 'average_price'),
-            'baseVolume': self.safe_float(ticker, 'volume_1day'),
-            'quoteVolume': None,
+            'askVolume': None,
+            'vwap': vwap,
+            'open': open,
+            'close': close,
+            'last': close,
+            'previousClose': None,
+            'change': change,
+            'percentage': change / open * 100,
+            'average': self.sum(open, close) / 2,
+            'baseVolume': baseVolume,
+            'quoteVolume': baseVolume * vwap,
             'info': ticker,
         }
 
@@ -266,6 +275,7 @@ class bithumb (Exchange):
         })
 
     async def withdraw(self, currency, amount, address, tag=None, params={}):
+        self.check_address(address)
         request = {
             'units': amount,
             'address': address,

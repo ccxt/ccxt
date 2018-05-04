@@ -16,6 +16,7 @@ import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -31,19 +32,18 @@ class bittrex (Exchange):
             'countries': 'US',
             'version': 'v1.1',
             'rateLimit': 1500,
-            'hasAlreadyAuthenticatedSuccessfully': False,  # a workaround for APIKEY_INVALID
             # new metainfo interface
             'has': {
-                'fetchDepositAddress': True,
                 'CORS': True,
-                'fetchTickers': True,
+                'createMarketOrder': False,
+                'fetchDepositAddress': True,
+                'fetchClosedOrders': True,
+                'fetchCurrencies': True,
+                'fetchMyTrades': False,
                 'fetchOHLCV': True,
                 'fetchOrder': True,
-                'fetchOrders': True,
-                'fetchClosedOrders': 'emulated',
                 'fetchOpenOrders': True,
-                'fetchMyTrades': False,
-                'fetchCurrencies': True,
+                'fetchTickers': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -99,6 +99,7 @@ class bittrex (Exchange):
                         'depositaddress',
                         'deposithistory',
                         'order',
+                        'orders',
                         'orderhistory',
                         'withdrawalhistory',
                         'withdraw',
@@ -151,6 +152,25 @@ class bittrex (Exchange):
                     },
                 },
             },
+            'exceptions': {
+                # 'Call to Cancel was throttled. Try again in 60 seconds.': DDoSProtection,
+                # 'Call to GetBalances was throttled. Try again in 60 seconds.': DDoSProtection,
+                'APISIGN_NOT_PROVIDED': AuthenticationError,
+                'INVALID_SIGNATURE': AuthenticationError,
+                'INVALID_CURRENCY': ExchangeError,
+                'INVALID_PERMISSION': AuthenticationError,
+                'INSUFFICIENT_FUNDS': InsufficientFunds,
+                'QUANTITY_NOT_PROVIDED': InvalidOrder,
+                'MIN_TRADE_REQUIREMENT_NOT_MET': InvalidOrder,
+                'ORDER_NOT_OPEN': InvalidOrder,
+                'UUID_INVALID': OrderNotFound,
+                'RATE_NOT_PROVIDED': InvalidOrder,  # createLimitBuyOrder('ETH/BTC', 1, 0)
+                'WHITELIST_VIOLATION_IP': PermissionDenied,
+            },
+            'options': {
+                'parseOrderStatus': False,
+                'hasAlreadyAuthenticatedSuccessfully': False,  # a workaround for APIKEY_INVALID
+            },
         })
 
     def cost_to_precision(self, symbol, cost):
@@ -174,8 +194,8 @@ class bittrex (Exchange):
                 'amount': 8,
                 'price': 8,
             }
-            active = market['IsActive']
-            result.append(self.extend(self.fees['trading'], {
+            active = market['IsActive'] or market['IsActive'] == 'true'
+            result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -184,7 +204,6 @@ class bittrex (Exchange):
                 'quoteId': quoteId,
                 'active': active,
                 'info': market,
-                'lot': math.pow(10, -precision['amount']),
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -192,16 +211,16 @@ class bittrex (Exchange):
                         'max': None,
                     },
                     'price': {
-                        'min': None,
+                        'min': math.pow(10, -precision['price']),
                         'max': None,
                     },
                 },
-            }))
+            })
         return result
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        response = self.accountGetBalances()
+        response = self.accountGetBalances(params)
         balances = response['result']
         result = {'info': balances}
         indexed = self.index_by(balances, 'Currency')
@@ -220,7 +239,7 @@ class bittrex (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         response = self.publicGetOrderbook(self.extend({
             'market': self.market_id(symbol),
@@ -241,28 +260,41 @@ class bittrex (Exchange):
         return self.parse_order_book(orderbook, None, 'buy', 'sell', 'Rate', 'Quantity')
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = self.parse8601(ticker['TimeStamp'])
+        timestamp = self.safe_string(ticker, 'TimeStamp')
+        iso8601 = None
+        if isinstance(timestamp, basestring):
+            if len(timestamp) > 0:
+                timestamp = self.parse8601(timestamp)
+                iso8601 = self.iso8601(timestamp)
         symbol = None
         if market:
             symbol = market['symbol']
         previous = self.safe_float(ticker, 'PrevDay')
         last = self.safe_float(ticker, 'Last')
-        change = (last - previous) / previous
+        change = None
+        percentage = None
+        if last is not None:
+            if previous is not None:
+                change = last - previous
+                if previous > 0:
+                    percentage = (change / previous) * 100
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'datetime': iso8601,
             'high': self.safe_float(ticker, 'High'),
             'low': self.safe_float(ticker, 'Low'),
             'bid': self.safe_float(ticker, 'Bid'),
+            'bidVolume': None,
             'ask': self.safe_float(ticker, 'Ask'),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
+            'close': last,
             'last': last,
+            'previousClose': None,
             'change': change,
-            'percentage': None,
+            'percentage': percentage,
             'average': None,
             'baseVolume': self.safe_float(ticker, 'Volume'),
             'quoteVolume': self.safe_float(ticker, 'BaseVolume'),
@@ -291,7 +323,7 @@ class bittrex (Exchange):
                 'name': currency['CurrencyLong'],
                 'active': currency['IsActive'],
                 'status': 'ok',
-                'fee': currency['TxFee'],  # todo: redesign
+                'fee': self.safe_float(currency, 'TxFee'),  # todo: redesign
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -342,7 +374,7 @@ class bittrex (Exchange):
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.parse8601(trade['TimeStamp'])
+        timestamp = self.parse8601(trade['TimeStamp'] + '+00:00')
         side = None
         if trade['OrderType'] == 'BUY':
             side = 'buy'
@@ -375,7 +407,7 @@ class bittrex (Exchange):
         raise ExchangeError(self.id + ' fetchTrades() returned None response')
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1d', since=None, limit=None):
-        timestamp = self.parse8601(ohlcv['T'])
+        timestamp = self.parse8601(ohlcv['T'] + '+00:00')
         return [
             timestamp,
             ohlcv['O'],
@@ -407,7 +439,7 @@ class bittrex (Exchange):
             request['market'] = market['id']
         response = self.marketGetOpenorders(self.extend(request, params))
         orders = self.parse_orders(response['result'], market, since, limit)
-        return self.filter_orders_by_symbol(orders, symbol)
+        return self.filter_by_symbol(orders, symbol)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type != 'limit':
@@ -439,20 +471,10 @@ class bittrex (Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        response = None
-        try:
-            orderIdField = self.get_order_id_field()
-            request = {}
-            request[orderIdField] = id
-            response = self.marketGetCancel(self.extend(request, params))
-        except Exception as e:
-            if self.last_json_response:
-                message = self.safe_string(self.last_json_response, 'message')
-                if message == 'ORDER_NOT_OPEN':
-                    raise InvalidOrder(self.id + ' cancelOrder() error: ' + self.last_http_response)
-                if message == 'UUID_INVALID':
-                    raise OrderNotFound(self.id + ' cancelOrder() error: ' + self.last_http_response)
-            raise e
+        orderIdField = self.get_order_id_field()
+        request = {}
+        request[orderIdField] = id
+        response = self.marketGetCancel(self.extend(request, params))
         return response
 
     def parse_symbol(self, id):
@@ -472,23 +494,31 @@ class bittrex (Exchange):
             status = 'closed'
         if ('CancelInitiated' in list(order.keys())) and order['CancelInitiated']:
             status = 'canceled'
+        if ('Status' in list(order.keys())) and self.options['parseOrderStatus']:
+            status = self.parse_order_status(order['Status'])
         symbol = None
-        if not market:
-            if 'Exchange' in order:
-                marketId = order['Exchange']
-                if marketId in self.markets_by_id:
-                    market = self.markets_by_id[marketId]
-                else:
-                    symbol = self.parse_symbol(marketId)
-        if market:
-            symbol = market['symbol']
+        if 'Exchange' in order:
+            marketId = order['Exchange']
+            if marketId in self.markets_by_id:
+                symbol = self.markets_by_id[marketId]['symbol']
+            else:
+                symbol = self.parse_symbol(marketId)
+        else:
+            if market:
+                symbol = market['symbol']
         timestamp = None
         if 'Opened' in order:
-            timestamp = self.parse8601(order['Opened'])
-        if 'TimeStamp' in order:
-            timestamp = self.parse8601(order['TimeStamp'])
+            timestamp = self.parse8601(order['Opened'] + '+00:00')
         if 'Created' in order:
-            timestamp = self.parse8601(order['Created'])
+            timestamp = self.parse8601(order['Created'] + '+00:00')
+        iso8601 = self.iso8601(timestamp) if (timestamp is not None) else None
+        lastTradeTimestamp = None
+        if ('TimeStamp' in list(order.keys())) and(order['TimeStamp'] is not None):
+            lastTradeTimestamp = self.parse8601(order['TimeStamp'] + '+00:00')
+        if ('Closed' in list(order.keys())) and(order['Closed'] is not None):
+            lastTradeTimestamp = self.parse8601(order['Closed'] + '+00:00')
+        if timestamp is None:
+            timestamp = lastTradeTimestamp
         fee = None
         commission = None
         if 'Commission' in order:
@@ -520,7 +550,8 @@ class bittrex (Exchange):
             'info': order,
             'id': id,
             'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'datetime': iso8601,
+            'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': 'limit',
             'side': side,
@@ -551,7 +582,7 @@ class bittrex (Exchange):
             raise e
         return self.parse_order(response['result'])
 
-    def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         request = {}
         market = None
@@ -561,17 +592,8 @@ class bittrex (Exchange):
         response = self.accountGetOrderhistory(self.extend(request, params))
         orders = self.parse_orders(response['result'], market, since, limit)
         if symbol:
-            return self.filter_orders_by_symbol(orders, symbol)
+            return self.filter_by_symbol(orders, symbol)
         return orders
-
-    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        orders = self.fetch_orders(symbol, since, limit, params)
-        return self.filter_by(orders, 'status', 'closed')
-
-    def currency_id(self, currency):
-        if currency == 'BCH':
-            return 'BCC'
-        return currency
 
     def fetch_deposit_address(self, code, params={}):
         self.load_markets()
@@ -588,6 +610,7 @@ class bittrex (Exchange):
         if (code == 'XRP') or (code == 'XLM'):
             tag = address
             address = currency['address']
+        self.check_address(address)
         return {
             'currency': code,
             'address': address,
@@ -596,10 +619,12 @@ class bittrex (Exchange):
             'info': response,
         }
 
-    def withdraw(self, currency, amount, address, tag=None, params={}):
-        currencyId = self.currency_id(currency)
+    def withdraw(self, code, amount, address, tag=None, params={}):
+        self.check_address(address)
+        self.load_markets()
+        currency = self.currency(code)
         request = {
-            'currency': currencyId,
+            'currency': currency['id'],
             'quantity': amount,
             'address': address,
         }
@@ -641,46 +666,36 @@ class bittrex (Exchange):
             headers = {'apisign': signature}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def throw_exception_on_error(self, response):
-        if 'message' in response:
-            if response['message'] == 'APISIGN_NOT_PROVIDED':
-                raise AuthenticationError(self.id + ' ' + self.json(response))
-            if response['message'] == 'INVALID_SIGNATURE':
-                raise AuthenticationError(self.id + ' ' + self.json(response))
-            if response['message'] == 'INSUFFICIENT_FUNDS':
-                raise InsufficientFunds(self.id + ' ' + self.json(response))
-            if response['message'] == 'MIN_TRADE_REQUIREMENT_NOT_MET':
-                raise InvalidOrder(self.id + ' ' + self.json(response))
-            if response['message'] == 'APIKEY_INVALID':
-                if self.hasAlreadyAuthenticatedSuccessfully:
-                    raise DDoSProtection(self.id + ' ' + self.json(response))
-                else:
-                    raise AuthenticationError(self.id + ' ' + self.json(response))
-            if response['message'] == 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT':
-                raise InvalidOrder(self.id + ' order cost should be over 50k satoshi ' + self.json(response))
-
     def handle_errors(self, code, reason, url, method, headers, body):
-        if code >= 400:
-            if body[0] == '{':
-                response = json.loads(body)
-                self.throw_exception_on_error(response)
-                if 'success' in response:
-                    success = response['success']
-                    if isinstance(success, basestring):
-                        success = True if (success == 'true') else False
-                    if not success:
-                        self.throw_exception_on_error(response)
-                        raise ExchangeError(self.id + ' ' + self.json(response))
+        if body[0] == '{':
+            response = json.loads(body)
+            # {success: False, message: "message"}
+            success = self.safe_value(response, 'success')
+            if success is None:
+                raise ExchangeError(self.id + ': malformed response: ' + self.json(response))
+            if isinstance(success, basestring):
+                # bleutrade uses string instead of boolean
+                success = True if (success == 'true') else False
+            if not success:
+                message = self.safe_string(response, 'message')
+                feedback = self.id + ' ' + self.json(response)
+                exceptions = self.exceptions
+                if message in exceptions:
+                    raise exceptions[message](feedback)
+                if (message is not None) and(message.find('throttled. Try again') >= 0):
+                    raise DDoSProtection(feedback)
+                if message == 'APIKEY_INVALID':
+                    if self.options['hasAlreadyAuthenticatedSuccessfully']:
+                        raise DDoSProtection(feedback)
+                    else:
+                        raise AuthenticationError(feedback)
+                if message == 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT':
+                    raise InvalidOrder(self.id + ' order cost should be over 50k satoshi ' + self.json(response))
+                raise ExchangeError(self.id + ' ' + self.json(response))
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)
-        if 'success' in response:
-            success = response['success']
-            if isinstance(success, basestring):
-                success = True if (success == 'true') else False
-            if success:
-                # a workaround for APIKEY_INVALID
-                if (api == 'account') or (api == 'market'):
-                    self.hasAlreadyAuthenticatedSuccessfully = True
-                return response
-        self.throw_exception_on_error(response)
+        # a workaround for APIKEY_INVALID
+        if (api == 'account') or (api == 'market'):
+            self.options['hasAlreadyAuthenticatedSuccessfully'] = True
+        return response

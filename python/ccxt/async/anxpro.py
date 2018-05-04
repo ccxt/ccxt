@@ -20,6 +20,7 @@ class anxpro (Exchange):
             'rateLimit': 1500,
             'has': {
                 'CORS': False,
+                'fetchOHLCV': False,
                 'fetchTrades': False,
                 'withdraw': True,
             },
@@ -94,7 +95,7 @@ class anxpro (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         response = await self.publicGetCurrencyPairMoneyDepthFull(self.extend({
             'currency_pair': self.market_id(symbol),
         }, params))
@@ -113,6 +114,7 @@ class anxpro (Exchange):
         bid = self.safe_float(ticker['buy'], 'value')
         ask = self.safe_float(ticker['sell'], 'value')
         baseVolume = float(ticker['vol']['value'])
+        last = float(ticker['last']['value'])
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -120,12 +122,14 @@ class anxpro (Exchange):
             'high': float(ticker['high']['value']),
             'low': float(ticker['low']['value']),
             'bid': bid,
+            'bidVolume': None,
             'ask': ask,
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['last']['value']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': float(ticker['avg']['value']),
@@ -169,6 +173,7 @@ class anxpro (Exchange):
         return 100
 
     async def withdraw(self, currency, amount, address, tag=None, params={}):
+        self.check_address(address)
         await self.load_markets()
         multiplier = self.get_amount_multiplier(currency)
         response = await self.privatePostMoneyCurrencySendSimple(self.extend({
@@ -207,7 +212,8 @@ class anxpro (Exchange):
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = await self.fetch2(path, api, method, params, headers, body)
-        if 'result' in response:
-            if response['result'] == 'success':
-                return response
+        if response is not None:
+            if 'result' in response:
+                if response['result'] == 'success':
+                    return response
         raise ExchangeError(self.id + ' ' + self.json(response))

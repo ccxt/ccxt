@@ -6,11 +6,11 @@
 from ccxt.async.base.exchange import Exchange
 import math
 import json
-from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import InvalidNonce
 
 
 class qryptos (Exchange):
@@ -29,6 +29,7 @@ class qryptos (Exchange):
                 'fetchOrders': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
+                'fetchMyTrades': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30953915-b1611dc0-a436-11e7-8947-c95bd5a42086.jpg',
@@ -85,6 +86,23 @@ class qryptos (Exchange):
                     ],
                 },
             },
+            'skipJsonOnStatusCodes': [401],
+            'exceptions': {
+                'messages': {
+                    'API Authentication failed': AuthenticationError,
+                    'Nonce is too small': InvalidNonce,
+                    'Order not found': OrderNotFound,
+                    'user': {
+                        'not_enough_free_balance': InsufficientFunds,
+                    },
+                    'price': {
+                        'must_be_positive': InvalidOrder,
+                    },
+                    'quantity': {
+                        'less_than_order_size': InvalidOrder,
+                    },
+                },
+            },
         })
 
     async def fetch_markets(self):
@@ -99,6 +117,32 @@ class qryptos (Exchange):
             maker = self.safe_float(market, 'maker_fee')
             taker = self.safe_float(market, 'taker_fee')
             active = not market['disabled']
+            minAmount = None
+            minPrice = None
+            if base == 'BTC':
+                minAmount = 0.001
+            elif base == 'ETH':
+                minAmount = 0.01
+            if quote == 'BTC':
+                minPrice = 0.00000001
+            elif quote == 'ETH' or quote == 'USD' or quote == 'JPY':
+                minPrice = 0.00001
+            limits = {
+                'amount': {'min': minAmount},
+                'price': {'min': minPrice},
+                'cost': {'min': None},
+            }
+            if minPrice is not None:
+                if minAmount is not None:
+                    limits['cost']['min'] = minPrice * minAmount
+            precision = {
+                'amount': None,
+                'price': None,
+            }
+            if minAmount is not None:
+                precision['amount'] = -math.log10(minAmount)
+            if minPrice is not None:
+                precision['price'] = -math.log10(minPrice)
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -106,6 +150,8 @@ class qryptos (Exchange):
                 'quote': quote,
                 'maker': maker,
                 'taker': taker,
+                'limits': limits,
+                'precision': precision,
                 'active': active,
                 'info': market,
             })
@@ -113,7 +159,7 @@ class qryptos (Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        balances = await self.privateGetAccountsBalance()
+        balances = await self.privateGetAccountsBalance(params)
         result = {'info': balances}
         for b in range(0, len(balances)):
             balance = balances[b]
@@ -127,7 +173,7 @@ class qryptos (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         orderbook = await self.publicGetProductsIdPriceLevels(self.extend({
             'id': self.market_id(symbol),
@@ -152,12 +198,14 @@ class qryptos (Exchange):
             'high': self.safe_float(ticker, 'high_market_ask'),
             'low': self.safe_float(ticker, 'low_market_bid'),
             'bid': self.safe_float(ticker, 'market_bid'),
+            'bidVolume': None,
             'ask': self.safe_float(ticker, 'market_ask'),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
+            'close': last,
             'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
@@ -188,7 +236,21 @@ class qryptos (Exchange):
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market):
+        # {            id:  12345,
+        #         quantity: "6.789",
+        #            price: "98765.4321",
+        #       taker_side: "sell",
+        #       created_at:  1512345678,
+        #          my_side: "buy"           }
         timestamp = trade['created_at'] * 1000
+        # 'taker_side' gets filled for both fetchTrades and fetchMyTrades
+        takerSide = self.safe_string(trade, 'taker_side')
+        # 'my_side' gets filled for fetchMyTrades only and may differ from 'taker_side'
+        mySide = self.safe_string(trade, 'my_side')
+        side = mySide if (mySide is not None) else takerSide
+        takerOrMaker = None
+        if mySide is not None:
+            takerOrMaker = 'taker' if (takerSide == mySide) else 'maker'
         return {
             'info': trade,
             'id': str(trade['id']),
@@ -197,7 +259,8 @@ class qryptos (Exchange):
             'datetime': self.iso8601(timestamp),
             'symbol': market['symbol'],
             'type': None,
-            'side': trade['taker_side'],
+            'side': side,
+            'takerOrMaker': takerOrMaker,
             'price': float(trade['price']),
             'amount': float(trade['quantity']),
         }
@@ -211,6 +274,17 @@ class qryptos (Exchange):
         if limit is not None:
             request['limit'] = limit
         response = await self.publicGetExecutions(self.extend(request, params))
+        return self.parse_trades(response['models'], market, since, limit)
+
+    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'product_id': market['id'],
+        }
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.privateGetExecutionsMe(self.extend(request, params))
         return self.parse_trades(response['models'], market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -236,10 +310,12 @@ class qryptos (Exchange):
             raise OrderNotFound(self.id + ' ' + self.json(order))
         return order
 
-    def parse_order(self, order):
+    def parse_order(self, order, market=None):
         timestamp = order['created_at'] * 1000
-        marketId = str(order['product_id'])
-        market = self.marketsById[marketId]
+        marketId = self.safe_string(order, 'product_id')
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
         status = None
         if 'status' in order:
             if order['status'] == 'live':
@@ -250,6 +326,7 @@ class qryptos (Exchange):
                 status = 'canceled'
         amount = float(order['quantity'])
         filled = float(order['filled_quantity'])
+        price = float(order['price'])
         symbol = None
         if market:
             symbol = market['symbol']
@@ -257,11 +334,12 @@ class qryptos (Exchange):
             'id': str(order['id']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'type': order['order_type'],
             'status': status,
             'symbol': symbol,
             'side': order['side'],
-            'price': order['price'],
+            'price': price,
             'amount': amount,
             'filled': filled,
             'remaining': amount - filled,
@@ -296,6 +374,8 @@ class qryptos (Exchange):
                 request['status'] = 'filled'
             elif status == 'canceled':
                 request['status'] = 'cancelled'
+        if limit is not None:
+            request['limit'] = limit
         result = await self.privateGetOrders(self.extend(request, params))
         orders = result['models']
         return self.parse_orders(orders, market, since, limit)
@@ -305,33 +385,6 @@ class qryptos (Exchange):
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         return self.fetch_orders(symbol, since, limit, self.extend({'status': 'closed'}, params))
-
-    def handle_errors(self, code, reason, url, method, headers, body):
-        response = None
-        if code == 200 or code == 404 or code == 422:
-            if (body[0] == '{') or (body[0] == '['):
-                response = json.loads(body)
-            else:
-                # if not a JSON response
-                raise ExchangeError(self.id + ' returned a non-JSON reply: ' + body)
-        if code == 401:
-            if body == 'API Authentication failed':
-                raise AuthenticationError(body)
-        if code == 404:
-            if 'message' in response:
-                if response['message'] == 'Order not found':
-                    raise OrderNotFound(self.id + ' ' + body)
-        elif code == 422:
-            if 'errors' in response:
-                errors = response['errors']
-                if 'user' in errors:
-                    messages = errors['user']
-                    if messages.find('not_enough_free_balance') >= 0:
-                        raise InsufficientFunds(self.id + ' ' + body)
-                elif 'quantity' in errors:
-                    messages = errors['quantity']
-                    if messages.find('less_than_order_size') >= 0:
-                        raise InvalidOrder(self.id + ' ' + body)
 
     def nonce(self):
         return self.milliseconds()
@@ -363,3 +416,40 @@ class qryptos (Exchange):
             headers['X-Quoine-Auth'] = self.jwt(request, self.secret)
         url = self.urls['api'] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def handle_errors(self, code, reason, url, method, headers, body, response=None):
+        if code >= 200 and code <= 299:
+            return
+        messages = self.exceptions['messages']
+        if code == 401:
+            # expected non-json response
+            if body in messages:
+                raise messages[body](self.id + ' ' + body)
+            else:
+                return
+        if response is None:
+            if (body[0] == '{') or (body[0] == '['):
+                response = json.loads(body)
+            else:
+                return
+        feedback = self.id + ' ' + self.json(response)
+        if code == 404:
+            # {"message": "Order not found"}
+            message = self.safe_string(response, 'message')
+            if message in messages:
+                raise messages[message](feedback)
+        elif code == 422:
+            # array of error messages is returned in 'user' or 'quantity' property of 'errors' object, e.g.:
+            # {"errors": {"user": ["not_enough_free_balance"]}}
+            # {"errors": {"quantity": ["less_than_order_size"]}}
+            if 'errors' in response:
+                errors = response['errors']
+                errorTypes = ['user', 'quantity', 'price']
+                for i in range(0, len(errorTypes)):
+                    errorType = errorTypes[i]
+                    if errorType in errors:
+                        errorMessages = errors[errorType]
+                        for j in range(0, len(errorMessages)):
+                            message = errorMessages[j]
+                            if message in messages[errorType]:
+                                raise messages[errorType][message](feedback)

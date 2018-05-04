@@ -116,7 +116,7 @@ class luno (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         orderbook = self.publicGetOrderbook(self.extend({
             'pair': self.market_id(symbol),
@@ -146,6 +146,7 @@ class luno (Exchange):
             'id': order['order_id'],
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
+            'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
             'type': None,
@@ -171,6 +172,7 @@ class luno (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
+        last = float(ticker['last_trade'])
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -178,12 +180,14 @@ class luno (Exchange):
             'high': None,
             'low': None,
             'bid': float(ticker['bid']),
+            'bidVolume': None,
             'ask': float(ticker['ask']),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['last_trade']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
@@ -232,15 +236,18 @@ class luno (Exchange):
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetTrades(self.extend({
+        request = {
             'pair': market['id'],
-        }, params))
+        }
+        if since is not None:
+            request['since'] = since
+        response = self.publicGetTrades(self.extend(request, params))
         return self.parse_trades(response['trades'], market, since, limit)
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         method = 'privatePost'
-        order = {'pair': self.market_id(market)}
+        order = {'pair': self.market_id(symbol)}
         if type == 'market':
             method += 'Marketorder'
             order['type'] = side.upper()
@@ -249,7 +256,7 @@ class luno (Exchange):
             else:
                 order['base_volume'] = amount
         else:
-            method += 'Order'
+            method += 'Postorder'
             order['volume'] = amount
             order['price'] = price
             if side == 'buy':

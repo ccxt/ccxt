@@ -8,7 +8,6 @@ const { ExchangeError } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class bithumb extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bithumb',
@@ -79,7 +78,7 @@ module.exports = class bithumb extends Exchange {
                 let base = id;
                 let quote = 'KRW';
                 let symbol = id + '/' + quote;
-                result.push (this.extend (this.fees['trading'], {
+                result.push ({
                     'id': id,
                     'symbol': symbol,
                     'base': base,
@@ -105,7 +104,7 @@ module.exports = class bithumb extends Exchange {
                             'max': undefined,
                         },
                     },
-                }));
+                });
             }
         }
         return result;
@@ -131,13 +130,15 @@ module.exports = class bithumb extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetOrderbookCurrency (this.extend ({
-            'count': 50, // max = 50
+        let request = {
             'currency': market['base'],
-        }, params));
+        };
+        if (typeof limit !== 'undefined')
+            request['count'] = limit; // max = 50
+        let response = await this.publicGetOrderbookCurrency (this.extend (request, params));
         let orderbook = response['data'];
         let timestamp = parseInt (orderbook['timestamp']);
         return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 'price', 'quantity');
@@ -148,6 +149,11 @@ module.exports = class bithumb extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        let open = this.safeFloat (ticker, 'opening_price');
+        let close = this.safeFloat (ticker, 'closing_price');
+        let change = close - open;
+        let vwap = this.safeFloat (ticker, 'average_price');
+        let baseVolume = this.safeFloat (ticker, 'volume_1day');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -155,17 +161,19 @@ module.exports = class bithumb extends Exchange {
             'high': this.safeFloat (ticker, 'max_price'),
             'low': this.safeFloat (ticker, 'min_price'),
             'bid': this.safeFloat (ticker, 'buy_price'),
+            'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'sell_price'),
-            'vwap': undefined,
-            'open': this.safeFloat (ticker, 'opening_price'),
-            'close': this.safeFloat (ticker, 'closing_price'),
-            'first': undefined,
-            'last': this.safeFloat (ticker, 'last_trade'),
-            'change': undefined,
-            'percentage': undefined,
-            'average': this.safeFloat (ticker, 'average_price'),
-            'baseVolume': this.safeFloat (ticker, 'volume_1day'),
-            'quoteVolume': undefined,
+            'askVolume': undefined,
+            'vwap': vwap,
+            'open': open,
+            'close': close,
+            'last': close,
+            'previousClose': undefined,
+            'change': change,
+            'percentage': change / open * 100,
+            'average': this.sum (open, close) / 2,
+            'baseVolume': baseVolume,
+            'quoteVolume': baseVolume * vwap,
             'info': ticker,
         };
     }
@@ -282,6 +290,7 @@ module.exports = class bithumb extends Exchange {
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
         let request = {
             'units': amount,
             'address': address,
@@ -339,4 +348,4 @@ module.exports = class bithumb extends Exchange {
         }
         return response;
     }
-}
+};

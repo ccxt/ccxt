@@ -11,6 +11,12 @@ if (count ($argv) > 2) {
     $id = $argv[1];
     $member = $argv[2];
     $args = array_slice ($argv, 3);
+    $verbose = count (array_filter ($args, function ($option) { return strstr ($option, '--verbose') !== false; })) > 0;
+    $args = array_filter ($args, function ($option) { return strstr ($option, '--verbose') === false; });
+    $args = array_map (function ($arg) {
+        return ($arg[0] === '{' || $arg[0] === '[') ? json_decode ($arg) :
+            (preg_match ('/[a-zA-Z]/', $arg) ? $arg : floatval ($arg));
+    }, $args);
 
     $exchange_found = in_array ($id, \ccxt\Exchange::$exchanges);
 
@@ -22,11 +28,11 @@ if (count ($argv) > 2) {
 
         $config = json_decode (file_get_contents ($keys_file), true);
 
-        print_r ($keys_file);
-        print_r ($config[$id]);
+        echo print_r ($keys_file, true) . "\n";
+        // echo print_r ($config[$id]) . "\n";
 
         $config = array_merge ($config[$id], array (
-            'verbose' => false, // set to true for debugging
+            'verbose' => $verbose, // set to true for debugging
         ));
 
         // instantiate the exchange by id
@@ -47,11 +53,13 @@ if (count ($argv) > 2) {
 
             } catch (\ccxt\NetworkError $e) {
 
-                echo 'Network Error: ' . $e->getMessage () . "\n";
+                echo get_class ($e) . ': ' . $e->getMessage () . "\n";
 
             } catch (\ccxt\ExchangeError $e) {
 
-                echo 'Exchange Error: ' . $e->getMessage () . "\n";
+                echo $e->class . "-\n";
+
+                echo get_class ($e) . ': ' . $e->getMessage () . "\n";
             }
 
         } else if (property_exists ($exchange, $member)) {

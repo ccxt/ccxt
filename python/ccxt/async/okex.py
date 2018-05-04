@@ -15,10 +15,8 @@ class okex (okcoinusd):
             'countries': ['CN', 'US'],
             'has': {
                 'CORS': False,
-                'hutureMarkets': True,
-                'hasFetchTickers': True,
+                'futures': True,
                 'fetchTickers': True,
-                'futureMarkets': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg',
@@ -31,15 +29,44 @@ class okex (okcoinusd):
                 'doc': 'https://www.okex.com/rest_getStarted.html',
                 'fees': 'https://www.okex.com/fees.html',
             },
+            'commonCurrencies': {
+                'FAIR': 'FairGame',
+                'HMC': 'Hi Mutual Society',
+                'MAG': 'Maggie',
+                'NANO': 'XRB',
+                'YOYO': 'YOYOW',
+            },
         })
 
-    def common_currency_code(self, currency):
-        currencies = {
-            'FAIR': 'FairGame',
+    def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
+        market = self.markets[symbol]
+        key = 'quote'
+        rate = market[takerOrMaker]
+        cost = float(self.cost_to_precision(symbol, amount * rate))
+        if side == 'sell':
+            cost *= price
+        else:
+            key = 'base'
+        return {
+            'type': takerOrMaker,
+            'currency': market[key],
+            'rate': rate,
+            'cost': float(self.fee_to_precision(symbol, cost)),
         }
-        if currency in currencies:
-            return currencies[currency]
-        return currency
+
+    async def fetch_markets(self):
+        markets = await super(okex, self).fetch_markets()
+        # TODO: they have a new fee schedule as of Feb 7
+        # the new fees are progressive and depend on 30-day traded volume
+        # the following is the worst case
+        for i in range(0, len(markets)):
+            if markets[i]['spot']:
+                markets[i]['maker'] = 0.0015
+                markets[i]['taker'] = 0.0020
+            else:
+                markets[i]['maker'] = 0.0003
+                markets[i]['taker'] = 0.0005
+        return markets
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()

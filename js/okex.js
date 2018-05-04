@@ -7,7 +7,6 @@ const okcoinusd = require ('./okcoinusd.js');
 // ---------------------------------------------------------------------------
 
 module.exports = class okex extends okcoinusd {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'okex',
@@ -15,10 +14,8 @@ module.exports = class okex extends okcoinusd {
             'countries': [ 'CN', 'US' ],
             'has': {
                 'CORS': false,
-                'hutureMarkets': true,
-                'hasFetchTickers': true,
+                'futures': true,
                 'fetchTickers': true,
-                'futureMarkets': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg',
@@ -31,16 +28,49 @@ module.exports = class okex extends okcoinusd {
                 'doc': 'https://www.okex.com/rest_getStarted.html',
                 'fees': 'https://www.okex.com/fees.html',
             },
+            'commonCurrencies': {
+                'FAIR': 'FairGame',
+                'HMC': 'Hi Mutual Society',
+                'MAG': 'Maggie',
+                'NANO': 'XRB',
+                'YOYO': 'YOYOW',
+            },
         });
     }
 
-    commonCurrencyCode (currency) {
-        const currencies = {
-            'FAIR': 'FairGame',
+    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+        let market = this.markets[symbol];
+        let key = 'quote';
+        let rate = market[takerOrMaker];
+        let cost = parseFloat (this.costToPrecision (symbol, amount * rate));
+        if (side === 'sell') {
+            cost *= price;
+        } else {
+            key = 'base';
+        }
+        return {
+            'type': takerOrMaker,
+            'currency': market[key],
+            'rate': rate,
+            'cost': parseFloat (this.feeToPrecision (symbol, cost)),
         };
-        if (currency in currencies)
-            return currencies[currency];
-        return currency;
+    }
+
+    async fetchMarkets () {
+        let markets = await super.fetchMarkets ();
+        // TODO: they have a new fee schedule as of Feb 7
+        // the new fees are progressive and depend on 30-day traded volume
+        // the following is the worst case
+        for (let i = 0; i < markets.length; i++) {
+            if (markets[i]['spot']) {
+                markets[i]['maker'] = 0.0015;
+                markets[i]['taker'] = 0.0020;
+            } else {
+                markets[i]['maker'] = 0.0003;
+                markets[i]['taker'] = 0.0005;
+            }
+        }
+        return markets;
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -64,4 +94,4 @@ module.exports = class okex extends okcoinusd {
         }
         return result;
     }
-}
+};

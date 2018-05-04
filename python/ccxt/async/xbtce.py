@@ -23,7 +23,7 @@ class xbtce (Exchange):
                 'publicAPI': False,
                 'CORS': False,
                 'fetchTickers': True,
-                'fetchOHLCV': False,
+                'createMarketOrder': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28059414-e235970c-662c-11e7-8c3a-08e31f78684b.jpg',
@@ -148,7 +148,7 @@ class xbtce (Exchange):
             result[uppercase] = account
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         orderbook = await self.privateGetLevel2Filter(self.extend({
@@ -181,12 +181,14 @@ class xbtce (Exchange):
             'high': ticker['DailyBestBuyPrice'],
             'low': ticker['DailyBestSellPrice'],
             'bid': ticker['BestBid'],
+            'bidVolume': None,
             'ask': ticker['BestAsk'],
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
+            'close': last,
             'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
@@ -249,28 +251,28 @@ class xbtce (Exchange):
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        #     minutes = int(timeframe / 60)  # 1 minute by default
+        #     periodicity = str(minutes)
+        #     await self.load_markets()
+        #     market = self.market(symbol)
+        #     if not since:
+        #         since = self.seconds() - 86400 * 7  # last day by defulat
+        #     if not limit:
+        #         limit = 1000  # default
+        #     response = await self.privateGetQuotehistorySymbolPeriodicityBarsBid(self.extend({
+        #         'symbol': market['id'],
+        #         'periodicity': periodicity,
+        #         'timestamp': since,
+        #         'count': limit,
+        #     }, params))
+        #     return self.parse_ohlcvs(response['Bars'], market, timeframe, since, limit)
         raise NotSupported(self.id + ' fetchOHLCV is disabled by the exchange')
-        minutes = int(timeframe / 60)  # 1 minute by default
-        periodicity = str(minutes)
-        await self.load_markets()
-        market = self.market(symbol)
-        if not since:
-            since = self.seconds() - 86400 * 7  # last day by defulat
-        if not limit:
-            limit = 1000  # default
-        response = await self.privateGetQuotehistorySymbolPeriodicityBarsBid(self.extend({
-            'symbol': market['id'],
-            'periodicity': periodicity,
-            'timestamp': since,
-            'count': limit,
-        }, params))
-        return self.parse_ohlcvs(response['Bars'], market, timeframe, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
-        response = await self.tapiPostTrade(self.extend({
+        response = await self.privatePostTrade(self.extend({
             'pair': self.market_id(symbol),
             'type': side,
             'amount': amount,

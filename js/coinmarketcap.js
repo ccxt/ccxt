@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -8,7 +8,6 @@ const { ExchangeError } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class coinmarketcap extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'coinmarketcap',
@@ -20,9 +19,13 @@ module.exports = class coinmarketcap extends Exchange {
                 'CORS': true,
                 'privateAPI': false,
                 'createOrder': false,
+                'createMarketOrder': false,
+                'createLimitOrder': false,
                 'cancelOrder': false,
+                'editOrder': false,
                 'fetchBalance': false,
                 'fetchOrderBook': false,
+                'fetchOHLCV': false,
                 'fetchTrades': false,
                 'fetchTickers': true,
                 'fetchCurrencies': true,
@@ -80,16 +83,25 @@ module.exports = class coinmarketcap extends Exchange {
         });
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         throw new ExchangeError ('Fetching order books is not supported by the API of ' + this.id);
     }
 
     currencyCode (base, name) {
         const currencies = {
-            'Bitgem': 'Bitgem',
-            'NetCoin': 'NetCoin',
+            'ACChain': 'ACChain',
+            'AdCoin': 'AdCoin',
             'BatCoin': 'BatCoin',
+            'Bitgem': 'Bitgem',
+            'BlazeCoin': 'BlazeCoin',
+            'BlockCAT': 'BlockCAT',
+            'Catcoin': 'Catcoin',
+            'Hi Mutual Society': 'Hi Mutual Society',
             'iCoin': 'iCoin',
+            'Maggie': 'Maggie',
+            'MIOTA': 'IOTA', // a special case, most exchanges list it as IOTA, therefore we change just the Coinmarketcap instead of changing them all
+            'NetCoin': 'NetCoin',
+            'Polcoin': 'Polcoin',
         };
         if (name in currencies)
             return currencies[name];
@@ -110,7 +122,7 @@ module.exports = class coinmarketcap extends Exchange {
                 let baseId = market['id'];
                 let base = this.currencyCode (market['symbol'], market['name']);
                 let symbol = base + '/' + quote;
-                let id = baseId + '/' + quote;
+                let id = baseId + '/' + quoteId;
                 result.push ({
                     'id': id,
                     'symbol': symbol,
@@ -163,12 +175,14 @@ module.exports = class coinmarketcap extends Exchange {
             'high': undefined,
             'low': undefined,
             'bid': undefined,
+            'bidVolume': undefined,
             'ask': undefined,
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
+            'close': last,
             'last': last,
+            'previousClose': undefined,
             'change': change,
             'percentage': undefined,
             'average': undefined,
@@ -189,7 +203,8 @@ module.exports = class coinmarketcap extends Exchange {
         let tickers = {};
         for (let t = 0; t < response.length; t++) {
             let ticker = response[t];
-            let id = ticker['id'] + '/' + currency;
+            let currencyId = (currency in this.currencies) ? this.currencies[currency]['id'] : currency.toLowerCase ();
+            let id = ticker['id'] + '/' + currencyId;
             let symbol = id;
             let market = undefined;
             if (id in this.markets_by_id) {
@@ -276,4 +291,4 @@ module.exports = class coinmarketcap extends Exchange {
         }
         return response;
     }
-}
+};

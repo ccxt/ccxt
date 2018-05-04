@@ -19,6 +19,8 @@ class lakebtc (Exchange):
             'version': 'api_v2',
             'has': {
                 'CORS': True,
+                'createMarketOrder': False,
+                'fetchTickers': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28074120-72b7c38a-6660-11e7-92d9-d9027502281d.jpg',
@@ -65,16 +67,18 @@ class lakebtc (Exchange):
         for k in range(0, len(keys)):
             id = keys[k]
             market = markets[id]
-            base = id[0:3]
-            quote = id[3:6]
-            base = base.upper()
-            quote = quote.upper()
+            baseId = id[0:3]
+            quoteId = id[3:6]
+            base = baseId.upper()
+            quote = quoteId.upper()
             symbol = base + '/' + quote
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'info': market,
             })
         return result
@@ -84,33 +88,35 @@ class lakebtc (Exchange):
         response = await self.privatePostGetAccountInfo()
         balances = response['balance']
         result = {'info': response}
-        currencies = list(balances.keys())
-        for c in range(0, len(currencies)):
-            currency = currencies[c]
-            balance = float(balances[currency])
+        ids = list(balances.keys())
+        for i in range(0, len(ids)):
+            id = ids[i]
+            code = id
+            if id in self.currencies_by_id:
+                currency = self.currencies_by_id[id]
+                code = currency['code']
+            balance = float(balances[id])
             account = {
                 'free': balance,
                 'used': 0.0,
                 'total': balance,
             }
-            result[currency] = account
+            result[code] = account
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         orderbook = await self.publicGetBcorderbook(self.extend({
             'symbol': self.market_id(symbol),
         }, params))
         return self.parse_order_book(orderbook)
 
-    async def fetch_ticker(self, symbol, params={}):
-        await self.load_markets()
-        market = self.market(symbol)
-        tickers = await self.publicGetTicker(self.extend({
-            'symbol': market['id'],
-        }, params))
-        ticker = tickers[market['id']]
+    def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -118,12 +124,14 @@ class lakebtc (Exchange):
             'high': self.safe_float(ticker, 'high'),
             'low': self.safe_float(ticker, 'low'),
             'bid': self.safe_float(ticker, 'bid'),
+            'bidVolume': None,
             'ask': self.safe_float(ticker, 'ask'),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': self.safe_float(ticker, 'last'),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
@@ -131,6 +139,27 @@ class lakebtc (Exchange):
             'quoteVolume': None,
             'info': ticker,
         }
+
+    async def fetch_tickers(self, symbols=None, params={}):
+        await self.load_markets()
+        tickers = await self.publicGetTicker(params)
+        ids = list(tickers.keys())
+        result = {}
+        for i in range(0, len(ids)):
+            symbol = ids[i]
+            ticker = tickers[symbol]
+            market = None
+            if symbol in self.markets_by_id:
+                market = self.markets_by_id[symbol]
+                symbol = market['symbol']
+            result[symbol] = self.parse_ticker(ticker, market)
+        return result
+
+    async def fetch_ticker(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        tickers = await self.publicGetTicker(params)
+        return self.parse_ticker(tickers[market['id']], market)
 
     def parse_trade(self, trade, market):
         timestamp = trade['date'] * 1000
@@ -155,14 +184,14 @@ class lakebtc (Exchange):
         }, params))
         return self.parse_trades(response, market, since, limit)
 
-    async def create_order(self, market, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
         method = 'privatePost' + self.capitalize(side) + 'Order'
-        marketId = self.market_id(market)
+        market = self.market(symbol)
         order = {
-            'params': [price, amount, marketId],
+            'params': [price, amount, market['id']],
         }
         response = await getattr(self, method)(self.extend(order, params))
         return {
@@ -206,8 +235,8 @@ class lakebtc (Exchange):
             signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha1)
             auth = self.encode(self.apiKey + ':' + signature)
             headers = {
-                'Json-Rpc-Tonce': nonce,
-                'Authorization': "Basic " + self.decode(base64.b64encode(auth)),
+                'Json-Rpc-Tonce': str(nonce),
+                'Authorization': 'Basic ' + self.decode(base64.b64encode(auth)),
                 'Content-Type': 'application/json',
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

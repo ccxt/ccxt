@@ -113,7 +113,7 @@ class coincheck (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         if symbol != 'BTC/JPY':
             raise NotSupported(self.id + ' fetchOrderBook() supports BTC/JPY only')
         orderbook = self.publicGetOrderBooks(params)
@@ -124,6 +124,7 @@ class coincheck (Exchange):
             raise NotSupported(self.id + ' fetchTicker() supports BTC/JPY only')
         ticker = self.publicGetTicker(params)
         timestamp = ticker['timestamp'] * 1000
+        last = float(ticker['last'])
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -131,12 +132,14 @@ class coincheck (Exchange):
             'high': float(ticker['high']),
             'low': float(ticker['low']),
             'bid': float(ticker['bid']),
+            'bidVolume': None,
             'ask': float(ticker['ask']),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,

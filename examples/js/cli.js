@@ -4,15 +4,17 @@
 
 const [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x => !x.startsWith ('--'))
 const verbose = process.argv.includes ('--verbose')
+const cloudscrape = process.argv.includes ('--cloudscrape')
+const poll = process.argv.includes ('--poll')
 
 //-----------------------------------------------------------------------------
 
-const ccxt      = require ('../../ccxt.js')
-    , fs        = require ('fs')
-    , path      = require ('path')
-    , asTable   = require ('as-table')
-    , util      = require ('util')
-    , log       = require ('ololog').configure ({ locate: false })
+const ccxt         = require ('../../ccxt.js')
+    , fs           = require ('fs')
+    , path         = require ('path')
+    , asTable      = require ('as-table')
+    , util         = require ('util')
+    , log          = require ('ololog').configure ({ locate: false })
     , { ExchangeError, NetworkError } = ccxt
 
 //-----------------------------------------------------------------------------
@@ -23,6 +25,28 @@ require ('ansicolor').nice
 
 process.on ('uncaughtException',  e => { log.bright.red.error (e); process.exit (1) })
 process.on ('unhandledRejection', e => { log.bright.red.error (e); process.exit (1) })
+
+//-----------------------------------------------------------------------------
+// cloudscraper helper
+
+const scrapeCloudflareHttpHeaderCookie = (url) =>
+
+	(new Promise ((resolve, reject) => {
+
+        const cloudscraper = require ('cloudscraper')
+		return cloudscraper.get (url, function (error, response, body) {
+
+			if (error) {
+
+                log.red ('Cloudscraper error')
+				reject (error)
+
+			} else {
+
+				resolve (response.request.headers)
+			}
+        })
+    }))
 
 //-----------------------------------------------------------------------------
 
@@ -71,51 +95,62 @@ async function main () {
     } else {
 
         let args = params.map (param => {
-            if (param[0] === '{')
+            if (param[0] === '{' || param[0] === '[')
                 return JSON.parse (param)
             return param.match (/[a-zA-Z]/g) ? param : parseFloat (param)
         })
 
         if (typeof exchange[methodName] === 'function') {
-            try {
 
-                log (exchange.id + '.' + methodName, '(' + args.join (', ') + ')')
+            if (cloudscrape)
+                exchange.headers = await scrapeCloudflareHttpHeaderCookie (exchange.urls.www)
 
-                const result = await exchange[methodName] (... args)
+            log (exchange.id + '.' + methodName, '(' + args.join (', ') + ')')
 
-                if (Array.isArray (result)) {
+            while (true) {
 
-                    result.forEach (object => {
-                        log ('-------------------------------------------')
-                        log (object)
-                    })
+                try {
 
-                    log (result.length > 0 ? asTable (result) : result)
+                    const result = await exchange[methodName] (... args)
 
-                } else {
+                    if (Array.isArray (result)) {
 
-                    log.maxDepth (10).maxArrayLength (1000) (result)
+                        result.forEach (object => {
+                            log ('-------------------------------------------')
+                            log (object)
+                        })
+
+                        log (result.length > 0 ? asTable (result) : result)
+
+                    } else {
+
+                        log.maxDepth (10).maxArrayLength (1000) (result)
+                    }
+
+
+                } catch (e) {
+
+                    if (e instanceof ExchangeError) {
+
+                        log.red (e.constructor.name, e.message)
+
+                    } else if (e instanceof NetworkError) {
+
+                        log.yellow (e.constructor.name, e.message)
+
+                    }
+
+                    log.dim ('---------------------------------------------------')
+
+                    // rethrow for call-stack // other errors
+                    throw e
+
                 }
 
-
-            } catch (e) {
-
-                if (e instanceof ExchangeError) {
-
-                    log.red (e.constructor.name, e.message)
-
-                } else if (e instanceof NetworkError) {
-
-                    log.yellow (e.constructor.name, e.message)
-
-                }
-
-                log.dim ('---------------------------------------------------')
-
-                // rethrow for call-stack // other errors
-                throw e
-
+                if (!poll)
+                    break;
             }
+
         } else if (typeof exchange[methodName] === 'undefined') {
             log.red (exchange.id + '.' + methodName + ': no such property')
         } else {

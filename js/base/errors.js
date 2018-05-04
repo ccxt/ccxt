@@ -13,19 +13,22 @@ module.exports = subclass (
     { 'BaseError':
         { 'ExchangeError':
             { 'NotSupported':               {}
-            , 'AuthenticationError':        {}
-            , 'InvalidNonce':               {}
+            , 'AuthenticationError':
+                { 'PermissionDenied':       {}
+                }
             , 'InsufficientFunds':          {}
+            , 'InvalidAddress':             {}
             , 'InvalidOrder':
                 { 'OrderNotFound':          {}
                 , 'OrderNotCached':         {}
                 , 'CancelPending':          {}
                 }
-            , 'NetworkError':
-                { 'DDoSProtection':         {}
-                , 'RequestTimeout':         {}
-                , 'ExchangeNotAvailable':   {}
-                }
+            }
+        , 'NetworkError':
+            { 'DDoSProtection':         {}
+            , 'RequestTimeout':         {}
+            , 'ExchangeNotAvailable':   {}
+            , 'InvalidNonce':           {}
             }
         }
     }

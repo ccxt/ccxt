@@ -12,12 +12,13 @@ module.exports = class hitbtc extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'hitbtc',
             'name': 'HitBTC',
-            'countries': 'UK',
+            'countries': 'HK',
             'rateLimit': 1500,
             'version': '1',
             'has': {
                 'CORS': false,
                 'fetchTrades': true,
+                'fetchTickers': true,
                 'fetchOrder': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
@@ -75,6 +76,7 @@ module.exports = class hitbtc extends Exchange {
                     ],
                 },
             },
+            // hardcoded fees are deprecated and should only be used when there's no other way to get fee info
             'fees': {
                 'trading': {
                     'tierBased': false,
@@ -86,7 +88,7 @@ module.exports = class hitbtc extends Exchange {
                     'tierBased': false,
                     'percentage': false,
                     'withdraw': {
-                        'BTC': 0.00085,
+                        'BTC': 0.001,
                         'BCC': 0.0018,
                         'ETH': 0.00215,
                         'BCH': 0.0018,
@@ -479,20 +481,15 @@ module.exports = class hitbtc extends Exchange {
                     },
                 },
             },
+            'commonCurrencies': {
+                'BCC': 'BCC',
+                'XBT': 'BTC',
+                'DRK': 'DASH',
+                'CAT': 'BitClave',
+                'USD': 'USDT',
+                'EMGO': 'MGO',
+            },
         });
-    }
-
-    commonCurrencyCode (currency) {
-        let currencies = {
-            'XBT': 'BTC',
-            'DRK': 'DASH',
-            'CAT': 'BitClave',
-            'USD': 'USDT',
-            'EMGO': 'MGO',
-        };
-        if (currency in currencies)
-            return currencies[currency];
-        return currency;
     }
 
     async fetchMarkets () {
@@ -518,6 +515,8 @@ module.exports = class hitbtc extends Exchange {
                 'lot': lot,
                 'step': step,
                 'info': market,
+                'maker': this.safeFloat (market, 'provideLiquidityRate'),
+                'taker': this.safeFloat (market, 'takeLiquidityRate'),
                 'precision': {
                     'amount': this.precisionFromString (market['lot']),
                     'price': this.precisionFromString (market['step']),
@@ -566,7 +565,7 @@ module.exports = class hitbtc extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetSymbolOrderbook (this.extend ({
             'symbol': this.marketId (symbol),
@@ -579,6 +578,7 @@ module.exports = class hitbtc extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -586,12 +586,14 @@ module.exports = class hitbtc extends Exchange {
             'high': this.safeFloat (ticker, 'high'),
             'low': this.safeFloat (ticker, 'low'),
             'bid': this.safeFloat (ticker, 'bid'),
+            'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'ask'),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': this.safeFloat (ticker, 'open'),
-            'close': undefined,
-            'first': undefined,
-            'last': this.safeFloat (ticker, 'last'),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
@@ -791,6 +793,7 @@ module.exports = class hitbtc extends Exchange {
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
             'type': order['type'],
@@ -860,6 +863,7 @@ module.exports = class hitbtc extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
         await this.loadMarkets ();
         let currency = this.currency (code);
         let request = {

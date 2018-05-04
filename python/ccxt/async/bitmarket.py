@@ -196,17 +196,11 @@ class bitmarket (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         orderbook = await self.publicGetJsonMarketOrderbook(self.extend({
             'market': self.market_id(symbol),
         }, params))
-        timestamp = self.milliseconds()
-        return {
-            'bids': orderbook['bids'],
-            'asks': orderbook['asks'],
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-        }
+        return self.parse_order_book(orderbook)
 
     async def fetch_ticker(self, symbol, params={}):
         ticker = await self.publicGetJsonMarketTicker(self.extend({
@@ -216,6 +210,7 @@ class bitmarket (Exchange):
         vwap = float(ticker['vwap'])
         baseVolume = float(ticker['volume'])
         quoteVolume = baseVolume * vwap
+        last = float(ticker['last'])
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -223,12 +218,14 @@ class bitmarket (Exchange):
             'high': float(ticker['high']),
             'low': float(ticker['low']),
             'bid': float(ticker['bid']),
+            'bidVolume': None,
             'ask': float(ticker['ask']),
+            'askVolume': None,
             'vwap': vwap,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
@@ -304,6 +301,7 @@ class bitmarket (Exchange):
         return False
 
     async def withdraw(self, currency, amount, address, tag=None, params={}):
+        self.check_address(address)
         await self.load_markets()
         method = None
         request = {

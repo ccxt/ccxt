@@ -15,9 +15,9 @@ import hashlib
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
-from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import InvalidNonce
 
 
 class bitbay (Exchange):
@@ -30,7 +30,7 @@ class bitbay (Exchange):
             'rateLimit': 1000,
             'has': {
                 'CORS': True,
-                'withdraw': True
+                'withdraw': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg',
@@ -102,6 +102,14 @@ class bitbay (Exchange):
                 'GAME/EUR': {'id': 'GAMEEUR', 'symbol': 'GAME/EUR', 'base': 'GAME', 'quote': 'EUR', 'baseId': 'GAME', 'quoteId': 'EUR'},
                 'GAME/PLN': {'id': 'GAMEPLN', 'symbol': 'GAME/PLN', 'base': 'GAME', 'quote': 'PLN', 'baseId': 'GAME', 'quoteId': 'PLN'},
                 'GAME/BTC': {'id': 'GAMEBTC', 'symbol': 'GAME/BTC', 'base': 'GAME', 'quote': 'BTC', 'baseId': 'GAME', 'quoteId': 'BTC'},
+                'XRP/USD': {'id': 'XRPUSD', 'symbol': 'XRP/USD', 'base': 'XRP', 'quote': 'USD', 'baseId': 'XRP', 'quoteId': 'USD'},
+                'XRP/EUR': {'id': 'XRPEUR', 'symbol': 'XRP/EUR', 'base': 'XRP', 'quote': 'EUR', 'baseId': 'XRP', 'quoteId': 'EUR'},
+                'XRP/PLN': {'id': 'XRPPLN', 'symbol': 'XRP/PLN', 'base': 'XRP', 'quote': 'PLN', 'baseId': 'XRP', 'quoteId': 'PLN'},
+                'XRP/BTC': {'id': 'XRPBTC', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC', 'baseId': 'XRP', 'quoteId': 'BTC'},
+                # 'XIN/USD': {'id': 'XINUSD', 'symbol': 'XIN/USD', 'base': 'XIN', 'quote': 'USD', 'baseId': 'XIN', 'quoteId': 'USD'},
+                # 'XIN/EUR': {'id': 'XINEUR', 'symbol': 'XIN/EUR', 'base': 'XIN', 'quote': 'EUR', 'baseId': 'XIN', 'quoteId': 'EUR'},
+                # 'XIN/PLN': {'id': 'XINPLN', 'symbol': 'XIN/PLN', 'base': 'XIN', 'quote': 'PLN', 'baseId': 'XIN', 'quoteId': 'PLN'},
+                'XIN/BTC': {'id': 'XINBTC', 'symbol': 'XIN/BTC', 'base': 'XIN', 'quote': 'BTC', 'baseId': 'XIN', 'quoteId': 'BTC'},
             },
             'fees': {
                 'trading': {
@@ -164,7 +172,7 @@ class bitbay (Exchange):
             return self.parse_balance(result)
         raise ExchangeError(self.id + ' empty balance response ' + self.json(response))
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         orderbook = await self.publicGetIdOrderbook(self.extend({
             'id': self.market_id(symbol),
         }, params))
@@ -178,6 +186,7 @@ class bitbay (Exchange):
         baseVolume = self.safe_float(ticker, 'volume')
         vwap = self.safe_float(ticker, 'vwap')
         quoteVolume = baseVolume * vwap
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -185,12 +194,14 @@ class bitbay (Exchange):
             'high': self.safe_float(ticker, 'max'),
             'low': self.safe_float(ticker, 'min'),
             'bid': self.safe_float(ticker, 'bid'),
+            'bidVolume': None,
             'ask': self.safe_float(ticker, 'ask'),
+            'askVolume': None,
             'vwap': vwap,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': self.safe_float(ticker, 'last'),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': self.safe_float(ticker, 'average'),
@@ -221,6 +232,8 @@ class bitbay (Exchange):
         return self.parse_trades(response, market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        if type != 'limit':
+            raise ExchangeError(self.id + ' allows limit orders only')
         market = self.market(symbol)
         return self.privatePostTrade(self.extend({
             'type': side,
@@ -244,6 +257,7 @@ class bitbay (Exchange):
         return False
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        self.check_address(address)
         await self.load_markets()
         method = None
         currency = self.currency(code)
@@ -258,6 +272,8 @@ class bitbay (Exchange):
             # request['bic'] = ''
         else:
             method = 'privatePostTransfer'
+            if tag is not None:
+                address += '?dt=' + str(tag)
             request['address'] = address
         response = await getattr(self, method)(self.extend(request, params))
         return {
@@ -268,7 +284,9 @@ class bitbay (Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]
         if api == 'public':
+            query = self.omit(params, self.extract_params(path))
             url += '/' + self.implode_params(path, params) + '.json'
+            url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
             body = self.urlencode(self.extend({
@@ -297,6 +315,23 @@ class bitbay (Exchange):
                 #      {'success': 1, ...}
                 #      {'code': 502, 'message': 'Invalid sign'}
                 #      {'code': 0, 'message': 'offer funds not exceeding minimums'}
+                #
+                #      400 At least one parameter wasn't set
+                #      401 Invalid order type
+                #      402 No orders with specified currencies
+                #      403 Invalid payment currency name
+                #      404 Error. Wrong transaction type
+                #      405 Order with self id doesn't exist
+                #      406 No enough money or crypto
+                #      408 Invalid currency name
+                #      501 Invalid public key
+                #      502 Invalid sign
+                #      503 Invalid moment parameter. Request time doesn't match current server time
+                #      504 Invalid method
+                #      505 Key has no permission for self action
+                #      506 Account locked. Please contact with customer service
+                #      509 The BIC/SWIFT is required for self currency
+                #      510 Invalid market name
                 #
                 code = response['code']  # always an integer
                 feedback = self.id + ' ' + self.json(response)
