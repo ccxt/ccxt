@@ -465,6 +465,8 @@ module.exports = class okcoinusd extends Exchange {
             return 'open';
         if (status === 2)
             return 'closed';
+        if (status === 3)
+            return 'open';
         if (status === 4)
             return 'canceled';
         return status;
