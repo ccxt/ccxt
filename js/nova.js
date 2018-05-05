@@ -68,18 +68,20 @@ module.exports = class nova extends Exchange {
         let result = [];
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
-            if (!market['disabled']) {
-                let id = market['marketname'];
-                let [ quote, base ] = id.split ('_');
-                let symbol = base + '/' + quote;
-                result.push ({
-                    'id': id,
-                    'symbol': symbol,
-                    'base': base,
-                    'quote': quote,
-                    'info': market,
-                });
-            }
+            let id = market['marketname'];
+            let [ quote, base ] = id.split ('_');
+            let symbol = base + '/' + quote;
+            let active = true;
+            if (market['disabled'])
+                active = false;
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'active': active,
+                'info': market,
+            });
         }
         return result;
     }
