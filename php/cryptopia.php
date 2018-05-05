@@ -123,7 +123,7 @@ class cryptopia extends Exchange {
                 'amount' => $amountLimits,
                 'price' => $priceLimits,
                 'cost' => array (
-                    'min' => $priceLimits['min'] * $amountLimits['min'],
+                    'min' => $market['MinimumBaseTrade'],
                     'max' => null,
                 ),
             );
