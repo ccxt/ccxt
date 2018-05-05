@@ -164,27 +164,27 @@ class virwox extends Exchange {
         $lastKey = $keys[$length - 1];
         $ticker = $tickers[$lastKey];
         $timestamp = $this->milliseconds ();
-        $close = floatval ($ticker['close']);
+        $close = $this->safe_float($ticker, 'close');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['high']),
-            'low' => floatval ($ticker['low']),
+            'high' => $this->safe_float($ticker, 'high'),
+            'low' => $this->safe_float($ticker, 'low'),
             'bid' => null,
             'bidVolume' => null,
             'ask' => null,
             'askVolume' => null,
             'vwap' => null,
-            'open' => floatval ($ticker['open']),
+            'open' => $this->safe_float($ticker, 'open'),
             'close' => $close,
             'last' => $close,
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($ticker['longVolume']),
-            'quoteVolume' => floatval ($ticker['shortVolume']),
+            'baseVolume' => $this->safe_float($ticker, 'longVolume'),
+            'quoteVolume' => $this->safe_float($ticker, 'shortVolume'),
             'info' => $ticker,
         );
     }

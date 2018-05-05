@@ -193,8 +193,8 @@ class bitfinex2 extends bitfinex {
             );
             $limits = array (
                 'amount' => array (
-                    'min' => floatval ($market['minimum_order_size']),
-                    'max' => floatval ($market['maximum_order_size']),
+                    'min' => $this->safe_float($market, 'minimum_order_size'),
+                    'max' => $this->safe_float($market, 'maximum_order_size'),
                 ),
                 'price' => array (
                     'min' => pow (10, -$precision['price']),

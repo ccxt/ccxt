@@ -84,18 +84,18 @@ class fybse extends Exchange {
         $last = null;
         $volume = null;
         if (is_array ($ticker) && array_key_exists ('last', $ticker))
-            $last = floatval ($ticker['last']);
+            $last = $this->safe_float($ticker, 'last');
         if (is_array ($ticker) && array_key_exists ('vol', $ticker))
-            $volume = floatval ($ticker['vol']);
+            $volume = $this->safe_float($ticker, 'vol');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => null,
             'low' => null,
-            'bid' => floatval ($ticker['bid']),
+            'bid' => $this->safe_float($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => floatval ($ticker['ask']),
+            'ask' => $this->safe_float($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -122,8 +122,8 @@ class fybse extends Exchange {
             'symbol' => $market['symbol'],
             'type' => null,
             'side' => null,
-            'price' => floatval ($trade['price']),
-            'amount' => floatval ($trade['amount']),
+            'price' => $this->safe_float($trade, 'price'),
+            'amount' => $this->safe_float($trade, 'amount'),
         );
     }
 

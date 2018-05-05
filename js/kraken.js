@@ -432,7 +432,7 @@ module.exports = class kraken extends Exchange {
             'ask': parseFloat (ticker['a'][0]),
             'askVolume': undefined,
             'vwap': vwap,
-            'open': parseFloat (ticker['o']),
+            'open': this.safeFloat (ticker, 'o'),
             'close': last,
             'last': last,
             'previousClose': undefined,
@@ -527,14 +527,14 @@ module.exports = class kraken extends Exchange {
             timestamp = parseInt (trade['time'] * 1000);
             side = trade['type'];
             type = trade['ordertype'];
-            price = parseFloat (trade['price']);
-            amount = parseFloat (trade['vol']);
+            price = this.safeFloat (trade, 'price');
+            amount = this.safeFloat (trade, 'vol');
             if ('fee' in trade) {
                 let currency = undefined;
                 if (market)
                     currency = market['quote'];
                 fee = {
-                    'cost': parseFloat (trade['fee']),
+                    'cost': this.safeFloat (trade, 'fee'),
                     'currency': currency,
                 };
             }
@@ -654,8 +654,8 @@ module.exports = class kraken extends Exchange {
         if (!market)
             market = this.findMarketByAltnameOrId (description['pair']);
         let timestamp = parseInt (order['opentm'] * 1000);
-        let amount = parseFloat (order['vol']);
-        let filled = parseFloat (order['vol_exec']);
+        let amount = this.safeFloat (order, 'vol');
+        let filled = this.safeFloat (order, 'vol_exec');
         let remaining = amount - filled;
         let fee = undefined;
         let cost = this.safeFloat (order, 'cost');

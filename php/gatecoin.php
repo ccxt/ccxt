@@ -190,7 +190,12 @@ class gatecoin extends Exchange {
                 ),
             ),
             'commonCurrencies' => array (
+                'BCP' => 'BCPT',
+                'FLI' => 'FLIXX',
                 'MAN' => 'MANA',
+                'SLT' => 'SALT',
+                'TRA' => 'TRAC',
+                'WGS' => 'WINGS',
             ),
         ));
     }
@@ -288,22 +293,22 @@ class gatecoin extends Exchange {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
-        $baseVolume = floatval ($ticker['volume']);
-        $vwap = floatval ($ticker['vwap']);
+        $baseVolume = $this->safe_float($ticker, 'volume');
+        $vwap = $this->safe_float($ticker, 'vwap');
         $quoteVolume = $baseVolume * $vwap;
-        $last = floatval ($ticker['last']);
+        $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['high']),
-            'low' => floatval ($ticker['low']),
-            'bid' => floatval ($ticker['bid']),
+            'high' => $this->safe_float($ticker, 'high'),
+            'low' => $this->safe_float($ticker, 'low'),
+            'bid' => $this->safe_float($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => floatval ($ticker['ask']),
+            'ask' => $this->safe_float($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => $vwap,
-            'open' => floatval ($ticker['open']),
+            'open' => $this->safe_float($ticker, 'open'),
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
@@ -641,11 +646,7 @@ class gatecoin extends Exchange {
             'DigiCurrency' => $currency['id'],
         );
         $response = $this->privatePostElectronicWalletDepositWalletsDigiCurrency (array_merge ($request, $params));
-        $result = $response['addresses'];
-        $numResults = is_array ($result) ? count ($result) : 0;
-        if ($numResults < 1)
-            throw new InvalidAddress ($this->id . ' privatePostElectronicWalletDepositWalletsDigiCurrency() returned no addresses');
-        $address = $this->safe_string($result[0], 'address');
+        $address = $response['address'];
         $this->check_address($address);
         return array (
             'currency' => $code,

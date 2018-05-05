@@ -295,21 +295,21 @@ class livecoin extends Exchange {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
-        $vwap = floatval ($ticker['vwap']);
-        $baseVolume = floatval ($ticker['volume']);
+        $vwap = $this->safe_float($ticker, 'vwap');
+        $baseVolume = $this->safe_float($ticker, 'volume');
         $quoteVolume = $baseVolume * $vwap;
-        $last = floatval ($ticker['last']);
+        $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['high']),
-            'low' => floatval ($ticker['low']),
-            'bid' => floatval ($ticker['best_bid']),
+            'high' => $this->safe_float($ticker, 'high'),
+            'low' => $this->safe_float($ticker, 'low'),
+            'bid' => $this->safe_float($ticker, 'best_bid'),
             'bidVolume' => null,
-            'ask' => floatval ($ticker['best_ask']),
+            'ask' => $this->safe_float($ticker, 'best_ask'),
             'askVolume' => null,
-            'vwap' => floatval ($ticker['vwap']),
+            'vwap' => $this->safe_float($ticker, 'vwap'),
             'open' => null,
             'close' => $last,
             'last' => $last,

@@ -258,16 +258,16 @@ module.exports = class zb extends Exchange {
         let response = await this.publicGetTicker (this.extend (request, params));
         let ticker = response['ticker'];
         let timestamp = this.milliseconds ();
-        let last = parseFloat (ticker['last']);
+        let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']),
-            'low': parseFloat (ticker['low']),
-            'bid': parseFloat (ticker['buy']),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'buy'),
             'bidVolume': undefined,
-            'ask': parseFloat (ticker['sell']),
+            'ask': this.safeFloat (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -277,7 +277,7 @@ module.exports = class zb extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': parseFloat (ticker['vol']),
+            'baseVolume': this.safeFloat (ticker, 'vol'),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -310,8 +310,8 @@ module.exports = class zb extends Exchange {
             'symbol': market['symbol'],
             'type': undefined,
             'side': side,
-            'price': parseFloat (trade['price']),
-            'amount': parseFloat (trade['amount']),
+            'price': this.safeFloat (trade, 'price'),
+            'amount': this.safeFloat (trade, 'amount'),
         };
     }
 

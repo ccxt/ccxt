@@ -540,10 +540,10 @@ class huobipro (Exchange):
         if market:
             symbol = market['symbol']
         timestamp = order['created-at']
-        amount = float(order['amount'])
+        amount = self.safe_float(order, 'amount')
         filled = float(order['field-amount'])
         remaining = amount - filled
-        price = float(order['price'])
+        price = self.safe_float(order, 'price')
         cost = float(order['field-cash-amount'])
         average = 0
         if filled:

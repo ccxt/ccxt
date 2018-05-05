@@ -140,8 +140,8 @@ class kuna (acx):
             'symbol': symbol,
             'type': None,
             'side': None,
-            'price': float(trade['price']),
-            'amount': float(trade['volume']),
+            'price': self.safe_float(trade, 'price'),
+            'amount': self.safe_float(trade, 'volume'),
             'info': trade,
         }
 

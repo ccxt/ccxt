@@ -148,8 +148,8 @@ module.exports = class kuna extends acx {
             'symbol': symbol,
             'type': undefined,
             'side': undefined,
-            'price': parseFloat (trade['price']),
-            'amount': parseFloat (trade['volume']),
+            'price': this.safeFloat (trade, 'price'),
+            'amount': this.safeFloat (trade, 'volume'),
             'info': trade,
         };
     }

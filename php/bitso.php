@@ -93,16 +93,16 @@ class bitso extends Exchange {
             list ($base, $quote) = explode ('/', $symbol);
             $limits = array (
                 'amount' => array (
-                    'min' => floatval ($market['minimum_amount']),
-                    'max' => floatval ($market['maximum_amount']),
+                    'min' => $this->safe_float($market, 'minimum_amount'),
+                    'max' => $this->safe_float($market, 'maximum_amount'),
                 ),
                 'price' => array (
-                    'min' => floatval ($market['minimum_price']),
-                    'max' => floatval ($market['maximum_price']),
+                    'min' => $this->safe_float($market, 'minimum_price'),
+                    'max' => $this->safe_float($market, 'maximum_price'),
                 ),
                 'cost' => array (
-                    'min' => floatval ($market['minimum_value']),
-                    'max' => floatval ($market['maximum_value']),
+                    'min' => $this->safe_float($market, 'minimum_value'),
+                    'max' => $this->safe_float($market, 'maximum_value'),
                 ),
             );
             $precision = array (
@@ -159,19 +159,19 @@ class bitso extends Exchange {
         ), $params));
         $ticker = $response['payload'];
         $timestamp = $this->parse8601 ($ticker['created_at']);
-        $vwap = floatval ($ticker['vwap']);
-        $baseVolume = floatval ($ticker['volume']);
+        $vwap = $this->safe_float($ticker, 'vwap');
+        $baseVolume = $this->safe_float($ticker, 'volume');
         $quoteVolume = $baseVolume * $vwap;
-        $last = floatval ($ticker['last']);
+        $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['high']),
-            'low' => floatval ($ticker['low']),
-            'bid' => floatval ($ticker['bid']),
+            'high' => $this->safe_float($ticker, 'high'),
+            'low' => $this->safe_float($ticker, 'low'),
+            'bid' => $this->safe_float($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => floatval ($ticker['ask']),
+            'ask' => $this->safe_float($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => $vwap,
             'open' => null,
@@ -318,8 +318,8 @@ class bitso extends Exchange {
             $symbol = $market['symbol'];
         $orderType = $order['type'];
         $timestamp = $this->parse8601 ($order['created_at']);
-        $amount = floatval ($order['original_amount']);
-        $remaining = floatval ($order['unfilled_amount']);
+        $amount = $this->safe_float($order, 'original_amount');
+        $remaining = $this->safe_float($order, 'unfilled_amount');
         $filled = $amount - $remaining;
         $result = array (
             'info' => $order,

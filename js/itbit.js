@@ -129,8 +129,8 @@ module.exports = class itbit extends Exchange {
             'order': id,
             'type': undefined,
             'side': undefined,
-            'price': parseFloat (trade['price']),
-            'amount': parseFloat (trade['amount']),
+            'price': this.safeFloat (trade, 'price'),
+            'amount': this.safeFloat (trade, 'amount'),
         };
     }
 

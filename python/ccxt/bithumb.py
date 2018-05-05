@@ -217,8 +217,8 @@ class bithumb (Exchange):
             'order': None,
             'type': None,
             'side': side,
-            'price': float(trade['price']),
-            'amount': float(trade['units_traded']),
+            'price': self.safe_float(trade, 'price'),
+            'amount': self.safe_float(trade, 'units_traded'),
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):

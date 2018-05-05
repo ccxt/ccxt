@@ -149,8 +149,8 @@ class kuna extends acx {
             'symbol' => $symbol,
             'type' => null,
             'side' => null,
-            'price' => floatval ($trade['price']),
-            'amount' => floatval ($trade['volume']),
+            'price' => $this->safe_float($trade, 'price'),
+            'amount' => $this->safe_float($trade, 'volume'),
             'info' => $trade,
         );
     }

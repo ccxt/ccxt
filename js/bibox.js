@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, DDoSProtection, ExchangeNotAvailable, InvalidOrder, OrderNotFound, PermissionDenied } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, DDoSProtection, ExchangeNotAvailable, InvalidOrder, OrderNotFound, PermissionDenied, InsufficientFunds } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -82,6 +82,7 @@ module.exports = class bibox extends Exchange {
                 },
             },
             'exceptions': {
+                '2021': InsufficientFunds, // Insufficient balance available for withdrawal
                 '2015': AuthenticationError, // Google authenticator is wrong
                 '2033': OrderNotFound, // operation failed! Orders have been completed or revoked
                 '2067': InvalidOrder, // Does not support market orders

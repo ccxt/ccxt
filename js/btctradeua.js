@@ -242,8 +242,8 @@ module.exports = class btctradeua extends Exchange {
             'symbol': market['symbol'],
             'type': 'limit',
             'side': trade['type'],
-            'price': parseFloat (trade['price']),
-            'amount': parseFloat (trade['amnt_trade']),
+            'price': this.safeFloat (trade, 'price'),
+            'amount': this.safeFloat (trade, 'amnt_trade'),
         };
     }
 

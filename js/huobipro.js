@@ -572,10 +572,10 @@ module.exports = class huobipro extends Exchange {
         if (market)
             symbol = market['symbol'];
         let timestamp = order['created-at'];
-        let amount = parseFloat (order['amount']);
+        let amount = this.safeFloat (order, 'amount');
         let filled = parseFloat (order['field-amount']);
         let remaining = amount - filled;
-        let price = parseFloat (order['price']);
+        let price = this.safeFloat (order, 'price');
         let cost = parseFloat (order['field-cash-amount']);
         let average = 0;
         if (filled)

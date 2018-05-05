@@ -226,8 +226,8 @@ module.exports = class bithumb extends Exchange {
             'order': undefined,
             'type': undefined,
             'side': side,
-            'price': parseFloat (trade['price']),
-            'amount': parseFloat (trade['units_traded']),
+            'price': this.safeFloat (trade, 'price'),
+            'amount': this.safeFloat (trade, 'units_traded'),
         };
     }
 

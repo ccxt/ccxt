@@ -573,10 +573,10 @@ class huobipro extends Exchange {
         if ($market)
             $symbol = $market['symbol'];
         $timestamp = $order['created-at'];
-        $amount = floatval ($order['amount']);
+        $amount = $this->safe_float($order, 'amount');
         $filled = floatval ($order['field-amount']);
         $remaining = $amount - $filled;
-        $price = floatval ($order['price']);
+        $price = $this->safe_float($order, 'price');
         $cost = floatval ($order['field-cash-amount']);
         $average = 0;
         if ($filled)

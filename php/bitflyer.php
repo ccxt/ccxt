@@ -159,16 +159,16 @@ class bitflyer extends Exchange {
             'product_code' => $this->market_id($symbol),
         ), $params));
         $timestamp = $this->parse8601 ($ticker['timestamp']);
-        $last = floatval ($ticker['ltp']);
+        $last = $this->safe_float($ticker, 'ltp');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => null,
             'low' => null,
-            'bid' => floatval ($ticker['best_bid']),
+            'bid' => $this->safe_float($ticker, 'best_bid'),
             'bidVolume' => null,
-            'ask' => floatval ($ticker['best_ask']),
+            'ask' => $this->safe_float($ticker, 'best_ask'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -178,7 +178,7 @@ class bitflyer extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($ticker['volume_by_product']),
+            'baseVolume' => $this->safe_float($ticker, 'volume_by_product'),
             'quoteVolume' => null,
             'info' => $ticker,
         );

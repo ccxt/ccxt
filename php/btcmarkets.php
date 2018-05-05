@@ -152,16 +152,16 @@ class btcmarkets extends Exchange {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
-        $last = floatval ($ticker['lastPrice']);
+        $last = $this->safe_float($ticker, 'lastPrice');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => null,
             'low' => null,
-            'bid' => floatval ($ticker['bestBid']),
+            'bid' => $this->safe_float($ticker, 'bestBid'),
             'bidVolume' => null,
-            'ask' => floatval ($ticker['bestAsk']),
+            'ask' => $this->safe_float($ticker, 'bestAsk'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -171,7 +171,7 @@ class btcmarkets extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($ticker['volume24h']),
+            'baseVolume' => $this->safe_float($ticker, 'volume24h'),
             'quoteVolume' => null,
             'info' => $ticker,
         );

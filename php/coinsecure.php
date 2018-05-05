@@ -210,26 +210,26 @@ class coinsecure extends Exchange {
         $response = $this->publicGetExchangeTicker ($params);
         $ticker = $response['message'];
         $timestamp = $ticker['timestamp'];
-        $baseVolume = floatval ($ticker['coinvolume']);
+        $baseVolume = $this->safe_float($ticker, 'coinvolume');
         if ($symbol === 'BTC/INR') {
             $satoshi = 0.00000001;
             $baseVolume = $baseVolume * $satoshi;
         }
-        $quoteVolume = floatval ($ticker['fiatvolume']) / 100;
+        $quoteVolume = $this->safe_float($ticker, 'fiatvolume') / 100;
         $vwap = $quoteVolume / $baseVolume;
-        $last = floatval ($ticker['lastPrice']) / 100;
+        $last = $this->safe_float($ticker, 'lastPrice') / 100;
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['high']) / 100,
-            'low' => floatval ($ticker['low']) / 100,
-            'bid' => floatval ($ticker['bid']) / 100,
+            'high' => $this->safe_float($ticker, 'high') / 100,
+            'low' => $this->safe_float($ticker, 'low') / 100,
+            'bid' => $this->safe_float($ticker, 'bid') / 100,
             'bidVolume' => null,
-            'ask' => floatval ($ticker['ask']) / 100,
+            'ask' => $this->safe_float($ticker, 'ask') / 100,
             'askVolume' => null,
             'vwap' => $vwap,
-            'open' => floatval ($ticker['open']) / 100,
+            'open' => $this->safe_float($ticker, 'open') / 100,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,

@@ -93,26 +93,26 @@ class btcturk extends Exchange {
         if ($market)
             $symbol = $market['symbol'];
         $timestamp = intval ($ticker['timestamp']) * 1000;
-        $last = floatval ($ticker['last']);
+        $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['high']),
-            'low' => floatval ($ticker['low']),
-            'bid' => floatval ($ticker['bid']),
+            'high' => $this->safe_float($ticker, 'high'),
+            'low' => $this->safe_float($ticker, 'low'),
+            'bid' => $this->safe_float($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => floatval ($ticker['ask']),
+            'ask' => $this->safe_float($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
-            'open' => floatval ($ticker['open']),
+            'open' => $this->safe_float($ticker, 'open'),
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
-            'average' => floatval ($ticker['average']),
-            'baseVolume' => floatval ($ticker['volume']),
+            'average' => $this->safe_float($ticker, 'average'),
+            'baseVolume' => $this->safe_float($ticker, 'volume'),
             'quoteVolume' => null,
             'info' => $ticker,
         );

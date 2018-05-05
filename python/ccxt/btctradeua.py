@@ -228,8 +228,8 @@ class btctradeua (Exchange):
             'symbol': market['symbol'],
             'type': 'limit',
             'side': trade['type'],
-            'price': float(trade['price']),
-            'amount': float(trade['amnt_trade']),
+            'price': self.safe_float(trade, 'price'),
+            'amount': self.safe_float(trade, 'amnt_trade'),
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):

@@ -128,8 +128,8 @@ class itbit (Exchange):
             'order': id,
             'type': None,
             'side': None,
-            'price': float(trade['price']),
-            'amount': float(trade['amount']),
+            'price': self.safe_float(trade, 'price'),
+            'amount': self.safe_float(trade, 'amount'),
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
