@@ -69,18 +69,20 @@ class nova extends Exchange {
         $result = array ();
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
-            if (!$market['disabled']) {
-                $id = $market['marketname'];
-                list ($quote, $base) = explode ('_', $id);
-                $symbol = $base . '/' . $quote;
-                $result[] = array (
-                    'id' => $id,
-                    'symbol' => $symbol,
-                    'base' => $base,
-                    'quote' => $quote,
-                    'info' => $market,
-                );
-            }
+            $id = $market['marketname'];
+            list ($quote, $base) = explode ('_', $id);
+            $symbol = $base . '/' . $quote;
+            $active = true;
+            if ($market['disabled'])
+                $active = false;
+            $result[] = array (
+                'id' => $id,
+                'symbol' => $symbol,
+                'base' => $base,
+                'quote' => $quote,
+                'active' => $active,
+                'info' => $market,
+            );
         }
         return $result;
     }

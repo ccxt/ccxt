@@ -69,17 +69,20 @@ class nova (Exchange):
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
-            if not market['disabled']:
-                id = market['marketname']
-                quote, base = id.split('_')
-                symbol = base + '/' + quote
-                result.append({
-                    'id': id,
-                    'symbol': symbol,
-                    'base': base,
-                    'quote': quote,
-                    'info': market,
-                })
+            id = market['marketname']
+            quote, base = id.split('_')
+            symbol = base + '/' + quote
+            active = True
+            if market['disabled']:
+                active = False
+            result.append({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'active': active,
+                'info': market,
+            })
         return result
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
