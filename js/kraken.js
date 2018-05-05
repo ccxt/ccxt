@@ -738,10 +738,10 @@ module.exports = class kraken extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             trades[ids[i]]['id'] = ids[i];
         }
-        let market = undefined;
-        if (typeof symbol !== 'undefined')
-            market = this.market (symbol);
-        return this.parseTrades (trades, market, since, limit);
+        // let market = undefined;
+        // if (typeof symbol !== 'undefined')
+        //     market = this.market (symbol);
+        return this.parseTrades (trades, undefined, since, limit);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
