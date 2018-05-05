@@ -670,10 +670,10 @@ class bitfinex extends Exchange {
         ];
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = 100, $params = array ()) {
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         if ($limit === null)
-            throw new ExchangeError ($this->id . ' fetchOHLCV requires a $limit argument');
+            $limit = 100;
         if ($since === null)
             $since = $this->milliseconds () - $this->parse_timeframe($timeframe) * $limit * 1000;
         $market = $this->market ($symbol);
