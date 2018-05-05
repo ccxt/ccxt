@@ -17,6 +17,7 @@ import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
@@ -99,6 +100,7 @@ class bibox (Exchange):
                 },
             },
             'exceptions': {
+                '2021': InsufficientFunds,  # Insufficient balance available for withdrawal
                 '2015': AuthenticationError,  # Google authenticator is wrong
                 '2033': OrderNotFound,  # operation failednot  Orders have been completed or revoked
                 '2067': InvalidOrder,  # Does not support market orders
