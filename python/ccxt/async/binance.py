@@ -473,16 +473,17 @@ class binance (Exchange):
             float(ohlcv[5]),
         ]
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=500, params={}):
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
             'interval': self.timeframes[timeframe],
-            'limit': limit,  # default == max == 500
         }
         if since is not None:
             request['startTime'] = since
+        if limit is not None:
+            request['limit'] = limit  # default == max == 500
         response = await self.publicGetKlines(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
@@ -509,6 +510,9 @@ class binance (Exchange):
                 'cost': float(trade['commission']),
                 'currency': self.common_currency_code(trade['commissionAsset']),
             }
+        takerOrMaker = None
+        if 'isMaker' in trade:
+            takerOrMaker = 'maker' if trade['isMaker'] else 'taker'
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -517,6 +521,7 @@ class binance (Exchange):
             'id': id,
             'order': order,
             'type': None,
+            'takerOrMaker': takerOrMaker,
             'side': side,
             'price': price,
             'cost': price * amount,
@@ -586,6 +591,7 @@ class binance (Exchange):
             'id': id,
             'timestamp': timestamp,
             'datetime': iso8601,
+            'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
             'side': side,

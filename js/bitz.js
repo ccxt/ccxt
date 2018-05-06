@@ -125,6 +125,9 @@ module.exports = class bitz extends Exchange {
             'options': {
                 'lastNonceTimestamp': 0,
             },
+            'commonCurrencies': {
+                'PXC': 'Pixiecoin',
+            },
         });
     }
 
@@ -311,6 +314,7 @@ module.exports = class bitz extends Exchange {
             'id': order['id'],
             'datetime': iso8601,
             'timestamp': timestamp,
+            'lastTradeTimestamp': undefined,
             'status': 'open',
             'symbol': symbol,
             'type': 'limit',
@@ -330,6 +334,8 @@ module.exports = class bitz extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let orderType = (side === 'buy') ? 'in' : 'out';
+        if (!this.password)
+            throw new ExchangeError (this.id + ' createOrder() requires you to set exchange.password = "YOUR_TRADING_PASSWORD" (a trade password is NOT THE SAME as your login password)');
         let request = {
             'coin': market['id'],
             'type': orderType,

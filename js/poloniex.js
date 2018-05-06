@@ -124,6 +124,7 @@ module.exports = class poloniex extends Exchange {
             'commonCurrencies': {
                 'BTM': 'Bitmark',
                 'STR': 'XLM',
+                'BCC': 'BTCtalkcoin',
             },
         });
     }
@@ -521,6 +522,7 @@ module.exports = class poloniex extends Exchange {
             'id': order['orderNumber'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
             'status': order['status'],
             'symbol': symbol,
             'type': order['type'],

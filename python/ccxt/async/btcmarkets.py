@@ -293,6 +293,7 @@ class btcmarkets (Exchange):
             'id': str(order['id']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'symbol': market['symbol'],
             'type': type,
             'side': side,
@@ -319,7 +320,7 @@ class btcmarkets (Exchange):
         order = response['orders'][0]
         return self.parse_order(order)
 
-    async def prepare_history_request(self, market, since=None, limit=None):
+    def prepare_history_request(self, market, since=None, limit=None):
         request = self.ordered({
             'currency': market['quote'],
             'instrument': market['base'],

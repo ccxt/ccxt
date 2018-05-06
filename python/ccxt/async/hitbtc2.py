@@ -19,7 +19,7 @@ class hitbtc2 (hitbtc):
         return self.deep_extend(super(hitbtc2, self).describe(), {
             'id': 'hitbtc2',
             'name': 'HitBTC v2',
-            'countries': 'UK',
+            'countries': 'HK',
             'rateLimit': 1500,
             'version': '2',
             'has': {
@@ -903,8 +903,7 @@ class hitbtc2 (hitbtc):
             'id': id,
             'timestamp': created,
             'datetime': self.iso8601(created),
-            'created': created,
-            'updated': updated,
+            'lastTradeTimestamp': updated,
             'status': status,
             'symbol': symbol,
             'type': order['type'],
@@ -1090,9 +1089,3 @@ class hitbtc2 (hitbtc):
                         elif message == 'Duplicate clientOrderId':
                             raise InvalidOrder(self.id + ' ' + body)
             raise ExchangeError(self.id + ' ' + body)
-
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = await self.fetch2(path, api, method, params, headers, body)
-        if 'error' in response:
-            raise ExchangeError(self.id + ' ' + self.json(response))
-        return response

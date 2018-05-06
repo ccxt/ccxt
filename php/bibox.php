@@ -93,6 +93,9 @@ class bibox extends Exchange {
                 '4000' => '\\ccxt\\ExchangeNotAvailable', // current network is unstable
                 '4003' => '\\ccxt\\DDoSProtection', // server busy please try again later
             ),
+            'commonCurrencies' => array (
+                'KEY' => 'Bihu',
+            ),
         ));
     }
 
@@ -146,9 +149,12 @@ class bibox extends Exchange {
         if ($market) {
             $symbol = $market['symbol'];
         } else {
-            $symbol = $ticker['coin_symbol'] . '/' . $ticker['currency_symbol'];
+            $base = $ticker['coin_symbol'];
+            $quote = $ticker['currency_symbol'];
+            $symbol = $this->common_currency_code($base) . '/' . $this->common_currency_code($quote);
         }
         $last = $this->safe_float($ticker, 'last');
+        $change = $this->safe_float($ticker, 'change');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -160,15 +166,15 @@ class bibox extends Exchange {
             'ask' => $this->safe_float($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => null,
-            'open' => null,
+            'open' => $last - $change,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => null,
+            'change' => $change,
             'percentage' => $this->safe_string($ticker, 'percent'),
             'average' => null,
             'baseVolume' => $this->safe_float($ticker, 'vol24H'),
-            'quoteVolume' => null,
+            'quoteVolume' => $this->safe_float($ticker, 'amount'),
             'info' => $ticker,
         );
     }
@@ -292,7 +298,7 @@ class bibox extends Exchange {
             $precision = 8;
             $deposit = $currency['enable_deposit'];
             $withdraw = $currency['enable_withdraw'];
-            $active = ($deposit && $withdraw);
+            $active = ($deposit && $withdraw) ? true : false;
             $result[$code] = array (
                 'id' => $id,
                 'code' => $code,
@@ -430,6 +436,7 @@ class bibox extends Exchange {
             'id' => $this->safe_string($order, 'id'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,

@@ -188,6 +188,9 @@ module.exports = class gatecoin extends Exchange {
                     'taker': 0.0035,
                 },
             },
+            'commonCurrencies': {
+                'MAN': 'MANA',
+            },
         });
     }
 
@@ -200,8 +203,8 @@ module.exports = class gatecoin extends Exchange {
             let id = market['tradingCode'];
             let baseId = market['baseCurrency'];
             let quoteId = market['quoteCurrency'];
-            let base = baseId;
-            let quote = quoteId;
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
             let precision = {
                 'amount': 8,
@@ -244,7 +247,10 @@ module.exports = class gatecoin extends Exchange {
         let result = { 'info': balances };
         for (let b = 0; b < balances.length; b++) {
             let balance = balances[b];
-            let currency = balance['currency'];
+            let currencyId = balance['currency'];
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id)
+                code = this.currencies_by_id[currencyId]['code'];
             let account = {
                 'free': balance['availableBalance'],
                 'used': this.sum (
@@ -254,7 +260,7 @@ module.exports = class gatecoin extends Exchange {
                 ),
                 'total': balance['balance'],
             };
-            result[currency] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
@@ -528,6 +534,7 @@ module.exports = class gatecoin extends Exchange {
             'id': id,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
+            'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
             'type': type,

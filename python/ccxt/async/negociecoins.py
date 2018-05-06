@@ -214,6 +214,7 @@ class negociecoins (Exchange):
             'id': str(order['id']),
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
+            'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
             'type': 'limit',

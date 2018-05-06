@@ -485,16 +485,17 @@ class binance extends Exchange {
         ];
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = 500, $params = array ()) {
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
             'symbol' => $market['id'],
             'interval' => $this->timeframes[$timeframe],
-            'limit' => $limit, // default == max == 500
         );
         if ($since !== null)
             $request['startTime'] = $since;
+        if ($limit !== null)
+            $request['limit'] = $limit; // default == max == 500
         $response = $this->publicGetKlines (array_merge ($request, $params));
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
@@ -524,6 +525,9 @@ class binance extends Exchange {
                 'currency' => $this->common_currency_code($trade['commissionAsset']),
             );
         }
+        $takerOrMaker = null;
+        if (is_array ($trade) && array_key_exists ('isMaker', $trade))
+            $takerOrMaker = $trade['isMaker'] ? 'maker' : 'taker';
         return array (
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -532,6 +536,7 @@ class binance extends Exchange {
             'id' => $id,
             'order' => $order,
             'type' => null,
+            'takerOrMaker' => $takerOrMaker,
             'side' => $side,
             'price' => $price,
             'cost' => $price * $amount,
@@ -606,6 +611,7 @@ class binance extends Exchange {
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $iso8601,
+            'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,

@@ -23,6 +23,9 @@ module.exports = class vaultoro extends Exchange {
                 'www': 'https://www.vaultoro.com',
                 'doc': 'https://api.vaultoro.com',
             },
+            'commonCurrencies': {
+                'GLD': 'Gold',
+            },
             'api': {
                 'public': {
                     'get': [
@@ -59,11 +62,11 @@ module.exports = class vaultoro extends Exchange {
         let result = [];
         let markets = await this.publicGetMarkets ();
         let market = markets['data'];
-        let base = market['BaseCurrency'];
-        let quote = market['MarketCurrency'];
+        let baseId = market['BaseCurrency'];
+        let quoteId = market['MarketCurrency'];
+        let base = this.commonCurrencyCode (baseId);
+        let quote = this.commonCurrencyCode (quoteId);
         let symbol = base + '/' + quote;
-        let baseId = base;
-        let quoteId = quote;
         let id = market['MarketName'];
         result.push ({
             'id': id,
@@ -84,8 +87,10 @@ module.exports = class vaultoro extends Exchange {
         let result = { 'info': balances };
         for (let b = 0; b < balances.length; b++) {
             let balance = balances[b];
-            let currency = balance['currency_code'];
-            let uppercase = currency.toUpperCase ();
+            let currencyId = balance['currency_code'].toUpperCase ();
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id[currencyId])
+                code = this.currencies_by_id[currencyId]['code'];
             let free = balance['cash'];
             let used = balance['reserved'];
             let total = this.sum (free, used);
@@ -94,7 +99,7 @@ module.exports = class vaultoro extends Exchange {
                 'used': used,
                 'total': total,
             };
-            result[uppercase] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }

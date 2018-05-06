@@ -267,6 +267,7 @@ class btctradeua (Exchange):
             'id': trade['id'],
             'timestamp': timestamp,  # until they fix their timestamp
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'status': 'open',
             'symbol': market['symbol'],
             'type': None,

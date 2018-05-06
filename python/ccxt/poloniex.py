@@ -137,6 +137,7 @@ class poloniex (Exchange):
             'commonCurrencies': {
                 'BTM': 'Bitmark',
                 'STR': 'XLM',
+                'BCC': 'BTCtalkcoin',
             },
         })
 
@@ -497,6 +498,7 @@ class poloniex (Exchange):
             'id': order['orderNumber'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'status': order['status'],
             'symbol': symbol,
             'type': order['type'],

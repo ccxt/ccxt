@@ -160,16 +160,33 @@ class bitmex extends Exchange {
                 $future = true;
                 $type = 'future';
             }
-            $maker = $market['makerFee'];
-            $taker = $market['takerFee'];
+            $precision = array (
+                'amount' => null,
+                'price' => null,
+            );
+            if ($market['lotSize'])
+                $precision['amount'] = $this->precision_from_string($this->truncate_to_string ($market['lotSize'], 16));
+            if ($market['tickSize'])
+                $precision['price'] = $this->precision_from_string($this->truncate_to_string ($market['tickSize'], 16));
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
                 'active' => $active,
-                'taker' => $taker,
-                'maker' => $maker,
+                'precision' => $precision,
+                'limits' => array (
+                    'amount' => array (
+                        'min' => $market['lotSize'],
+                        'max' => $market['maxOrderQty'],
+                    ),
+                    'price' => array (
+                        'min' => $market['tickSize'],
+                        'max' => $market['maxPrice'],
+                    ),
+                ),
+                'taker' => $market['takerFee'],
+                'maker' => $market['makerFee'],
                 'type' => $type,
                 'spot' => false,
                 'swap' => $swap,
@@ -435,6 +452,7 @@ class bitmex extends Exchange {
             'id' => (string) $order['orderID'],
             'timestamp' => $timestamp,
             'datetime' => $iso8601,
+            'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => strtolower ($order['ordType']),
             'side' => strtolower ($order['side']),

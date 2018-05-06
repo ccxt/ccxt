@@ -27,6 +27,7 @@ class tidex extends liqui {
                     'web' => 'https://web.tidex.com/api',
                     'public' => 'https://api.tidex.com/api/3',
                     'private' => 'https://api.tidex.com/tapi',
+                    'gate' => 'https://gate.tidex.com/api',
                 ),
                 'www' => 'https://tidex.com',
                 'doc' => 'https://tidex.com/exchange/public-api',
@@ -45,6 +46,11 @@ class tidex extends liqui {
                         'ordershistory',
                         'trade-data',
                         'trade-data/{id}',
+                    ),
+                ),
+                'gate' => array (
+                    'post' => array (
+                        'token',
                     ),
                 ),
             ),
@@ -129,5 +135,14 @@ class tidex extends liqui {
 
     public function get_version_string () {
         return '';
+    }
+
+    public function fetch_session_from_web ($params = array ()) {
+        $response = $this->gatePostToken (array_merge (array (
+            'username' => $this->login,
+            'password' => $this->password,
+        ), $params));
+        // array ( Session => "2p4kah9c0sls0fetcaoetmb7792m3og7", IsTwoFa => true, Type => 3 )
+        return $response['Session'];
     }
 }

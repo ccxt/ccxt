@@ -248,6 +248,9 @@ class qryptos (Exchange):
         # 'my_side' gets filled for fetchMyTrades only and may differ from 'taker_side'
         mySide = self.safe_string(trade, 'my_side')
         side = mySide if (mySide is not None) else takerSide
+        takerOrMaker = None
+        if mySide is not None:
+            takerOrMaker = 'taker' if (takerSide == mySide) else 'maker'
         return {
             'info': trade,
             'id': str(trade['id']),
@@ -257,6 +260,7 @@ class qryptos (Exchange):
             'symbol': market['symbol'],
             'type': None,
             'side': side,
+            'takerOrMaker': takerOrMaker,
             'price': float(trade['price']),
             'amount': float(trade['quantity']),
         }
@@ -330,6 +334,7 @@ class qryptos (Exchange):
             'id': str(order['id']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'type': order['order_type'],
             'status': status,
             'symbol': symbol,

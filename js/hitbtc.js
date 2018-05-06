@@ -12,7 +12,7 @@ module.exports = class hitbtc extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'hitbtc',
             'name': 'HitBTC',
-            'countries': 'UK',
+            'countries': 'HK',
             'rateLimit': 1500,
             'version': '1',
             'has': {
@@ -482,6 +482,7 @@ module.exports = class hitbtc extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'BCC': 'BCC',
                 'XBT': 'BTC',
                 'DRK': 'DASH',
                 'CAT': 'BitClave',
@@ -792,6 +793,7 @@ module.exports = class hitbtc extends Exchange {
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
             'type': order['type'],

@@ -137,14 +137,12 @@ module.exports = class cobinhood extends Exchange {
             let currency = currencies[i];
             let id = currency['currency'];
             let code = this.commonCurrencyCode (id);
-            let fundingNotFrozen = !currency['funding_frozen'];
-            let active = currency['is_active'] && fundingNotFrozen;
             let minUnit = parseFloat (currency['min_unit']);
             result[code] = {
                 'id': id,
                 'code': code,
                 'name': currency['name'],
-                'active': active,
+                'active': true,
                 'status': 'ok',
                 'fiat': false,
                 'precision': this.precisionFromString (currency['min_unit']),
@@ -168,11 +166,9 @@ module.exports = class cobinhood extends Exchange {
                 },
                 'funding': {
                     'withdraw': {
-                        'active': fundingNotFrozen,
                         'fee': parseFloat (currency['withdrawal_fee']),
                     },
                     'deposit': {
-                        'active': fundingNotFrozen,
                         'fee': parseFloat (currency['deposit_fee']),
                     },
                 },
@@ -197,6 +193,7 @@ module.exports = class cobinhood extends Exchange {
                 'amount': 8,
                 'price': this.precisionFromString (market['quote_increment']),
             };
+            let active = this.safeValue (market, 'is_active', true);
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -204,7 +201,7 @@ module.exports = class cobinhood extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'active': market['is_active'],
+                'active': active,
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -415,6 +412,7 @@ module.exports = class cobinhood extends Exchange {
             'id': order['id'],
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
+            'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
             'type': order['type'], // market, limit, stop, stop_limit, trailing_stop, fill_or_kill

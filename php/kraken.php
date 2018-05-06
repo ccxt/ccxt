@@ -561,6 +561,7 @@ class kraken extends Exchange {
             'side' => $side,
             'price' => $price,
             'amount' => $amount,
+            'cost' => $price * $amount,
             'fee' => $fee,
         );
     }
@@ -683,6 +684,7 @@ class kraken extends Exchange {
             'info' => $order,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => null,
             'status' => $order['status'],
             'symbol' => $symbol,
             'type' => $type,

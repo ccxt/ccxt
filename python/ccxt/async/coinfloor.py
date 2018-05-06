@@ -186,6 +186,7 @@ class coinfloor (Exchange):
             'id': id,
             'datetime': datetime,
             'timestamp': timestamp,
+            'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
             'type': 'limit',
