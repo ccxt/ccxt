@@ -13,7 +13,7 @@ class hitbtc extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'hitbtc',
             'name' => 'HitBTC',
-            'countries' => 'UK',
+            'countries' => 'HK',
             'rateLimit' => 1500,
             'version' => '1',
             'has' => array (
@@ -483,6 +483,7 @@ class hitbtc extends Exchange {
                 ),
             ),
             'commonCurrencies' => array (
+                'BCC' => 'BCC',
                 'XBT' => 'BTC',
                 'DRK' => 'DASH',
                 'CAT' => 'BitClave',
@@ -793,6 +794,7 @@ class hitbtc extends Exchange {
             'info' => $order,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
             'type' => $order['type'],

@@ -240,13 +240,15 @@ class bitbank (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             id = balance['asset']
-            currency = self.common_currency_code(id)
+            code = id
+            if id in self.currencies_by_id:
+                code = self.currencies_by_id[id]['code']
             account = {
                 'free': float(balance['free_amount']),
                 'used': float(balance['locked_amount']),
                 'total': float(balance['onhand_amount']),
             }
-            result[currency] = account
+            result[code] = account
         return self.parse_balance(result)
 
     def parse_order(self, order, market=None):
@@ -278,6 +280,7 @@ class bitbank (Exchange):
             'id': self.safe_string(order, 'order_id'),
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
+            'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
             'type': order['type'],

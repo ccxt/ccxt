@@ -84,6 +84,7 @@ module.exports = class livecoin extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'CPC': 'Capricoin',
                 'CRC': 'CryCash',
                 'ORE': 'Orectic',
                 'RUR': 'RUB',
@@ -231,7 +232,7 @@ module.exports = class livecoin extends Exchange {
         let currencies = [
             { 'id': 'USD', 'code': 'USD', 'name': 'US Dollar' },
             { 'id': 'EUR', 'code': 'EUR', 'name': 'Euro' },
-            { 'id': 'RUR', 'code': 'RUR', 'name': 'Russian ruble' },
+            { 'id': 'RUR', 'code': 'RUB', 'name': 'Russian ruble' },
         ];
         for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];
@@ -414,6 +415,7 @@ module.exports = class livecoin extends Exchange {
             'id': order['id'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
             'type': type,

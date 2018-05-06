@@ -20,17 +20,20 @@ class hadax (huobipro):
                 'www': 'https://www.hadax.com',
                 'doc': 'https://github.com/huobiapi/API_Docs/wiki',
             },
+            'has': {
+                'fetchCurrencies': False,
+            },
             'api': {
                 'public': {
                     'get': [
                         'hadax/common/symbols',  # 查询系统支持的所有交易对
                         'hadax/common/currencys',  # 查询系统支持的所有币种
                         'common/timestamp',  # 查询系统当前时间
+                        'hadax/settings/currencys',  # ?language=en-US
                     ],
                 },
             },
+            'options': {
+                'fetchMarketsMethod': 'publicGetHadaxCommonSymbols',
+            },
         })
-
-    def fetch_markets(self):
-        response = self.publicGetHadaxCommonSymbols()
-        return self.parseMarkets(response['data'])

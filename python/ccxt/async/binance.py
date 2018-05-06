@@ -473,16 +473,17 @@ class binance (Exchange):
             float(ohlcv[5]),
         ]
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=500, params={}):
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
             'interval': self.timeframes[timeframe],
-            'limit': limit,  # default == max == 500
         }
         if since is not None:
             request['startTime'] = since
+        if limit is not None:
+            request['limit'] = limit  # default == max == 500
         response = await self.publicGetKlines(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
@@ -509,6 +510,9 @@ class binance (Exchange):
                 'cost': float(trade['commission']),
                 'currency': self.common_currency_code(trade['commissionAsset']),
             }
+        takerOrMaker = None
+        if 'isMaker' in trade:
+            takerOrMaker = 'maker' if trade['isMaker'] else 'taker'
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -517,6 +521,7 @@ class binance (Exchange):
             'id': id,
             'order': order,
             'type': None,
+            'takerOrMaker': takerOrMaker,
             'side': side,
             'price': price,
             'cost': price * amount,
@@ -564,13 +569,15 @@ class binance (Exchange):
         iso8601 = None
         if timestamp is not None:
             iso8601 = self.iso8601(timestamp)
-        price = float(order['price'])
-        amount = float(order['origQty'])
+        price = self.safe_float(order, 'price')
+        amount = self.safe_float(order, 'origQty')
         filled = self.safe_float(order, 'executedQty', 0.0)
-        remaining = max(amount - filled, 0.0)
+        remaining = None
         cost = None
-        if price is not None:
-            if filled is not None:
+        if filled is not None:
+            if amount is not None:
+                remaining = max(amount - filled, 0.0)
+            if price is not None:
                 cost = price * filled
         id = self.safe_string(order, 'orderId')
         type = self.safe_string(order, 'type')
@@ -584,6 +591,7 @@ class binance (Exchange):
             'id': id,
             'timestamp': timestamp,
             'datetime': iso8601,
+            'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
             'side': side,

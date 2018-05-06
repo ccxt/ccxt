@@ -138,14 +138,12 @@ class cobinhood (Exchange):
             currency = currencies[i]
             id = currency['currency']
             code = self.common_currency_code(id)
-            fundingNotFrozen = not currency['funding_frozen']
-            active = currency['is_active'] and fundingNotFrozen
             minUnit = float(currency['min_unit'])
             result[code] = {
                 'id': id,
                 'code': code,
                 'name': currency['name'],
-                'active': active,
+                'active': True,
                 'status': 'ok',
                 'fiat': False,
                 'precision': self.precision_from_string(currency['min_unit']),
@@ -169,11 +167,9 @@ class cobinhood (Exchange):
                 },
                 'funding': {
                     'withdraw': {
-                        'active': fundingNotFrozen,
                         'fee': float(currency['withdrawal_fee']),
                     },
                     'deposit': {
-                        'active': fundingNotFrozen,
                         'fee': float(currency['deposit_fee']),
                     },
                 },
@@ -196,6 +192,7 @@ class cobinhood (Exchange):
                 'amount': 8,
                 'price': self.precision_from_string(market['quote_increment']),
             }
+            active = self.safe_value(market, 'is_active', True)
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -203,7 +200,7 @@ class cobinhood (Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'active': market['is_active'],
+                'active': active,
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -398,6 +395,7 @@ class cobinhood (Exchange):
             'id': order['id'],
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
+            'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
             'type': order['type'],  # market, limit, stop, stop_limit, trailing_stop, fill_or_kill

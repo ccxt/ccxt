@@ -322,6 +322,7 @@ class exmo extends Exchange {
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
             'type' => $type,
@@ -380,7 +381,6 @@ class exmo extends Exchange {
         }
         $openOrdersIndexedById = $this->index_by($openOrders, 'id');
         $cachedOrderIds = is_array ($this->orders) ? array_keys ($this->orders) : array ();
-        $result = array ();
         for ($k = 0; $k < count ($cachedOrderIds); $k++) {
             // match each cached $order to an $order in the open orders array
             // possible reasons why a cached $order may be missing in the open orders array:
@@ -388,7 +388,6 @@ class exmo extends Exchange {
             // - $symbol mismatch (e.g. cached BTC/USDT, fetched ETH/USDT) -> skip
             $id = $cachedOrderIds[$k];
             $order = $this->orders[$id];
-            $result[] = $order;
             if (!(is_array ($openOrdersIndexedById) && array_key_exists ($id, $openOrdersIndexedById))) {
                 // cached $order is not in open orders array
                 // if we fetched orders by $symbol and it doesn't match the cached $order -> won't update the cached $order
@@ -410,7 +409,7 @@ class exmo extends Exchange {
                 }
             }
         }
-        return $result;
+        return $this->to_array($this->orders);
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -427,7 +426,7 @@ class exmo extends Exchange {
             $orders = $this->array_concat($orders, $parsedOrders);
         }
         $this->update_cached_orders ($orders, $symbol);
-        return $this->filter_by_symbol_since_limit($this->orders, $symbol, $since, $limit);
+        return $this->filter_by_symbol_since_limit($this->to_array($this->orders), $symbol, $since, $limit);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -527,6 +526,7 @@ class exmo extends Exchange {
             'id' => $id,
             'datetime' => $iso8601,
             'timestamp' => $timestamp,
+            'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
             'type' => 'limit',

@@ -22,6 +22,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 'createOrder': false,
                 'deposit': false,
                 'editOrder': false,
+                'fetchDepositAddress': false,
                 'fetchClosedOrders': false,
                 'fetchFundingFees': false,
                 'fetchMyTrades': false,
@@ -113,6 +114,7 @@ module.exports = class bitfinex2 extends bitfinex {
                         'auth/w/alert/set',
                         'auth/w/alert/{type}:{symbol}:{price}/del',
                         'auth/calc/order/avail',
+                        'auth/r/ledgers/{symbol}/hist',
                     ],
                 },
             },
@@ -389,6 +391,10 @@ module.exports = class bitfinex2 extends bitfinex {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchOrder not implemented yet');
+    }
+
+    async fetchDepositAddress (currency, params = {}) {
+        throw new NotSupported (this.id + ' fetchDepositAddress() not implemented yet.');
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {

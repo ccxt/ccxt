@@ -13,7 +13,7 @@ class hitbtc2 extends hitbtc {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'hitbtc2',
             'name' => 'HitBTC v2',
-            'countries' => 'UK',
+            'countries' => 'HK',
             'rateLimit' => 1500,
             'version' => '2',
             'has' => array (
@@ -927,8 +927,7 @@ class hitbtc2 extends hitbtc {
             'id' => $id,
             'timestamp' => $created,
             'datetime' => $this->iso8601 ($created),
-            'created' => $created,
-            'updated' => $updated,
+            'lastTradeTimestamp' => $updated,
             'status' => $status,
             'symbol' => $symbol,
             'type' => $order['type'],
@@ -1135,12 +1134,5 @@ class hitbtc2 extends hitbtc {
             }
             throw new ExchangeError ($this->id . ' ' . $body);
         }
-    }
-
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (is_array ($response) && array_key_exists ('error', $response))
-            throw new ExchangeError ($this->id . ' ' . $this->json ($response));
-        return $response;
     }
 }

@@ -551,6 +551,7 @@ class kraken (Exchange):
             'side': side,
             'price': price,
             'amount': amount,
+            'cost': price * amount,
             'fee': fee,
         }
 
@@ -660,6 +661,7 @@ class kraken (Exchange):
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'status': order['status'],
             'symbol': symbol,
             'type': type,
@@ -774,7 +776,7 @@ class kraken (Exchange):
             if self.options['cacheDepositMethodsOnFetchDepositAddress']:
                 # cache depositMethods
                 if not(code in list(self.options['depositMethods'].keys())):
-                    self.options['depositMethods'][code] = self.fetch_deposit_methods(code)
+                    self.options['depositMethods'][code] = await self.fetch_deposit_methods(code)
                 method = self.options['depositMethods'][code][0]['method']
             else:
                 raise ExchangeError(self.id + ' fetchDepositAddress() requires an extra `method` parameter. Use fetchDepositMethods("' + code + '") to get a list of available deposit methods or enable the exchange property .options["cacheDepositMethodsOnFetchDepositAddress"] = True')

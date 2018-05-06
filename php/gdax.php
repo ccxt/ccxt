@@ -105,7 +105,7 @@ class gdax extends Exchange {
                     'tierBased' => true, // complicated tier system per coin
                     'percentage' => true,
                     'maker' => 0.0,
-                    'taker' => 0.25 / 100, // Fee is 0.25%, 0.3% for ETH/LTC pairs
+                    'taker' => 0.3 / 100, // tiered fee starts at 0.3%
                 ),
                 'funding' => array (
                     'tierBased' => false,
@@ -404,6 +404,7 @@ class gdax extends Exchange {
             'info' => $order,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
             'type' => $order['type'],
@@ -486,6 +487,24 @@ class gdax extends Exchange {
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         return $this->privateDeleteOrdersId (array ( 'id' => $id ));
+    }
+
+    public function fee_to_precision ($currency, $fee) {
+        $cost = floatval ($fee);
+        return sprintf ('%.' . $this->currencies[$currency].precision . 'f', $cost);
+    }
+
+    public function calculate_fee ($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
+        $market = $this->markets[$symbol];
+        $rate = $market[$takerOrMaker];
+        $cost = $amount * $price;
+        $currency = $market['quote'];
+        return array (
+            'type' => $takerOrMaker,
+            'currency' => $currency,
+            'rate' => $rate,
+            'cost' => floatval ($this->fee_to_precision($currency, $rate * $cost)),
+        );
     }
 
     public function get_payment_methods () {

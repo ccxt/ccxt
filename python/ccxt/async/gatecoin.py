@@ -193,6 +193,9 @@ class gatecoin (Exchange):
                     'taker': 0.0035,
                 },
             },
+            'commonCurrencies': {
+                'MAN': 'MANA',
+            },
         })
 
     async def fetch_markets(self):
@@ -204,8 +207,8 @@ class gatecoin (Exchange):
             id = market['tradingCode']
             baseId = market['baseCurrency']
             quoteId = market['quoteCurrency']
-            base = baseId
-            quote = quoteId
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': 8,
@@ -246,7 +249,10 @@ class gatecoin (Exchange):
         result = {'info': balances}
         for b in range(0, len(balances)):
             balance = balances[b]
-            currency = balance['currency']
+            currencyId = balance['currency']
+            code = currencyId
+            if currencyId in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
             account = {
                 'free': balance['availableBalance'],
                 'used': self.sum(
@@ -256,7 +262,7 @@ class gatecoin (Exchange):
                 ),
                 'total': balance['balance'],
             }
-            result[currency] = account
+            result[code] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
@@ -500,6 +506,7 @@ class gatecoin (Exchange):
             'id': id,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
+            'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
             'type': type,

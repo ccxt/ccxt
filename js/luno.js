@@ -151,6 +151,7 @@ module.exports = class luno extends Exchange {
             'id': order['order_id'],
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
+            'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
             'type': undefined,

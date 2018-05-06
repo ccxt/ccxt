@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.12.153'
+__version__ = '1.13.68'
 
 # -----------------------------------------------------------------------------
 
@@ -137,6 +137,7 @@ class Exchange(object):
         'uid': False,
         'login': False,
         'password': False,
+        'twofa': False,  # 2-factor authentication (one-time password key)
     }
 
     # API method metainfo
@@ -175,7 +176,7 @@ class Exchange(object):
 
     precisionMode = DECIMAL_PLACES
 
-    minFundingAddressLength = 10  # used in check_address
+    minFundingAddressLength = 1  # used in check_address
     substituteCommonCurrencyCodes = True
     lastRestRequestTimestamp = 0
     lastRestPollTimestamp = 0
@@ -550,11 +551,15 @@ class Exchange(object):
 
     @staticmethod
     def sort_by(array, key, descending=False):
-        return sorted(array, key=lambda k: k[key], reverse=descending)
+        return sorted(array, key=lambda k: k[key] if k[key] is not None else "", reverse=descending)
 
     @staticmethod
     def array_concat(a, b):
         return a + b
+
+    @staticmethod
+    def in_array(needle, haystack):
+        return needle in haystack
 
     @staticmethod
     def extract_params(string):
@@ -900,7 +905,7 @@ class Exchange(object):
         return self.fees
 
     def fetch_markets(self):
-        return self.markets
+        return self.to_array(self.markets)
 
     def fetch_fees(self):
         trading = {}
@@ -1043,6 +1048,37 @@ class Exchange(object):
         self.load_markets()
         trades = self.fetch_trades(symbol, since, limit, params)
         return self.build_ohlcv(trades, timeframe, since, limit)
+
+    def convert_trading_view_to_ohlcv(self, ohlcvs):
+        result = []
+        for i in range(0, len(ohlcvs['t'])):
+            result.append([
+                ohlcvs['t'][i] * 1000,
+                ohlcvs['o'][i],
+                ohlcvs['h'][i],
+                ohlcvs['l'][i],
+                ohlcvs['c'][i],
+                ohlcvs['v'][i],
+            ])
+        return result
+
+    def convert_ohlcv_to_trading_view(self, ohlcvs):
+        result = {
+            't': [],
+            'o': [],
+            'h': [],
+            'l': [],
+            'c': [],
+            'v': [],
+        }
+        for i in range(0, len(ohlcvs)):
+            result['t'].append(int(ohlcvs[i][0] / 1000))
+            result['o'].append(ohlcvs[i][1])
+            result['h'].append(ohlcvs[i][2])
+            result['l'].append(ohlcvs[i][3])
+            result['c'].append(ohlcvs[i][4])
+            result['v'].append(ohlcvs[i][5])
+        return result
 
     def build_ohlcv(self, trades, timeframe='1m', since=None, limit=None):
         ms = self.parse_timeframe(timeframe) * 1000

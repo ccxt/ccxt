@@ -92,6 +92,9 @@ module.exports = class bibox extends Exchange {
                 '4000': ExchangeNotAvailable, // current network is unstable
                 '4003': DDoSProtection, // server busy please try again later
             },
+            'commonCurrencies': {
+                'KEY': 'Bihu',
+            },
         });
     }
 
@@ -145,9 +148,12 @@ module.exports = class bibox extends Exchange {
         if (market) {
             symbol = market['symbol'];
         } else {
-            symbol = ticker['coin_symbol'] + '/' + ticker['currency_symbol'];
+            let base = ticker['coin_symbol'];
+            let quote = ticker['currency_symbol'];
+            symbol = this.commonCurrencyCode (base) + '/' + this.commonCurrencyCode (quote);
         }
         let last = this.safeFloat (ticker, 'last');
+        let change = this.safeFloat (ticker, 'change');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -159,15 +165,15 @@ module.exports = class bibox extends Exchange {
             'ask': this.safeFloat (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': undefined,
+            'open': last - change,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': undefined,
+            'change': change,
             'percentage': this.safeString (ticker, 'percent'),
             'average': undefined,
             'baseVolume': this.safeFloat (ticker, 'vol24H'),
-            'quoteVolume': undefined,
+            'quoteVolume': this.safeFloat (ticker, 'amount'),
             'info': ticker,
         };
     }
@@ -291,7 +297,7 @@ module.exports = class bibox extends Exchange {
             let precision = 8;
             let deposit = currency['enable_deposit'];
             let withdraw = currency['enable_withdraw'];
-            let active = (deposit && withdraw);
+            let active = (deposit && withdraw) ? true : false;
             result[code] = {
                 'id': id,
                 'code': code,
@@ -429,6 +435,7 @@ module.exports = class bibox extends Exchange {
             'id': this.safeString (order, 'id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
             'side': side,

@@ -27,13 +27,6 @@ let printSymbols = async (id) => {
 
         log ('Instantiating', id.green, 'exchange')
 
-        // instantiate the exchange by id
-        let exchange = new ccxt[id] ({
-            verbose,
-            // 'proxy': 'https://cors-anywhere.herokuapp.com/',
-            // 'proxy': 'https://crossorigin.me/',
-        })
-
         // set up keys and settings, if any
         const keysGlobal = 'keys.json'
         const keysLocal = 'keys.local.json'
@@ -41,7 +34,14 @@ let printSymbols = async (id) => {
         let keysFile = fs.existsSync (keysLocal) ? keysLocal : (fs.existsSync (keysGlobal) ? keysGlobal : false)
         let settings = keysFile ? (require ('../../' + keysFile)[id] || {}) : {}
 
-        Object.assign (exchange, settings)
+        // instantiate the exchange by id
+        let exchange = new ccxt[id] (ccxt.extend ({
+            verbose,
+            // 'proxy': 'https://cors-anywhere.herokuapp.com/',
+            // 'proxy': 'https://crossorigin.me/',
+        }, settings))
+
+        // Object.assign (exchange, settings)
 
         // load all markets from the exchange
         let markets = await exchange.loadMarkets ()

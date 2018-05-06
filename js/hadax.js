@@ -19,20 +19,22 @@ module.exports = class hadax extends huobipro {
                 'www': 'https://www.hadax.com',
                 'doc': 'https://github.com/huobiapi/API_Docs/wiki',
             },
+            'has': {
+                'fetchCurrencies': false,
+            },
             'api': {
                 'public': {
                     'get': [
                         'hadax/common/symbols', // 查询系统支持的所有交易对
                         'hadax/common/currencys', // 查询系统支持的所有币种
                         'common/timestamp', // 查询系统当前时间
+                        'hadax/settings/currencys', // ?language=en-US
                     ],
                 },
             },
+            'options': {
+                'fetchMarketsMethod': 'publicGetHadaxCommonSymbols',
+            },
         });
-    }
-
-    async fetchMarkets () {
-        let response = await this.publicGetHadaxCommonSymbols ();
-        return this.parseMarkets (response['data']);
     }
 };
