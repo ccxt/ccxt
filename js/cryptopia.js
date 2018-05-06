@@ -494,7 +494,7 @@ module.exports = class cryptopia extends Exchange {
             if (id in this.markets_by_id) {
                 market = this.markets_by_id[id];
                 symbol = market['symbol'];
-            } else if ( id in this.symbols) {
+            } else if (id in this.symbols) {
                 symbol = id;
                 market = this.markets[symbol];
             }
