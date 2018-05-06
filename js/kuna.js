@@ -141,15 +141,20 @@ module.exports = class kuna extends acx {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        let side = this.safeString (trade, 'side');
+        let cost = this.safeFloat (trade, 'funds');
+        let order = this.safeString (trade, 'order_id');
         return {
             'id': trade['id'].toString (),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'type': undefined,
-            'side': undefined,
+            'side': side === 'ask' ? 'sell' : 'buy',
             'price': this.safeFloat (trade, 'price'),
             'amount': this.safeFloat (trade, 'volume'),
+            'cost': cost,
+            'order': order,
             'info': trade,
         };
     }
@@ -163,40 +168,12 @@ module.exports = class kuna extends acx {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseMyTrade (trade, market) {
-        let timestamp = this.parse8601 (trade['created_at']);
-        let symbol = undefined;
-        if (market)
-            symbol = market['symbol'];
-        return {
-            'id': trade['id'],
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'price': trade['price'],
-            'amount': trade['volume'],
-            'cost': trade['funds'],
-            'symbol': symbol,
-            'side': trade['side'],
-            'order': trade['order_id'],
-        };
-    }
-
-    parseMyTrades (trades, market = undefined) {
-        let parsedTrades = [];
-        for (let i = 0; i < trades.length; i++) {
-            let trade = trades[i];
-            let parsedTrade = this.parseMyTrade (trade, market);
-            parsedTrades.push (parsedTrade);
-        }
-        return parsedTrades;
-    }
-
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!symbol)
             throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.privateGetTradesMy ({ 'market': market['id'] });
-        return this.parseMyTrades (response, market);
+        return this.parseTrades (response, market, since, limit);
     }
 };

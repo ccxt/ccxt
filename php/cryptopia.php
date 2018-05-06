@@ -145,6 +145,7 @@ class cryptopia extends Exchange {
                 'limits' => $limits,
             );
         }
+        $this->options['marketsByLabel'] = $this->index_by($result, 'label');
         return $result;
     }
 
@@ -497,8 +498,6 @@ class cryptopia extends Exchange {
                 $market = $this->markets_by_id[$id];
                 $symbol = $market['symbol'];
             } else {
-                if (!(is_array ($this->options) && array_key_exists ('marketsByLabel', $this->options)))
-                    $this->options['marketsByLabel'] = $this->index_by($this->markets, 'label');
                 if (is_array ($this->options['marketsByLabel']) && array_key_exists ($id, $this->options['marketsByLabel'])) {
                     $market = $this->options['marketsByLabel'][$id];
                     $symbol = $market['symbol'];
