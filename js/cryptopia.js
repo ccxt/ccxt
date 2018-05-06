@@ -563,7 +563,7 @@ module.exports = class cryptopia extends Exchange {
                 }
             }
             let order = this.orders[id];
-            if (symbol === undefined || order['symbol'] === symbol)
+            if (typeof symbol === 'undefined' || order['symbol'] === symbol)
                 result.push (order);
         }
         return this.filterBySinceLimit (result, since, limit);
