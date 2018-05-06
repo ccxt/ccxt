@@ -909,6 +909,8 @@ class kucoin (Exchange):
                 raise InvalidOrder(feedback)  # amount < limits.amount.min
             if message.find('Min price:') >= 0:
                 raise InvalidOrder(feedback)  # price < limits.price.min
+            if message.find('Max price:') >= 0:
+                raise InvalidOrder(feedback)  # price > limits.price.max
             if message.find('The precision of price') >= 0:
                 raise InvalidOrder(feedback)  # price violates precision.price
         elif code == 'NO_BALANCE':
