@@ -24,9 +24,9 @@ for symbol in kraken.symbols:
         'Sell:', kraken.markets[symbol]['info']['leverage_sell']
     )
 
-# THIS IS A KRAKEN-SPECIFIC EXAMPLE
-# THE LEVERAGE WILL NOT WORK WITH OTHER EXCHANGES THE SAME WAS
-# USE IMPLICIT METHODS FOR MARGIN/LEVERAGED ORDERS WITH OTHER EXCHANGES
+# THIS IS A KRAKEN-SPECIFIC EXAMPLE.
+# THE LEVERAGE WILL NOT WORK WITH OTHER EXCHANGES THE SAME WAY.
+# USE IMPLICIT METHODS FOR MARGIN/LEVERAGED ORDERS WITH OTHER EXCHANGES:
 # https://github.com/ccxt/ccxt/wiki/Manual#implicit-api-methods
 
 # with create_order all params (including the price=None) are needed!
