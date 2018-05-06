@@ -122,7 +122,7 @@ module.exports = class cryptopia extends Exchange {
                 'amount': amountLimits,
                 'price': priceLimits,
                 'cost': {
-                    'min': priceLimits['min'] * amountLimits['min'],
+                    'min': market['MinimumBaseTrade'],
                     'max': undefined,
                 },
             };
@@ -130,6 +130,7 @@ module.exports = class cryptopia extends Exchange {
             result.push ({
                 'id': id,
                 'symbol': symbol,
+                'label': market['Label'],
                 'base': base,
                 'quote': quote,
                 'baseId': baseId,
@@ -143,6 +144,7 @@ module.exports = class cryptopia extends Exchange {
                 'limits': limits,
             });
         }
+        this.options['marketsByLabel'] = this.indexBy (result, 'label');
         return result;
     }
 
@@ -213,11 +215,11 @@ module.exports = class cryptopia extends Exchange {
             'info': ticker,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['High']),
-            'low': parseFloat (ticker['Low']),
-            'bid': parseFloat (ticker['BidPrice']),
+            'high': this.safeFloat (ticker, 'High'),
+            'low': this.safeFloat (ticker, 'Low'),
+            'bid': this.safeFloat (ticker, 'BidPrice'),
             'bidVolume': undefined,
-            'ask': parseFloat (ticker['AskPrice']),
+            'ask': this.safeFloat (ticker, 'AskPrice'),
             'askVolume': undefined,
             'vwap': vwap,
             'open': open,
@@ -225,7 +227,7 @@ module.exports = class cryptopia extends Exchange {
             'last': last,
             'previousClose': undefined,
             'change': change,
-            'percentage': parseFloat (ticker['Change']),
+            'percentage': this.safeFloat (ticker, 'Change'),
             'average': this.sum (last, open) / 2,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
@@ -494,6 +496,11 @@ module.exports = class cryptopia extends Exchange {
             if (id in this.markets_by_id) {
                 market = this.markets_by_id[id];
                 symbol = market['symbol'];
+            } else {
+                if (id in this.options['marketsByLabel']) {
+                    market = this.options['marketsByLabel'][id];
+                    symbol = market['symbol'];
+                }
             }
         }
         let timestamp = this.parse8601 (order['TimeStamp']);
@@ -521,15 +528,18 @@ module.exports = class cryptopia extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (!symbol)
-            throw new ExchangeError (this.id + ' fetchOrders requires a symbol param');
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.privatePostGetOpenOrders ({
+        let market = undefined;
+        let request = {
             // 'Market': market['id'],
-            'TradePairId': market['id'], // Cryptopia identifier (not required if 'Market' supplied)
+            // 'TradePairId': market['id'], // Cryptopia identifier (not required if 'Market' supplied)
             // 'Count': 100, // default = 100
-        }, params);
+        };
+        if (typeof symbol !== 'undefined') {
+            market = this.market (symbol);
+            request['TradePairId'] = market['id'];
+        }
+        let response = await this.privatePostGetOpenOrders (this.extend (request, params));
         let orders = [];
         for (let i = 0; i < response['Data'].length; i++) {
             orders.push (this.extend (response['Data'][i], { 'status': 'open' }));
@@ -557,7 +567,7 @@ module.exports = class cryptopia extends Exchange {
                 }
             }
             let order = this.orders[id];
-            if (order['symbol'] === symbol)
+            if ((typeof symbol === 'undefined') || (order['symbol'] === symbol))
                 result.push (order);
         }
         return this.filterBySinceLimit (result, since, limit);

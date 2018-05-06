@@ -189,16 +189,16 @@ class bitz extends Exchange {
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = $ticker['date'] * 1000;
         $symbol = $market['symbol'];
-        $last = floatval ($ticker['last']);
+        $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['high']),
-            'low' => floatval ($ticker['low']),
-            'bid' => floatval ($ticker['buy']),
+            'high' => $this->safe_float($ticker, 'high'),
+            'low' => $this->safe_float($ticker, 'low'),
+            'bid' => $this->safe_float($ticker, 'buy'),
             'bidVolume' => null,
-            'ask' => floatval ($ticker['sell']),
+            'ask' => $this->safe_float($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -208,7 +208,7 @@ class bitz extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($ticker['vol']),
+            'baseVolume' => $this->safe_float($ticker, 'vol'),
             'quoteVolume' => null,
             'info' => $ticker,
         );
@@ -254,8 +254,8 @@ class bitz extends Exchange {
         $utcDate = explode ('T', $utcDate);
         $utcDate = $utcDate[0] . ' ' . $trade['t'] . '+08';
         $timestamp = $this->parse8601 ($utcDate);
-        $price = floatval ($trade['p']);
-        $amount = floatval ($trade['n']);
+        $price = $this->safe_float($trade, 'p');
+        $amount = $this->safe_float($trade, 'n');
         $symbol = $market['symbol'];
         $cost = $this->price_to_precision($symbol, $amount * $price);
         return array (

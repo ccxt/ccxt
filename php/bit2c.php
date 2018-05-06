@@ -107,19 +107,19 @@ class bit2c extends Exchange {
             'pair' => $this->market_id($symbol),
         ), $params));
         $timestamp = $this->milliseconds ();
-        $averagePrice = floatval ($ticker['av']);
-        $baseVolume = floatval ($ticker['a']);
+        $averagePrice = $this->safe_float($ticker, 'av');
+        $baseVolume = $this->safe_float($ticker, 'a');
         $quoteVolume = $baseVolume * $averagePrice;
-        $last = floatval ($ticker['ll']);
+        $last = $this->safe_float($ticker, 'll');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => null,
             'low' => null,
-            'bid' => floatval ($ticker['h']),
+            'bid' => $this->safe_float($ticker, 'h'),
             'bidVolume' => null,
-            'ask' => floatval ($ticker['l']),
+            'ask' => $this->safe_float($ticker, 'l'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,

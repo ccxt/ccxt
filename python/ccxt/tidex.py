@@ -27,7 +27,6 @@ class tidex (liqui):
                     'web': 'https://web.tidex.com/api',
                     'public': 'https://api.tidex.com/api/3',
                     'private': 'https://api.tidex.com/tapi',
-                    'gate': 'https://gate.tidex.com/api',
                 },
                 'www': 'https://tidex.com',
                 'doc': 'https://tidex.com/exchange/public-api',
@@ -46,11 +45,6 @@ class tidex (liqui):
                         'ordershistory',
                         'trade-data',
                         'trade-data/{id}',
-                    ],
-                },
-                'gate': {
-                    'post': [
-                        'token',
                     ],
                 },
             },
@@ -131,10 +125,35 @@ class tidex (liqui):
     def get_version_string(self):
         return ''
 
-    def fetch_session_from_web(self, params={}):
-        response = self.gatePostToken(self.extend({
-            'username': self.login,
-            'password': self.password,
-        }, params))
-        # {Session: "2p4kah9c0sls0fetcaoetmb7792m3og7", IsTwoFa: True, Type: 3}
-        return response['Session']
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        url = self.urls['api'][api]
+        query = self.omit(params, self.extract_params(path))
+        if api == 'private':
+            self.check_required_credentials()
+            nonce = self.nonce()
+            body = self.urlencode(self.extend({
+                'nonce': nonce,
+                'method': path,
+            }, query))
+            signature = self.signBodyWithSecret(body)
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Key': self.apiKey,
+                'Sign': signature,
+            }
+        elif api == 'public':
+            url += self.get_version_string() + '/' + self.implode_params(path, params)
+            if query:
+                url += '?' + self.urlencode(query)
+        else:
+            url += '/' + self.implode_params(path, params)
+            if method == 'GET':
+                if query:
+                    url += '?' + self.urlencode(query)
+            else:
+                if query:
+                    body = self.urlencode(query)
+                    headers = {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    }
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}

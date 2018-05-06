@@ -5,6 +5,7 @@
 const [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x => !x.startsWith ('--'))
 const verbose = process.argv.includes ('--verbose')
 const cloudscrape = process.argv.includes ('--cloudscrape')
+const poll = process.argv.includes ('--poll')
 
 //-----------------------------------------------------------------------------
 
@@ -104,45 +105,52 @@ async function main () {
             if (cloudscrape)
                 exchange.headers = await scrapeCloudflareHttpHeaderCookie (exchange.urls.www)
 
-            try {
+            log (exchange.id + '.' + methodName, '(' + args.join (', ') + ')')
 
-                log (exchange.id + '.' + methodName, '(' + args.join (', ') + ')')
+            while (true) {
 
-                const result = await exchange[methodName] (... args)
+                try {
 
-                if (Array.isArray (result)) {
+                    const result = await exchange[methodName] (... args)
 
-                    result.forEach (object => {
-                        log ('-------------------------------------------')
-                        log (object)
-                    })
+                    if (Array.isArray (result)) {
 
-                    log (result.length > 0 ? asTable (result) : result)
+                        result.forEach (object => {
+                            log ('-------------------------------------------')
+                            log (object)
+                        })
 
-                } else {
+                        log (result.length > 0 ? asTable (result) : result)
 
-                    log.maxDepth (10).maxArrayLength (1000) (result)
+                    } else {
+
+                        log.maxDepth (10).maxArrayLength (1000) (result)
+                    }
+
+
+                } catch (e) {
+
+                    if (e instanceof ExchangeError) {
+
+                        log.red (e.constructor.name, e.message)
+
+                    } else if (e instanceof NetworkError) {
+
+                        log.yellow (e.constructor.name, e.message)
+
+                    }
+
+                    log.dim ('---------------------------------------------------')
+
+                    // rethrow for call-stack // other errors
+                    throw e
+
                 }
 
-
-            } catch (e) {
-
-                if (e instanceof ExchangeError) {
-
-                    log.red (e.constructor.name, e.message)
-
-                } else if (e instanceof NetworkError) {
-
-                    log.yellow (e.constructor.name, e.message)
-
-                }
-
-                log.dim ('---------------------------------------------------')
-
-                // rethrow for call-stack // other errors
-                throw e
-
+                if (!poll)
+                    break;
             }
+
         } else if (typeof exchange[methodName] === 'undefined') {
             log.red (exchange.id + '.' + methodName + ': no such property')
         } else {

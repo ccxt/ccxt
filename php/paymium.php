@@ -106,8 +106,8 @@ class paymium extends Exchange {
             'id' => $this->market_id($symbol),
         ), $params));
         $timestamp = $ticker['at'] * 1000;
-        $vwap = floatval ($ticker['vwap']);
-        $baseVolume = floatval ($ticker['volume']);
+        $vwap = $this->safe_float($ticker, 'vwap');
+        $baseVolume = $this->safe_float($ticker, 'volume');
         $quoteVolume = $baseVolume * $vwap;
         $last = $this->safe_float($ticker, 'price');
         return array (

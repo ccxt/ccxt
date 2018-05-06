@@ -102,16 +102,16 @@ class coinmate (Exchange):
         }, params))
         ticker = response['data']
         timestamp = ticker['timestamp'] * 1000
-        last = float(ticker['last'])
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['bid']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'bid'),
             'bidVolume': None,
-            'ask': float(ticker['ask']),
+            'ask': self.safe_float(ticker, 'ask'),
             'vwap': None,
             'askVolume': None,
             'open': None,
@@ -121,7 +121,7 @@ class coinmate (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['amount']),
+            'baseVolume': self.safe_float(ticker, 'amount'),
             'quoteVolume': None,
             'info': ticker,
         }

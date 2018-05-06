@@ -219,16 +219,16 @@ class coinegg (Exchange):
     def parse_ticker(self, ticker, market=None):
         symbol = market['symbol']
         timestamp = self.milliseconds()
-        last = float(ticker['last'])
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['buy']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'buy'),
             'bidVolume': None,
-            'ask': float(ticker['sell']),
+            'ask': self.safe_float(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -238,7 +238,7 @@ class coinegg (Exchange):
             'change': self.safe_float(ticker, 'change'),
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['vol']),
+            'baseVolume': self.safe_float(ticker, 'vol'),
             'quoteVolume': self.safe_float(ticker, 'quoteVol'),
             'info': ticker,
         }
@@ -294,8 +294,8 @@ class coinegg (Exchange):
 
     def parse_trade(self, trade, market=None):
         timestamp = int(trade['date']) * 1000
-        price = float(trade['price'])
-        amount = float(trade['amount'])
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'amount')
         symbol = market['symbol']
         cost = self.cost_to_precision(symbol, price * amount)
         return {
@@ -351,9 +351,9 @@ class coinegg (Exchange):
     def parse_order(self, order, market=None):
         symbol = market['symbol']
         timestamp = self.parse8601(order['datetime'])
-        price = float(order['price'])
-        amount = float(order['amount_original'])
-        remaining = float(order['amount_outstanding'])
+        price = self.safe_float(order, 'price')
+        amount = self.safe_float(order, 'amount_original')
+        remaining = self.safe_float(order, 'amount_outstanding')
         filled = amount - remaining
         status = self.safe_string(order, 'status')
         if status == 'cancelled':

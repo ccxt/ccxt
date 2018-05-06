@@ -137,7 +137,7 @@ module.exports = class yobit extends liqui {
                         account = this.account ();
                     }
                     account[key] = balances[side][lowercase];
-                    if (account['total'] && account['free'])
+                    if ((typeof account['total'] !== 'undefined') && (typeof account['free'] !== 'undefined'))
                         account['used'] = account['total'] - account['free'];
                     result[currency] = account;
                 }

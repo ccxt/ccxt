@@ -157,27 +157,27 @@ class virwox (Exchange):
         lastKey = keys[length - 1]
         ticker = tickers[lastKey]
         timestamp = self.milliseconds()
-        close = float(ticker['close'])
+        close = self.safe_float(ticker, 'close')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
             'bid': None,
             'bidVolume': None,
             'ask': None,
             'askVolume': None,
             'vwap': None,
-            'open': float(ticker['open']),
+            'open': self.safe_float(ticker, 'open'),
             'close': close,
             'last': close,
             'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['longVolume']),
-            'quoteVolume': float(ticker['shortVolume']),
+            'baseVolume': self.safe_float(ticker, 'longVolume'),
+            'quoteVolume': self.safe_float(ticker, 'shortVolume'),
             'info': ticker,
         }
 

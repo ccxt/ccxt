@@ -138,7 +138,7 @@ class cobinhood extends Exchange {
             $currency = $currencies[$i];
             $id = $currency['currency'];
             $code = $this->common_currency_code($id);
-            $minUnit = floatval ($currency['min_unit']);
+            $minUnit = $this->safe_float($currency, 'min_unit');
             $result[$code] = array (
                 'id' => $id,
                 'code' => $code,
@@ -167,10 +167,10 @@ class cobinhood extends Exchange {
                 ),
                 'funding' => array (
                     'withdraw' => array (
-                        'fee' => floatval ($currency['withdrawal_fee']),
+                        'fee' => $this->safe_float($currency, 'withdrawal_fee'),
                     ),
                     'deposit' => array (
-                        'fee' => floatval ($currency['deposit_fee']),
+                        'fee' => $this->safe_float($currency, 'deposit_fee'),
                     ),
                 ),
                 'info' => $currency,
@@ -206,8 +206,8 @@ class cobinhood extends Exchange {
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => floatval ($market['base_min_size']),
-                        'max' => floatval ($market['base_max_size']),
+                        'min' => $this->safe_float($market, 'base_min_size'),
+                        'max' => $this->safe_float($market, 'base_max_size'),
                     ),
                     'price' => array (
                         'min' => null,
@@ -238,11 +238,11 @@ class cobinhood extends Exchange {
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['24h_high']),
-            'low' => floatval ($ticker['24h_low']),
-            'bid' => floatval ($ticker['highest_bid']),
+            'high' => $this->safe_float($ticker, '24h_high'),
+            'low' => $this->safe_float($ticker, '24h_low'),
+            'bid' => $this->safe_float($ticker, 'highest_bid'),
             'bidVolume' => null,
-            'ask' => floatval ($ticker['lowest_ask']),
+            'ask' => $this->safe_float($ticker, 'lowest_ask'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -252,7 +252,7 @@ class cobinhood extends Exchange {
             'change' => $this->safe_float($ticker, 'percentChanged24hr'),
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($ticker['24h_volume']),
+            'baseVolume' => $this->safe_float($ticker, '24h_volume'),
             'quoteVolume' => $this->safe_float($ticker, 'quote_volume'),
             'info' => $ticker,
         );
@@ -295,8 +295,8 @@ class cobinhood extends Exchange {
         if ($market)
             $symbol = $market['symbol'];
         $timestamp = $trade['timestamp'];
-        $price = floatval ($trade['price']);
-        $amount = floatval ($trade['size']);
+        $price = $this->safe_float($trade, 'price');
+        $amount = $this->safe_float($trade, 'size');
         $cost = floatval ($this->cost_to_precision($symbol, $price * $amount));
         $side = $trade['maker_side'] === 'bid' ? 'sell' : 'buy';
         return array (
@@ -395,9 +395,9 @@ class cobinhood extends Exchange {
         if ($market !== null)
             $symbol = $market['symbol'];
         $timestamp = $order['timestamp'];
-        $price = floatval ($order['price']);
-        $amount = floatval ($order['size']);
-        $filled = floatval ($order['filled']);
+        $price = $this->safe_float($order, 'price');
+        $amount = $this->safe_float($order, 'size');
+        $filled = $this->safe_float($order, 'filled');
         $remaining = $amount - $filled;
         // new, queued, open, partially_filled, $filled, cancelled
         $status = $order['state'];

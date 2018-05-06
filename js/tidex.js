@@ -25,7 +25,6 @@ module.exports = class tidex extends liqui {
                     'web': 'https://web.tidex.com/api',
                     'public': 'https://api.tidex.com/api/3',
                     'private': 'https://api.tidex.com/tapi',
-                    'gate': 'https://gate.tidex.com/api',
                 },
                 'www': 'https://tidex.com',
                 'doc': 'https://tidex.com/exchange/public-api',
@@ -44,11 +43,6 @@ module.exports = class tidex extends liqui {
                         'ordershistory',
                         'trade-data',
                         'trade-data/{id}',
-                    ],
-                },
-                'gate': {
-                    'post': [
-                        'token',
                     ],
                 },
             },
@@ -135,12 +129,42 @@ module.exports = class tidex extends liqui {
         return '';
     }
 
-    async fetchSessionFromWeb (params = {}) {
-        let response = await this.gatePostToken (this.extend ({
-            'username': this.login,
-            'password': this.password,
-        }, params));
-        // { Session: "2p4kah9c0sls0fetcaoetmb7792m3og7", IsTwoFa: true, Type: 3 }
-        return response['Session'];
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'][api];
+        let query = this.omit (params, this.extractParams (path));
+        if (api === 'private') {
+            this.checkRequiredCredentials ();
+            let nonce = this.nonce ();
+            body = this.urlencode (this.extend ({
+                'nonce': nonce,
+                'method': path,
+            }, query));
+            let signature = this.signBodyWithSecret (body);
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Key': this.apiKey,
+                'Sign': signature,
+            };
+        } else if (api === 'public') {
+            url += this.getVersionString () + '/' + this.implodeParams (path, params);
+            if (Object.keys (query).length) {
+                url += '?' + this.urlencode (query);
+            }
+        } else {
+            url += '/' + this.implodeParams (path, params);
+            if (method === 'GET') {
+                if (Object.keys (query).length) {
+                    url += '?' + this.urlencode (query);
+                }
+            } else {
+                if (Object.keys (query).length) {
+                    body = this.urlencode (query);
+                    headers = {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    };
+                }
+            }
+        }
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 };

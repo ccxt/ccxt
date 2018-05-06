@@ -432,7 +432,7 @@ class kraken (Exchange):
             'ask': float(ticker['a'][0]),
             'askVolume': None,
             'vwap': vwap,
-            'open': float(ticker['o']),
+            'open': self.safe_float(ticker, 'o'),
             'close': last,
             'last': last,
             'previousClose': None,
@@ -520,14 +520,14 @@ class kraken (Exchange):
             timestamp = int(trade['time'] * 1000)
             side = trade['type']
             type = trade['ordertype']
-            price = float(trade['price'])
-            amount = float(trade['vol'])
+            price = self.safe_float(trade, 'price')
+            amount = self.safe_float(trade, 'vol')
             if 'fee' in trade:
                 currency = None
                 if market:
                     currency = market['quote']
                 fee = {
-                    'cost': float(trade['fee']),
+                    'cost': self.safe_float(trade, 'fee'),
                     'currency': currency,
                 }
         else:
@@ -635,8 +635,8 @@ class kraken (Exchange):
         if not market:
             market = self.find_market_by_altname_or_id(description['pair'])
         timestamp = int(order['opentm'] * 1000)
-        amount = float(order['vol'])
-        filled = float(order['vol_exec'])
+        amount = self.safe_float(order, 'vol')
+        filled = self.safe_float(order, 'vol_exec')
         remaining = amount - filled
         fee = None
         cost = self.safe_float(order, 'cost')
@@ -711,6 +711,9 @@ class kraken (Exchange):
         ids = list(trades.keys())
         for i in range(0, len(ids)):
             trades[ids[i]]['id'] = ids[i]
+        # market = None
+        # if symbol is not None:
+        #     market = self.market(symbol)
         return self.parse_trades(trades, None, since, limit)
 
     async def cancel_order(self, id, symbol=None, params={}):

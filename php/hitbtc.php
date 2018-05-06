@@ -501,8 +501,8 @@ class hitbtc extends Exchange {
             $id = $market['symbol'];
             $baseId = $market['commodity'];
             $quoteId = $market['currency'];
-            $lot = floatval ($market['lot']);
-            $step = floatval ($market['step']);
+            $lot = $this->safe_float($market, 'lot');
+            $step = $this->safe_float($market, 'step');
             $base = $this->common_currency_code($baseId);
             $quote = $this->common_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
@@ -657,13 +657,13 @@ class hitbtc extends Exchange {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
-        $amount = floatval ($trade['execQuantity']);
+        $amount = $this->safe_float($trade, 'execQuantity');
         if ($market)
             $amount *= $market['lot'];
-        $price = floatval ($trade['execPrice']);
+        $price = $this->safe_float($trade, 'execPrice');
         $cost = $price * $amount;
         $fee = array (
-            'cost' => floatval ($trade['fee']),
+            'cost' => $this->safe_float($trade, 'fee'),
             'currency' => null,
             'rate' => null,
         );

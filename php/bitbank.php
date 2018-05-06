@@ -125,16 +125,16 @@ class bitbank extends Exchange {
     public function parse_ticker ($ticker, $market = null) {
         $symbol = $market['symbol'];
         $timestamp = $ticker['timestamp'];
-        $last = floatval ($ticker['last']);
+        $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['high']),
-            'low' => floatval ($ticker['low']),
-            'bid' => floatval ($ticker['buy']),
+            'high' => $this->safe_float($ticker, 'high'),
+            'low' => $this->safe_float($ticker, 'low'),
+            'bid' => $this->safe_float($ticker, 'buy'),
             'bidVolume' => null,
-            'ask' => floatval ($ticker['sell']),
+            'ask' => $this->safe_float($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -144,7 +144,7 @@ class bitbank extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($ticker['vol']),
+            'baseVolume' => $this->safe_float($ticker, 'vol'),
             'quoteVolume' => null,
             'info' => $ticker,
         );
@@ -170,8 +170,8 @@ class bitbank extends Exchange {
 
     public function parse_trade ($trade, $market = null) {
         $timestamp = $trade['executed_at'];
-        $price = floatval ($trade['price']);
-        $amount = floatval ($trade['amount']);
+        $price = $this->safe_float($trade, 'price');
+        $amount = $this->safe_float($trade, 'amount');
         $symbol = $market['symbol'];
         $cost = $this->cost_to_precision($symbol, $price * $amount);
         $id = $this->safe_string($trade, 'transaction_id');
@@ -267,7 +267,7 @@ class bitbank extends Exchange {
         if ($market)
             $symbol = $market['symbol'];
         $timestamp = $this->safe_integer($order, 'ordered_at') * 1000;
-        $price = floatval ($order['price']);
+        $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'start_amount');
         $filled = $this->safe_float($order, 'executed_amount');
         $remaining = $this->safe_float($order, 'remaining_amount');

@@ -95,21 +95,21 @@ class coinfloor extends Exchange {
         if ($market)
             $symbol = $market['symbol'];
         $vwap = $this->safe_float($ticker, 'vwap');
-        $baseVolume = floatval ($ticker['volume']);
+        $baseVolume = $this->safe_float($ticker, 'volume');
         $quoteVolume = null;
         if ($vwap !== null) {
             $quoteVolume = $baseVolume * $vwap;
         }
-        $last = floatval ($ticker['last']);
+        $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['high']),
-            'low' => floatval ($ticker['low']),
-            'bid' => floatval ($ticker['bid']),
+            'high' => $this->safe_float($ticker, 'high'),
+            'low' => $this->safe_float($ticker, 'low'),
+            'bid' => $this->safe_float($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => floatval ($ticker['ask']),
+            'ask' => $this->safe_float($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => $vwap,
             'open' => null,
@@ -144,8 +144,8 @@ class coinfloor extends Exchange {
             'symbol' => $market['symbol'],
             'type' => null,
             'side' => null,
-            'price' => floatval ($trade['price']),
-            'amount' => floatval ($trade['amount']),
+            'price' => $this->safe_float($trade, 'price'),
+            'amount' => $this->safe_float($trade, 'amount'),
         );
     }
 

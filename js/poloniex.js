@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, AuthenticationError, DDoSProtection, InsufficientFunds, OrderNotFound, OrderNotCached, InvalidOrder, CancelPending, InvalidNonce } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, RequestTimeout, AuthenticationError, DDoSProtection, InsufficientFunds, OrderNotFound, OrderNotCached, InvalidOrder, CancelPending, InvalidNonce } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -242,8 +242,8 @@ module.exports = class poloniex extends Exchange {
         let fees = await this.privatePostReturnFeeInfo ();
         return {
             'info': fees,
-            'maker': parseFloat (fees['makerFee']),
-            'taker': parseFloat (fees['takerFee']),
+            'maker': this.safeFloat (fees, 'makerFee'),
+            'taker': this.safeFloat (fees, 'takerFee'),
             'withdraw': {},
             'deposit': {},
         };
@@ -270,8 +270,8 @@ module.exports = class poloniex extends Exchange {
         let open = undefined;
         let change = undefined;
         let average = undefined;
-        let last = parseFloat (ticker['last']);
-        let relativeChange = parseFloat (ticker['percentChange']);
+        let last = this.safeFloat (ticker, 'last');
+        let relativeChange = this.safeFloat (ticker, 'percentChange');
         if (relativeChange !== -1) {
             open = last / this.sum (1, relativeChange);
             change = last - open;
@@ -281,11 +281,11 @@ module.exports = class poloniex extends Exchange {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high24hr']),
-            'low': parseFloat (ticker['low24hr']),
-            'bid': parseFloat (ticker['highestBid']),
+            'high': this.safeFloat (ticker, 'high24hr'),
+            'low': this.safeFloat (ticker, 'low24hr'),
+            'bid': this.safeFloat (ticker, 'highestBid'),
             'bidVolume': undefined,
-            'ask': parseFloat (ticker['lowestAsk']),
+            'ask': this.safeFloat (ticker, 'lowestAsk'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': open,
@@ -295,8 +295,8 @@ module.exports = class poloniex extends Exchange {
             'change': change,
             'percentage': relativeChange * 100,
             'average': average,
-            'baseVolume': parseFloat (ticker['quoteVolume']),
-            'quoteVolume': parseFloat (ticker['baseVolume']),
+            'baseVolume': this.safeFloat (ticker, 'quoteVolume'),
+            'quoteVolume': this.safeFloat (ticker, 'baseVolume'),
             'info': ticker,
         };
     }
@@ -396,9 +396,9 @@ module.exports = class poloniex extends Exchange {
         let side = trade['type'];
         let fee = undefined;
         let cost = this.safeFloat (trade, 'total');
-        let amount = parseFloat (trade['amount']);
+        let amount = this.safeFloat (trade, 'amount');
         if ('fee' in trade) {
-            let rate = parseFloat (trade['fee']);
+            let rate = this.safeFloat (trade, 'fee');
             let feeCost = undefined;
             let currency = undefined;
             if (side === 'buy') {
@@ -425,7 +425,7 @@ module.exports = class poloniex extends Exchange {
             'order': this.safeString (trade, 'orderNumber'),
             'type': 'limit',
             'side': side,
-            'price': parseFloat (trade['rate']),
+            'price': this.safeFloat (trade, 'rate'),
             'amount': amount,
             'cost': cost,
             'fee': fee,
@@ -830,6 +830,8 @@ module.exports = class poloniex extends Exchange {
             const feedback = this.id + ' ' + this.json (response);
             if (error === 'Invalid order number, or you are not the person who placed the order.') {
                 throw new OrderNotFound (feedback);
+            } else if (error === 'Connection timed out. Please try again.') {
+                throw new RequestTimeout (feedback);
             } else if (error === 'Internal error. Please try again.') {
                 throw new ExchangeNotAvailable (feedback);
             } else if (error === 'Order not found, or you are not the person who placed it.') {

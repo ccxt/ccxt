@@ -340,8 +340,8 @@ class bitfinex (Exchange):
             }
             limits = {
                 'amount': {
-                    'min': float(market['minimum_order_size']),
-                    'max': float(market['maximum_order_size']),
+                    'min': self.safe_float(market, 'minimum_order_size'),
+                    'max': self.safe_float(market, 'maximum_order_size'),
                 },
                 'price': {
                     'min': math.pow(10, -precision['price']),
@@ -381,13 +381,17 @@ class bitfinex (Exchange):
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]
         rate = market[takerOrMaker]
-        cost = amount * price
+        cost = amount * rate
         key = 'quote'
+        if side == 'sell':
+            cost *= price
+        else:
+            key = 'base'
         return {
             'type': takerOrMaker,
             'currency': market[key],
             'rate': rate,
-            'cost': float(self.fee_to_precision(market[key], rate * cost)),
+            'cost': float(self.fee_to_precision(market[key], cost)),
         }
 
     def fetch_balance(self, params={}):
@@ -439,7 +443,7 @@ class bitfinex (Exchange):
         return self.parse_ticker(ticker, market)
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = float(ticker['timestamp']) * 1000
+        timestamp = self.safe_float(ticker, 'timestamp') * 1000
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -455,16 +459,16 @@ class bitfinex (Exchange):
                 base = self.common_currency_code(baseId)
                 quote = self.common_currency_code(quoteId)
                 symbol = base + '/' + quote
-        last = float(ticker['last_price'])
+        last = self.safe_float(ticker, 'last_price')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['bid']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'bid'),
             'bidVolume': None,
-            'ask': float(ticker['ask']),
+            'ask': self.safe_float(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -473,8 +477,8 @@ class bitfinex (Exchange):
             'previousClose': None,
             'change': None,
             'percentage': None,
-            'average': float(ticker['mid']),
-            'baseVolume': float(ticker['volume']),
+            'average': self.safe_float(ticker, 'mid'),
+            'baseVolume': self.safe_float(ticker, 'volume'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -483,8 +487,8 @@ class bitfinex (Exchange):
         timestamp = int(float(trade['timestamp'])) * 1000
         side = trade['type'].lower()
         orderId = self.safe_string(trade, 'order_id')
-        price = float(trade['price'])
-        amount = float(trade['amount'])
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'amount')
         cost = price * amount
         fee = None
         if 'fee_amount' in trade:
@@ -641,8 +645,10 @@ class bitfinex (Exchange):
             ohlcv[5],
         ]
 
-    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=100, params={}):
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         self.load_markets()
+        if limit is None:
+            limit = 100
         if since is None:
             since = self.milliseconds() - self.parse_timeframe(timeframe) * limit * 1000
         market = self.market(symbol)

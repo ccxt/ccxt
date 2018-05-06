@@ -153,16 +153,16 @@ class btcmarkets (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
-        last = float(ticker['lastPrice'])
+        last = self.safe_float(ticker, 'lastPrice')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': float(ticker['bestBid']),
+            'bid': self.safe_float(ticker, 'bestBid'),
             'bidVolume': None,
-            'ask': float(ticker['bestAsk']),
+            'ask': self.safe_float(ticker, 'bestAsk'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -172,7 +172,7 @@ class btcmarkets (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['volume24h']),
+            'baseVolume': self.safe_float(ticker, 'volume24h'),
             'quoteVolume': None,
             'info': ticker,
         }

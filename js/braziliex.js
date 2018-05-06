@@ -255,10 +255,10 @@ module.exports = class braziliex extends Exchange {
         } else {
             timestamp = this.parse8601 (trade['date']);
         }
-        let price = parseFloat (trade['price']);
-        let amount = parseFloat (trade['amount']);
+        let price = this.safeFloat (trade, 'price');
+        let amount = this.safeFloat (trade, 'amount');
         let symbol = market['symbol'];
-        let cost = parseFloat (trade['total']);
+        let cost = this.safeFloat (trade, 'total');
         let orderId = this.safeString (trade, 'order_number');
         return {
             'timestamp': timestamp,
@@ -318,7 +318,7 @@ module.exports = class braziliex extends Exchange {
         let timestamp = this.safeValue (order, 'timestamp');
         if (!timestamp)
             timestamp = this.parse8601 (order['date']);
-        let price = parseFloat (order['price']);
+        let price = this.safeFloat (order, 'price');
         let cost = this.safeFloat (order, 'total', 0.0);
         let amount = this.safeFloat (order, 'amount');
         let filledPercentage = this.safeFloat (order, 'progress');

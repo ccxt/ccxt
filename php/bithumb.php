@@ -227,8 +227,8 @@ class bithumb extends Exchange {
             'order' => null,
             'type' => null,
             'side' => $side,
-            'price' => floatval ($trade['price']),
-            'amount' => floatval ($trade['units_traded']),
+            'price' => $this->safe_float($trade, 'price'),
+            'amount' => $this->safe_float($trade, 'units_traded'),
         );
     }
 

@@ -194,7 +194,12 @@ class gatecoin (Exchange):
                 },
             },
             'commonCurrencies': {
+                'BCP': 'BCPT',
+                'FLI': 'FLIXX',
                 'MAN': 'MANA',
+                'SLT': 'SALT',
+                'TRA': 'TRAC',
+                'WGS': 'WINGS',
             },
         })
 
@@ -285,22 +290,22 @@ class gatecoin (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
-        baseVolume = float(ticker['volume'])
-        vwap = float(ticker['vwap'])
+        baseVolume = self.safe_float(ticker, 'volume')
+        vwap = self.safe_float(ticker, 'vwap')
         quoteVolume = baseVolume * vwap
-        last = float(ticker['last'])
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['bid']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'bid'),
             'bidVolume': None,
-            'ask': float(ticker['ask']),
+            'ask': self.safe_float(ticker, 'ask'),
             'askVolume': None,
             'vwap': vwap,
-            'open': float(ticker['open']),
+            'open': self.safe_float(ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': None,
@@ -604,11 +609,7 @@ class gatecoin (Exchange):
             'DigiCurrency': currency['id'],
         }
         response = self.privatePostElectronicWalletDepositWalletsDigiCurrency(self.extend(request, params))
-        result = response['addresses']
-        numResults = len(result)
-        if numResults < 1:
-            raise InvalidAddress(self.id + ' privatePostElectronicWalletDepositWalletsDigiCurrency() returned no addresses')
-        address = self.safe_string(result[0], 'address')
+        address = response['address']
         self.check_address(address)
         return {
             'currency': code,

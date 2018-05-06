@@ -180,16 +180,16 @@ class luno extends Exchange {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
-        $last = floatval ($ticker['last_trade']);
+        $last = $this->safe_float($ticker, 'last_trade');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => null,
             'low' => null,
-            'bid' => floatval ($ticker['bid']),
+            'bid' => $this->safe_float($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => floatval ($ticker['ask']),
+            'ask' => $this->safe_float($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -199,7 +199,7 @@ class luno extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($ticker['rolling_24_hour_volume']),
+            'baseVolume' => $this->safe_float($ticker, 'rolling_24_hour_volume'),
             'quoteVolume' => null,
             'info' => $ticker,
         );
@@ -241,8 +241,8 @@ class luno extends Exchange {
             'symbol' => $market['symbol'],
             'type' => null,
             'side' => $side,
-            'price' => floatval ($trade['price']),
-            'amount' => floatval ($trade['volume']),
+            'price' => $this->safe_float($trade, 'price'),
+            'amount' => $this->safe_float($trade, 'volume'),
         );
     }
 

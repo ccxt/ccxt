@@ -12,6 +12,7 @@ try:
 except NameError:
     basestring = str  # Python 2
 import hashlib
+import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InvalidAddress
 
@@ -105,7 +106,7 @@ class gateio (Exchange):
             quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
             precision = {
-                'amount': details['decimal_places'],
+                'amount': 8,
                 'price': details['decimal_places'],
             }
             amountLimits = {
@@ -113,12 +114,17 @@ class gateio (Exchange):
                 'max': None,
             }
             priceLimits = {
-                'min': None,
+                'min': math.pow(10, -details['decimal_places']),
+                'max': None,
+            }
+            costLimits = {
+                'min': amountLimits['min'] * priceLimits['min'],
                 'max': None,
             }
             limits = {
                 'amount': amountLimits,
                 'price': priceLimits,
+                'cost': costLimits,
             }
             result.append({
                 'id': id,
@@ -164,27 +170,27 @@ class gateio (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
-        last = float(ticker['last'])
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high24hr']),
-            'low': float(ticker['low24hr']),
-            'bid': float(ticker['highestBid']),
+            'high': self.safe_float(ticker, 'high24hr'),
+            'low': self.safe_float(ticker, 'low24hr'),
+            'bid': self.safe_float(ticker, 'highestBid'),
             'bidVolume': None,
-            'ask': float(ticker['lowestAsk']),
+            'ask': self.safe_float(ticker, 'lowestAsk'),
             'askVolume': None,
             'vwap': None,
             'open': None,
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': float(ticker['percentChange']),
+            'change': self.safe_float(ticker, 'percentChange'),
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['quoteVolume']),
-            'quoteVolume': float(ticker['baseVolume']),
+            'baseVolume': self.safe_float(ticker, 'quoteVolume'),
+            'quoteVolume': self.safe_float(ticker, 'baseVolume'),
             'info': ticker,
         }
 
@@ -229,7 +235,7 @@ class gateio (Exchange):
             'symbol': market['symbol'],
             'type': None,
             'side': trade['type'],
-            'price': float(trade['rate']),
+            'price': self.safe_float(trade, 'rate'),
             'amount': self.safe_float(trade, 'amount'),
         }
 

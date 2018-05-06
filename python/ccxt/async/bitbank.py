@@ -130,16 +130,16 @@ class bitbank (Exchange):
     def parse_ticker(self, ticker, market=None):
         symbol = market['symbol']
         timestamp = ticker['timestamp']
-        last = float(ticker['last'])
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['buy']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'buy'),
             'bidVolume': None,
-            'ask': float(ticker['sell']),
+            'ask': self.safe_float(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -149,7 +149,7 @@ class bitbank (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['vol']),
+            'baseVolume': self.safe_float(ticker, 'vol'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -172,8 +172,8 @@ class bitbank (Exchange):
 
     def parse_trade(self, trade, market=None):
         timestamp = trade['executed_at']
-        price = float(trade['price'])
-        amount = float(trade['amount'])
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'amount')
         symbol = market['symbol']
         cost = self.cost_to_precision(symbol, price * amount)
         id = self.safe_string(trade, 'transaction_id')
@@ -259,7 +259,7 @@ class bitbank (Exchange):
         if market:
             symbol = market['symbol']
         timestamp = self.safe_integer(order, 'ordered_at') * 1000
-        price = float(order['price'])
+        price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'start_amount')
         filled = self.safe_float(order, 'executed_amount')
         remaining = self.safe_float(order, 'remaining_amount')

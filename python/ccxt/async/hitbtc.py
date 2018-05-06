@@ -503,8 +503,8 @@ class hitbtc (Exchange):
             id = market['symbol']
             baseId = market['commodity']
             quoteId = market['currency']
-            lot = float(market['lot'])
-            step = float(market['step'])
+            lot = self.safe_float(market, 'lot')
+            step = self.safe_float(market, 'step')
             base = self.common_currency_code(baseId)
             quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
@@ -648,13 +648,13 @@ class hitbtc (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
-        amount = float(trade['execQuantity'])
+        amount = self.safe_float(trade, 'execQuantity')
         if market:
             amount *= market['lot']
-        price = float(trade['execPrice'])
+        price = self.safe_float(trade, 'execPrice')
         cost = price * amount
         fee = {
-            'cost': float(trade['fee']),
+            'cost': self.safe_float(trade, 'fee'),
             'currency': None,
             'rate': None,
         }

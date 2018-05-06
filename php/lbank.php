@@ -210,8 +210,8 @@ class lbank extends Exchange {
     public function parse_trade ($trade, $market = null) {
         $symbol = $market['symbol'];
         $timestamp = intval ($trade['date_ms']);
-        $price = floatval ($trade['price']);
-        $amount = floatval ($trade['amount']);
+        $price = $this->safe_float($trade, 'price');
+        $amount = $this->safe_float($trade, 'amount');
         $cost = $this->cost_to_precision($symbol, $price * $amount);
         return array (
             'timestamp' => $timestamp,
@@ -288,7 +288,7 @@ class lbank extends Exchange {
         $timestamp = $this->safe_integer($order, 'create_time');
         // Limit Order Request Returns => Order Price
         // Market Order Returns => cny $amount of $market $order
-        $price = floatval ($order['price']);
+        $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'amount');
         $filled = $this->safe_float($order, 'deal_amount');
         $cost = $filled * $this->safe_float($order, 'avg_price');

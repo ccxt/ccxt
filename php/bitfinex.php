@@ -330,8 +330,8 @@ class bitfinex extends Exchange {
             );
             $limits = array (
                 'amount' => array (
-                    'min' => floatval ($market['minimum_order_size']),
-                    'max' => floatval ($market['maximum_order_size']),
+                    'min' => $this->safe_float($market, 'minimum_order_size'),
+                    'max' => $this->safe_float($market, 'maximum_order_size'),
                 ),
                 'price' => array (
                     'min' => pow (10, -$precision['price']),
@@ -377,13 +377,18 @@ class bitfinex extends Exchange {
     public function calculate_fee ($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
         $market = $this->markets[$symbol];
         $rate = $market[$takerOrMaker];
-        $cost = $amount * $price;
+        $cost = $amount * $rate;
         $key = 'quote';
+        if ($side === 'sell') {
+            $cost *= $price;
+        } else {
+            $key = 'base';
+        }
         return array (
             'type' => $takerOrMaker,
             'currency' => $market[$key],
             'rate' => $rate,
-            'cost' => floatval ($this->fee_to_precision($market[$key], $rate * $cost)),
+            'cost' => floatval ($this->fee_to_precision($market[$key], $cost)),
         );
     }
 
@@ -444,7 +449,7 @@ class bitfinex extends Exchange {
     }
 
     public function parse_ticker ($ticker, $market = null) {
-        $timestamp = floatval ($ticker['timestamp']) * 1000;
+        $timestamp = $this->safe_float($ticker, 'timestamp') * 1000;
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -462,16 +467,16 @@ class bitfinex extends Exchange {
                 $symbol = $base . '/' . $quote;
             }
         }
-        $last = floatval ($ticker['last_price']);
+        $last = $this->safe_float($ticker, 'last_price');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['high']),
-            'low' => floatval ($ticker['low']),
-            'bid' => floatval ($ticker['bid']),
+            'high' => $this->safe_float($ticker, 'high'),
+            'low' => $this->safe_float($ticker, 'low'),
+            'bid' => $this->safe_float($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => floatval ($ticker['ask']),
+            'ask' => $this->safe_float($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -480,8 +485,8 @@ class bitfinex extends Exchange {
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
-            'average' => floatval ($ticker['mid']),
-            'baseVolume' => floatval ($ticker['volume']),
+            'average' => $this->safe_float($ticker, 'mid'),
+            'baseVolume' => $this->safe_float($ticker, 'volume'),
             'quoteVolume' => null,
             'info' => $ticker,
         );
@@ -491,8 +496,8 @@ class bitfinex extends Exchange {
         $timestamp = intval (floatval ($trade['timestamp'])) * 1000;
         $side = strtolower ($trade['type']);
         $orderId = $this->safe_string($trade, 'order_id');
-        $price = floatval ($trade['price']);
-        $amount = floatval ($trade['amount']);
+        $price = $this->safe_float($trade, 'price');
+        $amount = $this->safe_float($trade, 'amount');
         $cost = $price * $amount;
         $fee = null;
         if (is_array ($trade) && array_key_exists ('fee_amount', $trade)) {
@@ -665,8 +670,10 @@ class bitfinex extends Exchange {
         ];
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = 100, $params = array ()) {
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
+        if ($limit === null)
+            $limit = 100;
         if ($since === null)
             $since = $this->milliseconds () - $this->parse_timeframe($timeframe) * $limit * 1000;
         $market = $this->market ($symbol);
