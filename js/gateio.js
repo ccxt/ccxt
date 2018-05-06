@@ -96,7 +96,7 @@ module.exports = class gateio extends Exchange {
             quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
             let precision = {
-                'amount': details['decimal_places'],
+                'amount': 8,
                 'price': details['decimal_places'],
             };
             let amountLimits = {
@@ -104,12 +104,17 @@ module.exports = class gateio extends Exchange {
                 'max': undefined,
             };
             let priceLimits = {
-                'min': undefined,
+                'min': Math.pow (10, -details['decimal_places']),
+                'max': undefined,
+            };
+            let costLimits = {
+                'min': amountLimits['min'] * priceLimits['min'],
                 'max': undefined,
             };
             let limits = {
                 'amount': amountLimits,
                 'price': priceLimits,
+                'cost': costLimits,
             };
             result.push ({
                 'id': id,
