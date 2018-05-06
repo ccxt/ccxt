@@ -531,16 +531,16 @@ module.exports = class cryptopia extends Exchange {
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
-        let args = {
+        let request = {
             // 'Market': market['id'],
             // 'TradePairId': market['id'], // Cryptopia identifier (not required if 'Market' supplied)
             // 'Count': 100, // default = 100
         };
         if (typeof symbol !== 'undefined') {
             market = this.market (symbol);
-            args['TradePairId'] = market['id'];
+            request['TradePairId'] = market['id'];
         }
-        let response = await this.privatePostGetOpenOrders (args, params);
+        let response = await this.privatePostGetOpenOrders (this.extend (request, params));
         let orders = [];
         for (let i = 0; i < response['Data'].length; i++) {
             orders.push (this.extend (response['Data'][i], { 'status': 'open' }));
