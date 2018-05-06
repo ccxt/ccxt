@@ -494,6 +494,9 @@ module.exports = class cryptopia extends Exchange {
             if (id in this.markets_by_id) {
                 market = this.markets_by_id[id];
                 symbol = market['symbol'];
+            } else if ( id in this.symbols) {
+                symbol = id;
+                market = this.markets[symbol];
             }
         }
         let timestamp = this.parse8601 (order['TimeStamp']);
@@ -560,7 +563,7 @@ module.exports = class cryptopia extends Exchange {
                 }
             }
             let order = this.orders[id];
-            if (order['symbol'] === symbol)
+            if (symbol === undefined || order['symbol'] === symbol)
                 result.push (order);
         }
         return this.filterBySinceLimit (result, since, limit);
