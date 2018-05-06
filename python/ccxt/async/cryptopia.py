@@ -136,6 +136,7 @@ class cryptopia (Exchange):
             result.append({
                 'id': id,
                 'symbol': symbol,
+                'label': market['Label'],
                 'base': base,
                 'quote': quote,
                 'baseId': baseId,
@@ -463,6 +464,12 @@ class cryptopia (Exchange):
             if id in self.markets_by_id:
                 market = self.markets_by_id[id]
                 symbol = market['symbol']
+            else:
+                if not('marketsByLabel' in list(self.options.keys())):
+                    self.options['marketsByLabel'] = self.index_by(self.markets, 'label')
+                if id in self.options['marketsByLabel']:
+                    market = self.options['marketsByLabel'][id]
+                    symbol = market['symbol']
         timestamp = self.parse8601(order['TimeStamp'])
         amount = self.safe_float(order, 'Amount')
         remaining = self.safe_float(order, 'Remaining')
@@ -487,15 +494,17 @@ class cryptopia (Exchange):
         }
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
-        if not symbol:
-            raise ExchangeError(self.id + ' fetchOrders requires a symbol param')
         await self.load_markets()
-        market = self.market(symbol)
-        response = await self.privatePostGetOpenOrders({
+        market = None
+        request = {
             # 'Market': market['id'],
-            'TradePairId': market['id'],  # Cryptopia identifier(not required if 'Market' supplied)
+            # 'TradePairId': market['id'],  # Cryptopia identifier(not required if 'Market' supplied)
             # 'Count': 100,  # default = 100
-        }, params)
+        }
+        if symbol is not None:
+            market = self.market(symbol)
+            request['TradePairId'] = market['id']
+        response = await self.privatePostGetOpenOrders(self.extend(request, params))
         orders = []
         for i in range(0, len(response['Data'])):
             orders.append(self.extend(response['Data'][i], {'status': 'open'}))
@@ -519,7 +528,7 @@ class cryptopia (Exchange):
                         'remaining': 0.0,
                     })
             order = self.orders[id]
-            if order['symbol'] == symbol:
+            if (symbol is None) or (order['symbol'] == symbol):
                 result.append(order)
         return self.filter_by_since_limit(result, since, limit)
 

@@ -131,6 +131,7 @@ class cryptopia extends Exchange {
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
+                'label' => $market['Label'],
                 'base' => $base,
                 'quote' => $quote,
                 'baseId' => $baseId,
@@ -495,6 +496,13 @@ class cryptopia extends Exchange {
             if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$id];
                 $symbol = $market['symbol'];
+            } else {
+                if (!(is_array ($this->options) && array_key_exists ('marketsByLabel', $this->options)))
+                    $this->options['marketsByLabel'] = $this->index_by($this->markets, 'label');
+                if (is_array ($this->options['marketsByLabel']) && array_key_exists ($id, $this->options['marketsByLabel'])) {
+                    $market = $this->options['marketsByLabel'][$id];
+                    $symbol = $market['symbol'];
+                }
             }
         }
         $timestamp = $this->parse8601 ($order['TimeStamp']);
@@ -522,15 +530,18 @@ class cryptopia extends Exchange {
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if (!$symbol)
-            throw new ExchangeError ($this->id . ' fetchOrders requires a $symbol param');
         $this->load_markets();
-        $market = $this->market ($symbol);
-        $response = $this->privatePostGetOpenOrders (array (
+        $market = null;
+        $request = array (
             // 'Market' => $market['id'],
-            'TradePairId' => $market['id'], // Cryptopia identifier (not required if 'Market' supplied)
+            // 'TradePairId' => $market['id'], // Cryptopia identifier (not required if 'Market' supplied)
             // 'Count' => 100, // default = 100
-        ), $params);
+        );
+        if ($symbol !== null) {
+            $market = $this->market ($symbol);
+            $request['TradePairId'] = $market['id'];
+        }
+        $response = $this->privatePostGetOpenOrders (array_merge ($request, $params));
         $orders = array ();
         for ($i = 0; $i < count ($response['Data']); $i++) {
             $orders[] = array_merge ($response['Data'][$i], array ( 'status' => 'open' ));
@@ -558,7 +569,7 @@ class cryptopia extends Exchange {
                 }
             }
             $order = $this->orders[$id];
-            if ($order['symbol'] === $symbol)
+            if (($symbol === null) || ($order['symbol'] === $symbol))
                 $result[] = $order;
         }
         return $this->filter_by_since_limit($result, $since, $limit);
