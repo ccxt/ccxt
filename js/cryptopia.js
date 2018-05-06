@@ -494,6 +494,9 @@ module.exports = class cryptopia extends Exchange {
             if (id in this.markets_by_id) {
                 market = this.markets_by_id[id];
                 symbol = market['symbol'];
+            } else if (id in this.symbols) {
+                symbol = id;
+                market = this.markets[symbol];
             }
         }
         let timestamp = this.parse8601 (order['TimeStamp']);
@@ -521,15 +524,18 @@ module.exports = class cryptopia extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (!symbol)
-            throw new ExchangeError (this.id + ' fetchOrders requires a symbol param');
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.privatePostGetOpenOrders ({
-            // 'Market': market['id'],
-            'TradePairId': market['id'], // Cryptopia identifier (not required if 'Market' supplied)
-            // 'Count': 100, // default = 100
-        }, params);
+        let market = undefined;
+        let args = {};
+        if (symbol) {
+            market = this.market (symbol);
+            args = {
+                // 'Market': market['id'],
+                'TradePairId': market['id'], // Cryptopia identifier (not required if 'Market' supplied)
+                // 'Count': 100, // default = 100
+            };
+        }
+        let response = await this.privatePostGetOpenOrders (args, params);
         let orders = [];
         for (let i = 0; i < response['Data'].length; i++) {
             orders.push (this.extend (response['Data'][i], { 'status': 'open' }));
@@ -557,7 +563,7 @@ module.exports = class cryptopia extends Exchange {
                 }
             }
             let order = this.orders[id];
-            if (order['symbol'] === symbol)
+            if (typeof symbol === 'undefined' || order['symbol'] === symbol)
                 result.push (order);
         }
         return this.filterBySinceLimit (result, since, limit);
