@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError } = require ('./base/errors');
+const { AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -162,6 +163,8 @@ module.exports = class itbit extends Exchange {
     }
 
     async fetchWallets () {
+        if (!this.userId)
+            throw new AuthenticationError (this.id + ' fetchWallets requires userId in API settings');
         let params = {
             'userId': this.userId,
         };
