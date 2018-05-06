@@ -32,7 +32,7 @@ module.exports = class cryptopia extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/29484394-7b4ea6e2-84c6-11e7-83e5-1fccf4b2dc81.jpg',
                 'api': 'https://www.cryptopia.co.nz/api',
-                'www': 'https://www.cryptopia.co.nz',
+                'www': 'https://www.cryptopia.co.nz/Register?referrer=kroitor',
                 'doc': [
                     'https://www.cryptopia.co.nz/Forum/Category/45',
                     'https://www.cryptopia.co.nz/Forum/Thread/255',
