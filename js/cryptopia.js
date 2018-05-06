@@ -130,6 +130,7 @@ module.exports = class cryptopia extends Exchange {
             result.push ({
                 'id': id,
                 'symbol': symbol,
+                'label': market['Label'],
                 'base': base,
                 'quote': quote,
                 'baseId': baseId,
@@ -494,9 +495,13 @@ module.exports = class cryptopia extends Exchange {
             if (id in this.markets_by_id) {
                 market = this.markets_by_id[id];
                 symbol = market['symbol'];
-            } else if (id in this.symbols) {
-                symbol = id;
-                market = this.markets[symbol];
+            } else {
+                if (!('marketsByLabel' in this.options))
+                    this.options['marketsByLabel'] = this.indexBy (this.markets, 'label');
+                if (id in this.options['marketsByLabel']) {
+                    market = this.options['marketsByLabel'][id];
+                    symbol = market['symbol'];
+                }
             }
         }
         let timestamp = this.parse8601 (order['TimeStamp']);
@@ -526,14 +531,14 @@ module.exports = class cryptopia extends Exchange {
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
-        let args = {};
-        if (symbol) {
+        let args = {
+            // 'Market': market['id'],
+            // 'TradePairId': market['id'], // Cryptopia identifier (not required if 'Market' supplied)
+            // 'Count': 100, // default = 100
+        };
+        if (typeof symbol !== 'undefined') {
             market = this.market (symbol);
-            args = {
-                // 'Market': market['id'],
-                'TradePairId': market['id'], // Cryptopia identifier (not required if 'Market' supplied)
-                // 'Count': 100, // default = 100
-            };
+            args['TradePairId'] = market['id'];
         }
         let response = await this.privatePostGetOpenOrders (args, params);
         let orders = [];
@@ -563,7 +568,7 @@ module.exports = class cryptopia extends Exchange {
                 }
             }
             let order = this.orders[id];
-            if (typeof symbol === 'undefined' || order['symbol'] === symbol)
+            if ((typeof symbol === 'undefined') || (order['symbol'] === symbol))
                 result.push (order);
         }
         return this.filterBySinceLimit (result, since, limit);
