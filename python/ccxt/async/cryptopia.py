@@ -149,6 +149,7 @@ class cryptopia (Exchange):
                 'precision': precision,
                 'limits': limits,
             })
+        self.options['marketsByLabel'] = self.index_by(result, 'label')
         return result
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
@@ -465,8 +466,6 @@ class cryptopia (Exchange):
                 market = self.markets_by_id[id]
                 symbol = market['symbol']
             else:
-                if not('marketsByLabel' in list(self.options.keys())):
-                    self.options['marketsByLabel'] = self.index_by(self.markets, 'label')
                 if id in self.options['marketsByLabel']:
                     market = self.options['marketsByLabel'][id]
                     symbol = market['symbol']
