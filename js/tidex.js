@@ -25,6 +25,7 @@ module.exports = class tidex extends liqui {
                     'web': 'https://web.tidex.com/api',
                     'public': 'https://api.tidex.com/api/3',
                     'private': 'https://api.tidex.com/tapi',
+                    'gate': 'https://gate.tidex.com/api',
                 },
                 'www': 'https://tidex.com',
                 'doc': 'https://tidex.com/exchange/public-api',
@@ -43,6 +44,11 @@ module.exports = class tidex extends liqui {
                         'ordershistory',
                         'trade-data',
                         'trade-data/{id}',
+                    ],
+                },
+                'gate': {
+                    'post': [
+                        'token',
                     ],
                 },
             },
@@ -68,7 +74,8 @@ module.exports = class tidex extends liqui {
             let currency = currencies[i];
             let id = currency['symbol'];
             let precision = currency['amountPoint'];
-            let code = this.commonCurrencyCode (id);
+            let code = id.toUpperCase ();
+            code = this.commonCurrencyCode (code);
             let active = currency['visible'] === true;
             let status = 'ok';
             if (!active) {
@@ -126,5 +133,14 @@ module.exports = class tidex extends liqui {
 
     getVersionString () {
         return '';
+    }
+
+    async fetchSessionFromWeb (params = {}) {
+        let response = await this.gatePostToken (this.extend ({
+            'username': this.login,
+            'password': this.password,
+        }, params));
+        // { Session: "2p4kah9c0sls0fetcaoetmb7792m3og7", IsTwoFa: true, Type: 3 }
+        return response['Session'];
     }
 };

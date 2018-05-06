@@ -258,18 +258,20 @@ module.exports = class coinegg extends Exchange {
                 let baseId = baseIds[i];
                 let ticker = tickers[baseId];
                 let id = baseId + quoteId;
-                let market = this.marketsById[id];
-                let symbol = market['symbol'];
-                result[symbol] = this.parseTicker ({
-                    'high': ticker[4],
-                    'low': ticker[5],
-                    'buy': ticker[2],
-                    'sell': ticker[3],
-                    'last': ticker[1],
-                    'change': ticker[8],
-                    'vol': ticker[6],
-                    'quoteVol': ticker[7],
-                }, market);
+                if (id in this.markets_by_id) {
+                    let market = this.marketsById[id];
+                    let symbol = market['symbol'];
+                    result[symbol] = this.parseTicker ({
+                        'high': ticker[4],
+                        'low': ticker[5],
+                        'buy': ticker[2],
+                        'sell': ticker[3],
+                        'last': ticker[1],
+                        'change': ticker[8],
+                        'vol': ticker[6],
+                        'quoteVol': ticker[7],
+                    }, market);
+                }
             }
         }
         return result;
@@ -319,34 +321,33 @@ module.exports = class coinegg extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let balances = await this.privatePostBalance (params);
-        let result = { 'info': balances };
-        balances = this.omit (balances['data'], 'uid');
-        let rows = Object.keys (balances);
-        for (let i = 0; i < rows.length; i++) {
-            let row = rows[i];
-            let [ id, type ] = row.split ('_');
-            id = id.toUpperCase ();
-            type = type.toUpperCase ();
-            let currency = this.commonCurrencyCode (id);
-            if (currency in this.currencies) {
-                if (!(currency in result)) {
-                    result[currency] = {
-                        'free': undefined,
-                        'used': undefined,
-                        'total': undefined,
-                    };
-                }
-                type = (type === 'LOCK' ? 'used' : 'free');
-                result[currency][type] = parseFloat (balances[row]);
+        let response = await this.privatePostBalance (params);
+        let result = {};
+        let balances = this.omit (response['data'], 'uid');
+        let keys = Object.keys (balances);
+        for (let i = 0; i < keys.length; i++) {
+            let key = keys[i];
+            let [ currencyId, accountType ] = key.split ('_');
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
             }
+            if (!(code in result)) {
+                result[code] = {
+                    'free': undefined,
+                    'used': undefined,
+                    'total': undefined,
+                };
+            }
+            accountType = (accountType === 'lock') ? 'used' : 'free';
+            result[code][accountType] = parseFloat (balances[key]);
         }
         let currencies = Object.keys (result);
         for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];
             result[currency]['total'] = this.sum (result[currency]['free'], result[currency]['used']);
         }
-        return this.parseBalance (result);
+        return this.parseBalance (this.extend ({ 'info': response }, result));
     }
 
     parseOrder (order, market = undefined) {
@@ -367,6 +368,7 @@ module.exports = class coinegg extends Exchange {
             'id': this.safeString (order, 'id'),
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
+            'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
             'type': 'limit',
@@ -392,10 +394,7 @@ module.exports = class coinegg extends Exchange {
             'amount': amount,
             'price': price,
         }, params));
-        if (!response['status']) {
-            throw new InvalidOrder (this.json (response));
-        }
-        let id = response['id'];
+        let id = response['id'].toString ();
         let order = this.parseOrder ({
             'id': id,
             'datetime': this.ymdhms (this.milliseconds ()),
@@ -417,9 +416,6 @@ module.exports = class coinegg extends Exchange {
             'coin': market['baseId'],
             'quote': market['quoteId'],
         }, params));
-        if (!response['status']) {
-            throw new ExchangeError (this.json (response));
-        }
         return response;
     }
 
@@ -503,9 +499,11 @@ module.exports = class coinegg extends Exchange {
         // private endpoints return the following structure:
         // {"result":true,"data":{...}} - success
         // {"result":false,"code":"103"} - failure
+        // {"code":0,"msg":"Suceess","data":{"uid":"2716039","btc_balance":"0.00000000","btc_lock":"0.00000000","xrp_balance":"0.00000000","xrp_lock":"0.00000000"}}
         let result = this.safeValue (response, 'result');
         if (typeof result === 'undefined')
-            // public endpoint
+            // public endpoint ← this comment left here by the contributor, in fact a missing result does not necessarily mean a public endpoint...
+            // we should just check the code and don't rely on the result at all here...
             return;
         if (result === true)
             // success

@@ -1,7 +1,7 @@
 {
   "name": "ccxt",
-  "version": "1.11.137",
-  "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 90+ exchanges",
+  "version": "1.13.68",
+  "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 100+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "build/ccxt.browser.js",
   "engines": {
@@ -11,11 +11,12 @@
     "type": "git",
     "url": "https://github.com/ccxt/ccxt.git"
   },
+  "readme": "README.md",
   "scripts": {
     "build": "npm run export-exchanges && npm run vss && npm run pandoc-python-readme && npm run pandoc-doc-readme && npm run pandoc-doc-manual && npm run pandoc-doc-install && npm run pandoc-doc-exchanges && npm run pandoc-doc-exchanges-by-country && npm run check-js-syntax && npm run transpile && npm run qa && npm run update-badges && npm run browserify",
     "test": "npm run build && node run-tests",
     "fast-test": "node run-tests --js",
-    "test-base": "mocha --reporter spec js/test/test_base.js --reporter ololog/reporter",
+    "test-base": "mocha --reporter spec js/test/base/test.base.js --reporter ololog/reporter",
     "export-exchanges": "node export-exchanges",
     "update-badges": "node update-badges",
     "convert-md-2-rst": "bash ./convert-md-2-rst",
@@ -57,7 +58,7 @@
     "istanbul": "^0.4.5",
     "mocha": "^3.5.3",
     "nyc": "^11.4.1",
-    "ololog": "^1.1.84"
+    "ololog": "^1.1.87"
   },
   "author": {
     "name": "Igor Kroitor",

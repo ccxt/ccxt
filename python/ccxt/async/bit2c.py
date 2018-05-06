@@ -5,6 +5,7 @@
 
 from ccxt.async.base.exchange import Exchange
 import hashlib
+from ccxt.base.errors import ExchangeError
 
 
 class bit2c (Exchange):
@@ -17,10 +18,11 @@ class bit2c (Exchange):
             'rateLimit': 3000,
             'has': {
                 'CORS': False,
+                'fetchOpenOrders': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg',
-                'api': 'https://www.bit2c.co.il',
+                'api': 'https://bit2c.co.il',
                 'www': 'https://www.bit2c.co.il',
                 'doc': [
                     'https://www.bit2c.co.il/home/api',
@@ -33,23 +35,31 @@ class bit2c (Exchange):
                         'Exchanges/{pair}/Ticker',
                         'Exchanges/{pair}/orderbook',
                         'Exchanges/{pair}/trades',
+                        'Exchanges/{pair}/lasttrades',
                     ],
                 },
                 'private': {
                     'post': [
-                        'Account/Balance',
-                        'Account/Balance/v2',
                         'Merchant/CreateCheckout',
-                        'Order/AccountHistory',
                         'Order/AddCoinFundsRequest',
                         'Order/AddFund',
                         'Order/AddOrder',
                         'Order/AddOrderMarketPriceBuy',
                         'Order/AddOrderMarketPriceSell',
                         'Order/CancelOrder',
-                        'Order/MyOrders',
+                        'Order/AddCoinFundsRequest',
+                        'Order/AddStopOrder',
                         'Payment/GetMyId',
                         'Payment/Send',
+                        'Payment/Pay',
+                    ],
+                    'get': [
+                        'Account/Balance',
+                        'Account/Balance/v2',
+                        'Order/MyOrders',
+                        'Order/GetById',
+                        'Order/AccountHistory',
+                        'Order/OrderHistory',
                     ],
                 },
             },
@@ -68,7 +78,7 @@ class bit2c (Exchange):
         })
 
     async def fetch_balance(self, params={}):
-        balance = await self.privatePostAccountBalanceV2()
+        balance = await self.privateGetAccountBalanceV2()
         result = {'info': balance}
         currencies = list(self.currencies.keys())
         for i in range(0, len(currencies)):
@@ -182,3 +192,49 @@ class bit2c (Exchange):
                 'sign': self.decode(signature),
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        if symbol is None:
+            raise ExchangeError(self.id + ' fetchOpenOrders() requires a symbol argument')
+        market = self.market(symbol)
+        response = await self.privateGetOrderMyOrders(self.extend({
+            'pair': market['id'],
+        }, params))
+        orders = self.safe_value(response, market['id'], {})
+        asks = self.safe_value(orders, 'ask')
+        bids = self.safe_value(orders, 'bid')
+        return self.parse_orders(self.array_concat(asks, bids), market, since, limit)
+
+    def parse_order(self, order, market=None):
+        timestamp = order['created']
+        price = order['price']
+        amount = order['amount']
+        cost = price * amount
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
+        side = self.safe_value(order, 'type')
+        if side == 0:
+            side = 'buy'
+        elif side == 1:
+            side = 'sell'
+        id = self.safe_string(order, 'id')
+        return {
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
+            'status': self.safe_string(order, 'status'),
+            'symbol': symbol,
+            'type': None,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'filled': None,
+            'remaining': None,
+            'cost': cost,
+            'trades': None,
+            'fee': None,
+            'info': order,
+        }

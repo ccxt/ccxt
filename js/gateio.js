@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, InvalidAddress } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -156,9 +156,7 @@ module.exports = class gateio extends Exchange {
         let orderbook = await this.publicGetOrderBookId (this.extend ({
             'id': this.marketId (symbol),
         }, params));
-        let result = this.parseOrderBook (orderbook);
-        result['asks'] = this.sortBy (result['asks'], 0);
-        return result;
+        return this.parseOrderBook (orderbook);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -235,7 +233,7 @@ module.exports = class gateio extends Exchange {
             'symbol': market['symbol'],
             'type': undefined,
             'side': trade['type'],
-            'price': trade['rate'],
+            'price': parseFloat (trade['rate']),
             'amount': this.safeFloat (trade, 'amount'),
         };
     }
@@ -279,6 +277,8 @@ module.exports = class gateio extends Exchange {
         let address = undefined;
         if ('addr' in response)
             address = this.safeString (response, 'addr');
+        if ((typeof address !== 'undefined') && (address.indexOf ('address') >= 0))
+            throw new InvalidAddress (this.id + ' queryDepositAddress ' + address);
         return {
             'currency': currency,
             'address': address,
@@ -333,9 +333,18 @@ module.exports = class gateio extends Exchange {
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('result' in response)
-            if (response['result'] !== 'true')
-                throw new ExchangeError (this.id + ' ' + this.json (response));
+        if ('result' in response) {
+            let result = response['result'];
+            let message = this.id + ' ' + this.json (response);
+            if (typeof result === 'undefined')
+                throw new ExchangeError (message);
+            if (typeof result === 'string') {
+                if (result !== 'true')
+                    throw new ExchangeError (message);
+            } else if (!result) {
+                throw new ExchangeError (message);
+            }
+        }
         return response;
     }
 };

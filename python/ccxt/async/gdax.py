@@ -113,7 +113,7 @@ class gdax (Exchange):
                     'tierBased': True,  # complicated tier system per coin
                     'percentage': True,
                     'maker': 0.0,
-                    'taker': 0.25 / 100,  # Fee is 0.25%, 0.3% for ETH/LTC pairs
+                    'taker': 0.3 / 100,  # tiered fee starts at 0.3%
                 },
                 'funding': {
                     'tierBased': False,
@@ -338,7 +338,7 @@ class gdax (Exchange):
             request['start'] = self.ymdhms(since)
             if limit is None:
                 # https://docs.gdax.com/#get-historic-rates
-                limit = 350  # max = 350
+                limit = 300  # max = 300
             request['end'] = self.ymdhms(self.sum(limit * granularity * 1000, since))
         response = await self.publicGetProductsIdCandles(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
@@ -388,6 +388,7 @@ class gdax (Exchange):
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
             'type': order['type'],
@@ -441,11 +442,11 @@ class gdax (Exchange):
         response = await self.privateGetOrders(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
-    async def create_order(self, market, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         # oid = str(self.nonce())
         order = {
-            'product_id': self.market_id(market),
+            'product_id': self.market_id(symbol),
             'side': side,
             'size': amount,
             'type': type,
@@ -461,6 +462,22 @@ class gdax (Exchange):
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
         return await self.privateDeleteOrdersId({'id': id})
+
+    def fee_to_precision(self, currency, fee):
+        cost = float(fee)
+        return('{:.' + str(self.currencies[currency].precision) + 'f}').format(cost)
+
+    def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
+        market = self.markets[symbol]
+        rate = market[takerOrMaker]
+        cost = amount * price
+        currency = market['quote']
+        return {
+            'type': takerOrMaker,
+            'currency': currency,
+            'rate': rate,
+            'cost': float(self.fee_to_precision(currency, rate * cost)),
+        }
 
     async def get_payment_methods(self):
         response = await self.privateGetPaymentMethods()

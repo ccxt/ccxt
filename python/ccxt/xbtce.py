@@ -272,7 +272,7 @@ class xbtce (Exchange):
         self.load_markets()
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
-        response = self.tapiPostTrade(self.extend({
+        response = self.privatePostTrade(self.extend({
             'pair': self.market_id(symbol),
             'type': side,
             'amount': amount,

@@ -30,9 +30,10 @@ class cex (Exchange):
                 'CORS': True,
                 'fetchTickers': True,
                 'fetchOHLCV': True,
+                'fetchOrder': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
-                'fetchOrders': True,
+                'fetchDepositAddress': True,
             },
             'timeframes': {
                 '1m': '1m',
@@ -396,6 +397,7 @@ class cex (Exchange):
             'id': order['id'],
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
+            'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
             'type': None,
@@ -480,3 +482,23 @@ class cex (Exchange):
             if response['error']:
                 raise ExchangeError(self.id + ' ' + self.json(response))
         return response
+
+    def fetch_deposit_address(self, code, params={}):
+        if code == 'XRP':
+            # https://github.com/ccxt/ccxt/pull/2327#issuecomment-375204856
+            raise NotSupported(self.id + ' fetchDepositAddress does not support XRP addresses yet(awaiting docs from CEX.io)')
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        response = self.privatePostGetAddress(self.extend(request, params))
+        address = self.safe_string(response, 'data')
+        self.check_address(address)
+        return {
+            'currency': code,
+            'address': address,
+            'tag': None,
+            'status': 'ok',
+            'info': response,
+        }

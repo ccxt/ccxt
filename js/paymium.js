@@ -97,9 +97,7 @@ module.exports = class paymium extends Exchange {
         let orderbook = await this.publicGetDataIdDepth (this.extend ({
             'id': this.marketId (symbol),
         }, params));
-        let result = this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'amount');
-        result['bids'] = this.sortBy (result['bids'], 0, true);
-        return result;
+        return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'amount');
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -160,10 +158,10 @@ module.exports = class paymium extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         let order = {
             'type': this.capitalize (type) + 'Order',
-            'currency': this.marketId (market),
+            'currency': this.marketId (symbol),
             'direction': side,
             'amount': amount,
         };
@@ -190,9 +188,14 @@ module.exports = class paymium extends Exchange {
                 url += '?' + this.urlencode (query);
         } else {
             this.checkRequiredCredentials ();
-            body = this.json (params);
             let nonce = this.nonce ().toString ();
-            let auth = nonce + url + body;
+            let auth = nonce + url;
+            if (method === 'POST') {
+                if (Object.keys (query).length) {
+                    body = this.json (query);
+                    auth += body;
+                }
+            }
             headers = {
                 'Api-Key': this.apiKey,
                 'Api-Signature': this.hmac (this.encode (auth), this.encode (this.secret)),

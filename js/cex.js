@@ -18,9 +18,10 @@ module.exports = class cex extends Exchange {
                 'CORS': true,
                 'fetchTickers': true,
                 'fetchOHLCV': true,
+                'fetchOrder': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
-                'fetchOrders': true,
+                'fetchDepositAddress': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -410,6 +411,7 @@ module.exports = class cex extends Exchange {
             'id': order['id'],
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
+            'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
             'type': undefined,
@@ -505,5 +507,27 @@ module.exports = class cex extends Exchange {
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         }
         return response;
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        if (code === 'XRP') {
+            // https://github.com/ccxt/ccxt/pull/2327#issuecomment-375204856
+            throw new NotSupported (this.id + ' fetchDepositAddress does not support XRP addresses yet (awaiting docs from CEX.io)');
+        }
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let request = {
+            'currency': currency['id'],
+        };
+        let response = await this.privatePostGetAddress (this.extend (request, params));
+        let address = this.safeString (response, 'data');
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': undefined,
+            'status': 'ok',
+            'info': response,
+        };
     }
 };

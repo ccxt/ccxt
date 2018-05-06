@@ -20,6 +20,7 @@ class gemini (Exchange):
             'version': 'v1',
             'has': {
                 'fetchDepositAddress': False,
+                'createDepositAddress': True,
                 'CORS': False,
                 'fetchBidsAsks': False,
                 'fetchTickers': False,
@@ -75,6 +76,7 @@ class gemini (Exchange):
             'fees': {
                 'trading': {
                     'taker': 0.0025,
+                    'maker': 0.0025,
                 },
             },
         })
@@ -141,8 +143,8 @@ class gemini (Exchange):
     def parse_trade(self, trade, market):
         timestamp = trade['timestampms']
         order = None
-        if 'orderId' in trade:
-            order = str(trade['orderId'])
+        if 'order_id' in trade:
+            order = str(trade['order_id'])
         fee = self.safe_float(trade, 'fee_amount')
         if fee is not None:
             currency = self.safe_string(trade, 'fee_currency')
@@ -276,3 +278,18 @@ class gemini (Exchange):
             if response['result'] == 'error':
                 raise ExchangeError(self.id + ' ' + self.json(response))
         return response
+
+    def create_deposit_address(self, code, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        response = self.privatePostDepositCurrencyNewAddress(self.extend({
+            'currency': currency['id'],
+        }, params))
+        address = self.safe_string(response, 'address')
+        self.check_address(address)
+        return {
+            'currency': code,
+            'address': address,
+            'status': 'ok',
+            'info': response,
+        }

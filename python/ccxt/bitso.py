@@ -28,6 +28,8 @@ class bitso (Exchange):
             'version': 'v3',
             'has': {
                 'CORS': True,
+                'fetchMyTrades': True,
+                'fetchOpenOrders': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766335-715ce7aa-5ed5-11e7-88a8-173a27bb30fe.jpg',
@@ -317,6 +319,7 @@ class bitso (Exchange):
             'id': order['oid'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': orderType,
             'side': side,

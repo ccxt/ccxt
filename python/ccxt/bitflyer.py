@@ -20,6 +20,7 @@ class bitflyer (Exchange):
             'has': {
                 'CORS': False,
                 'withdraw': True,
+                'fetchMyTrades': True,
                 'fetchOrders': True,
                 'fetchOrder': True,
                 'fetchOpenOrders': 'emulated',
@@ -41,6 +42,7 @@ class bitflyer (Exchange):
                         'getticker',
                         'getexecutions',
                         'gethealth',
+                        'getboardstate',
                         'getchats',
                     ],
                 },
@@ -182,6 +184,8 @@ class bitflyer (Exchange):
                 id = side + '_child_order_acceptance_id'
                 if id in trade:
                     order = trade[id]
+        if order is None:
+            order = self.safe_string(trade, 'child_order_acceptance_id')
         timestamp = self.parse8601(trade['exec_date'])
         return {
             'id': str(trade['id']),
@@ -214,6 +218,7 @@ class bitflyer (Exchange):
             'size': amount,
         }
         result = self.privatePostSendchildorder(self.extend(order, params))
+        # {"status": - 200, "error_message": "Insufficient funds", "data": null}
         return {
             'info': result,
             'id': result['child_order_acceptance_id'],
@@ -271,6 +276,7 @@ class bitflyer (Exchange):
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
             'type': type,
@@ -315,11 +321,27 @@ class bitflyer (Exchange):
             return ordersById[id]
         raise OrderNotFound(self.id + ' No order found with id ' + id)
 
-    def withdraw(self, currency, amount, address, tag=None, params={}):
+    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ExchangeError(self.id + ' fetchMyTrades requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'product_code': market['id'],
+        }
+        if limit:
+            request['count'] = limit
+        response = self.privateGetGetexecutions(self.extend(request, params))
+        return self.parse_trades(response, market, since, limit)
+
+    def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
         self.load_markets()
+        if code != 'JPY' and code != 'USD' and code != 'EUR':
+            raise ExchangeError(self.id + ' allows withdrawing JPY, USD, EUR only, ' + code + ' is not supported')
+        currency = self.currency(code)
         response = self.privatePostWithdraw(self.extend({
-            'currency_code': currency,
+            'currency_code': currency['id'],
             'amount': amount,
             # 'bank_account_id': 1234,
         }, params))

@@ -27,7 +27,7 @@ module.exports = class kucoin extends Exchange {
                 'fetchOrders': false,
                 'fetchClosedOrders': true,
                 'fetchOpenOrders': true,
-                'fetchMyTrades': true,
+                'fetchMyTrades': 'emulated', // this method is to be deleted, see implementation and comments below
                 'fetchCurrencies': true,
                 'withdraw': true,
             },
@@ -354,7 +354,7 @@ module.exports = class kucoin extends Exchange {
             }
         }
         let symbol = undefined;
-        if (market) {
+        if (typeof market !== 'undefined') {
             symbol = market['symbol'];
         } else {
             symbol = order['coinType'] + '/' + order['coinTypePair'];
@@ -422,7 +422,7 @@ module.exports = class kucoin extends Exchange {
                         cost = amount * price;
         }
         let feeCurrency = undefined;
-        if (market) {
+        if (typeof market !== 'undefined') {
             feeCurrency = (side === 'sell') ? market['quote'] : market['base'];
         } else {
             let feeCurrencyField = (side === 'sell') ? 'coinTypePair' : 'coinType';
@@ -443,6 +443,7 @@ module.exports = class kucoin extends Exchange {
             'id': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': 'limit',
             'side': side,
@@ -474,12 +475,28 @@ module.exports = class kucoin extends Exchange {
         let response = await this.privateGetOrderDetail (this.extend (request, params));
         if (!response['data'])
             throw new OrderNotFound (this.id + ' ' + this.json (response));
-        let order = this.parseOrder (response['data'], market);
-        let orderId = order['id'];
-        if (orderId in this.orders)
-            order['status'] = this.orders[orderId]['status'];
-        this.orders[orderId] = order;
-        return order;
+        //
+        // the caching part to be removed
+        //
+        //     let order = this.parseOrder (response['data'], market);
+        //     let orderId = order['id'];
+        //     if (orderId in this.orders)
+        //         order['status'] = this.orders[orderId]['status'];
+        //     this.orders[orderId] = order;
+        //
+        return this.parseOrder (response['data'], market);
+    }
+
+    parseOrdersByStatus (orders, market, since, limit, status) {
+        let result = [];
+        for (let i = 0; i < orders.length; i++) {
+            let order = this.parseOrder (this.extend (orders[i], {
+                'status': status,
+            }), market);
+            result.push (order);
+        }
+        let symbol = (typeof market !== 'undefined') ? market['symbol'] : undefined;
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -491,19 +508,30 @@ module.exports = class kucoin extends Exchange {
             'symbol': market['id'],
         };
         let response = await this.privateGetOrderActiveMap (this.extend (request, params));
-        let orders = this.arrayConcat (response['data']['SELL'], response['data']['BUY']);
-        for (let i = 0; i < orders.length; i++) {
-            let order = this.parseOrder (this.extend (orders[i], {
-                'status': 'open',
-            }), market);
-            let orderId = order['id'];
-            if (orderId in this.orders)
-                if (this.orders[orderId]['status'] !== 'open')
-                    order['status'] = this.orders[orderId]['status'];
-            this.orders[order['id']] = order;
-        }
-        let openOrders = this.filterBy (this.orders, 'status', 'open');
-        return this.filterBySymbolSinceLimit (openOrders, symbol, since, limit);
+        let sell = this.safeValue (response['data'], 'SELL');
+        if (typeof sell === 'undefined')
+            sell = [];
+        let buy = this.safeValue (response['data'], 'BUY');
+        if (typeof buy === 'undefined')
+            buy = [];
+        let orders = this.arrayConcat (sell, buy);
+        //
+        // the caching part to be removed
+        //
+        //     for (let i = 0; i < orders.length; i++) {
+        //         let order = this.parseOrder (this.extend (orders[i], {
+        //             'status': 'open',
+        //         }), market);
+        //         let orderId = order['id'];
+        //         if (orderId in this.orders)
+        //             if (this.orders[orderId]['status'] !== 'open')
+        //                 order['status'] = this.orders[orderId]['status'];
+        //         this.orders[order['id']] = order;
+        //     }
+        //     let openOrders = this.filterBy (this.orders, 'status', 'open');
+        //     return this.filterBySymbolSinceLimit (openOrders, symbol, since, limit);
+        //
+        return this.parseOrdersByStatus (orders, market, since, limit, 'open');
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = 20, params = {}) {
@@ -520,18 +548,23 @@ module.exports = class kucoin extends Exchange {
             request['limit'] = limit;
         let response = await this.privateGetOrderDealt (this.extend (request, params));
         let orders = response['data']['datas'];
-        for (let i = 0; i < orders.length; i++) {
-            let order = this.parseOrder (this.extend (orders[i], {
-                'status': 'closed',
-            }), market);
-            let orderId = order['id'];
-            if (orderId in this.orders)
-                if (this.orders[orderId]['status'] === 'canceled')
-                    order['status'] = this.orders[orderId]['status'];
-            this.orders[order['id']] = order;
-        }
-        let closedOrders = this.filterBy (this.orders, 'status', 'closed');
-        return this.filterBySymbolSinceLimit (closedOrders, symbol, since, limit);
+        //
+        // the caching part to be removed
+        //
+        //     for (let i = 0; i < orders.length; i++) {
+        //         let order = this.parseOrder (this.extend (orders[i], {
+        //             'status': 'closed',
+        //         }), market);
+        //         let orderId = order['id'];
+        //         if (orderId in this.orders)
+        //             if (this.orders[orderId]['status'] === 'canceled')
+        //                 order['status'] = this.orders[orderId]['status'];
+        //         this.orders[order['id']] = order;
+        //     }
+        //     let closedOrders = this.filterBy (this.orders, 'status', 'closed');
+        //     return this.filterBySymbolSinceLimit (closedOrders, symbol, since, limit);
+        //
+        return this.parseOrdersByStatus (orders, market, since, limit, 'closed');
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -539,11 +572,12 @@ module.exports = class kucoin extends Exchange {
             throw new ExchangeError (this.id + ' allows limit orders only');
         await this.loadMarkets ();
         let market = this.market (symbol);
+        let quote = market['quote'];
         let base = market['base'];
         let request = {
             'symbol': market['id'],
             'type': side.toUpperCase (),
-            'price': this.priceToPrecision (symbol, price),
+            'price': this.truncate (price, this.currencies[quote]['precision']),
             'amount': this.truncate (amount, this.currencies[base]['precision']),
         };
         price = parseFloat (price);
@@ -551,11 +585,17 @@ module.exports = class kucoin extends Exchange {
         let cost = price * amount;
         let response = await this.privatePostOrder (this.extend (request, params));
         let orderId = this.safeString (response['data'], 'orderOid');
+        let timestamp = this.safeInteger (response, 'timestamp');
+        let iso8601 = undefined;
+        if (typeof timestamp !== 'undefined')
+            iso8601 = this.iso8601 (timestamp);
         let order = {
             'info': response,
             'id': orderId,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': iso8601,
+            'lastTradeTimestamp': undefined,
+            'symbol': market['symbol'],
             'type': type,
             'side': side,
             'amount': amount,
@@ -585,14 +625,19 @@ module.exports = class kucoin extends Exchange {
             request['type'] = params['type'].toUpperCase ();
             params = this.omit (params, 'type');
         }
-        let response = await this.privatePostOrderCancelAll (this.extend (request, params));
-        let openOrders = this.filterBy (this.orders, 'status', 'open');
-        for (let i = 0; i < openOrders.length; i++) {
-            let order = openOrders[i];
-            let orderId = order['id'];
-            this.orders[orderId]['status'] = 'canceled';
-        }
-        return response;
+        //
+        // the caching part to be removed
+        //
+        //     let response = await this.privatePostOrderCancelAll (this.extend (request, params));
+        //     let openOrders = this.filterBy (this.orders, 'status', 'open');
+        //     for (let i = 0; i < openOrders.length; i++) {
+        //         let order = openOrders[i];
+        //         let orderId = order['id'];
+        //         this.orders[orderId]['status'] = 'canceled';
+        //     }
+        //     return response;
+        //
+        return await this.privatePostOrderCancelAll (this.extend (request, params));
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -610,24 +655,29 @@ module.exports = class kucoin extends Exchange {
         } else {
             throw new ExchangeError (this.id + ' cancelOrder requires parameter type=["BUY"|"SELL"]');
         }
-        let response = await this.privatePostCancelOrder (this.extend (request, params));
-        if (id in this.orders) {
-            this.orders[id]['status'] = 'canceled';
-        } else {
-            // store it in cache for further references
-            let timestamp = this.milliseconds ();
-            let side = request['type'].toLowerCase ();
-            this.orders[id] = {
-                'id': id,
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-                'type': undefined,
-                'side': side,
-                'symbol': symbol,
-                'status': 'canceled',
-            };
-        }
-        return response;
+        //
+        // the caching part to be removed
+        //
+        //     let response = await this.privatePostCancelOrder (this.extend (request, params));
+        //     if (id in this.orders) {
+        //         this.orders[id]['status'] = 'canceled';
+        //     } else {
+        //         // store it in cache for further references
+        //         let timestamp = this.milliseconds ();
+        //         let side = request['type'].toLowerCase ();
+        //         this.orders[id] = {
+        //             'id': id,
+        //             'timestamp': timestamp,
+        //             'datetime': this.iso8601 (timestamp),
+        //             'type': undefined,
+        //             'side': side,
+        //             'symbol': symbol,
+        //             'status': 'canceled',
+        //         };
+        //     }
+        //     return response;
+        //
+        return await this.privatePostCancelOrder (this.extend (request, params));
     }
 
     parseTicker (ticker, market = undefined) {
@@ -639,10 +689,13 @@ module.exports = class kucoin extends Exchange {
             symbol = ticker['coinType'] + '/' + ticker['coinTypePair'];
         }
         // TNC coin doesn't have changerate for some reason
-        let change = this.safeFloat (ticker, 'changeRate');
-        if (typeof change !== 'undefined')
-            change *= 100;
+        let change = this.safeFloat (ticker, 'change');
         let last = this.safeFloat (ticker, 'lastDealPrice');
+        let open = undefined;
+        if (typeof last !== 'undefined')
+            if (typeof change !== 'undefined')
+                open = last - change;
+        let changePercentage = this.safeFloat (ticker, 'changeRate');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -654,12 +707,12 @@ module.exports = class kucoin extends Exchange {
             'ask': this.safeFloat (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': undefined,
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': change,
-            'percentage': undefined,
+            'percentage': changePercentage,
             'average': undefined,
             'baseVolume': this.safeFloat (ticker, 'vol'),
             'quoteVolume': this.safeFloat (ticker, 'volValue'),
@@ -713,20 +766,23 @@ module.exports = class kucoin extends Exchange {
         } else {
             timestamp = this.safeValue (trade, 'createdAt');
             order = this.safeString (trade, 'orderOid');
-            if (typeof order === 'undefined')
-                order = this.safeString (trade, 'oid');
-            side = this.safeString (trade, 'dealDirection');
+            id = this.safeString (trade, 'oid');
+            side = this.safeString (trade, 'direction');
             if (typeof side !== 'undefined')
                 side = side.toLowerCase ();
             price = this.safeFloat (trade, 'dealPrice');
             amount = this.safeFloat (trade, 'amount');
             cost = this.safeFloat (trade, 'dealValue');
             let feeCurrency = undefined;
-            if ('coinType' in trade) {
-                feeCurrency = this.safeString (trade, 'coinType');
-                if (typeof feeCurrency !== 'undefined')
+            if (typeof market !== 'undefined') {
+                feeCurrency = (side === 'sell') ? market['quote'] : market['base'];
+            } else {
+                let feeCurrencyField = (side === 'sell') ? 'coinTypePair' : 'coinType';
+                let feeCurrency = this.safeString (order, feeCurrencyField);
+                if (typeof feeCurrency !== 'undefined') {
                     if (feeCurrency in this.currencies_by_id)
                         feeCurrency = this.currencies_by_id[feeCurrency]['code'];
+                }
             }
             fee = {
                 'cost': this.safeFloat (trade, 'fee'),
@@ -762,8 +818,12 @@ module.exports = class kucoin extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        // todo: this method is deprecated and to be deleted shortly
+        // it improperly mimics fetchMyTrades with closed orders
+        // kucoin does not have any means of fetching personal trades at all
+        // this will effectively simplify current convoluted implementations of parseOrder and parseTrade
         if (!symbol)
-            throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol argument');
+            throw new ExchangeError (this.id + ' fetchMyTrades is deprecated and requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
@@ -775,18 +835,8 @@ module.exports = class kucoin extends Exchange {
         return this.parseTrades (response['data']['datas'], market, since, limit);
     }
 
-    parseTradingViewOHLCVs (ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        let result = [];
-        for (let i = 0; i < ohlcvs['t'].length; i++) {
-            result.push ([
-                ohlcvs['t'][i] * 1000,
-                ohlcvs['o'][i],
-                ohlcvs['h'][i],
-                ohlcvs['l'][i],
-                ohlcvs['c'][i],
-                ohlcvs['v'][i],
-            ]);
-        }
+    parseTradingViewOHLCV (ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        let result = this.convertTradingViewToOHLCV (ohlcvs);
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
@@ -825,7 +875,7 @@ module.exports = class kucoin extends Exchange {
             'to': end,
         };
         let response = await this.publicGetOpenChartHistory (this.extend (request, params));
-        return this.parseTradingViewOHLCVs (response, market, timeframe, since, limit);
+        return this.parseTradingViewOHLCV (response, market, timeframe, since, limit);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {

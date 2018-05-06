@@ -21,6 +21,9 @@ module.exports = class cobinhood extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchOrder': true,
+                'fetchDepositAddress': true,
+                'createDepositAddress': true,
+                'withdraw': true,
             },
             'requiredCredentials': {
                 'apiKey': true,
@@ -134,14 +137,12 @@ module.exports = class cobinhood extends Exchange {
             let currency = currencies[i];
             let id = currency['currency'];
             let code = this.commonCurrencyCode (id);
-            let fundingNotFrozen = !currency['funding_frozen'];
-            let active = currency['is_active'] && fundingNotFrozen;
             let minUnit = parseFloat (currency['min_unit']);
             result[code] = {
                 'id': id,
                 'code': code,
                 'name': currency['name'],
-                'active': active,
+                'active': true,
                 'status': 'ok',
                 'fiat': false,
                 'precision': this.precisionFromString (currency['min_unit']),
@@ -165,11 +166,9 @@ module.exports = class cobinhood extends Exchange {
                 },
                 'funding': {
                     'withdraw': {
-                        'active': fundingNotFrozen,
                         'fee': parseFloat (currency['withdrawal_fee']),
                     },
                     'deposit': {
-                        'active': fundingNotFrozen,
                         'fee': parseFloat (currency['deposit_fee']),
                     },
                 },
@@ -194,6 +193,7 @@ module.exports = class cobinhood extends Exchange {
                 'amount': 8,
                 'price': this.precisionFromString (market['quote_increment']),
             };
+            let active = this.safeValue (market, 'is_active', true);
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -201,7 +201,7 @@ module.exports = class cobinhood extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'active': market['is_active'],
+                'active': active,
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -385,11 +385,13 @@ module.exports = class cobinhood extends Exchange {
 
     parseOrder (order, market = undefined) {
         let symbol = undefined;
-        if (!market) {
-            let marketId = order['trading_pair'];
+        if (typeof market === 'undefined') {
+            let marketId = this.safeString (order, 'trading_pair');
+            if (typeof marketId === 'undefined')
+                marketId = this.safeString (order, 'trading_pair_id');
             market = this.markets_by_id[marketId];
         }
-        if (market)
+        if (typeof market !== 'undefined')
             symbol = market['symbol'];
         let timestamp = order['timestamp'];
         let price = parseFloat (order['price']);
@@ -410,6 +412,7 @@ module.exports = class cobinhood extends Exchange {
             'id': order['id'],
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
+            'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
             'type': order['type'], // market, limit, stop, stop_limit, trailing_stop, fill_or_kill
@@ -474,7 +477,7 @@ module.exports = class cobinhood extends Exchange {
             'order_id': id,
         }, params));
         let market = (typeof symbol === 'undefined') ? undefined : this.market (symbol);
-        return this.parseTrades (response['result'], market);
+        return this.parseTrades (response['result']['trades'], market);
     }
 
     async createDepositAddress (code, params = {}) {
@@ -499,7 +502,11 @@ module.exports = class cobinhood extends Exchange {
         let response = await this.privateGetWalletDepositAddresses (this.extend ({
             'currency': currency['id'],
         }, params));
-        let address = this.safeString (response['result']['deposit_addresses'], 'address');
+        let addresses = this.safeValue (response['result'], 'deposit_addresses', []);
+        let address = undefined;
+        if (addresses.length > 0) {
+            address = this.safeString (addresses[0], 'address');
+        }
         this.checkAddress (address);
         return {
             'currency': code,

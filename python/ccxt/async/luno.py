@@ -146,6 +146,7 @@ class luno (Exchange):
             'id': order['order_id'],
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
+            'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
             'type': None,
@@ -243,10 +244,10 @@ class luno (Exchange):
         response = await self.publicGetTrades(self.extend(request, params))
         return self.parse_trades(response['trades'], market, since, limit)
 
-    async def create_order(self, market, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         method = 'privatePost'
-        order = {'pair': self.market_id(market)}
+        order = {'pair': self.market_id(symbol)}
         if type == 'market':
             method += 'Marketorder'
             order['type'] = side.upper()

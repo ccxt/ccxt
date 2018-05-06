@@ -92,8 +92,8 @@ module.exports = class lakebtc extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
             let code = id;
-            if (id in this.currencies) {
-                let currency = this.currencies[id];
+            if (id in this.currencies_by_id) {
+                let currency = this.currencies_by_id[id];
                 code = currency['code'];
             }
             let balance = parseFloat (balances[id]);

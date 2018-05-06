@@ -53,11 +53,13 @@ if (count ($argv) > 2) {
 
             } catch (\ccxt\NetworkError $e) {
 
-                echo 'Network Error: ' . $e->getMessage () . "\n";
+                echo get_class ($e) . ': ' . $e->getMessage () . "\n";
 
             } catch (\ccxt\ExchangeError $e) {
 
-                echo 'Exchange Error: ' . $e->getMessage () . "\n";
+                echo $e->class . "-\n";
+
+                echo get_class ($e) . ': ' . $e->getMessage () . "\n";
             }
 
         } else if (property_exists ($exchange, $member)) {

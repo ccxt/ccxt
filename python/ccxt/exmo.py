@@ -18,6 +18,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 
 
@@ -112,9 +113,11 @@ class exmo (Exchange):
                 '40005': AuthenticationError,  # Authorization error, incorrect signature
                 '40009': InvalidNonce,  #
                 '40015': ExchangeError,  # API function do not exist
+                '40016': ExchangeNotAvailable,  # Maintenance work in progress
                 '40017': AuthenticationError,  # Wrong API Key
                 '50052': InsufficientFunds,
                 '50054': InsufficientFunds,
+                '50304': OrderNotFound,  # "Order was not found '123456789'"(fetching order trades for an order that does not have trades yet)
                 '50173': OrderNotFound,  # "Order with id X was not found."(cancelling non-existent, closed and cancelled order)
                 '50319': InvalidOrder,  # Price by order is less than permissible minimum for self pair
                 '50321': InvalidOrder,  # Price by order is more than permissible maximum for self pair
@@ -184,11 +187,7 @@ class exmo (Exchange):
             request['limit'] = limit
         response = self.publicGetOrderBook(request)
         result = response[market['id']]
-        orderbook = self.parse_order_book(result, None, 'bid', 'ask')
-        return self.extend(orderbook, {
-            'bids': self.sort_by(orderbook['bids'], 0, True),
-            'asks': self.sort_by(orderbook['asks'], 0),
-        })
+        return self.parse_order_book(result, None, 'bid', 'ask')
 
     def fetch_order_books(self, symbols=None, params={}):
         self.load_markets()
@@ -299,24 +298,27 @@ class exmo (Exchange):
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
-        prefix = 'market_' if (type == 'market') else ''
+        prefix = (type + '_') if (type == 'market') else ''
         market = self.market(symbol)
+        if (type == 'market') and(price is None):
+            price = 0
         request = {
             'pair': market['id'],
             'quantity': self.amount_to_string(symbol, amount),
-            'price': self.price_to_precision(symbol, price),
             'type': prefix + side,
+            'price': self.price_to_precision(symbol, price),
         }
         response = self.privatePostOrderCreate(self.extend(request, params))
         id = self.safe_string(response, 'order_id')
         timestamp = self.milliseconds()
-        price = float(price)
         amount = float(amount)
+        price = float(price)
         status = 'open'
         order = {
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
             'type': type,
@@ -341,15 +343,25 @@ class exmo (Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
-        self.fetch_orders(symbol, None, None, params)
-        if id in self.orders:
-            return self.orders[id]
-        raise OrderNotFound(self.id + ' order id ' + str(id) + ' is not in "open" state and not found in cache')
+        try:
+            response = self.privatePostOrderTrades({
+                'order_id': str(id),
+            })
+            return self.parse_order(response)
+        except Exception as e:
+            if isinstance(e, OrderNotFound):
+                if id in self.orders:
+                    return self.orders[id]
+        raise OrderNotFound(self.id + ' fetchOrder order id ' + str(id) + ' not found in cache.')
 
     def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
-        order = self.fetch_order(id, symbol, params)
-        # todo: filter by symbol, since and limit
-        return order['trades']
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        response = self.privatePostOrderTrades({
+            'order_id': str(id),
+        })
+        return self.parse_trades(response, market, since, limit)
 
     def update_cached_orders(self, openOrders, symbol):
         # update local cache with open orders
@@ -358,7 +370,6 @@ class exmo (Exchange):
             self.orders[id] = openOrders[j]
         openOrdersIndexedById = self.index_by(openOrders, 'id')
         cachedOrderIds = list(self.orders.keys())
-        result = []
         for k in range(0, len(cachedOrderIds)):
             # match each cached order to an order in the open orders array
             # possible reasons why a cached order may be missing in the open orders array:
@@ -366,7 +377,6 @@ class exmo (Exchange):
             # - symbol mismatch(e.g. cached BTC/USDT, fetched ETH/USDT) -> skip
             id = cachedOrderIds[k]
             order = self.orders[id]
-            result.append(order)
             if not(id in list(openOrdersIndexedById.keys())):
                 # cached order is not in open orders array
                 # if we fetched orders by symbol and it doesn't match the cached order -> won't update the cached order
@@ -384,7 +394,7 @@ class exmo (Exchange):
                         if order['filled'] is not None:
                             order['cost'] = order['filled'] * order['price']
                     self.orders[id] = order
-        return result
+        return self.to_array(self.orders)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -398,8 +408,8 @@ class exmo (Exchange):
                 market = self.markets_by_id[marketId]
             parsedOrders = self.parse_orders(response[marketId], market)
             orders = self.array_concat(orders, parsedOrders)
-        self.update_cached_orders(orders)
-        return self.filter_by_symbol_since_limit(self.orders, symbol, since, limit)
+        self.update_cached_orders(orders, symbol)
+        return self.filter_by_symbol_since_limit(self.to_array(self.orders), symbol, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.fetch_orders(symbol, since, limit, params)
@@ -488,6 +498,7 @@ class exmo (Exchange):
             'id': id,
             'datetime': iso8601,
             'timestamp': timestamp,
+            'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
             'type': 'limit',

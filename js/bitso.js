@@ -17,6 +17,8 @@ module.exports = class bitso extends Exchange {
             'version': 'v3',
             'has': {
                 'CORS': true,
+                'fetchMyTrades': true,
+                'fetchOpenOrders': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766335-715ce7aa-5ed5-11e7-88a8-173a27bb30fe.jpg',
@@ -323,6 +325,7 @@ module.exports = class bitso extends Exchange {
             'id': order['oid'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': orderType,
             'side': side,

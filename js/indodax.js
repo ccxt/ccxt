@@ -7,11 +7,11 @@ const { ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound, Authentic
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class bitcoincoid extends Exchange {
+module.exports = class indodax extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'bitcoincoid',
-            'name': 'Bitcoin.co.id',
+            'id': 'indodax',
+            'name': 'INDODAX',
             'countries': 'ID', // Indonesia
             'has': {
                 'CORS': false,
@@ -23,19 +23,17 @@ module.exports = class bitcoincoid extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchMyTrades': false,
                 'fetchCurrencies': false,
-                'withdraw': false,
+                'withdraw': true,
             },
             'version': '1.7', // as of 6 November 2017
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766138-043c7786-5ecf-11e7-882b-809c14f38b53.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/37443283-2fddd0e4-281c-11e8-9741-b4f1419001b5.jpg',
                 'api': {
                     'public': 'https://vip.bitcoin.co.id/api',
                     'private': 'https://vip.bitcoin.co.id/tapi',
                 },
-                'www': 'https://www.bitcoin.co.id',
-                'doc': [
-                    'https://vip.bitcoin.co.id/downloads/BITCOINCOID-API-DOCUMENTATION.pdf',
-                ],
+                'www': 'https://www.indodax.com',
+                'doc': 'https://indodax.com/downloads/BITCOINCOID-API-DOCUMENTATION.pdf',
             },
             'api': {
                 'public': {
@@ -55,6 +53,7 @@ module.exports = class bitcoincoid extends Exchange {
                         'openOrders',
                         'cancelOrder',
                         'orderHistory',
+                        'withdrawCoin',
                     ],
                 },
             },
@@ -229,6 +228,7 @@ module.exports = class bitcoincoid extends Exchange {
             'id': order['order_id'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': 'limit',
             'side': side,
@@ -342,6 +342,50 @@ module.exports = class bitcoincoid extends Exchange {
             'pair': market['id'],
             'type': params['side'],
         }, params));
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        // Custom string you need to provide to identify each withdrawal request.
+        // Will be passed to callback URL (assigned via website to the API key)
+        // so your system can identify the request and confirm it.
+        // Alphanumeric, max length 255.
+        let requestId = this.milliseconds ();
+        // alternatively:
+        // let requestId = this.uuid ();
+        let request = {
+            'currency': currency['id'],
+            'withdraw_amount': amount,
+            'withdraw_address': address,
+            'request_id': requestId.toString (),
+        };
+        if (tag)
+            request['withdraw_memo'] = tag;
+        let response = await this.privatePostWithdrawCoin (this.extend (request, params));
+        //
+        //     {
+        //         "success": 1,
+        //         "status": "approved",
+        //         "withdraw_currency": "xrp",
+        //         "withdraw_address": "rwWr7KUZ3ZFwzgaDGjKBysADByzxvohQ3C",
+        //         "withdraw_amount": "10000.00000000",
+        //         "fee": "2.00000000",
+        //         "amount_after_fee": "9998.00000000",
+        //         "submit_time": "1509469200",
+        //         "withdraw_id": "xrp-12345",
+        //         "txid": "",
+        //         "withdraw_memo": "123123"
+        //     }
+        //
+        let id = undefined;
+        if (('txid' in response) && (response['txid'].length > 0))
+            id = response['txid'];
+        return {
+            'info': response,
+            'id': id,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

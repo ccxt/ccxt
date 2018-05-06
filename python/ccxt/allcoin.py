@@ -68,16 +68,42 @@ class allcoin (okcoinusd):
                 market = markets[k]['Market']
                 base = market['Primary']
                 quote = market['Secondary']
-                id = base.lower() + '_' + quote.lower()
+                baseId = base.lower()
+                quoteId = quote.lower()
+                id = baseId + '_' + quoteId
                 symbol = base + '/' + quote
+                active = market['TradeEnabled'] and market['BuyEnabled'] and market['SellEnabled']
                 result.append({
                     'id': id,
                     'symbol': symbol,
                     'base': base,
                     'quote': quote,
+                    'baseId': baseId,
+                    'quoteId': quoteId,
+                    'active': active,
                     'type': 'spot',
                     'spot': True,
                     'future': False,
+                    'maker': market['AskFeeRate'],  # BidFeeRate 0, AskFeeRate 0.002, we use just the AskFeeRate here
+                    'taker': market['AskFeeRate'],  # BidFeeRate 0, AskFeeRate 0.002, we use just the AskFeeRate here
+                    'precision': {
+                        'amount': market['PrimaryDigits'],
+                        'price': market['SecondaryDigits'],
+                    },
+                    'limits': {
+                        'amount': {
+                            'min': market['MinTradeAmount'],
+                            'max': market['MaxTradeAmount'],
+                        },
+                        'price': {
+                            'min': market['MinOrderPrice'],
+                            'max': market['MaxOrderPrice'],
+                        },
+                        'cost': {
+                            'min': None,
+                            'max': None,
+                        },
+                    },
                     'info': market,
                 })
         return result

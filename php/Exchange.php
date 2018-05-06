@@ -30,7 +30,19 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.11.137';
+$version = '1.13.68';
+
+// rounding mode
+const TRUNCATE = 0;
+const ROUND = 1;
+
+// digits counting mode
+const DECIMAL_PLACES = 0;
+const SIGNIFICANT_DIGITS = 1;
+
+// padding mode
+const NO_PADDING = 0;
+const PAD_WITH_ZERO = 1;
 
 abstract class Exchange {
 
@@ -43,12 +55,13 @@ abstract class Exchange {
         'bibox',
         'binance',
         'bit2c',
+        'bitbank',
         'bitbay',
-        'bitcoincoid',
         'bitfinex',
         'bitfinex2',
         'bitflyer',
         'bithumb',
+        'bitkk',
         'bitlish',
         'bitmarket',
         'bitmex',
@@ -76,11 +89,14 @@ abstract class Exchange {
         'cobinhood',
         'coincheck',
         'coinegg',
+        'coinex',
         'coinexchange',
         'coinfloor',
         'coingi',
         'coinmarketcap',
         'coinmate',
+        'coinnest',
+        'coinone',
         'coinsecure',
         'coinspot',
         'coolcoin',
@@ -88,6 +104,7 @@ abstract class Exchange {
         'dsx',
         'ethfinex',
         'exmo',
+        'exx',
         'flowbtc',
         'foxbit',
         'fybse',
@@ -97,24 +114,29 @@ abstract class Exchange {
         'gdax',
         'gemini',
         'getbtc',
+        'hadax',
         'hitbtc',
         'hitbtc2',
         'huobi',
         'huobicny',
         'huobipro',
+        'ice3x',
         'independentreserve',
+        'indodax',
         'itbit',
         'jubi',
         'kraken',
         'kucoin',
         'kuna',
         'lakebtc',
+        'lbank',
         'liqui',
         'livecoin',
         'luno',
         'lykke',
         'mercado',
         'mixcoins',
+        'negociecoins',
         'nova',
         'okcoincny',
         'okcoinusd',
@@ -127,6 +149,7 @@ abstract class Exchange {
         'southxchange',
         'surbitcoin',
         'therock',
+        'tidebit',
         'tidex',
         'urdubit',
         'vaultoro',
@@ -344,6 +367,14 @@ abstract class Exchange {
         return call_user_func_array ('array_merge', array_filter(func_get_args(), 'is_array'));
     }
 
+    public static function in_array ($needle, $haystack) {
+        return in_array ($needle, $haystack);
+    }
+
+    public static function to_array ($object) {
+        return array_values ($object);
+    }
+
     public static function keysort ($array) {
         $result = $array;
         ksort ($result);
@@ -531,7 +562,10 @@ abstract class Exchange {
             throw new InvalidAddress ($this->id . ' address is undefined');
         }
 
-        if (count (array_unique (str_split ($address))) == 1 || strlen ($address) < $this->minFundingAddressLength || strpos($address, ' ') !== false) {
+        if ((count (array_unique (str_split ($address))) === 1)    ||
+            (strlen ($address) < $this->minFundingAddressLength) ||
+            (strpos ($address, ' ') !== false)) {
+
             throw new InvalidAddress ($this->id . ' address is invalid or has less than ' . strval ($this->minFundingAddressLength) . ' characters: "' . strval ($address) . '"');
         }
 
@@ -548,8 +582,10 @@ abstract class Exchange {
 
     public function __construct ($options = array ()) {
 
-        $this->curl        = curl_init ();
-        $this->id          = null;
+        $this->curl         = curl_init ();
+        $this->curl_options = array (); // overrideable by user, empty by default
+
+        $this->id           = null;
 
         // rate limiter params
         $this->rateLimit   = 2000;
@@ -603,7 +639,7 @@ abstract class Exchange {
             'chrome' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
             'chrome39' => 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36',
         );
-        $this->minFundingAddressLength = 10; // used in check_address
+        $this->minFundingAddressLength = 1; // used in check_address
         $this->substituteCommonCurrencyCodes = true;
         $this->timeframes = null;
         $this->parseJsonResponse = true;
@@ -614,6 +650,7 @@ abstract class Exchange {
             'uid' => false,
             'login' => false,
             'password' => false,
+            'twofa' => false, // 2-factor authentication (one-time password key)
         );
 
         // API methods metainfo
@@ -632,6 +669,7 @@ abstract class Exchange {
             'fetchClosedOrders' => false,
             'fetchCurrencies' => false,
             'fetchDepositAddress' => false,
+            'fetchFundingFees' => false,
             'fetchL2OrderBook' => true,
             'fetchMarkets' => true,
             'fetchMyTrades' => false,
@@ -644,8 +682,11 @@ abstract class Exchange {
             'fetchTicker' => true,
             'fetchTickers' => false,
             'fetchTrades' => true,
+            'fetchTradingFees' => false,
             'withdraw' => false,
         );
+
+        $this->precisionMode = DECIMAL_PLACES;
 
         $this->lastRestRequestTimestamp = 0;
         $this->lastRestPollTimestamp    = 0;
@@ -889,11 +930,24 @@ abstract class Exchange {
             }
         );
 
+        // user-defined cURL options (if any)
+        if (!empty($this->curl_options))
+            curl_setopt_array ($this->curl, $this->curl_options);
+
         $result = curl_exec ($this->curl);
 
         $this->lastRestRequestTimestamp = $this->milliseconds ();
         $this->last_http_response = $result;
         $this->last_response_headers = $response_headers;
+
+        if ($this->parseJsonResponse) {
+
+            $this->last_json_response =
+                ((gettype ($result) == 'string') &&  (strlen ($result) > 1)) ?
+                    json_decode ($result, $as_associative_array = true) : null;
+
+        }
+
 
         $curl_errno = curl_errno ($this->curl);
         $curl_error = curl_error ($this->curl);
@@ -982,37 +1036,29 @@ abstract class Exchange {
             }
         }
 
-        if ($this->parseJsonResponse) {
 
-            $this->last_json_response =
-                ((gettype ($result) == 'string') &&  (strlen ($result) > 1)) ?
-                    json_decode ($result, $as_associative_array = true) : null;
+        if ($this->parseJsonResponse && !$this->last_json_response) {
 
-            if (!$this->last_json_response) {
+            if (preg_match ('#offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing#i', $result)) {
 
-                if (preg_match ('#offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing#i', $result)) {
+                $details = '(possible reasons: ' . implode (', ', array (
+                    'exchange is down or offline',
+                    'on maintenance',
+                    'DDoS protection',
+                    'rate-limiting in effect',
+                )) . ')';
 
-                    $details = '(possible reasons: ' . implode (', ', array (
-                        'exchange is down or offline',
-                        'on maintenance',
-                        'DDoS protection',
-                        'rate-limiting in effect',
-                    )) . ')';
-
-                    $this->raise_error ('ExchangeNotAvailable', $url, $method, $http_status_code,
-                        'not accessible from this location at the moment', $details);
-                }
-
-                if (preg_match ('#cloudflare|incapsula#i', $result)) {
-                    $this->raise_error ('DDoSProtection', $url, $method, $http_status_code,
-                        'not accessible from this location at the moment');
-                }
+                $this->raise_error ('ExchangeNotAvailable', $url, $method, $http_status_code,
+                    'not accessible from this location at the moment', $details);
             }
 
-            return $this->last_json_response;
+            if (preg_match ('#cloudflare|incapsula#i', $result)) {
+                $this->raise_error ('DDoSProtection', $url, $method, $http_status_code,
+                    'not accessible from this location at the moment');
+            }
         }
 
-        return $result;
+        return $this->parseJsonResponse ? $this->last_json_response : $result;
     }
 
     public function set_markets ($markets, $currencies = null) {
@@ -1140,7 +1186,6 @@ abstract class Exchange {
     }
 
     public function parse_order_book ($orderbook, $timestamp = null, $bids_key = 'bids', $asks_key = 'asks', $price_key = 0, $amount_key = 1) {
-        $timestamp = $timestamp ? $timestamp : $this->milliseconds ();
         return array (
             'bids' => is_array ($orderbook) && array_key_exists ($bids_key, $orderbook) ?
                 $this->parse_bids_asks ($orderbook[$bids_key], $price_key, $amount_key) :
@@ -1149,7 +1194,8 @@ abstract class Exchange {
                 $this->parse_bids_asks ($orderbook[$asks_key], $price_key, $amount_key) :
                 array (),
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => isset ($timestamp) ? $this->iso8601 ($timestamp) : null,
+            'nonce' => null,
         );
     }
 
@@ -1252,7 +1298,7 @@ abstract class Exchange {
                 return $grouped[$symbol];
             return array ();
         }
-        return $orders;
+        return $array;
     }
 
     public function filterBySymbol ($orders, $symbol = null) {
@@ -1308,7 +1354,7 @@ abstract class Exchange {
         throw new NotSupported ($this->id . ' API does not allow to fetch all tickers at once with a single call to fetch_tickers () for now');
     }
 
-    public function fetchTickers ($symbols, $params = array ()) {
+    public function fetchTickers ($symbols = null, $params = array ()) {
         return $this->fetch_tickers ($symbols, $params);
     }
 
@@ -1322,7 +1368,7 @@ abstract class Exchange {
     }
 
     public function purge_cached_orders ($before) {
-        $this->orders = $this->index_by (array_filter ($this->orders, function ($orders) use ($before) {
+        $this->orders = $this->index_by (array_filter ($this->orders, function ($order) use ($before) {
             return ($order['status'] === 'open') || ($order['timestamp'] >= $before);
         }), 'id');
         return $this->orders;
@@ -1380,8 +1426,8 @@ abstract class Exchange {
         return $this->fetch_my_trades ($symbol, $since, $limit, $params);
     }
 
-    public function fetch_markets () { // stub
-        return $this->markets;
+    public function fetch_markets () {
+        return $this->markets ? array_values ($this->markets) : array ();
     }
 
     public function fetchMarkets  () {
@@ -1420,12 +1466,47 @@ abstract class Exchange {
         return $this->fetch_ohlcv ($symbol, $timeframe, $since, $limit, $params);
     }
 
+    public function convert_trading_view_to_ohlcv ($ohlcvs) {
+        $result = array ();
+        for ($i = 0; $i < count ($ohlcvs['t']); $i++) {
+            $result[] = [
+                $ohlcvs['t'][$i] * 1000,
+                $ohlcvs['o'][$i],
+                $ohlcvs['h'][$i],
+                $ohlcvs['l'][$i],
+                $ohlcvs['c'][$i],
+                $ohlcvs['v'][$i],
+            ];
+        }
+        return $result;
+    }
+
+    public function convert_ohlcv_to_trading_view ($ohlcvs) {
+        $result = array (
+            't' => array (),
+            'o' => array (),
+            'h' => array (),
+            'l' => array (),
+            'c' => array (),
+            'v' => array (),
+        );
+        for ($i = 0; $i < count ($ohlcvs); $i++) {
+            $result['t'][] = intval ($ohlcvs[$i][0] / 1000);
+            $result['o'][] = $ohlcvs[$i][1];
+            $result['h'][] = $ohlcvs[$i][2];
+            $result['l'][] = $ohlcvs[$i][3];
+            $result['c'][] = $ohlcvs[$i][4];
+            $result['v'][] = $ohlcvs[$i][5];
+        }
+        return $result;
+    }
+
     public function edit_limit_buy_order ($id, $symbol, $amount, $price, $params = array ()) {
-        return $this->edit_limit_order ($symbol, 'buy', $amount, $price, $params);
+        return $this->edit_limit_order ($id, $symbol, 'buy', $amount, $price, $params);
     }
 
     public function edit_limit_sell_order ($id, $symbol, $amount, $price, $params = array ()) {
-        return $this->edit_limit_order ($symbol, 'sell', $amount, $price, $params);
+        return $this->edit_limit_order ($id, $symbol, 'sell', $amount, $price, $params);
     }
 
     public function edit_limit_order ($id, $symbol, $side, $amount, $price, $params = array ()) {
@@ -1472,7 +1553,7 @@ abstract class Exchange {
         return $this->create_order ($symbol, 'limit', $side, $amount, $price, $params);
     }
 
-    public function create_market_order ($symbol, $side, $amount, $price, $params = array ()) {
+    public function create_market_order ($symbol, $side, $amount, $price = null, $params = array ()) {
         return $this->create_order ($symbol, 'market', $side, $amount, $price, $params);
     }
 
@@ -1708,6 +1789,83 @@ abstract class Exchange {
 
         $old_feature = "has{$feature}";
         return array_key_exists ($old_feature, $old_feature_map) ? $old_feature_map[$old_feature] : false;
+    }
+
+    public static function decimalToPrecision ($x, $roundingMode = ROUND, $numPrecisionDigits = null, $countingMode = DECIMAL_PLACES, $paddingMode = NO_PADDING) {
+        return static::decimal_to_precision ($x, $roundingMode, $numPrecisionDigits, $countingMode, $paddingMode);
+    }
+
+    public static function decimal_to_precision ($x, $roundingMode = ROUND, $numPrecisionDigits = null, $countingMode = DECIMAL_PLACES, $paddingMode = NO_PADDING) {
+        if ($numPrecisionDigits < 0) {
+            throw new BaseError ('Negative precision is not yet supported');
+        }
+
+        if (!is_int ($numPrecisionDigits)) {
+            throw new BaseError ('Precision must be an integer');
+        }
+
+        if (!is_numeric ($x)) {
+            throw new BaseError ('Invalid number');
+        }
+
+        $result = '';
+        if ($roundingMode === ROUND) {
+            if ($countingMode === DECIMAL_PLACES) {
+                $result = (string) round ($x, $numPrecisionDigits, PHP_ROUND_HALF_EVEN);
+            } elseif ($countingMode === SIGNIFICANT_DIGITS) {
+                $significantPosition = log (abs ($x), 10) % 10;
+                if ($significantPosition > 0) {
+                    $significantPosition += 1;
+                }
+                $result = (string) round ($x, $numPrecisionDigits - $significantPosition, PHP_ROUND_HALF_EVEN);
+            }
+        } elseif ($roundingMode === TRUNCATE) {
+            $dotPosition = strpos ($x, '.') ?: 0;
+            if ($countingMode === DECIMAL_PLACES) {
+                $result = substr ($x, 0, ($dotPosition ? $dotPosition + 1 : 0) + $numPrecisionDigits);
+            } elseif ($countingMode === SIGNIFICANT_DIGITS) {
+                $significantPosition = log (abs ($x), 10) % 10;
+                $start = $dotPosition - $significantPosition;
+                $end   = $start + $numPrecisionDigits;
+                if ($dotPosition >= $end) {
+                    $end -= 1;
+                }
+                if ($significantPosition < 0) {
+                    $end += 1;
+                }
+                $result = str_pad (substr ($x, 0, $end), $dotPosition, '0');
+            }
+        }
+
+        $hasDot = strpos ($result, '.') !== false;
+        if ($paddingMode === NO_PADDING) {
+            if ($hasDot) {
+                $result = rtrim ($result, '0.');
+            }
+        } elseif ($paddingMode === PAD_WITH_ZERO) {
+            if ($hasDot) {
+                if ($countingMode === DECIMAL_PLACES) {
+                    list ($before, $after) = explode ('.', $result, 2);
+                    $result = $before . '.' . str_pad ($after, $numPrecisionDigits, '0');
+                } elseif ($countingMode === SIGNIFICANT_DIGITS) {
+                    if ($result < 1) {
+                        $result = str_pad ($result, strcspn ($result, '123456789') + $numPrecisionDigits, '0');
+                    }
+                }
+            } else {
+                if ($countingMode === DECIMAL_PLACES) {
+                    if ($numPrecisionDigits > 0) {
+                        $result = $result . '.' . str_repeat ('0', $numPrecisionDigits);
+                    }
+                } elseif ($countingMode === SIGNIFICANT_DIGITS) {
+                    if ($numPrecisionDigits > strlen ($result)) {
+                        $result = $result . '.' . str_repeat ('0', ($numPrecisionDigits - strlen ($result)));
+                    }
+                }
+            }
+        }
+
+        return $result;
     }
 
 }

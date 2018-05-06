@@ -85,10 +85,7 @@ class coinspot (Exchange):
         orderbook = self.privatePostOrders(self.extend({
             'cointype': market['id'],
         }, params))
-        result = self.parse_order_book(orderbook, None, 'buyorders', 'sellorders', 'rate', 'amount')
-        result['bids'] = self.sort_by(result['bids'], 0, True)
-        result['asks'] = self.sort_by(result['asks'], 0)
-        return result
+        return self.parse_order_book(orderbook, None, 'buyorders', 'sellorders', 'rate', 'amount')
 
     def fetch_ticker(self, symbol, params={}):
         response = self.publicGetLatest(params)
@@ -125,12 +122,12 @@ class coinspot (Exchange):
             'cointype': self.market_id(symbol),
         }, params))
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
         method = 'privatePostMy' + self.capitalize(side)
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
         order = {
-            'cointype': self.market_id(market),
+            'cointype': self.market_id(symbol),
             'amount': amount,
             'rate': price,
         }

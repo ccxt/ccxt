@@ -12,7 +12,7 @@ module.exports = class hitbtc2 extends hitbtc {
         return this.deepExtend (super.describe (), {
             'id': 'hitbtc2',
             'name': 'HitBTC v2',
-            'countries': 'UK',
+            'countries': 'HK',
             'rateLimit': 1500,
             'version': '2',
             'has': {
@@ -621,7 +621,7 @@ module.exports = class hitbtc2 extends hitbtc {
                 'name': currency['fullName'],
                 'active': active,
                 'status': status,
-                'fee': undefined, // todo: redesign
+                'fee': this.safeFloat (currency, 'payoutFee'), // todo: redesign
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -926,8 +926,7 @@ module.exports = class hitbtc2 extends hitbtc {
             'id': id,
             'timestamp': created,
             'datetime': this.iso8601 (created),
-            'created': created,
-            'updated': updated,
+            'lastTradeTimestamp': updated,
             'status': status,
             'symbol': symbol,
             'type': order['type'],
@@ -1134,12 +1133,5 @@ module.exports = class hitbtc2 extends hitbtc {
             }
             throw new ExchangeError (this.id + ' ' + body);
         }
-    }
-
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('error' in response)
-            throw new ExchangeError (this.id + ' ' + this.json (response));
-        return response;
     }
 };

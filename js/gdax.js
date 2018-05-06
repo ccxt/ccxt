@@ -104,7 +104,7 @@ module.exports = class gdax extends Exchange {
                     'tierBased': true, // complicated tier system per coin
                     'percentage': true,
                     'maker': 0.0,
-                    'taker': 0.25 / 100, // Fee is 0.25%, 0.3% for ETH/LTC pairs
+                    'taker': 0.3 / 100, // tiered fee starts at 0.3%
                 },
                 'funding': {
                     'tierBased': false,
@@ -347,7 +347,7 @@ module.exports = class gdax extends Exchange {
             request['start'] = this.ymdhms (since);
             if (typeof limit === 'undefined') {
                 // https://docs.gdax.com/#get-historic-rates
-                limit = 350; // max = 350
+                limit = 300; // max = 300
             }
             request['end'] = this.ymdhms (this.sum (limit * granularity * 1000, since));
         }
@@ -403,6 +403,7 @@ module.exports = class gdax extends Exchange {
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
             'type': order['type'],
@@ -464,11 +465,11 @@ module.exports = class gdax extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         // let oid = this.nonce ().toString ();
         let order = {
-            'product_id': this.marketId (market),
+            'product_id': this.marketId (symbol),
             'side': side,
             'size': amount,
             'type': type,
@@ -485,6 +486,24 @@ module.exports = class gdax extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privateDeleteOrdersId ({ 'id': id });
+    }
+
+    feeToPrecision (currency, fee) {
+        let cost = parseFloat (fee);
+        return cost.toFixed (this.currencies[currency].precision);
+    }
+
+    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+        let market = this.markets[symbol];
+        let rate = market[takerOrMaker];
+        let cost = amount * price;
+        let currency = market['quote'];
+        return {
+            'type': takerOrMaker,
+            'currency': currency,
+            'rate': rate,
+            'cost': parseFloat (this.feeToPrecision (currency, rate * cost)),
+        };
     }
 
     async getPaymentMethods () {

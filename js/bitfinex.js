@@ -3,7 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { NotSupported, DDoSProtection, AuthenticationError, ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound, InvalidNonce } = require ('./base/errors');
+const { NotSupported, DDoSProtection, AuthenticationError, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, InvalidNonce } = require ('./base/errors');
+const { ROUND, TRUNCATE, SIGNIFICANT_DIGITS } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -22,14 +23,13 @@ module.exports = class bitfinex extends Exchange {
                 'deposit': true,
                 'fetchClosedOrders': true,
                 'fetchDepositAddress': true,
-                'fetchFees': true,
+                'fetchTradingFees': true,
                 'fetchFundingFees': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchTickers': true,
-                'fetchTradingFees': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -108,6 +108,7 @@ module.exports = class bitfinex extends Exchange {
                         'orders',
                         'orders/hist',
                         'position/claim',
+                        'position/close',
                         'positions',
                         'summary',
                         'taken_funds',
@@ -156,76 +157,109 @@ module.exports = class bitfinex extends Exchange {
                 'funding': {
                     'tierBased': false, // true for tier-based/progressive
                     'percentage': false, // fixed commission
+                    // Actually deposit fees are free for larger deposits (> $1000 USD equivalent)
+                    // these values below are deprecated, we should not hardcode fees and limits anymore
+                    // to be reimplemented with bitfinex funding fees from their API or web endpoints
                     'deposit': {
-                        'BTC': 0.0005,
+                        'BTC': 0.0004,
                         'IOTA': 0.5,
-                        'ETH': 0.01,
-                        'BCH': 0.01,
-                        'LTC': 0.1,
-                        'EOS': 0.1,
-                        'XMR': 0.04,
-                        'SAN': 0.1,
-                        'DASH': 0.01,
-                        'ETC': 0.01,
-                        'XRP': 0.02,
-                        'YYW': 0.1,
-                        'NEO': 0,
-                        'ZEC': 0.1,
-                        'BTG': 0,
-                        'OMG': 0.1,
-                        'DATA': 1,
-                        'QASH': 1,
-                        'ETP': 0.01,
-                        'QTUM': 0.01,
-                        'EDO': 0.5,
-                        'AVT': 0.5,
-                        'USDT': 0,
-                    },
-                    'withdraw': {
-                        'BTC': 0.0008,
-                        'IOTA': 0.5,
-                        'ETH': 0.01,
-                        'ETC': 0.01,
+                        'ETH': 0.0027,
                         'BCH': 0.0001,
                         'LTC': 0.001,
-                        'EOS': 0.8609,
+                        'EOS': 0.24279,
                         'XMR': 0.04,
-                        'SAN': 3.2779,
+                        'SAN': 0.99269,
                         'DASH': 0.01,
+                        'ETC': 0.01,
                         'XRP': 0.02,
-                        'YYW': 40.543,
+                        'YYW': 16.915,
                         'NEO': 0,
                         'ZEC': 0.001,
                         'BTG': 0,
-                        'OMG': 0.5897,
-                        'DATA': 52.405,
-                        'FUN': 90.402,
-                        'GNT': 15.435,
-                        'MNA': 76.821,
-                        'BAT': 17.223,
-                        'SPK': 24.708,
-                        'QASH': 6.1629,
+                        'OMG': 0.14026,
+                        'DATA': 20.773,
+                        'QASH': 1.9858,
                         'ETP': 0.01,
                         'QTUM': 0.01,
-                        'EDO': 2.5238,
-                        'AVT': 3.2495,
-                        'USDT': 20.0,
-                        'ZRX': 5.6442,
-                        'TNB': 87.511,
-                        'SNT': 32.736,
+                        'EDO': 0.95001,
+                        'AVT': 1.3045,
+                        'USDT': 0,
+                        'TRX': 28.184,
+                        'ZRX': 1.9947,
+                        'RCN': 10.793,
+                        'TNB': 31.915,
+                        'SNT': 14.976,
+                        'RLC': 1.414,
+                        'GNT': 5.8952,
+                        'SPK': 10.893,
+                        'REP': 0.041168,
+                        'BAT': 6.1546,
+                        'ELF': 1.8753,
+                        'FUN': 32.336,
+                        'SNG': 18.622,
+                        'AID': 8.08,
+                        'MNA': 16.617,
+                        'NEC': 1.6504,
+                    },
+                    'withdraw': {
+                        'BTC': 0.0004,
+                        'IOTA': 0.5,
+                        'ETH': 0.0027,
+                        'BCH': 0.0001,
+                        'LTC': 0.001,
+                        'EOS': 0.24279,
+                        'XMR': 0.04,
+                        'SAN': 0.99269,
+                        'DASH': 0.01,
+                        'ETC': 0.01,
+                        'XRP': 0.02,
+                        'YYW': 16.915,
+                        'NEO': 0,
+                        'ZEC': 0.001,
+                        'BTG': 0,
+                        'OMG': 0.14026,
+                        'DATA': 20.773,
+                        'QASH': 1.9858,
+                        'ETP': 0.01,
+                        'QTUM': 0.01,
+                        'EDO': 0.95001,
+                        'AVT': 1.3045,
+                        'USDT': 20,
+                        'TRX': 28.184,
+                        'ZRX': 1.9947,
+                        'RCN': 10.793,
+                        'TNB': 31.915,
+                        'SNT': 14.976,
+                        'RLC': 1.414,
+                        'GNT': 5.8952,
+                        'SPK': 10.893,
+                        'REP': 0.041168,
+                        'BAT': 6.1546,
+                        'ELF': 1.8753,
+                        'FUN': 32.336,
+                        'SNG': 18.622,
+                        'AID': 8.08,
+                        'MNA': 16.617,
+                        'NEC': 1.6504,
                     },
                 },
             },
             'commonCurrencies': {
-                'DSH': 'DASH', // Bitfinex names Dash as DSH, instead of DASH
-                'QTM': 'QTUM',
                 'BCC': 'CST_BCC',
                 'BCU': 'CST_BCU',
-                'IOT': 'IOTA',
                 'DAT': 'DATA',
+                'DSH': 'DASH', // Bitfinex names Dash as DSH, instead of DASH
+                'IOT': 'IOTA',
+                'MNA': 'MANA',
+                'QSH': 'QASH',
+                'QTM': 'QTUM',
+                'SNG': 'SNGLS',
+                'SPK': 'SPANK',
+                'YYW': 'YOYOW',
             },
             'exceptions': {
                 'exact': {
+                    'temporarily_unavailable': ExchangeNotAvailable, // Sorry, the service is temporarily unavailable. See https://www.bitfinex.com/ for more info.
                     'Order could not be cancelled.': OrderNotFound, // non-existent order
                     'No such order found.': OrderNotFound, // ?
                     'Order price must be positive.': InvalidOrder, // on price <= 0
@@ -240,8 +274,10 @@ module.exports = class bitfinex extends Exchange {
                     'Invalid order: not enough exchange balance for ': InsufficientFunds, // when buying cost is greater than the available quote currency
                     'Invalid order: minimum size for ': InvalidOrder, // when amount below limits.amount.min
                     'Invalid order': InvalidOrder, // ?
+                    'The available balance is only': InsufficientFunds, // {"status":"error","message":"Cannot withdraw 1.0027 ETH from your exchange wallet. The available balance is only 0.0 ETH. If you have limit orders, open positions, unused or active margin funding, this will decrease your available balance. To increase it, you can cancel limit orders or reduce/close your positions.","withdrawal_id":0,"fees":"0.0027"}
                 },
             },
+            'precisionMode': SIGNIFICANT_DIGITS,
         });
     }
 
@@ -275,23 +311,6 @@ module.exports = class bitfinex extends Exchange {
             'maker': this.safeFloat (response, 'maker_fee'),
             'taker': this.safeFloat (response, 'taker_fee'),
         };
-    }
-
-    async loadFees () {
-        // // PHP does flat copying for arrays
-        // // setting fees on the exchange instance isn't portable, unfortunately...
-        // // this should probably go into the base class as well
-        // let funding = this.fees['funding'];
-        // const fees = await this.fetchFundingFees ();
-        // funding = this.deepExtend (funding, fees);
-        // return funding;
-        throw new NotSupported (this.id + ' loadFees() not implemented yet');
-    }
-
-    async fetchFees () {  // this can be removed since it is now dealt with in the base class
-        let fundingFees = await this.fetchFundingFees ();
-        let tradingFees = await this.fetchTradingFees ();
-        return this.deepExtend (fundingFees, tradingFees);
     }
 
     async fetchMarkets () {
@@ -333,11 +352,39 @@ module.exports = class bitfinex extends Exchange {
                 'active': true,
                 'precision': precision,
                 'limits': limits,
-                'lot': Math.pow (10, -precision['amount']),
                 'info': market,
             });
         }
         return result;
+    }
+
+    costToPrecision (symbol, cost) {
+        return this.decimalToPrecision (cost, ROUND, this.markets[symbol]['precision']['price'], this.precisionMode);
+    }
+
+    priceToPrecision (symbol, price) {
+        return this.decimalToPrecision (price, ROUND, this.markets[symbol]['precision']['price'], this.precisionMode);
+    }
+
+    amountToPrecision (symbol, amount) {
+        return this.decimalToPrecision (amount, TRUNCATE, this.markets[symbol]['precision']['amount'], this.precisionMode);
+    }
+
+    feeToPrecision (currency, fee) {
+        return this.decimalToPrecision (fee, ROUND, this.currencies[currency]['precision'], this.precisionMode);
+    }
+
+    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+        let market = this.markets[symbol];
+        let rate = market[takerOrMaker];
+        let cost = amount * price;
+        let key = 'quote';
+        return {
+            'type': takerOrMaker,
+            'currency': market[key],
+            'rate': rate,
+            'cost': parseFloat (this.feeToPrecision (market[key], rate * cost)),
+        };
     }
 
     async fetchBalance (params = {}) {
@@ -449,7 +496,7 @@ module.exports = class bitfinex extends Exchange {
         let cost = price * amount;
         let fee = undefined;
         if ('fee_amount' in trade) {
-            let feeCost = this.safeFloat (trade, 'fee_amount');
+            let feeCost = -this.safeFloat (trade, 'fee_amount');
             let feeCurrency = this.safeString (trade, 'fee_currency');
             if (feeCurrency in this.currencies_by_id)
                 feeCurrency = this.currencies_by_id[feeCurrency]['code'];
@@ -562,6 +609,7 @@ module.exports = class bitfinex extends Exchange {
             'id': order['id'].toString (),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': orderType,
             'side': side,
@@ -619,6 +667,8 @@ module.exports = class bitfinex extends Exchange {
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 100, params = {}) {
         await this.loadMarkets ();
+        if (typeof since === 'undefined')
+            since = this.milliseconds () - this.parseTimeframe (timeframe) * limit * 1000;
         let market = this.market (symbol);
         let v2id = 't' + market['id'];
         let request = {
@@ -626,33 +676,53 @@ module.exports = class bitfinex extends Exchange {
             'timeframe': this.timeframes[timeframe],
             'sort': 1,
             'limit': limit,
+            'start': since,
         };
-        if (typeof since !== 'undefined')
-            request['start'] = since;
-        request = this.extend (request, params);
-        let response = await this.v2GetCandlesTradeTimeframeSymbolHist (request);
+        let response = await this.v2GetCandlesTradeTimeframeSymbolHist (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     getCurrencyName (currency) {
         const names = {
-            'BTC': 'bitcoin',
-            'LTC': 'litecoin',
-            'ETH': 'ethereum',
-            'ETC': 'ethereumc',
-            'OMNI': 'mastercoin',
-            'ZEC': 'zcash',
-            'XMR': 'monero',
-            'USD': 'wire',
-            'DASH': 'dash',
-            'XRP': 'ripple',
-            'EOS': 'eos',
-            'BCH': 'bcash', // undocumented
-            'USDT': 'tetheruso', // undocumented
-            'NEO': 'neo', // #1811
+            'AID': 'aid',
             'AVT': 'aventus', // #1811
-            'QTUM': 'qtum', // #1811
+            'BAT': 'bat',
+            'BCH': 'bcash', // undocumented
+            'BTC': 'bitcoin',
+            'BTG': 'bgold',
+            'DASH': 'dash',
+            'DATA': 'datacoin',
             'EDO': 'eidoo', // #1811
+            'ELF': 'elf',
+            'EOS': 'eos',
+            'ETC': 'ethereumc',
+            'ETH': 'ethereum',
+            'FUN': 'fun',
+            'GNT': 'golem',
+            'IOTA': 'iota',
+            'LTC': 'litecoin',
+            'MANA': 'mna',
+            'NEO': 'neo', // #1811
+            'OMG': 'omisego',
+            'OMNI': 'mastercoin',
+            'QASH': 'qash',
+            'QTUM': 'qtum', // #1811
+            'RCN': 'rcn',
+            'REP': 'rep',
+            'RLC': 'rlc',
+            'SAN': 'santiment',
+            'SNGLS': 'sng',
+            'SNT': 'status',
+            'SPANK': 'spk',
+            'TNB': 'tnb',
+            'TRX': 'trx',
+            'USD': 'wire',
+            'USDT': 'tetheruso', // undocumented
+            'XMR': 'monero',
+            'XRP': 'ripple',
+            'YOYOW': 'yoyow',
+            'ZEC': 'zcash',
+            'ZRX': 'zrx',
         };
         if (currency in names)
             return names[currency];
@@ -710,9 +780,19 @@ module.exports = class bitfinex extends Exchange {
             request['payment_id'] = tag;
         let responses = await this.privatePostWithdraw (this.extend (request, params));
         let response = responses[0];
+        let id = response['withdrawal_id'];
+        let message = response['message'];
+        let errorMessage = this.findBroadlyMatchedKey (this.exceptions['broad'], message);
+        if (id === 0) {
+            if (typeof errorMessage !== 'undefined') {
+                let Exception = this.exceptions['broad'][errorMessage];
+                throw new Exception (this.id + ' ' + message);
+            }
+            throw new ExchangeError (this.id + ' withdraw returned an id of zero: ' + this.json (response));
+        }
         return {
             'info': response,
-            'id': response['withdrawal_id'],
+            'id': id,
         };
     }
 

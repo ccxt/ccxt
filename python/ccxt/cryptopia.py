@@ -84,12 +84,15 @@ class cryptopia (Exchange):
                 'ACC': 'AdCoin',
                 'BAT': 'BatCoin',
                 'BLZ': 'BlazeCoin',
+                'BTG': 'Bitgem',
                 'CC': 'CCX',
                 'CMT': 'Comet',
                 'FCN': 'Facilecoin',
-                'NET': 'NetCoin',
-                'BTG': 'Bitgem',
                 'FUEL': 'FC2',  # FuelCoin != FUEL
+                'HAV': 'Havecoin',
+                'LDC': 'LADACoin',
+                'MARKS': 'Bitmark',
+                'NET': 'NetCoin',
                 'QBT': 'Cubits',
                 'WRC': 'WarCoin',
             },
@@ -103,10 +106,10 @@ class cryptopia (Exchange):
             market = markets[i]
             id = market['Id']
             symbol = market['Label']
-            base = market['Symbol']
-            quote = market['BaseSymbol']
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            baseId = market['Symbol']
+            quoteId = market['BaseSymbol']
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': 8,
@@ -135,6 +138,8 @@ class cryptopia (Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'info': market,
                 'maker': market['TradeFee'] / 100,
                 'taker': market['TradeFee'] / 100,
@@ -310,6 +315,8 @@ class cryptopia (Exchange):
         if symbol:
             market = self.market(symbol)
             request['TradePairId'] = market['id']
+        if limit is not None:
+            request['Count'] = limit  # default 100
         response = self.privatePostGetTradeHistory(self.extend(request, params))
         return self.parse_trades(response['Data'], market, since, limit)
 
@@ -411,6 +418,7 @@ class cryptopia (Exchange):
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'status': 'open',
             'symbol': symbol,
             'type': type,
@@ -464,6 +472,7 @@ class cryptopia (Exchange):
             'info': self.omit(order, 'status'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'status': order['status'],
             'symbol': symbol,
             'type': 'limit',

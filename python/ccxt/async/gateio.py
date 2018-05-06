@@ -4,8 +4,16 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import hashlib
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import InvalidAddress
 
 
 class gateio (Exchange):
@@ -149,9 +157,7 @@ class gateio (Exchange):
         orderbook = await self.publicGetOrderBookId(self.extend({
             'id': self.market_id(symbol),
         }, params))
-        result = self.parse_order_book(orderbook)
-        result['asks'] = self.sort_by(result['asks'], 0)
-        return result
+        return self.parse_order_book(orderbook)
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
@@ -223,7 +229,7 @@ class gateio (Exchange):
             'symbol': market['symbol'],
             'type': None,
             'side': trade['type'],
-            'price': trade['rate'],
+            'price': float(trade['rate']),
             'amount': self.safe_float(trade, 'amount'),
         }
 
@@ -263,6 +269,8 @@ class gateio (Exchange):
         address = None
         if 'addr' in response:
             address = self.safe_string(response, 'addr')
+        if (address is not None) and(address.find('address') >= 0):
+            raise InvalidAddress(self.id + ' queryDepositAddress ' + address)
         return {
             'currency': currency,
             'address': address,
@@ -312,6 +320,13 @@ class gateio (Exchange):
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = await self.fetch2(path, api, method, params, headers, body)
         if 'result' in response:
-            if response['result'] != 'true':
-                raise ExchangeError(self.id + ' ' + self.json(response))
+            result = response['result']
+            message = self.id + ' ' + self.json(response)
+            if result is None:
+                raise ExchangeError(message)
+            if isinstance(result, basestring):
+                if result != 'true':
+                    raise ExchangeError(message)
+            elif not result:
+                raise ExchangeError(message)
         return response

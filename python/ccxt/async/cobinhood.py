@@ -23,6 +23,9 @@ class cobinhood (Exchange):
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'fetchOrder': True,
+                'fetchDepositAddress': True,
+                'createDepositAddress': True,
+                'withdraw': True,
             },
             'requiredCredentials': {
                 'apiKey': True,
@@ -135,14 +138,12 @@ class cobinhood (Exchange):
             currency = currencies[i]
             id = currency['currency']
             code = self.common_currency_code(id)
-            fundingNotFrozen = not currency['funding_frozen']
-            active = currency['is_active'] and fundingNotFrozen
             minUnit = float(currency['min_unit'])
             result[code] = {
                 'id': id,
                 'code': code,
                 'name': currency['name'],
-                'active': active,
+                'active': True,
                 'status': 'ok',
                 'fiat': False,
                 'precision': self.precision_from_string(currency['min_unit']),
@@ -166,11 +167,9 @@ class cobinhood (Exchange):
                 },
                 'funding': {
                     'withdraw': {
-                        'active': fundingNotFrozen,
                         'fee': float(currency['withdrawal_fee']),
                     },
                     'deposit': {
-                        'active': fundingNotFrozen,
                         'fee': float(currency['deposit_fee']),
                     },
                 },
@@ -193,6 +192,7 @@ class cobinhood (Exchange):
                 'amount': 8,
                 'price': self.precision_from_string(market['quote_increment']),
             }
+            active = self.safe_value(market, 'is_active', True)
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -200,7 +200,7 @@ class cobinhood (Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'active': market['is_active'],
+                'active': active,
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -370,10 +370,12 @@ class cobinhood (Exchange):
 
     def parse_order(self, order, market=None):
         symbol = None
-        if not market:
-            marketId = order['trading_pair']
+        if market is None:
+            marketId = self.safe_string(order, 'trading_pair')
+            if marketId is None:
+                marketId = self.safe_string(order, 'trading_pair_id')
             market = self.markets_by_id[marketId]
-        if market:
+        if market is not None:
             symbol = market['symbol']
         timestamp = order['timestamp']
         price = float(order['price'])
@@ -393,6 +395,7 @@ class cobinhood (Exchange):
             'id': order['id'],
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
+            'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
             'type': order['type'],  # market, limit, stop, stop_limit, trailing_stop, fill_or_kill
@@ -452,7 +455,7 @@ class cobinhood (Exchange):
             'order_id': id,
         }, params))
         market = None if (symbol is None) else self.market(symbol)
-        return self.parse_trades(response['result'], market)
+        return self.parse_trades(response['result']['trades'], market)
 
     async def create_deposit_address(self, code, params={}):
         await self.load_markets()
@@ -475,7 +478,10 @@ class cobinhood (Exchange):
         response = await self.privateGetWalletDepositAddresses(self.extend({
             'currency': currency['id'],
         }, params))
-        address = self.safe_string(response['result']['deposit_addresses'], 'address')
+        addresses = self.safe_value(response['result'], 'deposit_addresses', [])
+        address = None
+        if len(addresses) > 0:
+            address = self.safe_string(addresses[0], 'address')
         self.check_address(address)
         return {
             'currency': code,

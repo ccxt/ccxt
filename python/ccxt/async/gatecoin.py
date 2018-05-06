@@ -8,6 +8,7 @@ import hashlib
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import InvalidAddress
 
 
 class gatecoin (Exchange):
@@ -21,9 +22,13 @@ class gatecoin (Exchange):
             'comment': 'a regulated/licensed exchange',
             'has': {
                 'CORS': False,
+                'createDepositAddress': True,
+                'fetchDepositAddress': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
+                'fetchOrder': True,
                 'fetchTickers': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1m',
@@ -188,6 +193,9 @@ class gatecoin (Exchange):
                     'taker': 0.0035,
                 },
             },
+            'commonCurrencies': {
+                'MAN': 'MANA',
+            },
         })
 
     async def fetch_markets(self):
@@ -199,8 +207,8 @@ class gatecoin (Exchange):
             id = market['tradingCode']
             baseId = market['baseCurrency']
             quoteId = market['quoteCurrency']
-            base = baseId
-            quote = quoteId
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': 8,
@@ -241,7 +249,10 @@ class gatecoin (Exchange):
         result = {'info': balances}
         for b in range(0, len(balances)):
             balance = balances[b]
-            currency = balance['currency']
+            currencyId = balance['currency']
+            code = currencyId
+            if currencyId in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
             account = {
                 'free': balance['availableBalance'],
                 'used': self.sum(
@@ -251,7 +262,7 @@ class gatecoin (Exchange):
                 ),
                 'total': balance['balance'],
             }
-            result[currency] = account
+            result[code] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
@@ -261,6 +272,13 @@ class gatecoin (Exchange):
             'CurrencyPair': market['id'],
         }, params))
         return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'volume')
+
+    async def fetch_order(self, id, symbol=None, params={}):
+        await self.load_markets()
+        response = await self.privateGetTradeOrdersOrderID(self.extend({
+            'OrderID': id,
+        }, params))
+        return self.parse_order(response.order)
 
     def parse_ticker(self, ticker, market=None):
         timestamp = int(ticker['createDateTime']) * 1000
@@ -318,25 +336,45 @@ class gatecoin (Exchange):
 
     def parse_trade(self, trade, market=None):
         side = None
-        order = None
+        orderId = None
         if 'way' in trade:
             side = 'buy' if (trade['way'] == 'bid') else 'sell'
-            orderId = trade['way'] + 'OrderId'
-            order = trade[orderId]
+            orderIdField = trade['way'] + 'OrderId'
+            orderId = self.safe_string(trade, orderIdField)
         timestamp = int(trade['transactionTime']) * 1000
-        if not market:
-            market = self.markets_by_id[trade['currencyPair']]
+        if market is None:
+            marketId = self.safe_string(trade, 'currencyPair')
+            if marketId is not None:
+                market = self.find_market(marketId)
+        fee = None
+        feeCost = self.safe_float(trade, 'feeAmount')
+        price = trade['price']
+        amount = trade['quantity']
+        cost = price * amount
+        feeCurrency = None
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
+            feeCurrency = market['quote']
+        if feeCost is not None:
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+                'rate': self.safe_float(trade, 'feeRate'),
+            }
         return {
             'info': trade,
-            'id': str(trade['transactionId']),
-            'order': order,
+            'id': self.safe_string(trade, 'transactionId'),
+            'order': orderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': None,
             'side': side,
-            'price': trade['price'],
-            'amount': trade['quantity'],
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -368,7 +406,8 @@ class gatecoin (Exchange):
             request['Count'] = limit
         request = self.extend(request, params)
         response = await self.publicGetPublicTickerHistoryCurrencyPairTimeframe(request)
-        return self.parse_ohlcvs(response['tickers'], market, timeframe, since, limit)
+        ohlcvs = self.parse_ohlcvs(response['tickers'], market, timeframe, since, limit)
+        return self.sort_by(ohlcvs, 0)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -394,6 +433,14 @@ class gatecoin (Exchange):
         await self.load_markets()
         return await self.privateDeleteTradeOrdersOrderID({'OrderID': id})
 
+    def parse_order_status(self, status):
+        statuses = {
+            '6': 'closed',
+        }
+        if status in statuses:
+            return statuses[status]
+        return status
+
     def parse_order(self, order, market=None):
         side = 'buy' if (order['side'] == 0) else 'sell'
         type = 'limit' if (order['type'] == 0) else 'market'
@@ -411,11 +458,55 @@ class gatecoin (Exchange):
         price = order['price']
         cost = price * filled
         id = order['clOrderId']
-        status = 'open'  # they report open orders only? TODO use .orders cache for emulation
+        status = self.parse_order_status(self.safe_string(order, 'status'))
+        trades = None
+        fee = None
+        if status == 'closed':
+            tradesFilled = None
+            tradesCost = None
+            trades = []
+            transactions = self.safe_value(order, 'trades')
+            feeCost = None
+            feeCurrency = None
+            feeRate = None
+            if transactions is not None:
+                if isinstance(transactions, list):
+                    for i in range(0, len(transactions)):
+                        trade = self.parse_trade(transactions[i])
+                        if tradesFilled is None:
+                            tradesFilled = 0.0
+                        if tradesCost is None:
+                            tradesCost = 0.0
+                        tradesFilled += trade['amount']
+                        tradesCost += trade['amount'] * trade['price']
+                        if 'fee' in trade:
+                            if trade['fee']['cost'] is not None:
+                                if feeCost is None:
+                                    feeCost = 0.0
+                                feeCost += trade['fee']['cost']
+                            feeCurrency = trade['fee']['currency']
+                            if trade['fee']['rate'] is not None:
+                                if feeRate is None:
+                                    feeRate = 0.0
+                                feeRate += trade['fee']['rate']
+                        trades.append(trade)
+                    if (tradesFilled is not None) and(tradesFilled > 0):
+                        price = tradesCost / tradesFilled
+                    if feeRate is not None:
+                        numTrades = len(trades)
+                        if numTrades > 0:
+                            feeRate = feeRate / numTrades
+                    if feeCost is not None:
+                        fee = {
+                            'cost': feeCost,
+                            'currency': feeCurrency,
+                            'rate': feeRate,
+                        }
         result = {
             'id': id,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
+            'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
             'type': type,
@@ -425,8 +516,8 @@ class gatecoin (Exchange):
             'filled': filled,
             'remaining': remaining,
             'cost': cost,
-            'trades': None,
-            'fee': None,
+            'trades': trades,
+            'fee': fee,
             'info': order,
         }
         return result
@@ -470,3 +561,58 @@ class gatecoin (Exchange):
                 if response['responseStatus']['message'] == 'OK':
                     return response
         raise ExchangeError(self.id + ' ' + self.json(response))
+
+    async def withdraw(self, code, amount, address, tag=None, params={}):
+        self.check_address(address)
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'DigiCurrency': currency['id'],
+            'Address': address,
+            'Amount': amount,
+        }
+        response = await self.privatePostElectronicWalletWithdrawalsDigiCurrency(self.extend(request, params))
+        return {
+            'info': response,
+            'id': self.safe_string(response, 'id'),
+        }
+
+    async def fetch_deposit_address(self, code, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'DigiCurrency': currency['id'],
+        }
+        response = await self.privateGetElectronicWalletDepositWalletsDigiCurrency(self.extend(request, params))
+        result = response['addresses']
+        numResults = len(result)
+        if numResults < 1:
+            raise InvalidAddress(self.id + ' privateGetElectronicWalletDepositWalletsDigiCurrency() returned no addresses')
+        address = self.safe_string(result[0], 'address')
+        self.check_address(address)
+        return {
+            'currency': code,
+            'address': address,
+            'status': 'ok',
+            'info': response,
+        }
+
+    async def create_deposit_address(self, code, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'DigiCurrency': currency['id'],
+        }
+        response = await self.privatePostElectronicWalletDepositWalletsDigiCurrency(self.extend(request, params))
+        result = response['addresses']
+        numResults = len(result)
+        if numResults < 1:
+            raise InvalidAddress(self.id + ' privatePostElectronicWalletDepositWalletsDigiCurrency() returned no addresses')
+        address = self.safe_string(result[0], 'address')
+        self.check_address(address)
+        return {
+            'currency': code,
+            'address': address,
+            'status': 'ok',
+            'info': response,
+        }
