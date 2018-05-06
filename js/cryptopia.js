@@ -144,6 +144,7 @@ module.exports = class cryptopia extends Exchange {
                 'limits': limits,
             });
         }
+        this.options['marketsByLabel'] = this.indexBy (result, 'label');
         return result;
     }
 
@@ -496,8 +497,6 @@ module.exports = class cryptopia extends Exchange {
                 market = this.markets_by_id[id];
                 symbol = market['symbol'];
             } else {
-                if (!('marketsByLabel' in this.options))
-                    this.options['marketsByLabel'] = this.indexBy (this.markets, 'label');
                 if (id in this.options['marketsByLabel']) {
                     market = this.options['marketsByLabel'][id];
                     symbol = market['symbol'];
