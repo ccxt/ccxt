@@ -12,6 +12,7 @@ try:
 except NameError:
     basestring = str  # Python 2
 import hashlib
+import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InvalidAddress
 
@@ -105,7 +106,7 @@ class gateio (Exchange):
             quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
             precision = {
-                'amount': details['decimal_places'],
+                'amount': 8,
                 'price': details['decimal_places'],
             }
             amountLimits = {
@@ -113,12 +114,17 @@ class gateio (Exchange):
                 'max': None,
             }
             priceLimits = {
-                'min': None,
+                'min': math.pow(10, -details['decimal_places']),
+                'max': None,
+            }
+            costLimits = {
+                'min': amountLimits['min'] * priceLimits['min'],
                 'max': None,
             }
             limits = {
                 'amount': amountLimits,
                 'price': priceLimits,
+                'cost': costLimits,
             }
             result.append({
                 'id': id,

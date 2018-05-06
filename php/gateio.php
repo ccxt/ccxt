@@ -97,7 +97,7 @@ class gateio extends Exchange {
             $quote = $this->common_currency_code($quote);
             $symbol = $base . '/' . $quote;
             $precision = array (
-                'amount' => $details['decimal_places'],
+                'amount' => 8,
                 'price' => $details['decimal_places'],
             );
             $amountLimits = array (
@@ -105,12 +105,17 @@ class gateio extends Exchange {
                 'max' => null,
             );
             $priceLimits = array (
-                'min' => null,
+                'min' => pow (10, -$details['decimal_places']),
+                'max' => null,
+            );
+            $costLimits = array (
+                'min' => $amountLimits['min'] * $priceLimits['min'],
                 'max' => null,
             );
             $limits = array (
                 'amount' => $amountLimits,
                 'price' => $priceLimits,
+                'cost' => $costLimits,
             );
             $result[] = array (
                 'id' => $id,
