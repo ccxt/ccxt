@@ -46,7 +46,7 @@ class hitbtc2 extends hitbtc {
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
                 'api' => 'https://api.hitbtc.com',
-                'www' => 'https://hitbtc.com',
+                'www' => 'https://hitbtc.com/?ref_id=5a5d39a65d466',
                 'doc' => 'https://api.hitbtc.com',
                 'fees' => array (
                     'https://hitbtc.com/fees-and-limits',
