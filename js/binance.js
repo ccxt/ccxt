@@ -649,7 +649,7 @@ module.exports = class binance extends Exchange {
             });
         } else if (type === 'limit_maker') {
             order = this.extend (order, {
-                'price': this.priceToPrecision (symbol, price)
+                'price': this.priceToPrecision (symbol, price),
             });
         }
         let response = await this[method] (this.extend (order, params));
