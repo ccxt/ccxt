@@ -44,6 +44,7 @@ class itbit extends Exchange {
                         'wallets/{walletId}/balances/{currencyCode}',
                         'wallets/{walletId}/funding_history',
                         'wallets/{walletId}/trades',
+                        'wallets/{walletId}/orders',
                         'wallets/{walletId}/orders/{id}',
                     ),
                     'post' => array (
@@ -144,8 +145,8 @@ class itbit extends Exchange {
     }
 
     public function fetch_balance ($params = array ()) {
-        $response = $this->privateGetBalances ();
-        $balances = $response['balances'];
+        $response = $this->fetch_wallets ();
+        $balances = $response[0]['balances'];
         $result = array ( 'info' => $response );
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
@@ -162,7 +163,74 @@ class itbit extends Exchange {
     }
 
     public function fetch_wallets () {
-        return $this->privateGetWallets ();
+        if (!$this->userId)
+            throw new AuthenticationError ($this->id . ' fetchWallets requires userId in API settings');
+        $params = array (
+            'userId' => $this->userId,
+        );
+        return $this->privateGetWallets ($params);
+    }
+
+    public function fetch_wallet ($walletId, $params = array ()) {
+        $wallet = array (
+            'walletId' => $walletId,
+        );
+        return $this->privateGetWalletsWalletId (array_merge ($wallet, $params));
+    }
+
+    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_orders($symbol, $since, $limit, array_merge (array (
+            'status' => 'open',
+        ), $params));
+    }
+
+    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_orders($symbol, $since, $limit, array_merge (array (
+            'status' => 'filled',
+        ), $params));
+    }
+
+    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $walletIdInParams = (is_array ($params) && array_key_exists ('walletId', $params));
+        if (!$walletIdInParams)
+            throw new ExchangeError ($this->id . ' fetchOrders requires a $walletId parameter');
+        $walletId = $params['walletId'];
+        $response = $this->privateGetWalletsWalletIdOrders (array_merge (array (
+            'walletId' => $walletId,
+        ), $params));
+        $orders = $this->parse_orders($response, null, $since, $limit);
+        return $orders;
+    }
+
+    public function parse_order ($order, $market = null) {
+        $side = $order['side'];
+        $type = $order['type'];
+        $symbol = $this->markets_by_id[$order['instrument']]['symbol'];
+        $timestamp = $this->parse8601 ($order['createdTime']);
+        $amount = $this->safe_float($order, 'amount');
+        $filled = $this->safe_float($order, 'amountFilled');
+        $remaining = $amount - $filled;
+        $fee = null;
+        $price = $this->safe_float($order, 'price');
+        $cost = $price * $this->safe_float($order, 'volumeWeightedAveragePrice');
+        return array (
+            'id' => $order['id'],
+            'info' => $order,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => null,
+            'status' => $order['status'],
+            'symbol' => $symbol,
+            'type' => $type,
+            'side' => $side,
+            'price' => $price,
+            'cost' => $cost,
+            'amount' => $amount,
+            'filled' => $filled,
+            'remaining' => $remaining,
+            'fee' => $fee,
+            // 'trades' => $this->parse_trades($order['trades'], $market),
+        );
     }
 
     public function nonce () {
@@ -181,17 +249,26 @@ class itbit extends Exchange {
         $order = array (
             'side' => $side,
             'type' => $type,
-            'currency' => $market['base'],
+            'currency' => str_replace ($market['quote'], '', $market['id']),
             'amount' => $amount,
             'display' => $amount,
             'price' => $price,
             'instrument' => $market['id'],
         );
-        $response = $this->privatePostTradeAdd (array_merge ($order, $params));
+        $response = $this->privatePostWalletsWalletIdOrders (array_merge ($order, $params));
         return array (
             'info' => $response,
             'id' => $response['id'],
         );
+    }
+
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
+        $walletIdInParams = (is_array ($params) && array_key_exists ('walletId', $params));
+        if (!$walletIdInParams)
+            throw new ExchangeError ($this->id . ' fetchOrder requires a walletId parameter');
+        return $this->privateGetWalletsWalletIdOrdersId (array_merge (array (
+            'id' => $id,
+        ), $params));
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
@@ -206,19 +283,18 @@ class itbit extends Exchange {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
-        if ($api === 'public') {
-            if ($query)
-                $url .= '?' . $this->urlencode ($query);
-        } else {
+        if ($method === 'GET' && $query)
+            $url .= '?' . $this->urlencode ($query);
+        if ($method === 'POST' && $query)
+            $body = $this->json ($query);
+        else
+            $body = '';
+        if ($api === 'private') {
             $this->check_required_credentials();
-            if ($query)
-                $body = $this->json ($query);
-            else
-                $body = '';
             $nonce = (string) $this->nonce ();
             $timestamp = $nonce;
             $auth = array ( $method, $url, $body, $nonce, $timestamp );
-            $message = $nonce . $this->json ($auth);
+            $message = $nonce . str_replace ('\\/', '/', $this->json ($auth));
             $hash = $this->hash ($this->encode ($message), 'sha256', 'binary');
             $binhash = $this->binary_concat($url, $hash);
             $signature = $this->hmac ($binhash, $this->encode ($this->secret), 'sha512', 'base64');
