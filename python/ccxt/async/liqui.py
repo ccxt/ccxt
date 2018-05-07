@@ -166,7 +166,6 @@ class liqui (Exchange):
                 'quote': quote,
                 'active': active,
                 'taker': market['fee'] / 100,
-                'lot': amountLimits['min'],
                 'precision': precision,
                 'limits': limits,
                 'info': market,
@@ -681,6 +680,8 @@ class liqui (Exchange):
                     # need a second error map for these messages, apparently...
                     # in fact, we can use the same .exceptions with string-keys to save some loc here
                     if message == 'invalid api key':
+                        raise AuthenticationError(feedback)
+                    elif message == 'invalid sign':
                         raise AuthenticationError(feedback)
                     elif message == 'api key dont have trade permission':
                         raise AuthenticationError(feedback)
