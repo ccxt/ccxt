@@ -151,7 +151,6 @@ module.exports = class liqui extends Exchange {
                 'quote': quote,
                 'active': active,
                 'taker': market['fee'] / 100,
-                'lot': amountLimits['min'],
                 'precision': precision,
                 'limits': limits,
                 'info': market,
@@ -723,6 +722,8 @@ module.exports = class liqui extends Exchange {
                     // need a second error map for these messages, apparently...
                     // in fact, we can use the same .exceptions with string-keys to save some loc here
                     if (message === 'invalid api key') {
+                        throw new AuthenticationError (feedback);
+                    } else if (message === 'invalid sign') {
                         throw new AuthenticationError (feedback);
                     } else if (message === 'api key dont have trade permission') {
                         throw new AuthenticationError (feedback);
