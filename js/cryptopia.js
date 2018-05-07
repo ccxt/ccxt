@@ -437,7 +437,7 @@ module.exports = class cryptopia extends Exchange {
                 let filledOrders = response['Data']['FilledOrders'];
                 let filledOrdersLength = filledOrders.length;
                 if (filledOrdersLength) {
-                    filled = undefined;
+                    filled = amount;
                 }
             }
         }
