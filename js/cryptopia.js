@@ -558,12 +558,14 @@ module.exports = class cryptopia extends Exchange {
             } else {
                 let order = this.orders[id];
                 if (order['status'] === 'open') {
-                    this.orders[id] = this.extend (order, {
-                        'status': 'closed',
-                        'cost': order['amount'] * order['price'],
-                        'filled': order['amount'],
-                        'remaining': 0.0,
-                    });
+                    if ((typeof symbol === 'undefined') || (order['symbol'] === symbol)) {
+                        this.orders[id] = this.extend (order, {
+                            'status': 'closed',
+                            'cost': order['amount'] * order['price'],
+                            'filled': order['amount'],
+                            'remaining': 0.0,
+                        });
+                    }
                 }
             }
             let order = this.orders[id];
