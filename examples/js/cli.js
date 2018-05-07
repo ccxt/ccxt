@@ -95,6 +95,8 @@ async function main () {
     } else {
 
         let args = params.map (param => {
+            if (param === 'undefined')
+                return undefined
             if (param[0] === '{' || param[0] === '[')
                 return JSON.parse (param)
             return param.match (/[a-zA-Z]/g) ? param : parseFloat (param)
