@@ -559,12 +559,14 @@ class cryptopia extends Exchange {
             } else {
                 $order = $this->orders[$id];
                 if ($order['status'] === 'open') {
-                    $this->orders[$id] = array_merge ($order, array (
-                        'status' => 'closed',
-                        'cost' => $order['amount'] * $order['price'],
-                        'filled' => $order['amount'],
-                        'remaining' => 0.0,
-                    ));
+                    if (($symbol === null) || ($order['symbol'] === $symbol)) {
+                        $this->orders[$id] = array_merge ($order, array (
+                            'status' => 'closed',
+                            'cost' => $order['amount'] * $order['price'],
+                            'filled' => $order['amount'],
+                            'remaining' => 0.0,
+                        ));
+                    }
                 }
             }
             $order = $this->orders[$id];
