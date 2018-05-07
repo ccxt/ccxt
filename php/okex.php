@@ -27,7 +27,7 @@ class okex extends okcoinusd {
                     'private' => 'https://www.okex.com/api',
                 ),
                 'www' => 'https://www.okex.com',
-                'doc' => 'https://www.okex.com/rest_getStarted.html',
+                'doc' => 'https://github.com/okcoin-okex/API-docs-OKEx.com',
                 'fees' => 'https://www.okex.com/fees.html',
             ),
             'commonCurrencies' => array (
