@@ -428,17 +428,14 @@ class cryptopia extends Exchange {
             throw new ExchangeError ($this->id . ' createOrder returned unknown error => ' . $this->json ($response));
         $id = null;
         $filled = 0.0;
+        $status = 'open';
         if (is_array ($response) && array_key_exists ('Data', $response)) {
             if (is_array ($response['Data']) && array_key_exists ('OrderId', $response['Data'])) {
                 if ($response['Data']['OrderId']) {
                     $id = (string) $response['Data']['OrderId'];
-                }
-            }
-            if (is_array ($response['Data']) && array_key_exists ('FilledOrders', $response['Data'])) {
-                $filledOrders = $response['Data']['FilledOrders'];
-                $filledOrdersLength = is_array ($filledOrders) ? count ($filledOrders) : 0;
-                if ($filledOrdersLength) {
-                    $filled = null;
+                } else {
+                    $filled = $amount;
+                    $status = 'closed';
                 }
             }
         }
@@ -448,14 +445,14 @@ class cryptopia extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'lastTradeTimestamp' => null,
-            'status' => 'open',
+            'status' => $status,
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
             'price' => $price,
             'cost' => $price * $amount,
             'amount' => $amount,
-            'remaining' => $amount,
+            'remaining' => $amount - $filled,
             'filled' => $filled,
             'fee' => null,
             // 'trades' => $this->parse_trades($order['trades'], $market),
