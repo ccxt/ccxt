@@ -11,6 +11,7 @@ const {
     , values
     , deepExtend
     , extend
+    , clone
     , flatten
     , unique
     , indexBy
@@ -326,6 +327,21 @@ module.exports = class Exchange {
                     throw new RequestTimeout (this.id + ' ' + method + ' ' + url + ' request timed out (' + this.timeout + ' ms)')
                 throw e
             })
+        }
+    }
+
+    setSandboxMode(enabled) {
+        if (!!enabled) {
+            if (this.urls.test) {
+                this.urls.api_bak = clone(this.urls.api)
+                this.urls.api = clone(this.urls.test)
+            } else {
+                throw new Error('No sandbox URLs available')
+            }
+        } else {
+            if (this.urls.api_bak) {
+                this.urls.api = clone(this.urls.api_bak)
+            }
         }
     }
 
