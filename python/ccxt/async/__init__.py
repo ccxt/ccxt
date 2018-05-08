@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.13.101'
+__version__ = '1.13.102'
 
 # -----------------------------------------------------------------------------
 
@@ -88,6 +88,7 @@ from ccxt.async.coinnest import coinnest                        # noqa: F401
 from ccxt.async.coinone import coinone                          # noqa: F401
 from ccxt.async.coinsecure import coinsecure                    # noqa: F401
 from ccxt.async.coinspot import coinspot                        # noqa: F401
+from ccxt.async.cointiger import cointiger                      # noqa: F401
 from ccxt.async.coolcoin import coolcoin                        # noqa: F401
 from ccxt.async.cryptopia import cryptopia                      # noqa: F401
 from ccxt.async.dsx import dsx                                  # noqa: F401
@@ -204,6 +205,7 @@ exchanges = [
     'coinone',
     'coinsecure',
     'coinspot',
+    'cointiger',
     'coolcoin',
     'cryptopia',
     'dsx',
