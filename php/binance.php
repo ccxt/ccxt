@@ -648,6 +648,8 @@ class binance extends Exchange {
                 'price' => $this->price_to_precision($symbol, $price),
                 'timeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
             ));
+        } else if ($type === 'limit_maker') {
+            $order['price'] = $this->price_to_precision($symbol, $price);
         }
         $response = $this->$method (array_merge ($order, $params));
         return $this->parse_order($response);

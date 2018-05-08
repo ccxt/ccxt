@@ -626,6 +626,8 @@ class binance (Exchange):
                 'price': self.price_to_precision(symbol, price),
                 'timeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
             })
+        elif type == 'limit_maker':
+            order['price'] = self.price_to_precision(symbol, price)
         response = await getattr(self, method)(self.extend(order, params))
         return self.parse_order(response)
 
