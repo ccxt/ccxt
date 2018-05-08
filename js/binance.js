@@ -647,6 +647,8 @@ module.exports = class binance extends Exchange {
                 'price': this.priceToPrecision (symbol, price),
                 'timeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
             });
+        } else if (type === 'limit_maker') {
+            order['price'] = this.priceToPrecision (symbol, price);
         }
         let response = await this[method] (this.extend (order, params));
         return this.parseOrder (response);
