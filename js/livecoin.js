@@ -232,8 +232,13 @@ module.exports = class livecoin extends Exchange {
         let currencies = [
             { 'id': 'USD', 'code': 'USD', 'name': 'US Dollar' },
             { 'id': 'EUR', 'code': 'EUR', 'name': 'Euro' },
-            { 'id': 'RUR', 'code': 'RUB', 'name': 'Russian ruble' },
+            // { 'id': 'RUR', 'code': 'RUB', 'name': 'Russian ruble' },
         ];
+        if (this.substituteCommonCurrencyCodes) {
+            currencies.push ({ 'id': 'RUR', 'code': 'RUB', 'name': 'Russian ruble' });
+        } else {
+            currencies.push ({ 'id': 'RUR', 'code': 'RUR', 'name': 'Russian ruble' });
+        }
         for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];
             let code = currency['code'];
