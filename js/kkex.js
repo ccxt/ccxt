@@ -222,9 +222,7 @@ module.exports = class kkex extends Exchange {
         let response = await this.publicGetDepth (this.extend ({
             'symbol': this.marketId (symbol),
         }, params));
-        let orderbook = response['data'];
-        let timestamp = orderbook['date'] * 1000;
-        return this.parseOrderBook (orderbook, timestamp);
+        return this.parseOrderBook (response);
     }
 
     parseTrade (trade, market = undefined) {
