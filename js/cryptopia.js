@@ -436,7 +436,7 @@ module.exports = class cryptopia extends Exchange {
                     filled = amount;
                     status = 'closed';
                 }
-            }            
+            }
         }
         let timestamp = this.milliseconds ();
         let order = {
