@@ -427,17 +427,14 @@ module.exports = class cryptopia extends Exchange {
             throw new ExchangeError (this.id + ' createOrder returned unknown error: ' + this.json (response));
         let id = undefined;
         let filled = 0.0;
+        let status = 'open';
         if ('Data' in response) {
             if ('OrderId' in response['Data']) {
                 if (response['Data']['OrderId']) {
                     id = response['Data']['OrderId'].toString ();
-                }
-            }
-            if ('FilledOrders' in response['Data']) {
-                let filledOrders = response['Data']['FilledOrders'];
-                let filledOrdersLength = filledOrders.length;
-                if (filledOrdersLength) {
-                    filled = undefined;
+                } else {
+                    filled = amount;
+                    status = 'closed';
                 }
             }
         }
@@ -447,14 +444,14 @@ module.exports = class cryptopia extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'status': 'open',
+            'status': status,
             'symbol': symbol,
             'type': type,
             'side': side,
             'price': price,
             'cost': price * amount,
             'amount': amount,
-            'remaining': amount,
+            'remaining': amount - filled,
             'filled': filled,
             'fee': undefined,
             // 'trades': this.parseTrades (order['trades'], market),
