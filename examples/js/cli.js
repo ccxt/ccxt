@@ -6,6 +6,7 @@ const [processPath, , exchangeId, methodName, ... params] = process.argv.filter 
 const verbose = process.argv.includes ('--verbose')
 const cloudscrape = process.argv.includes ('--cloudscrape')
 const poll = process.argv.includes ('--poll')
+const loadMarkets = process.argv.includes ('--load-markets')
 
 //-----------------------------------------------------------------------------
 
@@ -101,6 +102,9 @@ async function main () {
                 return JSON.parse (param)
             return param.match (/[a-zA-Z]/g) ? param : parseFloat (param)
         })
+
+        if (loadMarkets)
+            await exchange.loadMarkets ()
 
         if (typeof exchange[methodName] === 'function') {
 
