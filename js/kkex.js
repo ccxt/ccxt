@@ -111,7 +111,11 @@ module.exports = class kkex extends Exchange {
         tickers = tickers['tickers'];
         let products = await this.publicGetProducts (params);
         products = products['products'];
-        let markets = tickers.map (el => Object.keys (el)[0]);
+        let markets = [];
+        for (let k = 0; k < tickers.length; k++) {
+            let keys = Object.keys (tickers[k]);
+            markets.push (keys[0]);
+        }
         let result = [];
         for (let i = 0; i < markets.length; i++) {
             let id = markets[i];
@@ -192,7 +196,11 @@ module.exports = class kkex extends Exchange {
         let response = await this.publicGetTickers (params);
         let tickers = response['tickers'];
         let date = response['date'];
-        let ids = tickers.map (el => Object.keys (el)[0]);
+        let ids = [];
+        for (let k = 0; k < tickers.length; k++) {
+            let keys = Object.keys (tickers[k]);
+            ids.push (keys[0]);
+        }
         let result = {};
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
@@ -311,12 +319,12 @@ module.exports = class kkex extends Exchange {
             request['price'] = price;
         }
         request['type'] = side;
-        if (sides.indexOf (side) === -1) {
+        if (!(sides in side)) {
             throw new ExchangeError ('side not in', sides);
         }
         let response = await this.privatePostTrade (this.extend (request, params));
-        if (response['result'] === false) {
-            throw new ExchangeError (JSON.stringify (response));
+        if (!response['result']) {
+            throw new ExchangeError (response);
         }
         let id = response['order_id'];
         let order = this.parseOrder ({
@@ -339,21 +347,24 @@ module.exports = class kkex extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchOrders (0, symbol, since, limit, params);
-    }
-
-    async fetchOrders (status = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.privatePostOrderHistory (this.extend ({
             'symbol': market['id'],
-            'status': status,
+            'status': 0,
         }, params));
-        return this.parseOrders (response['orders'], market, since, limit);
+        let orders = this.parseOrders (response['orders'], market, since, limit);
+        return orders;
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchOrders (1, symbol, since, limit, params);
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let response = await this.privatePostOrderHistory (this.extend ({
+            'symbol': market['id'],
+            'status': 1,
+        }, params));
+        return this.parseOrders (response['orders'], market, since, limit);
     }
 
     nonce () {
@@ -369,33 +380,17 @@ module.exports = class kkex extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ();
-            let sign = this.extend ({ 'nonce': nonce, 'api_key': this.apiKey }, params);
-            let signArr = Object.keys (sign).sort ();
-            let newSign = signArr.map ((el) => {
-                let t = {};
-                t[el] = sign[el];
-                return t;
-            });
-            newSign.push ({ 'secret_key': this.secret });
-            let out = [];
-            for (let i = 0; i < newSign.length; i++) {
-                let key = Object.keys (newSign[i])[0];
-                out.push (encodeURIComponent (key) + '=' + encodeURIComponent (newSign[i][key]));
-            }
-            newSign = out.join ('&');
-            newSign = this.hash (newSign, 'md5').toUpperCase ();
+            let signature = this.extend ({ 'nonce': nonce, 'api_key': this.apiKey }, params);
+            signature = this.keysort (signature);
+            signature['secret_key'] = this.secret;
+            signature = this.urlencode (signature);
+            signature = this.hash (signature, 'md5').toUpperCase ();
             body = this.extend ({
                 'api_key': this.apiKey,
-                'sign': newSign,
+                'sign': signature,
                 'nonce': nonce,
             }, params);
-            let str = [];
-            let keys = Object.keys (body);
-            for (let j = 0; j < keys.length; j++) {
-                let key = keys[j];
-                str.push (encodeURIComponent (key) + '=' + encodeURIComponent (body[key]));
-            }
-            body = str.join ('&');
+            body = this.urlencode (body);
             headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
             return { 'url': url, 'method': method, 'body': body, 'headers': headers };
         }
