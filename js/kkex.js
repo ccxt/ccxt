@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, DDoSProtection, ExchangeNotAvailable, InvalidOrder, OrderNotFound, PermissionDenied, InsufficientFunds } = require ('./base/errors');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -40,7 +40,7 @@ module.exports = class kkex extends Exchange {
                 '1w': '1week',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/34902611-2be8bf1a-f830-11e7-91a2-11b2f292e750.jpg',
+                'logo': 'https://user-images.githubusercontent.com/12462602/39745941-70adc518-52db-11e8-8e21-94778cb3c7ca.jpg',
                 'api': {
                     'public': 'http://kkex.vip/api/v1',
                     'private': 'http://kkex.vip/api/v2',
@@ -107,21 +107,22 @@ module.exports = class kkex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        let tickers = await this.publicGetTickers(params);
-        tickers = tickers['tickers']
-        let products = await this.publicGetProducts(params);
-        products = products['products']
-        let markets = tickers.map ( el => Object.keys(el)[0]);
+        let tickers = await this.publicGetTickers (params);
+        tickers = tickers['tickers'];
+        let products = await this.publicGetProducts (params);
+        products = products['products'];
+        let markets = tickers.map (el => Object.keys (el)[0]);
         let result = [];
         for (let i = 0; i < markets.length; i++) {
             let id = markets[i];
             let market = markets[i];
-            let baseId, quoteId = '';
+            let baseId = '';
+            let quoteId = '';
             for (let j = 0; j < products.length; j++) {
                 let p = products[j];
                 if (p['mark_asset'] + p['base_asset'] === market) {
                     quoteId = p['base_asset'];
-                    baseId =  p['mark_asset'];
+                    baseId = p['mark_asset'];
                 }
             }
             let base = baseId.toUpperCase ();
@@ -137,8 +138,8 @@ module.exports = class kkex extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': true,
-                'info': market
-            })
+                'info': market,
+            });
         }
         return result;
     }
@@ -179,9 +180,9 @@ module.exports = class kkex extends Exchange {
             'symbol': market['id'],
         }, params));
         let t = {
-            ticker: response['ticker'],
-            symbol: symbol,
-            date: response['date']
+            'ticker': response['ticker'],
+            'symbol': symbol,
+            'date': response['date'],
         };
         return this.parseTicker (t, market);
     }
@@ -191,8 +192,8 @@ module.exports = class kkex extends Exchange {
         let response = await this.publicGetTickers (params);
         let tickers = response['tickers'];
         let date = response['date'];
-        let ids = tickers.map(el => Object.keys(el)[0])
-        let result = {}
+        let ids = tickers.map (el => Object.keys (el)[0]);
+        let result = {};
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
             let market = this.markets_by_id[id];
@@ -223,13 +224,12 @@ module.exports = class kkex extends Exchange {
         let datetime = this.iso8601 (timestamp);
         let price = this.safeFloat (trade, 'price');
         let amount = this.safeFloat (trade, 'amount');
-        let id = market['id'];
         let symbol = market['symbol'];
         return {
             'timestamp': timestamp,
             'datetime': datetime,
             'symbol': symbol,
-            'id': undefined,
+            'id': market['id'],
             'order': undefined,
             'type': 'limit',
             'side': trade['type'],
@@ -255,7 +255,7 @@ module.exports = class kkex extends Exchange {
         let response = await this.publicGetKline (this.extend ({
             'symbol': market['id'],
             'type': this.timeframes[timeframe],
-            'since': since
+            'since': since,
         }, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
@@ -296,31 +296,27 @@ module.exports = class kkex extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-
         let market = this.market (symbol);
         let sides = ['buy', 'sell', 'buy_market', 'sell_market'];
-
-        let request = {'symbol': market['id']};
+        let request = { 'symbol': market['id'] };
         if (type === 'market') {
             if (side === 'sell') {
                 request['amount'] = amount;
             } else if (side === 'buy') {
                 request['price'] = amount;
             }
-            side += '_market'
+            side += '_market';
         } else {
             request['amount'] = amount;
             request['price'] = price;
         }
-
-        request['type'] = side
-
-        if (sides.indexOf(side) === -1)
+        request['type'] = side;
+        if (sides.indexOf (side) === -1) {
             throw new ExchangeError ('side not in', sides);
-
+        }
         let response = await this.privatePostTrade (this.extend (request, params));
         if (response['result'] === false) {
-            throw new ExchangeError (JSON.stringify(response));
+            throw new ExchangeError (JSON.stringify (response));
         }
         let id = response['order_id'];
         let order = this.parseOrder ({
@@ -337,19 +333,19 @@ module.exports = class kkex extends Exchange {
         await this.loadMarkets ();
         let response = await this.privatePostCancelOrder (this.extend ({
             'order_id': id,
-            'symbol': symbol.replace('/', ''),
+            'symbol': symbol.replace ('/', ''),
         }, params));
         return response;
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchOrders(0, symbol, since, limit, params);
+        return await this.fetchOrders (0, symbol, since, limit, params);
     }
 
     async fetchOrders (status = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.privatePostOrderHistory( this.extend ({
+        let response = await this.privatePostOrderHistory (this.extend ({
             'symbol': market['id'],
             'status': status,
         }, params));
@@ -357,7 +353,7 @@ module.exports = class kkex extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchOrders(1, symbol, since, limit, params);
+        return await this.fetchOrders (1, symbol, since, limit, params);
     }
 
     nonce () {
@@ -366,42 +362,40 @@ module.exports = class kkex extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + path;
-        console.log('debug:', url)
         if (api === 'public') {
             url += '?' + this.urlencode (params);
             headers = { 'Content-Type': 'application/json' };
             return { 'url': url, 'method': method, 'body': body, 'headers': headers };
         } else {
             this.checkRequiredCredentials ();
-            let nonce = this.nonce();
-            let sign = this.extend ({'nonce': nonce, 'api_key': this.apiKey}, params);
-            let signArr = Object.keys(sign).sort();
-            let newSign = signArr.map(el => {
+            let nonce = this.nonce ();
+            let sign = this.extend ({ 'nonce': nonce, 'api_key': this.apiKey }, params);
+            let signArr = Object.keys (sign).sort ();
+            let newSign = signArr.map ((el) => {
                 let t = {};
                 t[el] = sign[el];
                 return t;
-            })
-
-            newSign.push({'secret_key': this.secret});
-            var out = [];
-            for (let i in newSign) {
-                let key = Object.keys(newSign[i])[0]
-                out.push(encodeURIComponent(key) + '=' + encodeURIComponent(newSign[i][key]));
+            });
+            newSign.push ({ 'secret_key': this.secret });
+            let out = [];
+            for (let i = 0; i < newSign.length; i++) {
+                let key = Object.keys (newSign[i])[0];
+                out.push (encodeURIComponent (key) + '=' + encodeURIComponent (newSign[i][key]));
             }
-            newSign = out.join('&');
-            newSign = this.hash (newSign, 'md5').toUpperCase();
+            newSign = out.join ('&');
+            newSign = this.hash (newSign, 'md5').toUpperCase ();
             body = this.extend ({
                 'api_key': this.apiKey,
                 'sign': newSign,
                 'nonce': nonce,
-            }, params)
+            }, params);
             let str = [];
-            let keys = Object.keys(body);
-            for(let i in keys) {
-                let key = keys[i]
-                str.push(encodeURIComponent(key) + "=" + encodeURIComponent(body[key]));
+            let keys = Object.keys (body);
+            for (let j = 0; j < keys.length; j++) {
+                let key = keys[j];
+                str.push (encodeURIComponent (key) + '=' + encodeURIComponent (body[key]));
             }
-            body = str.join("&");
+            body = str.join ('&');
             headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
             return { 'url': url, 'method': method, 'body': body, 'headers': headers };
         }
