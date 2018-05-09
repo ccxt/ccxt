@@ -89,6 +89,9 @@ module.exports = class cryptopia extends Exchange {
                 'QBT': 'Cubits',
                 'WRC': 'WarCoin',
             },
+            'options': {
+                'fetchTickersErrors': true,
+            },
         });
     }
 
@@ -253,11 +256,14 @@ module.exports = class cryptopia extends Exchange {
             let ticker = tickers[i];
             let id = ticker['TradePairId'];
             let recognized = (id in this.markets_by_id);
-            if (!recognized)
-                throw new ExchangeError (this.id + ' fetchTickers() returned unrecognized pair id ' + id.toString ());
-            let market = this.markets_by_id[id];
-            let symbol = market['symbol'];
-            result[symbol] = this.parseTicker (ticker, market);
+            if (!recognized) {
+                if (this.options['fetchTickersErrors'])
+                    throw new ExchangeError (this.id + ' fetchTickers() returned unrecognized pair id ' + id.toString ());
+            } else {
+                let market = this.markets_by_id[id];
+                let symbol = market['symbol'];
+                result[symbol] = this.parseTicker (ticker, market);
+            }
         }
         return this.filterByArray (result, 'symbol', symbols);
     }
