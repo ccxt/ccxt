@@ -509,6 +509,7 @@ class hitbtc (Exchange):
             quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
             result.append({
+                'info': market,
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -517,7 +518,7 @@ class hitbtc (Exchange):
                 'quoteId': quoteId,
                 'lot': lot,
                 'step': step,
-                'info': market,
+                'active': True,
                 'maker': self.safe_float(market, 'provideLiquidityRate'),
                 'taker': self.safe_float(market, 'takeLiquidityRate'),
                 'precision': {
