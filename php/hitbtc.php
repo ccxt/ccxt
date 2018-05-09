@@ -507,6 +507,7 @@ class hitbtc extends Exchange {
             $quote = $this->common_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $result[] = array (
+                'info' => $market,
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
@@ -515,7 +516,7 @@ class hitbtc extends Exchange {
                 'quoteId' => $quoteId,
                 'lot' => $lot,
                 'step' => $step,
-                'info' => $market,
+                'active' => true,
                 'maker' => $this->safe_float($market, 'provideLiquidityRate'),
                 'taker' => $this->safe_float($market, 'takeLiquidityRate'),
                 'precision' => array (
