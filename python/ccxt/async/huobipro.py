@@ -142,7 +142,7 @@ class huobipro (Exchange):
             keys = list(limits.keys())
             for i in range(0, len(keys)):
                 symbol = keys[i]
-                self.markets[symbol] = self.extend(self.markets[symbol], {
+                self.markets[symbol] = self.deep_extend(self.markets[symbol], {
                     'limits': limits[symbol],
                 })
         return self.markets
