@@ -141,7 +141,7 @@ class tidex extends liqui {
                 'nonce' => $nonce,
                 'method' => $path,
             ), $query));
-            $signature = $this->signBodyWithSecret ($body);
+            $signature = $this->sign_body_with_secret($body);
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Key' => $this->apiKey,

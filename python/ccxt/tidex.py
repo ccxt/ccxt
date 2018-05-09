@@ -135,7 +135,7 @@ class tidex (liqui):
                 'nonce': nonce,
                 'method': path,
             }, query))
-            signature = self.signBodyWithSecret(body)
+            signature = self.sign_body_with_secret(body)
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': self.apiKey,

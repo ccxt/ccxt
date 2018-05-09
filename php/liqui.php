@@ -646,7 +646,7 @@ class liqui extends Exchange {
                 'nonce' => $nonce,
                 'method' => $path,
             ), $query));
-            $signature = $this->sign_body_with_secret ($body);
+            $signature = $this->sign_body_with_secret($body);
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Key' => $this->apiKey,
