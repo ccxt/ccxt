@@ -739,11 +739,11 @@ class liqui extends Exchange {
                     } else if ($message === 'Requests too often') {
                         throw new DDoSProtection ($feedback);
                     } else if ($message === 'not available') {
-                        throw new DDoSProtection ($feedback);
+                        throw new ExchangeNotAvailable ($feedback);
                     } else if ($message === 'data unavailable') {
-                        throw new DDoSProtection ($feedback);
+                        throw new ExchangeNotAvailable ($feedback);
                     } else if ($message === 'external service unavailable') {
-                        throw new DDoSProtection ($feedback);
+                        throw new ExchangeNotAvailable ($feedback);
                     } else {
                         throw new ExchangeError ($this->id . ' unknown "error" value => ' . $this->json ($response));
                     }

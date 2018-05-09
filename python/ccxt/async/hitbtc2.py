@@ -4,6 +4,13 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async.hitbtc import hitbtc
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import base64
 import math
 import json
@@ -11,6 +18,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import ExchangeNotAvailable
 
 
 class hitbtc2 (hitbtc):
@@ -1074,7 +1082,12 @@ class hitbtc2 (hitbtc):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body):
-        if code == 400:
+        if not isinstance(body, basestring):
+            return
+        if code >= 400:
+            feedback = self.id + ' ' + body
+            if code == 503:
+                raise ExchangeNotAvailable(feedback)
             if body[0] == '{':
                 response = json.loads(body)
                 if 'error' in response:
@@ -1083,9 +1096,9 @@ class hitbtc2 (hitbtc):
                         if message == 'Order not found':
                             raise OrderNotFound(self.id + ' order not found in active orders')
                         elif message == 'Quantity not a valid number':
-                            raise InvalidOrder(self.id + ' ' + body)
+                            raise InvalidOrder(feedback)
                         elif message == 'Insufficient funds':
-                            raise InsufficientFunds(self.id + ' ' + body)
+                            raise InsufficientFunds(feedback)
                         elif message == 'Duplicate clientOrderId':
-                            raise InvalidOrder(self.id + ' ' + body)
-            raise ExchangeError(self.id + ' ' + body)
+                            raise InvalidOrder(feedback)
+            raise ExchangeError(feedback)

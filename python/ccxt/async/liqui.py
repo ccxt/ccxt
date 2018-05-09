@@ -19,6 +19,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import ExchangeNotAvailable
 
 
 class liqui (Exchange):
@@ -692,10 +693,10 @@ class liqui (Exchange):
                     elif message == 'Requests too often':
                         raise DDoSProtection(feedback)
                     elif message == 'not available':
-                        raise DDoSProtection(feedback)
+                        raise ExchangeNotAvailable(feedback)
                     elif message == 'data unavailable':
-                        raise DDoSProtection(feedback)
+                        raise ExchangeNotAvailable(feedback)
                     elif message == 'external service unavailable':
-                        raise DDoSProtection(feedback)
+                        raise ExchangeNotAvailable(feedback)
                     else:
                         raise ExchangeError(self.id + ' unknown "error" value: ' + self.json(response))
