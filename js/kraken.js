@@ -894,6 +894,8 @@ module.exports = class kraken extends Exchange {
                 if (numErrors) {
                     let message = this.id + ' ' + this.json (response);
                     for (let i = 0; i < response['error'].length; i++) {
+                        if (response['error'][i] === 'EAPI:Rate limit exceeded')
+                            throw new DDoSProtection (message);
                         if (response['error'][i] === 'EFunding:Unknown withdraw key')
                             throw new ExchangeError (message);
                         if (response['error'][i] === 'EService:Unavailable')
@@ -901,7 +903,7 @@ module.exports = class kraken extends Exchange {
                         if (response['error'][i] === 'EDatabase:Internal error')
                             throw new ExchangeNotAvailable (message);
                         if (response['error'][i] === 'EService:Busy')
-                            throw new DDoSProtection (message);
+                            throw new ExchangeNotAvailable (message);
                     }
                     throw new ExchangeError (message);
                 }
