@@ -235,11 +235,11 @@ class livecoin extends Exchange {
             array ( 'id' => 'EUR', 'code' => 'EUR', 'name' => 'Euro' ),
             // array ( 'id' => 'RUR', 'code' => 'RUB', 'name' => 'Russian ruble' ),
         );
-        if ($this->substituteCommonCurrencyCodes) {
-            $currencies[] = array ( 'id' => 'RUR', 'code' => 'RUB', 'name' => 'Russian ruble' );
-        } else {
-            $currencies[] = array ( 'id' => 'RUR', 'code' => 'RUR', 'name' => 'Russian ruble' );
-        }
+        $currencies[] = array (
+            'id' => 'RUR',
+            'code' => $this->common_currency_code('RUR'),
+            'name' => 'Russian ruble',
+        );
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             $code = $currency['code'];

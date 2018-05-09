@@ -246,10 +246,11 @@ class livecoin (Exchange):
             {'id': 'EUR', 'code': 'EUR', 'name': 'Euro'},
             # {'id': 'RUR', 'code': 'RUB', 'name': 'Russian ruble'},
         ]
-        if self.substituteCommonCurrencyCodes:
-            currencies.append({'id': 'RUR', 'code': 'RUB', 'name': 'Russian ruble'})
-        else:
-            currencies.append({'id': 'RUR', 'code': 'RUR', 'name': 'Russian ruble'})
+        currencies.append({
+            'id': 'RUR',
+            'code': self.common_currency_code('RUR'),
+            'name': 'Russian ruble',
+        })
         for i in range(0, len(currencies)):
             currency = currencies[i]
             code = currency['code']

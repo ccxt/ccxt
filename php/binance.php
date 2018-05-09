@@ -257,6 +257,7 @@ class binance extends Exchange {
             ),
             // exchange-specific options
             'options' => array (
+                'defaultLimitOrderType' => 'limit', // or 'limit_maker'
                 'hasAlreadyAuthenticatedSuccessfully' => false,
                 'warnOnFetchOpenOrdersWithoutSymbol' => true,
                 'recvWindow' => 5 * 1000, // 5 sec, binance default
@@ -644,6 +645,7 @@ class binance extends Exchange {
             'side' => strtoupper ($side),
         );
         if ($type === 'limit') {
+            $order['type'] = strtoupper ($this->options['defaultLimitOrderType']);
             $order = array_merge ($order, array (
                 'price' => $this->price_to_precision($symbol, $price),
                 'timeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel

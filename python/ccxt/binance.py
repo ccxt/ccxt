@@ -265,6 +265,7 @@ class binance (Exchange):
             },
             # exchange-specific options
             'options': {
+                'defaultLimitOrderType': 'limit',  # or 'limit_maker'
                 'hasAlreadyAuthenticatedSuccessfully': False,
                 'warnOnFetchOpenOrdersWithoutSymbol': True,
                 'recvWindow': 5 * 1000,  # 5 sec, binance default
@@ -622,6 +623,7 @@ class binance (Exchange):
             'side': side.upper(),
         }
         if type == 'limit':
+            order['type'] = self.options['defaultLimitOrderType'].upper()
             order = self.extend(order, {
                 'price': self.price_to_precision(symbol, price),
                 'timeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
