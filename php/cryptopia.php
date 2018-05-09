@@ -390,7 +390,7 @@ class cryptopia extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostGetBalance ();
+        $response = $this->privatePostGetBalance ($params);
         $balances = $response['Data'];
         $result = array ( 'info' => $response );
         for ($i = 0; $i < count ($balances); $i++) {

@@ -852,6 +852,8 @@ class kraken (Exchange):
                 if numErrors:
                     message = self.id + ' ' + self.json(response)
                     for i in range(0, len(response['error'])):
+                        if response['error'][i] == 'EAPI:Rate limit exceeded':
+                            raise DDoSProtection(message)
                         if response['error'][i] == 'EFunding:Unknown withdraw key':
                             raise ExchangeError(message)
                         if response['error'][i] == 'EService:Unavailable':
@@ -859,6 +861,6 @@ class kraken (Exchange):
                         if response['error'][i] == 'EDatabase:Internal error':
                             raise ExchangeNotAvailable(message)
                         if response['error'][i] == 'EService:Busy':
-                            raise DDoSProtection(message)
+                            raise ExchangeNotAvailable(message)
                     raise ExchangeError(message)
         return response
