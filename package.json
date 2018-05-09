@@ -39,10 +39,13 @@
   "types": "./ccxt.d.ts",
   "dependencies": {
     "cloudscraper": "1.4.1",
+    "cross-env": "^5.1.4",
+    "cross-spawn": "^6.0.5",
     "crypto-js": "3.1.9-1",
     "fetch-ponyfill": "4.1.0",
     "opencollective": "1.0.3",
-    "qs": "6.5.1"
+    "qs": "6.5.1",
+    "ws": "^5.1.1"
   },
   "devDependencies": {
     "ansicolor": "^1.1.71",
@@ -58,7 +61,7 @@
     "istanbul": "^0.4.5",
     "mocha": "^3.5.3",
     "nyc": "^11.4.1",
-    "ololog": "^1.1.87"
+    "ololog": "^1.1.94"
   },
   "author": {
     "name": "Igor Kroitor",
