@@ -90,6 +90,9 @@ class cryptopia extends Exchange {
                 'QBT' => 'Cubits',
                 'WRC' => 'WarCoin',
             ),
+            'options' => array (
+                'fetchTickersErrors' => true,
+            ),
         ));
     }
 
@@ -254,11 +257,14 @@ class cryptopia extends Exchange {
             $ticker = $tickers[$i];
             $id = $ticker['TradePairId'];
             $recognized = (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id));
-            if (!$recognized)
-                throw new ExchangeError ($this->id . ' fetchTickers() returned unrecognized pair $id ' . (string) $id);
-            $market = $this->markets_by_id[$id];
-            $symbol = $market['symbol'];
-            $result[$symbol] = $this->parse_ticker($ticker, $market);
+            if (!$recognized) {
+                if ($this->options['fetchTickersErrors'])
+                    throw new ExchangeError ($this->id . ' fetchTickers() returned unrecognized pair $id ' . (string) $id);
+            } else {
+                $market = $this->markets_by_id[$id];
+                $symbol = $market['symbol'];
+                $result[$symbol] = $this->parse_ticker($ticker, $market);
+            }
         }
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
