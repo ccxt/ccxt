@@ -1,3 +1,4 @@
+
 "use strict";
 
 /*  ------------------------------------------------------------------------ */
@@ -43,9 +44,12 @@ const defaultFetch = isNode ? require ('fetch-ponyfill') ().fetch : fetch
 
 const journal = undefined // isNode && require ('./journal') // stub until we get a better solution for Webpack and React
 
+const EventEmitter = require('events')
+const WebsocketConnection = require ('./async/websocket_connection')
+
 /*  ------------------------------------------------------------------------ */
 
-module.exports = class Exchange {
+module.exports = class Exchange extends EventEmitter{
 
     getMarket (symbol) {
 
@@ -110,6 +114,7 @@ module.exports = class Exchange {
                 'fees': undefined,
             },
             'api': undefined,
+            'async': undefined,
             'requiredCredentials': {
                 'apiKey':   true,
                 'secret':   true,
@@ -153,6 +158,7 @@ module.exports = class Exchange {
     } // describe ()
 
     constructor (userConfig = {}) {
+        super();
 
         Object.assign (this, functions, { encode: string => string, decode: string => string })
 
@@ -247,6 +253,9 @@ module.exports = class Exchange {
 
         if (this.api)
             this.defineRestApi (this.api, 'request')
+
+        if (this.async)
+            this.defineAsyncConnection (this.async);
 
         this.initRestRateLimiter ()
 
@@ -366,6 +375,13 @@ module.exports = class Exchange {
                     this[underscore] = partial
                 }
             }
+        }
+    }
+
+    defineAsyncConnection (asyncConfig) {
+        if (this.async.type === 'ws') {
+            this.asyncConnection = new WebsocketConnection (this.async, this.timeout);
+            this.asyncInitialize();
         }
     }
 
@@ -815,6 +831,49 @@ module.exports = class Exchange {
         }
     }
 
+    searchIndexToInsertOrUpdate (value, orderedArray, key, descending = false) {
+        let i;
+        let direction = descending ? -1 : 1;
+        let compare = (a, b) =>
+                ((a[key] < b[key]) ? -direction :
+                ((a[key] > b[key]) ?  direction : 0));
+        for (i = 0; i < orderedArray.length; i++) {
+            if (compare (orderedArray[i][key], value)) {
+                return i;
+            }
+        }
+        return i;
+    }
+    updateBidAsk (bidAsk, currentBidsAsks, bids = false) {
+        // insert or replace ordered
+        let index = this.searchIndexToInsertOrUpdate (bidAsk[0], currentBidsAsks, 0, bids);
+        if ((index < currentBidsAsks.length) && (currentBidsAsks[index][0] === bidAsk[0])){
+            // found
+            if (bidAsk[1] === 0) {
+                // remove
+                currentBidsAsks.splice (index, 1);
+            } else {
+                // update
+                currentBidsAsks[index] = bidAsk;
+            }
+        } else {
+            if (bidAsk[1] === 0) {
+                // insert
+                currentBidsAsks.splice (index, 0, bidAsk);
+            }
+        }
+    }
+
+    mergeOrderBookDelta (currentOrderBook, orderbook, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1) {
+        let bids = (bidsKey in orderbook) ? this.parseBidsAsks (orderbook[bidsKey], priceKey, amountKey) : [];
+        bids.forEach ((bid) => this.updateBidAsk (bid, currentOrderBook.bids, true));
+        let asks = (asksKey in orderbook) ? this.parseBidsAsks (orderbook[asksKey], priceKey, amountKey) : [];
+        asks.forEach ((ask) => this.updateBidAsk (ask, currentOrderBook.asks, false));
+        currentOrderBook.timestamp = timestamp;
+        currentOrderBook.datetime = (typeof timestamp !== 'undefined') ? this.iso8601 (timestamp) : undefined;
+        return currentOrderBook;
+    }
+
     getCurrencyUsedOnOpenOrders (currency) {
         return Object.values (this.orders).filter (order => (order['status'] === 'open')).reduce ((total, order) => {
             let symbol = order['symbol'];
@@ -1062,5 +1121,147 @@ module.exports = class Exchange {
         M = M < 10 ? ('0' + M) : M
         S = S < 10 ? ('0' + S) : S
         return Y + '-' + m + '-' + d + infix + H + ':' + M + ':' + S
+    }
+
+    // async methods
+    asyncResetContext () {
+        this.asyncContext = {
+            'auth': false,
+            'ob': {},
+            'ticker': {},
+            'ready': false,
+        };
+    }
+
+    async asyncConnect () {
+        if (this.asyncConnection === undefined){
+            throw new NotSupported ("async service not supported by this exchange: " + this.id);
+        }
+        await this.loadMarkets();
+        if (!this.asyncContext.ready) {
+            if (this.async.wait4readyEvent !== undefined){
+                await new Promise(async (resolve, reject) => {
+                    this.once (this.async.wait4readyEvent, (success, error) => {
+                        if (success) {
+                            this.asyncContext.ready = true;
+                            resolve();
+                        } else {
+                            reject(error);
+                        }
+                    });
+                    await this.asyncConnection.connect ();
+                });
+            } else {
+                await this.asyncConnection.connect ();
+            }
+        }
+    }
+
+    _asyncWait4Ready () {
+
+    }
+
+    asyncParseJson (rawData) {
+        return JSON.parse (rawData);
+    }
+
+    asyncClose () {
+        this.asyncConnection.close();
+    }
+
+    asyncSend (data) {
+        this.asyncConnection.send(data);
+    }
+
+    asyncSendJson (data) {
+        this.asyncConnection.sendJson(data);
+    }
+
+    asyncInitialize () {
+        this.asyncResetContext ();
+        this.asyncConnection.on ('error', () => {
+            this.asyncContext.auth = false;
+            this.asyncResetContext ();
+            this.emit ('error');
+        });
+        this.asyncConnection.on ('message', (data) => {
+            if (this.verbose)
+                console.log(data);
+            try {
+                this._asyncOnMsg(data);
+            } catch (ex) {
+                this.emit('error', ex);
+            }
+        });
+        this.asyncConnection.on ('close', () => {
+            this.asyncConnectionAuthenticated = false;
+            this.emit ('close');
+        });
+    }
+
+    timeoutPromise (promise, scope) {
+        return timeout (this.timeout, promise).catch (e => {
+            if (e instanceof TimedOut)
+                throw new RequestTimeout (this.id + ' ' + scope + ' request timed out (' + this.timeout + ' ms)');
+            throw e;
+        });
+    }
+
+    _cloneOrderBook (ob, limit = undefined) {
+        let ret =  {
+            'timestamp': ob.timestamp,
+            'datetime': ob.datetime,
+            'nonce': ob.nonce,
+        };
+        if (limit === undefined) {
+            ret['bids'] = ob.bids.slice ();
+            ret['asks'] = ob.asks.slice ();
+        } else {
+            ret['bids'] = ob.bids.slice (0, limit);
+            ret['asks'] = ob.asks.slice (0, limit);
+            
+        }
+        return ret;
+    }
+    
+    asyncFetchOrderBook (symbol, limit = undefined) {
+        return this.timeoutPromise (new Promise (async (resolve, reject) => {
+            try {
+                await this.asyncConnect ();
+                if (this.asyncContext.ob[symbol] !== undefined) {
+                    resolve (this._cloneOrderBook (this.asyncContext.ob[symbol], limit));
+                    return;
+                }
+                let f = (symbolR, ob) => {
+                    if (symbolR === symbol) {
+                        this.removeListener (f);
+                        resolve (this._cloneOrderBook (ob, limit));
+                    }
+                }
+                this.on ('ob', f);
+            } catch (ex) {
+                reject (ex);
+            }
+        }), 'asyncFetchOrderBook');
+    }
+
+    asyncSubscribeOrderBook (symbol) {
+        let promise = new Promise (async (resolve, reject) => {
+            try {
+                await this.asyncConnect ();
+                const oid = this.nonce() + '-' + symbol + '-ob-subscribe';
+                this.once (oid, (success, data) => {
+                    if (success) {
+                        resolve (data);
+                    } else {
+                        reject (data);
+                    }
+                });
+                this._asyncSubscribeOrderBook (symbol, oid);
+            } catch (ex) {
+                reject (ex);
+            }
+        });
+        return this.timeoutPromise (promise, 'asyncSubscribeOrderBook');
     }
 }

@@ -79,6 +79,11 @@ module.exports = class cex extends Exchange {
                     ],
                 },
             },
+            'async': {
+                'type': 'ws',
+                'url': 'wss://ws.cex.io/ws/',
+                'wait4readyEvent': 'auth',
+            },
             'fees': {
                 'trading': {
                     'maker': 0.16 / 100,
@@ -529,5 +534,76 @@ module.exports = class cex extends Exchange {
             'status': 'ok',
             'info': response,
         };
+    }
+
+
+    _asyncOnMsg (data) {
+        let msg = this.asyncParseJson (data);
+        let e = this.safeString (msg, 'e');
+        let oid = this.safeString (msg, 'oid');
+        let resData = this.safeValue (msg, 'data', {});
+        if (e === 'connected') {
+            this.asyncSendJson (this._asyncAuthPayload ());
+        } else if (e === 'auth') {
+            this.asyncContext['auth'] = true;
+            if (msg['ok'] === 'ok') {
+                this.emit ('auth', true);
+            } else {
+                this.emit ('auth', false, this.safeString (resData, 'error', 'auth error'));
+            }
+        } else if (e === 'ping') {
+            this.asyncSendJson ({ 'e': 'pong' });
+        } else if (e === 'order-book-subscribe') {
+            if (msg['ok'] === 'ok') {
+                let symbol = resData['pair'].replace (':', '/');;
+                let timestamp = resData['timestamp'] * 1000;
+                let ob = this.parseOrderBook (resData, timestamp);
+                ob['nonce'] = resData['id'];
+                this.asyncContext['ob'][symbol] = ob;
+                this.emit (oid, true, ob);
+                this.emit ('ob', symbol, ob);
+            } else {
+                let error = this.safeString (resData, 'error', 'orderbook error');
+                this.emit (oid, false, error);
+            }
+        } else if (e === 'md_update') {
+            let symbol = resData['pair'].replace (':', '/');;
+            let timestamp = resData['time'];
+            let ob = this.asyncContext.ob[symbol];
+            if ((ob['nonce'] + 1) !== resData['id']) {
+                this.asyncConnection.close ();
+                this.emit ('error', 'invalid orderbook sequence in ' + this.id);
+            } else {
+                ob = this.mergeOrderBookDelta (ob, resData, timestamp);
+                ob['nonce'] = resData['id'];
+                this.asyncContext['ob'][symbol] = ob;
+                this.emit ('ob', symbol, ob);
+            }
+        }
+    }
+
+    _asyncAuthPayload () {
+        let timestamp = Math.floor (this.milliseconds () / 1000);
+        return {
+            'e': 'auth',
+            'auth': {
+                'key': this.apiKey,
+                'signature': this.hmac (this.encode (timestamp + this.apiKey), this.encode (this.secret)),
+                'timestamp': timestamp,
+            },
+        };
+    }
+
+    _asyncSubscribeOrderBook (symbol, nonce) {
+        let [currencyBase, currencyQuote] = symbol.split('/');
+        this.asyncSendJson({
+            'e': 'order-book-subscribe',
+            'data': {
+                'pair': [currencyBase, currencyQuote],
+                'subscribe': true,
+                'depth': 0
+            },
+            'oid': nonce
+        });
     }
 };
