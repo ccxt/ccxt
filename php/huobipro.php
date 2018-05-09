@@ -130,7 +130,7 @@ class huobipro extends Exchange {
             $keys = is_array ($limits) ? array_keys ($limits) : array ();
             for ($i = 0; $i < count ($keys); $i++) {
                 $symbol = $keys[$i];
-                $this->markets[$symbol] = array_merge ($this->markets[$symbol], array (
+                $this->markets[$symbol] = array_replace_recursive ($this->markets[$symbol], array (
                     'limits' => $limits[$symbol],
                 ));
             }
