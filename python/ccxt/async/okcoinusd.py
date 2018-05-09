@@ -493,9 +493,9 @@ class okcoinusd (Exchange):
         createDateField = self.get_create_date_field()
         if createDateField in order:
             timestamp = order[createDateField]
-        amount = order['amount']
-        filled = order['deal_amount']
-        remaining = amount - filled
+        filled = self.safe_float(order, 'deal_amount')
+        remaining = self.safe_float(order, 'amount')
+        amount = self.sum(filled, remaining)
         average = self.safe_float(order, 'avg_price')
         # https://github.com/ccxt/ccxt/issues/2452
         average = self.safe_float(order, 'price_avg', average)
