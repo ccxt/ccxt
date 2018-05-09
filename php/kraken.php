@@ -189,6 +189,15 @@ class kraken extends Exchange {
                 'cacheDepositMethodsOnFetchDepositAddress' => true, // will issue up to two calls in fetchDepositAddress
                 'depositMethods' => array (),
             ),
+            'exceptions' => array (
+                'EFunding:Unknown withdraw key' => '\\ccxt\\ExchangeError',
+                'EFunding:Invalid amount' => '\\ccxt\\InsufficientFunds',
+                'EService:Unavailable' => '\\ccxt\\ExchangeNotAvailable',
+                'EDatabase:Internal error' => '\\ccxt\\ExchangeNotAvailable',
+                'EService:Busy' => '\\ccxt\\ExchangeNotAvailable',
+                'EAPI:Rate limit exceeded' => '\\ccxt\\DDoSProtection',
+                'EQuery:Unknown asset' => '\\ccxt\\ExchangeError',
+            ),
         ));
     }
 
@@ -198,19 +207,6 @@ class kraken extends Exchange {
 
     public function fee_to_precision ($symbol, $fee) {
         return $this->truncate (floatval ($fee), $this->markets[$symbol]['precision']['amount']);
-    }
-
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
-        if (mb_strpos ($body, 'Invalid order') !== false)
-            throw new InvalidOrder ($this->id . ' ' . $body);
-        if (mb_strpos ($body, 'Invalid nonce') !== false)
-            throw new InvalidNonce ($this->id . ' ' . $body);
-        if (mb_strpos ($body, 'Insufficient funds') !== false)
-            throw new InsufficientFunds ($this->id . ' ' . $body);
-        if (mb_strpos ($body, 'Cancel pending') !== false)
-            throw new CancelPending ($this->id . ' ' . $body);
-        if (mb_strpos ($body, 'Invalid arguments:volume') !== false)
-            throw new InvalidOrder ($this->id . ' ' . $body);
     }
 
     public function fetch_min_order_sizes () {
@@ -520,8 +516,7 @@ class kraken extends Exchange {
         $id = null;
         $order = null;
         $fee = null;
-        if (!$market)
-            $market = $this->find_market_by_altname_or_id ($trade['pair']);
+        $symbol = $this->find_market_by_altname_or_id ($trade['pair'])['symbol'];
         if (is_array ($trade) && array_key_exists ('ordertxid', $trade)) {
             $order = $trade['ordertxid'];
             $id = $trade['id'];
@@ -549,7 +544,6 @@ class kraken extends Exchange {
             if ($tradeLength > 6)
                 $id = $trade[6]; // artificially added as per #1794
         }
-        $symbol = ($market) ? $market['symbol'] : null;
         return array (
             'id' => $id,
             'order' => $order,
@@ -589,7 +583,9 @@ class kraken extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostBalance ();
-        $balances = $response['result'];
+        $balances = $this->safe_value($response, 'result');
+        if ($balances === null)
+            throw new ExchangeNotAvailable ($this->id . ' fetchBalance failed due to a malformed $response ' . $this->json ($response));
         $result = array ( 'info' => $balances );
         $currencies = is_array ($balances) ? array_keys ($balances) : array ();
         for ($c = 0; $c < count ($currencies); $c++) {
@@ -652,7 +648,7 @@ class kraken extends Exchange {
         $side = $description['type'];
         $type = $description['ordertype'];
         $symbol = null;
-        if (!$market)
+        if ($market === null)
             $market = $this->find_market_by_altname_or_id ($description['pair']);
         $timestamp = intval ($order['opentm'] * 1000);
         $amount = $this->safe_float($order, 'vol');
@@ -663,7 +659,7 @@ class kraken extends Exchange {
         $price = $this->safe_float($description, 'price');
         if (!$price)
             $price = $this->safe_float($order, 'price');
-        if ($market) {
+        if ($market !== null) {
             $symbol = $market['symbol'];
             if (is_array ($order) && array_key_exists ('fee', $order)) {
                 $flags = $order['oflags'];
@@ -724,6 +720,9 @@ class kraken extends Exchange {
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
+        $market = null;
+        if ($symbol !== null)
+            $market = $this->market ($symbol);
         $request = array (
             // 'type' => 'all', // any position, closed position, closing position, no position
             // 'trades' => false, // whether or not to include $trades related to position in output
@@ -739,10 +738,7 @@ class kraken extends Exchange {
         for ($i = 0; $i < count ($ids); $i++) {
             $trades[$ids[$i]]['id'] = $ids[$i];
         }
-        // $market = null;
-        // if ($symbol !== null)
-        //     $market = $this->market ($symbol);
-        return $this->parse_trades($trades, null, $since, $limit);
+        return $this->parse_trades($trades, $market, $since, $limit);
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
@@ -763,22 +759,22 @@ class kraken extends Exchange {
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
+        $market = $this->market ($symbol);
         $request = array ();
         if ($since !== null)
             $request['start'] = intval ($since / 1000);
         $response = $this->privatePostOpenOrders (array_merge ($request, $params));
-        $orders = $this->parse_orders($response['result']['open'], null, $since, $limit);
-        return $this->filter_by_symbol($orders, $symbol);
+        return $this->parse_orders($response['result']['open'], $market, $since, $limit);
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
+        $market = $this->market ($symbol);
         $request = array ();
         if ($since !== null)
             $request['start'] = intval ($since / 1000);
         $response = $this->privatePostClosedOrders (array_merge ($request, $params));
-        $orders = $this->parse_orders($response['result']['closed'], null, $since, $limit);
-        return $this->filter_by_symbol($orders, $symbol);
+        return $this->parse_orders($response['result']['closed'], $market, $since, $limit);
     }
 
     public function fetch_deposit_methods ($code, $params = array ()) {
@@ -887,28 +883,33 @@ class kraken extends Exchange {
         return $this->milliseconds ();
     }
 
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (gettype ($response) != 'string')
-            if (is_array ($response) && array_key_exists ('error', $response)) {
-                $numErrors = is_array ($response['error']) ? count ($response['error']) : 0;
-                if ($numErrors) {
-                    $message = $this->id . ' ' . $this->json ($response);
-                    for ($i = 0; $i < count ($response['error']); $i++) {
-                        if ($response['error'][$i] === 'EAPI:Rate limit exceeded')
-                            throw new DDoSProtection ($message);
-                        if ($response['error'][$i] === 'EFunding:Unknown withdraw key')
-                            throw new ExchangeError ($message);
-                        if ($response['error'][$i] === 'EService:Unavailable')
-                            throw new ExchangeNotAvailable ($message);
-                        if ($response['error'][$i] === 'EDatabase:Internal error')
-                            throw new ExchangeNotAvailable ($message);
-                        if ($response['error'][$i] === 'EService:Busy')
-                            throw new ExchangeNotAvailable ($message);
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+        if (mb_strpos ($body, 'Invalid order') !== false)
+            throw new InvalidOrder ($this->id . ' ' . $body);
+        if (mb_strpos ($body, 'Invalid nonce') !== false)
+            throw new InvalidNonce ($this->id . ' ' . $body);
+        if (mb_strpos ($body, 'Insufficient funds') !== false)
+            throw new InsufficientFunds ($this->id . ' ' . $body);
+        if (mb_strpos ($body, 'Cancel pending') !== false)
+            throw new CancelPending ($this->id . ' ' . $body);
+        if (mb_strpos ($body, 'Invalid arguments:volume') !== false)
+            throw new InvalidOrder ($this->id . ' ' . $body);
+        if ($body[0] === '{') {
+            $response = json_decode ($body, $as_associative_array = true);
+            if (gettype ($response) != 'string') {
+                if (is_array ($response) && array_key_exists ('error', $response)) {
+                    $numErrors = is_array ($response['error']) ? count ($response['error']) : 0;
+                    if ($numErrors) {
+                        $message = $this->id . ' ' . $this->json ($response);
+                        for ($i = 0; $i < count ($response['error']); $i++) {
+                            if (is_array ($this->exceptions) && array_key_exists ($response['error'][$i], $this->exceptions)) {
+                                throw new $this->exceptions[$response['error'][$i]] ($message);
+                            }
+                        }
+                        throw new ExchangeError ($message);
                     }
-                    throw new ExchangeError ($message);
                 }
             }
-        return $response;
+        }
     }
 }
