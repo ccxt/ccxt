@@ -264,6 +264,7 @@ class bitfinex (Exchange):
                 'BCU': 'CST_BCU',
                 'DAT': 'DATA',
                 'DSH': 'DASH',  # Bitfinex names Dash as DSH, instead of DASH
+                'IOS': 'IOST',
                 'IOT': 'IOTA',
                 'MNA': 'MANA',
                 'QSH': 'QASH',
@@ -689,7 +690,7 @@ class bitfinex (Exchange):
             'ETP': 'metaverse',
             'FUN': 'fun',
             'GNT': 'golem',
-            'IOS': 'ios',
+            'IOST': 'ios',
             'IOTA': 'iota',
             'LRC': 'lrc',
             'LTC': 'litecoin',
