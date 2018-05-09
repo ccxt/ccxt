@@ -517,9 +517,9 @@ module.exports = class okcoinusd extends Exchange {
         let createDateField = this.getCreateDateField ();
         if (createDateField in order)
             timestamp = order[createDateField];
-        let amount = order['amount'];
-        let filled = order['deal_amount'];
-        let remaining = amount - filled;
+        let filled = this.safeFloat (order, 'deal_amount');
+        let remaining = this.safeFloat (order, 'amount');
+        let amount = this.sum (filled, remaining);
         let average = this.safeFloat (order, 'avg_price');
         // https://github.com/ccxt/ccxt/issues/2452
         average = this.safeFloat (order, 'price_avg', average);
