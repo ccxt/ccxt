@@ -506,6 +506,7 @@ module.exports = class hitbtc extends Exchange {
             let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
             result.push ({
+                'info': market,
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -514,7 +515,7 @@ module.exports = class hitbtc extends Exchange {
                 'quoteId': quoteId,
                 'lot': lot,
                 'step': step,
-                'info': market,
+                'active': true,
                 'maker': this.safeFloat (market, 'provideLiquidityRate'),
                 'taker': this.safeFloat (market, 'takeLiquidityRate'),
                 'precision': {
