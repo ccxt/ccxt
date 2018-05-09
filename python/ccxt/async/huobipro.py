@@ -492,7 +492,7 @@ class huobipro (Exchange):
         response = await self.privateGetOrderOrders(self.extend({
             'symbol': market['id'],
             'states': states,
-        }))
+        }, params))
         return self.parse_orders(response['data'], market, since, limit)
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
