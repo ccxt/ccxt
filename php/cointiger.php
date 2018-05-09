@@ -24,7 +24,7 @@ class cointiger extends huobipro {
                 'Language' => 'en_US',
             ),
             'urls' => array (
-                'logo' => 'https://user-images.githubusercontent.com/1294454/39660055-e83b3da2-503f-11e8-89b7-2e5a7aad330b.jpg',
+                'logo' => 'https://user-images.githubusercontent.com/1294454/39797261-d58df196-5363-11e8-9880-2ec78ec5bd25.jpg',
                 'api' => array (
                     'public' => 'https://api.cointiger.com/exchange/trading/api/market',
                     'private' => 'https://api.cointiger.com/exchange/trading/api',
