@@ -256,6 +256,7 @@ module.exports = class binance extends Exchange {
             },
             // exchange-specific options
             'options': {
+                'defaultLimitOrderType': 'limit', // or 'limit_maker'
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'warnOnFetchOpenOrdersWithoutSymbol': true,
                 'recvWindow': 5 * 1000, // 5 sec, binance default
@@ -643,6 +644,7 @@ module.exports = class binance extends Exchange {
             'side': side.toUpperCase (),
         };
         if (type === 'limit') {
+            order['type'] = this.options['defaultLimitOrderType'].toUpperCase ();
             order = this.extend (order, {
                 'price': this.priceToPrecision (symbol, price),
                 'timeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
