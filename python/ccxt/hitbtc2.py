@@ -1086,7 +1086,8 @@ class hitbtc2 (hitbtc):
             return
         if code >= 400:
             feedback = self.id + ' ' + body
-            if code == 503:
+            # {"code":504,"message":"Gateway Timeout","description":""}
+            if (code == 503) or (code == 504):
                 raise ExchangeNotAvailable(feedback)
             if body[0] == '{':
                 response = json.loads(body)

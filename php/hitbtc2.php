@@ -1118,7 +1118,8 @@ class hitbtc2 extends hitbtc {
             return;
         if ($code >= 400) {
             $feedback = $this->id . ' ' . $body;
-            if ($code === 503)
+            // array ("$code":504,"$message":"Gateway Timeout","description":"")
+            if (($code === 503) || ($code === 504))
                 throw new ExchangeNotAvailable ($feedback);
             if ($body[0] === '{') {
                 $response = json_decode ($body, $as_associative_array = true);
