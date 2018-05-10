@@ -676,8 +676,11 @@ class cryptopia extends Exchange {
                 if ($response['Success']) {
                     return $response;
                 } else if (is_array ($response) && array_key_exists ('Error', $response)) {
-                    if ($response['Error'] === 'ERROR => Insufficient Funds.')
-                        throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
+                    $error = $this->safe_string($response, 'error');
+                    if ($error !== null) {
+                        if (mb_strpos ($error, 'Insufficient Funds') !== false)
+                            throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
+                    }
                 }
         }
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));

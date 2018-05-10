@@ -650,8 +650,6 @@ class bitfinex (Exchange):
         self.load_markets()
         if limit is None:
             limit = 100
-        if since is None:
-            since = self.milliseconds() - self.parse_timeframe(timeframe) * limit * 1000
         market = self.market(symbol)
         v2id = 't' + market['id']
         request = {
@@ -659,8 +657,9 @@ class bitfinex (Exchange):
             'timeframe': self.timeframes[timeframe],
             'sort': 1,
             'limit': limit,
-            'start': since,
         }
+        if since is not None:
+            request['start'] = since
         response = self.v2GetCandlesTradeTimeframeSymbolHist(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
