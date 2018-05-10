@@ -675,8 +675,11 @@ module.exports = class cryptopia extends Exchange {
                 if (response['Success']) {
                     return response;
                 } else if ('Error' in response) {
-                    if (response['Error'] === 'ERROR: Insufficient Funds.')
-                        throw new InsufficientFunds (this.id + ' ' + this.json (response));
+                    let error = this.safeString (response, 'error');
+                    if (typeof error !== 'undefined') {
+                        if (error.indexOf ('Insufficient Funds') >= 0)
+                            throw new InsufficientFunds (this.id + ' ' + this.json (response));
+                    }
                 }
         }
         throw new ExchangeError (this.id + ' ' + this.json (response));
