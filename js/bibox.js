@@ -144,7 +144,7 @@ module.exports = class bibox extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = this.safeInteger (ticker, 'timestamp', this.seconds ());
+        let timestamp = this.safeInteger (ticker, 'timestamp', this.milliseconds ());
         let symbol = undefined;
         if (market) {
             symbol = market['symbol'];
