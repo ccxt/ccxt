@@ -379,8 +379,8 @@ module.exports = class Exchange extends EventEmitter{
     }
 
     defineAsyncConnection (asyncConfig) {
-        if (this.async.type === 'ws') {
-            this.asyncConnection = new WebsocketConnection (this.async, this.timeout);
+        if (asyncConfig.type === 'ws') {
+            this.asyncConnection = new WebsocketConnection (asyncConfig, this.timeout);
             this.asyncInitialize();
         }
     }
@@ -1149,16 +1149,12 @@ module.exports = class Exchange extends EventEmitter{
                             reject(error);
                         }
                     });
-                    await this.asyncConnection.connect ();
+                    this.asyncConnection.connect ();
                 });
             } else {
                 await this.asyncConnection.connect ();
             }
         }
-    }
-
-    _asyncWait4Ready () {
-
     }
 
     asyncParseJson (rawData) {
@@ -1179,22 +1175,22 @@ module.exports = class Exchange extends EventEmitter{
 
     asyncInitialize () {
         this.asyncResetContext ();
-        this.asyncConnection.on ('error', () => {
+        this.asyncConnection.on ('error', (err) => {
             this.asyncContext.auth = false;
             this.asyncResetContext ();
-            this.emit ('error');
+            this.emit ('error', err);
         });
         this.asyncConnection.on ('message', (data) => {
             if (this.verbose)
-                console.log(data);
+                console.log (data);
             try {
-                this._asyncOnMsg(data);
+                this._asyncOnMsg (data);
             } catch (ex) {
-                this.emit('error', ex);
+                this.emit ('error', ex);
             }
         });
         this.asyncConnection.on ('close', () => {
-            this.asyncConnectionAuthenticated = false;
+            this.asyncContext.auth = false;
             this.emit ('close');
         });
     }

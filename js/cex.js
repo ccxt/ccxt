@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InvalidOrder, NotSupported } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, InvalidOrder, NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -536,7 +536,6 @@ module.exports = class cex extends Exchange {
         };
     }
 
-
     _asyncOnMsg (data) {
         let msg = this.asyncParseJson (data);
         let e = this.safeString (msg, 'e');
@@ -549,13 +548,13 @@ module.exports = class cex extends Exchange {
             if (msg['ok'] === 'ok') {
                 this.emit ('auth', true);
             } else {
-                this.emit ('auth', false, this.safeString (resData, 'error', 'auth error'));
+                this.emit ('auth', false, new AuthenticationError (this.safeString (resData, 'error', 'auth error')));
             }
         } else if (e === 'ping') {
             this.asyncSendJson ({ 'e': 'pong' });
         } else if (e === 'order-book-subscribe') {
             if (msg['ok'] === 'ok') {
-                let symbol = resData['pair'].replace (':', '/');;
+                let symbol = resData['pair'].replace (':', '/');
                 let timestamp = resData['timestamp'] * 1000;
                 let ob = this.parseOrderBook (resData, timestamp);
                 ob['nonce'] = resData['id'];
@@ -563,16 +562,16 @@ module.exports = class cex extends Exchange {
                 this.emit (oid, true, ob);
                 this.emit ('ob', symbol, ob);
             } else {
-                let error = this.safeString (resData, 'error', 'orderbook error');
+                let error = new ExchangeError (this.safeString (resData, 'error', 'orderbook error'));
                 this.emit (oid, false, error);
             }
         } else if (e === 'md_update') {
-            let symbol = resData['pair'].replace (':', '/');;
+            let symbol = resData['pair'].replace (':', '/');
             let timestamp = resData['time'];
-            let ob = this.asyncContext.ob[symbol];
-            if ((ob['nonce'] + 1) !== resData['id']) {
-                this.asyncConnection.close ();
-                this.emit ('error', 'invalid orderbook sequence in ' + this.id);
+            let ob = this.asyncContext['ob'][symbol];
+            if (ob['nonce'] !== (resData['id'] - 1)) {
+                this.asyncClose ();
+                this.emit ('error', new ExchangeError ('invalid orderbook sequence in ' + this.id + ' ' + ob['nonce'] + ' !== ' + resData['id'] + ' -1'));
             } else {
                 ob = this.mergeOrderBookDelta (ob, resData, timestamp);
                 ob['nonce'] = resData['id'];
@@ -595,15 +594,15 @@ module.exports = class cex extends Exchange {
     }
 
     _asyncSubscribeOrderBook (symbol, nonce) {
-        let [currencyBase, currencyQuote] = symbol.split('/');
-        this.asyncSendJson({
+        let [currencyBase, currencyQuote] = symbol.split ('/');
+        this.asyncSendJson ({
             'e': 'order-book-subscribe',
             'data': {
                 'pair': [currencyBase, currencyQuote],
                 'subscribe': true,
-                'depth': 0
+                'depth': 0,
             },
-            'oid': nonce
+            'oid': nonce,
         });
     }
 };
