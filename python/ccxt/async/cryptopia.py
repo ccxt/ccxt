@@ -623,6 +623,6 @@ class cryptopia (Exchange):
                 if response['Success']:
                     return response
                 elif 'Error' in response:
-                    if response['Error'] == 'Insufficient Funds.':
+                    if response['Error'] == 'ERROR: Insufficient Funds.':
                         raise InsufficientFunds(self.id + ' ' + self.json(response))
         raise ExchangeError(self.id + ' ' + self.json(response))
