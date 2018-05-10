@@ -512,7 +512,7 @@ module.exports = class huobipro extends Exchange {
         let response = await this.privateGetOrderOrders (this.extend ({
             'symbol': market['id'],
             'states': states,
-        }));
+        }, params));
         return this.parseOrders (response['data'], market, since, limit);
     }
 
