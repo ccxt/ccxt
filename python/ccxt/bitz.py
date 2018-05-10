@@ -295,6 +295,14 @@ class bitz (Exchange):
             side = self.safe_string(order, 'type')
             if side is not None:
                 side = 'buy' if (side == 'in') else 'sell'
+            if side is None:
+                side = self.safe_string(order, 'flag')
+        amount = self.safe_float(order, 'number')
+        filled = self.safe_float(order, 'numberover')
+        remaining = None
+        if amount is not None:
+            if filled is not None:
+                remaining = amount - filled
         timestamp = None
         iso8601 = None
         if 'datetime' in order:
@@ -312,8 +320,8 @@ class bitz (Exchange):
             'price': order['price'],
             'cost': None,
             'amount': order['number'],
-            'filled': None,
-            'remaining': None,
+            'filled': filled,
+            'remaining': remaining,
             'trades': None,
             'fee': None,
             'info': order,

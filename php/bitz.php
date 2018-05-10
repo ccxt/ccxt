@@ -304,7 +304,15 @@ class bitz extends Exchange {
             $side = $this->safe_string($order, 'type');
             if ($side !== null)
                 $side = ($side === 'in') ? 'buy' : 'sell';
+            if ($side === null)
+                $side = $this->safe_string($order, 'flag');
         }
+        $amount = $this->safe_float($order, 'number');
+        $filled = $this->safe_float($order, 'numberover');
+        $remaining = null;
+        if ($amount !== null)
+            if ($filled !== null)
+                $remaining = $amount - $filled;
         $timestamp = null;
         $iso8601 = null;
         if (is_array ($order) && array_key_exists ('datetime', $order)) {
@@ -323,8 +331,8 @@ class bitz extends Exchange {
             'price' => $order['price'],
             'cost' => null,
             'amount' => $order['number'],
-            'filled' => null,
-            'remaining' => null,
+            'filled' => $filled,
+            'remaining' => $remaining,
             'trades' => null,
             'fee' => null,
             'info' => $order,
