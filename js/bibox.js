@@ -144,7 +144,8 @@ module.exports = class bibox extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = this.safeInteger (ticker, 'timestamp', this.seconds ());
+        // we don't set values that are not defined by the exchange
+        let timestamp = this.safeInteger (ticker, 'timestamp');
         let symbol = undefined;
         if (market) {
             symbol = market['symbol'];
@@ -164,10 +165,13 @@ module.exports = class bibox extends Exchange {
         let open = undefined;
         if ((typeof last !== 'undefined') && (typeof change !== 'undefined'))
             open = last - change;
+        let iso8601 = undefined;
+        if (typeof timestamp !== 'undefined')
+            iso8601 = this.iso8601 (timestamp);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': iso8601,
             'high': this.safeFloat (ticker, 'high'),
             'low': this.safeFloat (ticker, 'low'),
             'bid': this.safeFloat (ticker, 'buy'),
