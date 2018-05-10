@@ -427,7 +427,6 @@ class bittrex (Exchange):
         response = self.v2GetMarketGetTicks(self.extend(request, params))
         if 'result' in response:
             if response['result']:
-                response['result'].reverse()
                 return self.parse_ohlcvs(response['result'], market, timeframe, since, limit)
         raise ExchangeError(self.id + ' returned an empty or unrecognized response: ' + self.json(response))
 
