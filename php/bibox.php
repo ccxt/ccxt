@@ -145,7 +145,8 @@ class bibox extends Exchange {
     }
 
     public function parse_ticker ($ticker, $market = null) {
-        $timestamp = $this->safe_integer($ticker, 'timestamp', $this->seconds ());
+        // we don't set values that are not defined by the exchange
+        $timestamp = $this->safe_integer($ticker, 'timestamp');
         $symbol = null;
         if ($market) {
             $symbol = $market['symbol'];
@@ -165,10 +166,13 @@ class bibox extends Exchange {
         $open = null;
         if (($last !== null) && ($change !== null))
             $open = $last - $change;
+        $iso8601 = null;
+        if ($timestamp !== null)
+            $iso8601 = $this->iso8601 ($timestamp);
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $iso8601,
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => $this->safe_float($ticker, 'buy'),

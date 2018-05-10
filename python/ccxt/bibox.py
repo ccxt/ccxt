@@ -159,7 +159,8 @@ class bibox (Exchange):
         return result
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = self.safe_integer(ticker, 'timestamp', self.seconds())
+        # we don't set values that are not defined by the exchange
+        timestamp = self.safe_integer(ticker, 'timestamp')
         symbol = None
         if market:
             symbol = market['symbol']
@@ -177,10 +178,13 @@ class bibox (Exchange):
         open = None
         if (last is not None) and(change is not None):
             open = last - change
+        iso8601 = None
+        if timestamp is not None:
+            iso8601 = self.iso8601(timestamp)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'datetime': iso8601,
             'high': self.safe_float(ticker, 'high'),
             'low': self.safe_float(ticker, 'low'),
             'bid': self.safe_float(ticker, 'buy'),
