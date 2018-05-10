@@ -30,6 +30,12 @@ SOFTWARE.
 
 namespace ccxt;
 
+use React;
+use Clue;
+
+require __DIR__.'/../vendor/autoload.php';
+include 'php/async/WebsocketConnection.php';
+
 $version = '1.13.45';
 
 // rounding mode
@@ -44,11 +50,11 @@ const SIGNIFICANT_DIGITS = 1;
 const NO_PADDING = 0;
 const PAD_WITH_ZERO = 1;
 
-abstract class Exchange {
+abstract class Exchange extends CcxtEventEmitter {
+
+    public static $loop;
 
     public static $exchanges = array (
-        '_1broker',
-        '_1btcxe',
         'acx',
         'allcoin',
         'anxpro',
@@ -161,6 +167,8 @@ abstract class Exchange {
         'yunbi',
         'zaif',
         'zb',
+        '_1broker',
+        '_1btcxe',
     );
 
     public static function split ($string, $delimiters = array (' ')) {
@@ -581,6 +589,7 @@ abstract class Exchange {
     }
 
     public function __construct ($options = array ()) {
+        parent::__construct();
 
         $this->curl         = curl_init ();
         $this->curl_options = array (); // overrideable by user, empty by default
@@ -611,6 +620,7 @@ abstract class Exchange {
         $this->version   = null;
         $this->urls      = array ();
         $this->api       = array ();
+        $this->async     = array ();
         $this->comment   = null;
 
         $this->markets     = null;
@@ -714,6 +724,10 @@ abstract class Exchange {
 
         if ($this->api)
             $this->define_rest_api ($this->api, 'request');
+        
+        if ($this->async)
+            $this->define_async_connection ($this->async);
+
 
         if ($this->markets)
             $this->set_markets ($this->markets);
@@ -750,6 +764,13 @@ abstract class Exchange {
                     $this->$camelcase  = $partial;
                     $this->$underscore = $partial;
                 }
+    }
+
+    public function define_async_connection ($async_config) {
+        if ($async_config['type'] === 'ws') {
+            $this->async_connection = new WebsocketConnection ($async_config, $this->timeout, self::$loop);
+            $this->async_initialize ();
+        }
     }
 
     public function hash ($request, $type = 'md5', $digest = 'hex') {
@@ -1201,6 +1222,58 @@ abstract class Exchange {
 
     public function parseOrderBook ($orderbook, $timestamp = null, $bids_key = 'bids', $asks_key = 'asks', $price_key = 0, $amount_key = 1) {
         return $this->parse_order_book ($orderbook, $timestamp, $bids_key, $asks_key, $price_key, $amount_key);
+    }
+
+    public function searchIndexToInsertOrUpdate ($value, &$orderedArray, $key, $descending = false) {
+        $direction = $descending ? -1 : 1;
+        $compare = function ($a, $b) use($key, $direction) {
+            return (($a[$key] < $b[$key]) ? -$direction :
+                (($a[$key] > $b[$key]) ?  $direction : 0));
+        };
+        for ($i = 0; $i < count($orderedArray); $i++) {
+            if ($compare ($orderedArray[$i][$key], $value)) {
+                return $i;
+            }
+        }
+        return $i;
+    }
+    public function updateBidAsk (&$bidAsk, &$currentBidsAsks, $bids = false) {
+        // insert or replace ordered
+        $index = $this->searchIndexToInsertOrUpdate ($bidAsk[0], $currentBidsAsks, 0, $bids);
+        if (($index < count($currentBidsAsks)) && ($currentBidsAsks[$index][0] === $bidAsk[0])){
+            // found
+            if ($bidAsk[1] === 0) {
+                // remove
+                array_splice ($currentBidsAsks, $index, 1);
+            } else {
+                // update
+                $currentBidsAsks[$index] = $bidAsk;
+            }
+        } else {
+            if ($bidAsk[1] === 0) {
+                // insert
+                array_splice ($currentBidsAsks, $index, 0, $bidAsk);
+            }
+        }
+    }
+
+    public function mergeOrderBookDelta (&$currentOrderBook, &$orderbook, $timestamp = null, $bids_key = 'bids', $asks_key = 'asks', $price_key = 0, $amount_key = 1) {
+        $bids = is_array ($orderbook) && array_key_exists ($bids_key, $orderbook) ?
+            $this->parse_bids_asks ($orderbook[$bids_key], $price_key, $amount_key) :
+            array ();
+        foreach ($bids as $bid) {
+            $this->updateBidAsk ($bid, $currentOrderBook['bids'], true);
+        }
+        $asks = is_array ($orderbook) && array_key_exists ($asks_key, $orderbook) ?
+                $this->parse_bids_asks ($orderbook[$asks_key], $price_key, $amount_key) :
+                array ();
+        foreach ($asks as $ask) {
+            $this->updateBidAsk ($ask, $currentOrderBook['asks'], false);
+        }
+        
+        $currentOrderBook['timestamp'] = $timestamp;
+        $currentOrderBook['datetime'] = isset ($timestamp) ? $this->iso8601 ($timestamp) : null;
+        return $currentOrderBook;
     }
 
     public function parse_balance ($balance) {
@@ -1868,4 +1941,161 @@ abstract class Exchange {
         return $result;
     }
 
+    // async methods
+    protected function async_reset_context () {
+        $this->asyncContext = array (
+            'auth' => false,
+            'ob' => array (),
+            'ticker' => array (),
+            'ready' => false,
+        );
+    }
+
+    protected function async_connect () {
+        $that = $this;
+        if (!isset ($this->async_connection)){
+            throw new NotSupported ("async service not supported by this exchange: " . $this->id);
+        }
+        $this->load_markets();
+        if (!$this->asyncContext['ready']) {
+            if (isset ($this->async['wait4readyEvent'])) {
+                Clue\React\Block\await ($this->async_connection->connect (), self::$loop);
+                $deferred = new \React\Promise\Deferred();
+                $this->once ($this->async['wait4readyEvent'], function ($success, $error = null) use ($deferred, $that){
+                    if ($success) {
+                        $that->asyncContext['ready'] = true;
+                        $deferred->resolve();
+                    } else {
+                        $deferred->reject($error);
+                    }
+                });
+                Clue\React\Block\await ($deferred->promise(), self::$loop);
+            } else {
+                Clue\React\Block\await ($this->async_connection->connect (), self::$loop);
+            }
+        }
+    }
+
+    protected function asyncParseJson ($rawData) {
+        return json_decode ($rawData, true);
+    }
+
+    public function asyncClose () {
+        $this->async_connection->close();
+    }
+
+    public function asyncSend ($data) {
+        if ($this->verbose) {
+            echo ("Async send:");
+            echo ($data);
+            echo("\n");
+        }
+        $this->async_connection->send($data);
+    }
+
+    public function asyncSendJson ($data) {
+        if ($this->verbose) {
+            echo ("Async send:");
+            echo (json_encode($data));
+            echo("\n");
+        }
+        $this->async_connection->sendJson($data);
+    }
+
+    protected function async_initialize () {
+        $this->async_reset_context ();
+        $this->async_connection->on ('error', function ($err) {
+            $this->asyncContext['auth'] = false;
+            $this->async_reset_context ();
+            $this->emit ('error', $err);
+        });
+        $this->async_connection->on ('message', function ($data) {
+            if ($this->verbose) {
+                echo ("\nAsync recv:");
+                echo ($data);
+                echo("\n");
+            }
+            try {
+                $this->_async_on_msg ($data);
+            } catch (Exception $ex) {
+                $this->emit ('error', $ex);
+            }
+        });
+        $this->async_connection->on ('close', function () {
+            $this->asyncContext['auth'] = false;
+            $this->emit ('close');
+        });
+    }
+
+    protected function timeout_promise ($promise, $scope) {
+        return React\Promise\Timer\timeout($promise, $this->timeout, self::$loop)
+        ->otherwise(function($exception) {
+            if ($exception instanceof React\Promise\Timer\TimeoutException) {
+                echo $exception;
+                throw new RequestTimeout ($this->id . ' ' . $scope . ' request timed out (' . $this->timeout . ' ms)');
+            }
+            throw $exception;
+        });
+    }
+
+    public function clone_order_book ($ob, $limit = null) {
+        $ret =  array (
+            'timestamp'=> $ob['timestamp'],
+            'datetime' => $ob['datetime'],
+            'nonce'=> $ob['nonce'],
+        );
+        if ($limit === null) {
+            $ret['bids'] = array_slice ($ob['bids'], 0);
+            $ret['asks'] = array_slice ($ob['asks'], 0);
+        } else {
+            $ret['bids'] = array_slice ($ob['bids'], 0, $limit);
+            $ret['asks'] = array_slice ($ob['asks'], 0, $limit);
+            
+        }
+        return $ret;
+    }
+    
+    public function async_fetch_order_book ($symbol, $limit = null) {
+        $this->async_connect();
+        if (isset ($this->asyncContext['ob'][$symbol])) {
+            return $this->clone_order_book ($this->asyncContext['ob'][$symbol], $limit);
+        } else {
+            $deferred = new \React\Promise\Deferred();
+            $that = $this;
+
+            $f = null;
+            $f = function ($symbol_r, $ob) use ($symbol, $that, &$f, $deferred, $limit){
+                if ($symbol_r === $symbol) {
+                    $that->removeListener ('ob', $f);
+                    $deferred->resolve($this->clone_order_book ($ob, $limit));
+                }
+            };
+            $this->on ('ob', $f);
+            Clue\React\Block\await ($this->timeout_promise (
+                $deferred->promise(), 'asyncFetchOrderBook'), self::$loop);
+        }
+    }
+
+    public function async_subscribe_order_book ($symbol) {
+        $this->async_connect();
+        $oid = $this->nonce() . '-' . $symbol . '-ob-subscribe';
+
+        $deferred = new \React\Promise\Deferred();
+        $that = $this;
+
+        $this->once ($oid, function ($success, $data) use($symbol, $that, $deferred) {
+            if ($success) {
+                $deferred->resolve ($data);
+            } else {
+                $deferred->reject ($data);
+            }
+        });
+        $this->_async_subscribe_order_book ($symbol, $oid);
+        Clue\React\Block\await ($this->timeout_promise (
+            $deferred->promise(), 'asyncSubscribeOrderBook'), self::$loop);
+    }
 }
+
+Exchange::$loop = React\EventLoop\Factory::create();
+
+
