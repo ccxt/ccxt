@@ -56,6 +56,7 @@
     "kucoin":        { },
     "kuna":          { "skip": true },
     "lakebtc":       { "skip": true },
+    "lbank":         { "skip": true },
     "liqui":         { },
     "livecoin":      { "skip": true, "apiKey": "W5z7bvQM2pEShvGmqq1bXZkb1MR32GKw", "secret": "n8FrknvqwsRnTpGeNAbC51waYdE4xxSB" },
     "luno":          { "skip": true, "apiKey": "nrpzg7rkd8pnf", "secret": "Ps0DXw0TpTzdJ2Yek8V5TzFDfTWzyU5vfLdCiBP6vsI" },
