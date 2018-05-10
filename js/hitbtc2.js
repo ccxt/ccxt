@@ -1117,7 +1117,8 @@ module.exports = class hitbtc2 extends hitbtc {
             return;
         if (code >= 400) {
             const feedback = this.id + ' ' + body;
-            if (code === 503)
+            // {"code":504,"message":"Gateway Timeout","description":""}
+            if ((code === 503) || (code === 504))
                 throw new ExchangeNotAvailable (feedback);
             if (body[0] === '{') {
                 let response = JSON.parse (body);
