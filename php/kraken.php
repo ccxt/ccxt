@@ -516,7 +516,8 @@ class kraken extends Exchange {
         $id = null;
         $order = null;
         $fee = null;
-        $symbol = $this->find_market_by_altname_or_id ($trade['pair'])['symbol'];
+        if (!$market)
+            $market = $this->find_market_by_altname_or_id ($trade['pair']);
         if (is_array ($trade) && array_key_exists ('ordertxid', $trade)) {
             $order = $trade['ordertxid'];
             $id = $trade['id'];
@@ -544,6 +545,7 @@ class kraken extends Exchange {
             if ($tradeLength > 6)
                 $id = $trade[6]; // artificially added as per #1794
         }
+        $symbol = ($market) ? $market['symbol'] : null;
         return array (
             'id' => $id,
             'order' => $order,
@@ -720,15 +722,12 @@ class kraken extends Exchange {
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = null;
-        if ($symbol !== null)
-            $market = $this->market ($symbol);
         $request = array (
             // 'type' => 'all', // any position, closed position, closing position, no position
             // 'trades' => false, // whether or not to include $trades related to position in output
             // 'start' => 1234567890, // starting unix timestamp or trade tx id of results (exclusive)
             // 'end' => 1234567890, // ending unix timestamp or trade tx id of results (inclusive)
-            // 'ofs' = result offset
+            // 'ofs' = $result offset
         );
         if ($since !== null)
             $request['start'] = intval ($since / 1000);
@@ -738,7 +737,10 @@ class kraken extends Exchange {
         for ($i = 0; $i < count ($ids); $i++) {
             $trades[$ids[$i]]['id'] = $ids[$i];
         }
-        return $this->parse_trades($trades, $market, $since, $limit);
+        $result = $this->parse_trades($trades, null, $since, $limit);
+        if ($symbol === null)
+            return $result;
+        return $this->filter_by_symbol($result, $symbol);
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
@@ -759,22 +761,26 @@ class kraken extends Exchange {
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
         $request = array ();
         if ($since !== null)
             $request['start'] = intval ($since / 1000);
         $response = $this->privatePostOpenOrders (array_merge ($request, $params));
-        return $this->parse_orders($response['result']['open'], $market, $since, $limit);
+        $orders = $this->parse_orders($response['result']['open'], null, $since, $limit);
+        if ($symbol === null)
+            return $orders;
+        return $this->filter_by_symbol($orders, $symbol);
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
         $request = array ();
         if ($since !== null)
             $request['start'] = intval ($since / 1000);
         $response = $this->privatePostClosedOrders (array_merge ($request, $params));
-        return $this->parse_orders($response['result']['closed'], $market, $since, $limit);
+        $orders = $this->parse_orders($response['result']['open'], null, $since, $limit);
+        if ($symbol === null)
+            return $orders;
+        return $this->filter_by_symbol($orders, $symbol);
     }
 
     public function fetch_deposit_methods ($code, $params = array ()) {

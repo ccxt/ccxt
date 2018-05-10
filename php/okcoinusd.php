@@ -518,9 +518,12 @@ class okcoinusd extends Exchange {
         $createDateField = $this->get_create_date_field ();
         if (is_array ($order) && array_key_exists ($createDateField, $order))
             $timestamp = $order[$createDateField];
+        $amount = $this->safe_float($order, 'amount');
         $filled = $this->safe_float($order, 'deal_amount');
-        $remaining = $this->safe_float($order, 'amount');
-        $amount = $this->sum ($filled, $remaining);
+        $remaining = $amount - $filled;
+        if ($type === 'market') {
+            $remaining = 0;
+        }
         $average = $this->safe_float($order, 'avg_price');
         // https://github.com/ccxt/ccxt/issues/2452
         $average = $this->safe_float($order, 'price_avg', $average);
