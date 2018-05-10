@@ -230,7 +230,9 @@
         "ext-curl": "*",
         "ext-iconv": "*",
         "ext-pcre": "*",
-        "symfony/polyfill-mbstring": "^1.7"
+        "symfony/polyfill-mbstring": "^1.7",
+        "ratchet/pawl": "^0.3.1",
+        "clue/block-react": "^1.2"
     },
     "archive": {
         "exclude": [
