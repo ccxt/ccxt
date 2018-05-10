@@ -515,7 +515,8 @@ module.exports = class kraken extends Exchange {
         let id = undefined;
         let order = undefined;
         let fee = undefined;
-        let symbol = this.findMarketByAltnameOrId (trade['pair'])['symbol'];
+        if (!market)
+            market = this.findMarketByAltnameOrId (trade['pair']);
         if ('ordertxid' in trade) {
             order = trade['ordertxid'];
             id = trade['id'];
@@ -543,6 +544,7 @@ module.exports = class kraken extends Exchange {
             if (tradeLength > 6)
                 id = trade[6]; // artificially added as per #1794
         }
+        let symbol = (market) ? market['symbol'] : undefined;
         return {
             'id': id,
             'order': order,
@@ -719,9 +721,6 @@ module.exports = class kraken extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = undefined;
-        if (typeof symbol !== 'undefined')
-            market = this.market (symbol);
         let request = {
             // 'type': 'all', // any position, closed position, closing position, no position
             // 'trades': false, // whether or not to include trades related to position in output
@@ -737,7 +736,10 @@ module.exports = class kraken extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             trades[ids[i]]['id'] = ids[i];
         }
-        return this.parseTrades (trades, market, since, limit);
+        let result = this.parseTrades (trades, undefined, since, limit);
+        if (typeof symbol === 'undefined')
+            return result;
+        return this.filterBySymbol (result, symbol);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -758,22 +760,26 @@ module.exports = class kraken extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
         let request = {};
         if (typeof since !== 'undefined')
             request['start'] = parseInt (since / 1000);
         let response = await this.privatePostOpenOrders (this.extend (request, params));
-        return this.parseOrders (response['result']['open'], market, since, limit);
+        let orders = this.parseOrders (response['result']['open'], undefined, since, limit);
+        if (typeof symbol === 'undefined')
+            return orders;
+        return this.filterBySymbol (orders, symbol);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
         let request = {};
         if (typeof since !== 'undefined')
             request['start'] = parseInt (since / 1000);
         let response = await this.privatePostClosedOrders (this.extend (request, params));
-        return this.parseOrders (response['result']['closed'], market, since, limit);
+        let orders = this.parseOrders (response['result']['open'], undefined, since, limit);
+        if (typeof symbol === 'undefined')
+            return orders;
+        return this.filterBySymbol (orders, symbol);
     }
 
     async fetchDepositMethods (code, params = {}) {
