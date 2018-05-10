@@ -303,7 +303,15 @@ module.exports = class bitz extends Exchange {
             side = this.safeString (order, 'type');
             if (typeof side !== 'undefined')
                 side = (side === 'in') ? 'buy' : 'sell';
+            if (typeof side === 'undefined')
+                side = this.safeString (order, 'flag');
         }
+        let amount = this.safeFloat (order, 'number');
+        let filled = this.safeFloat (order, 'numberover');
+        let remaining = undefined;
+        if (typeof amount !== 'undefined')
+            if (typeof filled !== 'undefined')
+                remaining = amount - filled;
         let timestamp = undefined;
         let iso8601 = undefined;
         if ('datetime' in order) {
@@ -322,8 +330,8 @@ module.exports = class bitz extends Exchange {
             'price': order['price'],
             'cost': undefined,
             'amount': order['number'],
-            'filled': undefined,
-            'remaining': undefined,
+            'filled': filled,
+            'remaining': remaining,
             'trades': undefined,
             'fee': undefined,
             'info': order,
