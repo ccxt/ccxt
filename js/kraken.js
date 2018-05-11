@@ -776,7 +776,7 @@ module.exports = class kraken extends Exchange {
         if (typeof since !== 'undefined')
             request['start'] = parseInt (since / 1000);
         let response = await this.privatePostClosedOrders (this.extend (request, params));
-        let orders = this.parseOrders (response['result']['open'], undefined, since, limit);
+        let orders = this.parseOrders (response['result']['closed'], undefined, since, limit);
         if (typeof symbol === 'undefined')
             return orders;
         return this.filterBySymbol (orders, symbol);
