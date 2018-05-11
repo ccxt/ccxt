@@ -777,7 +777,7 @@ class kraken extends Exchange {
         if ($since !== null)
             $request['start'] = intval ($since / 1000);
         $response = $this->privatePostClosedOrders (array_merge ($request, $params));
-        $orders = $this->parse_orders($response['result']['open'], null, $since, $limit);
+        $orders = $this->parse_orders($response['result']['closed'], null, $since, $limit);
         if ($symbol === null)
             return $orders;
         return $this->filter_by_symbol($orders, $symbol);
