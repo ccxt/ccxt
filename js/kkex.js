@@ -17,7 +17,7 @@ module.exports = class kkex extends Exchange {
             'has': {
                 'CORS': false,
                 'publicAPI': false,
-                'fetchBalance': false,
+                'fetchBalance': true,
                 'fetchCurrencies': false,
                 'fetchDepositAddress': false,
                 'fetchFundingFees': false,
@@ -71,6 +71,7 @@ module.exports = class kkex extends Exchange {
                         'trade',
                         'cancel_order',
                         'order_history',
+                        'userinfo',
                     ],
                 },
             },
@@ -268,8 +269,28 @@ module.exports = class kkex extends Exchange {
         let market = this.market (symbol);
         let response = await this.publicGetTrades (this.extend ({
             'symbol': market['id'],
+            'since': since,
         }, params));
         return this.parseTrades (response, market, since, limit);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        let balances = await this.privatePostUserinfo ();
+        let result = { 'info': balances['info'] };
+        let funds = balances['info']['funds'];
+        let assets = Object.keys(funds['free']);
+        for (let i = 0; i < assets.length; i++) {
+            let currency = assets[i];
+            let uppercase = currency.toUpperCase ();
+            uppercase = this.commonCurrencyCode (uppercase);
+            let account = this.account ();
+            account['free'] = parseFloat (funds['freezed'][currency]);
+            account['used'] = parseFloat (funds['free'][currency]);
+            account['total'] = account['free'] + account['used'];
+            result[uppercase] = account;
+        }
+        return this.parseBalance (result);
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -279,6 +300,7 @@ module.exports = class kkex extends Exchange {
             'symbol': market['id'],
             'type': this.timeframes[timeframe],
             'since': since,
+            'size': limit,
         }, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
