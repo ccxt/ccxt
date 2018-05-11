@@ -121,8 +121,8 @@ module.exports = class kkex extends Exchange {
                 if (p['mark_asset'] + p['base_asset'] === market) {
                     quoteId = p['base_asset'];
                     baseId = p['mark_asset'];
-                    let str = p['price_scale'].toString ();
-                    let scale = str.length - 1;
+                    let price_scale_str = p['price_scale'].toString ();
+                    let scale = price_scale_str.length - 1;
                     precision = {
                         'price': scale,
                         'amount': scale,
