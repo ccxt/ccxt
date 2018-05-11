@@ -177,6 +177,8 @@ module.exports = class okcoinusd extends Exchange {
             let minAmount = markets[i]['minTradeSize'];
             let minPrice = Math.pow (10, -precision['price']);
             let active = (markets[i]['online'] !== 0);
+            let baseNumericId = markets[i]['baseCurrency'];
+            let quoteNumericId = markets[i]['quoteCurrency'];
             let market = this.extend (this.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
@@ -184,6 +186,8 @@ module.exports = class okcoinusd extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'baseNumericId': baseNumericId,
+                'quoteNumericId': quoteNumericId,
                 'info': markets[i],
                 'type': 'spot',
                 'spot': true,
