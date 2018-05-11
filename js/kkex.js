@@ -42,12 +42,12 @@ module.exports = class kkex extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/12462602/39745941-70adc518-52db-11e8-8e21-94778cb3c7ca.jpg',
                 'api': {
-                    'public': 'http://kkex.vip/api/v1',
-                    'private': 'http://kkex.vip/api/v2',
+                    'public': 'https://kkex.vip/api/v1',
+                    'private': 'https://kkex.vip/api/v2',
                 },
-                'www': 'http://kkex.vip',
+                'www': 'https://kkex.vip',
                 'doc': [
-                    'http://kkex.vip/api_wiki/cn/',
+                    'https://kkex.vip/api_wiki/cn/',
                 ],
                 'fees': 'https://intercom.help/kkex/fee',
             },
