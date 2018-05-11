@@ -138,8 +138,8 @@ module.exports = class kkex extends Exchange {
                         },
                     };
                     limits['cost'] = {
-                        'min': p['min_bid_amount'],
-                        'max': p['max_bid_amount'],
+                        'min': this.safeFloat (p, 'min_bid_amount'),
+                        'max': this.safeFloat (p, 'max_bid_amount'),
                     };
                 }
             }
