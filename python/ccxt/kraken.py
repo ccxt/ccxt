@@ -747,7 +747,7 @@ class kraken (Exchange):
         if since is not None:
             request['start'] = int(since / 1000)
         response = self.privatePostClosedOrders(self.extend(request, params))
-        orders = self.parse_orders(response['result']['open'], None, since, limit)
+        orders = self.parse_orders(response['result']['closed'], None, since, limit)
         if symbol is None:
             return orders
         return self.filter_by_symbol(orders, symbol)
