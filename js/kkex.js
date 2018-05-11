@@ -285,8 +285,8 @@ module.exports = class kkex extends Exchange {
             let uppercase = currency.toUpperCase ();
             uppercase = this.commonCurrencyCode (uppercase);
             let account = this.account ();
-            account['free'] = parseFloat (funds['freezed'][currency]);
-            account['used'] = parseFloat (funds['free'][currency]);
+            account['free'] = parseFloat (funds['free'][currency]);
+            account['used'] = parseFloat (funds['freezed'][currency]);
             account['total'] = account['free'] + account['used'];
             result[uppercase] = account;
         }
