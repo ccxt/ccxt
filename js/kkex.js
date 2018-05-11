@@ -237,6 +237,7 @@ module.exports = class kkex extends Exchange {
         await this.loadMarkets ();
         let response = await this.publicGetDepth (this.extend ({
             'symbol': this.marketId (symbol),
+            'size': limit,
         }, params));
         return this.parseOrderBook (response);
     }
