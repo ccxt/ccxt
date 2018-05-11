@@ -61,23 +61,15 @@ module.exports = class kkex extends Exchange {
                         'depth',
                         'trades',
                         'kline',
-                        'exchange_rate',
                     ],
                     'post': [
-                        'process_strategy',
                     ],
                 },
                 'private': {
                     'get': [],
                     'post': [
-                        'profile',
-                        'userinfo',
                         'trade',
-                        'batch_trade',
                         'cancel_order',
-                        'cancel_all_orders',
-                        'order_info',
-                        'orders_info',
                         'order_history',
                     ],
                 },
@@ -122,11 +114,33 @@ module.exports = class kkex extends Exchange {
             let market = markets[i];
             let baseId = '';
             let quoteId = '';
+            let precision = {};
+            let limits = {};
             for (let j = 0; j < products.length; j++) {
                 let p = products[j];
                 if (p['mark_asset'] + p['base_asset'] === market) {
                     quoteId = p['base_asset'];
                     baseId = p['mark_asset'];
+                    let str = p['price_scale'].toString ();
+                    let scale = str.length - 1;
+                    precision = {
+                        'price': scale,
+                        'amount': scale,
+                    };
+                    limits = {
+                        'amount': {
+                            'min': this.safeFloat (p, 'min_bid_amount'),
+                            'max': this.safeFloat (p, 'max_bid_amount'),
+                        },
+                        'price': {
+                            'min': this.safeFloat (p, 'min_price'),
+                            'max': this.safeFloat (p, 'max_price'),
+                        },
+                    };
+                    limits['cost'] = {
+                        'min': limits['amount']['min'] * limits['price']['min'],
+                        'max': undefined,
+                    };
                 }
             }
             let base = baseId.toUpperCase ();
@@ -142,6 +156,8 @@ module.exports = class kkex extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': true,
+                'precision': precision,
+                'limits': limits,
                 'info': market,
             });
         }
@@ -392,10 +408,5 @@ module.exports = class kkex extends Exchange {
             headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
             return { 'url': url, 'method': method, 'body': body, 'headers': headers };
         }
-    }
-
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        return response;
     }
 };
