@@ -356,7 +356,7 @@ module.exports = class kkex extends Exchange {
             request['price'] = price;
         }
         request['type'] = side;
-        if (!(sides in side)) {
+        if (!this.inArray (side, sides)) {
             throw new ExchangeError ('side not in', sides);
         }
         let response = await this.privatePostTrade (this.extend (request, params));
