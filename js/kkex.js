@@ -389,6 +389,7 @@ module.exports = class kkex extends Exchange {
         let response = await this.privatePostOrderHistory (this.extend ({
             'symbol': market['id'],
             'status': 0,
+            'page_length': limit,
         }, params));
         let orders = this.parseOrders (response['orders'], market, since, limit);
         return orders;
@@ -400,6 +401,7 @@ module.exports = class kkex extends Exchange {
         let response = await this.privatePostOrderHistory (this.extend ({
             'symbol': market['id'],
             'status': 1,
+            'page_length': limit,
         }, params));
         return this.parseOrders (response['orders'], market, since, limit);
     }
