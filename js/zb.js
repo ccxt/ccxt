@@ -432,7 +432,7 @@ module.exports = class zb extends Exchange {
         if (market)
             symbol = market['symbol'];
         let price = order['price'];
-        let average = order['trade_price'];
+        let average = undefined;
         let filled = order['trade_amount'];
         let amount = order['total_amount'];
         let remaining = amount - filled;
