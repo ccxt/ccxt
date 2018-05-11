@@ -428,7 +428,7 @@ class zb (Exchange):
         if market:
             symbol = market['symbol']
         price = order['price']
-        average = order['trade_price']
+        average = None
         filled = order['trade_amount']
         amount = order['total_amount']
         remaining = amount - filled

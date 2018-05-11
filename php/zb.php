@@ -433,7 +433,7 @@ class zb extends Exchange {
         if ($market)
             $symbol = $market['symbol'];
         $price = $order['price'];
-        $average = $order['trade_price'];
+        $average = null;
         $filled = $order['trade_amount'];
         $amount = $order['total_amount'];
         $remaining = $amount - $filled;
