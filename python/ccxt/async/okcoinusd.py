@@ -183,6 +183,8 @@ class okcoinusd (Exchange):
             minAmount = markets[i]['minTradeSize']
             minPrice = math.pow(10, -precision['price'])
             active = (markets[i]['online'] != 0)
+            baseNumericId = markets[i]['baseCurrency']
+            quoteNumericId = markets[i]['quoteCurrency']
             market = self.extend(self.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
@@ -190,6 +192,8 @@ class okcoinusd (Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'baseNumericId': baseNumericId,
+                'quoteNumericId': quoteNumericId,
                 'info': markets[i],
                 'type': 'spot',
                 'spot': True,
