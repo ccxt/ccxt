@@ -490,7 +490,7 @@ module.exports = class gdax extends Exchange {
 
     feeToPrecision (currency, fee) {
         let cost = parseFloat (fee);
-        return cost.toFixed (this.currencies[currency].precision);
+        return cost.toFixed (this.currencies[currency]['precision']);
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
