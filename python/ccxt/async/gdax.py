@@ -465,7 +465,7 @@ class gdax (Exchange):
 
     def fee_to_precision(self, currency, fee):
         cost = float(fee)
-        return('{:.' + str(self.currencies[currency].precision) + 'f}').format(cost)
+        return('{:.' + str(self.currencies[currency]['precision']) + 'f}').format(cost)
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]
