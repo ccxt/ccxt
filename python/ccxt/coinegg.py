@@ -158,10 +158,13 @@ class coinegg (Exchange):
                 '404': 'IP restriction does not request the resource',
                 '405': 'Currency transactions are temporarily closed',
             },
+            'options': {
+                'quoteIds': ['btc', 'eth', 'usc'],
+            },
         })
 
     def fetch_markets(self):
-        quoteIds = ['btc', 'usc']
+        quoteIds = self.options['quoteIds']
         result = []
         for b in range(0, len(quoteIds)):
             quoteId = quoteIds[b]
