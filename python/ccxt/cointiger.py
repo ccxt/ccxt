@@ -193,7 +193,7 @@ class cointiger (huobipro):
                 raise ExchangeError(self.id + ' fetchOrderBook() returned empty response: ' + self.json(response))
             orderbook = data['tick']
             timestamp = data['ts']
-            return self.parse_order_book(orderbook, timestamp)
+            return self.parse_order_book(orderbook, timestamp, 'buys')
         raise ExchangeError(self.id + ' fetchOrderBook() returned unrecognized response: ' + self.json(response))
 
     def fetch_ticker(self, symbol, params={}):

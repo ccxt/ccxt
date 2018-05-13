@@ -185,7 +185,7 @@ class cointiger extends huobipro {
             }
             $orderbook = $data['tick'];
             $timestamp = $data['ts'];
-            return $this->parse_order_book($orderbook, $timestamp);
+            return $this->parse_order_book($orderbook, $timestamp, 'buys');
         }
         throw new ExchangeError ($this->id . ' fetchOrderBook() returned unrecognized $response => ' . $this->json ($response));
     }
