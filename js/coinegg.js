@@ -141,11 +141,14 @@ module.exports = class coinegg extends Exchange {
                 '404': 'IP restriction does not request the resource',
                 '405': 'Currency transactions are temporarily closed',
             },
+            'options': {
+                'quoteIds': [ 'btc', 'eth', 'usc' ],
+            },
         });
     }
 
     async fetchMarkets () {
-        let quoteIds = [ 'btc', 'usc' ];
+        let quoteIds = this.options['quoteIds'];
         let result = [];
         for (let b = 0; b < quoteIds.length; b++) {
             let quoteId = quoteIds[b];
