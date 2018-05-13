@@ -69,6 +69,7 @@ class coinone extends Exchange {
                 'ETH/KRW' => array ( 'id' => 'eth', 'symbol' => 'ETH/KRW', 'base' => 'ETH', 'quote' => 'KRW', 'baseId' => 'eth', 'quoteId' => 'krw' ),
                 'IOTA/KRW' => array ( 'id' => 'iota', 'symbol' => 'IOTA/KRW', 'base' => 'IOTA', 'quote' => 'KRW', 'baseId' => 'iota', 'quoteId' => 'krw' ),
                 'LTC/KRW' => array ( 'id' => 'ltc', 'symbol' => 'LTC/KRW', 'base' => 'LTC', 'quote' => 'KRW', 'baseId' => 'ltc', 'quoteId' => 'krw' ),
+                'OMG/KRW' => array ( 'id' => 'omg', 'symbol' => 'OMG/KRW', 'base' => 'OMG', 'quote' => 'KRW', 'baseId' => 'omg', 'quoteId' => 'krw' ),
                 'QTUM/KRW' => array ( 'id' => 'qtum', 'symbol' => 'QTUM/KRW', 'base' => 'QTUM', 'quote' => 'KRW', 'baseId' => 'qtum', 'quoteId' => 'krw' ),
                 'XRP/KRW' => array ( 'id' => 'xrp', 'symbol' => 'XRP/KRW', 'base' => 'XRP', 'quote' => 'KRW', 'baseId' => 'xrp', 'quoteId' => 'krw' ),
             ),
