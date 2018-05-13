@@ -491,7 +491,7 @@ class gdax extends Exchange {
 
     public function fee_to_precision ($currency, $fee) {
         $cost = floatval ($fee);
-        return sprintf ('%.' . $this->currencies[$currency].precision . 'f', $cost);
+        return sprintf ('%.' . $this->currencies[$currency]['precision'] . 'f', $cost);
     }
 
     public function calculate_fee ($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
