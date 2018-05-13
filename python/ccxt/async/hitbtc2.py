@@ -1033,7 +1033,7 @@ class hitbtc2 (hitbtc):
         self.check_address(address)
         tag = self.safe_string(response, 'paymentId')
         return {
-            'currency': currency,
+            'currency': currency.code,
             'address': address,
             'tag': tag,
             'status': 'ok',
