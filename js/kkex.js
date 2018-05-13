@@ -42,12 +42,12 @@ module.exports = class kkex extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/12462602/39745941-70adc518-52db-11e8-8e21-94778cb3c7ca.jpg',
                 'api': {
-                    'public': 'https://kkex.vip/api/v1',
-                    'private': 'https://kkex.vip/api/v2',
+                    'public': 'http://kkex.test:8019/api/v1',
+                    'private': 'http://kkex.test:8019/api/v2',
                 },
-                'www': 'https://kkex.vip',
+                'www': 'http://kkex.test:8019',
                 'doc': [
-                    'https://kkex.vip/api_wiki/cn/',
+                    'http://kkex.test:8019/api_wiki/cn/',
                 ],
                 'fees': 'https://intercom.help/kkex/fee',
             },
@@ -267,6 +267,9 @@ module.exports = class kkex extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
+        if (!since) {
+            since = this.milliseconds () - 1000 * 60 * 5;
+        }
         let response = await this.publicGetTrades (this.extend ({
             'symbol': market['id'],
             'since': since,
@@ -296,6 +299,12 @@ module.exports = class kkex extends Exchange {
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
+        if (!limit) {
+            limit = 5;
+        }
+        if (!since) {
+            since = this.milliseconds () - 1000 * 60;
+        }
         let response = await this.publicGetKline (this.extend ({
             'symbol': market['id'],
             'type': this.timeframes[timeframe],
@@ -316,11 +325,27 @@ module.exports = class kkex extends Exchange {
         let timestamp = undefined;
         let iso8601 = undefined;
         if ('datetime' in order) {
-            timestamp = this.parse8601 (order['datetime']);
+            timestamp = order['datetime'];
+            iso8601 = this.iso8601 (timestamp);
+        } else if ('create_date' in order) {
+            timestamp = order['create_date'];
             iso8601 = this.iso8601 (timestamp);
         }
+        let order_id = undefined;
+        let amount = undefined;
+        let keys = Object.keys (order);
+        if (this.inArray ('order_id', keys)) {
+            order_id = order['order_id'];
+        } else if (this.inArray ('id', keys)) {
+            order_id = order['id'];
+        }
+        if (this.inArray ('amount', keys)) {
+            amount = order['amount'];
+        } else if (this.inArray ('number', keys)) {
+            amount = order['number'];
+        }
         return {
-            'id': order['order_id'] || order['id'],
+            'id': parseInt (order_id),
             'datetime': iso8601,
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
@@ -330,7 +355,7 @@ module.exports = class kkex extends Exchange {
             'side': side,
             'price': order['price'],
             'cost': undefined,
-            'amount': order['number'],
+            'amount': amount,
             'filled': undefined,
             'remaining': undefined,
             'trades': undefined,
@@ -386,6 +411,12 @@ module.exports = class kkex extends Exchange {
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
+        if (!limit) {
+            limit = 20;
+        }
+        if (!since) {
+            since = this.milliseconds () - 1000 * 60 * 60;
+        }
         let response = await this.privatePostOrderHistory (this.extend ({
             'symbol': market['id'],
             'status': 0,
@@ -398,6 +429,12 @@ module.exports = class kkex extends Exchange {
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
+        if (!limit) {
+            limit = 20;
+        }
+        if (!since) {
+            since = this.milliseconds () - 1000 * 60 * 60;
+        }
         let response = await this.privatePostOrderHistory (this.extend ({
             'symbol': market['id'],
             'status': 1,
