@@ -184,7 +184,7 @@ module.exports = class cointiger extends huobipro {
             }
             let orderbook = data['tick'];
             let timestamp = data['ts'];
-            return this.parseOrderBook (orderbook, timestamp);
+            return this.parseOrderBook (orderbook, timestamp, 'buys');
         }
         throw new ExchangeError (this.id + ' fetchOrderBook() returned unrecognized response: ' + this.json (response));
     }
