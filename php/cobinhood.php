@@ -563,11 +563,11 @@ class cobinhood extends Exchange {
             throw new ExchangeError ($this->id . ' ' . $body);
         }
         $response = json_decode ($body, $as_associative_array = true);
-        $error_code = $this->safe_value($response['error'], 'error_code');
+        $errorCode = $this->safe_value($response['error'], 'error_code');
         $feedback = $this->id . ' ' . $this->json ($response);
         $exceptions = $this->exceptions;
-        if (is_array ($exceptions) && array_key_exists ($error_code, $exceptions)) {
-            throw new $exceptions[$code] ($feedback);
+        if (is_array ($exceptions) && array_key_exists ($errorCode, $exceptions)) {
+            throw new $exceptions[$errorCode] ($feedback);
         }
         throw new ExchangeError ($feedback);
     }

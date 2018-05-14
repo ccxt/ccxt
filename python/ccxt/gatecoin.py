@@ -4,10 +4,19 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import hashlib
 import math
+import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 
 
@@ -200,6 +209,9 @@ class gatecoin (Exchange):
                 'SLT': 'SALT',
                 'TRA': 'TRAC',
                 'WGS': 'WINGS',
+            },
+            'exceptions': {
+                '1005': InsufficientFunds,
             },
         })
 
@@ -617,3 +629,19 @@ class gatecoin (Exchange):
             'status': 'ok',
             'info': response,
         }
+
+    def handle_errors(self, code, reason, url, method, headers, body):
+        if not isinstance(body, basestring):
+            return  # fallback to default error handler
+        if len(body) < 2:
+            return  # fallback to default error handler
+        if body[0] == '{':
+            response = json.loads(body)
+            if 'responseStatus' in response:
+                errorCode = self.safe_string(response['responseStatus'], 'errorCode')
+                if errorCode is not None:
+                    feedback = self.id + ' ' + body
+                    exceptions = self.exceptions
+                    if errorCode in exceptions:
+                        raise exceptions[errorCode](feedback)
+                    raise ExchangeError(feedback)

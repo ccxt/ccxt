@@ -531,9 +531,9 @@ class cobinhood (Exchange):
         if body[0] != '{':
             raise ExchangeError(self.id + ' ' + body)
         response = json.loads(body)
-        error_code = self.safe_value(response['error'], 'error_code')
+        errorCode = self.safe_value(response['error'], 'error_code')
         feedback = self.id + ' ' + self.json(response)
         exceptions = self.exceptions
-        if error_code in exceptions:
-            raise exceptions[code](feedback)
+        if errorCode in exceptions:
+            raise exceptions[errorCode](feedback)
         raise ExchangeError(feedback)
