@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -16,18 +16,14 @@ module.exports = class kkex extends Exchange {
             'version': 'v1',
             'has': {
                 'CORS': false,
-                'publicAPI': false,
                 'fetchBalance': true,
-                'fetchCurrencies': false,
-                'fetchDepositAddress': false,
-                'fetchFundingFees': false,
                 'fetchTickers': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'createMarketOrder': true,
-                'withdraw': false,
+                'fetchOrder': true,
             },
             'timeframes': {
                 '1m': '1min',
@@ -72,6 +68,7 @@ module.exports = class kkex extends Exchange {
                         'cancel_order',
                         'order_history',
                         'userinfo',
+                        'order_info',
                     ],
                 },
             },
@@ -294,6 +291,21 @@ module.exports = class kkex extends Exchange {
             result[uppercase] = account;
         }
         return this.parseBalance (result);
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        if (!symbol)
+            throw new ExchangeError (this.id + ' fetchOrder requires a symbol parameter');
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'order_id': id,
+            'symbol': market['id'],
+        };
+        let response = await this.privatePostOrderInfo (this.extend (request, params));
+        if (response['result'])
+            return this.parseOrder (response['order']);
+        throw new OrderNotFound (this.id + ' order ' + id + ' not found');
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
