@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, InsufficientFunds } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -559,7 +559,10 @@ module.exports = class cobinhood extends Exchange {
             throw new ExchangeError (this.id + ' ' + body);
         }
         let response = JSON.parse (body);
-        let message = this.safeValue (response['error'], 'error_code');
-        throw new ExchangeError (this.id + ' ' + message);
+        let error_code = this.safeValue (response['error'], 'error_code');
+        if (error_code === 'insufficient_balance') {
+            throw new InsufficientFunds (this.id + ' ' + error_code);
+        }
+        throw new ExchangeError (this.id + ' ' + error_code);
     }
 };
