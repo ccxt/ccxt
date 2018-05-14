@@ -32,6 +32,7 @@ Current feature list:
 - 可选的用于跨交易所或跨币种分析和套利的标准化数据
 - 一个非常容易集成的开箱即用的统一API
 - 可在Node 7.6+，Python 2和3，PHP 5.3+ 及Web浏览器中使用    
+
 [ccxt on GitHub](https://github.com/ccxt/ccxt) | [安装](#install) | [使用](#usage) | [指南](https://github.com/ccxt/ccxt/wiki) | [范例](https://github.com/ccxt/ccxt/tree/master/examples) | [更新日志](https://github.com/ccxt/ccxt/blob/master/CHANGELOG.md) | [贡献](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md)
 
 [ccxt on GitHub](https://github.com/ccxt/ccxt) | [Install](#install) | [Usage](#usage) | [Manual](https://github.com/ccxt/ccxt/wiki) | [Examples](https://github.com/ccxt/ccxt/tree/master/examples) | [Changelog](https://github.com/ccxt/ccxt/blob/master/CHANGELOG.md) | [Contributing](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md)
@@ -169,7 +170,7 @@ The library is under [MIT license](https://github.com/ccxt/ccxt/blob/master/LICE
 ## Install  
 ## 安装
 
-The easiest way to install the ccxt library is to use builtin package managers:
+The easiest way to install the ccxt library is to use builtin package managers:    
 安装ccxt库的最简单方法是使用内置包管理器：
 
 - [ccxt in **NPM**](http://npmjs.com/package/ccxt) (JavaScript / Node v7.6+)
@@ -211,15 +212,15 @@ console.log (ccxt.exchanges) // print all available exchanges
 ```
 
 ### JavaScript (for use with the `<script>` tag):  
-JavaScript（与<script>标签一起使用）：  
-包含所有功能于一身的浏览器软件包（包括依赖项），从unpkg CDN提供，这是一个快速的全球内容交付网络，适用于NPM上的所有内容。
+JavaScript（与<script>标签一起使用）：    
+包含所有功能于一身的浏览器软件包（包括依赖项），从unpkg CDN提供，这是一个快速的全球内容交付网络，适用于NPM上的所有内容。    
 [All-in-one browser bundle](https://unpkg.com/ccxt) (dependencies included), served from [unpkg CDN](https://unpkg.com/), which is a fast, global content delivery network for everything on NPM.
 
 ```HTML
 <script type="text/javascript" src="https://unpkg.com/ccxt"></script>
 ```
 
-Creates a global `ccxt` object:
+Creates a global `ccxt` object:    
 创建一个全局的`ccxt`对象： 
 
 ```JavaScript
@@ -251,7 +252,9 @@ import ccxt.async as ccxt # link against the asynchronous version of ccxt
 The ccxt library in PHP: [**`ccxt.php`**](https://raw.githubusercontent.com/ccxt/ccxt/master/ccxt.php)
 
 It requires common PHP modules:    
+
 PHP版的[**CCXT库**](https://raw.githubusercontent.com/ccxt/ccxt/master/ccxt.php)    
+
 它需要以下PHP模块：
 
 - cURL
@@ -267,7 +270,7 @@ var_dump (\ccxt\Exchange::$exchanges); // print a list of all available exchange
 ## Documentation  
 ## 文档
 
-Read the [Manual](https://github.com/ccxt/ccxt/wiki) for more details.
+Read the [Manual](https://github.com/ccxt/ccxt/wiki) for more details.    
 阅读[操作手册](https://github.com/ccxt/ccxt/wiki)以获得更多详细信息。
 
 ## Usage  
