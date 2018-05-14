@@ -275,18 +275,35 @@ Private APIs allow the following:
 - get ledger history
 - transfer funds between accounts
 - use merchant services
+对于通过私有API进行交易，您需要从交易所获取API密钥。它通常意味着在交易所注册并使用您的账户创建API密钥。大多数交易所需要个人信息或身份证明 某种验证也可能是必要的。如果你想交易，你需要注册自己，这个库不会为你创建账户或API密钥。一些交换API暴露了从代码本身中注册帐户的接口方法，但大多数交换都没有。您必须注册并使用其网站创建API密钥。
+
+私有API允许以下内容：
+
+- 管理个人帐户信息
+- 查询账户余额
+- 通过市价单和限价单进行交易
+- 存入和提取法币和加密货币
+- 查询个人订单
+- 获取交易明细/历史
+- 在账户之间转移资金
+- 使用其它交易所服务
+
 
 This library implements full public and private REST APIs for all exchanges. WebSocket and FIX implementations in JavaScript, PHP, Python and other languages coming soon.
+本仓库实现了所有交易所的公共和私有REST API。JavaScript，PHP，Python及其他语言的WebSocket实现和FIX将尽快推出。
 
 The ccxt library supports both camelcase notation (preferred in JavaScript) and underscore notation (preferred in Python and PHP), therefore all methods can be called in either notation or coding style in any language.
+CCXT库同时支持驼峰命名法(常用于JavaScript)和下划线命名法(常用于Python和PHP)，因此在任意一种语言中，两种命名法/编码风格均可调用所有方法。
 
 ```
 // both of these notations work in JavaScript/Python/PHP
+// 以下两种格式在JavaScript/Python/PHP下均有效
 exchange.methodName ()  // camelcase pseudocode
 exchange.method_name () // underscore pseudocode
 ```
 
 Read the [Manual](https://github.com/ccxt/ccxt/wiki) for more details.
+阅读 [指南](https://github.com/ccxt/ccxt/wiki)以获得更多详细信息。
 
 ### JavaScript
 
@@ -314,14 +331,18 @@ const ccxt = require ('ccxt');
     console.log (okcoinusd.id, await okcoinusd.fetchBalance ())
 
     // sell 1 BTC/USD for market price, sell a bitcoin for dollars immediately
-    console.log (okcoinusd.id, await okcoinusd.createMarketSellOrder ('BTC/USD', 1))
+    // 以市价卖出 1BTC，并立马得到1比特币等值的欧元
+    console.log (okcoinusd.id, await okcoinusd.createMarketSellOrder ('BTC/USD', 1))
 
     // buy 1 BTC/USD for $2500, you pay $2500 and receive ฿1 when the order is closed
+    // 以 $2500 购买 BTC/USD, 当该订单成交时，你会付出 €2500 美金并获得 1BTC 
     console.log (okcoinusd.id, await okcoinusd.createLimitBuyOrder ('BTC/USD', 1, 2500.00))
 
     // pass/redefine custom exchange-specific order params: type, amount, price or whatever
-    // use a custom order type
-    bitfinex.createLimitSellOrder ('BTC/USD', 1, 10, { 'type': 'trailing-stop' })
+    // 传递/重定义特定交易所的订单自定义参数：类型，数量，价格 等等
+    // use a custom order type
+    // 使用一个交易所私有的订单类型
+    bitfinex.createLimitSellOrder ('BTC/USD', 1, 10, { 'type': 'trailing-stop' })
 }) ();
 ```
 
@@ -353,12 +374,15 @@ print(huobi.fetch_trades('LTC/CNY'))
 print(exmo.fetch_balance())
 
 # sell one ฿ for market price and receive $ right now
+# 以市价卖出 1BTC，并立马得到美元现金
 print(exmo.id, exmo.create_market_sell_order('BTC/USD', 1))
 
 # limit buy BTC/EUR, you pay €2500 and receive ฿1  when the order is closed
+# 限价买入 BTC/EUR, 当该订单成交时，你会以 €2500 欧元的价格收到 1BTC 
 print(exmo.id, exmo.create_limit_buy_order('BTC/EUR', 1, 2500.00))
 
 # pass/redefine custom exchange-specific order params: type, amount, price, flags, etc...
+# 传递/重定义特定交易所的订单自定义参数：类型，数量，价格，flags 等等
 kraken.create_market_buy_order('BTC/USD', 1, {'trading_agreement': 'agree'})
 ```
 
@@ -389,19 +413,24 @@ var_dump ($zaif->fetch_ticker ('BTC/JPY'));
 var_dump ($zaif->fetch_balance ());
 
 // sell 1 BTC/JPY for market price, you pay ¥ and receive ฿ immediately
+// 以市价卖出 1 BTC/JPY，你将会立即卖出比特币并收到日元
 var_dump ($zaif->id, $zaif->create_market_sell_order ('BTC/JPY', 1));
 
 // buy BTC/JPY, you receive ฿1 for ¥285000 when the order closes
+// 买入 BTC/JPY, 当该订单成交时，你会以 ¥285000 日元的价格收到 1BTC 
 var_dump ($zaif->id, $zaif->create_limit_buy_order ('BTC/JPY', 1, 285000));
 
 // set a custom user-defined id to your order
+// 为你的 order / 订单 设置一个用户自定义的 id
 $hitbtc->create_order ('BTC/USD', 'limit', 'buy', 1, 3000, array ('clientOrderId' => '123'));
 ```
 
 ## Contributing
 
 Please read the [CONTRIBUTING](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) document before making changes that you would like adopted in the code. Also, read the [Manual](https://github.com/ccxt/ccxt/wiki) for more details.
-Please read the [CONTRIBUTING](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) document before making changes that you would like adopted in the code. Also, read the [Manual](https://github.com/ccxt/ccxt/wiki) for more details.
+
+在您做出一些修改并希望合并进代码之前，请阅读 [贡献](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) 文档。 另外，您可通过阅读[指南](https://github.com/ccxt/ccxt/wiki) 来获取更多详细信息.
+
 
 ## Support Developer Team
 ## 支持开发团队
