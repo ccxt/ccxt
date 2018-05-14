@@ -350,13 +350,13 @@ module.exports = class kkex extends Exchange {
             order_id = order['id'];
         }
         if (this.inArray ('amount', keys)) {
-            amount = order['amount'];
+            amount = this.safeFloat (order, 'amount');
         }
         if (this.inArray ('create_date', keys)) {
             timestamp = order['create_date'];
             iso8601 = this.iso8601 (timestamp);
         }
-        let filled = order['deal_amount'];
+        let filled = this.safeFloat (order, 'deal_amount');
         let average = this.safeFloat (order, 'avg_price');
         let remaining = amount - filled;
         average = this.safeFloat (order, 'price_avg', average);
