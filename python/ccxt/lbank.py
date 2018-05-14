@@ -169,7 +169,7 @@ class lbank (Exchange):
             'percentage': None,
             'average': None,
             'baseVolume': self.safe_float(ticker, 'vol'),
-            'quoteVolume': None,
+            'quoteVolume': self.safe_float(ticker, 'turnover'),
             'info': info,
         }
 
