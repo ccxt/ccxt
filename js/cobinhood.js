@@ -562,11 +562,11 @@ module.exports = class cobinhood extends Exchange {
             throw new ExchangeError (this.id + ' ' + body);
         }
         let response = JSON.parse (body);
-        let error_code = this.safeValue (response['error'], 'error_code');
+        let errorCode = this.safeValue (response['error'], 'error_code');
         const feedback = this.id + ' ' + this.json (response);
         const exceptions = this.exceptions;
-        if (error_code in exceptions) {
-            throw new exceptions[code] (feedback);
+        if (errorCode in exceptions) {
+            throw new exceptions[errorCode] (feedback);
         }
         throw new ExchangeError (feedback);
     }
