@@ -126,6 +126,9 @@ module.exports = class cobinhood extends Exchange {
                 'amount': 8,
                 'price': 8,
             },
+            'exceptions': {
+                'insufficient_balance': InsufficientFunds,
+            },
         });
     }
 
@@ -560,9 +563,11 @@ module.exports = class cobinhood extends Exchange {
         }
         let response = JSON.parse (body);
         let error_code = this.safeValue (response['error'], 'error_code');
-        if (error_code === 'insufficient_balance') {
-            throw new InsufficientFunds (this.id + ' ' + error_code);
+        const feedback = this.id + ' ' + this.json (response);
+        const exceptions = this.exceptions;
+        if (error_code in exceptions) {
+            throw new exceptions[code] (feedback);
         }
-        throw new ExchangeError (this.id + ' ' + error_code);
+        throw new ExchangeError (feedback);
     }
 };
