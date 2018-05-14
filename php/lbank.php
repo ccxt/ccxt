@@ -168,7 +168,7 @@ class lbank extends Exchange {
             'percentage' => null,
             'average' => null,
             'baseVolume' => $this->safe_float($ticker, 'vol'),
-            'quoteVolume' => null,
+            'quoteVolume' => $this->safe_float($ticker, 'turnover'),
             'info' => $info,
         );
     }

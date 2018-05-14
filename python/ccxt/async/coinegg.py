@@ -257,7 +257,7 @@ class coinegg (Exchange):
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
-        quoteIds = ['btc', 'usc']
+        quoteIds = self.options['quoteIds']
         result = {}
         for b in range(0, len(quoteIds)):
             quoteId = quoteIds[b]
