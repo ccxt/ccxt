@@ -1,11 +1,20 @@
 # CCXT – CryptoCurrency eXchange Trading Library
+
 CCXTCN 是CCXT文档中文翻译项目，开始于2018.05.14，欢迎加入我们一起完成这个项目，QQ群：150134435
 
 [![Build Status](https://travis-ci.org/ccxt/ccxt.svg?branch=master)](https://travis-ci.org/ccxt/ccxt) [![npm](https://img.shields.io/npm/v/ccxt.svg)](https://npmjs.com/package/ccxt) [![PyPI](https://img.shields.io/pypi/v/ccxt.svg)](https://pypi.python.org/pypi/ccxt) [![NPM Downloads](https://img.shields.io/npm/dm/ccxt.svg)](https://www.npmjs.com/package/ccxt) [![NSP Status](https://nodesecurity.io/orgs/ccxt/projects/856d3088-8b46-4515-9324-6b7cd2470522/badge)](https://nodesecurity.io/orgs/ccxt/projects/856d3088-8b46-4515-9324-6b7cd2470522) [![Gitter](https://badges.gitter.im/ccxt-dev/ccxt.svg)](https://gitter.im/ccxt-dev/ccxt?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge) [![Supported Exchanges](https://img.shields.io/badge/exchanges-115-blue.svg)](https://github.com/ccxt/ccxt/wiki/Exchange-Markets) [![Open Collective](https://opencollective.com/ccxt/backers/badge.svg)](https://opencollective.com/ccxt)
 
 A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
 
+一个用于加密货币交易的 JavaScript / Python / PHP 库，支持诸多比特币、以太坊及山寨币交易市场以及交易APIs.
+
+
 The **CCXT** library is used to connect and trade with cryptocurrency / altcoin exchanges and payment processing services worldwide. It provides quick access to market data for storage, analysis, visualization, indicator development, algorithmic trading, strategy backtesting, bot programming, webshop integration and related software engineering.
+
+**CCXT** 库用于世界各地的加密货币/山寨币交易所的连接和交易，以及转账支付处理服务。它提供
+
+The **CCXT** library is used to connect and trade with cryptocurrency / altcoin exchanges and payment processing services worldwide. It provides quick access to market data for storage, analysis, visualization, indicator development, algorithmic trading, strategy backtesting, bot programming, webshop integration and related software engineering.
+
 
 It is intended to be used by **coders, developers, technically-skilled traders, data-scientists and financial analysts** for building trading algorithms on top of it.
 
@@ -392,16 +401,22 @@ $hitbtc->create_order ('BTC/USD', 'limit', 'buy', 1, 3000, array ('clientOrderId
 ## Contributing
 
 Please read the [CONTRIBUTING](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) document before making changes that you would like adopted in the code. Also, read the [Manual](https://github.com/ccxt/ccxt/wiki) for more details.
+Please read the [CONTRIBUTING](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) document before making changes that you would like adopted in the code. Also, read the [Manual](https://github.com/ccxt/ccxt/wiki) for more details.
 
 ## Support Developer Team
+## 支持开发团队
 
 We are investing a significant amount of time into the development of this library. If CCXT made your life easier and you like it and want to help us improve it further or if you want to speed up new features and exchanges, please, support us with a tip. We appreciate all contributions!
+我们对此仓库的开发正在投入大量的时间。如果CCXT使得您的生活更加简单，并且您喜欢它，并希望帮助我们进一步改进它，或者如果您想加快开发新功能和交易所，请通过小费支持我们。我们感谢所有的支持！
 
 ### Sponsors
+### 赞助商
 
 Support this project by becoming a sponsor. Your logo will show up here with a link to your website.
+通过成为赞助商支持本项目，您的logo将会展现在这里，并附带您的网站链接。
 
 [[Become a sponsor](https://opencollective.com/ccxt#sponsor)]
+[[成为赞助商](https://opencollective.com/ccxt#sponsor)]
 
 <a href="https://opencollective.com/ccxt/sponsor/0/website" target="_blank"><img src="https://opencollective.com/ccxt/sponsor/0/avatar.svg"></a>
 <a href="https://opencollective.com/ccxt/sponsor/1/website" target="_blank"><img src="https://opencollective.com/ccxt/sponsor/1/avatar.svg"></a>
@@ -415,13 +430,15 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 <a href="https://opencollective.com/ccxt/sponsor/9/website" target="_blank"><img src="https://opencollective.com/ccxt/sponsor/9/avatar.svg"></a>
 
 ### Backers
+### 支持者
 
 Thank you to all our backers! [[Become a backer](https://opencollective.com/ccxt#backer)]
+谢谢我们所有的支持者! [[成为支持者](https://opencollective.com/ccxt#backer)]
 
 <a href="https://opencollective.com/ccxt#backers" target="_blank"><img src="https://opencollective.com/ccxt/backers.svg?width=890"></a>
 
 ### Crypto
-
+### 加密地址
 ```
 ETH 0xa7c2b18b7c8b86984560cad3b1bc3224b388ded0
 BTC 33RmVRfhK2WZVQR1R83h2e9yXoqRNDvJva
@@ -430,3 +447,4 @@ LTC LbT8mkAqQBphc4yxLXEDgYDfEax74et3bP
 ```
 
 Thank you!
+谢谢！
