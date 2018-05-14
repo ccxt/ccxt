@@ -3073,6 +3073,23 @@ A typical structure of the ``.has`` property usually contains the following flag
 
 The meanings of boolean ``true`` and ``false`` are obvious. A string value of ``emulated`` means that particular method is missing in the exchange API and ccxt will workaround that where possible by adding a caching layer, the ``.orders`` cache. The next section describes the inner workings of the ``.orders`` cache, one has to understand it to do order management with ccxt effectively.
 
+Querying Multiple Orders And Trades
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+All methods returning lists of trades and lists of orders, accept the second ``since`` argument and the third ``limit`` argument:
+
+-  ``fetchTrades`` (public)
+-  ``fetchMyTrades`` (private)
+-  ``fetchOrders``
+-  ``fetchOpenOrders``
+-  ``fetchClosedOrders``
+
+The second argument ``since`` reduces the array by timestamp, the third ``limit`` argument reduces by number (count) of returned items.
+
+If the user does not specify ``since``, the ``fetchTrades/fetchOrders`` method will return the default set from the exchange. The default set is exchange-specific, some exchanges will return trades or recent orders starting from the date of listing a pair on the exchange, other exchanges will return a reduced set of trades or orders (like, last 24 hours, last 100 trades, first 100 orders, etc). If the user wants precise control over the timeframe, the user is responsible for specifying the ``since`` argument.
+
+**NOTE: not all exchanges provide means for filtering the lists of trades and orders by starting time, so, the support for ``since`` and ``limit`` is exchange-specific. However, most exchanges do provide at least some alternative for "pagination" and "scrolling" which can be overrided with extra ``params`` argument.**
+
 ``.orders`` cache
 ^^^^^^^^^^^^^^^^^
 
@@ -3177,21 +3194,6 @@ Below are examples of using the fetchOrder method to get order info from an auth
         $order = $exchange->fetch_order ($id);
         var_dump ($order);
     }
-
-Querying Multiple Orders
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-All methods returning lists of trades and lists of orders, accept the second ``since`` argument and the third ``limit`` argument:
-
--  ``fetchTrades`` (public)
--  ``fetchMyTrades`` (private)
--  ``fetchOrders``
--  ``fetchOpenOrders``
--  ``fetchClosedOrders``
-
-The second argument ``since`` reduces the array by timestamp, the third ``limit`` argument reduces by number (count) of returned items.
-
-If the user does not specify ``since``, the ``fetchTrades/fetchOrders`` method will return the default set from the exchange. The default set is exchange-specific, some exchanges will return trades or recent orders starting from the date of listing a pair on the exchange, other exchanges will return a reduced set of trades or orders (like, last 24 hours, last 100 trades, first 100 orders, etc). If the user wants precise control over the timeframe, the user is responsible for specifying the ``since`` argument.
 
 All Orders
 ^^^^^^^^^^
