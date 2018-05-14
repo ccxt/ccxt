@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, InvalidAddress } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, InvalidAddress, InsufficientFunds } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -653,5 +653,22 @@ module.exports = class gatecoin extends Exchange {
             'status': 'ok',
             'info': response,
         };
+    }
+
+    handleErrors (code, reason, url, method, headers, body) {
+        if (body.length > 0) {
+            if (body[0] === '{') {
+                let response = JSON.parse (body);
+                if ('responseStatus' in response) {
+                    let errorCode = this.safeString (response.responseStatus, 'errorCode');
+                    if (typeof errorCode !== 'undefined') {
+                        if (errorCode === '1005') {
+                            let message = this.safeString (response.responseStatus, 'message', '(none)');
+                            throw new InsufficientFunds (message);
+                        }
+                    }
+                }
+            }
+        }
     }
 };
