@@ -322,8 +322,8 @@ module.exports = class kkex extends Exchange {
         if (typeof side === 'undefined') {
             side = this.safeString (order, 'type');
         }
-        let timestamp = this.milliseconds ();
-        let iso8601 = this.iso8601 (timestamp);
+        let timestamp = undefined;
+        let iso8601 = undefined;
         let order_id = undefined;
         let amount = undefined;
         let keys = Object.keys (order);
@@ -335,6 +335,15 @@ module.exports = class kkex extends Exchange {
         if (this.inArray ('amount', keys)) {
             amount = order['amount'];
         }
+        if (this.inArray ('create_date', keys)) {
+            timestamp = order['create_date'];
+            iso8601 = this.iso8601 (timestamp);
+        }
+        let filled = order['deal_amount'];
+        let average = this.safeFloat (order, 'avg_price');
+        let remaining = amount - filled;
+        average = this.safeFloat (order, 'price_avg', average);
+        let cost = average * filled;
         return {
             'id': parseInt (order_id),
             'datetime': iso8601,
@@ -345,11 +354,10 @@ module.exports = class kkex extends Exchange {
             'type': 'limit',
             'side': side,
             'price': order['price'],
-            'cost': undefined,
+            'cost': cost,
             'amount': amount,
-            'filled': undefined,
-            'remaining': undefined,
-            'trades': undefined,
+            'filled': filled,
+            'remaining': remaining,
             'fee': undefined,
             'info': order,
         };
@@ -379,15 +387,27 @@ module.exports = class kkex extends Exchange {
         if (!response['result']) {
             throw new ExchangeError (response);
         }
-        let id = response['order_id'];
-        let order = this.parseOrder ({
-            'id': id,
-            'price': price,
-            'amount': amount,
+        let order_id = response['order_id'];
+        let timestamp = this.milliseconds ();
+        let iso8601 = this.iso8601 (timestamp);
+        return {
+            'id': parseInt (order_id),
+            'datetime': iso8601,
+            'timestamp': timestamp,
+            'lastTradeTimestamp': undefined,
+            'status': 'open',
+            'symbol': symbol,
+            'type': 'limit',
             'side': side,
-        }, market);
-        this.orders[id] = order;
-        return order;
+            'price': price,
+            'cost': undefined,
+            'amount': amount,
+            'filled': undefined,
+            'remaining': undefined,
+            'trades': undefined,
+            'fee': undefined,
+            'info': response,
+        };
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
