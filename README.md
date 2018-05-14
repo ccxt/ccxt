@@ -202,6 +202,7 @@ console.log (ccxt.exchanges) // print all available exchanges
 ```
 
 Creates a global `ccxt` object:
+创建一个全局的`ccxt`对象：
 
 ```JavaScript
 console.log (ccxt.exchanges) // print all available exchanges
@@ -210,6 +211,7 @@ console.log (ccxt.exchanges) // print all available exchanges
 ### Python
 
 [ccxt in **PyPI**](https://pypi.python.org/pypi/ccxt)
+[**PyPI中的CCXT**](https://pypi.python.org/pypi/ccxt)
 
 ```shell
 pip install ccxt
@@ -220,7 +222,8 @@ import ccxt
 print(ccxt.exchanges) # print a list of all available exchange classes
 ```
 
-The library supports concurrent asynchronous mode with asyncio and async/await in Python 3.5.3+
+The library supports concurrent asynchronous mode with asyncio and async/await in Python 3.5.3+    
+本仓库支持在Python 3.5.3+中使用asyncio和async / await进行异步并发模式
 
 ```Python
 import ccxt.async as ccxt # link against the asynchronous version of ccxt
@@ -231,6 +234,8 @@ import ccxt.async as ccxt # link against the asynchronous version of ccxt
 The ccxt library in PHP: [**`ccxt.php`**](https://raw.githubusercontent.com/ccxt/ccxt/master/ccxt.php)
 
 It requires common PHP modules:
+PHP版的[**CCXT库**](https://raw.githubusercontent.com/ccxt/ccxt/master/ccxt.php)
+它需要以下PHP模块：
 
 - cURL
 - mbstring (using UTF-8 is highly recommended)
@@ -243,12 +248,16 @@ var_dump (\ccxt\Exchange::$exchanges); // print a list of all available exchange
 ```
 
 ## Documentation
+## 文档
 
 Read the [Manual](https://github.com/ccxt/ccxt/wiki) for more details.
+阅读[操作手册](https://github.com/ccxt/ccxt/wiki)以获得更多详细信息。
 
 ## Usage
+## 使用指南
 
 ### Intro
+#### 介绍
 
 The ccxt library consists of a public part and a private part. Anyone can use the public part out-of-the-box immediately after installation. Public APIs open access to public information from all exchange markets without registering user accounts and without having API keys.
 
@@ -261,7 +270,19 @@ Public APIs include the following:
 - trade history
 - tickers
 - OHLC(V) for charting
-- other public endpoints
+- other public endpoints    
+ccxt库由公共接口部分和私有接口部分组成。任何人都可以在安装后立即使用公共部分。公共API具有获取所有交易所公开信息的权限，无需注册用户账户，也无需API密钥。  
+公共API包括以下内容：  
+
+- 市场数据
+- 交易对
+- 手续费？
+- 订单簿 / 深度数据
+- 交易历史
+- 行情 / Tickers 
+- 用以制图的OHLC（V）/ K线
+- 其他公共接口
+
 
 For trading with private APIs you need to obtain API keys from/to exchange markets. It often means registering with exchanges and creating API keys with your account. Most exchanges require personal info or identification. Some kind of verification may be necessary as well. If you want to trade you need to register yourself, this library will not create accounts or API keys for you. Some exchange APIs expose interface methods for registering an account from within the code itself, but most of exchanges don't. You have to sign up and create API keys with their websites.
 
@@ -274,8 +295,8 @@ Private APIs allow the following:
 - query personal orders
 - get ledger history
 - transfer funds between accounts
-- use merchant services
-对于通过私有API进行交易，您需要从交易所获取API密钥。它通常意味着在交易所注册并使用您的账户创建API密钥。大多数交易所需要个人信息或身份证明 某种验证也可能是必要的。如果你想交易，你需要注册自己，这个库不会为你创建账户或API密钥。一些交换API暴露了从代码本身中注册帐户的接口方法，但大多数交换都没有。您必须注册并使用其网站创建API密钥。
+- use merchant services    
+对于通过私有API进行交易，您需要从交易所获取API密钥。它通常意味着在交易所注册，并使用您的账户创建API密钥。大多数交易所需要个人信息或身份证明。某种验证材料也可能是必要的。如果你想要交易，你需要自己注册，这个库不会为你创建账户或API密钥。一些交易所API暴露了从代码本身中注册帐户的接口方法，但大多数交易所并没有。因此您必须注册并使用在网站上创建API密钥。
 
 私有API允许以下内容：
 
@@ -289,10 +310,10 @@ Private APIs allow the following:
 - 使用其它交易所服务
 
 
-This library implements full public and private REST APIs for all exchanges. WebSocket and FIX implementations in JavaScript, PHP, Python and other languages coming soon.
+This library implements full public and private REST APIs for all exchanges. WebSocket and FIX implementations in JavaScript, PHP, Python and other languages coming soon.    
 本仓库实现了所有交易所的公共和私有REST API。JavaScript，PHP，Python及其他语言的WebSocket实现和FIX将尽快推出。
 
-The ccxt library supports both camelcase notation (preferred in JavaScript) and underscore notation (preferred in Python and PHP), therefore all methods can be called in either notation or coding style in any language.
+The ccxt library supports both camelcase notation (preferred in JavaScript) and underscore notation (preferred in Python and PHP), therefore all methods can be called in either notation or coding style in any language.    
 CCXT库同时支持驼峰命名法(常用于JavaScript)和下划线命名法(常用于Python和PHP)，因此在任意一种语言中，两种命名法/编码风格均可调用所有方法。
 
 ```
@@ -302,7 +323,7 @@ exchange.methodName ()  // camelcase pseudocode
 exchange.method_name () // underscore pseudocode
 ```
 
-Read the [Manual](https://github.com/ccxt/ccxt/wiki) for more details.
+Read the [Manual](https://github.com/ccxt/ccxt/wiki) for more details.    
 阅读 [指南](https://github.com/ccxt/ccxt/wiki)以获得更多详细信息。
 
 ### JavaScript
@@ -373,15 +394,15 @@ print(huobi.fetch_trades('LTC/CNY'))
 
 print(exmo.fetch_balance())
 
-# sell one ฿ for market price and receive $ right now
+# sell one ฿ for market price and receive $ right now    
 # 以市价卖出 1BTC，并立马得到美元现金
 print(exmo.id, exmo.create_market_sell_order('BTC/USD', 1))
 
-# limit buy BTC/EUR, you pay €2500 and receive ฿1  when the order is closed
+# limit buy BTC/EUR, you pay €2500 and receive ฿1  when the order is closed    
 # 限价买入 BTC/EUR, 当该订单成交时，你会以 €2500 欧元的价格收到 1BTC 
 print(exmo.id, exmo.create_limit_buy_order('BTC/EUR', 1, 2500.00))
 
-# pass/redefine custom exchange-specific order params: type, amount, price, flags, etc...
+# pass/redefine custom exchange-specific order params: type, amount, price, flags, etc...    
 # 传递/重定义特定交易所的订单自定义参数：类型，数量，价格，flags 等等
 kraken.create_market_buy_order('BTC/USD', 1, {'trading_agreement': 'agree'})
 ```
@@ -412,7 +433,7 @@ var_dump ($zaif->fetch_ticker ('BTC/JPY'));
 
 var_dump ($zaif->fetch_balance ());
 
-// sell 1 BTC/JPY for market price, you pay ¥ and receive ฿ immediately
+// sell 1 BTC/JPY for market price, you pay ¥ and receive ฿ immediately    
 // 以市价卖出 1 BTC/JPY，你将会立即卖出比特币并收到日元
 var_dump ($zaif->id, $zaif->create_market_sell_order ('BTC/JPY', 1));
 
@@ -420,22 +441,22 @@ var_dump ($zaif->id, $zaif->create_market_sell_order ('BTC/JPY', 1));
 // 买入 BTC/JPY, 当该订单成交时，你会以 ¥285000 日元的价格收到 1BTC 
 var_dump ($zaif->id, $zaif->create_limit_buy_order ('BTC/JPY', 1, 285000));
 
-// set a custom user-defined id to your order
-// 为你的 order / 订单 设置一个用户自定义的 id
+// set a custom user-defined id to your order    
+// 为你的 order / 订单 设置一个用户自定义的 id    
 $hitbtc->create_order ('BTC/USD', 'limit', 'buy', 1, 3000, array ('clientOrderId' => '123'));
 ```
 
 ## Contributing
 
-Please read the [CONTRIBUTING](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) document before making changes that you would like adopted in the code. Also, read the [Manual](https://github.com/ccxt/ccxt/wiki) for more details.
-
+Please read the [CONTRIBUTING](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) document before making changes that you would like adopted in the code. Also, read the [Manual](https://github.com/ccxt/ccxt/wiki) for more details.      
+    
 在您做出一些修改并希望合并进代码之前，请阅读 [贡献](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) 文档。 另外，您可通过阅读[指南](https://github.com/ccxt/ccxt/wiki) 来获取更多详细信息.
 
 
 ## Support Developer Team
 ## 支持开发团队
 
-We are investing a significant amount of time into the development of this library. If CCXT made your life easier and you like it and want to help us improve it further or if you want to speed up new features and exchanges, please, support us with a tip. We appreciate all contributions!
+We are investing a significant amount of time into the development of this library. If CCXT made your life easier and you like it and want to help us improve it further or if you want to speed up new features and exchanges, please, support us with a tip. We appreciate all contributions!    
 我们对此仓库的开发正在投入大量的时间。如果CCXT使得您的生活更加简单，并且您喜欢它，并希望帮助我们进一步改进它，或者如果您想加快开发新功能和交易所，请通过小费支持我们。我们感谢所有的支持！
 
 ### Sponsors
