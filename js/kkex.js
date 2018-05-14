@@ -42,12 +42,12 @@ module.exports = class kkex extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/12462602/39745941-70adc518-52db-11e8-8e21-94778cb3c7ca.jpg',
                 'api': {
-                    'public': 'http://kkex.test:8019/api/v1',
-                    'private': 'http://kkex.test:8019/api/v2',
+                    'public': 'https://kkex.com/api/v1',
+                    'private': 'https://kkex.com/api/v2',
                 },
-                'www': 'http://kkex.test:8019',
+                'www': 'https://kkex.com',
                 'doc': [
-                    'http://kkex.test:8019/api_wiki/cn/',
+                    'https://kkex.com/api_wiki/cn/',
                 ],
                 'fees': 'https://intercom.help/kkex/fee',
             },
@@ -322,15 +322,8 @@ module.exports = class kkex extends Exchange {
         if (typeof side === 'undefined') {
             side = this.safeString (order, 'type');
         }
-        let timestamp = undefined;
-        let iso8601 = undefined;
-        if ('datetime' in order) {
-            timestamp = order['datetime'];
-            iso8601 = this.iso8601 (timestamp);
-        } else if ('create_date' in order) {
-            timestamp = order['create_date'];
-            iso8601 = this.iso8601 (timestamp);
-        }
+        let timestamp = this.milliseconds ();
+        let iso8601 = this.iso8601 (timestamp);
         let order_id = undefined;
         let amount = undefined;
         let keys = Object.keys (order);
@@ -341,8 +334,6 @@ module.exports = class kkex extends Exchange {
         }
         if (this.inArray ('amount', keys)) {
             amount = order['amount'];
-        } else if (this.inArray ('number', keys)) {
-            amount = order['number'];
         }
         return {
             'id': parseInt (order_id),
@@ -392,7 +383,7 @@ module.exports = class kkex extends Exchange {
         let order = this.parseOrder ({
             'id': id,
             'price': price,
-            'number': amount,
+            'amount': amount,
             'side': side,
         }, market);
         this.orders[id] = order;
