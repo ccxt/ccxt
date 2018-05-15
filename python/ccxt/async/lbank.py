@@ -146,7 +146,7 @@ class lbank (Exchange):
 
     def parse_ticker(self, ticker, market=None):
         symbol = market['symbol']
-        timestamp = ticker['timestamp']
+        timestamp = self.safe_integer(ticker, 'timestamp')
         info = ticker
         ticker = info['ticker']
         last = self.safe_float(ticker, 'latest')
