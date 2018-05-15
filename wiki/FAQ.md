@@ -17,7 +17,7 @@ You're not reporting the issue properly ) Please, help the community to help you
 
 Yes, we can. And we will, if nobody else does that before us. There's very little point in asking this type of questions, because the answer is always positive. When someone asks if we can do this or that, the question is not about our abilities, it all boils down to time and management needed for implementing all accumulated feature requests. Moreover, this is an open-source library which is a work in progress. This means, that this project is intended to be developed by the community of users, who are using it. All contributions are welcome! What you're asking is not whether we can or cannot implement it, in fact you're actually telling us to go do that particular task and this is not how we see a voluntary collaboration.
 
-## When will you add feature `foo` for exchange `bar` ? What's your time estimation on this? When should we expect this?
+## When will you add feature `foo` for exchange `bar` ? What's the estimated time? When should we expect this?
 
 We don't give promises or estimates on the open-source work. The reasoning behind this is explained in the previous paragraph.
 
