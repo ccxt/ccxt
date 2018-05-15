@@ -1,8 +1,8 @@
 Exchanges By Country
 ====================
 
-The ccxt library currently supports the following cryptocurrency exchange markets and trading APIs:
-CCXT 库目前支持以下加密货币交易所和其交易 API:
+The ccxt library currently supports the following cryptocurrency exchange markets and trading APIs:  
+CCXT 库目前支持以下加密货币交易所和其交易 API:  
 
 +----------------------------+------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | 国家 / 地区           | logo                   | id                   | 名称                                                                              | 版本   | 文档                                                                                               |
