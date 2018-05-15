@@ -1,10 +1,12 @@
 # CCXT Cryptocurrency Trading Library Examples
+# CCXT 加密货币交易库的范例
 
 ![preview](https://user-images.githubusercontent.com/1294454/31798504-ca2af4cc-b53c-11e7-946c-620d744f6d16.gif)
 
 -------------
 
-To run the ccxt examples from any folder type one of the following commands in console.
+To run the ccxt examples from any folder type one of the following commands in console.    
+要从任何文件夹运行ccxt范例，请在控制台中键入以下命令之一。
 
 ## JavaScript
 
@@ -12,6 +14,7 @@ To run the ccxt examples from any folder type one of the following commands in c
 
 ```shell
 node path/to/example.js # substitute for actual filename here
+node path/to/example.js # 在此代替实际文件名
 ```
 
 <img width="842" alt="bitcoin ascii chart" src="https://user-images.githubusercontent.com/1294454/29673849-156f58c6-88f9-11e7-8955-fb3f37467234.png">
@@ -25,6 +28,7 @@ node path/to/example.js # substitute for actual filename here
 
 ```shell
 python path/to/example.py # substitute for actual filename here
+python path/to/example.py # 在这里替换实际的文件名
 ```
 
 ## PHP
@@ -33,21 +37,26 @@ python path/to/example.py # substitute for actual filename here
 
 ```shell
 php -f path/to/example.php # substitute for actual filename here
+php -f path/to/example.php # 在这里替换实际的文件名
 ```
 
 -------------------------------------------------------------------------------
 
 ## See Also
+## 也可以看看
 
 [The GDAX Trading Toolkit (GTT)](https://github.com/coinbase/gdax-tt) – a trading toolkit developed by the GDAX team that integrates the CCXT library!
 
+[The GDAX Trading Toolkit (GTT)](https://github.com/coinbase/gdax-tt) – 由GDAX团队开发的交易工具包，集成了CCXT库！
+
 [Enigma Catalyst](https://blog.enigma.co/enigma-announces-catalyst-0-4-our-biggest-release-yet-fa31a5ffa4b1) – The major effort towards decentralized exchanges integrates ccxt!
 
-[Projects based on ccxt](https://github.com/ccxt/ccxt/network/dependents) – A list of hundreds of ccxt-based projects by developers from all over the world!
+[Projects based on ccxt](https://github.com/ccxt/ccxt/network/dependents) – 来自世界各地的开发人员的数百个基于ccxt的项目列表！
 
-[CC Power Analytics Part 1: How to get the data of the exchanges](https://www.linkedin.com/pulse/part-1-cc-power-analytics-how-get-data-exchanges-steve-rein/) – The first part of a series of articles on cryptocurrency analytics.
 
-[Looking for arbitrage opportunies with ccxt](https://steemit.com/steemdev/@codewithcheese/looking-for-arbitrage-opportunies-with-javascript-library-cctx-supporting-70-exchanges) – An article @steemit on getting arbitrage started with ccxt for crypto-arbitrage.
+[CC Power Analytics第1部分：如何获取交易所的数据](https://www.linkedin.com/pulse/part-1-cc-power-analytics-how-get-data-exchanges-steve-rein/) – 关于加密货币分析的一系列文章的第一部分。
+
+[利用ccxt寻找套利机会](https://steemit.com/steemdev/@codewithcheese/looking-for-arbitrage-opportunies-with-javascript-library-cctx-supporting-70-exchanges) - 一篇关于套利的文章@steemit - 从ccxt开始用于加密套利。
 
 [A n00bs Guide To Deep Cryptocurrency Trading](https://medium.com/@LeonFedden/deep-cryptocurrency-trading-1e64af6d280a) – An article @ Medium on deep neural trading using ccxt for backend tasks.
 
