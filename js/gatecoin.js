@@ -196,6 +196,9 @@ module.exports = class gatecoin extends Exchange {
                 'TRA': 'TRAC',
                 'WGS': 'WINGS',
             },
+            'exceptions': {
+                '1005': InsufficientFunds,
+            },
         });
     }
 
@@ -656,17 +659,21 @@ module.exports = class gatecoin extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body) {
-        if (body.length > 0) {
-            if (body[0] === '{') {
-                let response = JSON.parse (body);
-                if ('responseStatus' in response) {
-                    let errorCode = this.safeString (response.responseStatus, 'errorCode');
-                    if (typeof errorCode !== 'undefined') {
-                        if (errorCode === '1005') {
-                            let message = this.safeString (response.responseStatus, 'message', '(none)');
-                            throw new InsufficientFunds (message);
-                        }
+        if (typeof body !== 'string')
+            return; // fallback to default error handler
+        if (body.length < 2)
+            return; // fallback to default error handler
+        if (body[0] === '{') {
+            let response = JSON.parse (body);
+            if ('responseStatus' in response) {
+                let errorCode = this.safeString (response['responseStatus'], 'errorCode');
+                if (typeof errorCode !== 'undefined') {
+                    const feedback = this.id + ' ' + body;
+                    const exceptions = this.exceptions;
+                    if (errorCode in exceptions) {
+                        throw new exceptions[errorCode] (feedback);
                     }
+                    throw new ExchangeError (feedback);
                 }
             }
         }

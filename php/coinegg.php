@@ -247,7 +247,7 @@ class coinegg extends Exchange {
 
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
-        $quoteIds = array ( 'btc', 'usc' );
+        $quoteIds = $this->options['quoteIds'];
         $result = array ();
         for ($b = 0; $b < count ($quoteIds); $b++) {
             $quoteId = $quoteIds[$b];

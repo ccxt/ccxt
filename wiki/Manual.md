@@ -1984,7 +1984,7 @@ foreach ($exchange->markets as $symbol => $market) {
 }
 ```
 
-The fetchTrades method shown above returns an ordered list of trades (a flat array, sorted by timestamp in ascending order, most recent trade last) represented by the following structure:
+The fetchTrades method shown above returns an ordered list of trades (a flat array, sorted by timestamp in ascending order, oldest trade first, most recent trade last). A list of trades is represented by the following structure:
 
 ```JavaScript
 [
@@ -2007,6 +2007,9 @@ The fetchTrades method shown above returns an ordered list of trades (a flat arr
 Most exchanges return most of the above fields for each trade, though there are exchanges that don't return the type, the side, the trade id or the order id of the trade. Most of the time you are guaranteed to have the timestamp, the datetime, the symbol, the price and the amount of each trade.
 
 The second optional argument `since` reduces the array by timestamp, the third `limit` argument reduces by number (count) of returned items.
+
+If the user does not specify `since`, the `fetchTrades` method will return the default range of public trades from the exchange. The default set is exchange-specific, some exchanges will return trades starting from the date of listing a pair on the exchange, other exchanges will return a reduced set of trades (like, last 24 hours, last 100 trades, etc). If the user wants precise control over the timeframe, the user is responsible for specifying the `since` argument.
+
 
 The `fetchTrades ()` / `fetch_trades()` method also accepts an optional `params` (assoc-key array/dict, empty by default) as its fourth argument. You can use it to pass extra params to method calls or to override a particular default value (where supported by the exchange). See the API docs for your exchange for more details.
 
@@ -2232,6 +2235,23 @@ exchange.has = {
 ```
 
 The meanings of boolean `true` and `false` are obvious. A string value of `emulated` means that particular method is missing in the exchange API and ccxt will workaround that where possible by adding a caching layer, the `.orders` cache. The next section describes the inner workings of the `.orders` cache, one has to understand it to do order management with ccxt effectively.
+
+#### Querying Multiple Orders And Trades
+
+All methods returning lists of trades and lists of orders, accept the second `since` argument and the third `limit` argument:
+
+- `fetchTrades` (public)
+- `fetchMyTrades` (private)
+- `fetchOrders`
+- `fetchOpenOrders`
+- `fetchClosedOrders`
+
+The second  argument `since` reduces the array by timestamp, the third `limit` argument reduces by number (count) of returned items.
+
+If the user does not specify `since`, the `fetchTrades/fetchOrders` method will return the default set from the exchange. The default set is exchange-specific, some exchanges will return trades or recent orders starting from the date of listing a pair on the exchange, other exchanges will return a reduced set of trades or orders (like, last 24 hours, last 100 trades, first 100 orders, etc). If the user wants precise control over the timeframe, the user is responsible for specifying the `since` argument.
+
+**NOTE: not all exchanges provide means for filtering the lists of trades and orders by starting time, so, the support for `since ` and `limit` is exchange-specific. However, most exchanges do provide at least some alternative for "pagination" and "scrolling" which can be overrided with extra `params` argument.**
+
 
 #### `.orders` cache
 
@@ -2618,7 +2638,6 @@ Returns ordered array `[]` of trades (most recent trade last).
 ### Trades By Order Id
 
 ```UNDER CONSTRUCTION```
-
 
 ## Funding Your Account
 

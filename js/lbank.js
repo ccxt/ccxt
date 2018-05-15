@@ -167,7 +167,7 @@ module.exports = class lbank extends Exchange {
             'percentage': undefined,
             'average': undefined,
             'baseVolume': this.safeFloat (ticker, 'vol'),
-            'quoteVolume': undefined,
+            'quoteVolume': this.safeFloat (ticker, 'turnover'),
             'info': info,
         };
     }

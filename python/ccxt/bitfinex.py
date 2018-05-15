@@ -271,6 +271,7 @@ class bitfinex (Exchange):
                 'QTM': 'QTUM',
                 'SNG': 'SNGLS',
                 'SPK': 'SPANK',
+                'STJ': 'STORJ',
                 'YYW': 'YOYOW',
             },
             'exceptions': {
