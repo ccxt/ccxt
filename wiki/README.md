@@ -64,6 +64,7 @@ Welcome to the ccxt wiki!
 
 ## Troubleshooting
 
+- [Frequently Asked Questions](https://github.com/ccxt/ccxt/wiki/FAQ)
 - [Overriding The Nonce](https://github.com/ccxt/ccxt/wiki/Manual#overriding-the-nonce)
 - [Error Handling](https://github.com/ccxt/ccxt/wiki/Manual#error-handling)
 - [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting)
