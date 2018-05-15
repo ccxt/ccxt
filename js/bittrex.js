@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection, PermissionDenied } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection, PermissionDenied } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -716,8 +716,11 @@ module.exports = class bittrex extends Exchange {
                 const exceptions = this.exceptions;
                 if (message in exceptions)
                     throw new exceptions[message] (feedback);
-                if ((typeof message !== 'undefined') && (message.indexOf ('throttled. Try again') >= 0))
-                    throw new DDoSProtection (feedback);
+                if (typeof message !== 'undefined') {
+                    if (message.indexOf ('throttled. Try again') >= 0))
+                        throw new DDoSProtection (feedback);
+                    if (message.indexOf ('problem') >= 0)
+                        throw new ExchangeNotAvailable (feedback); // 'There was a problem processing your request.  If this problem persists, please contact...')
                 if (message === 'APIKEY_INVALID') {
                     if (this.options['hasAlreadyAuthenticatedSuccessfully']) {
                         throw new DDoSProtection (feedback);
