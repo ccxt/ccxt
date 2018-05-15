@@ -721,6 +721,7 @@ module.exports = class bittrex extends Exchange {
                         throw new DDoSProtection (feedback);
                     if (message.indexOf ('problem') >= 0)
                         throw new ExchangeNotAvailable (feedback); // 'There was a problem processing your request.  If this problem persists, please contact...')
+                }
                 if (message === 'APIKEY_INVALID') {
                     if (this.options['hasAlreadyAuthenticatedSuccessfully']) {
                         throw new DDoSProtection (feedback);
