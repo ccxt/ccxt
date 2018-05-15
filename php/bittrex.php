@@ -717,8 +717,12 @@ class bittrex extends Exchange {
                 $exceptions = $this->exceptions;
                 if (is_array ($exceptions) && array_key_exists ($message, $exceptions))
                     throw new $exceptions[$message] ($feedback);
-                if (($message !== null) && (mb_strpos ($message, 'throttled. Try again') !== false))
-                    throw new DDoSProtection ($feedback);
+                if ($message !== null) {
+                    if (mb_strpos ($message, 'throttled. Try again') !== false)
+                        throw new DDoSProtection ($feedback);
+                    if (mb_strpos ($message, 'problem') !== false)
+                        throw new ExchangeNotAvailable ($feedback); // 'There was a problem processing your request.  If this problem persists, please contact...')
+                }
                 if ($message === 'APIKEY_INVALID') {
                     if ($this->options['hasAlreadyAuthenticatedSuccessfully']) {
                         throw new DDoSProtection ($feedback);
