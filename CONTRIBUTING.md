@@ -28,6 +28,19 @@ If you want to submit an issue and you want your issue to be resolved quickly, h
   - which exchange it is
   - which method you're trying to call
 
+### We Don't Answer These Questions
+
+- **Q: Can you implement feature `foo` in exchange `bar`?**
+- A: Yes, we can. And we will, if nobody else does that before us. There's very little point in asking this type of questions, because the answer is always positive. When someone asks if we can do this or that, the question is not about our abilities, it all boils down to time and management needed for implementing all accumulated feature requests. Moreover, this is an open-source library which is a work in progress. This means, that this project is intended to be developed by the community of users, who are using it. All contributions are welcome! What you're asking is not whether we can or cannot implement it, in fact you're actually telling us to go do that particular task and this is not how we see a voluntary collaboration.
+
+- **Q: When will you add feature `foo` for exchange `bar` ? What's your time estimation on this? When should we expect this?**
+- A: We don't give promises or estimates on the open-source work. The reasoning behind this is explained in the previous paragraph.
+
+- **Q: Hey, what's your progress on adding the feature `foo` that was requested earlier? How do you do implementing exchange `bar`?**
+- A: This type of questions is usually a waste of time, because answering it usually requires too much time for context-switching, and it often takes more time to answer this question, than to actually satisfy the request with code for a new feature or a new exchange. The progress of this open-source project is also open, so, whenever you're wondering how it is doing, take a look into commit history.
+
+**Questions that we do not answer:**
+
 ## How To Contribute Code
 
 - **PLEASE, DO NOT COMMIT THE FOLLOWING FILES IN PULL REQUESTS:**
