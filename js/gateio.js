@@ -240,16 +240,18 @@ module.exports = class gateio extends Exchange {
         if (resultString !== 'false') {
             return;
         }
-        let _code = this.safeString (jsonbodyParsed, 'code');
-        if (typeof _code !== 'undefined') {
-            if (_code in this.exceptions) {
+        let errorCode = this.safeString (jsonbodyParsed, 'code');
+        if (typeof errorCode !== 'undefined') {
+            const exceptions = this.exceptions;
+            const errorCodeNames = this.errorCodeNames;
+            if (errorCode in exceptions) {
                 let message = '';
-                if (_code in this.errorCodeNames) {
-                    message = this.errorCodeNames[_code];
+                if (errorCode in errorCodeNames) {
+                    message = errorCodeNames[errorCode];
                 } else {
                     message = this.safeString (jsonbodyParsed, 'message', '(unknown)');
                 }
-                throw new this.exceptions[_code] (message);
+                throw new exceptions[errorCode] (message);
             }
         }
     }
@@ -314,14 +316,21 @@ module.exports = class gateio extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let response = await this.privatePostOpenOrders ();
-        if (response && response.result && response.orders) {
-            let resultOrders = [];
-            for (let i = 0; i < response.orders.length; i++) {
-                resultOrders.push (this.parseOrder (response.orders[i]));
+        if (typeof response !== 'undefined') {
+            if ('result' in response) {
+                if ('orders' in response) {
+                    let responseOrders = response['orders'];
+                    let resultOrders = [];
+                    for (let i = 0; i < responseOrders.length; i++) {
+                        resultOrders.push (this.parseOrder (responseOrders[i]));
+                    }
+                    return resultOrders;
+                }
             }
-            return resultOrders;
         }
-        return response;
+        let defaultUnparsedResult = {};
+        defaultUnparsedResult['info'] = response;
+        return defaultUnparsedResult;
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
