@@ -260,8 +260,10 @@ class kraken (Exchange):
         for i in range(0, len(keys)):
             id = keys[i]
             market = markets['result'][id]
-            base = market['base']
-            quote = market['quote']
+            baseId = market['base']
+            quoteId = market['quote']
+            base = baseId
+            quote = quoteId
             if (base[0] == 'X') or (base[0] == 'Z'):
                 base = base[1:]
             if (quote[0] == 'X') or (quote[0] == 'Z'):
@@ -285,6 +287,8 @@ class kraken (Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'darkpool': darkpool,
                 'info': market,
                 'altname': market['altname'],
@@ -583,12 +587,15 @@ class kraken (Exchange):
         for c in range(0, len(currencies)):
             currency = currencies[c]
             code = currency
-            # X-ISO4217-A3 standard currency codes
-            if code[0] == 'X':
-                code = code[1:]
-            elif code[0] == 'Z':
-                code = code[1:]
-            code = self.common_currency_code(code)
+            if code in self.currencies_by_id:
+                code = self.currencies_by_id[code]['code']
+            else:
+                # X-ISO4217-A3 standard currency codes
+                if code[0] == 'X':
+                    code = code[1:]
+                elif code[0] == 'Z':
+                    code = code[1:]
+                code = self.common_currency_code(code)
             balance = float(balances[currency])
             account = {
                 'free': balance,
