@@ -717,7 +717,7 @@ module.exports = class bittrex extends Exchange {
                 if (message in exceptions)
                     throw new exceptions[message] (feedback);
                 if (typeof message !== 'undefined') {
-                    if (message.indexOf ('throttled. Try again') >= 0))
+                    if (message.indexOf ('throttled. Try again') >= 0)
                         throw new DDoSProtection (feedback);
                     if (message.indexOf ('problem') >= 0)
                         throw new ExchangeNotAvailable (feedback); // 'There was a problem processing your request.  If this problem persists, please contact...')
