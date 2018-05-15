@@ -38,7 +38,7 @@ Current feature list:
 [ccxt on GitHub](https://github.com/ccxt/ccxt) | [Install](#install) | [Usage](#usage) | [Manual](https://github.com/ccxt/ccxt/wiki) | [Examples](https://github.com/ccxt/ccxt/tree/master/examples) | [Changelog](https://github.com/ccxt/ccxt/blob/master/CHANGELOG.md) | [Contributing](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md)
 
 ## Supported Cryptocurrency Exchange Markets  
-## 支持的加密货币交易市场
+## 支持的加密货币交易市场 
 
 The ccxt library currently supports the following 115 cryptocurrency exchange markets and trading APIs:  
 CCXT 库目前支持以下 115 个加密货币交易所和其交易 API：
