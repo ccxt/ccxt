@@ -31,7 +31,7 @@ Current feature list:
 - 所有货币，山寨币和交易对，价格，订单簿，交易，行情等...
 - 可选的用于跨交易所或跨币种分析和套利的标准化数据
 - 一个非常容易集成的开箱即用的统一 API
-- 可在 Node 7.6+，Python 2和3，PHP 5.3+ 及 Web 浏览器中使用    
+- 可在 Node 7.6+，Python 2 和 3，PHP 5.3+ 及 Web 浏览器中使用    
 
 [CCXT on GitHub ](https://github.com/ccxt/ccxt) | [安装](#install) | [使用](#usage) | [指南](https://github.com/ccxt/ccxt/wiki) | [范例](https://github.com/ccxt/ccxt/tree/master/examples) | [更新日志](https://github.com/ccxt/ccxt/blob/master/CHANGELOG.md) | [贡献](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md)
 
@@ -43,7 +43,7 @@ Current feature list:
 The ccxt library currently supports the following 115 cryptocurrency exchange markets and trading APIs:  
 CCXT 库目前支持以下 115 个加密货币交易所和其交易 API：
 
-|                                                                                                                           | id                 | 名称                                                                         | API 版本 | API 文档                                                                                          | 国家/地区                               |
+|                                                                                                                           | id                 | 名称                                                                         | 版本 | 文档                                                                                          | 国家/地区                               |
 |---------------------------------------------------------------------------------------------------------------------------|--------------------|------------------------------------------------------------------------------|:---:|:--------------------------------------------------------------------------------------------:|-----------------------------------------|
 |![_1broker](https://user-images.githubusercontent.com/1294454/27766021-420bd9fc-5ecb-11e7-8ed6-56d0081efed2.jpg)           | _1broker           | [1Broker](https://1broker.com)                                               | 2   | [API](https://1broker.com/?c=en/content/api-documentation)                                   | 美国                                      |
 |![_1btcxe](https://user-images.githubusercontent.com/1294454/27766049-2b294408-5ecc-11e7-85cc-adaff013dc1a.jpg)            | _1btcxe            | [1BTCXE](https://1btcxe.com)                                                 | *   | [API](https://1btcxe.com/api-docs.php)                                                       | 巴拿马                                  |
