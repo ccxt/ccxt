@@ -795,14 +795,16 @@ module.exports = class hitbtc extends Exchange {
             }
         }
         let feeCost = this.safeFloat (order, 'fee');
-        let fee = {
-            'cost': feeCost,
-            'currency': undefined,
-            'rate': undefined,
-        };
+        let feeCurrency = undefined;
         if (typeof market !== 'undefined') {
             symbol = market['symbol'];
+            feeCurrency = market['quote'];
         }
+        let fee = {
+            'cost': feeCost,
+            'currency': feeCurrency,
+            'rate': undefined,
+        };
         return {
             'id': order['clientOrderId'].toString (),
             'info': order,
