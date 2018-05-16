@@ -763,16 +763,30 @@ class hitbtc (Exchange):
         cost = None
         amountDefined = (amount is not None)
         remainingDefined = (remaining is not None)
-        if market:
+        if market is not None:
             symbol = market['symbol']
             if amountDefined:
                 amount *= market['lot']
             if remainingDefined:
                 remaining *= market['lot']
+        else:
+            marketId = self.safe_string(order, 'symbol')
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
         if amountDefined:
             if remainingDefined:
                 filled = amount - remaining
                 cost = averagePrice * filled
+        feeCost = self.safe_float(order, 'fee')
+        feeCurrency = None
+        if market is not None:
+            symbol = market['symbol']
+            feeCurrency = market['quote']
+        fee = {
+            'cost': feeCost,
+            'currency': feeCurrency,
+            'rate': None,
+        }
         return {
             'id': str(order['clientOrderId']),
             'info': order,
@@ -788,7 +802,7 @@ class hitbtc (Exchange):
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
-            'fee': None,
+            'fee': fee,
         }
 
     def fetch_order(self, id, symbol=None, params={}):

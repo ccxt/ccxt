@@ -516,12 +516,14 @@ class bittrex extends Exchange {
         $symbol = null;
         if (is_array ($order) && array_key_exists ('Exchange', $order)) {
             $marketId = $order['Exchange'];
-            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
-                $symbol = $this->markets_by_id[$marketId]['symbol'];
-            else
+            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+                $symbol = $market['symbol'];
+            } else {
                 $symbol = $this->parse_symbol ($marketId);
+            }
         } else {
-            if ($market) {
+            if ($market !== null) {
                 $symbol = $market['symbol'];
             }
         }
@@ -549,8 +551,16 @@ class bittrex extends Exchange {
             $fee = array (
                 'cost' => floatval ($order[$commission]),
             );
-            if ($market)
+            if ($market !== null) {
                 $fee['currency'] = $market['quote'];
+            } else if ($symbol) {
+                $currencyIds = explode ('/', $symbol);
+                $quoteCurrencyId = $currencyIds[1];
+                if (is_array ($this->currencies_by_id) && array_key_exists ($quoteCurrencyId, $this->currencies_by_id))
+                    $fee['currency'] = $this->currencies_by_id[$quoteCurrencyId]['code'];
+                else
+                    $fee['currency'] = $this->common_currency_code($quoteCurrencyId);
+            }
         }
         $price = $this->safe_float($order, 'Limit');
         $cost = $this->safe_float($order, 'Price');
