@@ -523,8 +523,8 @@ LTC LbT8mkAqQBphc4yxLXEDgYDfEax74et3bP
 Thank you!    
 谢谢！
 
-[CCXTCN](https://github.com/bilibilihuangyifan/ccxtcn) 是 CCXT 文档中文翻译项目，开始于 2018.05.14，欢迎加入我们一起完成这个项目。
-CCXT 中文翻译 QQ 群：749640693
-CCXT 使用交流 QQ 群：150134435
-[discourse 社区](http://discourse.blockhedging.com/c/ccxt)
-
+### 中文社区资源
+- [CCXTCN](https://github.com/bilibilihuangyifan/ccxtcn) 是 CCXT 文档中文翻译项目，开始于 2018.05.14，欢迎加入我们一起完成这个项目。
+- CCXT 中文文档翻译 QQ 群：749640693
+- CCXT 使用问题交流 QQ 群：150134435
+- [discourse 社区](http://discourse.blockhedging.com/c/ccxt)
