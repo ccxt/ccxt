@@ -1,14 +1,11 @@
 # CCXT – CryptoCurrency eXchange Trading Library
-
 # CCXT - 加密货币交易所交易接口库
 
 [![Build Status](https://travis-ci.org/ccxt/ccxt.svg?branch=master)](https://travis-ci.org/ccxt/ccxt) [![npm](https://img.shields.io/npm/v/ccxt.svg)](https://npmjs.com/package/ccxt) [![PyPI](https://img.shields.io/pypi/v/ccxt.svg)](https://pypi.python.org/pypi/ccxt) [![NPM Downloads](https://img.shields.io/npm/dm/ccxt.svg)](https://www.npmjs.com/package/ccxt) [![NSP Status](https://nodesecurity.io/orgs/ccxt/projects/856d3088-8b46-4515-9324-6b7cd2470522/badge)](https://nodesecurity.io/orgs/ccxt/projects/856d3088-8b46-4515-9324-6b7cd2470522) [![Gitter](https://badges.gitter.im/ccxt-dev/ccxt.svg)](https://gitter.im/ccxt-dev/ccxt?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge) [![Supported Exchanges](https://img.shields.io/badge/exchanges-115-blue.svg)](https://github.com/ccxt/ccxt/wiki/Exchange-Markets) [![Open Collective](https://opencollective.com/ccxt/backers/badge.svg)](https://opencollective.com/ccxt)
 
 A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
 
-
 一个用于加密货币的电子化交易的 JavaScript / Python / PHP 库，支持诸多比特币/以太币/山寨币交易市场的交易 API.
-
 
 
 The **CCXT** library is used to connect and trade with cryptocurrency / altcoin exchanges and payment processing services worldwide. It provides quick access to market data for storage, analysis, visualization, indicator development, algorithmic trading, strategy backtesting, bot programming, webshop integration and related software engineering.
@@ -29,9 +26,7 @@ Current feature list:
 - an out-of-the box unified all-in-one API extremely easy to integrate
 - works in Node 7.6+, Python 2 and 3, PHP 5.3+, web browsers      
 - 支持许多交易所，并将添加更多
-
 - 为上述交易所实现了全部公共和私有 API
-
 - 所有货币，山寨币和交易对，价格，订单簿，交易，行情等...
 - 可选的用于跨交易所或跨币种分析和套利的标准化数据
 - 一个非常容易集成的开箱即用的统一 API
@@ -45,7 +40,6 @@ Current feature list:
 ## 支持的加密货币交易市场 
 
 The ccxt library currently supports the following 115 cryptocurrency exchange markets and trading APIs:  
-
 CCXT 库目前支持以下 115 个加密货币交易所的交易 API：
 
 
@@ -60,7 +54,6 @@ CCXT 库目前支持以下 115 个加密货币交易所的交易 API：
 |![binance](https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg)            | binance            | [Binance](https://www.binance.com)                                           | *   | [API](https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md) | 日本                                   |
 |![bit2c](https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg)              | bit2c              | [Bit2C](https://www.bit2c.co.il)                                             | *   | [API](https://www.bit2c.co.il/home/api)                                                      | 以色列                                  |
 |![bitbank](https://user-images.githubusercontent.com/1294454/37808081-b87f2d9c-2e59-11e8-894d-c1900b7584fe.jpg)            | bitbank            | [bitbank](https://bitbank.cc/)                                               | 1   | [API](https://docs.bitbank.cc/)                                                              | 日本                                   |
-
 |![bitbay](https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg)             | bitbay             | [BitBay](https://bitbay.net)                                                 | *   | [API](https://bitbay.net/public-api)                                                         | 波兰, 欧盟                              |
 |![bitfinex](https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg)           | bitfinex           | [Bitfinex](https://www.bitfinex.com)                                         | 1   | [API](https://bitfinex.readme.io/v1/docs)                                                    | 英属维尔京群岛                  |
 |![bitfinex2](https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg)          | bitfinex2          | [Bitfinex v2](https://www.bitfinex.com)                                      | 2   | [API](https://bitfinex.readme.io/v2/docs)                                                    | 英属维尔京群岛                  |
@@ -167,6 +160,7 @@ CCXT 库目前支持以下 115 个加密货币交易所的交易 API：
 |![yunbi](https://user-images.githubusercontent.com/1294454/28570548-4d646c40-7147-11e7-9cf6-839b93e6d622.jpg)              | yunbi              | [YUNBI](https://yunbi.com)                                                   | 2   | [API](https://yunbi.com/documents/api/guide)                                                 | 中国                                   |
 |![zaif](https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg)               | zaif               | [Zaif](https://zaif.jp)                                                      | 1   | [API](http://techbureau-api-document.readthedocs.io/ja/latest/index.html)                    | 日本                                   |
 |![zb](https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg)                 | zb                 | [ZB](https://www.zb.com)                                                     | 1   | [API](https://www.zb.com/i/developer)                                                        | 中国                                   |
+
 
 The list above is updated frequently, new crypto markets, altcoin exchanges, bug fixes, API endpoints are introduced and added on a regular basis. See the [Manual](https://github.com/ccxt/ccxt/wiki) for details. If you don't find a cryptocurrency exchange market in the list above and/or want another exchange to be added, post or send us a link to it by opening an issue here on GitHub or via email.    
 上面的列表经常更新，新的加密货币市场，山寨币交易所，bug修复，API接口将定期被引入、添加。详细信息请参见[ 手册 ](https://github.com/ccxt/ccxt/wiki)。如果您没有在上面的列表中找到加密货币交易所并且/或者想要添加另一个交易所，请通过在GitHub上创建issue或或通过电子邮件向我们发送链接。
@@ -337,6 +331,7 @@ Private APIs allow the following:
 - 获取交易明细/历史
 - 在账户之间转移资金
 - 使用商业服务
+
 
 This library implements full public and private REST APIs for all exchanges. WebSocket and FIX implementations in JavaScript, PHP, Python and other languages coming soon.    
 本仓库实现了所有交易所的公共和私有REST API。JavaScript，PHP，Python及其他语言的WebSocket实现和FIX将尽快推出。
@@ -518,7 +513,6 @@ Thank you to all our backers! [[Become a backer](https://opencollective.com/ccxt
 
 ### Crypto    
 ### 加密货币捐助地址
-
 ```
 ETH 0xa7c2b18b7c8b86984560cad3b1bc3224b388ded0
 BTC 33RmVRfhK2WZVQR1R83h2e9yXoqRNDvJva
@@ -534,4 +528,3 @@ Thank you!
 - CCXT 中文文档翻译 QQ 群：749640693
 - CCXT 使用问题交流 QQ 群：150134435
 - [discourse 社区](http://discourse.blockhedging.com/c/ccxt)
-
