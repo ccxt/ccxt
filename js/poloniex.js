@@ -27,6 +27,7 @@ module.exports = class poloniex extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': 'emulated',
                 'fetchTickers': true,
+                'fetchTradingFees': true,
                 'fetchCurrencies': true,
                 'withdraw': true,
             },
@@ -237,7 +238,7 @@ module.exports = class poloniex extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchFees (params = {}) {
+    async fetchTradingFees (params = {}) {
         await this.loadMarkets ();
         let fees = await this.privatePostReturnFeeInfo ();
         return {

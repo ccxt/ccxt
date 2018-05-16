@@ -167,9 +167,7 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     getCurrencyId (code) {
-        let isFiat = this.isFiat (code);
-        let prefix = isFiat ? 'f' : 't';
-        return prefix + code;
+        return 'f' + code;
     }
 
     async fetchMarkets () {
@@ -233,16 +231,28 @@ module.exports = class bitfinex2 extends bitfinex {
             let total = balance[2];
             let available = balance[4];
             if (accountType === balanceType) {
-                if (currency[0] === 't')
+                let code = currency;
+                if (currency in this.currencies_by_id) {
+                    code = this.currencies_by_id[currency]['code'];
+                } else if (currency[0] === 't') {
                     currency = currency.slice (1);
-                let uppercase = currency.toUpperCase ();
-                uppercase = this.commonCurrencyCode (uppercase);
+                    code = currency.toUpperCase ();
+                    code = this.commonCurrencyCode (code);
+                }
                 let account = this.account ();
-                account['free'] = available;
                 account['total'] = total;
-                if (account['free'])
+                if (!available) {
+                    if (available === 0) {
+                        account['free'] = 0;
+                        account['used'] = total;
+                    } else {
+                        account['free'] = undefined;
+                    }
+                } else {
+                    account['free'] = available;
                     account['used'] = account['total'] - account['free'];
-                result[uppercase] = account;
+                }
+                result[code] = account;
             }
         }
         return this.parseBalance (result);
