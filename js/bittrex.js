@@ -548,8 +548,8 @@ module.exports = class bittrex extends Exchange {
             fee = {
                 'cost': parseFloat (order[commission]),
             };
-            if (market)
-                fee['currency'] = market['quote'];
+            if (symbol)
+                fee['currency'] = symbol.split ('/')[1];
         }
         let price = this.safeFloat (order, 'Limit');
         let cost = this.safeFloat (order, 'Price');
