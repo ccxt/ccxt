@@ -777,18 +777,31 @@ module.exports = class hitbtc extends Exchange {
         let cost = undefined;
         let amountDefined = (typeof amount !== 'undefined');
         let remainingDefined = (typeof remaining !== 'undefined');
-        if (market) {
+        if (typeof market !== 'undefined') {
             symbol = market['symbol'];
             if (amountDefined)
                 amount *= market['lot'];
             if (remainingDefined)
                 remaining *= market['lot'];
+        } else {
+            let marketId = this.safeString (order, 'symbol');
+            if (marketId in this.markets_by_id)
+                market = this.markets_by_id[marketId];
         }
         if (amountDefined) {
             if (remainingDefined) {
                 filled = amount - remaining;
                 cost = averagePrice * filled;
             }
+        }
+        let feeCost = this.safeFloat (order, 'fee');
+        let fee = {
+            'cost': feeCost,
+            'currency': undefined,
+            'rate': undefined,
+        };
+        if (typeof market !== 'undefined') {
+            symbol = market['symbol'];
         }
         return {
             'id': order['clientOrderId'].toString (),
@@ -805,7 +818,7 @@ module.exports = class hitbtc extends Exchange {
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 
