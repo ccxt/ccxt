@@ -144,7 +144,7 @@ module.exports = class lbank extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         let symbol = market['symbol'];
-        let timestamp = ticker['timestamp'];
+        let timestamp = this.safeInteger (ticker, 'timestamp');
         let info = ticker;
         ticker = info['ticker'];
         let last = this.safeFloat (ticker, 'latest');
@@ -167,7 +167,7 @@ module.exports = class lbank extends Exchange {
             'percentage': undefined,
             'average': undefined,
             'baseVolume': this.safeFloat (ticker, 'vol'),
-            'quoteVolume': undefined,
+            'quoteVolume': this.safeFloat (ticker, 'turnover'),
             'info': info,
         };
     }

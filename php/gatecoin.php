@@ -197,6 +197,9 @@ class gatecoin extends Exchange {
                 'TRA' => 'TRAC',
                 'WGS' => 'WINGS',
             ),
+            'exceptions' => array (
+                '1005' => '\\ccxt\\InsufficientFunds',
+            ),
         ));
     }
 
@@ -654,5 +657,26 @@ class gatecoin extends Exchange {
             'status' => 'ok',
             'info' => $response,
         );
+    }
+
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+        if (gettype ($body) != 'string')
+            return; // fallback to default error handler
+        if (strlen ($body) < 2)
+            return; // fallback to default error handler
+        if ($body[0] === '{') {
+            $response = json_decode ($body, $as_associative_array = true);
+            if (is_array ($response) && array_key_exists ('responseStatus', $response)) {
+                $errorCode = $this->safe_string($response['responseStatus'], 'errorCode');
+                if ($errorCode !== null) {
+                    $feedback = $this->id . ' ' . $body;
+                    $exceptions = $this->exceptions;
+                    if (is_array ($exceptions) && array_key_exists ($errorCode, $exceptions)) {
+                        throw new $exceptions[$errorCode] ($feedback);
+                    }
+                    throw new ExchangeError ($feedback);
+                }
+            }
+        }
     }
 }

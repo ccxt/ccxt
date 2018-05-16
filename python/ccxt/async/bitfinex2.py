@@ -170,9 +170,7 @@ class bitfinex2 (bitfinex):
         return(code in list(fiat.keys()))
 
     def get_currency_id(self, code):
-        isFiat = self.is_fiat(code)
-        prefix = 'f' if isFiat else 't'
-        return prefix + code
+        return 'f' + code
 
     async def fetch_markets(self):
         markets = await self.v1GetSymbolsDetails()
@@ -233,16 +231,25 @@ class bitfinex2 (bitfinex):
             total = balance[2]
             available = balance[4]
             if accountType == balanceType:
-                if currency[0] == 't':
+                code = currency
+                if currency in self.currencies_by_id:
+                    code = self.currencies_by_id[currency]['code']
+                elif currency[0] == 't':
                     currency = currency[1:]
-                uppercase = currency.upper()
-                uppercase = self.common_currency_code(uppercase)
+                    code = currency.upper()
+                    code = self.common_currency_code(code)
                 account = self.account()
-                account['free'] = available
                 account['total'] = total
-                if account['free']:
+                if not available:
+                    if available == 0:
+                        account['free'] = 0
+                        account['used'] = total
+                    else:
+                        account['free'] = None
+                else:
+                    account['free'] = available
                     account['used'] = account['total'] - account['free']
-                result[uppercase] = account
+                result[code] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):

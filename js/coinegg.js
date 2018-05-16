@@ -246,7 +246,7 @@ module.exports = class coinegg extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let quoteIds = [ 'btc', 'usc' ];
+        let quoteIds = this.options['quoteIds'];
         let result = {};
         for (let b = 0; b < quoteIds.length; b++) {
             let quoteId = quoteIds[b];

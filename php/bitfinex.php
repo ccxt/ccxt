@@ -256,7 +256,9 @@ class bitfinex extends Exchange {
                 'QTM' => 'QTUM',
                 'SNG' => 'SNGLS',
                 'SPK' => 'SPANK',
+                'STJ' => 'STORJ',
                 'YYW' => 'YOYOW',
+                'USD' => 'USDT',
             ),
             'exceptions' => array (
                 'exact' => array (

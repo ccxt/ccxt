@@ -6,6 +6,7 @@
 from ccxt.async.base.exchange import Exchange
 import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import InsufficientFunds
 
 
 class cobinhood (Exchange):
@@ -127,6 +128,9 @@ class cobinhood (Exchange):
             'precision': {
                 'amount': 8,
                 'price': 8,
+            },
+            'exceptions': {
+                'insufficient_balance': InsufficientFunds,
             },
         })
 
@@ -527,5 +531,9 @@ class cobinhood (Exchange):
         if body[0] != '{':
             raise ExchangeError(self.id + ' ' + body)
         response = json.loads(body)
-        message = self.safe_value(response['error'], 'error_code')
-        raise ExchangeError(self.id + ' ' + message)
+        errorCode = self.safe_value(response['error'], 'error_code')
+        feedback = self.id + ' ' + self.json(response)
+        exceptions = self.exceptions
+        if errorCode in exceptions:
+            raise exceptions[errorCode](feedback)
+        raise ExchangeError(feedback)
