@@ -1,12 +1,14 @@
 # CCXT – CryptoCurrency eXchange Trading Library
 
-CCXT-CN 是 CCXT 文档中文翻译项目，开始于2018.05.14，欢迎加入我们一起完成这个项目，QQ 群：150134435
+# CCXT - 加密货币交易所交易接口库
 
 [![Build Status](https://travis-ci.org/ccxt/ccxt.svg?branch=master)](https://travis-ci.org/ccxt/ccxt) [![npm](https://img.shields.io/npm/v/ccxt.svg)](https://npmjs.com/package/ccxt) [![PyPI](https://img.shields.io/pypi/v/ccxt.svg)](https://pypi.python.org/pypi/ccxt) [![NPM Downloads](https://img.shields.io/npm/dm/ccxt.svg)](https://www.npmjs.com/package/ccxt) [![NSP Status](https://nodesecurity.io/orgs/ccxt/projects/856d3088-8b46-4515-9324-6b7cd2470522/badge)](https://nodesecurity.io/orgs/ccxt/projects/856d3088-8b46-4515-9324-6b7cd2470522) [![Gitter](https://badges.gitter.im/ccxt-dev/ccxt.svg)](https://gitter.im/ccxt-dev/ccxt?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge) [![Supported Exchanges](https://img.shields.io/badge/exchanges-115-blue.svg)](https://github.com/ccxt/ccxt/wiki/Exchange-Markets) [![Open Collective](https://opencollective.com/ccxt/backers/badge.svg)](https://opencollective.com/ccxt)
 
 A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
 
-一个用于加密货币交易的 JavaScript / Python / PHP 库，支持诸多比特币、以太坊及山寨币交易市场以及交易 APIs.
+
+一个用于加密货币的电子化交易的 JavaScript / Python / PHP 库，支持诸多比特币/以太币/山寨币交易市场的交易 API.
+
 
 
 The **CCXT** library is used to connect and trade with cryptocurrency / altcoin exchanges and payment processing services worldwide. It provides quick access to market data for storage, analysis, visualization, indicator development, algorithmic trading, strategy backtesting, bot programming, webshop integration and related software engineering.
@@ -27,7 +29,9 @@ Current feature list:
 - an out-of-the box unified all-in-one API extremely easy to integrate
 - works in Node 7.6+, Python 2 and 3, PHP 5.3+, web browsers      
 - 支持许多交易所，并将添加更多
-- 为上述交易所实现了全部公共和私人 API
+
+- 为上述交易所实现了全部公共和私有 API
+
 - 所有货币，山寨币和交易对，价格，订单簿，交易，行情等...
 - 可选的用于跨交易所或跨币种分析和套利的标准化数据
 - 一个非常容易集成的开箱即用的统一 API
@@ -41,7 +45,9 @@ Current feature list:
 ## 支持的加密货币交易市场 
 
 The ccxt library currently supports the following 115 cryptocurrency exchange markets and trading APIs:  
-CCXT 库目前支持以下 115 个加密货币交易所和其交易 API：
+
+CCXT 库目前支持以下 115 个加密货币交易所的交易 API：
+
 
 |                                                                                                                           | id                 | 名称                                                                         | 版本 | 文档                                                                                          | 国家/地区                               |
 |---------------------------------------------------------------------------------------------------------------------------|--------------------|------------------------------------------------------------------------------|:---:|:--------------------------------------------------------------------------------------------:|-----------------------------------------|
@@ -54,21 +60,22 @@ CCXT 库目前支持以下 115 个加密货币交易所和其交易 API：
 |![binance](https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg)            | binance            | [Binance](https://www.binance.com)                                           | *   | [API](https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md) | 日本                                   |
 |![bit2c](https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg)              | bit2c              | [Bit2C](https://www.bit2c.co.il)                                             | *   | [API](https://www.bit2c.co.il/home/api)                                                      | 以色列                                  |
 |![bitbank](https://user-images.githubusercontent.com/1294454/37808081-b87f2d9c-2e59-11e8-894d-c1900b7584fe.jpg)            | bitbank            | [bitbank](https://bitbank.cc/)                                               | 1   | [API](https://docs.bitbank.cc/)                                                              | 日本                                   |
-|![bitbay](https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg)             | bitbay             | [BitBay](https://bitbay.net)                                                 | *   | [API](https://bitbay.net/public-api)                                                         | 波兰, EU                              |
+
+|![bitbay](https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg)             | bitbay             | [BitBay](https://bitbay.net)                                                 | *   | [API](https://bitbay.net/public-api)                                                         | 波兰, 欧盟                              |
 |![bitfinex](https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg)           | bitfinex           | [Bitfinex](https://www.bitfinex.com)                                         | 1   | [API](https://bitfinex.readme.io/v1/docs)                                                    | 英属维尔京群岛                  |
 |![bitfinex2](https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg)          | bitfinex2          | [Bitfinex v2](https://www.bitfinex.com)                                      | 2   | [API](https://bitfinex.readme.io/v2/docs)                                                    | 英属维尔京群岛                  |
 |![bitflyer](https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg)           | bitflyer           | [bitFlyer](https://bitflyer.jp)                                              | 1   | [API](https://bitflyer.jp/API)                                                               | 日本                                   |
 |![bithumb](https://user-images.githubusercontent.com/1294454/30597177-ea800172-9d5e-11e7-804c-b9d4fa9b56b0.jpg)            | bithumb            | [Bithumb](https://www.bithumb.com)                                           | *   | [API](https://www.bithumb.com/u1/US127)                                                      | 韩国                             |
 |![bitkk](https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg)              | bitkk              | [bitkk](https://www.bitkk.com)                                               | 1   | [API](https://www.bitkk.com/i/developer)                                                     | 中国                                   |
-|![bitlish](https://user-images.githubusercontent.com/1294454/27766275-dcfc6c30-5ed3-11e7-839d-00a846385d0b.jpg)            | bitlish            | [Bitlish](https://bitlish.com)                                               | 1   | [API](https://bitlish.com/api)                                                               | 英国, EU, 俄罗斯                          |
-|![bitmarket](https://user-images.githubusercontent.com/1294454/27767256-a8555200-5ef9-11e7-96fd-469a65e2b0bd.jpg)          | bitmarket          | [BitMarket](https://www.bitmarket.pl)                                        | *   | [API](https://www.bitmarket.net/docs.php?file=api_public.html)                               | 波兰, EU                              |
+|![bitlish](https://user-images.githubusercontent.com/1294454/27766275-dcfc6c30-5ed3-11e7-839d-00a846385d0b.jpg)            | bitlish            | [Bitlish](https://bitlish.com)                                               | 1   | [API](https://bitlish.com/api)                                                               | 英国, 欧盟, 俄罗斯                          |
+|![bitmarket](https://user-images.githubusercontent.com/1294454/27767256-a8555200-5ef9-11e7-96fd-469a65e2b0bd.jpg)          | bitmarket          | [BitMarket](https://www.bitmarket.pl)                                        | *   | [API](https://www.bitmarket.net/docs.php?file=api_public.html)                               | 波兰, 欧盟                              |
 |![bitmex](https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg)             | bitmex             | [BitMEX](https://www.bitmex.com)                                             | 1   | [API](https://www.bitmex.com/app/apiOverview)                                                | 塞舌尔                              |
 |![bitso](https://user-images.githubusercontent.com/1294454/27766335-715ce7aa-5ed5-11e7-88a8-173a27bb30fe.jpg)              | bitso              | [Bitso](https://bitso.com)                                                   | 3   | [API](https://bitso.com/api_info)                                                            | 墨西哥                                  |
 |![bitstamp](https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg)           | bitstamp           | [Bitstamp](https://www.bitstamp.net)                                         | 2   | [API](https://www.bitstamp.net/api)                                                          | 英国                                      |
 |![bitstamp1](https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg)          | bitstamp1          | [Bitstamp v1](https://www.bitstamp.net)                                      | 1   | [API](https://www.bitstamp.net/api)                                                          | 英国                                      |
 |![bittrex](https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg)            | bittrex            | [Bittrex](https://bittrex.com)                                               | 1.1 | [API](https://bittrex.com/Home/Api)                                                          | 美国                                      |
 |![bitz](https://user-images.githubusercontent.com/1294454/35862606-4f554f14-0b5d-11e8-957d-35058c504b6f.jpg)               | bitz               | [Bit-Z](https://www.bit-z.com)                                               | 1   | [API](https://www.bit-z.com/api.html)                                                        | 香港                               |
-|![bl3p](https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg)               | bl3p               | [BL3P](https://bl3p.eu)                                                      | 1   | [API](https://github.com/BitonicNL/bl3p-api/tree/master/docs)                                | 荷兰, EU                         |
+|![bl3p](https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg)               | bl3p               | [BL3P](https://bl3p.eu)                                                      | 1   | [API](https://github.com/BitonicNL/bl3p-api/tree/master/docs)                                | 荷兰, 欧盟                         |
 |![bleutrade](https://user-images.githubusercontent.com/1294454/30303000-b602dbe6-976d-11e7-956d-36c5049c01e7.jpg)          | bleutrade          | [Bleutrade](https://bleutrade.com)                                           | 2   | [API](https://bleutrade.com/help/API)                                                        | 巴西                                  |
 |![braziliex](https://user-images.githubusercontent.com/1294454/34703593-c4498674-f504-11e7-8d14-ff8e44fb78c1.jpg)          | braziliex          | [Braziliex](https://braziliex.com/)                                          | *   | [API](https://braziliex.com/exchange/api.php)                                                | 巴西                                  |
 |![btcbox](https://user-images.githubusercontent.com/1294454/31275803-4df755a8-aaa1-11e7-9abb-11ec2fad9f2d.jpg)             | btcbox             | [BtcBox](https://www.btcbox.co.jp/)                                          | 1   | [API](https://www.btcbox.co.jp/help/asm)                                                     | 日本                                   |
@@ -78,21 +85,21 @@ CCXT 库目前支持以下 115 个加密货币交易所和其交易 API：
 |![btctradeim](https://user-images.githubusercontent.com/1294454/36770531-c2142444-1c5b-11e8-91e2-a4d90dc85fe8.jpg)         | btctradeim         | [BtcTrade.im](https://www.btctrade.im)                                       | *   | [API](https://www.btctrade.im/help.api.html)                                                 | 香港                               |
 |![btctradeua](https://user-images.githubusercontent.com/1294454/27941483-79fc7350-62d9-11e7-9f61-ac47f28fcd96.jpg)         | btctradeua         | [BTC Trade UA](https://btc-trade.com.ua)                                     | *   | [API](https://docs.google.com/document/d/1ocYA0yMy_RXd561sfG3qEPZ80kyll36HUxvCRe5GbhE/edit)  | 乌克兰                                 |
 |![btcturk](https://user-images.githubusercontent.com/1294454/27992709-18e15646-64a3-11e7-9fa2-b0950ec7712f.jpg)            | btcturk            | [BTCTurk](https://www.btcturk.com)                                           | *   | [API](https://github.com/BTCTrader/broker-api-docs)                                          | 土耳其                                  |
-|![btcx](https://user-images.githubusercontent.com/1294454/27766385-9fdcc98c-5ed6-11e7-8f14-66d5e5cd47e6.jpg)               | btcx               | [BTCX](https://btc-x.is)                                                     | 1   | [API](https://btc-x.is/custom/api-document.html)                                             | 冰岛, 美国, EU                         |
+|![btcx](https://user-images.githubusercontent.com/1294454/27766385-9fdcc98c-5ed6-11e7-8f14-66d5e5cd47e6.jpg)               | btcx               | [BTCX](https://btc-x.is)                                                     | 1   | [API](https://btc-x.is/custom/api-document.html)                                             | 冰岛, 美国, 欧盟                         |
 |![bxinth](https://user-images.githubusercontent.com/1294454/27766412-567b1eb4-5ed7-11e7-94a8-ff6a3884f6c5.jpg)             | bxinth             | [BX.in.th](https://bx.in.th)                                                 | *   | [API](https://bx.in.th/info/api)                                                             | 泰国                                |
-|![ccex](https://user-images.githubusercontent.com/1294454/27766433-16881f90-5ed8-11e7-92f8-3d92cc747a6c.jpg)               | ccex               | [C-CEX](https://c-cex.com)                                                   | *   | [API](https://c-cex.com/?id=api)                                                             | 德国, EU                             |
-|![cex](https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg)                | cex                | [CEX.IO](https://cex.io)                                                     | *   | [API](https://cex.io/cex-api)                                                                | 英国, EU, Cyprus, 俄罗斯                  |
+|![ccex](https://user-images.githubusercontent.com/1294454/27766433-16881f90-5ed8-11e7-92f8-3d92cc747a6c.jpg)               | ccex               | [C-CEX](https://c-cex.com)                                                   | *   | [API](https://c-cex.com/?id=api)                                                             | 德国, 欧盟                             |
+|![cex](https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg)                | cex                | [CEX.IO](https://cex.io)                                                     | *   | [API](https://cex.io/cex-api)                                                                | 英国, 欧盟, 塞浦路斯, 俄罗斯                  |
 |![chbtc](https://user-images.githubusercontent.com/1294454/28555659-f0040dc2-7109-11e7-9d99-688a438bf9f4.jpg)              | chbtc              | [CHBTC](https://trade.chbtc.com/api)                                         | 1   | [API](https://www.chbtc.com/i/developer)                                                     | 中国                                   |
 |![chilebit](https://user-images.githubusercontent.com/1294454/27991414-1298f0d8-647f-11e7-9c40-d56409266336.jpg)           | chilebit           | [ChileBit](https://chilebit.net)                                             | 1   | [API](https://blinktrade.com/docs)                                                           | 智利                                   |
 |![cobinhood](https://user-images.githubusercontent.com/1294454/35755576-dee02e5c-0878-11e8-989f-1595d80ba47f.jpg)          | cobinhood          | [COBINHOOD](https://cobinhood.com)                                           | *   | [API](https://cobinhood.github.io/api-public)                                                | 台湾                                  |
 |![coincheck](https://user-images.githubusercontent.com/1294454/27766464-3b5c3c74-5ed9-11e7-840e-31b32968e1da.jpg)          | coincheck          | [coincheck](https://coincheck.com)                                           | *   | [API](https://coincheck.com/documents/exchange/api)                                          | 日本, 印度尼西亚                        |
 |![coinegg](https://user-images.githubusercontent.com/1294454/36770310-adfa764e-1c5a-11e8-8e09-449daac3d2fb.jpg)            | coinegg            | [CoinEgg](https://www.coinegg.com)                                           | *   | [API](https://www.coinegg.com/explain.api.html)                                              | 中国, 英国                               |
 |![coinex](https://user-images.githubusercontent.com/1294454/38046312-0b450aac-32c8-11e8-99ab-bc6b136b6cc7.jpg)             | coinex             | [CoinEx](https://www.coinex.com)                                             | 1   | [API](https://github.com/coinexcom/coinex_exchange_api/wiki)                                 | 中国                                   |
-|![coinexchange](https://user-images.githubusercontent.com/1294454/34842303-29c99fca-f71c-11e7-83c1-09d900cb2334.jpg)       | coinexchange       | [CoinExchange](https://www.coinexchange.io)                                  | *   | [API](https://coinexchangeio.github.io/slate/)                                               | India, 日本, 韩国, 越南, 美国  |
+|![coinexchange](https://user-images.githubusercontent.com/1294454/34842303-29c99fca-f71c-11e7-83c1-09d900cb2334.jpg)       | coinexchange       | [CoinExchange](https://www.coinexchange.io)                                  | *   | [API](https://coinexchangeio.github.io/slate/)                                               | 印度, 日本, 韩国, 越南, 美国  |
 |![coinfloor](https://user-images.githubusercontent.com/1294454/28246081-623fc164-6a1c-11e7-913f-bac0d5576c90.jpg)          | coinfloor          | [coinfloor](https://www.coinfloor.co.uk)                                     | *   | [API](https://github.com/coinfloor/api)                                                      | 英国                                      |
 |![coingi](https://user-images.githubusercontent.com/1294454/28619707-5c9232a8-7212-11e7-86d6-98fe5d15cc6e.jpg)             | coingi             | [Coingi](https://coingi.com)                                                 | *   | [API](http://docs.coingi.apiary.io/)                                                         | 巴拿马, 保加利亚, 中国, 美国             |
 |![coinmarketcap](https://user-images.githubusercontent.com/1294454/28244244-9be6312a-69ed-11e7-99c1-7c1797275265.jpg)      | coinmarketcap      | [CoinMarketCap](https://coinmarketcap.com)                                   | 1   | [API](https://coinmarketcap.com/api)                                                         | 美国                                      |
-|![coinmate](https://user-images.githubusercontent.com/1294454/27811229-c1efb510-606c-11e7-9a36-84ba2ce412d8.jpg)           | coinmate           | [CoinMate](https://coinmate.io)                                              | *   | [API](http://docs.coinmate.apiary.io)                                                        | 英国, 捷克, EU                  |
+|![coinmate](https://user-images.githubusercontent.com/1294454/27811229-c1efb510-606c-11e7-9a36-84ba2ce412d8.jpg)           | coinmate           | [CoinMate](https://coinmate.io)                                              | *   | [API](http://docs.coinmate.apiary.io)                                                        | 英国, 捷克, 欧盟                  |
 |![coinnest](https://user-images.githubusercontent.com/1294454/38065728-7289ff5c-330d-11e8-9cc1-cf0cbcb606bc.jpg)           | coinnest           | [coinnest](https://www.coinnest.co.kr)                                       | *   | [API](https://www.coinnest.co.kr/doc/intro.html)                                             | 韩国                             |
 |![coinone](https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg)            | coinone            | [CoinOne](https://coinone.co.kr)                                             | 2   | [API](https://doc.coinone.co.kr)                                                             | 韩国                             |
 |![coinsecure](https://user-images.githubusercontent.com/1294454/27766472-9cbd200a-5ed9-11e7-9551-2267ad7bac08.jpg)         | coinsecure         | [Coinsecure](https://coinsecure.in)                                          | 1   | [API](https://api.coinsecure.in)                                                             | 印度                                   |
@@ -140,12 +147,12 @@ CCXT 库目前支持以下 115 个加密货币交易所和其交易 API：
 |![okcoincny](https://user-images.githubusercontent.com/1294454/27766792-8be9157a-5ee5-11e7-926c-6d69b8d3378d.jpg)          | okcoincny          | [OKCoin CNY](https://www.okcoin.cn)                                          | 1   | [API](https://www.okcoin.cn/rest_getStarted.html)                                            | 中国                                   |
 |![okcoinusd](https://user-images.githubusercontent.com/1294454/27766791-89ffb502-5ee5-11e7-8a5b-c5950b68ac65.jpg)          | okcoinusd          | [OKCoin USD](https://www.okcoin.com)                                         | 1   | [API](https://www.okcoin.com/rest_getStarted.html)                                           | 中国, 美国                               |
 |![okex](https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg)               | okex               | [OKEX](https://www.okex.com)                                                 | 1   | [API](https://github.com/okcoin-okex/API-docs-OKEx.com)                                      | 中国, 美国                               |
-|![paymium](https://user-images.githubusercontent.com/1294454/27790564-a945a9d4-5ff9-11e7-9d2d-b635763f2f24.jpg)            | paymium            | [Paymium](https://www.paymium.com)                                           | 1   | [API](https://github.com/Paymium/api-documentation)                                          | 法国, EU                              |
+|![paymium](https://user-images.githubusercontent.com/1294454/27790564-a945a9d4-5ff9-11e7-9d2d-b635763f2f24.jpg)            | paymium            | [Paymium](https://www.paymium.com)                                           | 1   | [API](https://github.com/Paymium/api-documentation)                                          | 法国, 欧盟                              |
 |![poloniex](https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg)           | poloniex           | [Poloniex](https://poloniex.com)                                             | *   | [API](https://poloniex.com/support/api/)                                                     | 美国                                      |
 |![qryptos](https://user-images.githubusercontent.com/1294454/30953915-b1611dc0-a436-11e7-8947-c95bd5a42086.jpg)            | qryptos            | [QRYPTOS](https://www.qryptos.com)                                           | 2   | [API](https://developers.quoine.com)                                                         | 中国, 台湾                           |
 |![quadrigacx](https://user-images.githubusercontent.com/1294454/27766825-98a6d0de-5ee7-11e7-9fa4-38e11a2c6f52.jpg)         | quadrigacx         | [QuadrigaCX](https://www.quadrigacx.com)                                     | 2   | [API](https://www.quadrigacx.com/api_info)                                                   | 加拿大                                  |
 |![quoinex](https://user-images.githubusercontent.com/1294454/35047114-0e24ad4a-fbaa-11e7-96a9-69c1a756083b.jpg)            | quoinex            | [QUOINEX](https://quoinex.com/)                                              | 2   | [API](https://developers.quoine.com)                                                         | 日本, 新加坡, 越南               |
-|![southxchange](https://user-images.githubusercontent.com/1294454/27838912-4f94ec8a-60f6-11e7-9e5d-bbf9bd50a559.jpg)       | southxchange       | [SouthXchange](https://www.southxchange.com)                                 | *   | [API](https://www.southxchange.com/Home/Api)                                                 | Argentina                               |
+|![southxchange](https://user-images.githubusercontent.com/1294454/27838912-4f94ec8a-60f6-11e7-9e5d-bbf9bd50a559.jpg)       | southxchange       | [SouthXchange](https://www.southxchange.com)                                 | *   | [API](https://www.southxchange.com/Home/Api)                                                 | 阿根廷                               |
 |![surbitcoin](https://user-images.githubusercontent.com/1294454/27991511-f0a50194-6481-11e7-99b5-8f02932424cc.jpg)         | surbitcoin         | [SurBitcoin](https://surbitcoin.com)                                         | 1   | [API](https://blinktrade.com/docs)                                                           | 委内瑞拉                               |
 |![therock](https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg)            | therock            | [TheRockTrading](https://therocktrading.com)                                 | 1   | [API](https://api.therocktrading.com/doc/v1/index.html)                                      | 马耳他                                   |
 |![tidebit](https://user-images.githubusercontent.com/1294454/39034921-e3acf016-4480-11e8-9945-a6086a1082fe.jpg)            | tidebit            | [TideBit](https://www.tidebit.com)                                           | 2   | [API](https://www.tidebit.com/documents/api_v2)                                              | 香港                               |
@@ -153,7 +160,7 @@ CCXT 库目前支持以下 115 个加密货币交易所和其交易 API：
 |![urdubit](https://user-images.githubusercontent.com/1294454/27991453-156bf3ae-6480-11e7-82eb-7295fe1b5bb4.jpg)            | urdubit            | [UrduBit](https://urdubit.com)                                               | 1   | [API](https://blinktrade.com/docs)                                                           | 巴基斯坦                                |
 |![vaultoro](https://user-images.githubusercontent.com/1294454/27766880-f205e870-5ee9-11e7-8fe2-0d5b15880752.jpg)           | vaultoro           | [Vaultoro](https://www.vaultoro.com)                                         | 1   | [API](https://api.vaultoro.com)                                                              | 瑞士                             |
 |![vbtc](https://user-images.githubusercontent.com/1294454/27991481-1f53d1d8-6481-11e7-884e-21d17e7939db.jpg)               | vbtc               | [VBTC](https://vbtc.exchange)                                                | 1   | [API](https://blinktrade.com/docs)                                                           | 越南                                 |
-|![virwox](https://user-images.githubusercontent.com/1294454/27766894-6da9d360-5eea-11e7-90aa-41f2711b7405.jpg)             | virwox             | [VirWoX](https://www.virwox.com)                                             | *   | [API](https://www.virwox.com/developers.php)                                                 | 澳大利亚, EU                             |
+|![virwox](https://user-images.githubusercontent.com/1294454/27766894-6da9d360-5eea-11e7-90aa-41f2711b7405.jpg)             | virwox             | [VirWoX](https://www.virwox.com)                                             | *   | [API](https://www.virwox.com/developers.php)                                                 | 澳大利亚, 欧盟                             |
 |![wex](https://user-images.githubusercontent.com/1294454/30652751-d74ec8f8-9e31-11e7-98c5-71469fcef03e.jpg)                | wex                | [WEX](https://wex.nz)                                                        | 3   | [API](https://wex.nz/api/3/docs)                                                             | 新西兰                             |
 |![xbtce](https://user-images.githubusercontent.com/1294454/28059414-e235970c-662c-11e7-8c3a-08e31f78684b.jpg)              | xbtce              | [xBTCe](https://www.xbtce.com)                                               | 1   | [API](https://www.xbtce.com/tradeapi)                                                        | 俄罗斯                                  |
 |![yobit](https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg)              | yobit              | [YoBit](https://www.yobit.net)                                               | 3   | [API](https://www.yobit.net/en/api/)                                                         | 俄罗斯                                  |
@@ -211,10 +218,10 @@ var ccxt = require ('ccxt')
 console.log (ccxt.exchanges) // print all available exchanges
 ```
 
-### JavaScript (for use with the `<script>` tag):  
-JavaScript（与 <script> 标签一起使用）：    
-包含所有功能于一身的浏览器软件包（包括依赖项），从 unpkg CDN 提供，这是一个快速的全球内容交付网络，适用于NPM上的所有内容。    
+### JavaScript (for use with the `<script>` tag):      
 [All-in-one browser bundle](https://unpkg.com/ccxt) (dependencies included), served from [unpkg CDN](https://unpkg.com/), which is a fast, global content delivery network for everything on NPM.
+### JavaScript（与 <script> 标签一起使用）：    
+包含所有功能于一身的浏览器软件包（包括依赖项），由 [unpkg CDN](https://unpkg.com/) 提供。[unpkg CDN](https://unpkg.com/) 是一个快速的全球内容交付网络，适用于NPM上的所有内容。
 
 ```HTML
 <script type="text/javascript" src="https://unpkg.com/ccxt"></script>
@@ -297,7 +304,7 @@ CCXT 库由公共接口部分和私有接口部分组成。任何人都可以在
 
 - 市场数据
 - 交易对
-- 手续费？
+- 交易手续费
 - 订单簿 / 深度数据
 - 交易历史
 - 行情 / Tickers 
@@ -318,7 +325,7 @@ Private APIs allow the following:
 - transfer funds between accounts
 - use merchant services    
 
-对于通过私有 API 进行交易，您需要从交易所获取 API 密钥。它通常意味着在交易所注册，并使用您的账户创建 API 密钥。大多数交易所需要个人信息或身份证明。某种验证材料也可能是必要的。如果你想要交易，你需要自己注册，这个库不会为你创建账户或 API 密钥。一些交易所 API 暴露了从代码本身中注册帐户的接口方法，但大多数交易所并没有。因此您必须注册并使用在网站上创建 API 密钥。
+对于通过私有 API 进行交易，您需要从交易所获取 API 密钥。它通常意味着在交易所注册，并使用您的账户创建 API 密钥。大多数交易所需要个人信息或身份证明。其他验证材料也可能是必要的。如果你想要交易，你需要自己注册，这个库不会为你创建账户或 API 密钥。一些交易所 API 提供了用代码本身注册帐户的接口，但大多数交易所并没有。因此您必须注册并在网站上创建 API 密钥。
 
 私有API允许以下内容：
 
@@ -329,8 +336,7 @@ Private APIs allow the following:
 - 查询个人订单
 - 获取交易明细/历史
 - 在账户之间转移资金
-- 使用其它交易所服务
-
+- 使用商业服务
 
 This library implements full public and private REST APIs for all exchanges. WebSocket and FIX implementations in JavaScript, PHP, Python and other languages coming soon.    
 本仓库实现了所有交易所的公共和私有REST API。JavaScript，PHP，Python及其他语言的WebSocket实现和FIX将尽快推出。
@@ -511,7 +517,8 @@ Thank you to all our backers! [[Become a backer](https://opencollective.com/ccxt
 <a href="https://opencollective.com/ccxt#backers" target="_blank"><img src="https://opencollective.com/ccxt/backers.svg?width=890"></a>
 
 ### Crypto    
-### 地址
+### 加密货币捐助地址
+
 ```
 ETH 0xa7c2b18b7c8b86984560cad3b1bc3224b388ded0
 BTC 33RmVRfhK2WZVQR1R83h2e9yXoqRNDvJva
@@ -521,3 +528,10 @@ LTC LbT8mkAqQBphc4yxLXEDgYDfEax74et3bP
 
 Thank you!    
 谢谢！
+
+### 中文社区资源
+- [CCXTCN](https://github.com/bilibilihuangyifan/ccxtcn) 是 CCXT 文档中文翻译项目，开始于 2018.05.14，欢迎加入我们一起完成这个项目。
+- CCXT 中文文档翻译 QQ 群：749640693
+- CCXT 使用问题交流 QQ 群：150134435
+- [discourse 社区](http://discourse.blockhedging.com/c/ccxt)
+

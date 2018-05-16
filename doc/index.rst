@@ -1,6 +1,5 @@
 CCXT – CryptoCurrency eXchange Trading Library
 ==============================================
-CCXTCN 是CCXT文档中文翻译项目，开始于2018.05.14，欢迎加入我们一起完成这个项目，QQ群：150134435
 
 |Build Status| |npm| |PyPI| |NPM Downloads| |Try ccxt on RunKit| |Gitter| |Supported Exchanges|
 
