@@ -17,7 +17,7 @@ Current feature list:
 - an out-of-the box unified all-in-one API extremely easy to integrate
 - works in Node 7.6+, Python 2 and 3, PHP 5.3+, web browsers
 
-[ccxt on GitHub](https://github.com/ccxt/ccxt) | [Install](#install) | [Usage](#usage) | [Manual](https://github.com/ccxt/ccxt/wiki) | [Examples](https://github.com/ccxt/ccxt/tree/master/examples) | [Changelog](https://github.com/ccxt/ccxt/blob/master/CHANGELOG.md) | [Contributing](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md)
+[ccxt on GitHub](https://github.com/ccxt/ccxt) | [Install](#install) | [Usage](#usage) | [Manual](https://github.com/ccxt/ccxt/wiki)| [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) | [Examples](https://github.com/ccxt/ccxt/tree/master/examples) | [Changelog](https://github.com/ccxt/ccxt/blob/master/CHANGELOG.md) | [Contributing](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md)
 
 ## Supported Cryptocurrency Exchange Markets
 
