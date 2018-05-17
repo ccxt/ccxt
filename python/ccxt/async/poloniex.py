@@ -41,6 +41,7 @@ class poloniex (Exchange):
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': 'emulated',
                 'fetchTickers': True,
+                'fetchTradingFees': True,
                 'fetchCurrencies': True,
                 'withdraw': True,
             },
@@ -242,7 +243,7 @@ class poloniex (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    async def fetch_fees(self, params={}):
+    async def fetch_trading_fees(self, params={}):
         await self.load_markets()
         fees = await self.privatePostReturnFeeInfo()
         return {
