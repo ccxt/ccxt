@@ -612,6 +612,7 @@ class cryptopia extends Exchange {
     }
 
     public function fetch_deposit_address ($code, $params = array ()) {
+        $this->load_markets();
         $currency = $this->currency ($code);
         $response = $this->privatePostGetDepositAddress (array_merge (array (
             'Currency' => $currency['id'],
@@ -629,6 +630,7 @@ class cryptopia extends Exchange {
     }
 
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+        $this->load_markets();
         $currency = $this->currency ($code);
         $this->check_address($address);
         $request = array (
