@@ -119,7 +119,7 @@ class okcoinusd (Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766791-89ffb502-5ee5-11e7-8a5b-c5950b68ac65.jpg',
                 'api': {
-                    'web': 'https://www.okcoin.com/v2',
+                    'web': 'https://www.okcoin.com/v2/spot',
                     'public': 'https://www.okcoin.com/api',
                     'private': 'https://www.okcoin.com/api',
                 },
@@ -656,7 +656,9 @@ class okcoinusd (Exchange):
         url = '/'
         if api != 'web':
             url += self.version + '/'
-        url += path + self.extension
+        url += path
+        if api != 'web':
+            url += self.extension
         if api == 'private':
             self.check_required_credentials()
             query = self.keysort(self.extend({

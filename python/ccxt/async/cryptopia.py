@@ -87,9 +87,11 @@ class cryptopia (Exchange):
                 'BTG': 'Bitgem',
                 'CC': 'CCX',
                 'CMT': 'Comet',
+                'EPC': 'ExperienceCoin',
                 'FCN': 'Facilecoin',
                 'FUEL': 'FC2',  # FuelCoin != FUEL
                 'HAV': 'Havecoin',
+                'LBTC': 'LiteBitcoin',
                 'LDC': 'LADACoin',
                 'MARKS': 'Bitmark',
                 'NET': 'NetCoin',

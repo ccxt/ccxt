@@ -371,7 +371,7 @@ class bitz (Exchange):
         if currentTimestamp > self.options['lastNonceTimestamp']:
             self.options['lastNonceTimestamp'] = currentTimestamp
             self.options['lastNonce'] = 100000
-        self.options['lastNonce'] += 1
+        self.options['lastNonce'] = self.sum(self.options['lastNonce'], 1)
         return self.options['lastNonce']
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
