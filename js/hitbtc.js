@@ -115,7 +115,7 @@ module.exports = class hitbtc extends Exchange {
                         'AVT': 1.9,
                         'BAS': 113,
                         'BCN': 0.1,
-                        'BET': 124,
+                        'DAO Casino': 124, // id = 'BET'
                         'BKB': 46,
                         'BMC': 32,
                         'BMT': 100,
@@ -310,7 +310,7 @@ module.exports = class hitbtc extends Exchange {
                         'AVT': 0,
                         'BAS': 0,
                         'BCN': 0,
-                        'BET': 0,
+                        'DAO Casino': 0, // id = 'BET'
                         'BKB': 0,
                         'BMC': 0,
                         'BMT': 0,
@@ -483,6 +483,7 @@ module.exports = class hitbtc extends Exchange {
             },
             'commonCurrencies': {
                 'BCC': 'BCC',
+                'BET': 'DAO Casino',
                 'XBT': 'BTC',
                 'DRK': 'DASH',
                 'CAT': 'BitClave',
@@ -776,12 +777,16 @@ module.exports = class hitbtc extends Exchange {
         let cost = undefined;
         let amountDefined = (typeof amount !== 'undefined');
         let remainingDefined = (typeof remaining !== 'undefined');
-        if (market) {
+        if (typeof market !== 'undefined') {
             symbol = market['symbol'];
             if (amountDefined)
                 amount *= market['lot'];
             if (remainingDefined)
                 remaining *= market['lot'];
+        } else {
+            let marketId = this.safeString (order, 'symbol');
+            if (marketId in this.markets_by_id)
+                market = this.markets_by_id[marketId];
         }
         if (amountDefined) {
             if (remainingDefined) {
@@ -789,6 +794,17 @@ module.exports = class hitbtc extends Exchange {
                 cost = averagePrice * filled;
             }
         }
+        let feeCost = this.safeFloat (order, 'fee');
+        let feeCurrency = undefined;
+        if (typeof market !== 'undefined') {
+            symbol = market['symbol'];
+            feeCurrency = market['quote'];
+        }
+        let fee = {
+            'cost': feeCost,
+            'currency': feeCurrency,
+            'rate': undefined,
+        };
         return {
             'id': order['clientOrderId'].toString (),
             'info': order,
@@ -804,7 +820,7 @@ module.exports = class hitbtc extends Exchange {
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 

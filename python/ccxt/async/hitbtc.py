@@ -119,7 +119,7 @@ class hitbtc (Exchange):
                         'AVT': 1.9,
                         'BAS': 113,
                         'BCN': 0.1,
-                        'BET': 124,
+                        'DAO Casino': 124,  # id = 'BET'
                         'BKB': 46,
                         'BMC': 32,
                         'BMT': 100,
@@ -314,7 +314,7 @@ class hitbtc (Exchange):
                         'AVT': 0,
                         'BAS': 0,
                         'BCN': 0,
-                        'BET': 0,
+                        'DAO Casino': 0,  # id = 'BET'
                         'BKB': 0,
                         'BMC': 0,
                         'BMT': 0,
@@ -487,6 +487,7 @@ class hitbtc (Exchange):
             },
             'commonCurrencies': {
                 'BCC': 'BCC',
+                'BET': 'DAO Casino',
                 'XBT': 'BTC',
                 'DRK': 'DASH',
                 'CAT': 'BitClave',
@@ -762,16 +763,30 @@ class hitbtc (Exchange):
         cost = None
         amountDefined = (amount is not None)
         remainingDefined = (remaining is not None)
-        if market:
+        if market is not None:
             symbol = market['symbol']
             if amountDefined:
                 amount *= market['lot']
             if remainingDefined:
                 remaining *= market['lot']
+        else:
+            marketId = self.safe_string(order, 'symbol')
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
         if amountDefined:
             if remainingDefined:
                 filled = amount - remaining
                 cost = averagePrice * filled
+        feeCost = self.safe_float(order, 'fee')
+        feeCurrency = None
+        if market is not None:
+            symbol = market['symbol']
+            feeCurrency = market['quote']
+        fee = {
+            'cost': feeCost,
+            'currency': feeCurrency,
+            'rate': None,
+        }
         return {
             'id': str(order['clientOrderId']),
             'info': order,
@@ -787,7 +802,7 @@ class hitbtc (Exchange):
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
-            'fee': None,
+            'fee': fee,
         }
 
     async def fetch_order(self, id, symbol=None, params={}):
