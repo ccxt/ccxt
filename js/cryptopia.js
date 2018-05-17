@@ -628,6 +628,7 @@ module.exports = class cryptopia extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        await this.loadMarkets ();
         let currency = this.currency (code);
         this.checkAddress (address);
         let request = {
