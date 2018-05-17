@@ -171,6 +171,9 @@ class zb (Exchange):
                     'taker': 0.2 / 100,
                 },
             },
+            'commonCurrencies': {
+                'ENT': 'ENTCash',
+            },
         })
 
     async def fetch_markets(self):
