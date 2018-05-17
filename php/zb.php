@@ -155,6 +155,9 @@ class zb extends Exchange {
                     'taker' => 0.2 / 100,
                 ),
             ),
+            'commonCurrencies' => array (
+                'ENT' => 'ENTCash',
+            ),
         ));
     }
 
