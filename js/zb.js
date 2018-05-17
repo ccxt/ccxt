@@ -154,6 +154,9 @@ module.exports = class zb extends Exchange {
                     'taker': 0.2 / 100,
                 },
             },
+            'commonCurrencies': {
+                'ENT': 'ENTCash',
+            },
         });
     }
 
