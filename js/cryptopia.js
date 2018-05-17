@@ -611,6 +611,7 @@ module.exports = class cryptopia extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
         let currency = this.currency (code);
         let response = await this.privatePostGetDepositAddress (this.extend ({
             'Currency': currency['id'],
