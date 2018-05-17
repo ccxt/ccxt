@@ -485,11 +485,12 @@ class hitbtc extends Exchange {
             'commonCurrencies' => array (
                 'BCC' => 'BCC',
                 'BET' => 'DAO Casino',
-                'XBT' => 'BTC',
-                'DRK' => 'DASH',
                 'CAT' => 'BitClave',
-                'USD' => 'USDT',
+                'DRK' => 'DASH',
                 'EMGO' => 'MGO',
+                'GET' => 'Themis',
+                'USD' => 'USDT',
+                'XBT' => 'BTC',
             ),
         ));
     }
