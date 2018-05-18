@@ -613,6 +613,9 @@ class bitfinex (Exchange):
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
+        if symbol is not None:
+            if not(symbol in list(self.markets.keys())):
+                raise ExchangeError(self.id + ' has no symbol ' + symbol)
         response = self.privatePostOrders(params)
         orders = self.parse_orders(response, None, since, limit)
         if symbol:

@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.14.10';
+$version = '1.14.20';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -508,8 +508,8 @@ abstract class Exchange {
         return $time;
     }
 
-    public static function ymd ($timestamp, $infix = ' ') {
-        return gmdate ('Y-m-d', (int) round ($timestamp / 1000));
+    public static function ymd ($timestamp, $infix = '-') {
+        return gmdate ('Y' . $infix . 'm' . $infix . 'd', (int) round ($timestamp / 1000));
     }
 
     public static function ymdhms ($timestamp, $infix = ' ') {

@@ -171,6 +171,9 @@ class zb (Exchange):
                     'taker': 0.2 / 100,
                 },
             },
+            'commonCurrencies': {
+                'ENT': 'ENTCash',
+            },
         })
 
     async def fetch_markets(self):
@@ -415,7 +418,7 @@ class zb (Exchange):
         return self.parse_orders(response, market, since, limit)
 
     def parse_order(self, order, market=None):
-        side = order['type'] == 'buy' if 1 else 'sell'
+        side = 'buy' if (order['type'] == 1) else 'sell'
         type = 'limit'  # market order is not availalbe in ZB
         timestamp = None
         createDateField = self.get_create_date_field()

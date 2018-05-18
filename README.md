@@ -329,6 +329,10 @@ exmo   = ccxt.exmo({
     'apiKey': 'YOUR_PUBLIC_API_KEY',
     'secret': 'YOUR_SECRET_PRIVATE_KEY',
 })
+kraken = ccxt.kraken({
+    'apiKey': 'YOUR_PUBLIC_API_KEY',
+    'secret': 'YOUR_SECRET_PRIVATE_KEY',
+})
 
 hitbtc_markets = hitbtc.load_markets()
 
@@ -361,6 +365,10 @@ $poloniex = new \ccxt\poloniex ();
 $bittrex  = new \ccxt\bittrex  (array ('verbose' => true));
 $quoinex  = new \ccxt\quoinex   ();
 $zaif     = new \ccxt\zaif     (array (
+    'apiKey' => 'YOUR_PUBLIC_API_KEY',
+    'secret' => 'YOUR_SECRET_PRIVATE_KEY',
+));
+$hitbtc   = new \ccxt\hitbtc   (array (
     'apiKey' => 'YOUR_PUBLIC_API_KEY',
     'secret' => 'YOUR_SECRET_PRIVATE_KEY',
 ));

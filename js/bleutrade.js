@@ -110,7 +110,12 @@ module.exports = class bleutrade extends bittrex {
                 'amount': 8,
                 'price': 8,
             };
-            let active = market['IsActive'];
+            let active = this.safeString (market, 'IsActive');
+            if (active === 'true') {
+                active = true;
+            } else if (active === 'false') {
+                active = false;
+            }
             result.push ({
                 'id': id,
                 'symbol': symbol,

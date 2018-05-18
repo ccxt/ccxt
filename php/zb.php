@@ -155,6 +155,9 @@ class zb extends Exchange {
                     'taker' => 0.2 / 100,
                 ),
             ),
+            'commonCurrencies' => array (
+                'ENT' => 'ENTCash',
+            ),
         ));
     }
 
@@ -419,7 +422,7 @@ class zb extends Exchange {
     }
 
     public function parse_order ($order, $market = null) {
-        $side = $order['type'] === 1 ? 'buy' : 'sell';
+        $side = ($order['type'] === 1) ? 'buy' : 'sell';
         $type = 'limit'; // $market $order is not availalbe in ZB
         $timestamp = null;
         $createDateField = $this->get_create_date_field ();

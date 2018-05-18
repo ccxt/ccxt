@@ -114,7 +114,11 @@ class bleutrade (bittrex):
                 'amount': 8,
                 'price': 8,
             }
-            active = market['IsActive']
+            active = self.safe_string(market, 'IsActive')
+            if active == 'true':
+                active = True
+            elif active == 'false':
+                active = False
             result.append({
                 'id': id,
                 'symbol': symbol,

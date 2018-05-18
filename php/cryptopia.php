@@ -81,9 +81,11 @@ class cryptopia extends Exchange {
                 'BTG' => 'Bitgem',
                 'CC' => 'CCX',
                 'CMT' => 'Comet',
+                'EPC' => 'ExperienceCoin',
                 'FCN' => 'Facilecoin',
                 'FUEL' => 'FC2', // FuelCoin != FUEL
                 'HAV' => 'Havecoin',
+                'LBTC' => 'LiteBitcoin',
                 'LDC' => 'LADACoin',
                 'MARKS' => 'Bitmark',
                 'NET' => 'NetCoin',
@@ -610,6 +612,7 @@ class cryptopia extends Exchange {
     }
 
     public function fetch_deposit_address ($code, $params = array ()) {
+        $this->load_markets();
         $currency = $this->currency ($code);
         $response = $this->privatePostGetDepositAddress (array_merge (array (
             'Currency' => $currency['id'],
@@ -627,6 +630,7 @@ class cryptopia extends Exchange {
     }
 
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+        $this->load_markets();
         $currency = $this->currency ($code);
         $this->check_address($address);
         $request = array (
