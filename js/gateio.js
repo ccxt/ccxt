@@ -405,10 +405,7 @@ module.exports = class gateio extends Exchange {
             'amount': amount,
         };
         let response = await this[method] (this.extend (order, params));
-        return {
-            'info': response,
-            'id': response['orderNumber'].toString (),
-        };
+        return this.parseOrder (response);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
