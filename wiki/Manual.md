@@ -971,7 +971,7 @@ The method for fetching an order book for a particular symbol is named `fetchOrd
 
 ```JavaScript
 // JavaScript
-delay = 2000 // milliseconds = seconds * 1000
+delay = 2000; // milliseconds = seconds * 1000
 (async () => {
     for (symbol in exchange.markets) {
         console.log (await exchange.fetchOrderBook (symbol))
@@ -2073,6 +2073,33 @@ The withdraw method returns a dictionary containing the withdrawal id, which is 
 Some exchanges require a manual approval of each withdrawal by means of 2FA (2-factor authentication). In order to approve your withdrawal you usually have to either click their secret link in your email inbox or enter a Google Authenticator code or an Authy code on their website to verify that withdrawal transaction was requested intentionally.
 
 In some cases you can also use the withdrawal id to check withdrawal status later (whether it succeeded or not) and to submit 2FA confirmation codes, where this is supported by the exchange. See [their docs](https://github.com/ccxt/ccxt/wiki/Manual#exchanges) for details.
+
+### Fees
+
+Sometimes trading fees are loaded in the `fetchMarkets` endpoint and funding fees in the `fetchCurrencies` endpoint. In order to load them into the `.fees` attribute `load_fees` can be called (only implemented in python so far). Sometimes fees need to be loaded from non-standard endpoints and this can be achieved by a call to `fetchFees` - however this usually requires authentication.
+
+The `calculateFee` method can be used to calculate fees that will be paid, although you should be cautious when relying these fees as it is very difficult to be sure of whether you will be a taker or maker.
+
+```$xslt
+    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {})
+```
+returns
+```$xslt
+{
+    'type': takerOrMaker,
+    'currency': baseOrQuote,
+    'rate': percentage,
+    'cost': feePaid,
+}
+```
+
+**Maker or Taker**
+
+These are the *trading fees* paid to an exchange when an order is filled. They can be found in the `.fees['trading']` attribute of an exchange. Maker fees are paid when you provide liquidity to the exchange i.e. you *make* an order and someone else fills it, and are usually lower than taker fees. Similarly, taker fees are paid when you *take* liquidity from the exchange and fill someone else's order.
+
+**Deposit and Withdrawal**
+
+These are the *funding fees* paid to exchange to cover costs of transaction fees, in theory, but they may be higher. They can be found in the `.fees['funding']` attribute of an exchange. 
 
 ### Ledger
 
