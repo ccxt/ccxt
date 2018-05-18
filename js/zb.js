@@ -421,7 +421,7 @@ module.exports = class zb extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        let side = order['type'] === 1 ? 'buy' : 'sell';
+        let side = (order['type'] === 1) ? 'buy' : 'sell';
         let type = 'limit'; // market order is not availalbe in ZB
         let timestamp = undefined;
         let createDateField = this.getCreateDateField ();
