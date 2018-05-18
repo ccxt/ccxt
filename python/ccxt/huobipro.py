@@ -132,6 +132,7 @@ class huobipro (Exchange):
                 'order-update-error': ExchangeNotAvailable,  # undocumented error
             },
             'options': {
+                'createMarketBuyOrderRequiresPrice': True,
                 'fetchMarketsMethod': 'publicGetCommonSymbols',
                 'language': 'en-US',
             },
@@ -580,6 +581,12 @@ class huobipro (Exchange):
             'symbol': market['id'],
             'type': side + '-' + type,
         }
+        if self.options['createMarketBuyOrderRequiresPrice']:
+            if (type == 'market') and(side == 'buy'):
+                if price is None:
+                    raise InvalidOrder(self.id + " market buy order requires price argument to calculate cost(total amount of quote currency to spend for buying, amount * price). To switch off self warning exception and specify cost in the amount argument, set .options['createMarketBuyOrderRequiresPrice'] = False. Make sure you know what you're doing.")
+                else:
+                    order['amount'] = self.price_to_precision(symbol, float(amount) * float(price))
         if type == 'limit':
             order['price'] = self.price_to_precision(symbol, price)
         response = self.privatePostOrderOrdersPlace(self.extend(order, params))
