@@ -563,6 +563,7 @@ class cryptopia (Exchange):
         return result
 
     async def fetch_deposit_address(self, code, params={}):
+        await self.load_markets()
         currency = self.currency(code)
         response = await self.privatePostGetDepositAddress(self.extend({
             'Currency': currency['id'],
@@ -579,6 +580,7 @@ class cryptopia (Exchange):
         }
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        await self.load_markets()
         currency = self.currency(code)
         self.check_address(address)
         request = {
