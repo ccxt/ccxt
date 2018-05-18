@@ -144,7 +144,11 @@ async function main () {
                 return undefined
             if (param[0] === '{' || param[0] === '[')
                 return JSON.parse (param)
-            return param.match (/[a-zA-Z]/g) ? param : parseFloat (param)
+            if (param.match (/[a-zA-Z-]/g))
+                return param
+            if (param.match (/^[+0-9\.-]+$/))
+                return parseFloat (param)
+            return param
         })
 
         const www = Array.isArray (exchange.urls.www) ? exchange.urls.www[0] : exchange.urls.www
