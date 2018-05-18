@@ -97,6 +97,7 @@ class coinmarketcap extends Exchange {
             'BlazeCoin' => 'BlazeCoin',
             'BlockCAT' => 'BlockCAT',
             'Catcoin' => 'Catcoin',
+            'GET Protocol' => 'GET Protocol',
             'Hi Mutual Society' => 'Hi Mutual Society',
             'iCoin' => 'iCoin',
             'Maggie' => 'Maggie',

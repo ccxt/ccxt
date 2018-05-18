@@ -134,6 +134,11 @@ class kuna (acx):
         if market:
             symbol = market['symbol']
         side = self.safe_string(trade, 'side')
+        sideMap = {
+            'ask': 'sell',
+            'bid': 'buy',
+        }
+        side = sideMap[side]
         cost = self.safe_float(trade, 'funds')
         order = self.safe_string(trade, 'order_id')
         return {
@@ -142,7 +147,7 @@ class kuna (acx):
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
             'type': None,
-            'side': side == 'sell' if 'ask' else 'buy',
+            'side': side,
             'price': self.safe_float(trade, 'price'),
             'amount': self.safe_float(trade, 'volume'),
             'cost': cost,

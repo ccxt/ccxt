@@ -248,8 +248,10 @@ class kraken extends Exchange {
         for ($i = 0; $i < count ($keys); $i++) {
             $id = $keys[$i];
             $market = $markets['result'][$id];
-            $base = $market['base'];
-            $quote = $market['quote'];
+            $baseId = $market['base'];
+            $quoteId = $market['quote'];
+            $base = $baseId;
+            $quote = $quoteId;
             if (($base[0] === 'X') || ($base[0] === 'Z'))
                 $base = mb_substr ($base, 1);
             if (($quote[0] === 'X') || ($quote[0] === 'Z'))
@@ -274,6 +276,8 @@ class kraken extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
                 'darkpool' => $darkpool,
                 'info' => $market,
                 'altname' => $market['altname'],
@@ -593,13 +597,17 @@ class kraken extends Exchange {
         for ($c = 0; $c < count ($currencies); $c++) {
             $currency = $currencies[$c];
             $code = $currency;
-            // X-ISO4217-A3 standard $currency codes
-            if ($code[0] === 'X') {
-                $code = mb_substr ($code, 1);
-            } else if ($code[0] === 'Z') {
-                $code = mb_substr ($code, 1);
+            if (is_array ($this->currencies_by_id) && array_key_exists ($code, $this->currencies_by_id)) {
+                $code = $this->currencies_by_id[$code]['code'];
+            } else {
+                // X-ISO4217-A3 standard $currency codes
+                if ($code[0] === 'X') {
+                    $code = mb_substr ($code, 1);
+                } else if ($code[0] === 'Z') {
+                    $code = mb_substr ($code, 1);
+                }
+                $code = $this->common_currency_code($code);
             }
-            $code = $this->common_currency_code($code);
             $balance = floatval ($balances[$currency]);
             $account = array (
                 'free' => $balance,

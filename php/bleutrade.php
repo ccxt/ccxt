@@ -111,7 +111,12 @@ class bleutrade extends bittrex {
                 'amount' => 8,
                 'price' => 8,
             );
-            $active = $market['IsActive'];
+            $active = $this->safe_string($market, 'IsActive');
+            if ($active === 'true') {
+                $active = true;
+            } else if ($active === 'false') {
+                $active = false;
+            }
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
