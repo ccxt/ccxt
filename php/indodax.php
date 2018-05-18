@@ -26,7 +26,7 @@ class indodax extends Exchange {
                 'fetchCurrencies' => false,
                 'withdraw' => true,
             ),
-            'version' => '1.7', // as of 6 November 2017
+            'version' => '1.8', // as of 9 April 2018
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/37443283-2fddd0e4-281c-11e8-9741-b4f1419001b5.jpg',
                 'api' => array (
