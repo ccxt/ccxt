@@ -670,9 +670,9 @@ class Exchange(object):
         return utc.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-6] + "{:<03d}".format(int(timestamp) % 1000) + 'Z'
 
     @staticmethod
-    def ymd(timestamp):
+    def ymd(timestamp, infix='-'):
         utc_datetime = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
-        return utc_datetime.strftime('%Y-%m-%d')
+        return utc_datetime.strftime('%Y' + infix + '%m' + infix + '%d')
 
     @staticmethod
     def ymdhms(timestamp, infix=' '):
