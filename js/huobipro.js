@@ -117,6 +117,7 @@ module.exports = class huobipro extends Exchange {
                 'order-update-error': ExchangeNotAvailable, // undocumented error
             },
             'options': {
+                'createMarketBuyOrderRequiresPrice': true,
                 'fetchMarketsMethod': 'publicGetCommonSymbols',
                 'language': 'en-US',
             },
@@ -612,6 +613,15 @@ module.exports = class huobipro extends Exchange {
             'symbol': market['id'],
             'type': side + '-' + type,
         };
+        if (this.options['createMarketBuyOrderRequiresPrice']) {
+            if ((type === 'market') && (side === 'buy')) {
+                if (typeof price === 'undefined') {
+                    throw new InvalidOrder (this.id + " market buy order requires price argument to calculate cost (total amount of quote currency to spend for buying, amount * price). To switch off this warning exception and specify cost in the amount argument, set .options['createMarketBuyOrderRequiresPrice'] = false. Make sure you know what you're doing.");
+                } else {
+                    order['amount'] = this.priceToPrecision (symbol, parseFloat (amount) * parseFloat (price));
+                }
+            }
+        }
         if (type === 'limit')
             order['price'] = this.priceToPrecision (symbol, price);
         let response = await this.privatePostOrderOrdersPlace (this.extend (order, params));

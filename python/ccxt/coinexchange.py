@@ -542,6 +542,7 @@ class coinexchange (Exchange):
             'commonCurrencies': {
                 'BON': 'BonPeKaO',
                 'ETN': 'Ethernex',
+                'GET': 'GreenEnergyToken',
                 'GDC': 'GoldenCryptoCoin',
                 'GTC': 'GlobalTourCoin',
                 'HNC': 'Huncoin',

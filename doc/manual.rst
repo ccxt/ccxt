@@ -445,7 +445,7 @@ Below is a detailed description of each of the base exchange properties:
 
 -  ``has``: This is an associative array of exchange capabilities (e.g ``fetchTickers``, ``fetchOHLCV`` or ``CORS``).
 
--  ``timeframes``: An associative array of timeframes, supported by the fetchOHLCV method of the exchange. This is only populated when ``has['fetchTickers']`` property is true.
+-  ``timeframes``: An associative array of timeframes, supported by the fetchOHLCV method of the exchange. This is only populated when ``has['fetchOHLCV']`` property is true.
 
 -  ``timeout``: A timeout in milliseconds for a request-response roundtrip (default timeout is 10000 ms = 10 seconds). You should always set it to a reasonable value, hanging forever with no timeout is not your option, for sure.
 
@@ -1066,7 +1066,46 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 -  ``fetchClosedOrders ([symbol[, params]])``
 -  ...
 
+Overriding Unified API Params
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 Note, that most of methods of the unified API accept an optional ``params`` parameter. It is an associative array (a dictionary, empty by default) containing the params you want to override. The contents of ``params`` are exchange-specific, consult the exchanges' API documentation for supported fields and values. Use the ``params`` dictionary if you need to pass a custom setting or an optional parameter to your unified query.
+
+.. code:: javascript
+
+    // JavaScript
+    (async () => {
+
+        const params = {
+            'foo': 'bar',      // exchange-specific overrides in unified queries
+            'Hello': 'World!', // see their docs for more details on parameter names
+        }
+
+        // the overrides go into the last argument to the unified call ↓ HERE
+        const result = await exchange.fetchOrderBook (symbol, length, params)
+    }) ()
+
+.. code:: python
+
+    # Python
+    params = {
+        'foo': 'bar',       # exchange-specific overrides in unified queries
+        'Hello': 'World!',  # see their docs for more details on parameter names
+    }
+
+    # overrides go in the last argument to the unified call ↓ HERE
+    result = exchange.fetch_order_book(symbol, length, params)
+
+.. code:: php
+
+    // PHP
+    $params = array (
+        'foo' => 'bar',       // exchange-specific overrides in unified queries
+        'Hello' => 'World!',  // see their docs for more details on parameter names
+    }
+
+    // overrides go into the last argument to the unified call ↓ HERE
+    $result = $exchange->fetch_order_book ($symbol, $length, $params);
 
 Market Data
 ===========

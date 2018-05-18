@@ -387,7 +387,7 @@ class bitz extends Exchange {
             $this->options['lastNonceTimestamp'] = $currentTimestamp;
             $this->options['lastNonce'] = 100000;
         }
-        $this->options['lastNonce'] .= 1;
+        $this->options['lastNonce'] = $this->sum ($this->options['lastNonce'], 1);
         return $this->options['lastNonce'];
     }
 

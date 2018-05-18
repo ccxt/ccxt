@@ -80,9 +80,11 @@ module.exports = class cryptopia extends Exchange {
                 'BTG': 'Bitgem',
                 'CC': 'CCX',
                 'CMT': 'Comet',
+                'EPC': 'ExperienceCoin',
                 'FCN': 'Facilecoin',
                 'FUEL': 'FC2', // FuelCoin != FUEL
                 'HAV': 'Havecoin',
+                'LBTC': 'LiteBitcoin',
                 'LDC': 'LADACoin',
                 'MARKS': 'Bitmark',
                 'NET': 'NetCoin',
@@ -609,6 +611,7 @@ module.exports = class cryptopia extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
         let currency = this.currency (code);
         let response = await this.privatePostGetDepositAddress (this.extend ({
             'Currency': currency['id'],
@@ -626,6 +629,7 @@ module.exports = class cryptopia extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        await this.loadMarkets ();
         let currency = this.currency (code);
         this.checkAddress (address);
         let request = {
