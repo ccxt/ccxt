@@ -478,10 +478,7 @@ class gdax extends Exchange {
         if ($type === 'limit')
             $order['price'] = $price;
         $response = $this->privatePostOrders (array_merge ($order, $params));
-        return array (
-            'info' => $response,
-            'id' => $response['id'],
-        );
+        return $this->parse_order($response);
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {

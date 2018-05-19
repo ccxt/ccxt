@@ -454,10 +454,7 @@ class gdax (Exchange):
         if type == 'limit':
             order['price'] = price
         response = await self.privatePostOrders(self.extend(order, params))
-        return {
-            'info': response,
-            'id': response['id'],
-        }
+        return self.parse_order(response)
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
