@@ -94,6 +94,14 @@ class bitflyer extends Exchange {
         for ($p = 0; $p < count ($markets); $p++) {
             $market = $markets[$p];
             $id = $market['product_code'];
+            $spot = true;
+            $future = false;
+            $type = 'spot';
+            if (is_array ($market) && array_key_exists ('alias', $market)) {
+                $type = 'future';
+                $future = true;
+                $spot = false;
+            }
             $currencies = explode ('_', $id);
             $base = null;
             $quote = null;
@@ -115,6 +123,9 @@ class bitflyer extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'type' => $type,
+                'spot' => $spot,
+                'future' => $future,
                 'info' => $market,
             );
         }
