@@ -971,7 +971,7 @@ The method for fetching an order book for a particular symbol is named `fetchOrd
 
 ```JavaScript
 // JavaScript
-delay = 2000; // milliseconds = seconds * 1000
+delay = 2000 // milliseconds = seconds * 1000
 (async () => {
     for (symbol in exchange.markets) {
         console.log (await exchange.fetchOrderBook (symbol))
