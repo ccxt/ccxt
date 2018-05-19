@@ -169,6 +169,7 @@ module.exports = class kucoin extends Exchange {
             },
             // exchange-specific options
             'options': {
+                'fetchOrderBookWarning': true, // raises a warning on null response in fetchOrderBook
                 'timeDifference': 0, // the difference between system clock and Kucoin clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
             },
@@ -329,8 +330,21 @@ module.exports = class kucoin extends Exchange {
         let response = await this.publicGetOpenOrders (this.extend ({
             'symbol': market['id'],
         }, params));
-        let orderbook = response['data'];
-        return this.parseOrderBook (orderbook, undefined, 'BUY', 'SELL');
+        let dataInResponse = ('data' in response);
+        let orderbook = undefined;
+        let timestamp = undefined;
+        if (!dataInResponse) {
+            if (this.options['fetchOrderBookWarning'])
+                throw new ExchangeError (this.id + " fetchOrderBook returned an null response. Set exchange.options['fetchOrderBookWarning'] = false to silence this warning");
+            orderbook = {
+                'BUY': [],
+                'SELL': [],
+            };
+        } else {
+            orderbook = response['data'];
+            timestamp = response['data']['timestamp'];
+        }
+        return this.parseOrderBook (orderbook, timestamp, 'BUY', 'SELL');
     }
 
     parseOrder (order, market = undefined) {
