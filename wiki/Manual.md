@@ -2078,13 +2078,13 @@ In some cases you can also use the withdrawal id to check withdrawal status late
 
 Sometimes trading fees are loaded in the `fetchMarkets` endpoint and funding fees in the `fetchCurrencies` endpoint. In order to load them into the `.fees` attribute `load_fees` can be called (only implemented in python so far). Sometimes fees need to be loaded from non-standard endpoints and this can be achieved by a call to `fetchFees` - however this usually requires authentication.
 
-The `calculateFee` method can be used to calculate fees that will be paid, although you should be cautious when relying these fees as it is very difficult to be sure of whether you will be a taker or maker.
+The `calculateFee` method can be used to calculate fees that will be paid, although you should be cautious when relying these fees as it is difficult to know in advance whether you will be a market taker or maker.
 
-```$xslt
+```Javascript
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {})
 ```
 returns
-```$xslt
+```Javascript
 {
     'type': takerOrMaker,
     'currency': baseOrQuote,
