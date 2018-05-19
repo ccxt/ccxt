@@ -908,9 +908,10 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 - `createMarketSellOrder (symbol, amount[, params])`
 - `cancelOrder (id[, symbol[, params]])`
 - `fetchOrder (id[, symbol[, params]])`
-- `fetchOrders ([symbol[, params]])`
-- `fetchOpenOrders ([symbol[, params]])`
-- `fetchClosedOrders ([symbol[, params]])`
+- `fetchOrders ([symbol[, since[, limit[, params]]]])`
+- `fetchOpenOrders ([symbol[, since, limit, params]]]])`
+- `fetchClosedOrders ([symbol[, since[, limit[, params]]]])`
+- `fetchMyTrades ([symbol[, since[, limit[, params]]]])`
 - ...
 
 ### Overriding Unified API Params
