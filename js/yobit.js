@@ -90,6 +90,7 @@ module.exports = class yobit extends liqui {
                 'NAV': 'NavajoCoin',
                 'OMG': 'OMGame',
                 'STK': 'StakeCoin',
+                'SUB': 'Subscriptio',
                 'PAY': 'EPAY',
                 'PLC': 'Platin Coin',
                 'REP': 'Republicoin',
