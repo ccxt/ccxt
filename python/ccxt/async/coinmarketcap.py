@@ -81,6 +81,9 @@ class coinmarketcap (Exchange):
                 'MXN',
                 'RUB',
                 'USD',
+                'BTC',
+                'ETH',
+                'LTC',
             ],
         })
 
