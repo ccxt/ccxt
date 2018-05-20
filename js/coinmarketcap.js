@@ -79,6 +79,9 @@ module.exports = class coinmarketcap extends Exchange {
                 'MXN',
                 'RUB',
                 'USD',
+                'BTC',
+                'ETH',
+                'LTC',
             ],
         });
     }
