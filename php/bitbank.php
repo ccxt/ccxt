@@ -266,7 +266,9 @@ class bitbank extends Exchange {
         }
         if ($market)
             $symbol = $market['symbol'];
-        $timestamp = $this->safe_integer($order, 'ordered_at') * 1000;
+        $timestamp = $this->safe_integer($order, 'ordered_at');
+        if ($timestamp !== null)
+            $timestamp = $timestamp * 1000;
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'start_amount');
         $filled = $this->safe_float($order, 'executed_amount');
@@ -285,6 +287,12 @@ class bitbank extends Exchange {
         } else {
             $status = 'open';
         }
+        $type = $this->safe_string($order, 'type');
+        if ($type !== null)
+            $type = strtolower ($type);
+        $side = $this->safe_string($order, 'side');
+        if ($side !== null)
+            $side = strtolower ($side);
         return array (
             'id' => $this->safe_string($order, 'order_id'),
             'datetime' => $this->iso8601 ($timestamp),
@@ -292,8 +300,8 @@ class bitbank extends Exchange {
             'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
-            'type' => $order['type'],
-            'side' => $order['side'],
+            'type' => $type,
+            'side' => $side,
             'price' => $price,
             'cost' => $cost,
             'amount' => $amount,

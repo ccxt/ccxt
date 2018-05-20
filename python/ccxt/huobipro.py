@@ -656,7 +656,7 @@ class huobipro (Exchange):
             'amount': amount,
             'currency': currency['id'],
         }
-        if tag:
+        if tag is not None:
             request['addr-tag'] = tag  # only for XRP?
         response = self.privatePostDwWithdrawApiCreate(self.extend(request, params))
         id = None
