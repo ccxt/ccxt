@@ -2086,15 +2086,17 @@ Fees are often grouped into two categories:
 - Trading fees. Trading fee is the amount payable to the exchange, usually a percentage of volume traded (filled)).
 - Funding fees. The amount payable to the exchange upon depositing and withdrawing as well as the underlying crypto transaction fees (tx fees).
 
-### Trading Fees
+Because the fee structure can depend on the actual volume of currencies traded by the user, the fees can be account-specific. Methods to work with account-specific fees:
 
-Sometimes trading fees are loaded in the `fetchMarkets` endpoint and funding fees in the `fetchCurrencies` endpoint. In order to load them into the `.fees` attribute `load_fees` can be called (only implemented in python so far). Sometimes fees need to be loaded from non-standard endpoints and this can be achieved by a call to `fetchFees` - however this usually requires authentication.
-
-The `calculateFee` method can be used to precalculate trading fees that will be paid. **WARNING! This method is experimental, unstable and may produce incorrect results in certain cases**. You should only use it with caution. Actual fees may be different from the values returned from `calculateFee`, this is just for precalculation.  Do not rely on precalculated values, because market conditions change frequently. It is difficult to know in advance whether your order will be a market taker or maker.
-
-```Javascript
-    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {})
 ```
+fetchFees (params = {})
+fetchTradingFees (params = {})
+fetchFundingFees (params = {})
+```
+
+The fee methods will return a unified fee structure, which is often present with orders and trades as well. The fee structure is a common format for representing the fee info throughout the library. Fee structures are usually indexed by market or currency.
+
+Because this is still a work in progress, some or all of methods and info described in this section may be missing with this or that exchange.
 
 ### Fee structure
 
@@ -2107,13 +2109,37 @@ The `calculateFee` method can be used to precalculate trading fees that will be 
 }
 ```
 
-**Maker or Taker**
+### Trading Fees
 
-These are the *trading fees* paid to an exchange when an order is filled. They can be found in the `.fees['trading']` attribute of an exchange. Maker fees are paid when you provide liquidity to the exchange i.e. you *make* an order and someone else fills it, and are usually lower than taker fees. Similarly, taker fees are paid when you *take* liquidity from the exchange and fill someone else's order.
+Trading fees are properties of markets. Most often trading fees are loaded into the markets by the `fetchMarkets` call. Sometimes, however, the exchanges serve fees from different endpoints.
 
-**Deposit and Withdrawal**
+The `calculateFee` method can be used to precalculate trading fees that will be paid. **WARNING! This method is experimental, unstable and may produce incorrect results in certain cases**. You should only use it with caution. Actual fees may be different from the values returned from `calculateFee`, this is just for precalculation.  Do not rely on precalculated values, because market conditions change frequently. It is difficult to know in advance whether your order will be a market taker or maker.
 
-These are the *funding fees* paid to exchange to cover costs of transaction fees, in theory, but they may be higher. They can be found in the `.fees['funding']` attribute of an exchange.
+```Javascript
+    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {})
+```
+
+The `calculateFee` method will return a unified fee structure with precalculated fees for an order with specified params.
+
+Accessing trading fee rates should be done via the `.markets` property, like so:
+
+```
+exchange.markets['ETH/BTC']['taker'] // taker fee rate for ETH/BTC
+exchange.markets['BTC/USD']['maker'] // maker fee rate for BTC/USD
+```
+
+Maker fees are paid when you provide liquidity to the exchange i.e. you *market-make* an order and someone else fills it. Maker fees are usually lower than taker fees. Similarly, taker fees are paid when you *take* liquidity from the exchange and fill someone else's order.
+
+### Funding Fees
+
+Funding fees are properties of currencies (account balance).
+
+Accessing funding fee rates should be done via the `.currencies` property. This aspect is not unified yet and is subject to change.
+
+```
+exchange.currencies['ETH']['fee'] // tx/withdrawal fee rate for ETH
+exchange.currencies['BTC']['fee'] // tx/withdrawal fee rate for BTC
+```
 
 ### Ledger
 
