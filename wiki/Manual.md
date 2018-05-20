@@ -2098,6 +2098,8 @@ The fee methods will return a unified fee structure, which is often present with
 
 Because this is still a work in progress, some or all of methods and info described in this section may be missing with this or that exchange.
 
+**DO NOT use the `.fees` property as most often it contains the predefined/hardcoded info, which is now deprecated. Actual fees should only be accessed from markets and currencies.**
+
 ### Fee structure
 
 ```Javascript
