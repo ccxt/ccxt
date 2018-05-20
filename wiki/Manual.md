@@ -16,12 +16,12 @@ The structure of the library can be outlined as follows:
     │                              .                              |
     |       loadMarkets            .           fetchBalance       |
     |       fetchMarkets           .            createOrder       |
-    |       fetchTicker            .            cancelOrder       |
-    |       fetchTickers           .             fetchOrder       |
-    |       fetchOrderBook         .            fetchOrders       |
-    |       fetchOHLCV             .        fetchOpenOrders       |
-    |       fetchTrades            .      fetchClosedOrders       |
-    |                              .          fetchMyTrades       |
+    |       fetchCurrencies        .            cancelOrder       |
+    |       fetchTicker            .             fetchOrder       |
+    |       fetchTickers           .            fetchOrders       |
+    |       fetchOrderBook         .        fetchOpenOrders       |
+    |       fetchOHLCV             .      fetchClosedOrders       |
+    |       fetchTrades            .          fetchMyTrades       |
     |                              .                deposit       |
     |                              .               withdraw       |
     │                              .                              |
@@ -2077,22 +2077,33 @@ Some exchanges require a manual approval of each withdrawal by means of 2FA (2-f
 
 In some cases you can also use the withdrawal id to check withdrawal status later (whether it succeeded or not) and to submit 2FA confirmation codes, where this is supported by the exchange. See [their docs](https://github.com/ccxt/ccxt/wiki/Manual#exchanges) for details.
 
-### Fees
+## Fees
+
+**This section of the Unified CCXT API is under development.**
+
+Fees are often grouped into two categories:
+
+- Trading fees. Trading fee is the amount payable to the exchange, usually a percentage of volume traded (filled)).
+- Funding fees. The amount payable to the exchange upon depositing and withdrawing as well as the underlying crypto transaction fees (tx fees).
+
+### Trading Fees
 
 Sometimes trading fees are loaded in the `fetchMarkets` endpoint and funding fees in the `fetchCurrencies` endpoint. In order to load them into the `.fees` attribute `load_fees` can be called (only implemented in python so far). Sometimes fees need to be loaded from non-standard endpoints and this can be achieved by a call to `fetchFees` - however this usually requires authentication.
 
-The `calculateFee` method can be used to calculate fees that will be paid, although you should be cautious when relying these fees as it is difficult to know in advance whether you will be a market taker or maker.
+The `calculateFee` method can be used to precalculate trading fees that will be paid. **WARNING! This method is experimental, unstable and may produce incorrect results in certain cases**. You should only use it with caution. Actual fees may be different from the values returned from `calculateFee`, this is just for precalculation.  Do not rely on precalculated values, because market conditions change frequently. It is difficult to know in advance whether your order will be a market taker or maker.
 
 ```Javascript
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {})
 ```
-returns
+
+### Fee structure
+
 ```Javascript
 {
     'type': takerOrMaker,
-    'currency': baseOrQuote,
-    'rate': percentage,
-    'cost': feePaid,
+    'currency': 'BTC', // the unified fee currency code
+    'rate': percentage, // the fee rate, 0.05% = 0.0005, 1% = 0.01, ...
+    'cost': feePaid, // the fee cost (amount * fee rate)
 }
 ```
 
@@ -2102,7 +2113,7 @@ These are the *trading fees* paid to an exchange when an order is filled. They c
 
 **Deposit and Withdrawal**
 
-These are the *funding fees* paid to exchange to cover costs of transaction fees, in theory, but they may be higher. They can be found in the `.fees['funding']` attribute of an exchange. 
+These are the *funding fees* paid to exchange to cover costs of transaction fees, in theory, but they may be higher. They can be found in the `.fees['funding']` attribute of an exchange.
 
 ### Ledger
 
