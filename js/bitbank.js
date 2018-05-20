@@ -265,7 +265,9 @@ module.exports = class bitbank extends Exchange {
         }
         if (market)
             symbol = market['symbol'];
-        let timestamp = this.safeInteger (order, 'ordered_at') * 1000;
+        let timestamp = this.safeInteger (order, 'ordered_at');
+        if (typeof timestamp !== 'undefined')
+            timestamp = timestamp * 1000;
         let price = this.safeFloat (order, 'price');
         let amount = this.safeFloat (order, 'start_amount');
         let filled = this.safeFloat (order, 'executed_amount');
