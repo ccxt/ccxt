@@ -2077,6 +2077,33 @@ Some exchanges require a manual approval of each withdrawal by means of 2FA (2-f
 
 In some cases you can also use the withdrawal id to check withdrawal status later (whether it succeeded or not) and to submit 2FA confirmation codes, where this is supported by the exchange. See [their docs](https://github.com/ccxt/ccxt/wiki/Manual#exchanges) for details.
 
+### Fees
+
+Sometimes trading fees are loaded in the `fetchMarkets` endpoint and funding fees in the `fetchCurrencies` endpoint. In order to load them into the `.fees` attribute `load_fees` can be called (only implemented in python so far). Sometimes fees need to be loaded from non-standard endpoints and this can be achieved by a call to `fetchFees` - however this usually requires authentication.
+
+The `calculateFee` method can be used to calculate fees that will be paid, although you should be cautious when relying these fees as it is difficult to know in advance whether you will be a market taker or maker.
+
+```Javascript
+    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {})
+```
+returns
+```Javascript
+{
+    'type': takerOrMaker,
+    'currency': baseOrQuote,
+    'rate': percentage,
+    'cost': feePaid,
+}
+```
+
+**Maker or Taker**
+
+These are the *trading fees* paid to an exchange when an order is filled. They can be found in the `.fees['trading']` attribute of an exchange. Maker fees are paid when you provide liquidity to the exchange i.e. you *make* an order and someone else fills it, and are usually lower than taker fees. Similarly, taker fees are paid when you *take* liquidity from the exchange and fill someone else's order.
+
+**Deposit and Withdrawal**
+
+These are the *funding fees* paid to exchange to cover costs of transaction fees, in theory, but they may be higher. They can be found in the `.fees['funding']` attribute of an exchange. 
+
 ### Ledger
 
 ```UNDER CONSTRUCTION```
