@@ -16,12 +16,12 @@ The structure of the library can be outlined as follows:
     │                              .                              |
     |       loadMarkets            .           fetchBalance       |
     |       fetchMarkets           .            createOrder       |
-    |       fetchTicker            .            cancelOrder       |
-    |       fetchTickers           .             fetchOrder       |
-    |       fetchOrderBook         .            fetchOrders       |
-    |       fetchOHLCV             .        fetchOpenOrders       |
-    |       fetchTrades            .      fetchClosedOrders       |
-    |                              .          fetchMyTrades       |
+    |       fetchCurrencies        .            cancelOrder       |
+    |       fetchTicker            .             fetchOrder       |
+    |       fetchTickers           .            fetchOrders       |
+    |       fetchOrderBook         .        fetchOpenOrders       |
+    |       fetchOHLCV             .      fetchClosedOrders       |
+    |       fetchTrades            .          fetchMyTrades       |
     |                              .                deposit       |
     |                              .               withdraw       |
     │                              .                              |
@@ -2076,6 +2076,72 @@ The withdraw method returns a dictionary containing the withdrawal id, which is 
 Some exchanges require a manual approval of each withdrawal by means of 2FA (2-factor authentication). In order to approve your withdrawal you usually have to either click their secret link in your email inbox or enter a Google Authenticator code or an Authy code on their website to verify that withdrawal transaction was requested intentionally.
 
 In some cases you can also use the withdrawal id to check withdrawal status later (whether it succeeded or not) and to submit 2FA confirmation codes, where this is supported by the exchange. See [their docs](https://github.com/ccxt/ccxt/wiki/Manual#exchanges) for details.
+
+## Fees
+
+**This section of the Unified CCXT API is under development.**
+
+Fees are often grouped into two categories:
+
+- Trading fees. Trading fee is the amount payable to the exchange, usually a percentage of volume traded (filled)).
+- Funding fees. The amount payable to the exchange upon depositing and withdrawing as well as the underlying crypto transaction fees (tx fees).
+
+Because the fee structure can depend on the actual volume of currencies traded by the user, the fees can be account-specific. Methods to work with account-specific fees:
+
+```
+fetchFees (params = {})
+fetchTradingFees (params = {})
+fetchFundingFees (params = {})
+```
+
+The fee methods will return a unified fee structure, which is often present with orders and trades as well. The fee structure is a common format for representing the fee info throughout the library. Fee structures are usually indexed by market or currency.
+
+Because this is still a work in progress, some or all of methods and info described in this section may be missing with this or that exchange.
+
+**DO NOT use the `.fees` property as most often it contains the predefined/hardcoded info, which is now deprecated. Actual fees should only be accessed from markets and currencies.**
+
+### Fee structure
+
+```Javascript
+{
+    'type': takerOrMaker,
+    'currency': 'BTC', // the unified fee currency code
+    'rate': percentage, // the fee rate, 0.05% = 0.0005, 1% = 0.01, ...
+    'cost': feePaid, // the fee cost (amount * fee rate)
+}
+```
+
+### Trading Fees
+
+Trading fees are properties of markets. Most often trading fees are loaded into the markets by the `fetchMarkets` call. Sometimes, however, the exchanges serve fees from different endpoints.
+
+The `calculateFee` method can be used to precalculate trading fees that will be paid. **WARNING! This method is experimental, unstable and may produce incorrect results in certain cases**. You should only use it with caution. Actual fees may be different from the values returned from `calculateFee`, this is just for precalculation.  Do not rely on precalculated values, because market conditions change frequently. It is difficult to know in advance whether your order will be a market taker or maker.
+
+```Javascript
+    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {})
+```
+
+The `calculateFee` method will return a unified fee structure with precalculated fees for an order with specified params.
+
+Accessing trading fee rates should be done via the `.markets` property, like so:
+
+```
+exchange.markets['ETH/BTC']['taker'] // taker fee rate for ETH/BTC
+exchange.markets['BTC/USD']['maker'] // maker fee rate for BTC/USD
+```
+
+Maker fees are paid when you provide liquidity to the exchange i.e. you *market-make* an order and someone else fills it. Maker fees are usually lower than taker fees. Similarly, taker fees are paid when you *take* liquidity from the exchange and fill someone else's order.
+
+### Funding Fees
+
+Funding fees are properties of currencies (account balance).
+
+Accessing funding fee rates should be done via the `.currencies` property. This aspect is not unified yet and is subject to change.
+
+```
+exchange.currencies['ETH']['fee'] // tx/withdrawal fee rate for ETH
+exchange.currencies['BTC']['fee'] // tx/withdrawal fee rate for BTC
+```
 
 ### Ledger
 
