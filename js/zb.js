@@ -365,7 +365,7 @@ module.exports = class zb extends Exchange {
         };
         order = this.extend (order, params);
         let response = await this.privateGetGetOrder (order);
-        return this.parseOrder (response, undefined, true);
+        return this.parseOrder (response, undefined);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = 50, params = {}) {

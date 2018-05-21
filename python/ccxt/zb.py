@@ -369,7 +369,7 @@ class zb (Exchange):
         }
         order = self.extend(order, params)
         response = self.privateGetGetOrder(order)
-        return self.parse_order(response, None)
+        return self.parse_order(response, None, True)
 
     def fetch_orders(self, symbol=None, since=None, limit=50, params={}):
         if not symbol:
