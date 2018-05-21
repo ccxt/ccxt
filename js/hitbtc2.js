@@ -532,6 +532,7 @@ module.exports = class hitbtc2 extends hitbtc {
             'options': {
                 'defaultTimeInForce': 'FOK',
             },
+            'exceptions': {},
         });
     }
 
@@ -1128,9 +1129,16 @@ module.exports = class hitbtc2 extends hitbtc {
                 if ('error' in response) {
                     if ('message' in response['error']) {
                         let message = response['error']['message'];
+                        let code = this.safeString (response['error'], 'code');
+                        let exceptions = this.exceptions;
+                        if (code in exceptions) {
+                            throw new exceptions[code] (feedback);
+                        }
                         if (message === 'Order not found') {
                             throw new OrderNotFound (this.id + ' order not found in active orders');
                         } else if (message === 'Quantity not a valid number') {
+                            throw new InvalidOrder (feedback);
+                        } else if (message === 'Quantity too low') {
                             throw new InvalidOrder (feedback);
                         } else if (message === 'Insufficient funds') {
                             throw new InsufficientFunds (feedback);
