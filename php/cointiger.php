@@ -470,7 +470,11 @@ class cointiger extends huobipro {
         if ($type === 'limit') {
             $order['price'] = $this->price_to_precision($symbol, $price);
         } else {
-            $order['price'] = $this->price_to_precision($symbol, 0);
+            if ($price === null) {
+                $order['price'] = $this->price_to_precision($symbol, 0);
+            } else {
+                $order['price'] = $this->price_to_precision($symbol, $price);
+            }
         }
         $response = $this->privatePostOrder (array_merge ($order, $params));
         //

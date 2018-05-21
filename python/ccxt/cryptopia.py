@@ -173,15 +173,9 @@ class cryptopia (Exchange):
 
     def fetch_order_books(self, symbols=None, params={}):
         self.load_markets()
-        ids = None
-        if not symbols:
-            numIds = len(self.ids)
-            # max URL length is 2083 characters, including http schema, hostname, tld, etc...
-            if numIds > 2048:
-                raise ExchangeError(self.id + ' has ' + str(numIds) + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks')
-            ids = self.join_market_ids(self.ids)
-        else:
-            ids = self.join_market_ids(self.market_ids(symbols))
+        if symbols is None:
+            raise ExchangeError(self.id + ' fetchOrderBooks requires the symbols argument as of May 2018(up to 5 symbols at max)')
+        ids = self.join_market_ids(self.market_ids(symbols))
         response = self.publicGetGetMarketOrderGroupsIds(self.extend({
             'ids': ids,
         }, params))

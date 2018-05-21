@@ -455,7 +455,10 @@ class cointiger (huobipro):
         if type == 'limit':
             order['price'] = self.price_to_precision(symbol, price)
         else:
-            order['price'] = self.price_to_precision(symbol, 0)
+            if price is None:
+                order['price'] = self.price_to_precision(symbol, 0)
+            else:
+                order['price'] = self.price_to_precision(symbol, price)
         response = await self.privatePostOrder(self.extend(order, params))
         #
         #     {"order_id":34343}

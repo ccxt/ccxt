@@ -173,16 +173,10 @@ class cryptopia extends Exchange {
 
     public function fetch_order_books ($symbols = null, $params = array ()) {
         $this->load_markets();
-        $ids = null;
-        if (!$symbols) {
-            $numIds = is_array ($this->ids) ? count ($this->ids) : 0;
-            // max URL length is 2083 characters, including http schema, hostname, tld, etc...
-            if ($numIds > 2048)
-                throw new ExchangeError ($this->id . ' has ' . (string) $numIds . ' $symbols exceeding max URL length, you are required to specify a list of $symbols in the first argument to fetchOrderBooks');
-            $ids = $this->join_market_ids ($this->ids);
-        } else {
-            $ids = $this->join_market_ids ($this->market_ids($symbols));
+        if ($symbols === null) {
+            throw new ExchangeError ($this->id . ' fetchOrderBooks requires the $symbols argument as of May 2018 (up to 5 $symbols at max)');
         }
+        $ids = $this->join_market_ids ($this->market_ids($symbols));
         $response = $this->publicGetGetMarketOrderGroupsIds (array_merge (array (
             'ids' => $ids,
         ), $params));
