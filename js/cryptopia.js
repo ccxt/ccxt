@@ -175,11 +175,11 @@ module.exports = class cryptopia extends Exchange {
         if (typeof symbols === 'undefined') {
             throw new ExchangeError (this.id + ' fetchOrderBooks requires the symbols argument as of May 2018 (up to 5 symbols at max)');
         }
-        let ids = this.joinMarketIds (this.marketIds (symbols));
-        let numIds = ids.length;
-        if (numIds > 5) {
+        let numSymbols = symbols.length;
+        if (numSymbols > 5) {
             throw new ExchangeError (this.id + ' fetchOrderBooks accepts 5 symbols at max');
         }
+        let ids = this.joinMarketIds (this.marketIds (symbols));
         let response = await this.publicGetGetMarketOrderGroupsIds (this.extend ({
             'ids': ids,
         }, params));
