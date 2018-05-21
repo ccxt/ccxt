@@ -19,5 +19,8 @@ from ccxt.base.errors import NetworkError          # noqa: F401
 from ccxt.base.errors import DDoSProtection        # noqa: F401
 from ccxt.base.errors import RequestTimeout        # noqa: F401
 from ccxt.base.errors import ExchangeNotAvailable  # noqa: F401
+from ccxt.base.errors import InvalidAddress        # noqa: F401
+from ccxt.base.errors import BadResponse           # noqa: F401
+from ccxt.base.errors import NullResponse          # noqa: F401
 
 __all__ = exchange.__all__ + decimal_to_precision.__all__ + errors.__all__  # noqa: F405

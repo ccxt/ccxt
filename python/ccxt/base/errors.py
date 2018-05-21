@@ -35,7 +35,9 @@ __all__ = [
     'RequestTimeout',
     'ExchangeNotAvailable',
     'InvalidNonce',
-    'InvalidAddress'
+    'InvalidAddress',
+    'BadResponse',
+    'NullResponse',
 ]
 
 # -----------------------------------------------------------------------------
@@ -53,6 +55,16 @@ class ExchangeError(BaseError):
 
 class NotSupported(ExchangeError):
     """Raised if the endpoint is not offered/not yet supported by the exchange API"""
+    pass
+
+
+class BadResponse(ExchangeError):
+    """Raised if the endpoint returns a bad response from the exchange API"""
+    pass
+
+
+class NullResponse(BadResponse):
+    """Raised if the endpoint returns a null response from the exchange API"""
     pass
 
 
