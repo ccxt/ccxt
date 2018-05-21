@@ -464,7 +464,7 @@ module.exports = class binance extends Exchange {
         return this.filterByArray (tickers, 'symbol', symbols);
     }
 
-    async fetchBidAsks (symbols = undefined, params = {}) {
+    async fetchBidsAsks (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         let rawTickers = await this.publicGetTickerBookTicker (params);
         return this.parseTickers (rawTickers, symbols);
