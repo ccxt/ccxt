@@ -176,6 +176,10 @@ class cryptopia extends Exchange {
         if ($symbols === null) {
             throw new ExchangeError ($this->id . ' fetchOrderBooks requires the $symbols argument as of May 2018 (up to 5 $symbols at max)');
         }
+        $numSymbols = is_array ($symbols) ? count ($symbols) : 0;
+        if ($numSymbols > 5) {
+            throw new ExchangeError ($this->id . ' fetchOrderBooks accepts 5 $symbols at max');
+        }
         $ids = $this->join_market_ids ($this->market_ids($symbols));
         $response = $this->publicGetGetMarketOrderGroupsIds (array_merge (array (
             'ids' => $ids,

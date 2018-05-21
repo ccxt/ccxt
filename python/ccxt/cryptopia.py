@@ -175,6 +175,9 @@ class cryptopia (Exchange):
         self.load_markets()
         if symbols is None:
             raise ExchangeError(self.id + ' fetchOrderBooks requires the symbols argument as of May 2018(up to 5 symbols at max)')
+        numSymbols = len(symbols)
+        if numSymbols > 5:
+            raise ExchangeError(self.id + ' fetchOrderBooks accepts 5 symbols at max')
         ids = self.join_market_ids(self.market_ids(symbols))
         response = self.publicGetGetMarketOrderGroupsIds(self.extend({
             'ids': ids,
