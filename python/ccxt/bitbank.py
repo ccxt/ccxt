@@ -260,8 +260,6 @@ class bitbank (Exchange):
         if market:
             symbol = market['symbol']
         timestamp = self.safe_integer(order, 'ordered_at')
-        if timestamp is not None:
-            timestamp = timestamp * 1000
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'start_amount')
         filled = self.safe_float(order, 'executed_amount')

@@ -268,8 +268,6 @@ class bitbank extends Exchange {
         if ($market)
             $symbol = $market['symbol'];
         $timestamp = $this->safe_integer($order, 'ordered_at');
-        if ($timestamp !== null)
-            $timestamp = $timestamp * 1000;
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'start_amount');
         $filled = $this->safe_float($order, 'executed_amount');
