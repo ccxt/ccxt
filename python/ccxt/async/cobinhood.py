@@ -384,7 +384,7 @@ class cobinhood (Exchange):
         if market is not None:
             symbol = market['symbol']
         timestamp = order['timestamp']
-        price = self.safe_float(order, 'price')
+        price = self.safe_float(order, 'eq_price')
         amount = self.safe_float(order, 'size')
         filled = self.safe_float(order, 'filled')
         remaining = amount - filled
