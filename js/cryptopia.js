@@ -172,16 +172,10 @@ module.exports = class cryptopia extends Exchange {
 
     async fetchOrderBooks (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let ids = undefined;
-        if (!symbols) {
-            let numIds = this.ids.length;
-            // max URL length is 2083 characters, including http schema, hostname, tld, etc...
-            if (numIds > 2048)
-                throw new ExchangeError (this.id + ' has ' + numIds.toString () + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks');
-            ids = this.joinMarketIds (this.ids);
-        } else {
-            ids = this.joinMarketIds (this.marketIds (symbols));
+        if (typeof symbols === 'undefined') {
+            throw new ExchangeError (this.id + ' fetchOrderBooks requires the symbols argument as of May 2018 (up to 5 symbols at max)');
         }
+        let ids = this.joinMarketIds (this.marketIds (symbols));
         let response = await this.publicGetGetMarketOrderGroupsIds (this.extend ({
             'ids': ids,
         }, params));

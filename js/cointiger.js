@@ -469,7 +469,11 @@ module.exports = class cointiger extends huobipro {
         if (type === 'limit') {
             order['price'] = this.priceToPrecision (symbol, price);
         } else {
-            order['price'] = this.priceToPrecision (symbol, 0);
+            if (typeof price === 'undefined') {
+                order['price'] = this.priceToPrecision (symbol, 0);
+            } else {
+                order['price'] = this.priceToPrecision (symbol, price);
+            }
         }
         let response = await this.privatePostOrder (this.extend (order, params));
         //
