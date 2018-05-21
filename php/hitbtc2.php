@@ -533,6 +533,7 @@ class hitbtc2 extends hitbtc {
             'options' => array (
                 'defaultTimeInForce' => 'FOK',
             ),
+            'exceptions' => array (),
         ));
     }
 
@@ -1129,9 +1130,16 @@ class hitbtc2 extends hitbtc {
                 if (is_array ($response) && array_key_exists ('error', $response)) {
                     if (is_array ($response['error']) && array_key_exists ('message', $response['error'])) {
                         $message = $response['error']['message'];
+                        $code = $this->safe_string($response['error'], 'code');
+                        $exceptions = $this->exceptions;
+                        if (is_array ($exceptions) && array_key_exists ($code, $exceptions)) {
+                            throw new $exceptions[$code] ($feedback);
+                        }
                         if ($message === 'Order not found') {
                             throw new OrderNotFound ($this->id . ' order not found in active orders');
                         } else if ($message === 'Quantity not a valid number') {
+                            throw new InvalidOrder ($feedback);
+                        } else if ($message === 'Quantity too low') {
                             throw new InvalidOrder ($feedback);
                         } else if ($message === 'Insufficient funds') {
                             throw new InsufficientFunds ($feedback);
