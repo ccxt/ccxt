@@ -398,7 +398,7 @@ module.exports = class cobinhood extends Exchange {
         if (typeof market !== 'undefined')
             symbol = market['symbol'];
         let timestamp = order['timestamp'];
-        let price = this.safeFloat (order, 'price');
+        let price = this.safeFloat (order, 'eq_price');
         let amount = this.safeFloat (order, 'size');
         let filled = this.safeFloat (order, 'filled');
         let remaining = amount - filled;
