@@ -529,6 +529,9 @@ module.exports = class hitbtc2 extends hitbtc {
                     },
                 },
             },
+            'options': {
+                'defaultTimeInForce': 'FOK',
+            },
         });
     }
 
@@ -847,7 +850,7 @@ module.exports = class hitbtc2 extends hitbtc {
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
         } else {
-            request['timeInForce'] = 'FOK';
+            request['timeInForce'] = this.options['defaultTimeInForce'];
         }
         let response = await this.privatePostOrder (this.extend (request, params));
         let order = this.parseOrder (response);

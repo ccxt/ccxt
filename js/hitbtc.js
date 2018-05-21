@@ -491,6 +491,9 @@ module.exports = class hitbtc extends Exchange {
                 'USD': 'USDT',
                 'XBT': 'BTC',
             },
+            'options': {
+                'defaultTimeInForce': 'FOK',
+            },
         });
     }
 
@@ -729,7 +732,7 @@ module.exports = class hitbtc extends Exchange {
         if (type === 'limit') {
             order['price'] = this.priceToPrecision (symbol, price);
         } else {
-            order['timeInForce'] = 'FOK';
+            order['timeInForce'] = this.options['defaultTimeInForce'];
         }
         let response = await this.tradingPostNewOrder (this.extend (order, params));
         return this.parseOrder (response['ExecutionReport'], market);
