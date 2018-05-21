@@ -43,8 +43,8 @@ class indodax (Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/37443283-2fddd0e4-281c-11e8-9741-b4f1419001b5.jpg',
                 'api': {
-                    'public': 'https://vip.bitcoin.co.id/api',
-                    'private': 'https://vip.bitcoin.co.id/tapi',
+                    'public': 'https://indodax.com/api',
+                    'private': 'https://indodax.com/tapi',
                 },
                 'www': 'https://www.indodax.com',
                 'doc': 'https://indodax.com/downloads/BITCOINCOID-API-DOCUMENTATION.pdf',
