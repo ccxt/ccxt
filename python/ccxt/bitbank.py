@@ -124,6 +124,7 @@ class bitbank (Exchange):
                 '50009': OrderNotFound,
                 '50010': OrderNotFound,
                 '60001': InsufficientFunds,
+                '60005': InvalidOrder,
             },
         })
 
