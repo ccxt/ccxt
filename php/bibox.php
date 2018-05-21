@@ -83,6 +83,7 @@ class bibox extends Exchange {
                 ),
             ),
             'exceptions' => array (
+                '2021' => '\\ccxt\\InsufficientFunds', // Insufficient balance available for withdrawal
                 '2015' => '\\ccxt\\AuthenticationError', // Google authenticator is wrong
                 '2033' => '\\ccxt\\OrderNotFound', // operation failed! Orders have been completed or revoked
                 '2067' => '\\ccxt\\InvalidOrder', // Does not support market orders
@@ -144,18 +145,34 @@ class bibox extends Exchange {
     }
 
     public function parse_ticker ($ticker, $market = null) {
-        $timestamp = $this->safe_integer($ticker, 'timestamp', $this->seconds ());
+        // we don't set values that are not defined by the exchange
+        $timestamp = $this->safe_integer($ticker, 'timestamp');
         $symbol = null;
         if ($market) {
             $symbol = $market['symbol'];
         } else {
-            $symbol = $ticker['coin_symbol'] . '/' . $ticker['currency_symbol'];
+            $base = $ticker['coin_symbol'];
+            $quote = $ticker['currency_symbol'];
+            $symbol = $this->common_currency_code($base) . '/' . $this->common_currency_code($quote);
         }
         $last = $this->safe_float($ticker, 'last');
+        $change = $this->safe_float($ticker, 'change');
+        $baseVolume = null;
+        if (is_array ($ticker) && array_key_exists ('vol', $ticker)) {
+            $baseVolume = $this->safe_float($ticker, 'vol');
+        } else {
+            $baseVolume = $this->safe_float($ticker, 'vol24H');
+        }
+        $open = null;
+        if (($last !== null) && ($change !== null))
+            $open = $last - $change;
+        $iso8601 = null;
+        if ($timestamp !== null)
+            $iso8601 = $this->iso8601 ($timestamp);
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $iso8601,
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => $this->safe_float($ticker, 'buy'),
@@ -163,15 +180,15 @@ class bibox extends Exchange {
             'ask' => $this->safe_float($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => null,
-            'open' => null,
+            'open' => $open,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => null,
+            'change' => $change,
             'percentage' => $this->safe_string($ticker, 'percent'),
             'average' => null,
-            'baseVolume' => $this->safe_float($ticker, 'vol24H'),
-            'quoteVolume' => null,
+            'baseVolume' => $baseVolume,
+            'quoteVolume' => $this->safe_float($ticker, 'amount'),
             'info' => $ticker,
         );
     }
@@ -295,7 +312,7 @@ class bibox extends Exchange {
             $precision = 8;
             $deposit = $currency['enable_deposit'];
             $withdraw = $currency['enable_withdraw'];
-            $active = ($deposit && $withdraw);
+            $active = ($deposit && $withdraw) ? true : false;
             $result[$code] = array (
                 'id' => $id,
                 'code' => $code,

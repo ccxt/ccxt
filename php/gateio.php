@@ -97,7 +97,7 @@ class gateio extends Exchange {
             $quote = $this->common_currency_code($quote);
             $symbol = $base . '/' . $quote;
             $precision = array (
-                'amount' => $details['decimal_places'],
+                'amount' => 8,
                 'price' => $details['decimal_places'],
             );
             $amountLimits = array (
@@ -105,12 +105,17 @@ class gateio extends Exchange {
                 'max' => null,
             );
             $priceLimits = array (
-                'min' => null,
+                'min' => pow (10, -$details['decimal_places']),
+                'max' => null,
+            );
+            $costLimits = array (
+                'min' => $amountLimits['min'] * $priceLimits['min'],
                 'max' => null,
             );
             $limits = array (
                 'amount' => $amountLimits,
                 'price' => $priceLimits,
+                'cost' => $costLimits,
             );
             $result[] = array (
                 'id' => $id,
@@ -165,27 +170,27 @@ class gateio extends Exchange {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
-        $last = floatval ($ticker['last']);
+        $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['high24hr']),
-            'low' => floatval ($ticker['low24hr']),
-            'bid' => floatval ($ticker['highestBid']),
+            'high' => $this->safe_float($ticker, 'high24hr'),
+            'low' => $this->safe_float($ticker, 'low24hr'),
+            'bid' => $this->safe_float($ticker, 'highestBid'),
             'bidVolume' => null,
-            'ask' => floatval ($ticker['lowestAsk']),
+            'ask' => $this->safe_float($ticker, 'lowestAsk'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => floatval ($ticker['percentChange']),
+            'change' => $this->safe_float($ticker, 'percentChange'),
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($ticker['quoteVolume']),
-            'quoteVolume' => floatval ($ticker['baseVolume']),
+            'baseVolume' => $this->safe_float($ticker, 'quoteVolume'),
+            'quoteVolume' => $this->safe_float($ticker, 'baseVolume'),
             'info' => $ticker,
         );
     }
@@ -234,7 +239,7 @@ class gateio extends Exchange {
             'symbol' => $market['symbol'],
             'type' => null,
             'side' => $trade['type'],
-            'price' => floatval ($trade['rate']),
+            'price' => $this->safe_float($trade, 'rate'),
             'amount' => $this->safe_float($trade, 'amount'),
         );
     }
@@ -278,6 +283,8 @@ class gateio extends Exchange {
         $address = null;
         if (is_array ($response) && array_key_exists ('addr', $response))
             $address = $this->safe_string($response, 'addr');
+        if (($address !== null) && (mb_strpos ($address, 'address') !== false))
+            throw new InvalidAddress ($this->id . ' queryDepositAddress ' . $address);
         return array (
             'currency' => $currency,
             'address' => $address,

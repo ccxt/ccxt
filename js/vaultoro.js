@@ -123,13 +123,13 @@ module.exports = class vaultoro extends Exchange {
         let response = await this.publicGetMarkets (params);
         let ticker = response['data'];
         let timestamp = this.milliseconds ();
-        let last = parseFloat (ticker['LastPrice']);
+        let last = this.safeFloat (ticker, 'LastPrice');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['24hHigh']),
-            'low': parseFloat (ticker['24hLow']),
+            'high': this.safeFloat (ticker, '24hHigh'),
+            'low': this.safeFloat (ticker, '24hLow'),
             'bid': bid[0],
             'bidVolume': undefined,
             'ask': ask[0],
@@ -143,7 +143,7 @@ module.exports = class vaultoro extends Exchange {
             'percentage': undefined,
             'average': undefined,
             'baseVolume': undefined,
-            'quoteVolume': parseFloat (ticker['24hVolume']),
+            'quoteVolume': this.safeFloat (ticker, '24hVolume'),
             'info': ticker,
         };
     }

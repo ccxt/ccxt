@@ -92,16 +92,16 @@ module.exports = class bitso extends Exchange {
             let [ base, quote ] = symbol.split ('/');
             let limits = {
                 'amount': {
-                    'min': parseFloat (market['minimum_amount']),
-                    'max': parseFloat (market['maximum_amount']),
+                    'min': this.safeFloat (market, 'minimum_amount'),
+                    'max': this.safeFloat (market, 'maximum_amount'),
                 },
                 'price': {
-                    'min': parseFloat (market['minimum_price']),
-                    'max': parseFloat (market['maximum_price']),
+                    'min': this.safeFloat (market, 'minimum_price'),
+                    'max': this.safeFloat (market, 'maximum_price'),
                 },
                 'cost': {
-                    'min': parseFloat (market['minimum_value']),
-                    'max': parseFloat (market['maximum_value']),
+                    'min': this.safeFloat (market, 'minimum_value'),
+                    'max': this.safeFloat (market, 'maximum_value'),
                 },
             };
             let precision = {
@@ -158,19 +158,19 @@ module.exports = class bitso extends Exchange {
         }, params));
         let ticker = response['payload'];
         let timestamp = this.parse8601 (ticker['created_at']);
-        let vwap = parseFloat (ticker['vwap']);
-        let baseVolume = parseFloat (ticker['volume']);
+        let vwap = this.safeFloat (ticker, 'vwap');
+        let baseVolume = this.safeFloat (ticker, 'volume');
         let quoteVolume = baseVolume * vwap;
-        let last = parseFloat (ticker['last']);
+        let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']),
-            'low': parseFloat (ticker['low']),
-            'bid': parseFloat (ticker['bid']),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': parseFloat (ticker['ask']),
+            'ask': this.safeFloat (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': vwap,
             'open': undefined,
@@ -317,8 +317,8 @@ module.exports = class bitso extends Exchange {
             symbol = market['symbol'];
         let orderType = order['type'];
         let timestamp = this.parse8601 (order['created_at']);
-        let amount = parseFloat (order['original_amount']);
-        let remaining = parseFloat (order['unfilled_amount']);
+        let amount = this.safeFloat (order, 'original_amount');
+        let remaining = this.safeFloat (order, 'unfilled_amount');
         let filled = amount - remaining;
         let result = {
             'info': order,

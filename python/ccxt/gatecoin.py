@@ -4,10 +4,19 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import hashlib
 import math
+import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 
 
@@ -194,7 +203,15 @@ class gatecoin (Exchange):
                 },
             },
             'commonCurrencies': {
+                'BCP': 'BCPT',
+                'FLI': 'FLIXX',
                 'MAN': 'MANA',
+                'SLT': 'SALT',
+                'TRA': 'TRAC',
+                'WGS': 'WINGS',
+            },
+            'exceptions': {
+                '1005': InsufficientFunds,
             },
         })
 
@@ -285,22 +302,22 @@ class gatecoin (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
-        baseVolume = float(ticker['volume'])
-        vwap = float(ticker['vwap'])
+        baseVolume = self.safe_float(ticker, 'volume')
+        vwap = self.safe_float(ticker, 'vwap')
         quoteVolume = baseVolume * vwap
-        last = float(ticker['last'])
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['bid']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'bid'),
             'bidVolume': None,
-            'ask': float(ticker['ask']),
+            'ask': self.safe_float(ticker, 'ask'),
             'askVolume': None,
             'vwap': vwap,
-            'open': float(ticker['open']),
+            'open': self.safe_float(ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': None,
@@ -604,11 +621,7 @@ class gatecoin (Exchange):
             'DigiCurrency': currency['id'],
         }
         response = self.privatePostElectronicWalletDepositWalletsDigiCurrency(self.extend(request, params))
-        result = response['addresses']
-        numResults = len(result)
-        if numResults < 1:
-            raise InvalidAddress(self.id + ' privatePostElectronicWalletDepositWalletsDigiCurrency() returned no addresses')
-        address = self.safe_string(result[0], 'address')
+        address = response['address']
         self.check_address(address)
         return {
             'currency': code,
@@ -616,3 +629,19 @@ class gatecoin (Exchange):
             'status': 'ok',
             'info': response,
         }
+
+    def handle_errors(self, code, reason, url, method, headers, body):
+        if not isinstance(body, basestring):
+            return  # fallback to default error handler
+        if len(body) < 2:
+            return  # fallback to default error handler
+        if body[0] == '{':
+            response = json.loads(body)
+            if 'responseStatus' in response:
+                errorCode = self.safe_string(response['responseStatus'], 'errorCode')
+                if errorCode is not None:
+                    feedback = self.id + ' ' + body
+                    exceptions = self.exceptions
+                    if errorCode in exceptions:
+                        raise exceptions[errorCode](feedback)
+                    raise ExchangeError(feedback)

@@ -249,13 +249,16 @@ module.exports = class bitfinex extends Exchange {
                 'BCU': 'CST_BCU',
                 'DAT': 'DATA',
                 'DSH': 'DASH', // Bitfinex names Dash as DSH, instead of DASH
+                'IOS': 'IOST',
                 'IOT': 'IOTA',
                 'MNA': 'MANA',
                 'QSH': 'QASH',
                 'QTM': 'QTUM',
                 'SNG': 'SNGLS',
                 'SPK': 'SPANK',
+                'STJ': 'STORJ',
                 'YYW': 'YOYOW',
+                'USD': 'USDT',
             },
             'exceptions': {
                 'exact': {
@@ -330,8 +333,8 @@ module.exports = class bitfinex extends Exchange {
             };
             let limits = {
                 'amount': {
-                    'min': parseFloat (market['minimum_order_size']),
-                    'max': parseFloat (market['maximum_order_size']),
+                    'min': this.safeFloat (market, 'minimum_order_size'),
+                    'max': this.safeFloat (market, 'maximum_order_size'),
                 },
                 'price': {
                     'min': Math.pow (10, -precision['price']),
@@ -377,13 +380,18 @@ module.exports = class bitfinex extends Exchange {
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         let market = this.markets[symbol];
         let rate = market[takerOrMaker];
-        let cost = amount * price;
+        let cost = amount * rate;
         let key = 'quote';
+        if (side === 'sell') {
+            cost *= price;
+        } else {
+            key = 'base';
+        }
         return {
             'type': takerOrMaker,
             'currency': market[key],
             'rate': rate,
-            'cost': parseFloat (this.feeToPrecision (market[key], rate * cost)),
+            'cost': parseFloat (this.feeToPrecision (market[key], cost)),
         };
     }
 
@@ -444,7 +452,7 @@ module.exports = class bitfinex extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = parseFloat (ticker['timestamp']) * 1000;
+        let timestamp = this.safeFloat (ticker, 'timestamp') * 1000;
         let symbol = undefined;
         if (typeof market !== 'undefined') {
             symbol = market['symbol'];
@@ -462,16 +470,16 @@ module.exports = class bitfinex extends Exchange {
                 symbol = base + '/' + quote;
             }
         }
-        let last = parseFloat (ticker['last_price']);
+        let last = this.safeFloat (ticker, 'last_price');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']),
-            'low': parseFloat (ticker['low']),
-            'bid': parseFloat (ticker['bid']),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': parseFloat (ticker['ask']),
+            'ask': this.safeFloat (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -480,8 +488,8 @@ module.exports = class bitfinex extends Exchange {
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
-            'average': parseFloat (ticker['mid']),
-            'baseVolume': parseFloat (ticker['volume']),
+            'average': this.safeFloat (ticker, 'mid'),
+            'baseVolume': this.safeFloat (ticker, 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -491,8 +499,8 @@ module.exports = class bitfinex extends Exchange {
         let timestamp = parseInt (parseFloat (trade['timestamp'])) * 1000;
         let side = trade['type'].toLowerCase ();
         let orderId = this.safeString (trade, 'order_id');
-        let price = parseFloat (trade['price']);
-        let amount = parseFloat (trade['amount']);
+        let price = this.safeFloat (trade, 'price');
+        let amount = this.safeFloat (trade, 'amount');
         let cost = price * amount;
         let fee = undefined;
         if ('fee_amount' in trade) {
@@ -626,6 +634,9 @@ module.exports = class bitfinex extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        if (typeof symbol !== 'undefined')
+            if (!(symbol in this.markets))
+                throw new ExchangeError (this.id + ' has no symbol ' + symbol);
         let response = await this.privatePostOrders (params);
         let orders = this.parseOrders (response, undefined, since, limit);
         if (symbol)
@@ -665,10 +676,10 @@ module.exports = class bitfinex extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 100, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        if (typeof since === 'undefined')
-            since = this.milliseconds () - this.parseTimeframe (timeframe) * limit * 1000;
+        if (typeof limit === 'undefined')
+            limit = 100;
         let market = this.market (symbol);
         let v2id = 't' + market['id'];
         let request = {
@@ -676,50 +687,71 @@ module.exports = class bitfinex extends Exchange {
             'timeframe': this.timeframes[timeframe],
             'sort': 1,
             'limit': limit,
-            'start': since,
         };
+        if (typeof since !== 'undefined')
+            request['start'] = since;
         let response = await this.v2GetCandlesTradeTimeframeSymbolHist (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     getCurrencyName (currency) {
         const names = {
+            'AGI': 'agi',
             'AID': 'aid',
+            'AIO': 'aio',
+            'ANT': 'ant',
             'AVT': 'aventus', // #1811
             'BAT': 'bat',
             'BCH': 'bcash', // undocumented
+            'BCI': 'bci',
+            'BFT': 'bft',
             'BTC': 'bitcoin',
             'BTG': 'bgold',
+            'CFI': 'cfi',
+            'DAI': 'dai',
             'DASH': 'dash',
             'DATA': 'datacoin',
+            'DTH': 'dth',
             'EDO': 'eidoo', // #1811
             'ELF': 'elf',
             'EOS': 'eos',
             'ETC': 'ethereumc',
             'ETH': 'ethereum',
+            'ETP': 'metaverse',
             'FUN': 'fun',
             'GNT': 'golem',
+            'IOST': 'ios',
             'IOTA': 'iota',
+            'LRC': 'lrc',
             'LTC': 'litecoin',
             'MANA': 'mna',
-            'NEO': 'neo', // #1811
+            'MIT': 'mit',
+            'MTN': 'mtn',
+            'NEO': 'neo',
+            'ODE': 'ode',
             'OMG': 'omisego',
             'OMNI': 'mastercoin',
             'QASH': 'qash',
             'QTUM': 'qtum', // #1811
             'RCN': 'rcn',
+            'RDN': 'rdn',
             'REP': 'rep',
+            'REQ': 'req',
             'RLC': 'rlc',
             'SAN': 'santiment',
             'SNGLS': 'sng',
             'SNT': 'status',
             'SPANK': 'spk',
+            'STJ': 'stj',
             'TNB': 'tnb',
             'TRX': 'trx',
             'USD': 'wire',
             'USDT': 'tetheruso', // undocumented
+            'WAX': 'wax',
+            'XLM': 'xlm',
             'XMR': 'monero',
             'XRP': 'ripple',
+            'XVG': 'xvg',
             'YOYOW': 'yoyow',
             'ZEC': 'zcash',
             'ZRX': 'zrx',
@@ -781,8 +813,15 @@ module.exports = class bitfinex extends Exchange {
         let responses = await this.privatePostWithdraw (this.extend (request, params));
         let response = responses[0];
         let id = response['withdrawal_id'];
-        if (id === 0)
+        let message = response['message'];
+        let errorMessage = this.findBroadlyMatchedKey (this.exceptions['broad'], message);
+        if (id === 0) {
+            if (typeof errorMessage !== 'undefined') {
+                let Exception = this.exceptions['broad'][errorMessage];
+                throw new Exception (this.id + ' ' + message);
+            }
             throw new ExchangeError (this.id + ' withdraw returned an id of zero: ' + this.json (response));
+        }
         return {
             'info': response,
             'id': id,

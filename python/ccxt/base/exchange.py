@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.13.36'
+__version__ = '1.14.39'
 
 # -----------------------------------------------------------------------------
 
@@ -175,7 +175,7 @@ class Exchange(object):
     }
 
     precisionMode = DECIMAL_PLACES
-    minFundingAddressLength = 10  # used in check_address
+    minFundingAddressLength = 1  # used in check_address
     substituteCommonCurrencyCodes = True
     lastRestRequestTimestamp = 0
     lastRestPollTimestamp = 0
@@ -671,9 +671,9 @@ class Exchange(object):
         return utc.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-6] + "{:<03d}".format(int(timestamp) % 1000) + 'Z'
 
     @staticmethod
-    def ymd(timestamp):
+    def ymd(timestamp, infix='-'):
         utc_datetime = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
-        return utc_datetime.strftime('%Y-%m-%d')
+        return utc_datetime.strftime('%Y' + infix + '%m' + infix + '%d')
 
     @staticmethod
     def ymdhms(timestamp, infix=' '):
@@ -856,11 +856,23 @@ class Exchange(object):
         else:
             base_currencies = [{
                 'id': market['baseId'] if 'baseId' in market else market['base'],
+                'numericId': market['baseNumericId'] if 'baseNumericId' in market else None,
                 'code': market['base'],
+                'precision': (
+                    market['precision']['base'] if 'base' in market['precision'] else (
+                        market['precision']['amount'] if 'amount' in market['precision'] else None
+                    )
+                ) if 'precision' in market else 8,
             } for market in values if 'base' in market]
             quote_currencies = [{
                 'id': market['quoteId'] if 'quoteId' in market else market['quote'],
+                'numericId': market['quoteNumericId'] if 'quoteNumericId' in market else None,
                 'code': market['quote'],
+                'precision': (
+                    market['precision']['quote'] if 'quote' in market['precision'] else (
+                        market['precision']['price'] if 'price' in market['precision'] else None
+                    )
+                ) if 'precision' in market else 8,
             } for market in values if 'quote' in market]
             currencies = self.sort_by(base_currencies + quote_currencies, 'code')
             self.currencies = self.deep_extend(self.index_by(currencies, 'code'), self.currencies)

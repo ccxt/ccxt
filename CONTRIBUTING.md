@@ -22,6 +22,7 @@ If you want to submit an issue and you want your issue to be resolved quickly, h
   - **surround code and output with triple backticks: &#096;&#096;&#096;YOUR\_CODE&#096;&#096;&#096;**
   - paste a complete code snippet you're having difficulties with, avoid one-liners
   - paste the **full verbose output** of the failing method without your keys
+  - the verbose output should include the request and response from the exchange (not just an error callstack)
   - don't confuse the backtick symbol (&#096;) with the quote symbol (\'), &#096;&#096;&#096;GOOD&#096;&#096;&#096;, '''BAD'''
   - write your language **and version**
   - write ccxt library version

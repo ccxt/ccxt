@@ -8,11 +8,11 @@ import base64
 import hashlib
 import json
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import NotSupported
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import NotSupported
 
 
 class gdax (Exchange):
@@ -113,7 +113,7 @@ class gdax (Exchange):
                     'tierBased': True,  # complicated tier system per coin
                     'percentage': True,
                     'maker': 0.0,
-                    'taker': 0.25 / 100,  # Fee is 0.25%, 0.3% for ETH/LTC pairs
+                    'taker': 0.3 / 100,  # tiered fee starts at 0.3%
                 },
                 'funding': {
                     'tierBased': False,
@@ -454,10 +454,7 @@ class gdax (Exchange):
         if type == 'limit':
             order['price'] = price
         response = self.privatePostOrders(self.extend(order, params))
-        return {
-            'info': response,
-            'id': response['id'],
-        }
+        return self.parse_order(response)
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
@@ -465,7 +462,7 @@ class gdax (Exchange):
 
     def fee_to_precision(self, currency, fee):
         cost = float(fee)
-        return('{:.' + str(self.currencies[currency].precision) + 'f}').format(cost)
+        return('{:.' + str(self.currencies[currency]['precision']) + 'f}').format(cost)
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]

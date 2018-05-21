@@ -81,6 +81,8 @@ class huobipro extends Exchange {
                         'dw/withdraw-virtual/addresses', // 查询虚拟币提现地址
                         'dw/deposit-virtual/addresses',
                         'query/deposit-withdraw',
+                        'margin/loan-orders', // 借贷订单
+                        'margin/accounts/balance', // 借贷账户详情
                     ),
                     'post' => array (
                         'order/orders/place', // 创建并执行一个新订单 (一步下单， 推荐使用)
@@ -93,6 +95,10 @@ class huobipro extends Exchange {
                         'dw/withdraw-virtual/create', // 申请提现虚拟币
                         'dw/withdraw-virtual/{id}/place', // 确认申请虚拟币提现
                         'dw/withdraw-virtual/{id}/cancel', // 申请取消提现虚拟币
+                        'dw/transfer-in/margin', // 现货账户划入至借贷账户
+                        'dw/transfer-out/margin', // 借贷账户划出至现货账户
+                        'margin/orders', // 申请借贷
+                        'margin/orders/{id}/repay', // 归还借贷
                     ),
                 ),
             ),
@@ -105,12 +111,14 @@ class huobipro extends Exchange {
                 ),
             ),
             'exceptions' => array (
+                'account-frozen-balance-insufficient-error' => '\\ccxt\\InsufficientFunds', // array ("status":"error","err-code":"account-frozen-balance-insufficient-error","err-msg":"trade account balance is not enough, left => `0.0027`","data":null)
                 'order-limitorder-amount-min-error' => '\\ccxt\\InvalidOrder', // limit order amount error, min => `0.001`
                 'order-orderstate-error' => '\\ccxt\\OrderNotFound', // canceling an already canceled order
                 'order-queryorder-invalid' => '\\ccxt\\OrderNotFound', // querying a non-existent order
                 'order-update-error' => '\\ccxt\\ExchangeNotAvailable', // undocumented error
             ),
             'options' => array (
+                'createMarketBuyOrderRequiresPrice' => true,
                 'fetchMarketsMethod' => 'publicGetCommonSymbols',
                 'language' => 'en-US',
             ),
@@ -124,7 +132,7 @@ class huobipro extends Exchange {
             $keys = is_array ($limits) ? array_keys ($limits) : array ();
             for ($i = 0; $i < count ($keys); $i++) {
                 $symbol = $keys[$i];
-                $this->markets[$symbol] = array_merge ($this->markets[$symbol], array (
+                $this->markets[$symbol] = array_replace_recursive ($this->markets[$symbol], array (
                     'limits' => $limits[$symbol],
                 ));
             }
@@ -331,7 +339,7 @@ class huobipro extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = 2000, $params = array ()) {
+    public function fetch_trades ($symbol, $since = null, $limit = 1000, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
@@ -364,7 +372,7 @@ class huobipro extends Exchange {
         ];
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = 2000, $params = array ()) {
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = 1000, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
@@ -506,7 +514,7 @@ class huobipro extends Exchange {
         $response = $this->privateGetOrderOrders (array_merge (array (
             'symbol' => $market['id'],
             'states' => $states,
-        )));
+        ), $params));
         return $this->parse_orders($response['data'], $market, $since, $limit);
     }
 
@@ -567,10 +575,10 @@ class huobipro extends Exchange {
         if ($market)
             $symbol = $market['symbol'];
         $timestamp = $order['created-at'];
-        $amount = floatval ($order['amount']);
+        $amount = $this->safe_float($order, 'amount');
         $filled = floatval ($order['field-amount']);
         $remaining = $amount - $filled;
-        $price = floatval ($order['price']);
+        $price = $this->safe_float($order, 'price');
         $cost = floatval ($order['field-cash-amount']);
         $average = 0;
         if ($filled)
@@ -606,6 +614,15 @@ class huobipro extends Exchange {
             'symbol' => $market['id'],
             'type' => $side . '-' . $type,
         );
+        if ($this->options['createMarketBuyOrderRequiresPrice']) {
+            if (($type === 'market') && ($side === 'buy')) {
+                if ($price === null) {
+                    throw new InvalidOrder ($this->id . " $market buy $order requires $price argument to calculate cost (total $amount of quote currency to spend for buying, $amount * $price). To switch off this warning exception and specify cost in the $amount argument, set .options['createMarketBuyOrderRequiresPrice'] = false. Make sure you know what you're doing.");
+                } else {
+                    $order['amount'] = $this->price_to_precision($symbol, floatval ($amount) * floatval ($price));
+                }
+            }
+        }
         if ($type === 'limit')
             $order['price'] = $this->price_to_precision($symbol, $price);
         $response = $this->privatePostOrderOrdersPlace (array_merge ($order, $params));
@@ -672,14 +689,16 @@ class huobipro extends Exchange {
         );
     }
 
-    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+        $this->load_markets();
         $this->check_address($address);
+        $currency = $this->currency ($code);
         $request = array (
             'address' => $address, // only supports existing addresses in your withdraw $address list
             'amount' => $amount,
-            'currency' => strtolower ($currency),
+            'currency' => strtolower ($currency['id']),
         );
-        if ($tag)
+        if ($tag !== null)
             $request['addr-tag'] = $tag; // only for XRP?
         $response = $this->privatePostDwWithdrawApiCreate (array_merge ($request, $params));
         $id = null;

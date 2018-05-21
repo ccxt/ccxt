@@ -31,9 +31,9 @@ class exmo extends Exchange {
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg',
                 'api' => 'https://api.exmo.com',
-                'www' => 'https://exmo.me',
+                'www' => 'https://exmo.me/?ref=131685',
                 'doc' => array (
-                    'https://exmo.me/en/api_doc',
+                    'https://exmo.me/en/api_doc?ref=131685',
                     'https://github.com/exmo-dev/exmo_api_lib/tree/master/nodejs',
                 ),
                 'fees' => 'https://exmo.com/en/docs/fees',
@@ -212,16 +212,16 @@ class exmo extends Exchange {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
-        $last = floatval ($ticker['last_trade']);
+        $last = $this->safe_float($ticker, 'last_trade');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['high']),
-            'low' => floatval ($ticker['low']),
-            'bid' => floatval ($ticker['buy_price']),
+            'high' => $this->safe_float($ticker, 'high'),
+            'low' => $this->safe_float($ticker, 'low'),
+            'bid' => $this->safe_float($ticker, 'buy_price'),
             'bidVolume' => null,
-            'ask' => floatval ($ticker['sell_price']),
+            'ask' => $this->safe_float($ticker, 'sell_price'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -230,9 +230,9 @@ class exmo extends Exchange {
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
-            'average' => floatval ($ticker['avg']),
-            'baseVolume' => floatval ($ticker['vol']),
-            'quoteVolume' => floatval ($ticker['vol_curr']),
+            'average' => $this->safe_float($ticker, 'avg'),
+            'baseVolume' => $this->safe_float($ticker, 'vol'),
+            'quoteVolume' => $this->safe_float($ticker, 'vol_curr'),
             'info' => $ticker,
         );
     }
@@ -270,8 +270,8 @@ class exmo extends Exchange {
             'order' => $this->safe_string($trade, 'order_id'),
             'type' => null,
             'side' => $trade['type'],
-            'price' => floatval ($trade['price']),
-            'amount' => floatval ($trade['quantity']),
+            'price' => $this->safe_float($trade, 'price'),
+            'amount' => $this->safe_float($trade, 'quantity'),
             'cost' => $this->safe_float($trade, 'amount'),
         );
     }
@@ -381,7 +381,6 @@ class exmo extends Exchange {
         }
         $openOrdersIndexedById = $this->index_by($openOrders, 'id');
         $cachedOrderIds = is_array ($this->orders) ? array_keys ($this->orders) : array ();
-        $result = array ();
         for ($k = 0; $k < count ($cachedOrderIds); $k++) {
             // match each cached $order to an $order in the open orders array
             // possible reasons why a cached $order may be missing in the open orders array:
@@ -389,7 +388,6 @@ class exmo extends Exchange {
             // - $symbol mismatch (e.g. cached BTC/USDT, fetched ETH/USDT) -> skip
             $id = $cachedOrderIds[$k];
             $order = $this->orders[$id];
-            $result[] = $order;
             if (!(is_array ($openOrdersIndexedById) && array_key_exists ($id, $openOrdersIndexedById))) {
                 // cached $order is not in open orders array
                 // if we fetched orders by $symbol and it doesn't match the cached $order -> won't update the cached $order
@@ -411,7 +409,7 @@ class exmo extends Exchange {
                 }
             }
         }
-        return $result;
+        return $this->to_array($this->orders);
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -428,7 +426,7 @@ class exmo extends Exchange {
             $orders = $this->array_concat($orders, $parsedOrders);
         }
         $this->update_cached_orders ($orders, $symbol);
-        return $this->filter_by_symbol_since_limit($this->orders, $symbol, $since, $limit);
+        return $this->filter_by_symbol_since_limit($this->to_array($this->orders), $symbol, $since, $limit);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {

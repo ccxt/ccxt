@@ -199,16 +199,16 @@ class ccex extends Exchange {
         $symbol = null;
         if ($market !== null)
             $symbol = $market['symbol'];
-        $last = floatval ($ticker['lastprice']);
+        $last = $this->safe_float($ticker, 'lastprice');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['high']),
-            'low' => floatval ($ticker['low']),
-            'bid' => floatval ($ticker['buy']),
+            'high' => $this->safe_float($ticker, 'high'),
+            'low' => $this->safe_float($ticker, 'low'),
+            'bid' => $this->safe_float($ticker, 'buy'),
             'bidVolume' => null,
-            'ask' => floatval ($ticker['sell']),
+            'ask' => $this->safe_float($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -217,7 +217,7 @@ class ccex extends Exchange {
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
-            'average' => floatval ($ticker['avg']),
+            'average' => $this->safe_float($ticker, 'avg'),
             'baseVolume' => null,
             'quoteVolume' => $this->safe_float($ticker, 'buysupport'),
             'info' => $ticker,

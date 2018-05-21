@@ -102,16 +102,16 @@ class bitso (Exchange):
             base, quote = symbol.split('/')
             limits = {
                 'amount': {
-                    'min': float(market['minimum_amount']),
-                    'max': float(market['maximum_amount']),
+                    'min': self.safe_float(market, 'minimum_amount'),
+                    'max': self.safe_float(market, 'maximum_amount'),
                 },
                 'price': {
-                    'min': float(market['minimum_price']),
-                    'max': float(market['maximum_price']),
+                    'min': self.safe_float(market, 'minimum_price'),
+                    'max': self.safe_float(market, 'maximum_price'),
                 },
                 'cost': {
-                    'min': float(market['minimum_value']),
-                    'max': float(market['maximum_value']),
+                    'min': self.safe_float(market, 'minimum_value'),
+                    'max': self.safe_float(market, 'maximum_value'),
                 },
             }
             precision = {
@@ -163,19 +163,19 @@ class bitso (Exchange):
         }, params))
         ticker = response['payload']
         timestamp = self.parse8601(ticker['created_at'])
-        vwap = float(ticker['vwap'])
-        baseVolume = float(ticker['volume'])
+        vwap = self.safe_float(ticker, 'vwap')
+        baseVolume = self.safe_float(ticker, 'volume')
         quoteVolume = baseVolume * vwap
-        last = float(ticker['last'])
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['bid']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'bid'),
             'bidVolume': None,
-            'ask': float(ticker['ask']),
+            'ask': self.safe_float(ticker, 'ask'),
             'askVolume': None,
             'vwap': vwap,
             'open': None,
@@ -311,8 +311,8 @@ class bitso (Exchange):
             symbol = market['symbol']
         orderType = order['type']
         timestamp = self.parse8601(order['created_at'])
-        amount = float(order['original_amount'])
-        remaining = float(order['unfilled_amount'])
+        amount = self.safe_float(order, 'original_amount')
+        remaining = self.safe_float(order, 'unfilled_amount')
         filled = amount - remaining
         result = {
             'info': order,

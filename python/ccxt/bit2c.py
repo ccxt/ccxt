@@ -103,19 +103,19 @@ class bit2c (Exchange):
             'pair': self.market_id(symbol),
         }, params))
         timestamp = self.milliseconds()
-        averagePrice = float(ticker['av'])
-        baseVolume = float(ticker['a'])
+        averagePrice = self.safe_float(ticker, 'av')
+        baseVolume = self.safe_float(ticker, 'a')
         quoteVolume = baseVolume * averagePrice
-        last = float(ticker['ll'])
+        last = self.safe_float(ticker, 'll')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': float(ticker['h']),
+            'bid': self.safe_float(ticker, 'h'),
             'bidVolume': None,
-            'ask': float(ticker['l']),
+            'ask': self.safe_float(ticker, 'l'),
             'askVolume': None,
             'vwap': None,
             'open': None,

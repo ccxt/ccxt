@@ -217,8 +217,8 @@ class bithumb (Exchange):
             'order': None,
             'type': None,
             'side': side,
-            'price': float(trade['price']),
-            'amount': float(trade['units_traded']),
+            'price': self.safe_float(trade, 'price'),
+            'amount': self.safe_float(trade, 'units_traded'),
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -261,16 +261,16 @@ class bithumb (Exchange):
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
-        side = ('side' in list(params.keys()))
-        if not side:
+        side_in_params = ('side' in list(params.keys()))
+        if not side_in_params:
             raise ExchangeError(self.id + ' cancelOrder requires a side parameter(sell or buy) and a currency parameter')
-        side = 'purchase' if (side == 'buy') else 'sales'
         currency = ('currency' in list(params.keys()))
         if not currency:
             raise ExchangeError(self.id + ' cancelOrder requires a currency parameter')
+        side = 'bid' if (params['side'] == 'buy') else 'ask'
         return await self.privatePostTradeCancel({
             'order_id': id,
-            'type': params['side'],
+            'type': side,
             'currency': params['currency'],
         })
 

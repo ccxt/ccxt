@@ -28,6 +28,7 @@ class poloniex extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => 'emulated',
                 'fetchTickers' => true,
+                'fetchTradingFees' => true,
                 'fetchCurrencies' => true,
                 'withdraw' => true,
             ),
@@ -238,13 +239,13 @@ class poloniex extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_fees ($params = array ()) {
+    public function fetch_trading_fees ($params = array ()) {
         $this->load_markets();
         $fees = $this->privatePostReturnFeeInfo ();
         return array (
             'info' => $fees,
-            'maker' => floatval ($fees['makerFee']),
-            'taker' => floatval ($fees['takerFee']),
+            'maker' => $this->safe_float($fees, 'makerFee'),
+            'taker' => $this->safe_float($fees, 'takerFee'),
             'withdraw' => array (),
             'deposit' => array (),
         );
@@ -271,8 +272,8 @@ class poloniex extends Exchange {
         $open = null;
         $change = null;
         $average = null;
-        $last = floatval ($ticker['last']);
-        $relativeChange = floatval ($ticker['percentChange']);
+        $last = $this->safe_float($ticker, 'last');
+        $relativeChange = $this->safe_float($ticker, 'percentChange');
         if ($relativeChange !== -1) {
             $open = $last / $this->sum (1, $relativeChange);
             $change = $last - $open;
@@ -282,11 +283,11 @@ class poloniex extends Exchange {
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['high24hr']),
-            'low' => floatval ($ticker['low24hr']),
-            'bid' => floatval ($ticker['highestBid']),
+            'high' => $this->safe_float($ticker, 'high24hr'),
+            'low' => $this->safe_float($ticker, 'low24hr'),
+            'bid' => $this->safe_float($ticker, 'highestBid'),
             'bidVolume' => null,
-            'ask' => floatval ($ticker['lowestAsk']),
+            'ask' => $this->safe_float($ticker, 'lowestAsk'),
             'askVolume' => null,
             'vwap' => null,
             'open' => $open,
@@ -296,8 +297,8 @@ class poloniex extends Exchange {
             'change' => $change,
             'percentage' => $relativeChange * 100,
             'average' => $average,
-            'baseVolume' => floatval ($ticker['quoteVolume']),
-            'quoteVolume' => floatval ($ticker['baseVolume']),
+            'baseVolume' => $this->safe_float($ticker, 'quoteVolume'),
+            'quoteVolume' => $this->safe_float($ticker, 'baseVolume'),
             'info' => $ticker,
         );
     }
@@ -397,9 +398,9 @@ class poloniex extends Exchange {
         $side = $trade['type'];
         $fee = null;
         $cost = $this->safe_float($trade, 'total');
-        $amount = floatval ($trade['amount']);
+        $amount = $this->safe_float($trade, 'amount');
         if (is_array ($trade) && array_key_exists ('fee', $trade)) {
-            $rate = floatval ($trade['fee']);
+            $rate = $this->safe_float($trade, 'fee');
             $feeCost = null;
             $currency = null;
             if ($side === 'buy') {
@@ -426,7 +427,7 @@ class poloniex extends Exchange {
             'order' => $this->safe_string($trade, 'orderNumber'),
             'type' => 'limit',
             'side' => $side,
-            'price' => floatval ($trade['rate']),
+            'price' => $this->safe_float($trade, 'rate'),
             'amount' => $amount,
             'cost' => $cost,
             'fee' => $fee,
@@ -459,8 +460,8 @@ class poloniex extends Exchange {
             $request['end'] = $this->seconds ();
         }
         // $limit is disabled (does not really work as expected)
-        // if ($limit)
-        //     $request['limit'] = intval ($limit);
+        if ($limit)
+            $request['limit'] = intval ($limit);
         $response = $this->privatePostReturnTradeHistory (array_merge ($request, $params));
         $result = array ();
         if ($market) {
@@ -831,6 +832,8 @@ class poloniex extends Exchange {
             $feedback = $this->id . ' ' . $this->json ($response);
             if ($error === 'Invalid order number, or you are not the person who placed the order.') {
                 throw new OrderNotFound ($feedback);
+            } else if ($error === 'Connection timed out. Please try again.') {
+                throw new RequestTimeout ($feedback);
             } else if ($error === 'Internal $error. Please try again.') {
                 throw new ExchangeNotAvailable ($feedback);
             } else if ($error === 'Order not found, or you are not the person who placed it.') {

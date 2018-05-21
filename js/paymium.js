@@ -105,8 +105,8 @@ module.exports = class paymium extends Exchange {
             'id': this.marketId (symbol),
         }, params));
         let timestamp = ticker['at'] * 1000;
-        let vwap = parseFloat (ticker['vwap']);
-        let baseVolume = parseFloat (ticker['volume']);
+        let vwap = this.safeFloat (ticker, 'vwap');
+        let baseVolume = this.safeFloat (ticker, 'volume');
         let quoteVolume = baseVolume * vwap;
         let last = this.safeFloat (ticker, 'price');
         return {

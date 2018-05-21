@@ -94,20 +94,20 @@ class coinfloor (Exchange):
         if market:
             symbol = market['symbol']
         vwap = self.safe_float(ticker, 'vwap')
-        baseVolume = float(ticker['volume'])
+        baseVolume = self.safe_float(ticker, 'volume')
         quoteVolume = None
         if vwap is not None:
             quoteVolume = baseVolume * vwap
-        last = float(ticker['last'])
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['bid']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'bid'),
             'bidVolume': None,
-            'ask': float(ticker['ask']),
+            'ask': self.safe_float(ticker, 'ask'),
             'askVolume': None,
             'vwap': vwap,
             'open': None,
@@ -140,8 +140,8 @@ class coinfloor (Exchange):
             'symbol': market['symbol'],
             'type': None,
             'side': None,
-            'price': float(trade['price']),
-            'amount': float(trade['amount']),
+            'price': self.safe_float(trade, 'price'),
+            'amount': self.safe_float(trade, 'amount'),
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):

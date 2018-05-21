@@ -306,13 +306,13 @@ class bitmex (Exchange):
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(quote['bidPrice']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(quote, 'bidPrice'),
             'bidVolume': None,
-            'ask': float(quote['askPrice']),
+            'ask': self.safe_float(quote, 'askPrice'),
             'askVolume': None,
-            'vwap': float(ticker['vwap']),
+            'vwap': self.safe_float(ticker, 'vwap'),
             'open': open,
             'close': close,
             'last': close,
@@ -320,8 +320,8 @@ class bitmex (Exchange):
             'change': change,
             'percentage': change / open * 100,
             'average': self.sum(open, close) / 2,
-            'baseVolume': float(ticker['homeNotional']),
-            'quoteVolume': float(ticker['foreignNotional']),
+            'baseVolume': self.safe_float(ticker, 'homeNotional'),
+            'quoteVolume': self.safe_float(ticker, 'foreignNotional'),
             'info': ticker,
         }
 
@@ -420,7 +420,7 @@ class bitmex (Exchange):
             timestamp = self.parse8601(datetime_value)
             iso8601 = self.iso8601(timestamp)
         price = self.safe_float(order, 'price')
-        amount = float(order['orderQty'])
+        amount = self.safe_float(order, 'orderQty')
         filled = self.safe_float(order, 'cumQty', 0.0)
         remaining = max(amount - filled, 0.0)
         cost = None

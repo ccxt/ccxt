@@ -227,8 +227,8 @@ class bithumb extends Exchange {
             'order' => null,
             'type' => null,
             'side' => $side,
-            'price' => floatval ($trade['price']),
-            'amount' => floatval ($trade['units_traded']),
+            'price' => $this->safe_float($trade, 'price'),
+            'amount' => $this->safe_float($trade, 'units_traded'),
         );
     }
 
@@ -276,16 +276,16 @@ class bithumb extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        $side = (is_array ($params) && array_key_exists ('side', $params));
-        if (!$side)
+        $side_in_params = (is_array ($params) && array_key_exists ('side', $params));
+        if (!$side_in_params)
             throw new ExchangeError ($this->id . ' cancelOrder requires a $side parameter (sell or buy) and a $currency parameter');
-        $side = ($side === 'buy') ? 'purchase' : 'sales';
         $currency = (is_array ($params) && array_key_exists ('currency', $params));
         if (!$currency)
             throw new ExchangeError ($this->id . ' cancelOrder requires a $currency parameter');
+        $side = ($params['side'] === 'buy') ? 'bid' : 'ask';
         return $this->privatePostTradeCancel (array (
             'order_id' => $id,
-            'type' => $params['side'],
+            'type' => $side,
             'currency' => $params['currency'],
         ));
     }

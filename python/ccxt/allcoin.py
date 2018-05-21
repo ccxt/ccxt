@@ -55,7 +55,6 @@ class allcoin (okcoinusd):
                     ],
                 },
             },
-            'markets': None,
         })
 
     def fetch_markets(self):

@@ -316,13 +316,13 @@ class bitmex extends Exchange {
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['high']),
-            'low' => floatval ($ticker['low']),
-            'bid' => floatval ($quote['bidPrice']),
+            'high' => $this->safe_float($ticker, 'high'),
+            'low' => $this->safe_float($ticker, 'low'),
+            'bid' => $this->safe_float($quote, 'bidPrice'),
             'bidVolume' => null,
-            'ask' => floatval ($quote['askPrice']),
+            'ask' => $this->safe_float($quote, 'askPrice'),
             'askVolume' => null,
-            'vwap' => floatval ($ticker['vwap']),
+            'vwap' => $this->safe_float($ticker, 'vwap'),
             'open' => $open,
             'close' => $close,
             'last' => $close,
@@ -330,8 +330,8 @@ class bitmex extends Exchange {
             'change' => $change,
             'percentage' => $change / $open * 100,
             'average' => $this->sum ($open, $close) / 2,
-            'baseVolume' => floatval ($ticker['homeNotional']),
-            'quoteVolume' => floatval ($ticker['foreignNotional']),
+            'baseVolume' => $this->safe_float($ticker, 'homeNotional'),
+            'quoteVolume' => $this->safe_float($ticker, 'foreignNotional'),
             'info' => $ticker,
         );
     }
@@ -440,7 +440,7 @@ class bitmex extends Exchange {
             $iso8601 = $this->iso8601 ($timestamp);
         }
         $price = $this->safe_float($order, 'price');
-        $amount = floatval ($order['orderQty']);
+        $amount = $this->safe_float($order, 'orderQty');
         $filled = $this->safe_float($order, 'cumQty', 0.0);
         $remaining = max ($amount - $filled, 0.0);
         $cost = null;

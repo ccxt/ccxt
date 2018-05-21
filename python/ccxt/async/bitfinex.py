@@ -9,11 +9,11 @@ import hashlib
 import math
 import json
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import NotSupported
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
@@ -264,13 +264,16 @@ class bitfinex (Exchange):
                 'BCU': 'CST_BCU',
                 'DAT': 'DATA',
                 'DSH': 'DASH',  # Bitfinex names Dash as DSH, instead of DASH
+                'IOS': 'IOST',
                 'IOT': 'IOTA',
                 'MNA': 'MANA',
                 'QSH': 'QASH',
                 'QTM': 'QTUM',
                 'SNG': 'SNGLS',
                 'SPK': 'SPANK',
+                'STJ': 'STORJ',
                 'YYW': 'YOYOW',
+                'USD': 'USDT',
             },
             'exceptions': {
                 'exact': {
@@ -340,8 +343,8 @@ class bitfinex (Exchange):
             }
             limits = {
                 'amount': {
-                    'min': float(market['minimum_order_size']),
-                    'max': float(market['maximum_order_size']),
+                    'min': self.safe_float(market, 'minimum_order_size'),
+                    'max': self.safe_float(market, 'maximum_order_size'),
                 },
                 'price': {
                     'min': math.pow(10, -precision['price']),
@@ -381,13 +384,17 @@ class bitfinex (Exchange):
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]
         rate = market[takerOrMaker]
-        cost = amount * price
+        cost = amount * rate
         key = 'quote'
+        if side == 'sell':
+            cost *= price
+        else:
+            key = 'base'
         return {
             'type': takerOrMaker,
             'currency': market[key],
             'rate': rate,
-            'cost': float(self.fee_to_precision(market[key], rate * cost)),
+            'cost': float(self.fee_to_precision(market[key], cost)),
         }
 
     async def fetch_balance(self, params={}):
@@ -439,7 +446,7 @@ class bitfinex (Exchange):
         return self.parse_ticker(ticker, market)
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = float(ticker['timestamp']) * 1000
+        timestamp = self.safe_float(ticker, 'timestamp') * 1000
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -455,16 +462,16 @@ class bitfinex (Exchange):
                 base = self.common_currency_code(baseId)
                 quote = self.common_currency_code(quoteId)
                 symbol = base + '/' + quote
-        last = float(ticker['last_price'])
+        last = self.safe_float(ticker, 'last_price')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['bid']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'bid'),
             'bidVolume': None,
-            'ask': float(ticker['ask']),
+            'ask': self.safe_float(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -473,8 +480,8 @@ class bitfinex (Exchange):
             'previousClose': None,
             'change': None,
             'percentage': None,
-            'average': float(ticker['mid']),
-            'baseVolume': float(ticker['volume']),
+            'average': self.safe_float(ticker, 'mid'),
+            'baseVolume': self.safe_float(ticker, 'volume'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -483,8 +490,8 @@ class bitfinex (Exchange):
         timestamp = int(float(trade['timestamp'])) * 1000
         side = trade['type'].lower()
         orderId = self.safe_string(trade, 'order_id')
-        price = float(trade['price'])
-        amount = float(trade['amount'])
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'amount')
         cost = price * amount
         fee = None
         if 'fee_amount' in trade:
@@ -606,6 +613,9 @@ class bitfinex (Exchange):
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
+        if symbol is not None:
+            if not(symbol in list(self.markets.keys())):
+                raise ExchangeError(self.id + ' has no symbol ' + symbol)
         response = await self.privatePostOrders(params)
         orders = self.parse_orders(response, None, since, limit)
         if symbol:
@@ -641,10 +651,10 @@ class bitfinex (Exchange):
             ohlcv[5],
         ]
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=100, params={}):
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
-        if since is None:
-            since = self.milliseconds() - self.parse_timeframe(timeframe) * limit * 1000
+        if limit is None:
+            limit = 100
         market = self.market(symbol)
         v2id = 't' + market['id']
         request = {
@@ -652,49 +662,70 @@ class bitfinex (Exchange):
             'timeframe': self.timeframes[timeframe],
             'sort': 1,
             'limit': limit,
-            'start': since,
         }
+        if since is not None:
+            request['start'] = since
         response = await self.v2GetCandlesTradeTimeframeSymbolHist(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def get_currency_name(self, currency):
         names = {
+            'AGI': 'agi',
             'AID': 'aid',
+            'AIO': 'aio',
+            'ANT': 'ant',
             'AVT': 'aventus',  # #1811
             'BAT': 'bat',
             'BCH': 'bcash',  # undocumented
+            'BCI': 'bci',
+            'BFT': 'bft',
             'BTC': 'bitcoin',
             'BTG': 'bgold',
+            'CFI': 'cfi',
+            'DAI': 'dai',
             'DASH': 'dash',
             'DATA': 'datacoin',
+            'DTH': 'dth',
             'EDO': 'eidoo',  # #1811
             'ELF': 'elf',
             'EOS': 'eos',
             'ETC': 'ethereumc',
             'ETH': 'ethereum',
+            'ETP': 'metaverse',
             'FUN': 'fun',
             'GNT': 'golem',
+            'IOST': 'ios',
             'IOTA': 'iota',
+            'LRC': 'lrc',
             'LTC': 'litecoin',
             'MANA': 'mna',
-            'NEO': 'neo',  # #1811
+            'MIT': 'mit',
+            'MTN': 'mtn',
+            'NEO': 'neo',
+            'ODE': 'ode',
             'OMG': 'omisego',
             'OMNI': 'mastercoin',
             'QASH': 'qash',
             'QTUM': 'qtum',  # #1811
             'RCN': 'rcn',
+            'RDN': 'rdn',
             'REP': 'rep',
+            'REQ': 'req',
             'RLC': 'rlc',
             'SAN': 'santiment',
             'SNGLS': 'sng',
             'SNT': 'status',
             'SPANK': 'spk',
+            'STJ': 'stj',
             'TNB': 'tnb',
             'TRX': 'trx',
             'USD': 'wire',
             'USDT': 'tetheruso',  # undocumented
+            'WAX': 'wax',
+            'XLM': 'xlm',
             'XMR': 'monero',
             'XRP': 'ripple',
+            'XVG': 'xvg',
             'YOYOW': 'yoyow',
             'ZEC': 'zcash',
             'ZRX': 'zrx',
@@ -752,7 +783,12 @@ class bitfinex (Exchange):
         responses = await self.privatePostWithdraw(self.extend(request, params))
         response = responses[0]
         id = response['withdrawal_id']
+        message = response['message']
+        errorMessage = self.find_broadly_matched_key(self.exceptions['broad'], message)
         if id == 0:
+            if errorMessage is not None:
+                Exception = self.exceptions['broad'][errorMessage]
+                raise Exception(self.id + ' ' + message)
             raise ExchangeError(self.id + ' withdraw returned an id of zero: ' + self.json(response))
         return {
             'info': response,

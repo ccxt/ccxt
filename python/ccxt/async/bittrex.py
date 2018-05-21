@@ -21,6 +21,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import ExchangeNotAvailable
 
 
 class bittrex (Exchange):
@@ -32,7 +33,6 @@ class bittrex (Exchange):
             'countries': 'US',
             'version': 'v1.1',
             'rateLimit': 1500,
-            'hasAlreadyAuthenticatedSuccessfully': False,  # a workaround for APIKEY_INVALID
             # new metainfo interface
             'has': {
                 'CORS': True,
@@ -100,6 +100,7 @@ class bittrex (Exchange):
                         'depositaddress',
                         'deposithistory',
                         'order',
+                        'orders',
                         'orderhistory',
                         'withdrawalhistory',
                         'withdraw',
@@ -153,7 +154,8 @@ class bittrex (Exchange):
                 },
             },
             'exceptions': {
-                'Call to Cancel was throttled. Try again in 60 seconds.': DDoSProtection,
+                # 'Call to Cancel was throttled. Try again in 60 seconds.': DDoSProtection,
+                # 'Call to GetBalances was throttled. Try again in 60 seconds.': DDoSProtection,
                 'APISIGN_NOT_PROVIDED': AuthenticationError,
                 'INVALID_SIGNATURE': AuthenticationError,
                 'INVALID_CURRENCY': ExchangeError,
@@ -165,6 +167,10 @@ class bittrex (Exchange):
                 'UUID_INVALID': OrderNotFound,
                 'RATE_NOT_PROVIDED': InvalidOrder,  # createLimitBuyOrder('ETH/BTC', 1, 0)
                 'WHITELIST_VIOLATION_IP': PermissionDenied,
+            },
+            'options': {
+                'parseOrderStatus': False,
+                'hasAlreadyAuthenticatedSuccessfully': False,  # a workaround for APIKEY_INVALID
             },
         })
 
@@ -189,7 +195,7 @@ class bittrex (Exchange):
                 'amount': 8,
                 'price': 8,
             }
-            active = market['IsActive']
+            active = market['IsActive'] or market['IsActive'] == 'true'
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -318,7 +324,7 @@ class bittrex (Exchange):
                 'name': currency['CurrencyLong'],
                 'active': currency['IsActive'],
                 'status': 'ok',
-                'fee': currency['TxFee'],  # todo: redesign
+                'fee': self.safe_float(currency, 'TxFee'),  # todo: redesign
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -386,8 +392,8 @@ class bittrex (Exchange):
             'symbol': market['symbol'],
             'type': 'limit',
             'side': side,
-            'price': float(trade['Price']),
-            'amount': float(trade['Quantity']),
+            'price': self.safe_float(trade, 'Price'),
+            'amount': self.safe_float(trade, 'Quantity'),
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -489,25 +495,32 @@ class bittrex (Exchange):
             status = 'closed'
         if ('CancelInitiated' in list(order.keys())) and order['CancelInitiated']:
             status = 'canceled'
+        if ('Status' in list(order.keys())) and self.options['parseOrderStatus']:
+            status = self.parse_order_status(order['Status'])
         symbol = None
-        if not market:
-            if 'Exchange' in order:
-                marketId = order['Exchange']
-                if marketId in self.markets_by_id:
-                    market = self.markets_by_id[marketId]
-                else:
-                    symbol = self.parse_symbol(marketId)
-        if market:
-            symbol = market['symbol']
+        if 'Exchange' in order:
+            marketId = order['Exchange']
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+                symbol = market['symbol']
+            else:
+                symbol = self.parse_symbol(marketId)
+        else:
+            if market is not None:
+                symbol = market['symbol']
         timestamp = None
         if 'Opened' in order:
             timestamp = self.parse8601(order['Opened'] + '+00:00')
         if 'Created' in order:
             timestamp = self.parse8601(order['Created'] + '+00:00')
-        iso8601 = self.iso8601(timestamp) if (timestamp is not None) else None
         lastTradeTimestamp = None
         if ('TimeStamp' in list(order.keys())) and(order['TimeStamp'] is not None):
             lastTradeTimestamp = self.parse8601(order['TimeStamp'] + '+00:00')
+        if ('Closed' in list(order.keys())) and(order['Closed'] is not None):
+            lastTradeTimestamp = self.parse8601(order['Closed'] + '+00:00')
+        if timestamp is None:
+            timestamp = lastTradeTimestamp
+        iso8601 = self.iso8601(timestamp) if (timestamp is not None) else None
         fee = None
         commission = None
         if 'Commission' in order:
@@ -518,8 +531,15 @@ class bittrex (Exchange):
             fee = {
                 'cost': float(order[commission]),
             }
-            if market:
+            if market is not None:
                 fee['currency'] = market['quote']
+            elif symbol:
+                currencyIds = symbol.split('/')
+                quoteCurrencyId = currencyIds[1]
+                if quoteCurrencyId in self.currencies_by_id:
+                    fee['currency'] = self.currencies_by_id[quoteCurrencyId]['code']
+                else:
+                    fee['currency'] = self.common_currency_code(quoteCurrencyId)
         price = self.safe_float(order, 'Limit')
         cost = self.safe_float(order, 'Price')
         amount = self.safe_float(order, 'Quantity')
@@ -671,8 +691,13 @@ class bittrex (Exchange):
                 exceptions = self.exceptions
                 if message in exceptions:
                     raise exceptions[message](feedback)
+                if message is not None:
+                    if message.find('throttled. Try again') >= 0:
+                        raise DDoSProtection(feedback)
+                    if message.find('problem') >= 0:
+                        raise ExchangeNotAvailable(feedback)  # 'There was a problem processing your request.  If self problem persists, please contact...')
                 if message == 'APIKEY_INVALID':
-                    if self.hasAlreadyAuthenticatedSuccessfully:
+                    if self.options['hasAlreadyAuthenticatedSuccessfully']:
                         raise DDoSProtection(feedback)
                     else:
                         raise AuthenticationError(feedback)
@@ -684,5 +709,5 @@ class bittrex (Exchange):
         response = await self.fetch2(path, api, method, params, headers, body)
         # a workaround for APIKEY_INVALID
         if (api == 'account') or (api == 'market'):
-            self.hasAlreadyAuthenticatedSuccessfully = True
+            self.options['hasAlreadyAuthenticatedSuccessfully'] = True
         return response

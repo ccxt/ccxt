@@ -50,7 +50,7 @@ class kucoin extends Exchange {
                     'kitchen' => 'https://kitchen.kucoin.com',
                     'kitchen-2' => 'https://kitchen-2.kucoin.com',
                 ),
-                'www' => 'https://kucoin.com',
+                'www' => 'https://www.kucoin.com/?r=E5wkqe',
                 'doc' => 'https://kucoinapidocs.docs.apiary.io',
                 'fees' => 'https://news.kucoin.com/en/fee',
             ),
@@ -170,6 +170,7 @@ class kucoin extends Exchange {
             ),
             // exchange-specific options
             'options' => array (
+                'fetchOrderBookWarning' => true, // raises a warning on null response in fetchOrderBook
                 'timeDifference' => 0, // the difference between system clock and Kucoin clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
             ),
@@ -330,8 +331,21 @@ class kucoin extends Exchange {
         $response = $this->publicGetOpenOrders (array_merge (array (
             'symbol' => $market['id'],
         ), $params));
-        $orderbook = $response['data'];
-        return $this->parse_order_book($orderbook, null, 'BUY', 'SELL');
+        $dataInResponse = (is_array ($response) && array_key_exists ('data', $response));
+        $orderbook = null;
+        $timestamp = null;
+        if (!$dataInResponse) {
+            if ($this->options['fetchOrderBookWarning'])
+                throw new ExchangeError ($this->id . " fetchOrderBook returned an null $response. Set exchange.options['fetchOrderBookWarning'] = false to silence this warning");
+            $orderbook = array (
+                'BUY' => array (),
+                'SELL' => array (),
+            );
+        } else {
+            $orderbook = $response['data'];
+            $timestamp = $response['data']['timestamp'];
+        }
+        return $this->parse_order_book($orderbook, $timestamp, 'BUY', 'SELL');
     }
 
     public function parse_order ($order, $market = null) {
@@ -959,6 +973,8 @@ class kucoin extends Exchange {
                 throw new InvalidOrder ($feedback); // amount < limits.amount.min
             if (mb_strpos ($message, 'Min price:') !== false)
                 throw new InvalidOrder ($feedback); // price < limits.price.min
+            if (mb_strpos ($message, 'Max price:') !== false)
+                throw new InvalidOrder ($feedback); // price > limits.price.max
             if (mb_strpos ($message, 'The precision of price') !== false)
                 throw new InvalidOrder ($feedback); // price violates precision.price
         } else if ($code === 'NO_BALANCE') {

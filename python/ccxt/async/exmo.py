@@ -46,9 +46,9 @@ class exmo (Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg',
                 'api': 'https://api.exmo.com',
-                'www': 'https://exmo.me',
+                'www': 'https://exmo.me/?ref=131685',
                 'doc': [
-                    'https://exmo.me/en/api_doc',
+                    'https://exmo.me/en/api_doc?ref=131685',
                     'https://github.com/exmo-dev/exmo_api_lib/tree/master/nodejs',
                 ],
                 'fees': 'https://exmo.com/en/docs/fees',
@@ -217,16 +217,16 @@ class exmo (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
-        last = float(ticker['last_trade'])
+        last = self.safe_float(ticker, 'last_trade')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['buy_price']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'buy_price'),
             'bidVolume': None,
-            'ask': float(ticker['sell_price']),
+            'ask': self.safe_float(ticker, 'sell_price'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -235,9 +235,9 @@ class exmo (Exchange):
             'previousClose': None,
             'change': None,
             'percentage': None,
-            'average': float(ticker['avg']),
-            'baseVolume': float(ticker['vol']),
-            'quoteVolume': float(ticker['vol_curr']),
+            'average': self.safe_float(ticker, 'avg'),
+            'baseVolume': self.safe_float(ticker, 'vol'),
+            'quoteVolume': self.safe_float(ticker, 'vol_curr'),
             'info': ticker,
         }
 
@@ -271,8 +271,8 @@ class exmo (Exchange):
             'order': self.safe_string(trade, 'order_id'),
             'type': None,
             'side': trade['type'],
-            'price': float(trade['price']),
-            'amount': float(trade['quantity']),
+            'price': self.safe_float(trade, 'price'),
+            'amount': self.safe_float(trade, 'quantity'),
             'cost': self.safe_float(trade, 'amount'),
         }
 
@@ -370,7 +370,6 @@ class exmo (Exchange):
             self.orders[id] = openOrders[j]
         openOrdersIndexedById = self.index_by(openOrders, 'id')
         cachedOrderIds = list(self.orders.keys())
-        result = []
         for k in range(0, len(cachedOrderIds)):
             # match each cached order to an order in the open orders array
             # possible reasons why a cached order may be missing in the open orders array:
@@ -378,7 +377,6 @@ class exmo (Exchange):
             # - symbol mismatch(e.g. cached BTC/USDT, fetched ETH/USDT) -> skip
             id = cachedOrderIds[k]
             order = self.orders[id]
-            result.append(order)
             if not(id in list(openOrdersIndexedById.keys())):
                 # cached order is not in open orders array
                 # if we fetched orders by symbol and it doesn't match the cached order -> won't update the cached order
@@ -396,7 +394,7 @@ class exmo (Exchange):
                         if order['filled'] is not None:
                             order['cost'] = order['filled'] * order['price']
                     self.orders[id] = order
-        return result
+        return self.to_array(self.orders)
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -411,7 +409,7 @@ class exmo (Exchange):
             parsedOrders = self.parse_orders(response[marketId], market)
             orders = self.array_concat(orders, parsedOrders)
         self.update_cached_orders(orders, symbol)
-        return self.filter_by_symbol_since_limit(self.orders, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(self.to_array(self.orders), symbol, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.fetch_orders(symbol, since, limit, params)

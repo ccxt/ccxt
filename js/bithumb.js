@@ -226,8 +226,8 @@ module.exports = class bithumb extends Exchange {
             'order': undefined,
             'type': undefined,
             'side': side,
-            'price': parseFloat (trade['price']),
-            'amount': parseFloat (trade['units_traded']),
+            'price': this.safeFloat (trade, 'price'),
+            'amount': this.safeFloat (trade, 'units_traded'),
         };
     }
 
@@ -275,16 +275,16 @@ module.exports = class bithumb extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        let side = ('side' in params);
-        if (!side)
+        let side_in_params = ('side' in params);
+        if (!side_in_params)
             throw new ExchangeError (this.id + ' cancelOrder requires a side parameter (sell or buy) and a currency parameter');
-        side = (side === 'buy') ? 'purchase' : 'sales';
         let currency = ('currency' in params);
         if (!currency)
             throw new ExchangeError (this.id + ' cancelOrder requires a currency parameter');
+        let side = (params['side'] === 'buy') ? 'bid' : 'ask';
         return await this.privatePostTradeCancel ({
             'order_id': id,
-            'type': params['side'],
+            'type': side,
             'currency': params['currency'],
         });
     }

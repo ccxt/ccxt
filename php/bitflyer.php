@@ -94,6 +94,14 @@ class bitflyer extends Exchange {
         for ($p = 0; $p < count ($markets); $p++) {
             $market = $markets[$p];
             $id = $market['product_code'];
+            $spot = true;
+            $future = false;
+            $type = 'spot';
+            if (is_array ($market) && array_key_exists ('alias', $market)) {
+                $type = 'future';
+                $future = true;
+                $spot = false;
+            }
             $currencies = explode ('_', $id);
             $base = null;
             $quote = null;
@@ -115,6 +123,9 @@ class bitflyer extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'type' => $type,
+                'spot' => $spot,
+                'future' => $future,
                 'info' => $market,
             );
         }
@@ -159,16 +170,16 @@ class bitflyer extends Exchange {
             'product_code' => $this->market_id($symbol),
         ), $params));
         $timestamp = $this->parse8601 ($ticker['timestamp']);
-        $last = floatval ($ticker['ltp']);
+        $last = $this->safe_float($ticker, 'ltp');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => null,
             'low' => null,
-            'bid' => floatval ($ticker['best_bid']),
+            'bid' => $this->safe_float($ticker, 'best_bid'),
             'bidVolume' => null,
-            'ask' => floatval ($ticker['best_ask']),
+            'ask' => $this->safe_float($ticker, 'best_ask'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -178,7 +189,7 @@ class bitflyer extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($ticker['volume_by_product']),
+            'baseVolume' => $this->safe_float($ticker, 'volume_by_product'),
             'quoteVolume' => null,
             'info' => $ticker,
         );

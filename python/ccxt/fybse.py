@@ -82,18 +82,18 @@ class fybse (Exchange):
         last = None
         volume = None
         if 'last' in ticker:
-            last = float(ticker['last'])
+            last = self.safe_float(ticker, 'last')
         if 'vol' in ticker:
-            volume = float(ticker['vol'])
+            volume = self.safe_float(ticker, 'vol')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': float(ticker['bid']),
+            'bid': self.safe_float(ticker, 'bid'),
             'bidVolume': None,
-            'ask': float(ticker['ask']),
+            'ask': self.safe_float(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -119,8 +119,8 @@ class fybse (Exchange):
             'symbol': market['symbol'],
             'type': None,
             'side': None,
-            'price': float(trade['price']),
-            'amount': float(trade['amount']),
+            'price': self.safe_float(trade, 'price'),
+            'amount': self.safe_float(trade, 'amount'),
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):

@@ -106,19 +106,19 @@ module.exports = class bit2c extends Exchange {
             'pair': this.marketId (symbol),
         }, params));
         let timestamp = this.milliseconds ();
-        let averagePrice = parseFloat (ticker['av']);
-        let baseVolume = parseFloat (ticker['a']);
+        let averagePrice = this.safeFloat (ticker, 'av');
+        let baseVolume = this.safeFloat (ticker, 'a');
         let quoteVolume = baseVolume * averagePrice;
-        let last = parseFloat (ticker['ll']);
+        let last = this.safeFloat (ticker, 'll');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
             'low': undefined,
-            'bid': parseFloat (ticker['h']),
+            'bid': this.safeFloat (ticker, 'h'),
             'bidVolume': undefined,
-            'ask': parseFloat (ticker['l']),
+            'ask': this.safeFloat (ticker, 'l'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,

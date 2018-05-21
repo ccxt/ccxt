@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, DDoSProtection, ExchangeNotAvailable, InvalidOrder, OrderNotFound, PermissionDenied } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, DDoSProtection, ExchangeNotAvailable, InvalidOrder, OrderNotFound, PermissionDenied, InsufficientFunds } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -82,6 +82,7 @@ module.exports = class bibox extends Exchange {
                 },
             },
             'exceptions': {
+                '2021': InsufficientFunds, // Insufficient balance available for withdrawal
                 '2015': AuthenticationError, // Google authenticator is wrong
                 '2033': OrderNotFound, // operation failed! Orders have been completed or revoked
                 '2067': InvalidOrder, // Does not support market orders
@@ -143,18 +144,34 @@ module.exports = class bibox extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = this.safeInteger (ticker, 'timestamp', this.seconds ());
+        // we don't set values that are not defined by the exchange
+        let timestamp = this.safeInteger (ticker, 'timestamp');
         let symbol = undefined;
         if (market) {
             symbol = market['symbol'];
         } else {
-            symbol = ticker['coin_symbol'] + '/' + ticker['currency_symbol'];
+            let base = ticker['coin_symbol'];
+            let quote = ticker['currency_symbol'];
+            symbol = this.commonCurrencyCode (base) + '/' + this.commonCurrencyCode (quote);
         }
         let last = this.safeFloat (ticker, 'last');
+        let change = this.safeFloat (ticker, 'change');
+        let baseVolume = undefined;
+        if ('vol' in ticker) {
+            baseVolume = this.safeFloat (ticker, 'vol');
+        } else {
+            baseVolume = this.safeFloat (ticker, 'vol24H');
+        }
+        let open = undefined;
+        if ((typeof last !== 'undefined') && (typeof change !== 'undefined'))
+            open = last - change;
+        let iso8601 = undefined;
+        if (typeof timestamp !== 'undefined')
+            iso8601 = this.iso8601 (timestamp);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': iso8601,
             'high': this.safeFloat (ticker, 'high'),
             'low': this.safeFloat (ticker, 'low'),
             'bid': this.safeFloat (ticker, 'buy'),
@@ -162,15 +179,15 @@ module.exports = class bibox extends Exchange {
             'ask': this.safeFloat (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': undefined,
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': undefined,
+            'change': change,
             'percentage': this.safeString (ticker, 'percent'),
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'vol24H'),
-            'quoteVolume': undefined,
+            'baseVolume': baseVolume,
+            'quoteVolume': this.safeFloat (ticker, 'amount'),
             'info': ticker,
         };
     }
@@ -294,7 +311,7 @@ module.exports = class bibox extends Exchange {
             let precision = 8;
             let deposit = currency['enable_deposit'];
             let withdraw = currency['enable_withdraw'];
-            let active = (deposit && withdraw);
+            let active = (deposit && withdraw) ? true : false;
             result[code] = {
                 'id': id,
                 'code': code,

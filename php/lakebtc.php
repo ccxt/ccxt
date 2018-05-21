@@ -182,8 +182,8 @@ class lakebtc extends Exchange {
             'order' => null,
             'type' => null,
             'side' => null,
-            'price' => floatval ($trade['price']),
-            'amount' => floatval ($trade['amount']),
+            'price' => $this->safe_float($trade, 'price'),
+            'amount' => $this->safe_float($trade, 'amount'),
         );
     }
 

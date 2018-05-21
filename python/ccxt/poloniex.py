@@ -17,6 +17,7 @@ from ccxt.base.errors import CancelPending
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import RequestTimeout
 
 
 class poloniex (Exchange):
@@ -40,6 +41,7 @@ class poloniex (Exchange):
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': 'emulated',
                 'fetchTickers': True,
+                'fetchTradingFees': True,
                 'fetchCurrencies': True,
                 'withdraw': True,
             },
@@ -241,13 +243,13 @@ class poloniex (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    def fetch_fees(self, params={}):
+    def fetch_trading_fees(self, params={}):
         self.load_markets()
         fees = self.privatePostReturnFeeInfo()
         return {
             'info': fees,
-            'maker': float(fees['makerFee']),
-            'taker': float(fees['takerFee']),
+            'maker': self.safe_float(fees, 'makerFee'),
+            'taker': self.safe_float(fees, 'takerFee'),
             'withdraw': {},
             'deposit': {},
         }
@@ -272,8 +274,8 @@ class poloniex (Exchange):
         open = None
         change = None
         average = None
-        last = float(ticker['last'])
-        relativeChange = float(ticker['percentChange'])
+        last = self.safe_float(ticker, 'last')
+        relativeChange = self.safe_float(ticker, 'percentChange')
         if relativeChange != -1:
             open = last / self.sum(1, relativeChange)
             change = last - open
@@ -282,11 +284,11 @@ class poloniex (Exchange):
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high24hr']),
-            'low': float(ticker['low24hr']),
-            'bid': float(ticker['highestBid']),
+            'high': self.safe_float(ticker, 'high24hr'),
+            'low': self.safe_float(ticker, 'low24hr'),
+            'bid': self.safe_float(ticker, 'highestBid'),
             'bidVolume': None,
-            'ask': float(ticker['lowestAsk']),
+            'ask': self.safe_float(ticker, 'lowestAsk'),
             'askVolume': None,
             'vwap': None,
             'open': open,
@@ -296,8 +298,8 @@ class poloniex (Exchange):
             'change': change,
             'percentage': relativeChange * 100,
             'average': average,
-            'baseVolume': float(ticker['quoteVolume']),
-            'quoteVolume': float(ticker['baseVolume']),
+            'baseVolume': self.safe_float(ticker, 'quoteVolume'),
+            'quoteVolume': self.safe_float(ticker, 'baseVolume'),
             'info': ticker,
         }
 
@@ -388,9 +390,9 @@ class poloniex (Exchange):
         side = trade['type']
         fee = None
         cost = self.safe_float(trade, 'total')
-        amount = float(trade['amount'])
+        amount = self.safe_float(trade, 'amount')
         if 'fee' in trade:
-            rate = float(trade['fee'])
+            rate = self.safe_float(trade, 'fee')
             feeCost = None
             currency = None
             if side == 'buy':
@@ -415,7 +417,7 @@ class poloniex (Exchange):
             'order': self.safe_string(trade, 'orderNumber'),
             'type': 'limit',
             'side': side,
-            'price': float(trade['rate']),
+            'price': self.safe_float(trade, 'rate'),
             'amount': amount,
             'cost': cost,
             'fee': fee,
@@ -444,8 +446,8 @@ class poloniex (Exchange):
             request['start'] = int(since / 1000)
             request['end'] = self.seconds()
         # limit is disabled(does not really work as expected)
-        # if limit:
-        #     request['limit'] = int(limit)
+        if limit:
+            request['limit'] = int(limit)
         response = self.privatePostReturnTradeHistory(self.extend(request, params))
         result = []
         if market:
@@ -772,6 +774,8 @@ class poloniex (Exchange):
             feedback = self.id + ' ' + self.json(response)
             if error == 'Invalid order number, or you are not the person who placed the order.':
                 raise OrderNotFound(feedback)
+            elif error == 'Connection timed out. Please try again.':
+                raise RequestTimeout(feedback)
             elif error == 'Internal error. Please try again.':
                 raise ExchangeNotAvailable(feedback)
             elif error == 'Order not found, or you are not the person who placed it.':

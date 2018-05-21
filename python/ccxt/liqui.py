@@ -12,7 +12,6 @@ try:
 except NameError:
     basestring = str  # Python 2
 import hashlib
-import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -20,6 +19,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import ExchangeNotAvailable
 
 
 class liqui (Exchange):
@@ -49,10 +49,6 @@ class liqui (Exchange):
                 'api': {
                     'public': 'https://api.liqui.io/api',
                     'private': 'https://api.liqui.io/tapi',
-                    'web': 'https://liqui.io',
-                    'cacheapi': 'https://cacheapi.liqui.io/Market',
-                    'webapi': 'https://webapi.liqui.io/Market',
-                    'charts': 'https://charts.liqui.io/chart',
                 },
                 'www': 'https://liqui.io',
                 'doc': 'https://liqui.io/api',
@@ -79,37 +75,6 @@ class liqui (Exchange):
                         'WithdrawCoin',
                         'CreateCoupon',
                         'RedeemCoupon',
-                    ],
-                },
-                'web': {
-                    'get': [
-                        'User/Balances',
-                    ],
-                    'post': [
-                        'User/Login/',
-                        'User/Session/Activate/',
-                    ],
-                },
-                'cacheapi': {
-                    'get': [
-                        'Pairs',
-                        'Currencies',
-                        'depth',  # ?id=228
-                        'Tickers',
-                    ],
-                },
-                'webapi': {
-                    'get': [
-                        'Last',  # ?id=228
-                        'Info',
-                    ],
-                },
-                'charts': {
-                    'get': [
-                        'config',
-                        'history',  # ?symbol=228&resolution=15&from=1524002997&to=1524011997'
-                        'symbols',  # ?symbol=228
-                        'time',
                     ],
                 },
             },
@@ -202,181 +167,11 @@ class liqui (Exchange):
                 'quote': quote,
                 'active': active,
                 'taker': market['fee'] / 100,
-                'lot': amountLimits['min'],
                 'precision': precision,
                 'limits': limits,
                 'info': market,
             })
         return result
-
-    def fetch_markets_from_cache(self):
-        markets = self.cacheapiGetPairs()
-        result = []
-        for i in range(0, len(markets)):
-            market = markets[i]
-            #
-            #  {             Id:  249,
-            #              Order:  62,
-            #     BaseCurrencyId:  110,
-            #    QuoteCurrencyId:  35,
-            #            IsTrade:  True,
-            #          IsVisible:  True,
-            #           MinTotal:  1,
-            #           MinPrice:  0.00001,
-            #           MaxPrice:  1000,
-            #         PricePoint:  8,
-            #          MinAmount:  1e-8,
-            #          MaxAmount:  1000000,
-            #        AmountPoint:  8,
-            #         DisableFee:  False,
-            #           MakerFee:  0.001,
-            #           TakerFee:  0.0025,
-            #           BaseName: "ENJ",
-            #          QuoteName: "USDT",
-            #               Name: "ENJ/USDT"}
-            #
-            baseId = market['BaseName']
-            quoteId = market['QuoteName']
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
-            id = baseId.lower() + '_' + quoteId.lower()
-            symbol = base + '/' + quote
-            precision = {
-                'amount': self.safe_integer(market, 'AmountPoint'),
-                'price': self.safe_integer(market, 'PricePoint'),
-            }
-            amountLimits = {
-                'min': self.safe_float(market, 'MinAmount'),
-                'max': self.safe_float(market, 'MaxAmount'),
-            }
-            priceLimits = {
-                'min': self.safe_float(market, 'MinPrice'),
-                'max': self.safe_float(market, 'MaxPrice'),
-            }
-            costLimits = {
-                'min': self.safe_float(market, 'MinTotal'),
-            }
-            limits = {
-                'amount': amountLimits,
-                'price': priceLimits,
-                'cost': costLimits,
-            }
-            isTrading = self.safe_value(market, 'IsTrade')
-            isVisible = self.safe_value(market, 'IsVisible')
-            active = (isTrading and isVisible)
-            result.append({
-                'id': id,
-                'marketId': market['Id'],
-                'baseNumericId': market['BaseCurrencyId'],
-                'quoteNumericId': market['QuoteCurrencyId'],
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'active': active,
-                'taker': market['TakerFee'],
-                'maker': market['MakerFee'],
-                'lot': amountLimits['min'],
-                'precision': precision,
-                'limits': limits,
-                'info': market,
-            })
-        return result
-
-    def fetch_currencies_from_cache(self, params={}):
-        currencies = self.cacheapiGetCurrencies(params)
-        result = {}
-        for i in range(0, len(currencies)):
-            currency = currencies[i]
-            #
-            #  {              Id:    12,
-            #              Symbol:   "ETH",
-            #                Type:    2,
-            #                Name:   "Ethereum",
-            #               Order:    9,
-            #         AmountPoint:    8,
-            #       DepositEnable:    True,
-            #    DepositMinAmount:    0.05,
-            #      WithdrawEnable:    True,
-            #         WithdrawFee:    0.01,
-            #    WithdrawMinAmout:    0.01,
-            #            Settings: {       Blockchain: "https://etherscan.io/",
-            #                                    TxUrl: "https://etherscan.io/tx/{0}",
-            #                                  AddrUrl: "https://etherscan.io/address/{0}",
-            #                        ConfirmationCount:  30,
-            #                                 NeedMemo:  False                              },
-            #
-            id = currency['Symbol']
-            # todo: will need to rethink the fees
-            # to add support for multiple withdrawal/deposit methods and
-            # differentiated fees for each particular method
-            code = self.common_currency_code(id)
-            precision = currency['AmountPoint']  # default precision, todo: fix "magic constants"
-            active = currency['DepositEnable'] and currency['WithdrawEnable'] and currency['Visible']
-            result[code] = {
-                'id': id,
-                'code': code,
-                'numericId': currency['Id'],
-                'info': currency,
-                'name': currency['Name'],
-                'active': active,
-                'status': 'ok',
-                'type': 'crypto',
-                'fee': currency['WithdrawFee'],  # todo: redesign
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': currency['DepositMinAmount'],
-                        'max': math.pow(10, precision),
-                    },
-                    'price': {
-                        'min': math.pow(10, -precision),
-                        'max': math.pow(10, precision),
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
-            }
-        return result
-
-    def fetch_balance_from_web(self, params={}):
-        # self is an alternative implementation of Liqui website balances
-        # for use with numeric currency ids from their cache API
-        self.load_markets()
-        if not('currenciesByNumericId' in list(self.options.keys())):
-            self.options['currenciesByNumericId'] = self.index_by(self.currencies, 'numericId')
-        balances = self.webGetUserBalances(params)
-        result = {'info': balances}
-        for i in range(0, len(balances)):
-            balance = balances[i]
-            #
-            #  {CurrencyId: 12,
-            #         Value: 1.1990027336966798,
-            #      InOrders: 0.11752418,
-            #    InInterest: 0,
-            #       Changes: 0                   }
-            #
-            numericId = balance['CurrencyId']
-            code = str(numericId)
-            if numericId in self.options['currenciesByNumericId']:
-                code = self.options['currenciesByNumericId'][numericId]['code']
-            used = self.sum(balance['InOrders'], balance['InInterest'])
-            total = balance['Value']
-            free = total - used
-            account = {
-                'free': free,
-                'used': used,
-                'total': total,
-            }
-            result[code] = account
-        return self.parse_balance(result)
 
     def fetch_balance(self, params={}):
         self.load_markets()
@@ -698,38 +493,37 @@ class liqui (Exchange):
 
     def update_cached_orders(self, openOrders, symbol):
         # update local cache with open orders
+        # self will add unseen orders and overwrite existing ones
         for j in range(0, len(openOrders)):
             id = openOrders[j]['id']
             self.orders[id] = openOrders[j]
         openOrdersIndexedById = self.index_by(openOrders, 'id')
         cachedOrderIds = list(self.orders.keys())
-        result = []
         for k in range(0, len(cachedOrderIds)):
             # match each cached order to an order in the open orders array
             # possible reasons why a cached order may be missing in the open orders array:
             # - order was closed or canceled -> update cache
             # - symbol mismatch(e.g. cached BTC/USDT, fetched ETH/USDT) -> skip
-            id = cachedOrderIds[k]
-            order = self.orders[id]
-            result.append(order)
-            if not(id in list(openOrdersIndexedById.keys())):
+            cachedOrderId = cachedOrderIds[k]
+            cachedOrder = self.orders[cachedOrderId]
+            if not(cachedOrderId in list(openOrdersIndexedById.keys())):
                 # cached order is not in open orders array
                 # if we fetched orders by symbol and it doesn't match the cached order -> won't update the cached order
-                if symbol is not None and symbol != order['symbol']:
+                if symbol is not None and symbol != cachedOrder['symbol']:
                     continue
-                # order is cached but not present in the list of open orders -> mark the cached order as closed
-                if order['status'] == 'open':
-                    order = self.extend(order, {
+                # cached order is absent from the list of open orders -> mark the cached order as closed
+                if cachedOrder['status'] == 'open':
+                    cachedOrder = self.extend(cachedOrder, {
                         'status': 'closed',  # likewise it might have been canceled externally(unnoticed by "us")
                         'cost': None,
-                        'filled': order['amount'],
+                        'filled': cachedOrder['amount'],
                         'remaining': 0.0,
                     })
-                    if order['cost'] is None:
-                        if order['filled'] is not None:
-                            order['cost'] = order['filled'] * order['price']
-                    self.orders[id] = order
-        return result
+                    if cachedOrder['cost'] is None:
+                        if cachedOrder['filled'] is not None:
+                            cachedOrder['cost'] = cachedOrder['filled'] * cachedOrder['price']
+                    self.orders[cachedOrderId] = cachedOrder
+        return self.to_array(self.orders)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if 'fetchOrdersRequiresSymbol' in self.options:
@@ -888,6 +682,8 @@ class liqui (Exchange):
                     # in fact, we can use the same .exceptions with string-keys to save some loc here
                     if message == 'invalid api key':
                         raise AuthenticationError(feedback)
+                    elif message == 'invalid sign':
+                        raise AuthenticationError(feedback)
                     elif message == 'api key dont have trade permission':
                         raise AuthenticationError(feedback)
                     elif message.find('invalid parameter') >= 0:  # errorCode 0, returned on buy(symbol, 0, 0)
@@ -897,10 +693,10 @@ class liqui (Exchange):
                     elif message == 'Requests too often':
                         raise DDoSProtection(feedback)
                     elif message == 'not available':
-                        raise DDoSProtection(feedback)
+                        raise ExchangeNotAvailable(feedback)
                     elif message == 'data unavailable':
-                        raise DDoSProtection(feedback)
+                        raise ExchangeNotAvailable(feedback)
                     elif message == 'external service unavailable':
-                        raise DDoSProtection(feedback)
+                        raise ExchangeNotAvailable(feedback)
                     else:
                         raise ExchangeError(self.id + ' unknown "error" value: ' + self.json(response))

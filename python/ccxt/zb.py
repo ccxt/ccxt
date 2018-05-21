@@ -171,6 +171,9 @@ class zb (Exchange):
                     'taker': 0.2 / 100,
                 },
             },
+            'commonCurrencies': {
+                'ENT': 'ENTCash',
+            },
         })
 
     def fetch_markets(self):
@@ -268,16 +271,16 @@ class zb (Exchange):
         response = self.publicGetTicker(self.extend(request, params))
         ticker = response['ticker']
         timestamp = self.milliseconds()
-        last = float(ticker['last'])
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['buy']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'buy'),
             'bidVolume': None,
-            'ask': float(ticker['sell']),
+            'ask': self.safe_float(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -287,7 +290,7 @@ class zb (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['vol']),
+            'baseVolume': self.safe_float(ticker, 'vol'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -318,8 +321,8 @@ class zb (Exchange):
             'symbol': market['symbol'],
             'type': None,
             'side': side,
-            'price': float(trade['price']),
-            'amount': float(trade['amount']),
+            'price': self.safe_float(trade, 'price'),
+            'amount': self.safe_float(trade, 'amount'),
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -415,7 +418,7 @@ class zb (Exchange):
         return self.parse_orders(response, market, since, limit)
 
     def parse_order(self, order, market=None):
-        side = order['type'] == 'buy' if 1 else 'sell'
+        side = 'buy' if (order['type'] == 1) else 'sell'
         type = 'limit'  # market order is not availalbe in ZB
         timestamp = None
         createDateField = self.get_create_date_field()
@@ -428,7 +431,7 @@ class zb (Exchange):
         if market:
             symbol = market['symbol']
         price = order['price']
-        average = order['trade_price']
+        average = None
         filled = order['trade_amount']
         amount = order['total_amount']
         remaining = amount - filled

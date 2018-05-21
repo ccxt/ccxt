@@ -315,13 +315,13 @@ module.exports = class bitmex extends Exchange {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']),
-            'low': parseFloat (ticker['low']),
-            'bid': parseFloat (quote['bidPrice']),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (quote, 'bidPrice'),
             'bidVolume': undefined,
-            'ask': parseFloat (quote['askPrice']),
+            'ask': this.safeFloat (quote, 'askPrice'),
             'askVolume': undefined,
-            'vwap': parseFloat (ticker['vwap']),
+            'vwap': this.safeFloat (ticker, 'vwap'),
             'open': open,
             'close': close,
             'last': close,
@@ -329,8 +329,8 @@ module.exports = class bitmex extends Exchange {
             'change': change,
             'percentage': change / open * 100,
             'average': this.sum (open, close) / 2,
-            'baseVolume': parseFloat (ticker['homeNotional']),
-            'quoteVolume': parseFloat (ticker['foreignNotional']),
+            'baseVolume': this.safeFloat (ticker, 'homeNotional'),
+            'quoteVolume': this.safeFloat (ticker, 'foreignNotional'),
             'info': ticker,
         };
     }
@@ -439,7 +439,7 @@ module.exports = class bitmex extends Exchange {
             iso8601 = this.iso8601 (timestamp);
         }
         let price = this.safeFloat (order, 'price');
-        let amount = parseFloat (order['orderQty']);
+        let amount = this.safeFloat (order, 'orderQty');
         let filled = this.safeFloat (order, 'cumQty', 0.0);
         let remaining = Math.max (amount - filled, 0.0);
         let cost = undefined;

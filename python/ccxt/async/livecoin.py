@@ -15,11 +15,11 @@ import hashlib
 import math
 import json
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import NotSupported
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 
@@ -244,8 +244,13 @@ class livecoin (Exchange):
         currencies = [
             {'id': 'USD', 'code': 'USD', 'name': 'US Dollar'},
             {'id': 'EUR', 'code': 'EUR', 'name': 'Euro'},
-            {'id': 'RUR', 'code': 'RUR', 'name': 'Russian ruble'},
+            # {'id': 'RUR', 'code': 'RUB', 'name': 'Russian ruble'},
         ]
+        currencies.append({
+            'id': 'RUR',
+            'code': self.common_currency_code('RUR'),
+            'name': 'Russian ruble',
+        })
         for i in range(0, len(currencies)):
             currency = currencies[i]
             code = currency['code']
@@ -300,21 +305,21 @@ class livecoin (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
-        vwap = float(ticker['vwap'])
-        baseVolume = float(ticker['volume'])
+        vwap = self.safe_float(ticker, 'vwap')
+        baseVolume = self.safe_float(ticker, 'volume')
         quoteVolume = baseVolume * vwap
-        last = float(ticker['last'])
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['best_bid']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'best_bid'),
             'bidVolume': None,
-            'ask': float(ticker['best_ask']),
+            'ask': self.safe_float(ticker, 'best_ask'),
             'askVolume': None,
-            'vwap': float(ticker['vwap']),
+            'vwap': self.safe_float(ticker, 'vwap'),
             'open': None,
             'close': last,
             'last': last,

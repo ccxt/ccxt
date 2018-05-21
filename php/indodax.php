@@ -26,7 +26,7 @@ class indodax extends Exchange {
                 'fetchCurrencies' => false,
                 'withdraw' => true,
             ),
-            'version' => '1.7', // as of 6 November 2017
+            'version' => '1.8', // as of 9 April 2018
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/37443283-2fddd0e4-281c-11e8-9741-b4f1419001b5.jpg',
                 'api' => array (
@@ -128,19 +128,19 @@ class indodax extends Exchange {
             'pair' => $market['id'],
         ), $params));
         $ticker = $response['ticker'];
-        $timestamp = floatval ($ticker['server_time']) * 1000;
+        $timestamp = $this->safe_float($ticker, 'server_time') * 1000;
         $baseVolume = 'vol_' . strtolower ($market['baseId']);
         $quoteVolume = 'vol_' . strtolower ($market['quoteId']);
-        $last = floatval ($ticker['last']);
+        $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['high']),
-            'low' => floatval ($ticker['low']),
-            'bid' => floatval ($ticker['buy']),
+            'high' => $this->safe_float($ticker, 'high'),
+            'low' => $this->safe_float($ticker, 'low'),
+            'bid' => $this->safe_float($ticker, 'buy'),
             'bidVolume' => null,
-            'ask' => floatval ($ticker['sell']),
+            'ask' => $this->safe_float($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -166,8 +166,8 @@ class indodax extends Exchange {
             'symbol' => $market['symbol'],
             'type' => null,
             'side' => $trade['type'],
-            'price' => floatval ($trade['price']),
-            'amount' => floatval ($trade['amount']),
+            'price' => $this->safe_float($trade, 'price'),
+            'amount' => $this->safe_float($trade, 'amount'),
         );
     }
 
@@ -409,6 +409,8 @@ class indodax extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
+        if (gettype ($body) != 'string')
+            return;
         // array ( success => 0, error => "invalid order." )
         // or
         // [array ( data, ... ), array ( ... ), ... ]

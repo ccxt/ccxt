@@ -39,6 +39,11 @@ module.exports =
         return haystack.includes (needle)
     }
 
+    , toArray (object) {
+
+        return Object.values (object)
+    }
+
 /*  .............................................   */
 
     , keysort (x, out = {}) {
