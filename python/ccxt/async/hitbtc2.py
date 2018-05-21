@@ -544,6 +544,9 @@ class hitbtc2 (hitbtc):
                     },
                 },
             },
+            'options': {
+                'defaultTimeInForce': 'FOK',
+            },
         })
 
     def fee_to_precision(self, symbol, fee):
@@ -841,7 +844,7 @@ class hitbtc2 (hitbtc):
         if type == 'limit':
             request['price'] = self.price_to_precision(symbol, price)
         else:
-            request['timeInForce'] = 'FOK'
+            request['timeInForce'] = self.options['defaultTimeInForce']
         response = await self.privatePostOrder(self.extend(request, params))
         order = self.parse_order(response)
         id = order['id']

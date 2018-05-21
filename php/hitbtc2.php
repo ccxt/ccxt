@@ -530,6 +530,9 @@ class hitbtc2 extends hitbtc {
                     ),
                 ),
             ),
+            'options' => array (
+                'defaultTimeInForce' => 'FOK',
+            ),
         ));
     }
 
@@ -848,7 +851,7 @@ class hitbtc2 extends hitbtc {
         if ($type === 'limit') {
             $request['price'] = $this->price_to_precision($symbol, $price);
         } else {
-            $request['timeInForce'] = 'FOK';
+            $request['timeInForce'] = $this->options['defaultTimeInForce'];
         }
         $response = $this->privatePostOrder (array_merge ($request, $params));
         $order = $this->parse_order($response);

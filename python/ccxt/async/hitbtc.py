@@ -495,6 +495,9 @@ class hitbtc (Exchange):
                 'USD': 'USDT',
                 'XBT': 'BTC',
             },
+            'options': {
+                'defaultTimeInForce': 'FOK',
+            },
         })
 
     async def fetch_markets(self):
@@ -719,7 +722,7 @@ class hitbtc (Exchange):
         if type == 'limit':
             order['price'] = self.price_to_precision(symbol, price)
         else:
-            order['timeInForce'] = 'FOK'
+            order['timeInForce'] = self.options['defaultTimeInForce']
         response = await self.tradingPostNewOrder(self.extend(order, params))
         return self.parse_order(response['ExecutionReport'], market)
 
