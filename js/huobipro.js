@@ -695,7 +695,7 @@ module.exports = class huobipro extends Exchange {
         let request = {
             'address': address, // only supports existing addresses in your withdraw address list
             'amount': amount,
-            'currency': currency['id'],
+            'currency': currency['id'].toLowerCase (),
         };
         if (typeof tag !== 'undefined')
             request['addr-tag'] = tag; // only for XRP?
