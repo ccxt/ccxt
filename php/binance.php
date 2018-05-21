@@ -465,7 +465,7 @@ class binance extends Exchange {
         return $this->filter_by_array($tickers, 'symbol', $symbols);
     }
 
-    public function fetch_bid_asks ($symbols = null, $params = array ()) {
+    public function fetch_bids_asks ($symbols = null, $params = array ()) {
         $this->load_markets();
         $rawTickers = $this->publicGetTickerBookTicker ($params);
         return $this->parse_tickers ($rawTickers, $symbols);

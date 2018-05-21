@@ -457,7 +457,7 @@ class binance (Exchange):
             tickers.append(self.parse_ticker(rawTickers[i]))
         return self.filter_by_array(tickers, 'symbol', symbols)
 
-    def fetch_bid_asks(self, symbols=None, params={}):
+    def fetch_bids_asks(self, symbols=None, params={}):
         self.load_markets()
         rawTickers = self.publicGetTickerBookTicker(params)
         return self.parse_tickers(rawTickers, symbols)
