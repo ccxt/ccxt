@@ -118,6 +118,7 @@ class bitbank extends Exchange {
                 '50009' => '\\ccxt\\OrderNotFound',
                 '50010' => '\\ccxt\\OrderNotFound',
                 '60001' => '\\ccxt\\InsufficientFunds',
+                '60005' => '\\ccxt\\InvalidOrder',
             ),
         ));
     }
