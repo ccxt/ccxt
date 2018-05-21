@@ -492,6 +492,9 @@ class hitbtc extends Exchange {
                 'USD' => 'USDT',
                 'XBT' => 'BTC',
             ),
+            'options' => array (
+                'defaultTimeInForce' => 'FOK',
+            ),
         ));
     }
 
@@ -730,7 +733,7 @@ class hitbtc extends Exchange {
         if ($type === 'limit') {
             $order['price'] = $this->price_to_precision($symbol, $price);
         } else {
-            $order['timeInForce'] = 'FOK';
+            $order['timeInForce'] = $this->options['defaultTimeInForce'];
         }
         $response = $this->tradingPostNewOrder (array_merge ($order, $params));
         return $this->parse_order($response['ExecutionReport'], $market);
