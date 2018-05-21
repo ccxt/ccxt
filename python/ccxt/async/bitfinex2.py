@@ -7,8 +7,8 @@ from ccxt.async.bitfinex import bitfinex
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import NotSupported
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import NotSupported
 
 
 class bitfinex2 (bitfinex):
