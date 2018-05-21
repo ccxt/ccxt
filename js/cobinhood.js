@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InsufficientFunds } = require ('./base/errors');
+const { ExchangeError, InsufficientFunds, InvalidNonce } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -128,6 +128,7 @@ module.exports = class cobinhood extends Exchange {
             },
             'exceptions': {
                 'insufficient_balance': InsufficientFunds,
+                'invalid_nonce': InvalidNonce,
             },
         });
     }
