@@ -7,6 +7,7 @@ from ccxt.async.base.exchange import Exchange
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 
@@ -133,6 +134,10 @@ class bitmex (Exchange):
                         'order/all',
                     ],
                 },
+            },
+            'exceptions': {
+                'Invalid API Key.': AuthenticationError,
+                'Access Denied': PermissionDenied,
             },
         })
 
@@ -535,12 +540,13 @@ class bitmex (Exchange):
                     response = json.loads(body)
                     if 'error' in response:
                         if 'message' in response['error']:
+                            feedback = self.id + ' ' + self.json(response)
                             message = self.safe_value(response['error'], 'message')
+                            exceptions = self.exceptions
                             if message is not None:
-                                if message == 'Invalid API Key.':
-                                    raise AuthenticationError(self.id + ' ' + self.json(response))
-                            # stub code, need proper handling
-                            raise ExchangeError(self.id + ' ' + self.json(response))
+                                if message in exceptions:
+                                    raise exceptions[message](feedback)
+                            raise ExchangeError(feedback)
 
     def nonce(self):
         return self.milliseconds()

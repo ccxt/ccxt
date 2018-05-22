@@ -329,6 +329,7 @@ module.exports = class kucoin extends Exchange {
         let market = this.market (symbol);
         let response = await this.publicGetOpenOrders (this.extend ({
             'symbol': market['id'],
+            'limit': limit,
         }, params));
         let dataInResponse = ('data' in response);
         let orderbook = undefined;
@@ -827,6 +828,7 @@ module.exports = class kucoin extends Exchange {
         let market = this.market (symbol);
         let response = await this.publicGetOpenDealOrders (this.extend ({
             'symbol': market['id'],
+            'limit': limit,
         }, params));
         return this.parseTrades (response['data'], market, since, limit);
     }

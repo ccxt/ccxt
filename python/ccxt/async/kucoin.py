@@ -329,6 +329,7 @@ class kucoin (Exchange):
         market = self.market(symbol)
         response = await self.publicGetOpenOrders(self.extend({
             'symbol': market['id'],
+            'limit': limit,
         }, params))
         dataInResponse = ('data' in list(response.keys()))
         orderbook = None
@@ -788,6 +789,7 @@ class kucoin (Exchange):
         market = self.market(symbol)
         response = await self.publicGetOpenDealOrders(self.extend({
             'symbol': market['id'],
+            'limit': limit,
         }, params))
         return self.parse_trades(response['data'], market, since, limit)
 
