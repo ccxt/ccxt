@@ -119,6 +119,7 @@ module.exports = class coinmarketcap extends Exchange {
             'NetCoin': 'NetCoin',
             'Polcoin': 'Polcoin',
             'PutinCoin': 'PutinCoin',
+            'Rcoin': 'Rcoin',
         };
         if (name in currencies)
             return currencies[name];
