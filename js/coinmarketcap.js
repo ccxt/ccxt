@@ -109,6 +109,7 @@ module.exports = class coinmarketcap extends Exchange {
             'Global Tour Coin': 'Global Tour Coin',
             'GuccioneCoin': 'GuccioneCoin',
             'Hi Mutual Society': 'Hi Mutual Society',
+            'Huncoin': 'Huncoin',
             'iCoin': 'iCoin',
             'Maggie': 'Maggie',
             'MIOTA': 'IOTA', // a special case, most exchanges list it as IOTA, therefore we change just the Coinmarketcap instead of changing them all
