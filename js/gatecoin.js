@@ -447,10 +447,18 @@ module.exports = class gatecoin extends Exchange {
                 throw new AuthenticationError (this.id + ' two-factor authentication requires a missing ValidationCode parameter');
         }
         let response = await this.privatePostTradeOrders (this.extend (order, params));
-        return {
+        let result = {
             'info': response,
             'id': response['clOrderId'],
         };
+        if ('responseStatus' in response) {
+            if ('message' in response['responseStatus']) {
+                if (response['responseStatus']['message'] === 'OK') {
+                    result['status'] = 'open';
+                }
+            }
+        }
+        return result;
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
