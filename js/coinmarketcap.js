@@ -100,6 +100,7 @@ module.exports = class coinmarketcap extends Exchange {
             'BlockCAT': 'BlockCAT',
             'Catcoin': 'Catcoin',
             'CanYaCoin': 'CanYaCoin',
+            'Comet': 'Comet',
             'DAO.Casino': 'DAO.Casino',
             'GET Protocol': 'GET Protocol',
             'Hi Mutual Society': 'Hi Mutual Society',
