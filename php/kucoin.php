@@ -170,6 +170,7 @@ class kucoin extends Exchange {
             ),
             // exchange-specific options
             'options' => array (
+                'fetchOrderBookWarning' => true, // raises a warning on null response in fetchOrderBook
                 'timeDifference' => 0, // the difference between system clock and Kucoin clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
             ),
@@ -329,9 +330,23 @@ class kucoin extends Exchange {
         $market = $this->market ($symbol);
         $response = $this->publicGetOpenOrders (array_merge (array (
             'symbol' => $market['id'],
+            'limit' => $limit,
         ), $params));
-        $orderbook = $response['data'];
-        return $this->parse_order_book($orderbook, null, 'BUY', 'SELL');
+        $dataInResponse = (is_array ($response) && array_key_exists ('data', $response));
+        $orderbook = null;
+        $timestamp = null;
+        if (!$dataInResponse) {
+            if ($this->options['fetchOrderBookWarning'])
+                throw new ExchangeError ($this->id . " fetchOrderBook returned an null $response. Set exchange.options['fetchOrderBookWarning'] = false to silence this warning");
+            $orderbook = array (
+                'BUY' => array (),
+                'SELL' => array (),
+            );
+        } else {
+            $orderbook = $response['data'];
+            $timestamp = $response['data']['timestamp'];
+        }
+        return $this->parse_order_book($orderbook, $timestamp, 'BUY', 'SELL');
     }
 
     public function parse_order ($order, $market = null) {
@@ -814,6 +829,7 @@ class kucoin extends Exchange {
         $market = $this->market ($symbol);
         $response = $this->publicGetOpenDealOrders (array_merge (array (
             'symbol' => $market['id'],
+            'limit' => $limit,
         ), $params));
         return $this->parse_trades($response['data'], $market, $since, $limit);
     }

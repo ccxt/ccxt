@@ -117,6 +117,7 @@ module.exports = class bitbank extends Exchange {
                 '50009': OrderNotFound,
                 '50010': OrderNotFound,
                 '60001': InsufficientFunds,
+                '60005': InvalidOrder,
             },
         });
     }
@@ -265,7 +266,7 @@ module.exports = class bitbank extends Exchange {
         }
         if (market)
             symbol = market['symbol'];
-        let timestamp = this.safeInteger (order, 'ordered_at') * 1000;
+        let timestamp = this.safeInteger (order, 'ordered_at');
         let price = this.safeFloat (order, 'price');
         let amount = this.safeFloat (order, 'start_amount');
         let filled = this.safeFloat (order, 'executed_amount');
@@ -284,6 +285,12 @@ module.exports = class bitbank extends Exchange {
         } else {
             status = 'open';
         }
+        let type = this.safeString (order, 'type');
+        if (typeof type !== 'undefined')
+            type = type.toLowerCase ();
+        let side = this.safeString (order, 'side');
+        if (typeof side !== 'undefined')
+            side = side.toLowerCase ();
         return {
             'id': this.safeString (order, 'order_id'),
             'datetime': this.iso8601 (timestamp),
@@ -291,8 +298,8 @@ module.exports = class bitbank extends Exchange {
             'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
-            'type': order['type'],
-            'side': order['side'],
+            'type': type,
+            'side': side,
             'price': price,
             'cost': cost,
             'amount': amount,

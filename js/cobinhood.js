@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InsufficientFunds } = require ('./base/errors');
+const { ExchangeError, InsufficientFunds, InvalidNonce } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -128,6 +128,7 @@ module.exports = class cobinhood extends Exchange {
             },
             'exceptions': {
                 'insufficient_balance': InsufficientFunds,
+                'invalid_nonce': InvalidNonce,
             },
         });
     }
@@ -397,7 +398,7 @@ module.exports = class cobinhood extends Exchange {
         if (typeof market !== 'undefined')
             symbol = market['symbol'];
         let timestamp = order['timestamp'];
-        let price = this.safeFloat (order, 'price');
+        let price = this.safeFloat (order, 'eq_price');
         let amount = this.safeFloat (order, 'size');
         let filled = this.safeFloat (order, 'filled');
         let remaining = amount - filled;

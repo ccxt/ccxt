@@ -124,6 +124,7 @@ class bitbank (Exchange):
                 '50009': OrderNotFound,
                 '50010': OrderNotFound,
                 '60001': InsufficientFunds,
+                '60005': InvalidOrder,
             },
         })
 
@@ -258,7 +259,7 @@ class bitbank (Exchange):
             market = self.marketsById[marketId]
         if market:
             symbol = market['symbol']
-        timestamp = self.safe_integer(order, 'ordered_at') * 1000
+        timestamp = self.safe_integer(order, 'ordered_at')
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'start_amount')
         filled = self.safe_float(order, 'executed_amount')
@@ -276,6 +277,12 @@ class bitbank (Exchange):
             status = 'canceled'
         else:
             status = 'open'
+        type = self.safe_string(order, 'type')
+        if type is not None:
+            type = type.lower()
+        side = self.safe_string(order, 'side')
+        if side is not None:
+            side = side.lower()
         return {
             'id': self.safe_string(order, 'order_id'),
             'datetime': self.iso8601(timestamp),
@@ -283,8 +290,8 @@ class bitbank (Exchange):
             'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
-            'type': order['type'],
-            'side': order['side'],
+            'type': type,
+            'side': side,
             'price': price,
             'cost': cost,
             'amount': amount,

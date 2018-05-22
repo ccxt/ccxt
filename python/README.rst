@@ -18,7 +18,7 @@ Current feature list:
 -  an out-of-the box unified all-in-one API extremely easy to integrate
 -  works in Node 7.6+, Python 2 and 3, PHP 5.3+, web browsers
 
-`ccxt on GitHub <https://github.com/ccxt/ccxt>`__ | Install | Usage | `Manual <https://github.com/ccxt/ccxt/wiki>`__\ | `FAQ <https://github.com/ccxt/ccxt/wiki/FAQ>`__ | `Examples <https://github.com/ccxt/ccxt/tree/master/examples>`__ | `Changelog <https://github.com/ccxt/ccxt/blob/master/CHANGELOG.md>`__ | `Contributing <https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md>`__
+`ccxt on GitHub <https://github.com/ccxt/ccxt>`__ | Install | Usage | `Manual <https://github.com/ccxt/ccxt/wiki>`__ | `FAQ <https://github.com/ccxt/ccxt/wiki/FAQ>`__ | `Examples <https://github.com/ccxt/ccxt/tree/master/examples>`__ | `Changelog <https://github.com/ccxt/ccxt/blob/master/CHANGELOG.md>`__ | `Contributing <https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md>`__
 
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
@@ -40,7 +40,7 @@ The ccxt library currently supports the following 115 cryptocurrency exchange ma
 +----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | bibox                | `Bibox <https://www.bibox.com>`__                                                 | 1     | `API <https://github.com/Biboxcom/api_reference/wiki/home_en>`__                                  | China, US, South Korea                     |
 +----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
-| binance              | `Binance <https://www.binance.com>`__                                             | \*    | `API <https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md>`__   | Japan                                      |
+| binance              | `Binance <https://www.binance.com/?ref=10205187>`__                               | \*    | `API <https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md>`__   | Japan                                      |
 +----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | bit2c                | `Bit2C <https://www.bit2c.co.il>`__                                               | \*    | `API <https://www.bit2c.co.il/home/api>`__                                                        | Israel                                     |
 +----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+

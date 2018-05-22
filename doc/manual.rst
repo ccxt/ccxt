@@ -18,12 +18,12 @@ The structure of the library can be outlined as follows:
         │                              .                              |
         |       loadMarkets            .           fetchBalance       |
         |       fetchMarkets           .            createOrder       |
-        |       fetchTicker            .            cancelOrder       |
-        |       fetchTickers           .             fetchOrder       |
-        |       fetchOrderBook         .            fetchOrders       |
-        |       fetchOHLCV             .        fetchOpenOrders       |
-        |       fetchTrades            .      fetchClosedOrders       |
-        |                              .          fetchMyTrades       |
+        |       fetchCurrencies        .            cancelOrder       |
+        |       fetchTicker            .             fetchOrder       |
+        |       fetchTickers           .            fetchOrders       |
+        |       fetchOrderBook         .        fetchOpenOrders       |
+        |       fetchOHLCV             .      fetchClosedOrders       |
+        |       fetchTrades            .          fetchMyTrades       |
         |                              .                deposit       |
         |                              .               withdraw       |
         │                              .                              |
@@ -72,7 +72,7 @@ The ccxt library currently supports the following 115 cryptocurrency exchange ma
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |bibox|                | bibox                | `Bibox <https://www.bibox.com>`__                                                 | 1     | `API <https://github.com/Biboxcom/api_reference/wiki/home_en>`__                                  | China, US, South Korea                     |
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
-| |binance|              | binance              | `Binance <https://www.binance.com>`__                                             | \*    | `API <https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md>`__   | Japan                                      |
+| |binance|              | binance              | `Binance <https://www.binance.com/?ref=10205187>`__                               | \*    | `API <https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md>`__   | Japan                                      |
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |bit2c|                | bit2c                | `Bit2C <https://www.bit2c.co.il>`__                                               | \*    | `API <https://www.bit2c.co.il/home/api>`__                                                        | Israel                                     |
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -1061,9 +1061,10 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 -  ``createMarketSellOrder (symbol, amount[, params])``
 -  ``cancelOrder (id[, symbol[, params]])``
 -  ``fetchOrder (id[, symbol[, params]])``
--  ``fetchOrders ([symbol[, params]])``
--  ``fetchOpenOrders ([symbol[, params]])``
--  ``fetchClosedOrders ([symbol[, params]])``
+-  ``fetchOrders ([symbol[, since[, limit[, params]]]])``
+-  ``fetchOpenOrders ([symbol[, since, limit, params]]]])``
+-  ``fetchClosedOrders ([symbol[, since[, limit[, params]]]])``
+-  ``fetchMyTrades ([symbol[, since[, limit[, params]]]])``
 -  ...
 
 Overriding Unified API Params
@@ -2233,6 +2234,8 @@ Deposit
 
 With certain currencies, like AEON, BTS, GXS, NXT, SBD, STEEM, STR, XEM, XLM, XMR, XRP, an additional argument ``tag`` is usually required by exchanges. The tag is a memo or a message or a payment id that is attached to a withdrawal transaction. The tag is mandatory for those currencies and it identifies the recipient user account.
 
+Be careful when specifying the ``tag`` and the ``address``. The ``tag`` is **NOT an arbitrary user-defined string** of your choice! You cannot send user messages and comments in the ``tag``. The purpose of the ``tag`` field is to address your wallet properly, so it must be correct. You should only use the ``tag`` received from the exchange you're working with, otherwise your withdrawal transaction might not arrive to its destination ever.
+
 Withdraw
 ~~~~~~~~
 
@@ -2265,6 +2268,76 @@ The withdraw method returns a dictionary containing the withdrawal id, which is 
 Some exchanges require a manual approval of each withdrawal by means of 2FA (2-factor authentication). In order to approve your withdrawal you usually have to either click their secret link in your email inbox or enter a Google Authenticator code or an Authy code on their website to verify that withdrawal transaction was requested intentionally.
 
 In some cases you can also use the withdrawal id to check withdrawal status later (whether it succeeded or not) and to submit 2FA confirmation codes, where this is supported by the exchange. See `their docs <https://github.com/ccxt/ccxt/wiki/Manual#exchanges>`__ for details.
+
+Fees
+----
+
+**This section of the Unified CCXT API is under development.**
+
+Fees are often grouped into two categories:
+
+-  Trading fees. Trading fee is the amount payable to the exchange, usually a percentage of volume traded (filled)).
+-  Funding fees. The amount payable to the exchange upon depositing and withdrawing as well as the underlying crypto transaction fees (tx fees).
+
+Because the fee structure can depend on the actual volume of currencies traded by the user, the fees can be account-specific. Methods to work with account-specific fees:
+
+::
+
+    fetchFees (params = {})
+    fetchTradingFees (params = {})
+    fetchFundingFees (params = {})
+
+The fee methods will return a unified fee structure, which is often present with orders and trades as well. The fee structure is a common format for representing the fee info throughout the library. Fee structures are usually indexed by market or currency.
+
+Because this is still a work in progress, some or all of methods and info described in this section may be missing with this or that exchange.
+
+**DO NOT use the ``.fees`` property as most often it contains the predefined/hardcoded info, which is now deprecated. Actual fees should only be accessed from markets and currencies.**
+
+Fee structure
+~~~~~~~~~~~~~
+
+.. code:: javascript
+
+    {
+        'type': takerOrMaker,
+        'currency': 'BTC', // the unified fee currency code
+        'rate': percentage, // the fee rate, 0.05% = 0.0005, 1% = 0.01, ...
+        'cost': feePaid, // the fee cost (amount * fee rate)
+    }
+
+Trading Fees
+~~~~~~~~~~~~
+
+Trading fees are properties of markets. Most often trading fees are loaded into the markets by the ``fetchMarkets`` call. Sometimes, however, the exchanges serve fees from different endpoints.
+
+The ``calculateFee`` method can be used to precalculate trading fees that will be paid. **WARNING! This method is experimental, unstable and may produce incorrect results in certain cases**. You should only use it with caution. Actual fees may be different from the values returned from ``calculateFee``, this is just for precalculation. Do not rely on precalculated values, because market conditions change frequently. It is difficult to know in advance whether your order will be a market taker or maker.
+
+.. code:: javascript
+
+        calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {})
+
+The ``calculateFee`` method will return a unified fee structure with precalculated fees for an order with specified params.
+
+Accessing trading fee rates should be done via the ``.markets`` property, like so:
+
+::
+
+    exchange.markets['ETH/BTC']['taker'] // taker fee rate for ETH/BTC
+    exchange.markets['BTC/USD']['maker'] // maker fee rate for BTC/USD
+
+Maker fees are paid when you provide liquidity to the exchange i.e. you *market-make* an order and someone else fills it. Maker fees are usually lower than taker fees. Similarly, taker fees are paid when you *take* liquidity from the exchange and fill someone else's order.
+
+Funding Fees
+~~~~~~~~~~~~
+
+Funding fees are properties of currencies (account balance).
+
+Accessing funding fee rates should be done via the ``.currencies`` property. This aspect is not unified yet and is subject to change.
+
+::
+
+    exchange.currencies['ETH']['fee'] // tx/withdrawal fee rate for ETH
+    exchange.currencies['BTC']['fee'] // tx/withdrawal fee rate for BTC
 
 Ledger
 ~~~~~~

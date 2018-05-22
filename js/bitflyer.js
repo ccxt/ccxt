@@ -93,6 +93,14 @@ module.exports = class bitflyer extends Exchange {
         for (let p = 0; p < markets.length; p++) {
             let market = markets[p];
             let id = market['product_code'];
+            let spot = true;
+            let future = false;
+            let type = 'spot';
+            if ('alias' in market) {
+                type = 'future';
+                future = true;
+                spot = false;
+            }
             let currencies = id.split ('_');
             let base = undefined;
             let quote = undefined;
@@ -114,6 +122,9 @@ module.exports = class bitflyer extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'type': type,
+                'spot': spot,
+                'future': future,
                 'info': market,
             });
         }

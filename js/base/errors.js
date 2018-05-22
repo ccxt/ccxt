@@ -10,27 +10,31 @@ module.exports = subclass (
 
 /*  Derived class hierarchy     */
 
-    { 'BaseError':
-        { 'ExchangeError':
-            { 'NotSupported':               {}
-            , 'AuthenticationError':
-                { 'PermissionDenied':       {}
-                }
-            , 'InsufficientFunds':          {}
-            , 'InvalidAddress':             {}
-            , 'InvalidOrder':
-                { 'OrderNotFound':          {}
-                , 'OrderNotCached':         {}
-                , 'CancelPending':          {}
-                }
-            }
-        , 'NetworkError':
-            { 'DDoSProtection':         {}
-            , 'RequestTimeout':         {}
-            , 'ExchangeNotAvailable':   {}
-            , 'InvalidNonce':           {}
-            }
-        }
+    {
+        'BaseError':{
+            'ExchangeError': {
+                'AuthenticationError': {
+                    'PermissionDenied': {},
+                },
+                'BadResponse': {
+                    'NullResponse': {},
+                },
+                'InsufficientFunds': {},
+                'InvalidAddress': {},
+                'InvalidOrder': {
+                    'OrderNotFound': {},
+                    'OrderNotCached': {},
+                    'CancelPending': {},
+                },
+                'NotSupported': {},
+            },
+            'NetworkError': {
+                'DDoSProtection': {},
+                'ExchangeNotAvailable': {},
+                'InvalidNonce': {},
+                'RequestTimeout': {},
+            },
+        },
     }
 )
 

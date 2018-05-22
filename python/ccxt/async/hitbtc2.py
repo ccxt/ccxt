@@ -544,6 +544,10 @@ class hitbtc2 (hitbtc):
                     },
                 },
             },
+            'options': {
+                'defaultTimeInForce': 'FOK',
+            },
+            'exceptions': {},
         })
 
     def fee_to_precision(self, symbol, fee):
@@ -841,7 +845,7 @@ class hitbtc2 (hitbtc):
         if type == 'limit':
             request['price'] = self.price_to_precision(symbol, price)
         else:
-            request['timeInForce'] = 'FOK'
+            request['timeInForce'] = self.options['defaultTimeInForce']
         response = await self.privatePostOrder(self.extend(request, params))
         order = self.parse_order(response)
         id = order['id']
@@ -1094,9 +1098,15 @@ class hitbtc2 (hitbtc):
                 if 'error' in response:
                     if 'message' in response['error']:
                         message = response['error']['message']
+                        code = self.safe_string(response['error'], 'code')
+                        exceptions = self.exceptions
+                        if code in exceptions:
+                            raise exceptions[code](feedback)
                         if message == 'Order not found':
                             raise OrderNotFound(self.id + ' order not found in active orders')
                         elif message == 'Quantity not a valid number':
+                            raise InvalidOrder(feedback)
+                        elif message == 'Quantity too low':
                             raise InvalidOrder(feedback)
                         elif message == 'Insufficient funds':
                             raise InsufficientFunds(feedback)

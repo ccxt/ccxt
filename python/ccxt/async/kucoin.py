@@ -179,6 +179,7 @@ class kucoin (Exchange):
             },
             # exchange-specific options
             'options': {
+                'fetchOrderBookWarning': True,  # raises a warning on null response in fetchOrderBook
                 'timeDifference': 0,  # the difference between system clock and Kucoin clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
             },
@@ -328,9 +329,22 @@ class kucoin (Exchange):
         market = self.market(symbol)
         response = await self.publicGetOpenOrders(self.extend({
             'symbol': market['id'],
+            'limit': limit,
         }, params))
-        orderbook = response['data']
-        return self.parse_order_book(orderbook, None, 'BUY', 'SELL')
+        dataInResponse = ('data' in list(response.keys()))
+        orderbook = None
+        timestamp = None
+        if not dataInResponse:
+            if self.options['fetchOrderBookWarning']:
+                raise ExchangeError(self.id + " fetchOrderBook returned an null response. Set exchange.options['fetchOrderBookWarning'] = False to silence self warning")
+            orderbook = {
+                'BUY': [],
+                'SELL': [],
+            }
+        else:
+            orderbook = response['data']
+            timestamp = response['data']['timestamp']
+        return self.parse_order_book(orderbook, timestamp, 'BUY', 'SELL')
 
     def parse_order(self, order, market=None):
         side = self.safe_value(order, 'direction')
@@ -775,6 +789,7 @@ class kucoin (Exchange):
         market = self.market(symbol)
         response = await self.publicGetOpenDealOrders(self.extend({
             'symbol': market['id'],
+            'limit': limit,
         }, params))
         return self.parse_trades(response['data'], market, since, limit)
 
