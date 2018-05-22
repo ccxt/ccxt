@@ -112,6 +112,7 @@ module.exports = class coinmarketcap extends Exchange {
             'Hi Mutual Society': 'Hi Mutual Society',
             'Huncoin': 'Huncoin',
             'iCoin': 'iCoin',
+            'Infinity Economics': 'Infinity Economics',
             'KingN Coin': 'KingN Coin',
             'LiteBitcoin': 'LiteBitcoin',
             'Maggie': 'Maggie',
