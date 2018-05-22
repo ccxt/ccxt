@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, InvalidAddress, InsufficientFunds } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, InvalidAddress, InsufficientFunds, OrderNotFound, InvalidOrder } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -198,6 +198,9 @@ module.exports = class gatecoin extends Exchange {
             },
             'exceptions': {
                 '1005': InsufficientFunds,
+                '1008': OrderNotFound,
+                '1057': InvalidOrder,
+                '1044': OrderNotFound, // already canceled
             },
         });
     }
@@ -447,19 +450,41 @@ module.exports = class gatecoin extends Exchange {
                 throw new AuthenticationError (this.id + ' two-factor authentication requires a missing ValidationCode parameter');
         }
         let response = await this.privatePostTradeOrders (this.extend (order, params));
-        return {
+        let result = {
             'info': response,
             'id': response['clOrderId'],
         };
+        if ('responseStatus' in response) {
+            if ('message' in response['responseStatus']) {
+                if (response['responseStatus']['message'] === 'OK') {
+                    result['status'] = 'open';
+                }
+            }
+        }
+        return result;
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        return await this.privateDeleteTradeOrdersOrderID ({ 'OrderID': id });
+        let response = await this.privateDeleteTradeOrdersOrderID ({ 'OrderID': id });
+        if ('responseStatus' in response) {
+            if ('message' in response['responseStatus']) {
+                if (response['responseStatus']['message'] === 'OK') {
+                    let result = {
+                        'status': 'canceled',
+                        'id': id,
+                        'info': response,
+                    };
+                    return result;
+                }
+            }
+        }
     }
 
     parseOrderStatus (status) {
         const statuses = {
+            '1': 'open', // New
+            '2': 'open', // Filling
             '6': 'closed',
         };
         if (status in statuses)
