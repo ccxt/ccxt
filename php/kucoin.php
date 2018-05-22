@@ -302,8 +302,6 @@ class kucoin extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $response = $this->privateGetAccountBalance (array_merge (array (
-            'limit' => 20, // default 12, max 20
-            'page' => 1,
         ), $params));
         $balances = $response['data'];
         $result = array ( 'info' => $balances );
