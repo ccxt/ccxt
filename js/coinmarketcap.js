@@ -99,28 +99,28 @@ module.exports = class coinmarketcap extends Exchange {
             'BlazeCoin': 'BlazeCoin',
             'BlockCAT': 'BlockCAT',
             'Catcoin': 'Catcoin',
-            'CanYaCoin': 'CanYaCoin',
-            'Comet': 'Comet',
+            'CanYaCoin': 'CanYaCoin', // conflict with CAN (Content and AD Network)
+            'Comet': 'Comet', // conflict with CMT (CyberMiles)
             'CPChain': 'CPChain',
-            'Cubits': 'Cubits',
-            'DAO.Casino': 'DAO.Casino',
-            'ENTCash': 'ENTCash',
+            'Cubits': 'Cubits', // conflict with QBT (Qbao)
+            'DAO.Casino': 'DAO.Casino', // conflict with BET (BetaCoin)
+            'ENTCash': 'ENTCash', // conflict with ENT (Eternity)
             'FairGame': 'FairGame',
             'GET Protocol': 'GET Protocol',
-            'Global Tour Coin': 'Global Tour Coin',
-            'GuccioneCoin': 'GuccioneCoin',
-            'Hi Mutual Society': 'Hi Mutual Society',
-            'Huncoin': 'Huncoin',
+            'Global Tour Coin': 'Global Tour Coin', // conflict with GTC (Game.com)
+            'GuccioneCoin': 'GuccioneCoin', // conflict with GCC (Global Cryptocurrency)
+            'Hi Mutual Society': 'Hi Mutual Society', // conflict with HMC (HarmonyCoin)
+            'Huncoin': 'Huncoin', // conflict with HNC (Helleniccoin)
             'iCoin': 'iCoin',
-            'Infinity Economics': 'Infinity Economics',
-            'KingN Coin': 'KingN Coin',
-            'LiteBitcoin': 'LiteBitcoin',
+            'Infinity Economics': 'Infinity Economics', // conflict with XIN (Mixin)
+            'KingN Coin': 'KingN Coin', // conflict with KNC (Kyber Network)
+            'LiteBitcoin': 'LiteBitcoin', // conflict with LBTC (LightningBitcoin)
             'Maggie': 'Maggie',
             'MIOTA': 'IOTA', // a special case, most exchanges list it as IOTA, therefore we change just the Coinmarketcap instead of changing them all
             'NetCoin': 'NetCoin',
             'Polcoin': 'Polcoin',
-            'PutinCoin': 'PutinCoin',
-            'Rcoin': 'Rcoin',
+            'PutinCoin': 'PutinCoin', // conflict with PUT (Profile Utility Token)
+            'Rcoin': 'Rcoin', // conflict with RCN (Ripio Credit Network)
         };
         if (name in currencies)
             return currencies[name];
