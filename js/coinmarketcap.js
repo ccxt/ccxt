@@ -102,6 +102,7 @@ module.exports = class coinmarketcap extends Exchange {
             'CanYaCoin': 'CanYaCoin',
             'Comet': 'Comet',
             'CPChain': 'CPChain',
+            'Cubits': 'Cubits',
             'DAO.Casino': 'DAO.Casino',
             'ENTCash': 'ENTCash',
             'FairGame': 'FairGame',
