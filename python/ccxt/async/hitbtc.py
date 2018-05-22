@@ -119,7 +119,7 @@ class hitbtc (Exchange):
                         'AVT': 1.9,
                         'BAS': 113,
                         'BCN': 0.1,
-                        'DAO Casino': 124,  # id = 'BET'
+                        'DAO.Casino': 124,  # id = 'BET'
                         'BKB': 46,
                         'BMC': 32,
                         'BMT': 100,
@@ -314,7 +314,7 @@ class hitbtc (Exchange):
                         'AVT': 0,
                         'BAS': 0,
                         'BCN': 0,
-                        'DAO Casino': 0,  # id = 'BET'
+                        'DAO.Casino': 0,  # id = 'BET'
                         'BKB': 0,
                         'BMC': 0,
                         'BMT': 0,
@@ -487,7 +487,7 @@ class hitbtc (Exchange):
             },
             'commonCurrencies': {
                 'BCC': 'BCC',
-                'BET': 'DAO Casino',
+                'BET': 'DAO.Casino',
                 'CAT': 'BitClave',
                 'DRK': 'DASH',
                 'EMGO': 'MGO',
