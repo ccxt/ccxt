@@ -117,6 +117,7 @@ module.exports = class coinmarketcap extends Exchange {
             'MIOTA': 'IOTA', // a special case, most exchanges list it as IOTA, therefore we change just the Coinmarketcap instead of changing them all
             'NetCoin': 'NetCoin',
             'Polcoin': 'Polcoin',
+            'PutinCoin': 'PutinCoin',
         };
         if (name in currencies)
             return currencies[name];
