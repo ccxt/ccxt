@@ -303,8 +303,6 @@ class kucoin (Exchange):
     async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privateGetAccountBalance(self.extend({
-            'limit': 20,  # default 12, max 20
-            'page': 1,
         }, params))
         balances = response['data']
         result = {'info': balances}
