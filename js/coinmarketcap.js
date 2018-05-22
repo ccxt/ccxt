@@ -106,6 +106,7 @@ module.exports = class coinmarketcap extends Exchange {
             'ENTCash': 'ENTCash',
             'FairGame': 'FairGame',
             'GET Protocol': 'GET Protocol',
+            'Global Tour Coin': 'Global Tour Coin',
             'GuccioneCoin': 'GuccioneCoin',
             'Hi Mutual Society': 'Hi Mutual Society',
             'iCoin': 'iCoin',
