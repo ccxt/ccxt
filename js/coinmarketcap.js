@@ -111,6 +111,7 @@ module.exports = class coinmarketcap extends Exchange {
             'Hi Mutual Society': 'Hi Mutual Society',
             'Huncoin': 'Huncoin',
             'iCoin': 'iCoin',
+            'KingN Coin': 'KingN Coin',
             'Maggie': 'Maggie',
             'MIOTA': 'IOTA', // a special case, most exchanges list it as IOTA, therefore we change just the Coinmarketcap instead of changing them all
             'NetCoin': 'NetCoin',
