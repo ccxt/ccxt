@@ -463,7 +463,19 @@ module.exports = class gatecoin extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        return await this.privateDeleteTradeOrdersOrderID ({ 'OrderID': id });
+        let response = this.privateDeleteTradeOrdersOrderID ({ 'OrderID': id });
+        if ('responseStatus' in response) {
+            if ('message' in response['responseStatus']) {
+                if (response['responseStatus']['message'] === 'OK') {
+                    let result = {
+                        'status': 'canceled',
+                        'id': id,
+                        'info': response,
+                    };
+                    return result;
+                }
+            }
+        }
     }
 
     parseOrderStatus (status) {
