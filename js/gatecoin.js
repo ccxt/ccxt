@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, InvalidAddress, InsufficientFunds, OrderNotFound, InvalidOrder } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, InvalidAddress, InsufficientFunds, OrderNotFound, InvalidOrder, PermissionDenied } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -702,6 +702,9 @@ module.exports = class gatecoin extends Exchange {
                     throw new ExchangeError (feedback);
                 }
             }
+        }
+        if (body.indexOf ('You are not authorized') >= 0) {
+            throw new PermissionDenied (body);
         }
     }
 };
