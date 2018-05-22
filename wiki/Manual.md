@@ -1819,8 +1819,6 @@ Market price orders are also known as *spot price orders*, *instant orders* or s
 
 The exchange will close your market order for the best price available. You are not guaranteed though, that the order will be executed for the price you observe prior to placing your order. There can be a slight change of the price for the traded market while your order is being executed, also known as *price slippage*. The price can slip because of networking roundtrip latency, high loads on the exchange, price volatility and other factors. When placing a market order you don't need to specify the price of the order.
 
-Note, that some exchanges will not accept market orders (they allow limit orders only).
-
 ```
 // camelCaseNotation
 exchange.createMarketBuyOrder (symbol, amount[, params])
@@ -1829,6 +1827,28 @@ exchange.createMarketSellOrder (symbol, amount[, params])
 // underscore_notation
 exchange.create_market_buy_order (symbol, amount[, params])
 exchange.create_market_sell_order (symbol, amount[, params])
+```
+
+**Note, that some exchanges will not accept market orders (they allow limit orders only).** In order to detect programmatically if the exchange in question does support market orders or not, you can use the `.has['createMarketOrder']` exchange property:
+
+```JavaScript
+// JavaScript
+if (exchange.has['createMarketOrder']) {
+    ...
+}
+```
+
+```Python
+# Python
+if exchange.has['createMarketOrder']:
+    ...
+```
+
+```PHP
+// PHP
+if ($exchange->has['createMarketOrder']) {
+    ...
+}
 ```
 
 #### Limit Orders
