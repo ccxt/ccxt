@@ -561,7 +561,9 @@ module.exports = class hitbtc2 extends hitbtc {
             let step = this.safeFloat (market, 'tickSize');
             let precision = {
                 'price': this.precisionFromString (market['tickSize']),
-                'amount': this.precisionFromString (market['quantityIncrement']),
+                // FIXME: for lots > 1 the following line returns 0
+                // 'amount': this.precisionFromString (market['quantityIncrement']),
+                'amount': -1 * Math.log10 (lot),
             };
             let taker = this.safeFloat (market, 'takeLiquidityRate');
             let maker = this.safeFloat (market, 'provideLiquidityRate');
@@ -574,8 +576,6 @@ module.exports = class hitbtc2 extends hitbtc {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': true,
-                'lot': lot,
-                'step': step,
                 'taker': taker,
                 'maker': maker,
                 'precision': precision,
