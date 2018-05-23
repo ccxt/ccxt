@@ -535,7 +535,7 @@ module.exports = class cryptopia extends Exchange {
             this.orders[id]['status'] = 'canceled';
         return {
             'status': 'canceled',
-            'info': response
+            'info': response,
         };
     }
 
@@ -736,7 +736,9 @@ module.exports = class cryptopia extends Exchange {
         if (fixedJSONString[0] === '{') {
             let response = JSON.parse (fixedJSONString);
             if ('Success' in response) {
-                if (response['Success'] === false) {
+                const success = this.safeString (response, 'Success');
+                console.log("Success == '%s'", success);
+                if (success === 'false') {
                     let error = this.safeString (response, 'Error');
                     let feedback = this.id;
                     if (typeof error === 'string') {
@@ -759,22 +761,18 @@ module.exports = class cryptopia extends Exchange {
         }
     }
 
-    // sometimes cryptopia will return a unicode symbol before actual JSON string begins,
-    // so we have to sanitize that broken response by finding the first occurence of '{'
-    // in the string and then parsing from there
-    sanitizeBrokenJSONString(jsonString) {
+    sanitizeBrokenJSONString (jsonString) { // sometimes cryptopia will return a unicode symbol before actual JSON string.
         const braceCode = 123; // '{'
-        let i=0;
-        for (i=0; i < jsonString.length; i++) {
-            if (jsonString.charCodeAt (i) == braceCode) {
+        let i = 0;
+        for (i = 0; i < jsonString.length; i++) {
+            if (jsonString.charCodeAt (i) === braceCode) {
                 return jsonString.substr (i);
             }
         }
         return jsonString;
     }
 
-    // we have to sanitize JSON before trying to parse
-    parseJson (response, responseBody, url, method) {
+    parseJson (response, responseBody, url, method) { // we have to sanitize JSON before trying to parse
         return super.parseJson (response, this.sanitizeBrokenJSONString (responseBody), url, method);
     }
 };
