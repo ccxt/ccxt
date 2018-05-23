@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, InvalidAddress, InsufficientFunds } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, InvalidAddress, InsufficientFunds, OrderNotFound, InvalidOrder, PermissionDenied } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -198,6 +198,9 @@ module.exports = class gatecoin extends Exchange {
             },
             'exceptions': {
                 '1005': InsufficientFunds,
+                '1008': OrderNotFound,
+                '1057': InvalidOrder,
+                '1044': OrderNotFound, // already canceled
             },
         });
     }
@@ -598,13 +601,8 @@ module.exports = class gatecoin extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('responseStatus' in response)
-            if ('message' in response['responseStatus'])
-                if (response['responseStatus']['message'] === 'OK')
-                    return response;
-        throw new ExchangeError (this.id + ' ' + this.json (response));
+    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        return this.fetch2 (path, api, method, params, headers, body);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
@@ -666,16 +664,23 @@ module.exports = class gatecoin extends Exchange {
             return; // fallback to default error handler
         if (body.length < 2)
             return; // fallback to default error handler
+        if (body.indexOf ('You are not authorized') >= 0) {
+            throw new PermissionDenied (body);
+        }
         if (body[0] === '{') {
             let response = JSON.parse (body);
             if ('responseStatus' in response) {
                 let errorCode = this.safeString (response['responseStatus'], 'errorCode');
+                let message = this.safeString (response['responseStatus'], 'message');
+                const feedback = this.id + ' ' + body;
                 if (typeof errorCode !== 'undefined') {
-                    const feedback = this.id + ' ' + body;
                     const exceptions = this.exceptions;
                     if (errorCode in exceptions) {
                         throw new exceptions[errorCode] (feedback);
                     }
+                    throw new ExchangeError (feedback);
+                // Sometimes there isn't 'errorCode' but 'message' is present and is not 'OK'
+                } else if (typeof message !== 'undefined' && message !== 'OK') {
                     throw new ExchangeError (feedback);
                 }
             }
