@@ -65,6 +65,7 @@ module.exports = class gemini extends Exchange {
                         'orders',
                         'mytrades',
                         'tradevolume',
+                        'transfers',
                         'balances',
                         'deposit/{currency}/newAddress',
                         'withdraw/{currency}',
@@ -269,7 +270,7 @@ module.exports = class gemini extends Exchange {
     }
 
     parseTransaction (transaction, side = undefined) {
-        let timestamp = this.safeInteger (transaction, 'timestampms') / 1000;
+        let timestamp = this.safeInteger (transaction, 'timestampms');
 
         let datetime = undefined;
         if (typeof timestamp !== 'undefined')
@@ -284,6 +285,7 @@ module.exports = class gemini extends Exchange {
         else if (transaction['type'] === 'Deposit')
             side = 'deposit';
 
+        let status = 'pending';
         // When deposits show as Advanced or Complete they are available for trading.
         if (transaction['status'])
             status = 'ok';
@@ -295,7 +297,7 @@ module.exports = class gemini extends Exchange {
             'timestamp': timestamp,
             'datetime': datetime,
             'currency': currency,
-            'status': this.parseTransactionStatus (transaction['status']),
+            'status': status,
             'side': side, // direction of the transaction, ('deposit' | 'withdraw')
             'price': undefined,
             'amount': this.safeFloat (transaction, 'amount'),
