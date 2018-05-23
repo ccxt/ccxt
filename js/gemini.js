@@ -293,7 +293,6 @@ module.exports = class gemini extends Exchange {
             'currency': currency,
             'status': status,
             'side': side, // direction of the transaction, ('deposit' | 'withdraw')
-            'price': undefined,
             'amount': this.safeFloat (transaction, 'amount'),
             'fee': {
                 'cost': undefined,
