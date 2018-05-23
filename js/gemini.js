@@ -263,33 +263,27 @@ module.exports = class gemini extends Exchange {
 
     async fetchTransactions (currency = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-
         let request = {};
-        let response = await this.privatePostTransfers (this.extend(request, params));
+        let response = await this.privatePostTransfers (this.extend (request, params));
         return this.parseTransactions (response);
     }
 
     parseTransaction (transaction, side = undefined) {
         let timestamp = this.safeInteger (transaction, 'timestampms');
-
         let datetime = undefined;
         if (typeof timestamp !== 'undefined')
             datetime = this.iso8601 (timestamp);
-
         let currency = transaction['currency'];
         if (currency in this.currencies_by_id)
             currency = this.currencies_by_id[currency]['code'];
-
         if (transaction['type'] === 'Withdrawal')
             side = 'withdraw';
         else if (transaction['type'] === 'Deposit')
             side = 'deposit';
-
         let status = 'pending';
         // When deposits show as Advanced or Complete they are available for trading.
         if (transaction['status'])
             status = 'ok';
-
         return {
             'info': transaction,
             'id': this.safeString (transaction, 'eid'),
