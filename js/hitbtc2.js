@@ -532,7 +532,13 @@ module.exports = class hitbtc2 extends hitbtc {
             'options': {
                 'defaultTimeInForce': 'FOK',
             },
-            'exceptions': {},
+            'exceptions': {
+                '2010': InvalidOrder, // "Quantity not a valid number"
+                '2011': InvalidOrder, // "Quantity too low"
+                '2020': InvalidOrder, // "Price not a valid number"
+                '20002': OrderNotFound, // canceling non-existent order
+                '20001': InsufficientFunds,
+            },
         });
     }
 
@@ -1124,27 +1130,18 @@ module.exports = class hitbtc2 extends hitbtc {
             // {"code":504,"message":"Gateway Timeout","description":""}
             if ((code === 503) || (code === 504))
                 throw new ExchangeNotAvailable (feedback);
+            // {"error":{"code":20002,"message":"Order not found","description":""}}
             if (body[0] === '{') {
-                let response = JSON.parse (body);
+                const response = JSON.parse (body);
                 if ('error' in response) {
-                    if ('message' in response['error']) {
-                        let message = response['error']['message'];
-                        let code = this.safeString (response['error'], 'code');
-                        let exceptions = this.exceptions;
-                        if (code in exceptions) {
-                            throw new exceptions[code] (feedback);
-                        }
-                        if (message === 'Order not found') {
-                            throw new OrderNotFound (this.id + ' order not found in active orders');
-                        } else if (message === 'Quantity not a valid number') {
-                            throw new InvalidOrder (feedback);
-                        } else if (message === 'Quantity too low') {
-                            throw new InvalidOrder (feedback);
-                        } else if (message === 'Insufficient funds') {
-                            throw new InsufficientFunds (feedback);
-                        } else if (message === 'Duplicate clientOrderId') {
-                            throw new InvalidOrder (feedback);
-                        }
+                    const code = this.safeString (response['error'], 'code');
+                    const exceptions = this.exceptions;
+                    if (code in exceptions) {
+                        throw new exceptions[code] (feedback);
+                    }
+                    const message = this.safeString (response['error'], 'message');
+                    if (message === 'Duplicate clientOrderId') {
+                        throw new InvalidOrder (feedback);
                     }
                 }
             }
