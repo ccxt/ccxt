@@ -26,6 +26,9 @@ module.exports = class gemini extends Exchange {
                 'fetchOpenOrders': false,
                 'fetchClosedOrders': false,
                 'withdraw': true,
+                'fetchTransactions': true,
+                'fetchWithdrawals': false,
+                'fetchDeposits': false,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg',
@@ -254,6 +257,52 @@ module.exports = class gemini extends Exchange {
         return {
             'info': response,
             'id': this.safeString (response, 'txHash'),
+        };
+    }
+
+    async fetchTransactions (currency = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+
+        let request = {};
+        let response = await this.privatePostTransfers (this.extend(request, params));
+        return this.parseTransactions (response);
+    }
+
+    parseTransaction (transaction, side = undefined) {
+        let timestamp = this.safeInteger (transaction, 'timestampms') / 1000;
+
+        let datetime = undefined;
+        if (typeof timestamp !== 'undefined')
+            datetime = this.iso8601 (timestamp);
+
+        let currency = transaction['currency'];
+        if (currency in this.currencies_by_id)
+            currency = this.currencies_by_id[currency]['code'];
+
+        if (transaction['type'] === 'Withdrawal')
+            side = 'withdraw';
+        else if (transaction['type'] === 'Deposit')
+            side = 'deposit';
+
+        // When deposits show as Advanced or Complete they are available for trading.
+        if (transaction['status'])
+            status = 'ok';
+
+        return {
+            'info': transaction,
+            'id': this.safeString (transaction, 'eid'),
+            'txid': this.safeString (transaction, 'txHash'),
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'currency': currency,
+            'status': this.parseTransactionStatus (transaction['status']),
+            'side': side, // direction of the transaction, ('deposit' | 'withdraw')
+            'price': undefined,
+            'amount': this.safeFloat (transaction, 'amount'),
+            'fee': {
+                'cost': undefined,
+                'rate': undefined,
+            },
         };
     }
 
