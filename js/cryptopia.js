@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InsufficientFunds, OrderNotFound, OrderNotCached } = require ('./base/errors');
+const { ExchangeError, InsufficientFunds, OrderNotFound, OrderNotCached, InvalidNonce } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -469,25 +469,16 @@ module.exports = class cryptopia extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = undefined;
-        try {
-            response = await this.privatePostCancelTrade (this.extend ({
-                'Type': 'Trade',
-                'OrderId': id,
-            }, params));
-            if (id in this.orders)
-                this.orders[id]['status'] = 'canceled';
-        } catch (e) {
-            if (this.last_json_response) {
-                let message = this.safeString (this.last_json_response, 'Error');
-                if (message) {
-                    if (message.indexOf ('does not exist') >= 0)
-                        throw new OrderNotFound (this.id + ' cancelOrder() error: ' + this.last_http_response);
-                }
-            }
-            throw e;
-        }
-        return response;
+        let response = await this.privatePostCancelTrade (this.extend ({
+            'Type': 'Trade',
+            'OrderId': id,
+        }, params));
+        if (id in this.orders)
+            this.orders[id]['status'] = 'canceled';
+        return {
+            'status': 'canceled',
+            'info': response,
+        };
     }
 
     parseOrder (order, market = undefined) {
@@ -671,19 +662,59 @@ module.exports = class cryptopia extends Exchange {
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if (response) {
-            if ('Success' in response)
-                if (response['Success']) {
-                    return response;
-                } else if ('Error' in response) {
-                    let error = this.safeString (response, 'error');
-                    if (typeof error !== 'undefined') {
-                        if (error.indexOf ('Insufficient Funds') >= 0)
-                            throw new InsufficientFunds (this.id + ' ' + this.json (response));
+        return this.fetch2 (path, api, method, params, headers, body);
+    }
+
+    nonce () {
+        return this.milliseconds ();
+    }
+
+    handleErrors (code, reason, url, method, headers, body) {
+        if (typeof body !== 'string')
+            return; // fallback to default error handler
+        if (body.length < 2)
+            return; // fallback to default error handler
+        const fixedJSONString = this.sanitizeBrokenJSONString (body);
+        if (fixedJSONString[0] === '{') {
+            let response = JSON.parse (fixedJSONString);
+            if ('Success' in response) {
+                const success = this.safeString (response, 'Success');
+                console.log("Success == '%s'", success);
+                if (success === 'false') {
+                    let error = this.safeString (response, 'Error');
+                    let feedback = this.id;
+                    if (typeof error === 'string') {
+                        feedback = feedback + ' ' + error;
+                        if (error.indexOf ('does not exist') >= 0) {
+                            throw new OrderNotFound (feedback);
+                        }
+                        if (error.indexOf ('Insufficient Funds') >= 0) {
+                            throw new InsufficientFunds (feedback);
+                        }
+                        if (error.indexOf ('Nonce has already been used') >= 0) {
+                            throw new InvalidNonce (feedback);
+                        }
+                    } else {
+                        feedback = feedback + ' ' + fixedJSONString;
                     }
+                    throw new ExchangeError (feedback);
                 }
+            }
         }
-        throw new ExchangeError (this.id + ' ' + this.json (response));
+    }
+
+    sanitizeBrokenJSONString (jsonString) { // sometimes cryptopia will return a unicode symbol before actual JSON string.
+        const braceCode = 123; // '{'
+        let i = 0;
+        for (i = 0; i < jsonString.length; i++) {
+            if (jsonString.charCodeAt (i) === braceCode) {
+                return jsonString.substr (i);
+            }
+        }
+        return jsonString;
+    }
+
+    parseJson (response, responseBody, url, method) { // we have to sanitize JSON before trying to parse
+        return super.parseJson (response, this.sanitizeBrokenJSONString (responseBody), url, method);
     }
 };
