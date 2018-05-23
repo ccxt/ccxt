@@ -460,6 +460,9 @@ module.exports = class gatecoin extends Exchange {
 
     parseOrderStatus (status) {
         const statuses = {
+            '1': 'open', // New
+            '2': 'open', // Filling
+            '4': 'canceled',
             '6': 'closed',
         };
         if (status in statuses)
