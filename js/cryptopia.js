@@ -533,7 +533,10 @@ module.exports = class cryptopia extends Exchange {
         }, params));
         if (id in this.orders)
             this.orders[id]['status'] = 'canceled';
-        return response;
+        return {
+            'status': 'canceled',
+            'info': response
+        };
     }
 
     parseOrder (order, market = undefined) {
