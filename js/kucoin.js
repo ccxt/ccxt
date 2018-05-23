@@ -301,8 +301,6 @@ module.exports = class kucoin extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privateGetAccountBalance (this.extend ({
-            'limit': 20, // default 12, max 20
-            'page': 1,
         }, params));
         let balances = response['data'];
         let result = { 'info': balances };

@@ -450,9 +450,13 @@ module.exports = class gatecoin extends Exchange {
                 throw new AuthenticationError (this.id + ' two-factor authentication requires a missing ValidationCode parameter');
         }
         let response = await this.privatePostTradeOrders (this.extend (order, params));
-        let result = {
+        // At this point response.responseStatus.message has been verified
+        // in handleErrors() to be == 'OK', so we assume the order has
+        // indeed been opened.
+        return {
             'info': response,
-            'id': response['clOrderId'],
+            'status': 'open',
+            'id': this.safeString (response, 'clOrderId'), // response['clOrderId'],
         };
         if ('responseStatus' in response) {
             if ('message' in response['responseStatus']) {
@@ -466,19 +470,15 @@ module.exports = class gatecoin extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateDeleteTradeOrdersOrderID ({ 'OrderID': id });
-        if ('responseStatus' in response) {
-            if ('message' in response['responseStatus']) {
-                if (response['responseStatus']['message'] === 'OK') {
-                    let result = {
-                        'status': 'canceled',
-                        'id': id,
-                        'info': response,
-                    };
-                    return result;
-                }
-            }
-        }
+        const response = await this.privateDeleteTradeOrdersOrderID ({ 'OrderID': id });
+        // At this point response.responseStatus.message has been verified
+        // in handleErrors() to be == 'OK', so we assume the order has
+        // indeed been cancelled.
+        return {
+            'status': 'canceled',
+            'id': id,
+            'info': response,
+        };
     }
 
     parseOrderStatus (status) {
@@ -621,13 +621,8 @@ module.exports = class gatecoin extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('responseStatus' in response)
-            if ('message' in response['responseStatus'])
-                if (response['responseStatus']['message'] === 'OK')
-                    return response;
-        throw new ExchangeError (this.id + ' ' + this.json (response));
+    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        return this.fetch2 (path, api, method, params, headers, body);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
@@ -689,16 +684,23 @@ module.exports = class gatecoin extends Exchange {
             return; // fallback to default error handler
         if (body.length < 2)
             return; // fallback to default error handler
+        if (body.indexOf ('You are not authorized') >= 0) {
+            throw new PermissionDenied (body);
+        }
         if (body[0] === '{') {
             let response = JSON.parse (body);
             if ('responseStatus' in response) {
                 let errorCode = this.safeString (response['responseStatus'], 'errorCode');
+                let message = this.safeString (response['responseStatus'], 'message');
+                const feedback = this.id + ' ' + body;
                 if (typeof errorCode !== 'undefined') {
-                    const feedback = this.id + ' ' + body;
                     const exceptions = this.exceptions;
                     if (errorCode in exceptions) {
                         throw new exceptions[errorCode] (feedback);
                     }
+                    throw new ExchangeError (feedback);
+                // Sometimes there isn't 'errorCode' but 'message' is present and is not 'OK'
+                } else if (typeof message !== 'undefined' && message !== 'OK') {
                     throw new ExchangeError (feedback);
                 }
             }
