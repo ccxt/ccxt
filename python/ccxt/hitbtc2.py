@@ -547,7 +547,13 @@ class hitbtc2 (hitbtc):
             'options': {
                 'defaultTimeInForce': 'FOK',
             },
-            'exceptions': {},
+            'exceptions': {
+                '2010': InvalidOrder,  # "Quantity not a valid number"
+                '2011': InvalidOrder,  # "Quantity too low"
+                '2020': InvalidOrder,  # "Price not a valid number"
+                '20002': OrderNotFound,  # canceling non-existent order
+                '20001': InsufficientFunds,
+            },
         })
 
     def fee_to_precision(self, symbol, fee):
@@ -568,7 +574,9 @@ class hitbtc2 (hitbtc):
             step = self.safe_float(market, 'tickSize')
             precision = {
                 'price': self.precision_from_string(market['tickSize']),
-                'amount': self.precision_from_string(market['quantityIncrement']),
+                # FIXME: for lots > 1 the following line returns 0
+                # 'amount': self.precision_from_string(market['quantityIncrement']),
+                'amount': -1 * math.log10(lot),
             }
             taker = self.safe_float(market, 'takeLiquidityRate')
             maker = self.safe_float(market, 'provideLiquidityRate')
@@ -581,8 +589,6 @@ class hitbtc2 (hitbtc):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': True,
-                'lot': lot,
-                'step': step,
                 'taker': taker,
                 'maker': maker,
                 'precision': precision,
@@ -1093,23 +1099,15 @@ class hitbtc2 (hitbtc):
             # {"code":504,"message":"Gateway Timeout","description":""}
             if (code == 503) or (code == 504):
                 raise ExchangeNotAvailable(feedback)
+            # {"error":{"code":20002,"message":"Order not found","description":""}}
             if body[0] == '{':
                 response = json.loads(body)
                 if 'error' in response:
-                    if 'message' in response['error']:
-                        message = response['error']['message']
-                        code = self.safe_string(response['error'], 'code')
-                        exceptions = self.exceptions
-                        if code in exceptions:
-                            raise exceptions[code](feedback)
-                        if message == 'Order not found':
-                            raise OrderNotFound(self.id + ' order not found in active orders')
-                        elif message == 'Quantity not a valid number':
-                            raise InvalidOrder(feedback)
-                        elif message == 'Quantity too low':
-                            raise InvalidOrder(feedback)
-                        elif message == 'Insufficient funds':
-                            raise InsufficientFunds(feedback)
-                        elif message == 'Duplicate clientOrderId':
-                            raise InvalidOrder(feedback)
+                    code = self.safe_string(response['error'], 'code')
+                    exceptions = self.exceptions
+                    if code in exceptions:
+                        raise exceptions[code](feedback)
+                    message = self.safe_string(response['error'], 'message')
+                    if message == 'Duplicate clientOrderId':
+                        raise InvalidOrder(feedback)
             raise ExchangeError(feedback)
