@@ -113,7 +113,7 @@ module.exports = class coinone extends Exchange {
     async fetchBalance (params = {}) {
         let response = await this.privatePostAccountBalance ();
         let result = { 'info': response };
-        let balances = this.omit (result, [
+        let balances = this.omit (response, [
             'errorCode',
             'result',
             'normalWallets',
