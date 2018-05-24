@@ -117,7 +117,7 @@ class coinone (Exchange):
     def fetch_balance(self, params={}):
         response = self.privatePostAccountBalance()
         result = {'info': response}
-        balances = self.omit(result, [
+        balances = self.omit(response, [
             'errorCode',
             'result',
             'normalWallets',

@@ -114,7 +114,7 @@ class coinone extends Exchange {
     public function fetch_balance ($params = array ()) {
         $response = $this->privatePostAccountBalance ();
         $result = array ( 'info' => $response );
-        $balances = $this->omit ($result, array (
+        $balances = $this->omit ($response, array (
             'errorCode',
             'result',
             'normalWallets',
