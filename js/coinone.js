@@ -113,10 +113,14 @@ module.exports = class coinone extends Exchange {
     async fetchBalance (params = {}) {
         let response = await this.privatePostAccountBalance ();
         let result = { 'info': response };
-        let ids = Object.keys (response);
+        let balances = this.omit (result, [
+            'errorCode',
+            'result',
+        ]);
+        let ids = Object.keys (balances);
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
-            let balance = response[id];
+            let balance = balances[id];
             let code = id.toUpperCase ();
             if (id in this.currencies_by_id)
                 code = this.currencies_by_id[id]['code'];
