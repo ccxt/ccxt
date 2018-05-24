@@ -117,10 +117,15 @@ class coinone (Exchange):
     def fetch_balance(self, params={}):
         response = self.privatePostAccountBalance()
         result = {'info': response}
-        ids = list(response.keys())
+        balances = self.omit(result, [
+            'errorCode',
+            'result',
+            'normalWallets',
+        ])
+        ids = list(balances.keys())
         for i in range(0, len(ids)):
             id = ids[i]
-            balance = response[id]
+            balance = balances[id]
             code = id.upper()
             if id in self.currencies_by_id:
                 code = self.currencies_by_id[id]['code']

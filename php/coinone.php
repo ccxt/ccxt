@@ -114,10 +114,15 @@ class coinone extends Exchange {
     public function fetch_balance ($params = array ()) {
         $response = $this->privatePostAccountBalance ();
         $result = array ( 'info' => $response );
-        $ids = is_array ($response) ? array_keys ($response) : array ();
+        $balances = $this->omit ($result, array (
+            'errorCode',
+            'result',
+            'normalWallets',
+        ));
+        $ids = is_array ($balances) ? array_keys ($balances) : array ();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
-            $balance = $response[$id];
+            $balance = $balances[$id];
             $code = strtoupper ($id);
             if (is_array ($this->currencies_by_id) && array_key_exists ($id, $this->currencies_by_id))
                 $code = $this->currencies_by_id[$id]['code'];
