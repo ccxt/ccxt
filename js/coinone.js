@@ -116,6 +116,7 @@ module.exports = class coinone extends Exchange {
         let balances = this.omit (result, [
             'errorCode',
             'result',
+            'normalWallets',
         ]);
         let ids = Object.keys (balances);
         for (let i = 0; i < ids.length; i++) {
