@@ -90,8 +90,6 @@ const decimalToPrecision = (x, roundingMode
 
     if (numPrecisionDigits < 0) throw new Error ('negative precision is not yet supported')
 
-    if (typeof x === 'undefined') return x;
-
 /*  Convert to a string (if needed), skip leading minus sign (if any)   */
 
     const str          = numberToString (x)
