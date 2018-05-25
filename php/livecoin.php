@@ -488,10 +488,15 @@ class livecoin extends Exchange {
         if ($type === 'limit')
             $order['price'] = $this->price_to_precision($symbol, $price);
         $response = $this->$method (array_merge ($order, $params));
-        return array (
+        $result = array (
             'info' => $response,
             'id' => (string) $response['orderId'],
         );
+        $success = $this->safe_value($response, 'success');
+        if ($success) {
+            $result['status'] = 'open';
+        }
+        return $result;
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
@@ -510,7 +515,10 @@ class livecoin extends Exchange {
                 throw new InvalidOrder ($message);
             } else if (is_array ($response) && array_key_exists ('cancelled', $response)) {
                 if ($response['cancelled']) {
-                    return $response;
+                    return array (
+                        'status' => 'canceled',
+                        'info' => $response,
+                    );
                 } else {
                     throw new OrderNotFound ($message);
                 }
@@ -603,6 +611,10 @@ class livecoin extends Exchange {
             // returns status $code 200 even if $success === false
             $success = $this->safe_value($response, 'success', true);
             if (!$success) {
+                $message = $this->safe_string($response, 'message', '');
+                if (mb_strpos ($message, 'Cannot find order') !== false) {
+                    throw new OrderNotFound ($this->id . ' ' . $body);
+                }
                 throw new ExchangeError ($this->id . ' ' . $body);
             }
         }

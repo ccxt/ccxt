@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.14.52';
+$version = '1.14.65';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -1769,7 +1769,7 @@ abstract class Exchange {
             return call_user_func_array ($this->$function, $params);
         else {
             /* handle errors */
-            throw new ExchangeError ($function . ' not found');
+            throw new ExchangeError ($function . ' method not found, try underscore_notation instead of camelCase for the method being called');
         }
     }
 

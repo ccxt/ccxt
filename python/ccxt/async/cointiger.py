@@ -43,7 +43,8 @@ class cointiger (huobipro):
                     'private': 'https://api.cointiger.com/exchange/trading/api',
                     'exchange': 'https://www.cointiger.com/exchange',
                 },
-                'www': 'https://www.cointiger.com/exchange/register.html?refCode=FfvDtt',
+                'www': 'https://www.cointiger.com',
+                'referral': 'https://www.cointiger.com/exchange/register.html?refCode=FfvDtt',
                 'doc': 'https://github.com/cointiger/api-docs-en/wiki',
             },
             'api': {

@@ -134,6 +134,9 @@ class bitmex extends Exchange {
                 'Invalid API Key.' => '\\ccxt\\AuthenticationError',
                 'Access Denied' => '\\ccxt\\PermissionDenied',
             ),
+            'options' => array (
+                'fetchTickerQuotes' => true,
+            ),
         ));
     }
 
@@ -307,9 +310,15 @@ class bitmex extends Exchange {
             'count' => 1,
             'reverse' => true,
         ), $params);
-        $quotes = $this->publicGetQuoteBucketed ($request);
-        $quotesLength = is_array ($quotes) ? count ($quotes) : 0;
-        $quote = $quotes[$quotesLength - 1];
+        $bid = null;
+        $ask = null;
+        if ($this->options['fetchTickerQuotes']) {
+            $quotes = $this->publicGetQuoteBucketed ($request);
+            $quotesLength = is_array ($quotes) ? count ($quotes) : 0;
+            $quote = $quotes[$quotesLength - 1];
+            $bid = $this->safe_float($quote, 'bidPrice');
+            $ask = $this->safe_float($quote, 'askPrice');
+        }
         $tickers = $this->publicGetTradeBucketed ($request);
         $ticker = $tickers[0];
         $timestamp = $this->milliseconds ();
@@ -322,9 +331,9 @@ class bitmex extends Exchange {
             'datetime' => $this->iso8601 ($timestamp),
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
-            'bid' => $this->safe_float($quote, 'bidPrice'),
+            'bid' => $bid,
             'bidVolume' => null,
-            'ask' => $this->safe_float($quote, 'askPrice'),
+            'ask' => $ask,
             'askVolume' => null,
             'vwap' => $this->safe_float($ticker, 'vwap'),
             'open' => $open,

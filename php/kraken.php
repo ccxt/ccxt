@@ -197,6 +197,7 @@ class kraken extends Exchange {
                 'EService:Busy' => '\\ccxt\\ExchangeNotAvailable',
                 'EAPI:Rate limit exceeded' => '\\ccxt\\DDoSProtection',
                 'EQuery:Unknown asset' => '\\ccxt\\ExchangeError',
+                'EGeneral:Internal error' => '\\ccxt\\ExchangeNotAvailable',
             ),
         ));
     }
