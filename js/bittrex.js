@@ -615,7 +615,7 @@ module.exports = class bittrex extends Exchange {
             }
             throw e;
         }
-        if (response['result'] === null) {
+        if (!response['result']) {
             throw new OrderNotFound (this.id + ' order ' + id + ' not found');
         }
         return this.parseOrder (response['result']);
