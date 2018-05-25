@@ -135,6 +135,8 @@ class huobipro (Exchange):
             'options': {
                 'createMarketBuyOrderRequiresPrice': True,
                 'fetchMarketsMethod': 'publicGetCommonSymbols',
+                'fetchBalanceMethod': 'privateGetHadaxAccountAccountsIdBalance',
+                'createOrderMethod': 'privatePostOrderOrdersPlace',
                 'language': 'en-US',
             },
         })
@@ -464,7 +466,8 @@ class huobipro (Exchange):
     async def fetch_balance(self, params={}):
         await self.load_markets()
         await self.load_accounts()
-        response = await self.privateGetAccountAccountsIdBalance(self.extend({
+        method = self.options['fetchBalanceMethod']
+        response = await getattr(self, method)(self.extend({
             'id': self.accounts[0]['id'],
         }, params))
         balances = response['data']['list']
@@ -590,7 +593,8 @@ class huobipro (Exchange):
                     order['amount'] = self.price_to_precision(symbol, float(amount) * float(price))
         if type == 'limit':
             order['price'] = self.price_to_precision(symbol, price)
-        response = await self.privatePostOrderOrdersPlace(self.extend(order, params))
+        method = self.options['createOrderMethod']
+        response = await getattr(self, method)(self.extend(order, params))
         timestamp = self.milliseconds()
         return {
             'info': response,
