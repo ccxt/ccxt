@@ -1,13 +1,16 @@
 # -*- coding: utf-8 -*-
 
 import argparse
+import json
+# import logging
 import os
 import sys
-import json
-import time
+import time  # noqa: F401
 from os import _exit
 from traceback import format_tb
 
+# ------------------------------------------------------------------------------
+# logging.basicConfig(level=logging.INFO)
 # ------------------------------------------------------------------------------
 
 root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -41,6 +44,12 @@ parser.add_argument('symbol', type=str, help='symbol in uppercase', nargs='?')
 parser.parse_args(namespace=argv)
 
 exchanges = {}
+
+# ------------------------------------------------------------------------------
+
+path = os.path.dirname(ccxt.__file__)
+if 'site-packages' in os.path.dirname(ccxt.__file__):
+    raise Exception('\n\nYou are running test_async.py/test.py against a globally-installed version of the library!\nIt was previously installed into your site-packages folder by pip or pip3.\n\nTo ensure testing against the local folder uninstall it first by running the following commands:\npip uninstall ccxt\npip3 uninstall ccxt\n\n')
 
 # ------------------------------------------------------------------------------
 # string coloring functions
@@ -104,7 +113,7 @@ sys.excepthook = handle_all_unhandled_exceptions
 
 
 def test_order_book(exchange, symbol):
-    if exchange.hasFetchOrderBook:
+    if exchange.has['fetchOrderBook']:
         delay = int(exchange.rateLimit / 1000)
         time.sleep(delay)
         # dump(green(exchange.id), green(symbol), 'fetching order book...')
@@ -125,7 +134,7 @@ def test_order_book(exchange, symbol):
 
 
 def test_ohlcv(exchange, symbol):
-    if exchange.hasFetchOHLCV:
+    if exchange.has['fetchOHLCV']:
         delay = int(exchange.rateLimit / 1000)
         time.sleep(delay)
         ohlcvs = exchange.fetch_ohlcv(symbol)
@@ -137,7 +146,7 @@ def test_ohlcv(exchange, symbol):
 
 
 def test_tickers(exchange, symbol):
-    if exchange.hasFetchTickers:
+    if exchange.has['fetchTickers']:
         delay = int(exchange.rateLimit / 1000)
         time.sleep(delay)
         tickers = None
@@ -165,10 +174,9 @@ def is_active_symbol(exchange, symbol):
 
 
 def test_ticker(exchange, symbol):
-    if exchange.hasFetchTicker:
+    if exchange.has['fetchTicker']:
         delay = int(exchange.rateLimit / 1000)
         time.sleep(delay)
-        # dump(green(exchange.id), green(symbol), 'fetching ticker...')
         ticker = exchange.fetch_ticker(symbol)
         dump(
             green(exchange.id),
@@ -187,7 +195,7 @@ def test_ticker(exchange, symbol):
 
 
 def test_trades(exchange, symbol):
-    if exchange.hasFetchTrades:
+    if exchange.has['fetchTrades']:
         delay = int(exchange.rateLimit / 1000)
         time.sleep(delay)
         # dump(green(exchange.id), green(symbol), 'fetching trades...')
@@ -259,16 +267,13 @@ def test_exchange(exchange):
     if 'test' in exchange.urls:
         exchange.urls['api'] = exchange.urls['test']
 
-    # dump(green(exchange.id), 'fetching balance...')
-    # balance = exchange.fetch_balance()
     exchange.fetch_balance()
     dump(green(exchange.id), 'fetched balance')
 
     time.sleep(exchange.rateLimit / 1000)
 
-    if exchange.hasFetchOrders:
+    if exchange.has['fetchOrders']:
         try:
-            # dump(green(exchange.id), 'fetching orders...')
             orders = exchange.fetch_orders(symbol)
             dump(green(exchange.id), 'fetched', green(str(len(orders))), 'orders')
         except (ccxt.ExchangeError, ccxt.NotSupported) as e:
@@ -300,11 +305,11 @@ def test_exchange(exchange):
 # ------------------------------------------------------------------------------
 
 
-def try_all_proxies(exchange, proxies):
+def try_all_proxies(exchange, proxies=['']):
     current_proxy = 0
     max_retries = len(proxies)
     # a special case for ccex
-    if exchange.id == 'ccex':
+    if exchange.id == 'ccex' and max_retries > 1:
         current_proxy = 1
     for num_retries in range(0, max_retries):
         try:
@@ -313,7 +318,6 @@ def try_all_proxies(exchange, proxies):
             current_proxy = (current_proxy + 1) % len(proxies)
             load_exchange(exchange)
             test_exchange(exchange)
-            break
         except ccxt.RequestTimeout as e:
             dump_error(yellow('[' + type(e).__name__ + ']'), str(e)[0:200])
         except ccxt.NotSupported as e:
@@ -326,9 +330,14 @@ def try_all_proxies(exchange, proxies):
             dump_error(yellow('[' + type(e).__name__ + ']'), str(e)[0:200])
         except ccxt.ExchangeError as e:
             dump_error(yellow('[' + type(e).__name__ + ']'), str(e.args)[0:200])
+        else:
+            # no exception
+            return True
+    # exception
+    return False
+
 
 # ------------------------------------------------------------------------------
-
 
 proxies = [
     '',
@@ -337,8 +346,9 @@ proxies = [
 ]
 
 # prefer local testing keys to global keys
-keys_global = './keys.json'
-keys_local = './keys.local.json'
+keys_folder = os.path.dirname(root)
+keys_global = os.path.join(keys_folder, 'keys.json')
+keys_local = os.path.join(keys_folder, 'keys.local.json')
 keys_file = keys_local if os.path.exists(keys_local) else keys_global
 
 # load the api keys from config
@@ -351,15 +361,9 @@ for id in ccxt.exchanges:
     exchange_config = {'verbose': argv.verbose}
     if sys.version_info[0] < 3:
         exchange_config.update({'enableRateLimit': True})
+    if id in config:
+        exchange_config.update(config[id])
     exchanges[id] = exchange(exchange_config)
-
-# set up api keys appropriately
-tuples = list(ccxt.Exchange.keysort(config).items())
-for (id, params) in tuples:
-    if id in exchanges:
-        options = list(params.items())
-        for key in params:
-            setattr(exchanges[id], key, params[key])
 
 # ------------------------------------------------------------------------------
 
@@ -381,17 +385,14 @@ def main():
                 try_all_proxies(exchange, proxies)
 
     else:
-
-        tuples = list(ccxt.Exchange.keysort(exchanges).items())
-        for (id, params) in tuples:
-            if id in exchanges:
-                exchange = exchanges[id]
-                if hasattr(exchange, 'skip') and exchange.skip:
-                    dump(green(exchange.id), 'skipped')
-                else:
-                    try_all_proxies(exchange, proxies)
+        for exchange in sorted(exchanges.values(), key=lambda x: x.id):
+            if hasattr(exchange, 'skip') and exchange.skip:
+                dump(green(exchange.id), 'skipped')
+            else:
+                try_all_proxies(exchange, proxies)
 
 # ------------------------------------------------------------------------------
 
 
-main()
+if __name__ == '__main__':
+    main()

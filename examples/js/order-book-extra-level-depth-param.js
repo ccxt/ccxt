@@ -4,14 +4,14 @@ const ccxt = require ('../../ccxt')
 const asTable = require ('as-table')
 const log = require ('ololog')
 
-require ('ansicolor').nice;
+require ('ansicolor').nice
 
-(async function test () {
+;(async function test () {
 
     const exchange = new ccxt.bitfinex ()
-    const orders = await exchange.fetchOrderBook ('BTC/USD', {
-        'limit_bids': 5, // max = 50
-        'limit_asks': 5, // may be 0 in which case the array is empty
+    const limit = 5
+    const orders = await exchange.fetchOrderBook ('BTC/USD', limit, {
+        // this parameter is exchange-specific, all extra params have unique names per exchange
         'group': 1, // 1 = orders are grouped by price, 0 = orders are separate
     })
 

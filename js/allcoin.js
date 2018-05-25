@@ -1,19 +1,20 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const okcoinusd = require ('./okcoinusd.js')
+const okcoinusd = require ('./okcoinusd.js');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class allcoin extends okcoinusd {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'allcoin',
             'name': 'Allcoin',
             'countries': 'CA',
-            'hasCORS': false,
+            'has': {
+                'CORS': false,
+            },
             'extension': '',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/31561809-c316b37c-b061-11e7-8d5a-b547b4d730eb.jpg',
@@ -53,7 +54,6 @@ module.exports = class allcoin extends okcoinusd {
                     ],
                 },
             },
-            'markets': undefined,
         });
     }
 
@@ -67,16 +67,42 @@ module.exports = class allcoin extends okcoinusd {
                 let market = markets[k]['Market'];
                 let base = market['Primary'];
                 let quote = market['Secondary'];
-                let id = base.toLowerCase () + '_' + quote.toLowerCase ();
+                let baseId = base.toLowerCase ();
+                let quoteId = quote.toLowerCase ();
+                let id = baseId + '_' + quoteId;
                 let symbol = base + '/' + quote;
+                let active = market['TradeEnabled'] && market['BuyEnabled'] && market['SellEnabled'];
                 result.push ({
                     'id': id,
                     'symbol': symbol,
                     'base': base,
                     'quote': quote,
+                    'baseId': baseId,
+                    'quoteId': quoteId,
+                    'active': active,
                     'type': 'spot',
                     'spot': true,
                     'future': false,
+                    'maker': market['AskFeeRate'], // BidFeeRate 0, AskFeeRate 0.002, we use just the AskFeeRate here
+                    'taker': market['AskFeeRate'], // BidFeeRate 0, AskFeeRate 0.002, we use just the AskFeeRate here
+                    'precision': {
+                        'amount': market['PrimaryDigits'],
+                        'price': market['SecondaryDigits'],
+                    },
+                    'limits': {
+                        'amount': {
+                            'min': market['MinTradeAmount'],
+                            'max': market['MaxTradeAmount'],
+                        },
+                        'price': {
+                            'min': market['MinOrderPrice'],
+                            'max': market['MaxOrderPrice'],
+                        },
+                        'cost': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                    },
                     'info': market,
                 });
             }
@@ -85,15 +111,15 @@ module.exports = class allcoin extends okcoinusd {
     }
 
     parseOrderStatus (status) {
-        if (status == -1)
+        if (status === -1)
             return 'canceled';
-        if (status == 0)
+        if (status === 0)
             return 'open';
-        if (status == 1)
+        if (status === 1)
             return 'open'; // partially filled
-        if (status == 2)
+        if (status === 2)
             return 'closed';
-        if (status == 10)
+        if (status === 10)
             return 'canceled';
         return status;
     }
@@ -107,4 +133,4 @@ module.exports = class allcoin extends okcoinusd {
         // allcoin typo order instead of orders (expected based on their API docs)
         return 'order';
     }
-}
+};

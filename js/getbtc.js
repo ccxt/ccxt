@@ -1,13 +1,12 @@
-"use strict";
+'use strict';
 
 // ---------------------------------------------------------------------------
 
-const _1btcxe = require ('./_1btcxe.js')
+const _1btcxe = require ('./_1btcxe.js');
 
 // ---------------------------------------------------------------------------
 
 module.exports = class getbtc extends _1btcxe {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'getbtc',
@@ -20,10 +19,9 @@ module.exports = class getbtc extends _1btcxe {
                 'www': 'https://getbtc.org',
                 'doc': 'https://getbtc.org/api-docs.php',
             },
-            'markets': {
-                'BTC/EUR': { 'id': 'EUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'precision': { 'amount': 8, 'price': 8 }, 'lot': 0.00000001, 'limits': { 'amount': { 'min': 0.00000001, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }}},
-                'BTC/RUB': { 'id': 'RUB', 'symbol': 'BTC/RUB', 'base': 'BTC', 'quote': 'RUB', 'precision': { 'amount': 8, 'price': 8 }, 'lot': 0.00000001, 'limits': { 'amount': { 'min': 0.00000001, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }}},
-                'BTC/USD': { 'id': 'USD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'precision': { 'amount': 8, 'price': 8 }, 'lot': 0.00000001, 'limits': { 'amount': { 'min': 0.00000001, 'max': undefined }, 'price': { 'min': 0.00000001, 'max': undefined }}},
+            'has': {
+                'fetchTrades': false,
+                'fetchOHLCV': false,
             },
             'fees': {
                 'trading': {
@@ -31,6 +29,11 @@ module.exports = class getbtc extends _1btcxe {
                     'maker': 0.20 / 100,
                 },
             },
+            'markets': {
+                'BTC/USD': { 'lot': 1e-08, 'symbol': 'BTC/USD', 'quote': 'USD', 'base': 'BTC', 'precision': { 'amount': 8, 'price': 8 }, 'id': 'USD', 'limits': { 'amount': { 'max': undefined, 'min': 1e-08 }, 'price': { 'max': 'undefined', 'min': 1e-08 }}},
+                'BTC/EUR': { 'lot': 1e-08, 'symbol': 'BTC/EUR', 'quote': 'EUR', 'base': 'BTC', 'precision': { 'amount': 8, 'price': 8 }, 'id': 'EUR', 'limits': { 'amount': { 'max': undefined, 'min': 1e-08 }, 'price': { 'max': 'undefined', 'min': 1e-08 }}},
+                'BTC/RUB': { 'lot': 1e-08, 'symbol': 'BTC/RUB', 'quote': 'RUB', 'base': 'BTC', 'precision': { 'amount': 8, 'price': 8 }, 'id': 'RUB', 'limits': { 'amount': { 'max': undefined, 'min': 1e-08 }, 'price': { 'max': 'undefined', 'min': 1e-08 }}},
+            },
         });
     }
-}
+};

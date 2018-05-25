@@ -1,14 +1,13 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class therock extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'therock',
@@ -16,8 +15,10 @@ module.exports = class therock extends Exchange {
             'countries': 'MT',
             'rateLimit': 1000,
             'version': 'v1',
-            'hasCORS': false,
-            'hasFetchTickers': true,
+            'has': {
+                'CORS': false,
+                'fetchTickers': true,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg',
                 'api': 'https://api.therocktrading.com',
@@ -67,8 +68,30 @@ module.exports = class therock extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': 0.02 / 100,
+                    'maker': 0.2 / 100,
                     'taker': 0.2 / 100,
+                },
+                'funding': {
+                    'tierBased': false,
+                    'percentage': false,
+                    'withdraw': {
+                        'BTC': 0.0005,
+                        'BCH': 0.0005,
+                        'PPC': 0.02,
+                        'ETH': 0.001,
+                        'ZEC': 0.001,
+                        'LTC': 0.002,
+                        'EUR': 2.5,  // worst-case scenario: https://therocktrading.com/en/pages/fees
+                    },
+                    'deposit': {
+                        'BTC': 0,
+                        'BCH': 0,
+                        'PPC': 0,
+                        'ETH': 0,
+                        'ZEC': 0,
+                        'LTC': 0,
+                        'EUR': 0,
+                    },
                 },
             },
         });
@@ -81,7 +104,7 @@ module.exports = class therock extends Exchange {
             let market = markets['tickers'][p];
             let id = market['fund_id'];
             let base = id.slice (0, 3);
-            let quote = id.slice (3, 6);
+            let quote = id.slice (3);
             let symbol = base + '/' + quote;
             result.push ({
                 'id': id,
@@ -115,7 +138,7 @@ module.exports = class therock extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetFundsIdOrderbook (this.extend ({
             'id': this.marketId (symbol),
@@ -129,24 +152,27 @@ module.exports = class therock extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']),
-            'low': parseFloat (ticker['low']),
-            'bid': parseFloat (ticker['bid']),
-            'ask': parseFloat (ticker['ask']),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'bid'),
+            'bidVolume': undefined,
+            'ask': this.safeFloat (ticker, 'ask'),
+            'askVolume': undefined,
             'vwap': undefined,
-            'open': parseFloat (ticker['open']),
-            'close': parseFloat (ticker['close']),
-            'first': undefined,
-            'last': parseFloat (ticker['last']),
+            'open': this.safeFloat (ticker, 'open'),
+            'close': last,
+            'last': last,
+            'previousClose': this.safeFloat (ticker, 'close'), // previous day close, if any
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': parseFloat (ticker['volume_traded']),
-            'quoteVolume': parseFloat (ticker['volume']),
+            'baseVolume': this.safeFloat (ticker, 'volume_traded'),
+            'quoteVolume': this.safeFloat (ticker, 'volume'),
             'info': ticker,
         };
     }
@@ -205,7 +231,7 @@ module.exports = class therock extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        if (type == 'market')
+        if (type === 'market')
             price = 0;
         let response = await this.privatePostFundsFundIdOrders (this.extend ({
             'fund_id': this.marketId (symbol),
@@ -229,7 +255,7 @@ module.exports = class therock extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (api == 'private') {
+        if (api === 'private') {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             let auth = nonce + url;
@@ -252,4 +278,4 @@ module.exports = class therock extends Exchange {
             throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
     }
-}
+};

@@ -5,7 +5,7 @@ const ccxt      = require ('../../ccxt.js')
     , log       = require ('ololog').configure ({ locate: false })
     , verbose   = process.argv.includes ('--verbose')
 
-require ('ansicolor').nice;
+require ('ansicolor').nice
 
 //-----------------------------------------------------------------------------
 
@@ -66,7 +66,7 @@ let printTickers = async (id) => {
 
 //-----------------------------------------------------------------------------
 
-(async function main () {
+;(async function main () {
 
     if (process.argv.length > 2) {
 

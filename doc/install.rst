@@ -8,15 +8,15 @@ The easiest way to install the ccxt library is to use builtin package managers:
 
 This library is shipped as an all-in-one module implementation with minimalistic dependencies and requirements:
 
--  ```ccxt.js`` <https://github.com/kroitor/ccxt/blob/master/ccxt.js>`__ in JavaScript
--  ```./python/`` <https://github.com/kroitor/ccxt/blob/master/python/>`__ in Python (generated from JS)
--  ```ccxt.php`` <https://github.com/kroitor/ccxt/blob/master/ccxt.php>`__ in PHP (generated from JS)
+-  ```ccxt.js`` <https://github.com/ccxt/ccxt/blob/master/ccxt.js>`__ in JavaScript
+-  ```./python/`` <https://github.com/ccxt/ccxt/blob/master/python/>`__ in Python (generated from JS)
+-  ```ccxt.php`` <https://github.com/ccxt/ccxt/blob/master/ccxt.php>`__ in PHP (generated from JS)
 
-You can also clone it into your project directory from `ccxt GitHub repository <https://github.com/kroitor/ccxt>`__:
+You can also clone it into your project directory from `ccxt GitHub repository <https://github.com/ccxt/ccxt>`__:
 
 .. code:: shell
 
-    git clone https://github.com/kroitor/ccxt.git
+    git clone https://github.com/ccxt/ccxt.git
 
 An alternative way of installing this library into your code is to copy a single file manually into your working directory with language extension appropriate for your environment.
 
@@ -66,7 +66,7 @@ Python
     import ccxt
     print(ccxt.exchanges) # print a list of all available exchange classes
 
-The library supports concurrent asynchronous mode with asyncio and async/await in Python 3.5+
+The library supports concurrent asynchronous mode with asyncio and async/await in Python 3.5.3+
 
 .. code:: python
 
@@ -77,7 +77,7 @@ PHP
 
 The autoloadable version of ccxt can be installed with `**Packagist/Composer** <https://packagist.org/packages/ccxt/ccxt>`__ (PHP 5.3+).
 
-It can also be installed from the source code: `**``ccxt.php``** <https://raw.githubusercontent.com/kroitor/ccxt/master/php>`__
+It can also be installed from the source code: `**``ccxt.php``** <https://raw.githubusercontent.com/ccxt/ccxt/master/php>`__
 
 It requires common PHP modules:
 
@@ -89,12 +89,12 @@ It requires common PHP modules:
 .. code:: php
 
     include "ccxt.php";
-    var_dump (\cxxt\Exchange::$exchanges); // print a list of all available exchange classes
+    var_dump (\ccxt\Exchange::$exchanges); // print a list of all available exchange classes
 
 Proxy
 -----
 
-In some specific cases you may want a proxy, if you experience issues with `DDoS protection by Cloudflare <https://github.com/kroitor/ccxt/wiki/Manual#ddos-protection-by-cloudflare>`__ or your network / country / IP is rejected by their filters.
+In some specific cases you may want a proxy, if you experience issues with `DDoS protection by Cloudflare <https://github.com/ccxt/ccxt/wiki/Manual#ddos-protection-by-cloudflare>`__ or your network / country / IP is rejected by their filters.
 
 If you need a proxy, use the ``proxy`` property (a string literal) containing base URL of http(s) proxy. It is for use with web browsers and from blocked locations.
 
@@ -141,6 +141,100 @@ Or
       'http': 'http://10.10.1.10:3128',
       'https': 'http://10.10.1.10:1080',
     }
+
+Python 2 and 3 sync proxies
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+-  https://github.com/ccxt/ccxt/blob/master/examples/py/proxy-sync-python-requests-2-and-3.py
+
+.. code:: python
+
+    # -*- coding: utf-8 -*-
+
+    import os
+    import sys
+    import ccxt
+    from pprint import pprint
+
+
+    exchange = ccxt.poloniex({
+        #
+        # ↓ The "proxy" property setting below is for CORS-proxying only!
+        # Do not use it if you don't know what a CORS proxy is.
+        # https://github.com/ccxt/ccxt/wiki/Install#cors-access-control-allow-origin
+        # You should only use the "proxy" setting if you're having a problem with Access-Control-Allow-Origin
+        # In Python you rarely need to use it, if ever at all.
+        #
+        # 'proxy': 'https://cors-anywhere.herokuapp.com/',
+        #
+        # ↓ On the other hand, the "proxies" setting is for HTTP(S)-proxying (SOCKS, etc...)
+        # It is a standard method of sending your requests through your proxies
+        # This gets passed to the `python-requests` implementation directly
+        # You can also enable this with environment variables, as described here:
+        # http://docs.python-requests.org/en/master/user/advanced/#proxies
+        # This is the setting you should be using with synchronous version of ccxt in Python 2 and 3
+        #
+        'proxies': {
+            'http': 'http://10.10.1.10:3128',
+            'https': 'http://10.10.1.10:1080',
+        },
+    })
+
+    # your code goes here...
+
+    pprint(exchange.fetch_ticker('ETH/BTC'))
+
+Python 3.5+ asyncio/aiohttp proxy
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+-  https://github.com/ccxt/ccxt/blob/master/examples/py/proxy-asyncio-aiohttp-python-3.py
+
+.. code:: python
+
+    # -*- coding: utf-8 -*-
+
+    import asyncio
+    import os
+    import sys
+    import ccxt.async as ccxt
+    from pprint import pprint
+
+
+    async def test_gdax():
+
+        exchange = ccxt.poloniex({
+            #
+            # ↓ The "proxy" property setting below is for CORS-proxying only!
+            # Do not use it if you don't know what a CORS proxy is.
+            # https://github.com/ccxt/ccxt/wiki/Install#cors-access-control-allow-origin
+            # You should only use the "proxy" setting if you're having a problem with Access-Control-Allow-Origin
+            # In Python you rarely need to use it, if ever at all.
+            #
+            # 'proxy': 'https://cors-anywhere.herokuapp.com/',
+            #
+            # ↓ The "aiohttp_proxy" setting is for HTTP(S)-proxying (SOCKS, etc...)
+            # It is a standard method of sending your requests through your proxies
+            # This gets passed to the `asyncio` and `aiohttp` implementation directly
+            # You can use this setting as documented here:
+            # https://docs.aiohttp.org/en/stable/client_advanced.html#proxy-support
+            # This is the setting you should be using with async version of ccxt in Python 3.5+
+            #
+            'aiohttp_proxy': 'http://proxy.com',
+            # 'aiohttp_proxy': 'http://user:pass@some.proxy.com',
+            # 'aiohttp_proxy': 'http://10.10.1.10:3128',
+        })
+
+        # your code goes here...
+
+        ticker = await exchange.fetch_ticker('ETH/BTC')
+
+        # don't forget to free the used resources, when you don't need them anymore
+        await exchange.close()
+
+        return ticker
+
+    if __name__ == '__main__':
+        pprint(asyncio.get_event_loop().run_until_complete(test_gdax()))
 
 A more detailed documentation on using proxies with the sync python version of the ccxt library can be found here:
 

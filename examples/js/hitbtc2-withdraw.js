@@ -4,7 +4,7 @@ const ccxt      = require ('../../ccxt.js')
 const asTable   = require ('as-table')
 const log       = require ('ololog').configure ({ locate: false })
 
-require ('ansicolor').nice;
+require ('ansicolor').nice
 
 const getPositiveAccounts = function (balance) {
     const result = {}
@@ -54,7 +54,7 @@ const getPositiveAccounts = function (balance) {
         } else if (e instanceof ccxt.NetworkError) {
             log.bright.yellow ('[Network Error] ' + e.message)
         } else {
-            throw e;
+            throw e
         }
     }
 

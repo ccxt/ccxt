@@ -1,19 +1,20 @@
-"use strict";
+'use strict';
 
 // ---------------------------------------------------------------------------
 
-const fybse = require ('./fybse.js')
+const fybse = require ('./fybse.js');
 
 // ---------------------------------------------------------------------------
 
 module.exports = class fybsg extends fybse {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'fybsg',
             'name': 'FYB-SG',
             'countries': 'SG', // Singapore
-            'hasCORS': false,
+            'has': {
+                'CORS': false,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766513-3364d56a-5edb-11e7-9e6b-d5898bb89c81.jpg',
                 'api': 'https://www.fybsg.com/api/SGD',
@@ -25,4 +26,4 @@ module.exports = class fybsg extends fybse {
             },
         });
     }
-}
+};

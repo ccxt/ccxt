@@ -1,23 +1,24 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange')
-const { ExchangeError } = require ('./base/errors')
+const Exchange = require ('./base/Exchange');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class bitmarket extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitmarket',
             'name': 'BitMarket',
             'countries': [ 'PL', 'EU' ],
             'rateLimit': 1500,
-            'hasCORS': false,
-            'hasFetchOHLCV': true,
-            'hasWithdraw': true,
+            'has': {
+                'CORS': false,
+                'fetchOHLCV': true,
+                'withdraw': true,
+            },
             'timeframes': {
                 '90m': '90m',
                 '6h': '6h',
@@ -196,17 +197,11 @@ module.exports = class bitmarket extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let orderbook = await this.publicGetJsonMarketOrderbook (this.extend ({
             'market': this.marketId (symbol),
         }, params));
-        let timestamp = this.milliseconds ();
-        return {
-            'bids': orderbook['bids'],
-            'asks': orderbook['asks'],
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-        };
+        return this.parseOrderBook (orderbook);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -214,22 +209,25 @@ module.exports = class bitmarket extends Exchange {
             'market': this.marketId (symbol),
         }, params));
         let timestamp = this.milliseconds ();
-        let vwap = parseFloat (ticker['vwap']);
-        let baseVolume = parseFloat (ticker['volume']);
+        let vwap = this.safeFloat (ticker, 'vwap');
+        let baseVolume = this.safeFloat (ticker, 'volume');
         let quoteVolume = baseVolume * vwap;
+        let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']),
-            'low': parseFloat (ticker['low']),
-            'bid': parseFloat (ticker['bid']),
-            'ask': parseFloat (ticker['ask']),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'bid'),
+            'bidVolume': undefined,
+            'ask': this.safeFloat (ticker, 'ask'),
+            'askVolume': undefined,
             'vwap': vwap,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
@@ -240,7 +238,7 @@ module.exports = class bitmarket extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let side = (trade['type'] == 'bid') ? 'buy' : 'sell';
+        let side = (trade['type'] === 'bid') ? 'buy' : 'sell';
         let timestamp = trade['date'] * 1000;
         return {
             'id': trade['tid'].toString (),
@@ -305,14 +303,15 @@ module.exports = class bitmarket extends Exchange {
     }
 
     isFiat (currency) {
-        if (currency == 'EUR')
+        if (currency === 'EUR')
             return true;
-        if (currency == 'PLN')
+        if (currency === 'PLN')
             return true;
         return false;
     }
 
-    async withdraw (currency, amount, address, params = {}) {
+    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
         await this.loadMarkets ();
         let method = undefined;
         let request = {
@@ -329,13 +328,13 @@ module.exports = class bitmarket extends Exchange {
             if ('account2' in params) {
                 request['account2'] = params['account2']; // bank SWIFT code (EUR only)
             } else {
-                if (currency == 'EUR')
+                if (currency === 'EUR')
                     throw new ExchangeError (this.id + ' requires account2 parameter to withdraw EUR');
             }
             if ('withdrawal_note' in params) {
                 request['withdrawal_note'] = params['withdrawal_note']; // a 10-character user-specified withdrawal note (PLN only)
             } else {
-                if (currency == 'PLN')
+                if (currency === 'PLN')
                     throw new ExchangeError (this.id + ' requires withdrawal_note parameter to withdraw PLN');
             }
         } else {
@@ -351,7 +350,7 @@ module.exports = class bitmarket extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
-        if (api == 'public') {
+        if (api === 'public') {
             url += '/' + this.implodeParams (path + '.json', params);
         } else {
             this.checkRequiredCredentials ();
@@ -368,4 +367,4 @@ module.exports = class bitmarket extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-}
+};

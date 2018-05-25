@@ -1,0 +1,47 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>CCXT Basic example for the browser</title>
+    <script type="text/javascript" src="https://unpkg.com/ccxt"></script>
+    <style type="text/css">
+        #contentA { background-color: #ccccff; }
+        #contentB { background-color: #ffcccc; }
+    </style>
+    <script>'use strict'
+
+        class MyExchange extends ccxt.gdax {
+
+            async fetchTicker (symbol, params = {}) {
+                alert ("I'm about to call the parent method from the overrided class, woohooo!")
+                // just call the parent method and that's it
+                return super.fetchTicker (symbol, params);
+            }
+        }
+
+        document.addEventListener ("DOMContentLoaded", function () {
+
+            const exchange = new MyExchange ()
+
+            const symbol = 'ETH/BTC'
+
+            const showFetchedTicker = function (ticker, elementId) {
+
+                const text = [
+                    exchange.id,
+                    symbol,
+                    JSON.stringify (ticker, undefined, '\n\t')
+                ]
+
+                document.getElementById (elementId).innerHTML = text.join (' ')
+
+            }
+
+            exchange.fetchTicker (symbol).then (ticker => showFetchedTicker (ticker, 'content'))
+        })
+    </script>
+</head>
+<body>
+<h1>Hello, CCXT!</h1>
+<pre id="content"></pre>
+</body>
+</html>

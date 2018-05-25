@@ -9,7 +9,7 @@
 
             alert ('ccxt version ' + ccxt.version + ' supporting '+ ccxt.exchanges.length.toString () + ' exchanges');
 
-            const exchange = new ccxt.poloniex ()
+            const exchange = new ccxt.gdax ()
             const symbol = 'ETH/BTC'
 
             exchange.fetchTicker (symbol).then (ticker => {
@@ -21,6 +21,16 @@
                 ]
 
                 document.getElementById ('content').innerHTML = text.join (' ')
+
+            }).catch (e => {
+
+                const text = [
+                    e.constructor.name,
+                    e.message,
+                ]
+
+                document.getElementById ('content').innerHTML = text.join (' ')
+
             })
 
         })

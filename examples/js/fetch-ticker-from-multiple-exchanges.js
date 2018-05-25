@@ -21,11 +21,11 @@ const ccxt = require ('../../ccxt.js')
             while (true) {
 
                 const ticker = await exchange.fetchTicker (symbol)
-                tickers[exchangeId] = ticker;
+                tickers[exchangeId] = ticker
 
                 Object.keys (tickers).map (exchangeId => {
                     const ticker = tickers[exchangeId]
-                    console.log (ticker['datetime'], exchangeId, ticker['bid'], ticker['ask']);
+                    console.log (ticker['datetime'], exchangeId, ticker['bid'], ticker['ask'])
                 })
             }
 
