@@ -144,6 +144,8 @@ async function main () {
                 return undefined
             if (param[0] === '{' || param[0] === '[')
                 return JSON.parse (param)
+            if (param.match (/[0-9]{4}[-]?[0-9]{2}[-]?[0-9]{2}[T\s]?[0-9]{2}[:]?[0-9]{2}[:]?[0-9]{2}/g))
+                return exchange.parse8601 (param)
             if (param.match (/[a-zA-Z-]/g))
                 return param
             if (param.match (/^[+0-9\.-]+$/))
