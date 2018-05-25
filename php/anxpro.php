@@ -213,7 +213,8 @@ class anxpro extends Exchange {
             $nonce = $this->nonce ();
             $body = $this->urlencode (array_merge (array ( 'nonce' => $nonce ), $query));
             $secret = base64_decode ($this->secret);
-            $auth = $request . '\0' . $body;
+            // eslint-disable-next-line quotes
+            $auth = $request . "\0" . $body;
             $signature = $this->hmac ($this->encode ($auth), $secret, 'sha512', 'base64');
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',

@@ -560,7 +560,6 @@ module.exports = class bitfinex extends Exchange {
         if ((type === 'limit') || (type === 'market'))
             orderType = 'exchange ' + type;
         amount = this.amountToPrecision (symbol, amount);
-        price = this.priceToPrecision (symbol, price);
         let order = {
             'symbol': this.marketId (symbol),
             'amount': amount,
@@ -573,7 +572,7 @@ module.exports = class bitfinex extends Exchange {
         if (type === 'market') {
             order['price'] = this.nonce ().toString ();
         } else {
-            order['price'] = price;
+            order['price'] = this.priceToPrecision (symbol, price);
         }
         let result = await this.privatePostOrderNew (this.extend (order, params));
         return this.parseOrder (result);

@@ -419,6 +419,8 @@ class bitstamp (Exchange):
             market = self.market(symbol)
             request['pair'] = market['id']
             method += 'Pair'
+        if limit is not None:
+            request['limit'] = limit
         response = getattr(self, method)(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 

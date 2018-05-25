@@ -133,6 +133,9 @@ module.exports = class bitmex extends Exchange {
                 'Invalid API Key.': AuthenticationError,
                 'Access Denied': PermissionDenied,
             },
+            'options': {
+                'fetchTickerQuotes': true,
+            },
         });
     }
 
@@ -306,9 +309,15 @@ module.exports = class bitmex extends Exchange {
             'count': 1,
             'reverse': true,
         }, params);
-        let quotes = await this.publicGetQuoteBucketed (request);
-        let quotesLength = quotes.length;
-        let quote = quotes[quotesLength - 1];
+        let bid = undefined;
+        let ask = undefined;
+        if (this.options['fetchTickerQuotes']) {
+            let quotes = await this.publicGetQuoteBucketed (request);
+            let quotesLength = quotes.length;
+            let quote = quotes[quotesLength - 1];
+            bid = this.safeFloat (quote, 'bidPrice');
+            ask = this.safeFloat (quote, 'askPrice');
+        }
         let tickers = await this.publicGetTradeBucketed (request);
         let ticker = tickers[0];
         let timestamp = this.milliseconds ();
@@ -321,9 +330,9 @@ module.exports = class bitmex extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'high': this.safeFloat (ticker, 'high'),
             'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (quote, 'bidPrice'),
+            'bid': bid,
             'bidVolume': undefined,
-            'ask': this.safeFloat (quote, 'askPrice'),
+            'ask': ask,
             'askVolume': undefined,
             'vwap': this.safeFloat (ticker, 'vwap'),
             'open': open,

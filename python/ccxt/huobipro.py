@@ -61,6 +61,7 @@ class huobipro (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
                 'api': 'https://api.huobipro.com',
                 'www': 'https://www.huobipro.com',
+                'referral': 'https://www.huobi.br.com/en-us/topic/invited/?invite_code=rwrd3',
                 'doc': 'https://github.com/huobiapi/API_Docs/wiki/REST_api_reference',
                 'fees': 'https://www.huobipro.com/about/fee/',
             },
@@ -134,6 +135,8 @@ class huobipro (Exchange):
             'options': {
                 'createMarketBuyOrderRequiresPrice': True,
                 'fetchMarketsMethod': 'publicGetCommonSymbols',
+                'fetchBalanceMethod': 'privateGetHadaxAccountAccountsIdBalance',
+                'createOrderMethod': 'privatePostOrderOrdersPlace',
                 'language': 'en-US',
             },
         })
@@ -463,7 +466,8 @@ class huobipro (Exchange):
     def fetch_balance(self, params={}):
         self.load_markets()
         self.load_accounts()
-        response = self.privateGetAccountAccountsIdBalance(self.extend({
+        method = self.options['fetchBalanceMethod']
+        response = getattr(self, method)(self.extend({
             'id': self.accounts[0]['id'],
         }, params))
         balances = response['data']['list']
@@ -589,7 +593,8 @@ class huobipro (Exchange):
                     order['amount'] = self.price_to_precision(symbol, float(amount) * float(price))
         if type == 'limit':
             order['price'] = self.price_to_precision(symbol, price)
-        response = self.privatePostOrderOrdersPlace(self.extend(order, params))
+        method = self.options['createOrderMethod']
+        response = getattr(self, method)(self.extend(order, params))
         timestamp = self.milliseconds()
         return {
             'info': response,

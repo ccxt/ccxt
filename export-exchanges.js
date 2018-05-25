@@ -125,6 +125,7 @@ let sleep = async ms => await new Promise (resolve => setTimeout (resolve, ms))
 let values = Object.values (exchanges).map (exchange => {
     let logo = exchange.urls['logo']
     let website = Array.isArray (exchange.urls.www) ? exchange.urls.www[0] : exchange.urls.www
+    let url = exchange.urls.referral || website
     let countries = Array.isArray (exchange.countries) ? exchange.countries.map (countryName).join (', ') : countryName (exchange.countries)
     let doc = Array.isArray (exchange.urls.doc) ? exchange.urls.doc[0] : exchange.urls.doc
     let version = exchange.version ? exchange.version : '\*'
@@ -134,7 +135,7 @@ let values = Object.values (exchanges).map (exchange => {
     return {
         '': '![' + exchange.id + '](' + logo + ')',
         'id': exchange.id,
-        'name': '[' + exchange.name + '](' + website + ')',
+        'name': '[' + exchange.name + '](' + url + ')',
         'ver': version,
         'doc': '[API](' + doc + ')',
         'countries': countries,
@@ -183,6 +184,7 @@ Object.keys (countries).forEach (code => {
         let exchange = exchanges[id]
         let logo = exchange.urls['logo']
         let website = Array.isArray (exchange.urls.www) ? exchange.urls.www[0] : exchange.urls.www
+        let url = exchange.urls.referral || website
         let doc = Array.isArray (exchange.urls.doc) ? exchange.urls.doc[0] : exchange.urls.doc
         let version = exchange.version ? exchange.version : '\*'
         let matches = version.match (/[^0-9]*([0-9].*)/)
@@ -201,7 +203,7 @@ Object.keys (countries).forEach (code => {
                 'country / region': country,
                 'logo': ' ![' + exchange.id + '](' + logo + ') ',
                 'id': exchange.id,
-                'name': '[' + exchange.name + '](' + website + ')',
+                'name': '[' + exchange.name + '](' + url + ')',
                 'ver': version,
                 'doc': ' [API](' + doc + ') ',
             })

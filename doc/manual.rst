@@ -196,17 +196,17 @@ The ccxt library currently supports the following 115 cryptocurrency exchange ma
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |getbtc|               | getbtc               | `GetBTC <https://getbtc.org>`__                                                   | \*    | `API <https://getbtc.org/api-docs.php>`__                                                         | St. Vincent & Grenadines, Russia           |
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
-| |hadax|                | hadax                | `HADAX <https://www.hadax.com>`__                                                 | 1     | `API <https://github.com/huobiapi/API_Docs/wiki>`__                                               | China                                      |
+| |hadax|                | hadax                | `HADAX <https://www.huobi.br.com/en-us/topic/invited/?invite_code=rwrd3>`__       | 1     | `API <https://github.com/huobiapi/API_Docs/wiki>`__                                               | China                                      |
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
-| |hitbtc|               | hitbtc               | `HitBTC <https://hitbtc.com>`__                                                   | 1     | `API <https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv1.md>`__                           | Hong Kong                                  |
+| |hitbtc|               | hitbtc               | `HitBTC <https://hitbtc.com/?ref_id=5a5d39a65d466>`__                             | 1     | `API <https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv1.md>`__                           | Hong Kong                                  |
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |hitbtc2|              | hitbtc2              | `HitBTC v2 <https://hitbtc.com/?ref_id=5a5d39a65d466>`__                          | 2     | `API <https://api.hitbtc.com>`__                                                                  | Hong Kong                                  |
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |huobi|                | huobi                | `Huobi <https://www.huobi.com>`__                                                 | 3     | `API <https://github.com/huobiapi/API_Docs_en/wiki>`__                                            | China                                      |
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
-| |huobicny|             | huobicny             | `Huobi CNY <https://www.huobi.com>`__                                             | 1     | `API <https://github.com/huobiapi/API_Docs/wiki/REST_api_reference>`__                            | China                                      |
+| |huobicny|             | huobicny             | `Huobi CNY <https://www.huobi.br.com/en-us/topic/invited/?invite_code=rwrd3>`__   | 1     | `API <https://github.com/huobiapi/API_Docs/wiki/REST_api_reference>`__                            | China                                      |
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
-| |huobipro|             | huobipro             | `Huobi Pro <https://www.huobipro.com>`__                                          | 1     | `API <https://github.com/huobiapi/API_Docs/wiki/REST_api_reference>`__                            | China                                      |
+| |huobipro|             | huobipro             | `Huobi Pro <https://www.huobi.br.com/en-us/topic/invited/?invite_code=rwrd3>`__   | 1     | `API <https://github.com/huobiapi/API_Docs/wiki/REST_api_reference>`__                            | China                                      |
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |ice3x|                | ice3x                | `ICE3X <https://ice3x.com>`__                                                     | \*    | `API <https://ice3x.co.za/ice-cubed-bitcoin-exchange-api-documentation-1-june-2017>`__            | South Africa                               |
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -2000,8 +2000,6 @@ Market price orders are also known as *spot price orders*, *instant orders* or s
 
 The exchange will close your market order for the best price available. You are not guaranteed though, that the order will be executed for the price you observe prior to placing your order. There can be a slight change of the price for the traded market while your order is being executed, also known as *price slippage*. The price can slip because of networking roundtrip latency, high loads on the exchange, price volatility and other factors. When placing a market order you don't need to specify the price of the order.
 
-Note, that some exchanges will not accept market orders (they allow limit orders only).
-
 ::
 
     // camelCaseNotation
@@ -2011,6 +2009,32 @@ Note, that some exchanges will not accept market orders (they allow limit orders
     // underscore_notation
     exchange.create_market_buy_order (symbol, amount[, params])
     exchange.create_market_sell_order (symbol, amount[, params])
+
+**Note, that some exchanges will not accept market orders (they allow limit orders only).** In order to detect programmatically if the exchange in question does support market orders or not, you can use the ``.has['createMarketOrder']`` exchange property:
+
+.. code:: javascript
+
+    // JavaScript
+    if (exchange.has['createMarketOrder']) {
+        ...
+    }
+
+.. code:: python
+
+    # Python
+    if exchange.has['createMarketOrder']:
+        ...
+
+.. code:: php
+
+    // PHP
+    if ($exchange->has['createMarketOrder']) {
+        ...
+    }
+
+It is also possible to emulate a ``market`` order with a ``limit`` order. **WARNING this method can be risky due to high volatility, use it at your own risk and only use it when you know really well what you're doing!**. Most of the time a ``market sell`` can be emulated with a ``limit sell`` at a very low price – the exchange will automatically make it a taker order for market price (the price that is currently in your best interest from the ones that are available in the order book). When the exchange detects that you're selling for a very low price it will automatically offer you the best buyer price available from the order book. That is effectively the same as placing a market sell order. Thus market orders can be emulated with limit orders (where missing). The opposite is also true – a ``market buy`` can be emulated with a ``limit buy`` for a very high price. Most exchanges will again close your order for best available price, that is, the market price.
+
+However, you should never rely on that entirely, **ALWAYS test it with a small amount first!**. You can try that in their web interface first to verify the logic. You can sell the minimal amount at a specified limit price (an affordable amount to lose, just in case) and then check the actual filling price in trade history.
 
 Limit Orders
 ^^^^^^^^^^^^
