@@ -120,6 +120,8 @@ module.exports = class huobipro extends Exchange {
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
                 'fetchMarketsMethod': 'publicGetCommonSymbols',
+                'fetchBalanceMethod': 'privateGetHadaxAccountAccountsIdBalance',
+                'createOrderMethod': 'privatePostOrderOrdersPlace',
                 'language': 'en-US',
             },
         });
@@ -482,7 +484,8 @@ module.exports = class huobipro extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         await this.loadAccounts ();
-        let response = await this.privateGetAccountAccountsIdBalance (this.extend ({
+        let method = this.options['fetchBalanceMethod'];
+        let response = await this[method] (this.extend ({
             'id': this.accounts[0]['id'],
         }, params));
         let balances = response['data']['list'];
@@ -625,7 +628,8 @@ module.exports = class huobipro extends Exchange {
         }
         if (type === 'limit')
             order['price'] = this.priceToPrecision (symbol, price);
-        let response = await this.privatePostOrderOrdersPlace (this.extend (order, params));
+        let method = this.options['createOrderMethod'];
+        let response = await this[method] (this.extend (order, params));
         let timestamp = this.milliseconds ();
         return {
             'info': response,
