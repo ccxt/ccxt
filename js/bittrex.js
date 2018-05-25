@@ -489,8 +489,17 @@ module.exports = class bittrex extends Exchange {
         let orderIdField = this.getOrderIdField ();
         let request = {};
         request[orderIdField] = id;
-        let response = await this.marketGetCancel (this.extend (request, params));
-        return response;
+        try {
+            let response = await this.marketGetCancel (this.extend (request, params));
+            return response;
+        } catch (e) {
+            if (this.last_json_response) {
+                let message = this.safeString (this.last_json_response, 'message');
+                if (message === 'INVALID_ORDER')
+                    throw new OrderNotFound (this.id + ' cancelOrder() reported order ' + id + ' is invalid');
+            }
+            throw e;
+        }
     }
 
     parseSymbol (id) {
