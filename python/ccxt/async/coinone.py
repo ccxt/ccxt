@@ -267,10 +267,10 @@ class coinone (Exchange):
             self.check_required_credentials()
             url += self.version + '/' + request
             nonce = str(self.nonce())
-            json = self.json({
+            json = self.json(self.extend({
                 'access_token': self.apiKey,
                 'nonce': nonce,
-            })
+            }, params))
             payload = base64.b64encode(self.encode(json))
             body = self.decode(payload)
             secret = self.secret.upper()
