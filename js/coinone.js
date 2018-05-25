@@ -276,10 +276,10 @@ module.exports = class coinone extends Exchange {
             this.checkRequiredCredentials ();
             url += this.version + '/' + request;
             let nonce = this.nonce ().toString ();
-            let json = this.json ({
+            let json = this.json (this.extend ({
                 'access_token': this.apiKey,
                 'nonce': nonce,
-            });
+            }, params));
             let payload = this.stringToBase64 (this.encode (json));
             body = this.decode (payload);
             let secret = this.secret.toUpperCase ();
