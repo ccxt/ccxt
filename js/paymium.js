@@ -165,7 +165,6 @@ module.exports = class paymium extends Exchange {
             'direction': side,
             'amount': amount,
         };
-
         if (type !== 'market')
             order['price'] = price;
         let response = await this.privatePostUserOrders (this.extend (order, params));
@@ -177,7 +176,7 @@ module.exports = class paymium extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privateDeleteUserOrdersUUIDCancel (this.extend ({
-            'UUID': uuid,
+            'UUID': id,
         }, params));
     }
 
