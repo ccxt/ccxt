@@ -277,10 +277,10 @@ class coinone extends Exchange {
             $this->check_required_credentials();
             $url .= $this->version . '/' . $request;
             $nonce = (string) $this->nonce ();
-            $json = $this->json (array (
+            $json = $this->json (array_merge (array (
                 'access_token' => $this->apiKey,
                 'nonce' => $nonce,
-            ));
+            ), $params));
             $payload = base64_encode ($this->encode ($json));
             $body = $this->decode ($payload);
             $secret = strtoupper ($this->secret);
