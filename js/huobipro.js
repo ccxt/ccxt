@@ -120,7 +120,7 @@ module.exports = class huobipro extends Exchange {
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
                 'fetchMarketsMethod': 'publicGetCommonSymbols',
-                'fetchBalanceMethod': 'privateGetHadaxAccountAccountsIdBalance',
+                'fetchBalanceMethod': 'privateGetAccountAccountsIdBalance',
                 'createOrderMethod': 'privatePostOrderOrdersPlace',
                 'language': 'en-US',
             },
