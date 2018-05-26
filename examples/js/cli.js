@@ -3,11 +3,13 @@
 //-----------------------------------------------------------------------------
 
 const [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x => !x.startsWith ('--'))
-const verbose = process.argv.includes ('--verbose')
-const cloudscrape = process.argv.includes ('--cloudscrape')
-const cfscrape = process.argv.includes ('--cfscrape')
-const poll = process.argv.includes ('--poll')
-const loadMarkets = process.argv.includes ('--load-markets')
+    , verbose = process.argv.includes ('--verbose')
+    , cloudscrape = process.argv.includes ('--cloudscrape')
+    , cfscrape = process.argv.includes ('--cfscrape')
+    , poll = process.argv.includes ('--poll')
+    , loadMarkets = process.argv.includes ('--load-markets')
+    , no_details = process.argv.includes ('--no-details')
+    , no_table = process.argv.includes ('--no-table')
 
 //-----------------------------------------------------------------------------
 
@@ -106,20 +108,40 @@ let printSupportedExchanges = function () {
 
 //-----------------------------------------------------------------------------
 
-const printHumanReadable = (result) => {
+const printHumanReadable = (exchange, result) => {
 
     if (Array.isArray (result)) {
 
         let arrayOfObjects = (typeof result[0] === 'object')
 
-        result.forEach (object => {
-            if (arrayOfObjects)
-                log ('-------------------------------------------')
-            log (object)
-        })
+        if (!no_details)
+            result.forEach (object => {
+                if (arrayOfObjects)
+                    log ('-------------------------------------------')
+                log (object)
+            })
 
-        if (arrayOfObjects)
-            log (result.length > 0 ? asTable (result) : result)
+        if (!no_table)
+            if (arrayOfObjects) {
+                log (result.length > 0 ? asTable (result.map (element => {
+                    Object.keys (element).forEach (key => {
+                        if (typeof element[key] === 'number') {
+                            try {
+                                const iso8601 = exchange.iso8601 (element[key])
+                                // log.red (iso8601)
+                                // process.exit ()
+                                if (iso8601.match ('/^20[0-9]{2}[-]?'))
+                                    element[key] = iso8601
+                                else
+                                    throw new Error ('wrong date')
+                            } catch (e) {
+                                return element[key]
+                            }
+                        }
+                    })
+                    return element
+                })) : result)
+            }
 
     } else {
 
@@ -173,7 +195,7 @@ async function main () {
                 try {
 
                     const result = await exchange[methodName] (... args)
-                    printHumanReadable (result)
+                    printHumanReadable (exchange, result)
 
                 } catch (e) {
 
@@ -204,7 +226,7 @@ async function main () {
 
         } else {
 
-            printHumanReadable (exchange[methodName])
+            printHumanReadable (exchange, exchange[methodName])
         }
     }
 }
