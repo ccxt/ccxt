@@ -34,6 +34,7 @@ class exmo (Exchange):
             'has': {
                 'CORS': False,
                 'fetchClosedOrders': 'emulated',
+                'fetchDepositAddress': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': 'emulated',
                 'fetchOrders': 'emulated',
@@ -512,6 +513,26 @@ class exmo (Exchange):
             'trades': trades,
             'fee': fee,
             'info': order,
+        }
+
+    async def fetch_deposit_address(self, code, params={}):
+        await self.load_markets()
+        response = await self.privatePostDepositAddress(params)
+        depositAddress = self.safe_string(response, code)
+        status = 'ok'
+        address = None
+        tag = None
+        if depositAddress:
+            addressAndTag = depositAddress.split(',')
+            address = addressAndTag[0]
+            tag = addressAndTag[1]
+        self.check_address(address)
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'status': status,
+            'info': response,
         }
 
     def get_market_from_trades(self, trades):
