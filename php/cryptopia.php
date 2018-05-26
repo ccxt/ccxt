@@ -22,6 +22,7 @@ class cryptopia extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchMyTrades' => true,
+                'fetchOHLCV' => true,
                 'fetchOrder' => 'emulated',
                 'fetchOrderBooks' => true,
                 'fetchOrders' => 'emulated',
@@ -32,7 +33,11 @@ class cryptopia extends Exchange {
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/29484394-7b4ea6e2-84c6-11e7-83e5-1fccf4b2dc81.jpg',
-                'api' => 'https://www.cryptopia.co.nz/api',
+                'api' => array (
+                    'public' => 'https://www.cryptopia.co.nz/api',
+                    'private' => 'https://www.cryptopia.co.nz/api',
+                    'web' => 'https://www.cryptopia.co.nz',
+                ),
                 'www' => 'https://www.cryptopia.co.nz',
                 'referral' => 'https://www.cryptopia.co.nz/Register?referrer=kroitor',
                 'doc' => array (
@@ -41,7 +46,22 @@ class cryptopia extends Exchange {
                     'https://www.cryptopia.co.nz/Forum/Thread/256',
                 ),
             ),
+            'timeframes' => array (
+                '15m' => 15,
+                '30m' => 30,
+                '1h' => 60,
+                '2h' => 120,
+                '4h' => 240,
+                '12h' => 720,
+                '1d' => 1440,
+                '1w' => 10080,
+            ),
             'api' => array (
+                'web' => array (
+                    'get' => array (
+                        'Exchange/GetTradePairChart',
+                    ),
+                ),
                 'public' => array (
                     'get' => array (
                         'GetCurrencies',
@@ -162,6 +182,43 @@ class cryptopia extends Exchange {
         ), $params));
         $orderbook = $response['Data'];
         return $this->parse_order_book($orderbook, null, 'Buy', 'Sell', 'Price', 'Volume');
+    }
+
+    public function fetch_ohlcv ($symbol, $timeframe = '15m', $since = null, $limit = null, $params = array ()) {
+        $dataRange = 0;
+        if ($since !== null) {
+            $dataRanges = array (
+                86400,
+                172800,
+                604800,
+                1209600,
+                2592000,
+                7776000,
+                15552000,
+            );
+            $numDataRanges = is_array ($dataRanges) ? count ($dataRanges) : 0;
+            $now = $this->seconds ();
+            $sinceSeconds = intval ($since / 1000);
+            for ($i = 1; $i < $numDataRanges; $i++) {
+                if (($now - $sinceSeconds) > $dataRanges[$i]) {
+                    $dataRange = $i;
+                }
+            }
+        }
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array (
+            'tradePairId' => $market['id'],
+            'dataRange' => $dataRange,
+            'dataGroup' => $this->timeframes[$timeframe],
+        );
+        $response = $this->webGetExchangeGetTradePairChart (array_merge ($request, $params));
+        $candles = $response['Candle'];
+        $volumes = $response['Volume'];
+        for ($i = 0; $i < count ($candles); $i++) {
+            $candles[$i][] = $volumes[$i]['basev'];
+        }
+        return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
     }
 
     public function join_market_ids ($ids, $glue = '-') {
@@ -647,12 +704,9 @@ class cryptopia extends Exchange {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'] . '/' . $this->implode_params($path, $params);
+        $url = $this->urls['api'][$api] . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
-        if ($api === 'public') {
-            if ($query)
-                $url .= '?' . $this->urlencode ($query);
-        } else {
+        if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             $body = $this->json ($query, array ( 'convertArraysToObjects' => true ));
@@ -668,12 +722,17 @@ class cryptopia extends Exchange {
                 'Content-Type' => 'application/json',
                 'Authorization' => $auth,
             );
+        } else {
+            if ($query)
+                $url .= '?' . $this->urlencode ($query);
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
+        if ($api === 'web')
+            return $response;
         if ($response) {
             if (is_array ($response) && array_key_exists ('Success', $response))
                 if ($response['Success']) {
