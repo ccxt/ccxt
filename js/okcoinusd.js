@@ -341,6 +341,18 @@ module.exports = class okcoinusd extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        return [
+            ohlcv[0], // timestamp
+            ohlcv[1], // Open
+            ohlcv[2], // High
+            ohlcv[3], // Low
+            ohlcv[4], // Close
+            // ohlcv[5], // quote volume
+            ohlcv[6], // base volume
+        ];
+    }
+
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
