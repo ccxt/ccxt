@@ -342,6 +342,8 @@ module.exports = class okcoinusd extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        let numElements = ohlcv.length;
+        let volumeIndex = (numElements > 6) ? 6 : 5;
         return [
             ohlcv[0], // timestamp
             ohlcv[1], // Open
@@ -349,7 +351,8 @@ module.exports = class okcoinusd extends Exchange {
             ohlcv[3], // Low
             ohlcv[4], // Close
             // ohlcv[5], // quote volume
-            ohlcv[6], // base volume
+            // ohlcv[6], // base volume
+            ohlcv[volumeIndex], // okex will return base volume in the 7th element for future markets
         ];
     }
 
