@@ -342,6 +342,21 @@ class okcoinusd extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        $numElements = is_array ($ohlcv) ? count ($ohlcv) : 0;
+        $volumeIndex = ($numElements > 6) ? 6 : 5;
+        return [
+            $ohlcv[0], // timestamp
+            $ohlcv[1], // Open
+            $ohlcv[2], // High
+            $ohlcv[3], // Low
+            $ohlcv[4], // Close
+            // $ohlcv[5], // quote volume
+            // $ohlcv[6], // base volume
+            $ohlcv[$volumeIndex], // okex will return base volume in the 7th element for future markets
+        ];
+    }
+
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
