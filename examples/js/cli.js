@@ -128,9 +128,7 @@ const printHumanReadable = (exchange, result) => {
                         if (typeof element[key] === 'number') {
                             try {
                                 const iso8601 = exchange.iso8601 (element[key])
-                                // log.red (iso8601)
-                                // process.exit ()
-                                if (iso8601.match ('/^20[0-9]{2}[-]?'))
+                                if (iso8601.match (/^20[0-9]{2}[-]?/))
                                     element[key] = iso8601
                                 else
                                     throw new Error ('wrong date')
