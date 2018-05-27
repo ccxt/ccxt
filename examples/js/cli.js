@@ -10,6 +10,7 @@ const [processPath, , exchangeId, methodName, ... params] = process.argv.filter 
     , loadMarkets = process.argv.includes ('--load-markets')
     , no_details = process.argv.includes ('--no-details')
     , no_table = process.argv.includes ('--no-table')
+    , iso8601 = process.argv.includes ('--iso8601')
 
 //-----------------------------------------------------------------------------
 
@@ -74,7 +75,17 @@ const cfscrapeCookies = (url) => {
 //-----------------------------------------------------------------------------
 
 const timeout = 30000
-const exchange = new (ccxt)[exchangeId] ({ verbose, timeout })
+let exchange = undefined
+try {
+
+    exchange = new (ccxt)[exchangeId] ({ verbose, timeout })
+
+} catch (e) {
+
+    log.red (e)
+    printUsage ()
+    process.exit ()
+}
 
 //-----------------------------------------------------------------------------
 
@@ -104,6 +115,15 @@ let printSupportedExchanges = function () {
     log ('node', process.argv[1], 'bitfinex fetchBalance')
     log ('node', process.argv[1], 'kraken fetchOrderBook ETH/BTC')
     printSupportedExchanges ()
+    log ('Supported options:')
+    log ('--verbose         Print verbose output')
+    log ('--cloudscrape     Use https://github.com/codemanki/cloudscraper to bypass Cloudflare')
+    log ('--cfscrape        Use https://github.com/Anorov/cloudflare-scrape to bypass Cloudflare (requires python and cfscrape)')
+    log ('--poll            Repeat continuously in rate-limited mode')
+    log ('--load-markets    Pre-load markets (for debugging)')
+    log ('--no-details      Do not print detailed fetch responses')
+    log ('--no-table        Do not print tabulated fetch responses')
+    log ('--iso8601         Print timestamps as ISO8601 datetimes')
 }
 
 //-----------------------------------------------------------------------------
@@ -126,6 +146,8 @@ const printHumanReadable = (exchange, result) => {
                 log (result.length > 0 ? asTable (result.map (element => {
                     Object.keys (element).forEach (key => {
                         if (typeof element[key] === 'number') {
+                            if (!iso8601)
+                                return element[key]
                             try {
                                 const iso8601 = exchange.iso8601 (element[key])
                                 if (iso8601.match (/^20[0-9]{2}[-]?/))
