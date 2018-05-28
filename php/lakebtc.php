@@ -230,21 +230,21 @@ class lakebtc extends Exchange {
         } else {
             $this->check_required_credentials();
             $nonce = $this->nonce ();
-            if ($params)
-                $params = implode (',', $params);
-            else
-                $params = '';
+            $queryParams = '';
+            if (is_array ($params) && array_key_exists ('params', $params)) {
+                $queryParams = $params['params'].join ();
+            }
             $query = $this->urlencode (array (
                 'tonce' => $nonce,
                 'accesskey' => $this->apiKey,
                 'requestmethod' => strtolower ($method),
                 'id' => $nonce,
                 'method' => $path,
-                'params' => $params,
+                'params' => $queryParams,
             ));
             $body = $this->json (array (
                 'method' => $path,
-                'params' => $params,
+                'params' => $queryParams,
                 'id' => $nonce,
             ));
             $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret), 'sha1');
