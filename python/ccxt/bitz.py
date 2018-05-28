@@ -298,11 +298,11 @@ class bitz (Exchange):
             if side is None:
                 side = self.safe_string(order, 'flag')
         amount = self.safe_float(order, 'number')
-        remaining = self.safe_float(order, 'numberover')
-        filled = None
+        filled = self.safe_float(order, 'numberover')
+        remaining = None
         if amount is not None:
-            if remaining is not None:
-                filled = amount - remaining
+            if filled is not None:
+                remaining = amount - filled
         timestamp = None
         iso8601 = None
         if 'datetime' in order:
