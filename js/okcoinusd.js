@@ -44,8 +44,8 @@ module.exports = class okcoinusd extends Exchange {
             'api': {
                 'web': {
                     'get': [
-                        'markets/currencies',
-                        'markets/products',
+                        'spot/markets/currencies',
+                        'spot/markets/products',
                     ],
                 },
                 'public': {
@@ -112,7 +112,7 @@ module.exports = class okcoinusd extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766791-89ffb502-5ee5-11e7-8a5b-c5950b68ac65.jpg',
                 'api': {
-                    'web': 'https://www.okcoin.com/v2/spot',
+                    'web': 'https://www.okcoin.com/v2',
                     'public': 'https://www.okcoin.com/api',
                     'private': 'https://www.okcoin.com/api',
                 },
@@ -148,7 +148,7 @@ module.exports = class okcoinusd extends Exchange {
     }
 
     async fetchMarkets () {
-        let response = await this.webGetMarketsProducts ();
+        let response = await this.webGetSpotMarketsProducts ();
         let markets = response['data'];
         let result = [];
         const futureMarkets = {
