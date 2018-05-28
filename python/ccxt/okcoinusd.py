@@ -51,8 +51,8 @@ class okcoinusd (Exchange):
             'api': {
                 'web': {
                     'get': [
-                        'markets/currencies',
-                        'markets/products',
+                        'spot/markets/currencies',
+                        'spot/markets/products',
                     ],
                 },
                 'public': {
@@ -119,7 +119,7 @@ class okcoinusd (Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766791-89ffb502-5ee5-11e7-8a5b-c5950b68ac65.jpg',
                 'api': {
-                    'web': 'https://www.okcoin.com/v2/spot',
+                    'web': 'https://www.okcoin.com/v2',
                     'public': 'https://www.okcoin.com/api',
                     'private': 'https://www.okcoin.com/api',
                 },
@@ -154,7 +154,7 @@ class okcoinusd (Exchange):
         })
 
     def fetch_markets(self):
-        response = self.webGetMarketsProducts()
+        response = self.webGetSpotMarketsProducts()
         markets = response['data']
         result = []
         futureMarkets = {

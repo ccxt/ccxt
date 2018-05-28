@@ -45,8 +45,8 @@ class okcoinusd extends Exchange {
             'api' => array (
                 'web' => array (
                     'get' => array (
-                        'markets/currencies',
-                        'markets/products',
+                        'spot/markets/currencies',
+                        'spot/markets/products',
                     ),
                 ),
                 'public' => array (
@@ -113,7 +113,7 @@ class okcoinusd extends Exchange {
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766791-89ffb502-5ee5-11e7-8a5b-c5950b68ac65.jpg',
                 'api' => array (
-                    'web' => 'https://www.okcoin.com/v2/spot',
+                    'web' => 'https://www.okcoin.com/v2',
                     'public' => 'https://www.okcoin.com/api',
                     'private' => 'https://www.okcoin.com/api',
                 ),
@@ -149,7 +149,7 @@ class okcoinusd extends Exchange {
     }
 
     public function fetch_markets () {
-        $response = $this->webGetMarketsProducts ();
+        $response = $this->webGetSpotMarketsProducts ();
         $markets = $response['data'];
         $result = array ();
         $futureMarkets = array (
