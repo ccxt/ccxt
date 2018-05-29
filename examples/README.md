@@ -55,6 +55,8 @@ php -f path/to/example.php # substitute for actual filename here
 
 [How to make your own trading bot](https://codeburst.io/how-to-make-your-own-trading-bot-83b5c6e35036) – A tutorial on algortrading in Python.
 
+[Writing crypto trading bot in Python with Telegram and ccxt](https://medium.com/@maxAvdyushkin/writing-crypto-trading-bot-in-python-with-telegram-and-ccxt-80632a00c637) – A tutorial on programming a Telegram bot in Python with CCXT
+
 [Chasing fake volume: a crypto-plague](https://medium.com/@sylvainartplayribes/chasing-fake-volume-a-crypto-plague-ea1a3c1e0b5e) – An article @ Medium on trading volumes analysis.
 
 [CCXTが便利な理由！CCXTライブラリをインストールしよう](https://ryota-trade.com/?p=476) – An article in Japanese on getting CCXT up and runining.
