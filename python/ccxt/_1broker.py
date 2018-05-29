@@ -125,7 +125,7 @@ class _1broker (Exchange):
         for c in range(0, len(currencies)):
             currency = currencies[c]
             result[currency] = self.account()
-        total = float(response['balance'])
+        total = self.safe_float(response, 'balance')
         result['BTC']['free'] = total
         result['BTC']['total'] = total
         return self.parse_balance(result)
@@ -137,8 +137,8 @@ class _1broker (Exchange):
         }, params))
         orderbook = response['response'][0]
         timestamp = self.parse8601(orderbook['updated'])
-        bidPrice = float(orderbook['bid'])
-        askPrice = float(orderbook['ask'])
+        bidPrice = self.safe_float(orderbook, 'bid')
+        askPrice = self.safe_float(orderbook, 'ask')
         bid = [bidPrice, None]
         ask = [askPrice, None]
         return {
@@ -161,15 +161,15 @@ class _1broker (Exchange):
         }, params))
         ticker = result['response'][0]
         timestamp = self.parse8601(ticker['date'])
-        open = float(ticker['o'])
-        close = float(ticker['c'])
+        open = self.safe_float(ticker, 'o')
+        close = self.safe_float(ticker, 'c')
         change = close - open
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['h']),
-            'low': float(ticker['l']),
+            'high': self.safe_float(ticker, 'h'),
+            'low': self.safe_float(ticker, 'l'),
             'bid': None,
             'bidVolume': None,
             'ask': None,

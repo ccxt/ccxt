@@ -23,6 +23,7 @@ class acx (Exchange):
                 'fetchTickers': True,
                 'fetchOHLCV': True,
                 'withdraw': True,
+                'fetchOrder': True,
             },
             'timeframes': {
                 '1m': '1',
@@ -155,26 +156,26 @@ class acx (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
-        last = self.safe_float(ticker, 'last', None)
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high', None),
-            'low': self.safe_float(ticker, 'low', None),
-            'bid': self.safe_float(ticker, 'buy', None),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'buy'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'sell', None),
+            'ask': self.safe_float(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
-            'open': None,
+            'open': self.safe_float(ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'vol', None),
+            'baseVolume': self.safe_float(ticker, 'vol'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -279,18 +280,26 @@ class acx (Exchange):
             'id': str(order['id']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
             'type': order['ord_type'],
             'side': order['side'],
-            'price': float(order['price']),
-            'amount': float(order['volume']),
-            'filled': float(order['executed_volume']),
-            'remaining': float(order['remaining_volume']),
+            'price': self.safe_float(order, 'price'),
+            'amount': self.safe_float(order, 'volume'),
+            'filled': self.safe_float(order, 'executed_volume'),
+            'remaining': self.safe_float(order, 'remaining_volume'),
             'trades': None,
             'fee': None,
             'info': order,
         }
+
+    async def fetch_order(self, id, symbol=None, params={}):
+        await self.load_markets()
+        response = await self.privateGetOrder(self.extend({
+            'id': int(id),
+        }, params))
+        return self.parse_order(response)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()

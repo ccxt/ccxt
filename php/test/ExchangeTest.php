@@ -2,7 +2,7 @@
 
 use ccxt\Exchange;
 use PHPUnit\Framework\TestCase;
-use const ccxt\AFTER_DOT;
+use const ccxt\DECIMAL_PLACES;
 use const ccxt\NO_PADDING;
 use const ccxt\PAD_WITH_ZERO;
 use const ccxt\ROUND;
@@ -21,7 +21,7 @@ class ExchangeTest extends TestCase {
     public function testDecimalToPrecisionErrorHandling () {
         $this->expectException ('ccxt\\BaseError');
         $this->expectExceptionMessageRegExp ('/Negative precision is not yet supported/');
-        Exchange::decimalToPrecision ('123456.789', TRUNCATE, -2, AFTER_DOT);
+        Exchange::decimalToPrecision ('123456.789', TRUNCATE, -2, DECIMAL_PLACES);
 
         $this->expectException ('ccxt\\BaseError');
         $this->expectExceptionMessageRegExp ('/Invalid number/');
@@ -38,16 +38,16 @@ class ExchangeTest extends TestCase {
     public function truncationToNDigitsAfterDot () {
         Exchange::sum(); // hack for constants :|
         return [
-            ['12.3456000', TRUNCATE, 100, AFTER_DOT,  '12.3456'],
-            ['12.3456',    TRUNCATE, 100, AFTER_DOT,  '12.3456'],
-            ['12.3456',    TRUNCATE,   4, AFTER_DOT,  '12.3456'],
-            ['12.3456',    TRUNCATE,   3, AFTER_DOT,  '12.345'],
-            ['12.3456',    TRUNCATE,   2, AFTER_DOT,  '12.34'],
-            ['12.3456',    TRUNCATE,   1, AFTER_DOT,  '12.3'],
-            ['12.3456',    TRUNCATE,   0, AFTER_DOT,  '12'],
-//            ['12.3456',    TRUNCATE,  -1, AFTER_DOT,  '10'],   // not yet supported
-//            ['123.456',    TRUNCATE,  -2, AFTER_DOT,  '120'],  // not yet supported
-//            ['123.456',    TRUNCATE,  -3, AFTER_DOT,  '100'],  // not yet supported
+            ['12.3456000', TRUNCATE, 100, DECIMAL_PLACES,  '12.3456'],
+            ['12.3456',    TRUNCATE, 100, DECIMAL_PLACES,  '12.3456'],
+            ['12.3456',    TRUNCATE,   4, DECIMAL_PLACES,  '12.3456'],
+            ['12.3456',    TRUNCATE,   3, DECIMAL_PLACES,  '12.345'],
+            ['12.3456',    TRUNCATE,   2, DECIMAL_PLACES,  '12.34'],
+            ['12.3456',    TRUNCATE,   1, DECIMAL_PLACES,  '12.3'],
+            ['12.3456',    TRUNCATE,   0, DECIMAL_PLACES,  '12'],
+//            ['12.3456',    TRUNCATE,  -1, DECIMAL_PLACES,  '10'],   // not yet supported
+//            ['123.456',    TRUNCATE,  -2, DECIMAL_PLACES,  '120'],  // not yet supported
+//            ['123.456',    TRUNCATE,  -3, DECIMAL_PLACES,  '100'],  // not yet supported
         ];
     }
 
@@ -90,22 +90,22 @@ class ExchangeTest extends TestCase {
 
     public function roundingToNDigitsAfterDot () {
         return [
-            ['12.3456000', ROUND, 100, AFTER_DOT,    NO_PADDING,  '12.3456'],
-            ['12.3456',    ROUND, 100, AFTER_DOT,    NO_PADDING,  '12.3456'],
-            ['12.3456',    ROUND,   4, AFTER_DOT,    NO_PADDING,  '12.3456'],
-            ['12.3456',    ROUND,   3, AFTER_DOT,    NO_PADDING,  '12.346'],
-            ['12.3456',    ROUND,   2, AFTER_DOT,    NO_PADDING,  '12.35'],
-            ['12.3456',    ROUND,   1, AFTER_DOT,    NO_PADDING,  '12.3'],
-            ['12.3456',    ROUND,   0, AFTER_DOT,    NO_PADDING,  '12'],
-//            ['12.3456',    ROUND,  -1, AFTER_DOT,    NO_PADDING,  '10'],  // not yet supported
-//            ['123.456',    ROUND,  -1, AFTER_DOT,    NO_PADDING,  '120'],  // not yet supported
-//            ['123.456',    ROUND,  -2, AFTER_DOT,    NO_PADDING,  '100'],  // not yet supported
+            ['12.3456000', ROUND, 100, DECIMAL_PLACES,    NO_PADDING,  '12.3456'],
+            ['12.3456',    ROUND, 100, DECIMAL_PLACES,    NO_PADDING,  '12.3456'],
+            ['12.3456',    ROUND,   4, DECIMAL_PLACES,    NO_PADDING,  '12.3456'],
+            ['12.3456',    ROUND,   3, DECIMAL_PLACES,    NO_PADDING,  '12.346'],
+            ['12.3456',    ROUND,   2, DECIMAL_PLACES,    NO_PADDING,  '12.35'],
+            ['12.3456',    ROUND,   1, DECIMAL_PLACES,    NO_PADDING,  '12.3'],
+            ['12.3456',    ROUND,   0, DECIMAL_PLACES,    NO_PADDING,  '12'],
+//            ['12.3456',    ROUND,  -1, DECIMAL_PLACES,    NO_PADDING,  '10'],  // not yet supported
+//            ['123.456',    ROUND,  -1, DECIMAL_PLACES,    NO_PADDING,  '120'],  // not yet supported
+//            ['123.456',    ROUND,  -2, DECIMAL_PLACES,    NO_PADDING,  '100'],  // not yet supported
 
-            [ '9.999',     ROUND,   3, AFTER_DOT,    NO_PADDING,  '9.999'],
-            [ '9.999',     ROUND,   2, AFTER_DOT,    NO_PADDING,  '10'],
-            [ '9.999',     ROUND,   2, AFTER_DOT, PAD_WITH_ZERO,  '10.00'],
-            [ '99.999',    ROUND,   2, AFTER_DOT, PAD_WITH_ZERO,  '100.00'],
-            ['-99.999',    ROUND,   2, AFTER_DOT, PAD_WITH_ZERO, '-100.00'],
+            [ '9.999',     ROUND,   3, DECIMAL_PLACES,    NO_PADDING,  '9.999'],
+            [ '9.999',     ROUND,   2, DECIMAL_PLACES,    NO_PADDING,  '10'],
+            [ '9.999',     ROUND,   2, DECIMAL_PLACES, PAD_WITH_ZERO,  '10.00'],
+            [ '99.999',    ROUND,   2, DECIMAL_PLACES, PAD_WITH_ZERO,  '100.00'],
+            ['-99.999',    ROUND,   2, DECIMAL_PLACES, PAD_WITH_ZERO, '-100.00'],
         ];
     }
 
@@ -150,8 +150,8 @@ class ExchangeTest extends TestCase {
 
     public function negativeNumbers () {
         return [
-            ['-0.123456', TRUNCATE, 5, AFTER_DOT, '-0.12345'],
-            ['-0.123456', ROUND,    5, AFTER_DOT, '-0.12346'],
+            ['-0.123456', TRUNCATE, 5, DECIMAL_PLACES, '-0.12345'],
+            ['-0.123456', ROUND,    5, DECIMAL_PLACES, '-0.12346'],
         ];
     }
 }

@@ -4,14 +4,22 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import hashlib
 import math
 import json
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import NotSupported
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 
@@ -24,12 +32,13 @@ class livecoin (Exchange):
             'name': 'LiveCoin',
             'countries': ['US', 'UK', 'RU'],
             'rateLimit': 1000,
+            'userAgent': self.userAgents['chrome'],
             'has': {
                 'fetchDepositAddress': True,
                 'CORS': False,
                 'fetchTickers': True,
                 'fetchCurrencies': True,
-                'fetchFees': True,
+                'fetchTradingFees': True,
                 'fetchOrders': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
@@ -93,8 +102,30 @@ class livecoin (Exchange):
                 },
             },
             'commonCurrencies': {
+                'CPC': 'Capricoin',
                 'CRC': 'CryCash',
+                'ORE': 'Orectic',
+                'RUR': 'RUB',
                 'XBT': 'Bricktox',
+            },
+            'exceptions': {
+                '1': ExchangeError,
+                '10': AuthenticationError,
+                '100': ExchangeError,  # invalid parameters
+                '101': AuthenticationError,
+                '102': AuthenticationError,
+                '103': InvalidOrder,  # invalid currency
+                '104': InvalidOrder,  # invalid amount
+                '105': InvalidOrder,  # unable to block funds
+                '11': AuthenticationError,
+                '12': AuthenticationError,
+                '2': AuthenticationError,  # "User not found"
+                '20': AuthenticationError,
+                '30': AuthenticationError,
+                '31': NotSupported,
+                '32': ExchangeError,
+                '429': DDoSProtection,
+                '503': ExchangeNotAvailable,
             },
         })
 
@@ -213,8 +244,13 @@ class livecoin (Exchange):
         currencies = [
             {'id': 'USD', 'code': 'USD', 'name': 'US Dollar'},
             {'id': 'EUR', 'code': 'EUR', 'name': 'Euro'},
-            {'id': 'RUR', 'code': 'RUR', 'name': 'Russian ruble'},
+            # {'id': 'RUR', 'code': 'RUB', 'name': 'Russian ruble'},
         ]
+        currencies.append({
+            'id': 'RUR',
+            'code': self.common_currency_code('RUR'),
+            'name': 'Russian ruble',
+        })
         for i in range(0, len(currencies)):
             currency = currencies[i]
             code = currency['code']
@@ -241,12 +277,6 @@ class livecoin (Exchange):
                 account['used'] = float(balance['value'])
             result[currency] = account
         return self.parse_balance(result)
-
-    async def fetch_fees(self, params={}):
-        tradingFees = await self.fetch_trading_fees(params)
-        return self.extend(tradingFees, {
-            'withdraw': {},
-        })
 
     async def fetch_trading_fees(self, params={}):
         await self.load_markets()
@@ -275,21 +305,21 @@ class livecoin (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
-        vwap = float(ticker['vwap'])
-        baseVolume = float(ticker['volume'])
+        vwap = self.safe_float(ticker, 'vwap')
+        baseVolume = self.safe_float(ticker, 'volume')
         quoteVolume = baseVolume * vwap
-        last = float(ticker['last'])
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['best_bid']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'best_bid'),
             'bidVolume': None,
-            'ask': float(ticker['best_ask']),
+            'ask': self.safe_float(ticker, 'best_ask'),
             'askVolume': None,
-            'vwap': float(ticker['vwap']),
+            'vwap': self.safe_float(ticker, 'vwap'),
             'open': None,
             'close': last,
             'last': last,
@@ -387,6 +417,7 @@ class livecoin (Exchange):
             'id': order['id'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
             'type': type,
@@ -447,10 +478,14 @@ class livecoin (Exchange):
         if type == 'limit':
             order['price'] = self.price_to_precision(symbol, price)
         response = await getattr(self, method)(self.extend(order, params))
-        return {
+        result = {
             'info': response,
             'id': str(response['orderId']),
         }
+        success = self.safe_value(response, 'success')
+        if success:
+            result['status'] = 'open'
+        return result
 
     async def cancel_order(self, id, symbol=None, params={}):
         if not symbol:
@@ -468,7 +503,10 @@ class livecoin (Exchange):
                 raise InvalidOrder(message)
             elif 'cancelled' in response:
                 if response['cancelled']:
-                    return response
+                    return {
+                        'status': 'canceled',
+                        'info': response,
+                    }
                 else:
                     raise OrderNotFound(message)
         raise ExchangeError(self.id + ' cancelOrder() failed: ' + self.json(response))
@@ -482,14 +520,17 @@ class livecoin (Exchange):
         if tag is not None:
             wallet += '::' + tag
         withdrawal = {
-            'amount': amount,
+            'amount': self.truncate(amount, self.currencies[currency]['precision']),  # throws an error when amount is too precise
             'currency': self.common_currency_code(currency),
             'wallet': wallet,
         }
         response = await self.privatePostPaymentOutCoin(self.extend(withdrawal, params))
+        id = self.safe_integer(response, 'id')
+        if id is None:
+            raise InsufficientFunds(self.id + ' insufficient funds to cover requested withdrawal amount post fees ' + self.json(response))
         return {
             'info': response,
-            'id': self.safe_integer(response, 'id'),
+            'id': id,
         }
 
     async def fetch_deposit_address(self, currency, params={}):
@@ -531,45 +572,21 @@ class livecoin (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body):
-        if code >= 300:
-            if body[0] == '{':
-                response = json.loads(body)
-                if 'errorCode' in response:
-                    error = response['errorCode']
-                    # todo: rework for error-maps, like in liqui or okcoinusd
-                    if error == 1:
-                        raise ExchangeError(self.id + ' ' + self.json(response))
-                    elif error == 2:
-                        if 'errorMessage' in response:
-                            if response['errorMessage'] == 'User not found':
-                                raise AuthenticationError(self.id + ' ' + response['errorMessage'])
-                        else:
-                            raise ExchangeError(self.id + ' ' + self.json(response))
-                    elif (error == 10) or (error == 11) or (error == 12) or (error == 20) or (error == 30) or (error == 101) or (error == 102):
-                        raise AuthenticationError(self.id + ' ' + self.json(response))
-                    elif error == 31:
-                        raise NotSupported(self.id + ' ' + self.json(response))
-                    elif error == 32:
-                        raise ExchangeError(self.id + ' ' + self.json(response))
-                    elif error == 100:
-                        raise ExchangeError(self.id + ': Invalid parameters ' + self.json(response))
-                    elif error == 103:
-                        raise InvalidOrder(self.id + ': Invalid currency ' + self.json(response))
-                    elif error == 104:
-                        raise InvalidOrder(self.id + ': Invalid amount ' + self.json(response))
-                    elif error == 105:
-                        raise InvalidOrder(self.id + ': Unable to block funds ' + self.json(response))
-                    elif error == 503:
-                        raise ExchangeNotAvailable(self.id + ': Exchange is not available ' + self.json(response))
-                    elif error == 429:
-                        raise DDoSProtection(self.id + ': Too many requests' + self.json(response))
-                    else:
-                        raise ExchangeError(self.id + ' ' + self.json(response))
-            raise ExchangeError(self.id + ' ' + body)
-
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = await self.fetch2(path, api, method, params, headers, body)
-        if 'success' in response:
-            if not response['success']:
-                raise ExchangeError(self.id + ' error: ' + self.json(response))
-        return response
+        if not isinstance(body, basestring):
+            return
+        if body[0] == '{':
+            response = json.loads(body)
+            if code >= 300:
+                errorCode = self.safe_string(response, 'errorCode')
+                if errorCode in self.exceptions:
+                    ExceptionClass = self.exceptions[errorCode]
+                    raise ExceptionClass(self.id + ' ' + body)
+                else:
+                    raise ExchangeError(self.id + ' ' + body)
+            # returns status code 200 even if success == False
+            success = self.safe_value(response, 'success', True)
+            if not success:
+                message = self.safe_string(response, 'message', '')
+                if message.find('Cannot find order') >= 0:
+                    raise OrderNotFound(self.id + ' ' + body)
+                raise ExchangeError(self.id + ' ' + body)

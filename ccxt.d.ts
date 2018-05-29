@@ -265,7 +265,7 @@ declare module 'ccxt' {
         marketIds (symbols: string[]): string[];
         symbol (symbol: string): string;
         extractParams (str: string): string[];
-        createOrder (market: string, type: string, side: string, amount: string, price?: string, params?: string): Promise<any>;
+        createOrder (symbol: string, type: string, side: string, amount: string, price?: string, params?: string): Promise<any>;
         fetchBalance (params?: any): Promise<Balances>;
         fetchTotalBalance (params?: any): Promise<PartialBalances>;
         fetchUsedBalance (params?: any): Promise<PartialBalances>;
@@ -305,6 +305,7 @@ declare module 'ccxt' {
     export class bitfinex2 extends bitfinex {}
     export class bitflyer extends Exchange {}
     export class bithumb extends Exchange {}
+    export class bitkk extends zb {}
     export class bitlish extends Exchange {}
     export class bitmarket extends Exchange {}
     export class bitmex extends Exchange {}
@@ -332,14 +333,17 @@ declare module 'ccxt' {
     export class cobinhood extends Exchange {}
     export class coincheck extends Exchange {}
     export class coinegg extends Exchange {}
+    export class coinex extends Exchange {}
     export class coinexchange extends Exchange {}
     export class coinfloor extends Exchange {}
     export class coingi extends Exchange {}
     export class coinmarketcap extends Exchange {}
     export class coinmate extends Exchange {}
+    export class coinnest extends Exchange {}
     export class coinone extends Exchange {}
     export class coinsecure extends Exchange {}
     export class coinspot extends Exchange {}
+    export class cointiger extends huobipro {}
     export class coolcoin extends coinegg {}
     export class cryptopia extends Exchange {}
     export class dsx extends liqui {}
@@ -355,6 +359,7 @@ declare module 'ccxt' {
     export class gdax extends Exchange {}
     export class gemini extends Exchange {}
     export class getbtc extends _1btcxe {}
+    export class hadax extends huobipro {}
     export class hitbtc extends Exchange {}
     export class hitbtc2 extends hitbtc {}
     export class huobi extends Exchange {}
@@ -369,6 +374,7 @@ declare module 'ccxt' {
     export class kucoin extends Exchange {}
     export class kuna extends acx {}
     export class lakebtc extends Exchange {}
+    export class lbank extends Exchange {}
     export class liqui extends Exchange {}
     export class livecoin extends Exchange {}
     export class luno extends Exchange {}
@@ -388,6 +394,7 @@ declare module 'ccxt' {
     export class southxchange extends Exchange {}
     export class surbitcoin extends foxbit {}
     export class therock extends Exchange {}
+    export class tidebit extends Exchange {}
     export class tidex extends liqui {}
     export class urdubit extends foxbit {}
     export class vaultoro extends Exchange {}

@@ -4,11 +4,19 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.12.23'
+__version__ = '1.14.81'
 
 # -----------------------------------------------------------------------------
 
 from ccxt.async.base.exchange import Exchange                   # noqa: F401
+
+from ccxt.base.decimal_to_precision import decimal_to_precision  # noqa: F401
+from ccxt.base.decimal_to_precision import TRUNCATE              # noqa: F401
+from ccxt.base.decimal_to_precision import ROUND                 # noqa: F401
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES        # noqa: F401
+from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS    # noqa: F401
+from ccxt.base.decimal_to_precision import NO_PADDING            # noqa: F401
+from ccxt.base.decimal_to_precision import PAD_WITH_ZERO         # noqa: F401
 
 from ccxt.base import errors                                    # noqa: F401
 from ccxt.base.errors import BaseError                          # noqa: F401
@@ -42,6 +50,7 @@ from ccxt.async.bitfinex import bitfinex                        # noqa: F401
 from ccxt.async.bitfinex2 import bitfinex2                      # noqa: F401
 from ccxt.async.bitflyer import bitflyer                        # noqa: F401
 from ccxt.async.bithumb import bithumb                          # noqa: F401
+from ccxt.async.bitkk import bitkk                              # noqa: F401
 from ccxt.async.bitlish import bitlish                          # noqa: F401
 from ccxt.async.bitmarket import bitmarket                      # noqa: F401
 from ccxt.async.bitmex import bitmex                            # noqa: F401
@@ -69,14 +78,17 @@ from ccxt.async.chilebit import chilebit                        # noqa: F401
 from ccxt.async.cobinhood import cobinhood                      # noqa: F401
 from ccxt.async.coincheck import coincheck                      # noqa: F401
 from ccxt.async.coinegg import coinegg                          # noqa: F401
+from ccxt.async.coinex import coinex                            # noqa: F401
 from ccxt.async.coinexchange import coinexchange                # noqa: F401
 from ccxt.async.coinfloor import coinfloor                      # noqa: F401
 from ccxt.async.coingi import coingi                            # noqa: F401
 from ccxt.async.coinmarketcap import coinmarketcap              # noqa: F401
 from ccxt.async.coinmate import coinmate                        # noqa: F401
+from ccxt.async.coinnest import coinnest                        # noqa: F401
 from ccxt.async.coinone import coinone                          # noqa: F401
 from ccxt.async.coinsecure import coinsecure                    # noqa: F401
 from ccxt.async.coinspot import coinspot                        # noqa: F401
+from ccxt.async.cointiger import cointiger                      # noqa: F401
 from ccxt.async.coolcoin import coolcoin                        # noqa: F401
 from ccxt.async.cryptopia import cryptopia                      # noqa: F401
 from ccxt.async.dsx import dsx                                  # noqa: F401
@@ -92,6 +104,7 @@ from ccxt.async.gateio import gateio                            # noqa: F401
 from ccxt.async.gdax import gdax                                # noqa: F401
 from ccxt.async.gemini import gemini                            # noqa: F401
 from ccxt.async.getbtc import getbtc                            # noqa: F401
+from ccxt.async.hadax import hadax                              # noqa: F401
 from ccxt.async.hitbtc import hitbtc                            # noqa: F401
 from ccxt.async.hitbtc2 import hitbtc2                          # noqa: F401
 from ccxt.async.huobi import huobi                              # noqa: F401
@@ -106,6 +119,7 @@ from ccxt.async.kraken import kraken                            # noqa: F401
 from ccxt.async.kucoin import kucoin                            # noqa: F401
 from ccxt.async.kuna import kuna                                # noqa: F401
 from ccxt.async.lakebtc import lakebtc                          # noqa: F401
+from ccxt.async.lbank import lbank                              # noqa: F401
 from ccxt.async.liqui import liqui                              # noqa: F401
 from ccxt.async.livecoin import livecoin                        # noqa: F401
 from ccxt.async.luno import luno                                # noqa: F401
@@ -125,6 +139,7 @@ from ccxt.async.quoinex import quoinex                          # noqa: F401
 from ccxt.async.southxchange import southxchange                # noqa: F401
 from ccxt.async.surbitcoin import surbitcoin                    # noqa: F401
 from ccxt.async.therock import therock                          # noqa: F401
+from ccxt.async.tidebit import tidebit                          # noqa: F401
 from ccxt.async.tidex import tidex                              # noqa: F401
 from ccxt.async.urdubit import urdubit                          # noqa: F401
 from ccxt.async.vaultoro import vaultoro                        # noqa: F401
@@ -152,6 +167,7 @@ exchanges = [
     'bitfinex2',
     'bitflyer',
     'bithumb',
+    'bitkk',
     'bitlish',
     'bitmarket',
     'bitmex',
@@ -179,14 +195,17 @@ exchanges = [
     'cobinhood',
     'coincheck',
     'coinegg',
+    'coinex',
     'coinexchange',
     'coinfloor',
     'coingi',
     'coinmarketcap',
     'coinmate',
+    'coinnest',
     'coinone',
     'coinsecure',
     'coinspot',
+    'cointiger',
     'coolcoin',
     'cryptopia',
     'dsx',
@@ -202,6 +221,7 @@ exchanges = [
     'gdax',
     'gemini',
     'getbtc',
+    'hadax',
     'hitbtc',
     'hitbtc2',
     'huobi',
@@ -216,6 +236,7 @@ exchanges = [
     'kucoin',
     'kuna',
     'lakebtc',
+    'lbank',
     'liqui',
     'livecoin',
     'luno',
@@ -235,6 +256,7 @@ exchanges = [
     'southxchange',
     'surbitcoin',
     'therock',
+    'tidebit',
     'tidex',
     'urdubit',
     'vaultoro',
@@ -251,6 +273,7 @@ exchanges = [
 base = [
     'Exchange',
     'exchanges',
+    'decimal_to_precision',
 ]
 
 __all__ = base + errors.__all__ + exchanges

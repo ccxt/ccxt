@@ -88,7 +88,7 @@ class zb (Exchange):
                     'public': 'http://api.zb.com/data',  # no https for public API
                     'private': 'https://trade.zb.com/api',
                 },
-                'www': 'https://trade.zb.com/api',
+                'www': 'https://www.zb.com',
                 'doc': 'https://www.zb.com/i/developer',
                 'fees': 'https://www.zb.com/i/rate',
             },
@@ -104,6 +104,7 @@ class zb (Exchange):
                 },
                 'private': {
                     'get': [
+                        # spot API
                         'order',
                         'cancelOrder',
                         'getOrder',
@@ -119,6 +120,18 @@ class zb (Exchange):
                         'getCnyWithdrawRecord',
                         'getCnyChargeRecord',
                         'withdraw',
+                        # leverage API
+                        'getLeverAssetsInfo',
+                        'getLeverBills',
+                        'transferInLever',
+                        'transferOutLever',
+                        'loan',
+                        'cancelLoan',
+                        'getLoans',
+                        'getLoanRecords',
+                        'borrow',
+                        'repay',
+                        'getRepayments',
                     ],
                 },
             },
@@ -157,6 +170,9 @@ class zb (Exchange):
                     'maker': 0.2 / 100,
                     'taker': 0.2 / 100,
                 },
+            },
+            'commonCurrencies': {
+                'ENT': 'ENTCash',
             },
         })
 
@@ -255,16 +271,16 @@ class zb (Exchange):
         response = await self.publicGetTicker(self.extend(request, params))
         ticker = response['ticker']
         timestamp = self.milliseconds()
-        last = float(ticker['last'])
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['buy']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'buy'),
             'bidVolume': None,
-            'ask': float(ticker['sell']),
+            'ask': self.safe_float(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -274,7 +290,7 @@ class zb (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['vol']),
+            'baseVolume': self.safe_float(ticker, 'vol'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -305,8 +321,8 @@ class zb (Exchange):
             'symbol': market['symbol'],
             'type': None,
             'side': side,
-            'price': float(trade['price']),
-            'amount': float(trade['amount']),
+            'price': self.safe_float(trade, 'price'),
+            'amount': self.safe_float(trade, 'amount'),
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -344,6 +360,8 @@ class zb (Exchange):
         return await self.privateGetCancelOrder(order)
 
     async def fetch_order(self, id, symbol=None, params={}):
+        if symbol is None:
+            raise ExchangeError(self.id + ' fetchOrder() requires a symbol argument')
         await self.load_markets()
         order = {
             'id': str(id),
@@ -351,7 +369,7 @@ class zb (Exchange):
         }
         order = self.extend(order, params)
         response = await self.privateGetGetOrder(order)
-        return self.parse_order(response, None, True)
+        return self.parse_order(response, None)
 
     async def fetch_orders(self, symbol=None, since=None, limit=50, params={}):
         if not symbol:
@@ -371,10 +389,8 @@ class zb (Exchange):
         try:
             response = await getattr(self, method)(self.extend(request, params))
         except Exception as e:
-            if self.last_json_response:
-                code = self.safe_string(self.last_json_response, 'code')
-                if code == '3001':
-                    return []
+            if isinstance(e, OrderNotFound):
+                return []
             raise e
         return self.parse_orders(response, market, since, limit)
 
@@ -396,15 +412,13 @@ class zb (Exchange):
         try:
             response = await getattr(self, method)(self.extend(request, params))
         except Exception as e:
-            if self.last_json_response:
-                code = self.safe_string(self.last_json_response, 'code')
-                if code == '3001':
-                    return []
+            if isinstance(e, OrderNotFound):
+                return []
             raise e
         return self.parse_orders(response, market, since, limit)
 
     def parse_order(self, order, market=None):
-        side = order['type'] == 'buy' if 1 else 'sell'
+        side = 'buy' if (order['type'] == 1) else 'sell'
         type = 'limit'  # market order is not availalbe in ZB
         timestamp = None
         createDateField = self.get_create_date_field()
@@ -417,7 +431,7 @@ class zb (Exchange):
         if market:
             symbol = market['symbol']
         price = order['price']
-        average = order['trade_price']
+        average = None
         filled = order['trade_amount']
         amount = order['total_amount']
         remaining = amount - filled
@@ -430,6 +444,7 @@ class zb (Exchange):
             'id': order['id'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
             'side': side,
@@ -489,10 +504,10 @@ class zb (Exchange):
         if body[0] == '{':
             response = json.loads(body)
             if 'code' in response:
-                error = self.safe_string(response, 'code')
+                code = self.safe_string(response, 'code')
                 message = self.id + ' ' + self.json(response)
-                if error in self.exceptions:
-                    ExceptionClass = self.exceptions[error]
+                if code in self.exceptions:
+                    ExceptionClass = self.exceptions[code]
                     raise ExceptionClass(message)
-                elif error != '1000':
+                elif code != '1000':
                     raise ExchangeError(message)
