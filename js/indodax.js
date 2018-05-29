@@ -23,19 +23,17 @@ module.exports = class indodax extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchMyTrades': false,
                 'fetchCurrencies': false,
-                'withdraw': false,
+                'withdraw': true,
             },
-            'version': '1.7', // as of 6 November 2017
+            'version': '1.8', // as of 9 April 2018
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/37443283-2fddd0e4-281c-11e8-9741-b4f1419001b5.jpg',
                 'api': {
-                    'public': 'https://vip.bitcoin.co.id/api',
-                    'private': 'https://vip.bitcoin.co.id/tapi',
+                    'public': 'https://indodax.com/api',
+                    'private': 'https://indodax.com/tapi',
                 },
                 'www': 'https://www.indodax.com',
-                'doc': [
-                    'https://vip.bitcoin.co.id/downloads/BITCOINCOID-API-DOCUMENTATION.pdf',
-                ],
+                'doc': 'https://indodax.com/downloads/BITCOINCOID-API-DOCUMENTATION.pdf',
             },
             'api': {
                 'public': {
@@ -55,6 +53,7 @@ module.exports = class indodax extends Exchange {
                         'openOrders',
                         'cancelOrder',
                         'orderHistory',
+                        'withdrawCoin',
                     ],
                 },
             },
@@ -128,19 +127,19 @@ module.exports = class indodax extends Exchange {
             'pair': market['id'],
         }, params));
         let ticker = response['ticker'];
-        let timestamp = parseFloat (ticker['server_time']) * 1000;
+        let timestamp = this.safeFloat (ticker, 'server_time') * 1000;
         let baseVolume = 'vol_' + market['baseId'].toLowerCase ();
         let quoteVolume = 'vol_' + market['quoteId'].toLowerCase ();
-        let last = parseFloat (ticker['last']);
+        let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']),
-            'low': parseFloat (ticker['low']),
-            'bid': parseFloat (ticker['buy']),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'buy'),
             'bidVolume': undefined,
-            'ask': parseFloat (ticker['sell']),
+            'ask': this.safeFloat (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -166,8 +165,8 @@ module.exports = class indodax extends Exchange {
             'symbol': market['symbol'],
             'type': undefined,
             'side': trade['type'],
-            'price': parseFloat (trade['price']),
-            'amount': parseFloat (trade['amount']),
+            'price': this.safeFloat (trade, 'price'),
+            'amount': this.safeFloat (trade, 'amount'),
         };
     }
 
@@ -229,6 +228,7 @@ module.exports = class indodax extends Exchange {
             'id': order['order_id'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': 'limit',
             'side': side,
@@ -344,6 +344,50 @@ module.exports = class indodax extends Exchange {
         }, params));
     }
 
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        // Custom string you need to provide to identify each withdrawal request.
+        // Will be passed to callback URL (assigned via website to the API key)
+        // so your system can identify the request and confirm it.
+        // Alphanumeric, max length 255.
+        let requestId = this.milliseconds ();
+        // alternatively:
+        // let requestId = this.uuid ();
+        let request = {
+            'currency': currency['id'],
+            'withdraw_amount': amount,
+            'withdraw_address': address,
+            'request_id': requestId.toString (),
+        };
+        if (tag)
+            request['withdraw_memo'] = tag;
+        let response = await this.privatePostWithdrawCoin (this.extend (request, params));
+        //
+        //     {
+        //         "success": 1,
+        //         "status": "approved",
+        //         "withdraw_currency": "xrp",
+        //         "withdraw_address": "rwWr7KUZ3ZFwzgaDGjKBysADByzxvohQ3C",
+        //         "withdraw_amount": "10000.00000000",
+        //         "fee": "2.00000000",
+        //         "amount_after_fee": "9998.00000000",
+        //         "submit_time": "1509469200",
+        //         "withdraw_id": "xrp-12345",
+        //         "txid": "",
+        //         "withdraw_memo": "123123"
+        //     }
+        //
+        let id = undefined;
+        if (('txid' in response) && (response['txid'].length > 0))
+            id = response['txid'];
+        return {
+            'info': response,
+            'id': id,
+        };
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
         if (api === 'public') {
@@ -364,6 +408,8 @@ module.exports = class indodax extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body, response = undefined) {
+        if (typeof body !== 'string')
+            return;
         // { success: 0, error: "invalid order." }
         // or
         // [{ data, ... }, { ... }, ... ]

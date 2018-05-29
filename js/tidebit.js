@@ -7,20 +7,20 @@ const { InsufficientFunds, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class acx extends Exchange {
+module.exports = class tidebit extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'acx',
-            'name': 'ACX',
-            'countries': 'AU',
+            'id': 'tidebit',
+            'name': 'TideBit',
+            'countries': 'HK',
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
+                'fetchDepositAddress': true,
                 'CORS': true,
                 'fetchTickers': true,
                 'fetchOHLCV': true,
                 'withdraw': true,
-                'fetchOrder': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -36,46 +36,40 @@ module.exports = class acx extends Exchange {
                 '1w': '10080',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/30247614-1fe61c74-9621-11e7-9e8c-f1a627afa279.jpg',
-                'extension': '.json',
-                'api': 'https://acx.io/api',
-                'www': 'https://acx.io',
-                'doc': 'https://acx.io/documents/api_v2',
+                'logo': 'https://user-images.githubusercontent.com/1294454/39034921-e3acf016-4480-11e8-9945-a6086a1082fe.jpg',
+                'api': 'https://www.tidebit.com/api',
+                'www': 'https://www.tidebit.com',
+                'doc': 'https://www.tidebit.com/documents/api_v2',
             },
             'api': {
                 'public': {
                     'get': [
-                        'depth', // Get depth or specified market Both asks and bids are sorted from highest price to lowest.
-                        'k_with_pending_trades', // Get K data with pending trades, which are the trades not included in K data yet, because there's delay between trade generated and processed by K data generator
-                        'k', // Get OHLC(k line) of specific market
-                        'markets', // Get all available markets
-                        'order_book', // Get the order book of specified market
-                        'order_book/{market}',
-                        'tickers', // Get ticker of all markets
-                        'tickers/{market}', // Get ticker of specific market
-                        'timestamp', // Get server current time, in seconds since Unix epoch
-                        'trades', // Get recent trades on market, each trade is included only once Trades are sorted in reverse creation order.
-                        'trades/{market}',
+                        'v2/markets', // V2MarketsJson
+                        'v2/tickers', // V2TickersJson
+                        'v2/tickers/{market}', // V2TickersMarketJson
+                        'v2/trades', // V2TradesJson
+                        'v2/trades/{market}', // V2TradesMarketJson
+                        'v2/order_book', // V2OrderBookJson
+                        'v2/order', // V2OrderJson
+                        'v2/k_with_pending_trades', // V2KWithPendingTradesJson
+                        'v2/k', // V2KJson
+                        'v2/depth', // V2DepthJson
                     ],
+                    'post': [],
                 },
                 'private': {
                     'get': [
-                        'members/me', // Get your profile and accounts info
-                        'deposits', // Get your deposits history
-                        'deposit', // Get details of specific deposit
-                        'deposit_address', // Where to deposit The address field could be empty when a new address is generating (e.g. for bitcoin), you should try again later in that case.
-                        'orders', // Get your orders, results is paginated
-                        'order', // Get information of specified order
-                        'trades/my', // Get your executed trades Trades are sorted in reverse creation order.
-                        'withdraws', // Get your cryptocurrency withdraws
-                        'withdraw', // Get your cryptocurrency withdraw
+                        'v2/deposits', // V2DepositsJson
+                        'v2/deposit_address', // V2DepositAddressJson
+                        'v2/deposit', // V2DepositJson
+                        'v2/members/me', // V2MembersMeJson
+                        'v2/addresses/{address}', // V2AddressesAddressJson
                     ],
                     'post': [
-                        'orders', // Create a Sell/Buy order
-                        'orders/multi', // Create multiple sell/buy orders
-                        'orders/clear', // Cancel all my orders
-                        'order/delete', // Cancel an order
-                        'withdraw', // Create a withdraw
+                        'v2/order/delete', // V2OrderDeleteJson
+                        'v2/order', // V2OrderJson
+                        'v2/order/multi', // V2OrderMultiJson
+                        'v2/order/clear', // V2OrderClearJson
                     ],
                 },
             },
@@ -99,21 +93,44 @@ module.exports = class acx extends Exchange {
         });
     }
 
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let response = await this.privateGetV2DepositAddress (this.extend ({
+            'currency': currency['id'],
+        }, params));
+        if ('success' in response) {
+            if (response['success']) {
+                let address = this.safeString (response, 'address');
+                let tag = this.safeString (response, 'addressTag');
+                return {
+                    'currency': code,
+                    'address': this.checkAddress (address),
+                    'tag': tag,
+                    'status': 'ok',
+                    'info': response,
+                };
+            }
+        }
+    }
+
     async fetchMarkets () {
-        let markets = await this.publicGetMarkets ();
+        let markets = await this.publicGetV2Markets ();
         let result = [];
         for (let p = 0; p < markets.length; p++) {
             let market = markets[p];
             let id = market['id'];
             let symbol = market['name'];
-            let [ base, quote ] = symbol.split ('/');
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
+            let [ baseId, quoteId ] = symbol.split ('/');
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'info': market,
             });
         }
@@ -122,20 +139,22 @@ module.exports = class acx extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateGetMembersMe ();
+        let response = await this.privateGetV2Deposits ();
         let balances = response['accounts'];
         let result = { 'info': balances };
         for (let b = 0; b < balances.length; b++) {
             let balance = balances[b];
-            let currency = balance['currency'];
-            let uppercase = currency.toUpperCase ();
+            let currencyId = balance['currency'];
+            let code = currencyId.toUpperCase ();
+            if (currencyId in this.currencies_by_id)
+                code = this.currencies_by_id[currencyId]['code'];
             let account = {
                 'free': parseFloat (balance['balance']),
                 'used': parseFloat (balance['locked']),
                 'total': 0.0,
             };
             account['total'] = this.sum (account['free'], account['used']);
-            result[uppercase] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
@@ -146,9 +165,10 @@ module.exports = class acx extends Exchange {
         let request = {
             'market': market['id'],
         };
-        if (typeof limit !== 'undefined')
+        if (typeof limit === 'undefined')
             request['limit'] = limit; // default = 300
-        let orderbook = await this.publicGetDepth (this.extend (request, params));
+        request['market'] = market['id'];
+        let orderbook = await this.publicGetV2Depth (this.extend (request, params));
         let timestamp = orderbook['timestamp'] * 1000;
         return this.parseOrderBook (orderbook, timestamp);
     }
@@ -157,7 +177,7 @@ module.exports = class acx extends Exchange {
         let timestamp = ticker['at'] * 1000;
         ticker = ticker['ticker'];
         let symbol = undefined;
-        if (market)
+        if (typeof market !== 'undefined')
             symbol = market['symbol'];
         let last = this.safeFloat (ticker, 'last');
         return {
@@ -167,16 +187,16 @@ module.exports = class acx extends Exchange {
             'high': this.safeFloat (ticker, 'high'),
             'low': this.safeFloat (ticker, 'low'),
             'bid': this.safeFloat (ticker, 'buy'),
-            'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'sell'),
+            'bidVolume': undefined,
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeFloat (ticker, 'open'),
+            'open': undefined,
             'close': last,
             'last': last,
-            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
+            'previousClose': undefined,
             'average': undefined,
             'baseVolume': this.safeFloat (ticker, 'vol'),
             'quoteVolume': undefined,
@@ -186,7 +206,7 @@ module.exports = class acx extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let tickers = await this.publicGetTickers (params);
+        let tickers = await this.publicGetV2Tickers (params);
         let ids = Object.keys (tickers);
         let result = {};
         for (let i = 0; i < ids.length; i++) {
@@ -214,7 +234,7 @@ module.exports = class acx extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetTickersMarket (this.extend ({
+        let response = await this.publicGetV2TickersMarket (this.extend ({
             'market': market['id'],
         }, params));
         return this.parseTicker (response, market);
@@ -239,7 +259,7 @@ module.exports = class acx extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetTrades (this.extend ({
+        let response = await this.publicGetV2Trades (this.extend ({
             'market': market['id'],
         }, params));
         return this.parseTrades (response, market, since, limit);
@@ -260,15 +280,18 @@ module.exports = class acx extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         if (!limit)
-            limit = 500; // default is 30
+            limit = 30; // default is 30
         let request = {
             'market': market['id'],
             'period': this.timeframes[timeframe],
             'limit': limit,
         };
-        if (typeof since !== 'undefined')
+        if (typeof since !== 'undefined') {
             request['timestamp'] = since;
-        let response = await this.publicGetK (this.extend (request, params));
+        } else {
+            request['timestamp'] = 1800000;
+        }
+        let response = await this.publicGetV2K (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
@@ -309,14 +332,6 @@ module.exports = class acx extends Exchange {
         };
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
-        let response = await this.privateGetOrder (this.extend ({
-            'id': parseInt (id),
-        }, params));
-        return this.parseOrder (response);
-    }
-
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let order = {
@@ -328,14 +343,14 @@ module.exports = class acx extends Exchange {
         if (type === 'limit') {
             order['price'] = price.toString ();
         }
-        let response = await this.privatePostOrders (this.extend (order, params));
+        let response = await this.privatePostV2Order (this.extend (order, params));
         let market = this.markets_by_id[response['market']];
         return this.parseOrder (response, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let result = await this.privatePostOrderDelete ({ 'id': id });
+        let result = await this.privatePostV2OrderDelete ({ 'id': id });
         let order = this.parseOrder (result);
         let status = order['status'];
         if (status === 'closed' || status === 'canceled') {
@@ -363,29 +378,13 @@ module.exports = class acx extends Exchange {
     }
 
     encodeParams (params) {
-        if ('orders' in params) {
-            let orders = params['orders'];
-            let query = this.urlencode (this.keysort (this.omit (params, 'orders')));
-            for (let i = 0; i < orders.length; i++) {
-                let order = orders[i];
-                let keys = Object.keys (order);
-                for (let k = 0; k < keys.length; k++) {
-                    let key = keys[k];
-                    let value = order[key];
-                    query += '&orders%5B%5D%5B' + key + '%5D=' + value.toString ();
-                }
-            }
-            return query;
-        }
         return this.urlencode (this.keysort (params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let request = '/api' + '/' + this.version + '/' + this.implodeParams (path, params);
-        if ('extension' in this.urls)
-            request += this.urls['extension'];
+        let request = this.implodeParams (path, params) + '.json';
         let query = this.omit (params, this.extractParams (path));
-        let url = this.urls['api'] + request;
+        let url = this.urls['api'] + '/' + request;
         if (api === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
@@ -393,12 +392,12 @@ module.exports = class acx extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
-            let query = this.encodeParams (this.extend ({
+            let query = this.urlencode (this.extend ({
                 'access_key': this.apiKey,
                 'tonce': nonce,
             }, params));
-            let auth = method + '|' + request + '|' + query;
-            let signature = this.hmac (this.encode (auth), this.encode (this.secret));
+            let payload = method + '|' + request + '|' + query;
+            let signature = this.hmac (this.encode (payload), this.encode (this.secret));
             let suffix = query + '&signature=' + signature;
             if (method === 'GET') {
                 url += '?' + suffix;

@@ -15,6 +15,7 @@ module.exports = class exx extends Exchange {
             'countries': 'CN',
             'rateLimit': 1000 / 10,
             'has': {
+                'fetchOrder': true,
                 'fetchTickers': true,
                 'fetchOpenOrders': true,
             },
@@ -135,26 +136,26 @@ module.exports = class exx extends Exchange {
         let symbol = market['symbol'];
         let timestamp = parseInt (ticker['date']);
         ticker = ticker['ticker'];
-        let last = parseFloat (ticker['last']);
+        let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']),
-            'low': parseFloat (ticker['low']),
-            'bid': parseFloat (ticker['buy']),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'buy'),
             'bidVolume': undefined,
-            'ask': parseFloat (ticker['sell']),
+            'ask': this.safeFloat (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': parseFloat (ticker['riseRate']),
+            'change': this.safeFloat (ticker, 'riseRate'),
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': parseFloat (ticker['vol']),
+            'baseVolume': this.safeFloat (ticker, 'vol'),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -190,7 +191,7 @@ module.exports = class exx extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetDepth (this.extend ({
             'currency': this.marketId (symbol),
@@ -200,8 +201,8 @@ module.exports = class exx extends Exchange {
 
     parseTrade (trade, market = undefined) {
         let timestamp = trade['date'] * 1000;
-        let price = parseFloat (trade['price']);
-        let amount = parseFloat (trade['amount']);
+        let price = this.safeFloat (trade, 'price');
+        let amount = this.safeFloat (trade, 'amount');
         let symbol = market['symbol'];
         let cost = this.costToPrecision (symbol, price * amount);
         return {
@@ -231,7 +232,7 @@ module.exports = class exx extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let balances = await this.privateGetBalance (params);
+        let balances = await this.privateGetGetBalance (params);
         let result = { 'info': balances };
         balances = balances['funds'];
         let currencies = Object.keys (balances);
@@ -252,7 +253,7 @@ module.exports = class exx extends Exchange {
     parseOrder (order, market = undefined) {
         let symbol = market['symbol'];
         let timestamp = parseInt (order['trade_date']);
-        let price = parseFloat (order['price']);
+        let price = this.safeFloat (order, 'price');
         let cost = this.safeFloat (order, 'trade_money');
         let amount = this.safeFloat (order, 'total_amount');
         let filled = this.safeFloat (order, 'trade_amount', 0.0);
@@ -276,6 +277,7 @@ module.exports = class exx extends Exchange {
             'id': this.safeString (order, 'id'),
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
+            'lastTradeTimestamp': undefined,
             'status': 'open',
             'symbol': symbol,
             'type': 'limit',
@@ -357,7 +359,7 @@ module.exports = class exx extends Exchange {
                 'accesskey': this.apiKey,
                 'nonce': this.nonce (),
             }, params)));
-            let signature = this.hmac (this.encode (body), this.encode (this.secret), 'sha512');
+            let signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha512');
             url += '?' + query + '&signature=' + signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

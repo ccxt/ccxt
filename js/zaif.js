@@ -33,6 +33,14 @@ module.exports = class zaif extends Exchange {
                     'https://www.npmjs.com/package/zaif.jp',
                     'https://github.com/you21979/node-zaif',
                 ],
+                'fees': 'https://zaif.jp/fee?lang=en',
+            },
+            'fees': {
+                'trading': {
+                    'percentage': true,
+                    'taker': -0.0001,
+                    'maker': -0.0005,
+                },
             },
             'api': {
                 'public': {
@@ -114,11 +122,11 @@ module.exports = class zaif extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': parseFloat (market['item_unit_min']),
+                        'min': this.safeFloat (market, 'item_unit_min'),
                         'max': undefined,
                     },
                     'price': {
-                        'min': parseFloat (market['aux_unit_min']),
+                        'min': this.safeFloat (market, 'aux_unit_min'),
                         'max': undefined,
                     },
                     'cost': {
@@ -262,6 +270,7 @@ module.exports = class zaif extends Exchange {
             'id': order['id'].toString (),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
             'status': 'open',
             'symbol': market['symbol'],
             'type': 'limit',

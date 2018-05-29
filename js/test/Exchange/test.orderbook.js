@@ -45,16 +45,29 @@ module.exports = (exchange, orderbook, method, symbol) => {
     for (let i = 1; i < bids.length; i++) {
         // debugger;
         assert (bids[i][0] <= bids[i - 1][0])
+        assert (typeof bids[i][0] === 'number')
+        assert (typeof bids[i][1] === 'number')
     }
 
     for (let i = 1; i < asks.length; i++) {
         assert (asks[i][0] >= asks[i - 1][0])
+        assert (typeof asks[i][0] === 'number')
+        assert (typeof asks[i][1] === 'number')
     }
 
-    if (exchange.id !== 'xbtce')
+    if (![
+
+        'coinmarketcap',
+        'xbtce',
+        'coinsecure',
+
+    ].includes (exchange.id)) {
+
         if (bids.length && asks.length)
             assert (bids[0][0] <= asks[0][0],
                 `bids[0][0]: ${bids[0][0]} (of ${bids.length}); asks[0][0]:${asks[0][0]} (of ${asks.length})`)
+
+    }
 
     printOrderBookOneLiner (orderbook, method, symbol)
 }

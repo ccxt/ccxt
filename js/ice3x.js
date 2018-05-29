@@ -17,7 +17,9 @@ module.exports = class ice3x extends Exchange {
             'has': {
                 'fetchCurrencies': true,
                 'fetchTickers': true,
+                'fetchOrder': true,
                 'fetchOpenOrders': true,
+                'fetchMyTrades': true,
                 'fetchDepositAddress': true,
             },
             'urls': {
@@ -128,8 +130,8 @@ module.exports = class ice3x extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
             let id = market['pair_id'];
-            let baseId = market['currency_id_from'];
-            let quoteId = market['currency_id_to'];
+            let baseId = market['currency_id_from'].toString ();
+            let quoteId = market['currency_id_to'].toString ();
             let baseCurrency = this.currencies_by_id[baseId];
             let quoteCurrency = this.currencies_by_id[quoteId];
             let base = this.commonCurrencyCode (baseCurrency['code']);
@@ -153,7 +155,7 @@ module.exports = class ice3x extends Exchange {
     parseTicker (ticker, market = undefined) {
         let timestamp = this.milliseconds ();
         let symbol = market['symbol'];
-        let last = parseFloat (ticker['last_price']);
+        let last = this.safeFloat (ticker, 'last_price');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -173,7 +175,7 @@ module.exports = class ice3x extends Exchange {
             'percentage': undefined,
             'average': this.safeFloat (ticker, 'avg'),
             'baseVolume': undefined,
-            'quoteVolume': parseFloat (ticker['vol']),
+            'quoteVolume': this.safeFloat (ticker, 'vol'),
             'info': ticker,
         };
     }
@@ -212,8 +214,8 @@ module.exports = class ice3x extends Exchange {
 
     parseTrade (trade, market = undefined) {
         let timestamp = parseInt (trade['created']) * 1000;
-        let price = parseFloat (trade['price']);
-        let amount = parseFloat (trade['volume']);
+        let price = this.safeFloat (trade, 'price');
+        let amount = this.safeFloat (trade, 'volume');
         let symbol = market['symbol'];
         let cost = parseFloat (this.costToPrecision (symbol, price * amount));
         let fee = this.safeFloat (trade, 'fee');
@@ -278,7 +280,7 @@ module.exports = class ice3x extends Exchange {
             symbol = market['symbol'];
         }
         let timestamp = this.safeInteger (order, 'created') * 1000;
-        let price = parseFloat (order['price']);
+        let price = this.safeFloat (order, 'price');
         let amount = this.safeFloat (order, 'volume');
         let status = this.safeInteger (order, 'active');
         let remaining = this.safeFloat (order, 'remaining');
@@ -300,6 +302,7 @@ module.exports = class ice3x extends Exchange {
             'id': this.safeString (order, 'order_id'),
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
+            'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
             'type': 'limit',
