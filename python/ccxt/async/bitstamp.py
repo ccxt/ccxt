@@ -510,8 +510,8 @@ class bitstamp (Exchange):
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         market = None
+        await self.load_markets()
         if symbol is not None:
-            await self.load_markets()
             market = self.market(symbol)
         orders = await self.privatePostOpenOrdersAll()
         return self.parse_orders(orders, market, since, limit)
