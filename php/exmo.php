@@ -19,6 +19,7 @@ class exmo extends Exchange {
             'has' => array (
                 'CORS' => false,
                 'fetchClosedOrders' => 'emulated',
+                'fetchDepositAddress' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => 'emulated',
                 'fetchOrders' => 'emulated',
@@ -540,6 +541,28 @@ class exmo extends Exchange {
             'trades' => $trades,
             'fee' => $fee,
             'info' => $order,
+        );
+    }
+
+    public function fetch_deposit_address ($code, $params = array ()) {
+        $this->load_markets();
+        $response = $this->privatePostDepositAddress ($params);
+        $depositAddress = $this->safe_string($response, $code);
+        $status = 'ok';
+        $address = null;
+        $tag = null;
+        if ($depositAddress) {
+            $addressAndTag = explode (',', $depositAddress);
+            $address = $addressAndTag[0];
+            $tag = $addressAndTag[1];
+        }
+        $this->check_address($address);
+        return array (
+            'currency' => $code,
+            'address' => $address,
+            'tag' => $tag,
+            'status' => $status,
+            'info' => $response,
         );
     }
 

@@ -307,11 +307,11 @@ module.exports = class bitz extends Exchange {
                 side = this.safeString (order, 'flag');
         }
         let amount = this.safeFloat (order, 'number');
-        let filled = this.safeFloat (order, 'numberover');
-        let remaining = undefined;
+        let remaining = this.safeFloat (order, 'numberover');
+        let filled = undefined;
         if (typeof amount !== 'undefined')
-            if (typeof filled !== 'undefined')
-                remaining = amount - filled;
+            if (typeof remaining !== 'undefined')
+                filled = amount - remaining;
         let timestamp = undefined;
         let iso8601 = undefined;
         if ('datetime' in order) {

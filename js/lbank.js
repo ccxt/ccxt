@@ -106,7 +106,7 @@ module.exports = class lbank extends Exchange {
             let [ baseId, quoteId ] = id.split ('_');
             let base = this.commonCurrencyCode (baseId.toUpperCase ());
             let quote = this.commonCurrencyCode (quoteId.toUpperCase ());
-            let symbol = [base, quote].join ('/');
+            let symbol = base + '/' + quote;
             let precision = {
                 'amount': 8,
                 'price': 8,

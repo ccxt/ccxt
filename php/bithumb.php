@@ -36,8 +36,8 @@ class bithumb extends Exchange {
                         'ticker/all',
                         'orderbook/{currency}',
                         'orderbook/all',
-                        'recent_transactions/{currency}',
-                        'recent_transactions/all',
+                        'transaction_history/{currency}',
+                        'transaction_history/all',
                     ),
                 ),
                 'private' => array (
@@ -64,6 +64,9 @@ class bithumb extends Exchange {
                     'maker' => 0.15 / 100,
                     'taker' => 0.15 / 100,
                 ),
+            ),
+            'exceptions' => array (
+                '5100' => '\\ccxt\\ExchangeError', // array ("status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions")
             ),
         ));
     }
@@ -235,7 +238,7 @@ class bithumb extends Exchange {
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetRecentTransactionsCurrency (array_merge (array (
+        $response = $this->publicGetTransactionHistoryCurrency (array_merge (array (
             'currency' => $market['base'],
             'count' => 100, // max = 100
         ), $params));
@@ -338,6 +341,33 @@ class bithumb extends Exchange {
             );
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body) {
+        if (gettype ($body) != 'string')
+            return; // fallback to default error handler
+        if (strlen ($body) < 2)
+            return; // fallback to default error handler
+        if (($body[0] === '{') || ($body[0] === '[')) {
+            $response = json_decode ($body, $as_associative_array = true);
+            if (is_array ($response) && array_key_exists ('status', $response)) {
+                //
+                //     array ("$status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions")
+                //
+                $status = $this->safe_string($response, 'status');
+                if ($status !== null) {
+                    if ($status === '0000')
+                        return; // no error
+                    $feedback = $this->id . ' ' . $this->json ($response);
+                    $exceptions = $this->exceptions;
+                    if (is_array ($exceptions) && array_key_exists ($status, $exceptions)) {
+                        throw new $exceptions[$status] ($feedback);
+                    } else {
+                        throw new ExchangeError ($feedback);
+                    }
+                }
+            }
+        }
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

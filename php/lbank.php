@@ -107,7 +107,7 @@ class lbank extends Exchange {
             list ($baseId, $quoteId) = explode ('_', $id);
             $base = $this->common_currency_code(strtoupper ($baseId));
             $quote = $this->common_currency_code(strtoupper ($quoteId));
-            $symbol = implode ('/', array ($base, $quote));
+            $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => 8,
                 'price' => 8,

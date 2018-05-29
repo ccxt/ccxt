@@ -110,7 +110,7 @@ class lbank (Exchange):
             baseId, quoteId = id.split('_')
             base = self.common_currency_code(baseId.upper())
             quote = self.common_currency_code(quoteId.upper())
-            symbol = '/'.join([base, quote])
+            symbol = base + '/' + quote
             precision = {
                 'amount': 8,
                 'price': 8,
