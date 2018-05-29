@@ -372,14 +372,12 @@ module.exports = class gateio extends Exchange {
         if (timestamp > 0) {
             datetime = this.iso8601 (timestamp);
         }
-        let price = this.safeFloat (order, 'filledRate');
         let amount = undefined;
         if ('initialAmount' in order) {
             amount = this.safeFloat (order, 'initialAmount');
         } else if (createOrderInitialAmount) {
             amount = createOrderInitialAmount;
         }
-        let filled = this.safeFloat (order, 'filledAmount');
         let remaining = undefined;
         if ('amount' in order) {
             remaining = this.safeFloat (order, 'amount');
@@ -400,6 +398,8 @@ module.exports = class gateio extends Exchange {
         } else if (createOrderSide) {
             side = createOrderSide;
         }
+        let price = this.safeFloat (order, 'filledRate');
+        let filled = this.safeFloat (order, 'filledAmount');
         let feeCost = this.safeFloat (order, 'feeValue');
         let feeCurrency = this.safeString (order, 'feeCurrency');
         if (typeof feeCurrency !== 'undefined') {
