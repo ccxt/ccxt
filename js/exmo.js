@@ -18,6 +18,7 @@ module.exports = class exmo extends Exchange {
             'has': {
                 'CORS': false,
                 'fetchClosedOrders': 'emulated',
+                'fetchDepositAddress': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': 'emulated',
                 'fetchOrders': 'emulated',
@@ -30,7 +31,8 @@ module.exports = class exmo extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg',
                 'api': 'https://api.exmo.com',
-                'www': 'https://exmo.me/?ref=131685',
+                'www': 'https://exmo.me',
+                'referral': 'https://exmo.me/?ref=131685',
                 'doc': [
                     'https://exmo.me/en/api_doc?ref=131685',
                     'https://github.com/exmo-dev/exmo_api_lib/tree/master/nodejs',
@@ -538,6 +540,28 @@ module.exports = class exmo extends Exchange {
             'trades': trades,
             'fee': fee,
             'info': order,
+        };
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privatePostDepositAddress (params);
+        let depositAddress = this.safeString (response, code);
+        let status = 'ok';
+        let address = undefined;
+        let tag = undefined;
+        if (depositAddress) {
+            let addressAndTag = depositAddress.split (',');
+            address = addressAndTag[0];
+            tag = addressAndTag[1];
+        }
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'status': status,
+            'info': response,
         };
     }
 

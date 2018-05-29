@@ -215,21 +215,20 @@ class lakebtc (Exchange):
         else:
             self.check_required_credentials()
             nonce = self.nonce()
-            if params:
-                params = ','.join(params)
-            else:
-                params = ''
+            queryParams = ''
+            if 'params' in params:
+                queryParams = params['params'].join()
             query = self.urlencode({
                 'tonce': nonce,
                 'accesskey': self.apiKey,
                 'requestmethod': method.lower(),
                 'id': nonce,
                 'method': path,
-                'params': params,
+                'params': queryParams,
             })
             body = self.json({
                 'method': path,
-                'params': params,
+                'params': queryParams,
                 'id': nonce,
             })
             signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha1)

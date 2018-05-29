@@ -547,7 +547,6 @@ class bitfinex (Exchange):
         if (type == 'limit') or (type == 'market'):
             orderType = 'exchange ' + type
         amount = self.amount_to_precision(symbol, amount)
-        price = self.price_to_precision(symbol, price)
         order = {
             'symbol': self.market_id(symbol),
             'amount': amount,
@@ -560,7 +559,7 @@ class bitfinex (Exchange):
         if type == 'market':
             order['price'] = str(self.nonce())
         else:
-            order['price'] = price
+            order['price'] = self.price_to_precision(symbol, price)
         result = self.privatePostOrderNew(self.extend(order, params))
         return self.parse_order(result)
 

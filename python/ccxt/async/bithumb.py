@@ -4,8 +4,16 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import base64
 import hashlib
+import json
 from ccxt.base.errors import ExchangeError
 
 
@@ -38,8 +46,8 @@ class bithumb (Exchange):
                         'ticker/all',
                         'orderbook/{currency}',
                         'orderbook/all',
-                        'recent_transactions/{currency}',
-                        'recent_transactions/all',
+                        'transaction_history/{currency}',
+                        'transaction_history/all',
                     ],
                 },
                 'private': {
@@ -66,6 +74,9 @@ class bithumb (Exchange):
                     'maker': 0.15 / 100,
                     'taker': 0.15 / 100,
                 },
+            },
+            'exceptions': {
+                '5100': ExchangeError,  # {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
             },
         })
 
@@ -224,7 +235,7 @@ class bithumb (Exchange):
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetRecentTransactionsCurrency(self.extend({
+        response = await self.publicGetTransactionHistoryCurrency(self.extend({
             'currency': market['base'],
             'count': 100,  # max = 100
         }, params))
@@ -318,6 +329,28 @@ class bithumb (Exchange):
                 'Api-Nonce': nonce,
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def handle_errors(self, httpCode, reason, url, method, headers, body):
+        if not isinstance(body, basestring):
+            return  # fallback to default error handler
+        if len(body) < 2:
+            return  # fallback to default error handler
+        if (body[0] == '{') or (body[0] == '['):
+            response = json.loads(body)
+            if 'status' in response:
+                #
+                #     {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
+                #
+                status = self.safe_string(response, 'status')
+                if status is not None:
+                    if status == '0000':
+                        return  # no error
+                    feedback = self.id + ' ' + self.json(response)
+                    exceptions = self.exceptions
+                    if status in exceptions:
+                        raise exceptions[status](feedback)
+                    else:
+                        raise ExchangeError(feedback)
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = await self.fetch2(path, api, method, params, headers, body)

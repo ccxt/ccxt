@@ -51,8 +51,8 @@ class okcoinusd (Exchange):
             'api': {
                 'web': {
                     'get': [
-                        'markets/currencies',
-                        'markets/products',
+                        'spot/markets/currencies',
+                        'spot/markets/products',
                     ],
                 },
                 'public': {
@@ -119,7 +119,7 @@ class okcoinusd (Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766791-89ffb502-5ee5-11e7-8a5b-c5950b68ac65.jpg',
                 'api': {
-                    'web': 'https://www.okcoin.com/v2/spot',
+                    'web': 'https://www.okcoin.com/v2',
                     'public': 'https://www.okcoin.com/api',
                     'private': 'https://www.okcoin.com/api',
                 },
@@ -154,7 +154,7 @@ class okcoinusd (Exchange):
         })
 
     async def fetch_markets(self):
-        response = await self.webGetMarketsProducts()
+        response = await self.webGetSpotMarketsProducts()
         markets = response['data']
         result = []
         futureMarkets = {
@@ -332,6 +332,20 @@ class okcoinusd (Exchange):
         method += 'Trades'
         response = await getattr(self, method)(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
+
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+        numElements = len(ohlcv)
+        volumeIndex = 6 if (numElements > 6) else 5
+        return [
+            ohlcv[0],  # timestamp
+            ohlcv[1],  # Open
+            ohlcv[2],  # High
+            ohlcv[3],  # Low
+            ohlcv[4],  # Close
+            # ohlcv[5],  # quote volume
+            # ohlcv[6],  # base volume
+            ohlcv[volumeIndex],  # okex will return base volume in the 7th element for future markets
+        ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()

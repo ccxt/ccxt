@@ -159,7 +159,7 @@ class paymium (Exchange):
             'direction': side,
             'amount': amount,
         }
-        if type == 'market':
+        if type != 'market':
             order['price'] = price
         response = self.privatePostUserOrders(self.extend(order, params))
         return {
@@ -168,8 +168,8 @@ class paymium (Exchange):
         }
 
     def cancel_order(self, id, symbol=None, params={}):
-        return self.privatePostCancelOrder(self.extend({
-            'orderNumber': id,
+        return self.privateDeleteUserOrdersUUIDCancel(self.extend({
+            'UUID': id,
         }, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
