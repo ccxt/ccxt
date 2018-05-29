@@ -16,7 +16,6 @@ import certifi
 import aiohttp
 import ssl
 import yarl
-import requests
 
 # -----------------------------------------------------------------------------
 
@@ -117,23 +116,21 @@ class Exchange(BaseExchange):
         session_method = getattr(self.session, method.lower())
         http_status_code = None
 
-        standard_response = requests.models.Response()
-
         try:
             async with session_method(yarl.URL(url, encoded=True),
                                       data=encoded_body,
                                       headers=headers,
                                       timeout=(self.timeout / 1000),
                                       proxy=self.aiohttp_proxy) as response:
-                standard_response.status_code = response.status
-                standard_response._content = await response.content.read()  # may break in the future
-                standard_response.headers = response.headers
-                self.last_http_response = standard_response.text  # remove in future
-                self.last_response_headers = standard_response.headers
+                http_status_code = response.status
+                text = await response.text()
+                self.last_http_response = text
+                self.last_response_headers = response.headers
+                self.handle_errors(http_status_code, text, url, method, self.last_response_headers, text)
+                self.handle_rest_errors(None, http_status_code, text, url, method)
                 if self.verbose:
-                    print("\nResponse:", method, url, str(standard_response.status_code), str(standard_response.headers), standard_response.text)
-                self.logger.debug("%s %s, Response: %s %s %s", method, url, standard_response.status_code, str(standard_response.headers), standard_response.text)
-                response.raise_for_status()
+                    print("\nResponse:", method, url, str(http_status_code), str(response.headers), self.last_http_response)
+                self.logger.debug("%s %s, Response: %s %s %s", method, url, response.status, response.headers, self.last_http_response)
 
         except socket.gaierror as e:
             self.raise_error(ExchangeNotAvailable, url, method, e, None)
@@ -144,14 +141,11 @@ class Exchange(BaseExchange):
         except aiohttp.client_exceptions.ClientConnectionError as e:
             self.raise_error(ExchangeNotAvailable, url, method, e, None)
 
-        except aiohttp.client_exceptions.ClientResponseError as e:  # equivalent to HTTPError in base class
-            self.handle_rest_response(standard_response, url, method, headers, body)
+        except aiohttp.client_exceptions.ClientError as e:
             self.raise_error(ExchangeError, url, method, e, None)
 
-        except aiohttp.client_exceptions.ClientError as e:  # base class
-            self.raise_error(ExchangeError, url, method, e, None)
-
-        return self.handle_rest_response(standard_response, url, method, headers, body)
+        self.handle_errors(http_status_code, text, url, method, self.last_response_headers, text)
+        return self.handle_rest_response(text, url, method, headers, body)
 
     async def load_markets(self, reload=False):
         if not reload:
