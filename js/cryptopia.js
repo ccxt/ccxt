@@ -734,7 +734,6 @@ module.exports = class cryptopia extends Exchange {
             let response = JSON.parse (fixedJSONString);
             if ('Success' in response) {
                 const success = this.safeString (response, 'Success');
-                console.log("Success == '%s'", success);
                 if (success === 'false') {
                     let error = this.safeString (response, 'Error');
                     let feedback = this.id;
