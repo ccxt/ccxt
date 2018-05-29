@@ -183,7 +183,6 @@ module.exports = class lykke extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
-        ticker = ticker;
 
         return {
             'symbol': symbol,
