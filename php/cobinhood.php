@@ -129,6 +129,7 @@ class cobinhood extends Exchange {
             ),
             'exceptions' => array (
                 'insufficient_balance' => '\\ccxt\\InsufficientFunds',
+                'invalid_nonce' => '\\ccxt\\InvalidNonce',
             ),
         ));
     }
@@ -398,7 +399,7 @@ class cobinhood extends Exchange {
         if ($market !== null)
             $symbol = $market['symbol'];
         $timestamp = $order['timestamp'];
-        $price = $this->safe_float($order, 'price');
+        $price = $this->safe_float($order, 'eq_price');
         $amount = $this->safe_float($order, 'size');
         $filled = $this->safe_float($order, 'filled');
         $remaining = $amount - $filled;

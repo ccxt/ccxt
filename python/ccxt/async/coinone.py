@@ -117,10 +117,15 @@ class coinone (Exchange):
     async def fetch_balance(self, params={}):
         response = await self.privatePostAccountBalance()
         result = {'info': response}
-        ids = list(response.keys())
+        balances = self.omit(response, [
+            'errorCode',
+            'result',
+            'normalWallets',
+        ])
+        ids = list(balances.keys())
         for i in range(0, len(ids)):
             id = ids[i]
-            balance = response[id]
+            balance = balances[id]
             code = id.upper()
             if id in self.currencies_by_id:
                 code = self.currencies_by_id[id]['code']
@@ -262,10 +267,10 @@ class coinone (Exchange):
             self.check_required_credentials()
             url += self.version + '/' + request
             nonce = str(self.nonce())
-            json = self.json({
+            json = self.json(self.extend({
                 'access_token': self.apiKey,
                 'nonce': nonce,
-            })
+            }, params))
             payload = base64.b64encode(self.encode(json))
             body = self.decode(payload)
             secret = self.secret.upper()

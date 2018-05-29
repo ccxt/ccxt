@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InvalidOrder, NotSupported } = require ('./base/errors');
+const { ExchangeError, NullResponse, InvalidOrder, NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -114,6 +114,9 @@ module.exports = class cex extends Exchange {
                     },
                 },
             },
+            'options': {
+                'fetchOHLCVWarning': true,
+            },
         });
     }
 
@@ -200,8 +203,13 @@ module.exports = class cex extends Exchange {
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        if (!since)
+        if (!since) {
             since = this.milliseconds () - 86400000; // yesterday
+        } else {
+            if (this.options['fetchOHLCVWarning']) {
+                throw new ExchangeError (this.id + " fetchOHLCV warning: CEX can return historical candles for a certain date only, this might produce an empty or null response. Set exchange.options['fetchOHLCVWarning'] = false or add ({ 'options': { 'fetchOHLCVWarning': false }}) to constructor params to suppress this warning message.");
+            }
+        }
         let ymd = this.ymd (since);
         ymd = ymd.split ('-');
         ymd = ymd.join ('');
@@ -209,10 +217,16 @@ module.exports = class cex extends Exchange {
             'pair': market['id'],
             'yyyymmdd': ymd,
         };
-        let response = await this.publicGetOhlcvHdYyyymmddPair (this.extend (request, params));
-        let key = 'data' + this.timeframes[timeframe];
-        let ohlcvs = JSON.parse (response[key]);
-        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
+        try {
+            let response = await this.publicGetOhlcvHdYyyymmddPair (this.extend (request, params));
+            let key = 'data' + this.timeframes[timeframe];
+            let ohlcvs = JSON.parse (response[key]);
+            return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
+        } catch (e) {
+            if (e instanceof NullResponse) {
+                return [];
+            }
+        }
     }
 
     parseTicker (ticker, market = undefined) {
@@ -494,7 +508,7 @@ module.exports = class cex extends Exchange {
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         if (!response) {
-            throw new ExchangeError (this.id + ' returned ' + this.json (response));
+            throw new NullResponse (this.id + ' returned ' + this.json (response));
         } else if (response === true) {
             return response;
         } else if ('e' in response) {

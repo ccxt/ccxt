@@ -30,7 +30,8 @@ class cointiger extends huobipro {
                     'private' => 'https://api.cointiger.com/exchange/trading/api',
                     'exchange' => 'https://www.cointiger.com/exchange',
                 ),
-                'www' => 'https://www.cointiger.com/exchange/register.html?refCode=FfvDtt',
+                'www' => 'https://www.cointiger.com',
+                'referral' => 'https://www.cointiger.com/exchange/register.html?refCode=FfvDtt',
                 'doc' => 'https://github.com/cointiger/api-docs-en/wiki',
             ),
             'api' => array (
@@ -467,8 +468,15 @@ class cointiger extends huobipro {
             }
             $order['volume'] = $this->amount_to_precision($symbol, $amount * $price);
         }
-        if ($type === 'limit')
+        if ($type === 'limit') {
             $order['price'] = $this->price_to_precision($symbol, $price);
+        } else {
+            if ($price === null) {
+                $order['price'] = $this->price_to_precision($symbol, 0);
+            } else {
+                $order['price'] = $this->price_to_precision($symbol, $price);
+            }
+        }
         $response = $this->privatePostOrder (array_merge ($order, $params));
         //
         //     array ("order_id":34343)

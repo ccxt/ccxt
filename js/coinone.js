@@ -113,10 +113,15 @@ module.exports = class coinone extends Exchange {
     async fetchBalance (params = {}) {
         let response = await this.privatePostAccountBalance ();
         let result = { 'info': response };
-        let ids = Object.keys (response);
+        let balances = this.omit (response, [
+            'errorCode',
+            'result',
+            'normalWallets',
+        ]);
+        let ids = Object.keys (balances);
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
-            let balance = response[id];
+            let balance = balances[id];
             let code = id.toUpperCase ();
             if (id in this.currencies_by_id)
                 code = this.currencies_by_id[id]['code'];
@@ -271,10 +276,10 @@ module.exports = class coinone extends Exchange {
             this.checkRequiredCredentials ();
             url += this.version + '/' + request;
             let nonce = this.nonce ().toString ();
-            let json = this.json ({
+            let json = this.json (this.extend ({
                 'access_token': this.apiKey,
                 'nonce': nonce,
-            });
+            }, params));
             let payload = this.stringToBase64 (this.encode (json));
             body = this.decode (payload);
             let secret = this.secret.toUpperCase ();

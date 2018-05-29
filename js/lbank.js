@@ -106,7 +106,7 @@ module.exports = class lbank extends Exchange {
             let [ baseId, quoteId ] = id.split ('_');
             let base = this.commonCurrencyCode (baseId.toUpperCase ());
             let quote = this.commonCurrencyCode (quoteId.toUpperCase ());
-            let symbol = [base, quote].join ('/');
+            let symbol = base + '/' + quote;
             let precision = {
                 'amount': 8,
                 'price': 8,
@@ -282,23 +282,37 @@ module.exports = class lbank extends Exchange {
         return this.parseBalance (result);
     }
 
+    parseOrderStatus (status) {
+        let statuses = {
+            '-1': 'cancelled', // cancelled
+            '0': 'open', // not traded
+            '1': 'open', // partial deal
+            '2': 'closed', // complete deal
+            '4': 'closed', // disposal processing
+        };
+        return this.safeString (statuses, status);
+    }
+
     parseOrder (order, market = undefined) {
-        let symbol = this.safeValue (this.marketsById, order['symbol'], { 'symbol': undefined });
+        let symbol = undefined;
+        let responseMarket = this.safeValue (this.marketsById, order['symbol']);
+        if (typeof responseMarket !== 'undefined') {
+            symbol = responseMarket['symbol'];
+        } else if (typeof market !== 'undefined') {
+            symbol = market['symbol'];
+        }
         let timestamp = this.safeInteger (order, 'create_time');
         // Limit Order Request Returns: Order Price
         // Market Order Returns: cny amount of market order
         let price = this.safeFloat (order, 'price');
-        let amount = this.safeFloat (order, 'amount');
-        let filled = this.safeFloat (order, 'deal_amount');
-        let cost = filled * this.safeFloat (order, 'avg_price');
-        let status = this.safeInteger (order, 'status');
-        if (status === -1 || status === 4) {
-            status = 'canceled';
-        } else if (status === 2) {
-            status = 'closed';
-        } else {
-            status = 'open';
+        let amount = this.safeFloat (order, 'amount', 0.0);
+        let filled = this.safeFloat (order, 'deal_amount', 0.0);
+        let av_price = this.safeFloat (order, 'avg_price');
+        let cost = undefined;
+        if (typeof av_price !== 'undefined') {
+            cost = filled * av_price;
         }
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
         return {
             'id': this.safeString (order, 'order_id'),
             'datetime': this.iso8601 (timestamp),
@@ -311,8 +325,8 @@ module.exports = class lbank extends Exchange {
             'price': price,
             'cost': cost,
             'amount': amount,
-            'filled': undefined,
-            'remaining': undefined,
+            'filled': filled,
+            'remaining': amount - filled,
             'trades': undefined,
             'fee': undefined,
             'info': this.safeValue (order, 'info', order),
@@ -377,17 +391,17 @@ module.exports = class lbank extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let response = await this.fetchOrders (this.extend ({
+        let response = await this.fetchOrders (symbol, since, limit, this.extend ({
             'status': 0,
         }, params));
         return response;
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let response = await this.fetchOrders (this.extend ({
-            'status': 1,
-        }, params));
-        return response;
+        let orders = await this.fetchOrders (symbol, since, limit);
+        let closed = this.filterBy (orders, 'status', 'closed');
+        let cancelled = this.filterBy (orders, 'status', 'cancelled'); // cancelled orders may be partially filled
+        return closed + cancelled;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

@@ -60,7 +60,8 @@ class hitbtc2 (hitbtc):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
                 'api': 'https://api.hitbtc.com',
-                'www': 'https://hitbtc.com/?ref_id=5a5d39a65d466',
+                'www': 'https://hitbtc.com',
+                'referral': 'https://hitbtc.com/?ref_id=5a5d39a65d466',
                 'doc': 'https://api.hitbtc.com',
                 'fees': [
                     'https://hitbtc.com/fees-and-limits',
@@ -544,6 +545,16 @@ class hitbtc2 (hitbtc):
                     },
                 },
             },
+            'options': {
+                'defaultTimeInForce': 'FOK',
+            },
+            'exceptions': {
+                '2010': InvalidOrder,  # "Quantity not a valid number"
+                '2011': InvalidOrder,  # "Quantity too low"
+                '2020': InvalidOrder,  # "Price not a valid number"
+                '20002': OrderNotFound,  # canceling non-existent order
+                '20001': InsufficientFunds,
+            },
         })
 
     def fee_to_precision(self, symbol, fee):
@@ -564,7 +575,9 @@ class hitbtc2 (hitbtc):
             step = self.safe_float(market, 'tickSize')
             precision = {
                 'price': self.precision_from_string(market['tickSize']),
-                'amount': self.precision_from_string(market['quantityIncrement']),
+                # FIXME: for lots > 1 the following line returns 0
+                # 'amount': self.precision_from_string(market['quantityIncrement']),
+                'amount': -1 * math.log10(lot),
             }
             taker = self.safe_float(market, 'takeLiquidityRate')
             maker = self.safe_float(market, 'provideLiquidityRate')
@@ -577,8 +590,6 @@ class hitbtc2 (hitbtc):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': True,
-                'lot': lot,
-                'step': step,
                 'taker': taker,
                 'maker': maker,
                 'precision': precision,
@@ -841,7 +852,7 @@ class hitbtc2 (hitbtc):
         if type == 'limit':
             request['price'] = self.price_to_precision(symbol, price)
         else:
-            request['timeInForce'] = 'FOK'
+            request['timeInForce'] = self.options['defaultTimeInForce']
         response = await self.privatePostOrder(self.extend(request, params))
         order = self.parse_order(response)
         id = order['id']
@@ -1089,17 +1100,15 @@ class hitbtc2 (hitbtc):
             # {"code":504,"message":"Gateway Timeout","description":""}
             if (code == 503) or (code == 504):
                 raise ExchangeNotAvailable(feedback)
+            # {"error":{"code":20002,"message":"Order not found","description":""}}
             if body[0] == '{':
                 response = json.loads(body)
                 if 'error' in response:
-                    if 'message' in response['error']:
-                        message = response['error']['message']
-                        if message == 'Order not found':
-                            raise OrderNotFound(self.id + ' order not found in active orders')
-                        elif message == 'Quantity not a valid number':
-                            raise InvalidOrder(feedback)
-                        elif message == 'Insufficient funds':
-                            raise InsufficientFunds(feedback)
-                        elif message == 'Duplicate clientOrderId':
-                            raise InvalidOrder(feedback)
+                    code = self.safe_string(response['error'], 'code')
+                    exceptions = self.exceptions
+                    if code in exceptions:
+                        raise exceptions[code](feedback)
+                    message = self.safe_string(response['error'], 'message')
+                    if message == 'Duplicate clientOrderId':
+                        raise InvalidOrder(feedback)
             raise ExchangeError(feedback)

@@ -28,6 +28,7 @@ class cryptopia (Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchMyTrades': True,
+                'fetchOHLCV': True,
                 'fetchOrder': 'emulated',
                 'fetchOrderBooks': True,
                 'fetchOrders': 'emulated',
@@ -38,15 +39,35 @@ class cryptopia (Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/29484394-7b4ea6e2-84c6-11e7-83e5-1fccf4b2dc81.jpg',
-                'api': 'https://www.cryptopia.co.nz/api',
-                'www': 'https://www.cryptopia.co.nz/Register?referrer=kroitor',
+                'api': {
+                    'public': 'https://www.cryptopia.co.nz/api',
+                    'private': 'https://www.cryptopia.co.nz/api',
+                    'web': 'https://www.cryptopia.co.nz',
+                },
+                'www': 'https://www.cryptopia.co.nz',
+                'referral': 'https://www.cryptopia.co.nz/Register?referrer=kroitor',
                 'doc': [
                     'https://www.cryptopia.co.nz/Forum/Category/45',
                     'https://www.cryptopia.co.nz/Forum/Thread/255',
                     'https://www.cryptopia.co.nz/Forum/Thread/256',
                 ],
             },
+            'timeframes': {
+                '15m': 15,
+                '30m': 30,
+                '1h': 60,
+                '2h': 120,
+                '4h': 240,
+                '12h': 720,
+                '1d': 1440,
+                '1w': 10080,
+            },
             'api': {
+                'web': {
+                    'get': [
+                        'Exchange/GetTradePairChart',
+                    ],
+                },
                 'public': {
                     'get': [
                         'GetCurrencies',
@@ -165,6 +186,38 @@ class cryptopia (Exchange):
         orderbook = response['Data']
         return self.parse_order_book(orderbook, None, 'Buy', 'Sell', 'Price', 'Volume')
 
+    def fetch_ohlcv(self, symbol, timeframe='15m', since=None, limit=None, params={}):
+        dataRange = 0
+        if since is not None:
+            dataRanges = [
+                86400,
+                172800,
+                604800,
+                1209600,
+                2592000,
+                7776000,
+                15552000,
+            ]
+            numDataRanges = len(dataRanges)
+            now = self.seconds()
+            sinceSeconds = int(since / 1000)
+            for i in range(1, numDataRanges):
+                if (now - sinceSeconds) > dataRanges[i]:
+                    dataRange = i
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'tradePairId': market['id'],
+            'dataRange': dataRange,
+            'dataGroup': self.timeframes[timeframe],
+        }
+        response = self.webGetExchangeGetTradePairChart(self.extend(request, params))
+        candles = response['Candle']
+        volumes = response['Volume']
+        for i in range(0, len(candles)):
+            candles[i].append(volumes[i]['basev'])
+        return self.parse_ohlcvs(candles, market, timeframe, since, limit)
+
     def join_market_ids(self, ids, glue='-'):
         result = str(ids[0])
         for i in range(1, len(ids)):
@@ -173,15 +226,12 @@ class cryptopia (Exchange):
 
     def fetch_order_books(self, symbols=None, params={}):
         self.load_markets()
-        ids = None
-        if not symbols:
-            numIds = len(self.ids)
-            # max URL length is 2083 characters, including http schema, hostname, tld, etc...
-            if numIds > 2048:
-                raise ExchangeError(self.id + ' has ' + str(numIds) + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks')
-            ids = self.join_market_ids(self.ids)
-        else:
-            ids = self.join_market_ids(self.market_ids(symbols))
+        if symbols is None:
+            raise ExchangeError(self.id + ' fetchOrderBooks requires the symbols argument as of May 2018(up to 5 symbols at max)')
+        numSymbols = len(symbols)
+        if numSymbols > 5:
+            raise ExchangeError(self.id + ' fetchOrderBooks accepts 5 symbols at max')
+        ids = self.join_market_ids(self.market_ids(symbols))
         response = self.publicGetGetMarketOrderGroupsIds(self.extend({
             'ids': ids,
         }, params))
@@ -597,12 +647,9 @@ class cryptopia (Exchange):
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + self.implode_params(path, params)
+        url = self.urls['api'][api] + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        if api == 'public':
-            if query:
-                url += '?' + self.urlencode(query)
-        else:
+        if api == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())
             body = self.json(query, {'convertArraysToObjects': True})
@@ -618,10 +665,15 @@ class cryptopia (Exchange):
                 'Content-Type': 'application/json',
                 'Authorization': auth,
             }
+        else:
+            if query:
+                url += '?' + self.urlencode(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)
+        if api == 'web':
+            return response
         if response:
             if 'Success' in response:
                 if response['Success']:

@@ -80,6 +80,9 @@ class coinmarketcap extends Exchange {
                 'MXN',
                 'RUB',
                 'USD',
+                'BTC',
+                'ETH',
+                'LTC',
             ),
         ));
     }
@@ -97,13 +100,28 @@ class coinmarketcap extends Exchange {
             'BlazeCoin' => 'BlazeCoin',
             'BlockCAT' => 'BlockCAT',
             'Catcoin' => 'Catcoin',
+            'CanYaCoin' => 'CanYaCoin', // conflict with CAN (Content and AD Network)
+            'Comet' => 'Comet', // conflict with CMT (CyberMiles)
+            'CPChain' => 'CPChain',
+            'Cubits' => 'Cubits', // conflict with QBT (Qbao)
+            'DAO.Casino' => 'DAO.Casino', // conflict with BET (BetaCoin)
+            'ENTCash' => 'ENTCash', // conflict with ENT (Eternity)
+            'FairGame' => 'FairGame',
             'GET Protocol' => 'GET Protocol',
-            'Hi Mutual Society' => 'Hi Mutual Society',
+            'Global Tour Coin' => 'Global Tour Coin', // conflict with GTC (Game.com)
+            'GuccioneCoin' => 'GuccioneCoin', // conflict with GCC (Global Cryptocurrency)
+            'Hi Mutual Society' => 'Hi Mutual Society', // conflict with HMC (HarmonyCoin)
+            'Huncoin' => 'Huncoin', // conflict with HNC (Helleniccoin)
             'iCoin' => 'iCoin',
+            'Infinity Economics' => 'Infinity Economics', // conflict with XIN (Mixin)
+            'KingN Coin' => 'KingN Coin', // conflict with KNC (Kyber Network)
+            'LiteBitcoin' => 'LiteBitcoin', // conflict with LBTC (LightningBitcoin)
             'Maggie' => 'Maggie',
             'MIOTA' => 'IOTA', // a special case, most exchanges list it as IOTA, therefore we change just the Coinmarketcap instead of changing them all
             'NetCoin' => 'NetCoin',
             'Polcoin' => 'Polcoin',
+            'PutinCoin' => 'PutinCoin', // conflict with PUT (Profile Utility Token)
+            'Rcoin' => 'Rcoin', // conflict with RCN (Ripio Credit Network)
         );
         if (is_array ($currencies) && array_key_exists ($name, $currencies))
             return $currencies[$name];
@@ -125,6 +143,9 @@ class coinmarketcap extends Exchange {
                 $base = $this->currency_code ($market['symbol'], $market['name']);
                 $symbol = $base . '/' . $quote;
                 $id = $baseId . '/' . $quoteId;
+                if (mb_strpos ($market['symbol'], 'dao') !== false) {
+                    var_dump ($market);
+                }
                 $result[] = array (
                     'id' => $id,
                     'symbol' => $symbol,

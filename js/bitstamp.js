@@ -431,6 +431,8 @@ module.exports = class bitstamp extends Exchange {
             request['pair'] = market['id'];
             method += 'Pair';
         }
+        if (typeof limit !== 'undefined')
+            request['limit'] = limit;
         let response = await this[method] (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }

@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidNonce
 
 
 class cobinhood (Exchange):
@@ -131,6 +132,7 @@ class cobinhood (Exchange):
             },
             'exceptions': {
                 'insufficient_balance': InsufficientFunds,
+                'invalid_nonce': InvalidNonce,
             },
         })
 
@@ -382,7 +384,7 @@ class cobinhood (Exchange):
         if market is not None:
             symbol = market['symbol']
         timestamp = order['timestamp']
-        price = self.safe_float(order, 'price')
+        price = self.safe_float(order, 'eq_price')
         amount = self.safe_float(order, 'size')
         filled = self.safe_float(order, 'filled')
         remaining = amount - filled

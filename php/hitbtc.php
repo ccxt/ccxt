@@ -29,6 +29,7 @@ class hitbtc extends Exchange {
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
                 'api' => 'http://api.hitbtc.com',
                 'www' => 'https://hitbtc.com',
+                'referral' => 'https://hitbtc.com/?ref_id=5a5d39a65d466',
                 'doc' => 'https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv1.md',
                 'fees' => array (
                     'https://hitbtc.com/fees-and-limits',
@@ -116,7 +117,7 @@ class hitbtc extends Exchange {
                         'AVT' => 1.9,
                         'BAS' => 113,
                         'BCN' => 0.1,
-                        'DAO Casino' => 124, // id = 'BET'
+                        'DAO.Casino' => 124, // id = 'BET'
                         'BKB' => 46,
                         'BMC' => 32,
                         'BMT' => 100,
@@ -311,7 +312,7 @@ class hitbtc extends Exchange {
                         'AVT' => 0,
                         'BAS' => 0,
                         'BCN' => 0,
-                        'DAO Casino' => 0, // id = 'BET'
+                        'DAO.Casino' => 0, // id = 'BET'
                         'BKB' => 0,
                         'BMC' => 0,
                         'BMT' => 0,
@@ -484,13 +485,16 @@ class hitbtc extends Exchange {
             ),
             'commonCurrencies' => array (
                 'BCC' => 'BCC',
-                'BET' => 'DAO Casino',
+                'BET' => 'DAO.Casino',
                 'CAT' => 'BitClave',
                 'DRK' => 'DASH',
                 'EMGO' => 'MGO',
                 'GET' => 'Themis',
                 'USD' => 'USDT',
                 'XBT' => 'BTC',
+            ),
+            'options' => array (
+                'defaultTimeInForce' => 'FOK',
             ),
         ));
     }
@@ -730,7 +734,7 @@ class hitbtc extends Exchange {
         if ($type === 'limit') {
             $order['price'] = $this->price_to_precision($symbol, $price);
         } else {
-            $order['timeInForce'] = 'FOK';
+            $order['timeInForce'] = $this->options['defaultTimeInForce'];
         }
         $response = $this->tradingPostNewOrder (array_merge ($order, $params));
         return $this->parse_order($response['ExecutionReport'], $market);

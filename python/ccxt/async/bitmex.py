@@ -7,6 +7,7 @@ from ccxt.async.base.exchange import Exchange
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 
@@ -133,6 +134,13 @@ class bitmex (Exchange):
                         'order/all',
                     ],
                 },
+            },
+            'exceptions': {
+                'Invalid API Key.': AuthenticationError,
+                'Access Denied': PermissionDenied,
+            },
+            'options': {
+                'fetchTickerQuotes': True,
             },
         })
 
@@ -293,9 +301,14 @@ class bitmex (Exchange):
             'count': 1,
             'reverse': True,
         }, params)
-        quotes = await self.publicGetQuoteBucketed(request)
-        quotesLength = len(quotes)
-        quote = quotes[quotesLength - 1]
+        bid = None
+        ask = None
+        if self.options['fetchTickerQuotes']:
+            quotes = await self.publicGetQuoteBucketed(request)
+            quotesLength = len(quotes)
+            quote = quotes[quotesLength - 1]
+            bid = self.safe_float(quote, 'bidPrice')
+            ask = self.safe_float(quote, 'askPrice')
         tickers = await self.publicGetTradeBucketed(request)
         ticker = tickers[0]
         timestamp = self.milliseconds()
@@ -308,9 +321,9 @@ class bitmex (Exchange):
             'datetime': self.iso8601(timestamp),
             'high': self.safe_float(ticker, 'high'),
             'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(quote, 'bidPrice'),
+            'bid': bid,
             'bidVolume': None,
-            'ask': self.safe_float(quote, 'askPrice'),
+            'ask': ask,
             'askVolume': None,
             'vwap': self.safe_float(ticker, 'vwap'),
             'open': open,
@@ -535,12 +548,13 @@ class bitmex (Exchange):
                     response = json.loads(body)
                     if 'error' in response:
                         if 'message' in response['error']:
+                            feedback = self.id + ' ' + self.json(response)
                             message = self.safe_value(response['error'], 'message')
+                            exceptions = self.exceptions
                             if message is not None:
-                                if message == 'Invalid API Key.':
-                                    raise AuthenticationError(self.id + ' ' + self.json(response))
-                            # stub code, need proper handling
-                            raise ExchangeError(self.id + ' ' + self.json(response))
+                                if message in exceptions:
+                                    raise exceptions[message](feedback)
+                            raise ExchangeError(feedback)
 
     def nonce(self):
         return self.milliseconds()

@@ -130,6 +130,13 @@ class bitmex extends Exchange {
                     ),
                 ),
             ),
+            'exceptions' => array (
+                'Invalid API Key.' => '\\ccxt\\AuthenticationError',
+                'Access Denied' => '\\ccxt\\PermissionDenied',
+            ),
+            'options' => array (
+                'fetchTickerQuotes' => true,
+            ),
         ));
     }
 
@@ -303,9 +310,15 @@ class bitmex extends Exchange {
             'count' => 1,
             'reverse' => true,
         ), $params);
-        $quotes = $this->publicGetQuoteBucketed ($request);
-        $quotesLength = is_array ($quotes) ? count ($quotes) : 0;
-        $quote = $quotes[$quotesLength - 1];
+        $bid = null;
+        $ask = null;
+        if ($this->options['fetchTickerQuotes']) {
+            $quotes = $this->publicGetQuoteBucketed ($request);
+            $quotesLength = is_array ($quotes) ? count ($quotes) : 0;
+            $quote = $quotes[$quotesLength - 1];
+            $bid = $this->safe_float($quote, 'bidPrice');
+            $ask = $this->safe_float($quote, 'askPrice');
+        }
         $tickers = $this->publicGetTradeBucketed ($request);
         $ticker = $tickers[0];
         $timestamp = $this->milliseconds ();
@@ -318,9 +331,9 @@ class bitmex extends Exchange {
             'datetime' => $this->iso8601 ($timestamp),
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
-            'bid' => $this->safe_float($quote, 'bidPrice'),
+            'bid' => $bid,
             'bidVolume' => null,
-            'ask' => $this->safe_float($quote, 'askPrice'),
+            'ask' => $ask,
             'askVolume' => null,
             'vwap' => $this->safe_float($ticker, 'vwap'),
             'open' => $open,
@@ -562,13 +575,15 @@ class bitmex extends Exchange {
                     $response = json_decode ($body, $as_associative_array = true);
                     if (is_array ($response) && array_key_exists ('error', $response)) {
                         if (is_array ($response['error']) && array_key_exists ('message', $response['error'])) {
+                            $feedback = $this->id . ' ' . $this->json ($response);
                             $message = $this->safe_value($response['error'], 'message');
+                            $exceptions = $this->exceptions;
                             if ($message !== null) {
-                                if ($message === 'Invalid API Key.')
-                                    throw new AuthenticationError ($this->id . ' ' . $this->json ($response));
+                                if (is_array ($exceptions) && array_key_exists ($message, $exceptions)) {
+                                    throw new $exceptions[$message] ($feedback);
+                                }
                             }
-                            // stub $code, need proper handling
-                            throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+                            throw new ExchangeError ($feedback);
                         }
                     }
                 }

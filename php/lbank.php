@@ -107,7 +107,7 @@ class lbank extends Exchange {
             list ($baseId, $quoteId) = explode ('_', $id);
             $base = $this->common_currency_code(strtoupper ($baseId));
             $quote = $this->common_currency_code(strtoupper ($quoteId));
-            $symbol = implode ('/', array ($base, $quote));
+            $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => 8,
                 'price' => 8,
@@ -283,23 +283,37 @@ class lbank extends Exchange {
         return $this->parse_balance($result);
     }
 
+    public function parse_order_status ($status) {
+        $statuses = array (
+            '-1' => 'cancelled', // cancelled
+            '0' => 'open', // not traded
+            '1' => 'open', // partial deal
+            '2' => 'closed', // complete deal
+            '4' => 'closed', // disposal processing
+        );
+        return $this->safe_string($statuses, $status);
+    }
+
     public function parse_order ($order, $market = null) {
-        $symbol = $this->safe_value($this->marketsById, $order['symbol'], array ( 'symbol' => null ));
+        $symbol = null;
+        $responseMarket = $this->safe_value($this->marketsById, $order['symbol']);
+        if ($responseMarket !== null) {
+            $symbol = $responseMarket['symbol'];
+        } else if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
         $timestamp = $this->safe_integer($order, 'create_time');
         // Limit Order Request Returns => Order Price
         // Market Order Returns => cny $amount of $market $order
         $price = $this->safe_float($order, 'price');
-        $amount = $this->safe_float($order, 'amount');
-        $filled = $this->safe_float($order, 'deal_amount');
-        $cost = $filled * $this->safe_float($order, 'avg_price');
-        $status = $this->safe_integer($order, 'status');
-        if ($status === -1 || $status === 4) {
-            $status = 'canceled';
-        } else if ($status === 2) {
-            $status = 'closed';
-        } else {
-            $status = 'open';
+        $amount = $this->safe_float($order, 'amount', 0.0);
+        $filled = $this->safe_float($order, 'deal_amount', 0.0);
+        $av_price = $this->safe_float($order, 'avg_price');
+        $cost = null;
+        if ($av_price !== null) {
+            $cost = $filled * $av_price;
         }
+        $status = $this->parse_order_status($this->safe_string($order, 'status'));
         return array (
             'id' => $this->safe_string($order, 'order_id'),
             'datetime' => $this->iso8601 ($timestamp),
@@ -312,8 +326,8 @@ class lbank extends Exchange {
             'price' => $price,
             'cost' => $cost,
             'amount' => $amount,
-            'filled' => null,
-            'remaining' => null,
+            'filled' => $filled,
+            'remaining' => $amount - $filled,
             'trades' => null,
             'fee' => null,
             'info' => $this->safe_value($order, 'info', $order),
@@ -378,17 +392,17 @@ class lbank extends Exchange {
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $response = $this->fetch_orders(array_merge (array (
+        $response = $this->fetch_orders($symbol, $since, $limit, array_merge (array (
             'status' => 0,
         ), $params));
         return $response;
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $response = $this->fetch_orders(array_merge (array (
-            'status' => 1,
-        ), $params));
-        return $response;
+        $orders = $this->fetch_orders($symbol, $since, $limit);
+        $closed = $this->filter_by($orders, 'status', 'closed');
+        $cancelled = $this->filter_by($orders, 'status', 'cancelled'); // $cancelled $orders may be partially filled
+        return $closed . $cancelled;
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

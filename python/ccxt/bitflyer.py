@@ -94,6 +94,13 @@ class bitflyer (Exchange):
         for p in range(0, len(markets)):
             market = markets[p]
             id = market['product_code']
+            spot = True
+            future = False
+            type = 'spot'
+            if 'alias' in market:
+                type = 'future'
+                future = True
+                spot = False
             currencies = id.split('_')
             base = None
             quote = None
@@ -114,6 +121,9 @@ class bitflyer (Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'type': type,
+                'spot': spot,
+                'future': future,
                 'info': market,
             })
         return result

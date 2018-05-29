@@ -110,7 +110,7 @@ class lbank (Exchange):
             baseId, quoteId = id.split('_')
             base = self.common_currency_code(baseId.upper())
             quote = self.common_currency_code(quoteId.upper())
-            symbol = '/'.join([base, quote])
+            symbol = base + '/' + quote
             precision = {
                 'amount': 8,
                 'price': 8,
@@ -274,22 +274,34 @@ class lbank (Exchange):
             result[code] = account
         return self.parse_balance(result)
 
+    def parse_order_status(self, status):
+        statuses = {
+            '-1': 'cancelled',  # cancelled
+            '0': 'open',  # not traded
+            '1': 'open',  # partial deal
+            '2': 'closed',  # complete deal
+            '4': 'closed',  # disposal processing
+        }
+        return self.safe_string(statuses, status)
+
     def parse_order(self, order, market=None):
-        symbol = self.safe_value(self.marketsById, order['symbol'], {'symbol': None})
+        symbol = None
+        responseMarket = self.safe_value(self.marketsById, order['symbol'])
+        if responseMarket is not None:
+            symbol = responseMarket['symbol']
+        elif market is not None:
+            symbol = market['symbol']
         timestamp = self.safe_integer(order, 'create_time')
         # Limit Order Request Returns: Order Price
         # Market Order Returns: cny amount of market order
         price = self.safe_float(order, 'price')
-        amount = self.safe_float(order, 'amount')
-        filled = self.safe_float(order, 'deal_amount')
-        cost = filled * self.safe_float(order, 'avg_price')
-        status = self.safe_integer(order, 'status')
-        if status == -1 or status == 4:
-            status = 'canceled'
-        elif status == 2:
-            status = 'closed'
-        else:
-            status = 'open'
+        amount = self.safe_float(order, 'amount', 0.0)
+        filled = self.safe_float(order, 'deal_amount', 0.0)
+        av_price = self.safe_float(order, 'avg_price')
+        cost = None
+        if av_price is not None:
+            cost = filled * av_price
+        status = self.parse_order_status(self.safe_string(order, 'status'))
         return {
             'id': self.safe_string(order, 'order_id'),
             'datetime': self.iso8601(timestamp),
@@ -302,8 +314,8 @@ class lbank (Exchange):
             'price': price,
             'cost': cost,
             'amount': amount,
-            'filled': None,
-            'remaining': None,
+            'filled': filled,
+            'remaining': amount - filled,
             'trades': None,
             'fee': None,
             'info': self.safe_value(order, 'info', order),
@@ -362,16 +374,16 @@ class lbank (Exchange):
         return self.parse_orders(response['orders'], None, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        response = await self.fetch_orders(self.extend({
+        response = await self.fetch_orders(symbol, since, limit, self.extend({
             'status': 0,
         }, params))
         return response
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        response = await self.fetch_orders(self.extend({
-            'status': 1,
-        }, params))
-        return response
+        orders = await self.fetch_orders(symbol, since, limit)
+        closed = self.filter_by(orders, 'status', 'closed')
+        cancelled = self.filter_by(orders, 'status', 'cancelled')  # cancelled orders may be partially filled
+        return closed + cancelled
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = self.omit(params, self.extract_params(path))

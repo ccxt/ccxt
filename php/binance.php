@@ -58,6 +58,7 @@ class binance extends Exchange {
                     'v1' => 'https://api.binance.com/api/v1',
                 ),
                 'www' => 'https://www.binance.com',
+                'referral' => 'https://www.binance.com/?ref=10205187',
                 'doc' => 'https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md',
                 'fees' => array (
                     'https://binance.zendesk.com/hc/en-us/articles/115000429332',
@@ -257,6 +258,7 @@ class binance extends Exchange {
             ),
             // exchange-specific options
             'options' => array (
+                'defaultTimeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'defaultLimitOrderType' => 'limit', // or 'limit_maker'
                 'hasAlreadyAuthenticatedSuccessfully' => false,
                 'warnOnFetchOpenOrdersWithoutSymbol' => true,
@@ -465,7 +467,7 @@ class binance extends Exchange {
         return $this->filter_by_array($tickers, 'symbol', $symbols);
     }
 
-    public function fetch_bid_asks ($symbols = null, $params = array ()) {
+    public function fetch_bids_asks ($symbols = null, $params = array ()) {
         $this->load_markets();
         $rawTickers = $this->publicGetTickerBookTicker ($params);
         return $this->parse_tickers ($rawTickers, $symbols);
@@ -649,7 +651,7 @@ class binance extends Exchange {
             $order['type'] = strtoupper ($this->options['defaultLimitOrderType']);
             $order = array_merge ($order, array (
                 'price' => $this->price_to_precision($symbol, $price),
-                'timeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+                'timeInForce' => $this->options['defaultTimeInForce'], // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
             ));
         } else if ($type === 'limit_maker') {
             $order['price'] = $this->price_to_precision($symbol, $price);

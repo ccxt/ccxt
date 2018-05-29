@@ -196,6 +196,7 @@ module.exports = class kraken extends Exchange {
                 'EService:Busy': ExchangeNotAvailable,
                 'EAPI:Rate limit exceeded': DDoSProtection,
                 'EQuery:Unknown asset': ExchangeError,
+                'EGeneral:Internal error': ExchangeNotAvailable,
             },
         });
     }

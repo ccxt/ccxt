@@ -46,6 +46,7 @@ module.exports = class huobipro extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
                 'api': 'https://api.huobipro.com',
                 'www': 'https://www.huobipro.com',
+                'referral': 'https://www.huobi.br.com/en-us/topic/invited/?invite_code=rwrd3',
                 'doc': 'https://github.com/huobiapi/API_Docs/wiki/REST_api_reference',
                 'fees': 'https://www.huobipro.com/about/fee/',
             },
@@ -119,6 +120,8 @@ module.exports = class huobipro extends Exchange {
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
                 'fetchMarketsMethod': 'publicGetCommonSymbols',
+                'fetchBalanceMethod': 'privateGetAccountAccountsIdBalance',
+                'createOrderMethod': 'privatePostOrderOrdersPlace',
                 'language': 'en-US',
             },
         });
@@ -481,7 +484,8 @@ module.exports = class huobipro extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         await this.loadAccounts ();
-        let response = await this.privateGetAccountAccountsIdBalance (this.extend ({
+        let method = this.options['fetchBalanceMethod'];
+        let response = await this[method] (this.extend ({
             'id': this.accounts[0]['id'],
         }, params));
         let balances = response['data']['list'];
@@ -624,7 +628,8 @@ module.exports = class huobipro extends Exchange {
         }
         if (type === 'limit')
             order['price'] = this.priceToPrecision (symbol, price);
-        let response = await this.privatePostOrderOrdersPlace (this.extend (order, params));
+        let method = this.options['createOrderMethod'];
+        let response = await this[method] (this.extend (order, params));
         let timestamp = this.milliseconds ();
         return {
             'info': response,
@@ -695,9 +700,9 @@ module.exports = class huobipro extends Exchange {
         let request = {
             'address': address, // only supports existing addresses in your withdraw address list
             'amount': amount,
-            'currency': currency['id'],
+            'currency': currency['id'].toLowerCase (),
         };
-        if (tag)
+        if (typeof tag !== 'undefined')
             request['addr-tag'] = tag; // only for XRP?
         let response = await this.privatePostDwWithdrawApiCreate (this.extend (request, params));
         let id = undefined;

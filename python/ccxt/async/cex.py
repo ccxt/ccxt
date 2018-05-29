@@ -14,8 +14,9 @@ except NameError:
 import math
 import json
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import NotSupported
+from ccxt.base.errors import NullResponse
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import NotSupported
 
 
 class cex (Exchange):
@@ -126,6 +127,9 @@ class cex (Exchange):
                     },
                 },
             },
+            'options': {
+                'fetchOHLCVWarning': True,
+            },
         })
 
     async def fetch_markets(self):
@@ -206,6 +210,9 @@ class cex (Exchange):
         market = self.market(symbol)
         if not since:
             since = self.milliseconds() - 86400000  # yesterday
+        else:
+            if self.options['fetchOHLCVWarning']:
+                raise ExchangeError(self.id + " fetchOHLCV warning: CEX can return historical candles for a certain date only, self might produce an empty or null response. Set exchange.options['fetchOHLCVWarning'] = False or add({'options': {'fetchOHLCVWarning': False}}) to constructor params to suppress self warning message.")
         ymd = self.ymd(since)
         ymd = ymd.split('-')
         ymd = ''.join(ymd)
@@ -213,10 +220,14 @@ class cex (Exchange):
             'pair': market['id'],
             'yyyymmdd': ymd,
         }
-        response = await self.publicGetOhlcvHdYyyymmddPair(self.extend(request, params))
-        key = 'data' + self.timeframes[timeframe]
-        ohlcvs = json.loads(response[key])
-        return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
+        try:
+            response = await self.publicGetOhlcvHdYyyymmddPair(self.extend(request, params))
+            key = 'data' + self.timeframes[timeframe]
+            ohlcvs = json.loads(response[key])
+            return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
+        except Exception as e:
+            if isinstance(e, NullResponse):
+                return []
 
     def parse_ticker(self, ticker, market=None):
         timestamp = None
@@ -470,7 +481,7 @@ class cex (Exchange):
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = await self.fetch2(path, api, method, params, headers, body)
         if not response:
-            raise ExchangeError(self.id + ' returned ' + self.json(response))
+            raise NullResponse(self.id + ' returned ' + self.json(response))
         elif response is True:
             return response
         elif 'e' in response:

@@ -43,7 +43,8 @@ class cointiger (huobipro):
                     'private': 'https://api.cointiger.com/exchange/trading/api',
                     'exchange': 'https://www.cointiger.com/exchange',
                 },
-                'www': 'https://www.cointiger.com/exchange/register.html?refCode=FfvDtt',
+                'www': 'https://www.cointiger.com',
+                'referral': 'https://www.cointiger.com/exchange/register.html?refCode=FfvDtt',
                 'doc': 'https://github.com/cointiger/api-docs-en/wiki',
             },
             'api': {
@@ -454,6 +455,11 @@ class cointiger (huobipro):
             order['volume'] = self.amount_to_precision(symbol, amount * price)
         if type == 'limit':
             order['price'] = self.price_to_precision(symbol, price)
+        else:
+            if price is None:
+                order['price'] = self.price_to_precision(symbol, 0)
+            else:
+                order['price'] = self.price_to_precision(symbol, price)
         response = await self.privatePostOrder(self.extend(order, params))
         #
         #     {"order_id":34343}

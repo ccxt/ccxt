@@ -46,7 +46,8 @@ class hitbtc2 extends hitbtc {
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
                 'api' => 'https://api.hitbtc.com',
-                'www' => 'https://hitbtc.com/?ref_id=5a5d39a65d466',
+                'www' => 'https://hitbtc.com',
+                'referral' => 'https://hitbtc.com/?ref_id=5a5d39a65d466',
                 'doc' => 'https://api.hitbtc.com',
                 'fees' => array (
                     'https://hitbtc.com/fees-and-limits',
@@ -530,6 +531,16 @@ class hitbtc2 extends hitbtc {
                     ),
                 ),
             ),
+            'options' => array (
+                'defaultTimeInForce' => 'FOK',
+            ),
+            'exceptions' => array (
+                '2010' => '\\ccxt\\InvalidOrder', // "Quantity not a valid number"
+                '2011' => '\\ccxt\\InvalidOrder', // "Quantity too low"
+                '2020' => '\\ccxt\\InvalidOrder', // "Price not a valid number"
+                '20002' => '\\ccxt\\OrderNotFound', // canceling non-existent order
+                '20001' => '\\ccxt\\InsufficientFunds',
+            ),
         ));
     }
 
@@ -552,7 +563,9 @@ class hitbtc2 extends hitbtc {
             $step = $this->safe_float($market, 'tickSize');
             $precision = array (
                 'price' => $this->precision_from_string($market['tickSize']),
-                'amount' => $this->precision_from_string($market['quantityIncrement']),
+                // FIXME => for lots > 1 the following line returns 0
+                // 'amount' => $this->precision_from_string($market['quantityIncrement']),
+                'amount' => -1 * log10 ($lot),
             );
             $taker = $this->safe_float($market, 'takeLiquidityRate');
             $maker = $this->safe_float($market, 'provideLiquidityRate');
@@ -565,8 +578,6 @@ class hitbtc2 extends hitbtc {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'active' => true,
-                'lot' => $lot,
-                'step' => $step,
                 'taker' => $taker,
                 'maker' => $maker,
                 'precision' => $precision,
@@ -848,7 +859,7 @@ class hitbtc2 extends hitbtc {
         if ($type === 'limit') {
             $request['price'] = $this->price_to_precision($symbol, $price);
         } else {
-            $request['timeInForce'] = 'FOK';
+            $request['timeInForce'] = $this->options['defaultTimeInForce'];
         }
         $response = $this->privatePostOrder (array_merge ($request, $params));
         $order = $this->parse_order($response);
@@ -1121,20 +1132,18 @@ class hitbtc2 extends hitbtc {
             // array ("$code":504,"$message":"Gateway Timeout","description":"")
             if (($code === 503) || ($code === 504))
                 throw new ExchangeNotAvailable ($feedback);
+            // array ("error":{"$code":20002,"$message":"Order not found","description":"")}
             if ($body[0] === '{') {
                 $response = json_decode ($body, $as_associative_array = true);
                 if (is_array ($response) && array_key_exists ('error', $response)) {
-                    if (is_array ($response['error']) && array_key_exists ('message', $response['error'])) {
-                        $message = $response['error']['message'];
-                        if ($message === 'Order not found') {
-                            throw new OrderNotFound ($this->id . ' order not found in active orders');
-                        } else if ($message === 'Quantity not a valid number') {
-                            throw new InvalidOrder ($feedback);
-                        } else if ($message === 'Insufficient funds') {
-                            throw new InsufficientFunds ($feedback);
-                        } else if ($message === 'Duplicate clientOrderId') {
-                            throw new InvalidOrder ($feedback);
-                        }
+                    $code = $this->safe_string($response['error'], 'code');
+                    $exceptions = $this->exceptions;
+                    if (is_array ($exceptions) && array_key_exists ($code, $exceptions)) {
+                        throw new $exceptions[$code] ($feedback);
+                    }
+                    $message = $this->safe_string($response['error'], 'message');
+                    if ($message === 'Duplicate clientOrderId') {
+                        throw new InvalidOrder ($feedback);
                     }
                 }
             }

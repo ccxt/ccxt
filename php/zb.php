@@ -366,7 +366,7 @@ class zb extends Exchange {
         );
         $order = array_merge ($order, $params);
         $response = $this->privateGetGetOrder ($order);
-        return $this->parse_order($response, null, true);
+        return $this->parse_order($response, null);
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = 50, $params = array ()) {
