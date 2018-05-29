@@ -353,7 +353,7 @@ module.exports = class gateio extends Exchange {
         return status;
     }
 
-    parseOrder (order, market = undefined, createOrderSymbol = undefined, createOrderSide = undefined) {
+    parseOrder (order, market = undefined, createOrderSymbol = undefined, createOrderSide = undefined, createOrderInitialAmount = undefined) {
         let symbol = undefined;
         if (!market)
             market = this.safeValue (this.marketsById, order['currencyPair']);
@@ -372,10 +372,18 @@ module.exports = class gateio extends Exchange {
         if (timestamp > 0) {
             datetime = this.iso8601 (timestamp);
         }
-        let price = this.safeFloat (order, 'filledRate');
-        let amount = this.safeFloat (order, 'initialAmount');
-        let filled = this.safeFloat (order, 'filledAmount');
-        let remaining = this.safeFloat (order, 'amount');
+        let amount = undefined;
+        if ('initialAmount' in order) {
+            amount = this.safeFloat (order, 'initialAmount');
+        } else if (createOrderInitialAmount) {
+            amount = createOrderInitialAmount;
+        }
+        let remaining = undefined;
+        if ('amount' in order) {
+            remaining = this.safeFloat (order, 'amount');
+        } else if ('leftAmount' in order) {
+            remaining = this.safeFloat (order, 'leftAmount');
+        }
         let status = undefined;
         if ('status' in order) {
             status = this.parseOrderStatus (this.safeString (order, 'status'));
@@ -390,6 +398,8 @@ module.exports = class gateio extends Exchange {
         } else if (createOrderSide) {
             side = createOrderSide;
         }
+        let price = this.safeFloat (order, 'filledRate');
+        let filled = this.safeFloat (order, 'filledAmount');
         let feeCost = this.safeFloat (order, 'feeValue');
         let feeCurrency = this.safeString (order, 'feeCurrency');
         if (typeof feeCurrency !== 'undefined') {
@@ -430,7 +440,7 @@ module.exports = class gateio extends Exchange {
             'amount': amount,
         };
         let response = await this[method] (this.extend (order, params));
-        return this.parseOrder (response, undefined, symbol, side);
+        return this.parseOrder (response, undefined, symbol, side, amount);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
