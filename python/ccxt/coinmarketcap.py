@@ -109,7 +109,7 @@ class coinmarketcap (Exchange):
             'GET Protocol': 'GET Protocol',
             'Global Tour Coin': 'Global Tour Coin',  # conflict with GTC(Game.com)
             'GuccioneCoin': 'GuccioneCoin',  # conflict with GCC(Global Cryptocurrency)
-            'Hi Mutual Society': 'Hi Mutual Society',  # conflict with HMC(HarmonyCoin)
+            'HarmonyCoin': 'HarmonyCoin',  # conflict with HMC(Hi Mutual Society)
             'Huncoin': 'Huncoin',  # conflict with HNC(Helleniccoin)
             'iCoin': 'iCoin',
             'Infinity Economics': 'Infinity Economics',  # conflict with XIN(Mixin)
