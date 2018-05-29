@@ -491,11 +491,7 @@ module.exports = class bittrex extends Exchange {
         request[orderIdField] = id;
         try {
             let response = await this.marketGetCancel (this.extend (request, params));
-            return {
-                'info': response,
-                'id': id,
-                'status': 'canceled',
-            };
+            return response;
         } catch (e) {
             if (this.last_json_response) {
                 let message = this.safeString (this.last_json_response, 'message');
