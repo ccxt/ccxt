@@ -770,10 +770,12 @@ function transpilePrecisionTests (jsTests, pythonTests, phpTests) {
     if (classes === null) {
         log.bright.yellow ('0 files transpiled.')
         return;
-}
+    }
 
-    // HINT: if we're going to support specific class definitions this process won't work anymore as it will override the definitions.
-    exportTypeScriptDeclarations (classes)
+    // whole file is indented an extra four spaces
+
+// HINT: if we're going to support specific class definitions this process won't work anymore as it will override the definitions.
+exportTypeScriptDeclarations (classes)
 
 transpilePythonAsyncToSync ('./python/test/test_async.py', './python/test/test.py')
 transpilePrecisionTests ('./js/test/base/functions/test.number.js', './python/test/test_decimal_to_precision.py', './php/test/precisionTests.php')
