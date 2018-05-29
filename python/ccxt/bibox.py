@@ -17,6 +17,7 @@ import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
@@ -99,6 +100,7 @@ class bibox (Exchange):
                 },
             },
             'exceptions': {
+                '2021': InsufficientFunds,  # Insufficient balance available for withdrawal
                 '2015': AuthenticationError,  # Google authenticator is wrong
                 '2033': OrderNotFound,  # operation failednot  Orders have been completed or revoked
                 '2067': InvalidOrder,  # Does not support market orders
@@ -108,6 +110,9 @@ class bibox (Exchange):
                 '3025': AuthenticationError,  # signature failed
                 '4000': ExchangeNotAvailable,  # current network is unstable
                 '4003': DDoSProtection,  # server busy please try again later
+            },
+            'commonCurrencies': {
+                'KEY': 'Bihu',
             },
         })
 
@@ -154,17 +159,32 @@ class bibox (Exchange):
         return result
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = self.safe_integer(ticker, 'timestamp', self.seconds())
+        # we don't set values that are not defined by the exchange
+        timestamp = self.safe_integer(ticker, 'timestamp')
         symbol = None
         if market:
             symbol = market['symbol']
         else:
-            symbol = ticker['coin_symbol'] + '/' + ticker['currency_symbol']
+            base = ticker['coin_symbol']
+            quote = ticker['currency_symbol']
+            symbol = self.common_currency_code(base) + '/' + self.common_currency_code(quote)
         last = self.safe_float(ticker, 'last')
+        change = self.safe_float(ticker, 'change')
+        baseVolume = None
+        if 'vol' in ticker:
+            baseVolume = self.safe_float(ticker, 'vol')
+        else:
+            baseVolume = self.safe_float(ticker, 'vol24H')
+        open = None
+        if (last is not None) and(change is not None):
+            open = last - change
+        iso8601 = None
+        if timestamp is not None:
+            iso8601 = self.iso8601(timestamp)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'datetime': iso8601,
             'high': self.safe_float(ticker, 'high'),
             'low': self.safe_float(ticker, 'low'),
             'bid': self.safe_float(ticker, 'buy'),
@@ -172,15 +192,15 @@ class bibox (Exchange):
             'ask': self.safe_float(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
-            'open': None,
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': None,
+            'change': change,
             'percentage': self.safe_string(ticker, 'percent'),
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'vol24H'),
-            'quoteVolume': None,
+            'baseVolume': baseVolume,
+            'quoteVolume': self.safe_float(ticker, 'amount'),
             'info': ticker,
         }
 
@@ -292,7 +312,7 @@ class bibox (Exchange):
             precision = 8
             deposit = currency['enable_deposit']
             withdraw = currency['enable_withdraw']
-            active = (deposit and withdraw)
+            active = True if (deposit and withdraw) else False
             result[code] = {
                 'id': id,
                 'code': code,
@@ -418,6 +438,7 @@ class bibox (Exchange):
             'id': self.safe_string(order, 'id'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
             'side': side,

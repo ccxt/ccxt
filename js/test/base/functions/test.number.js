@@ -25,6 +25,7 @@ it ('numberToString works', () => {
     equal (numberToString (0), '0')
 })
 
+/*
 it ('decimalToPrecision: error handling', () => {
 
     throws (() =>
@@ -35,6 +36,7 @@ it ('decimalToPrecision: error handling', () => {
         decimalToPrecision ('foo'),
             "invalid number (contains an illegal character 'f')")
 })
+*/
 
 it ('decimalToPrecision: truncation (to N digits after dot)', () => {
 
@@ -150,3 +152,4 @@ it ('decimalToPrecision: rounding for equidistant digits', () => {
 })
 
 /*  ------------------------------------------------------------------------ */
+

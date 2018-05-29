@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.12.180';
+$version = '1.14.88';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -99,6 +99,7 @@ abstract class Exchange {
         'coinone',
         'coinsecure',
         'coinspot',
+        'cointiger',
         'coolcoin',
         'cryptopia',
         'dsx',
@@ -149,6 +150,7 @@ abstract class Exchange {
         'southxchange',
         'surbitcoin',
         'therock',
+        'tidebit',
         'tidex',
         'urdubit',
         'vaultoro',
@@ -183,7 +185,7 @@ abstract class Exchange {
     }
 
     public static function safe_value ($object, $key, $default_value = null) {
-        return (is_array ($object) && array_key_exists ($key, $object) && $object[$key]) ? $object[$key] : $default_value;
+        return (is_array ($object) && array_key_exists ($key, $object)) ? $object[$key] : $default_value;
     }
 
     public static function truncate ($number, $precision = 0) {
@@ -366,6 +368,14 @@ abstract class Exchange {
         return call_user_func_array ('array_merge', array_filter(func_get_args(), 'is_array'));
     }
 
+    public static function in_array ($needle, $haystack) {
+        return in_array ($needle, $haystack);
+    }
+
+    public static function to_array ($object) {
+        return array_values ($object);
+    }
+
     public static function keysort ($array) {
         $result = $array;
         ksort ($result);
@@ -498,8 +508,8 @@ abstract class Exchange {
         return $time;
     }
 
-    public static function ymd ($timestamp, $infix = ' ') {
-        return gmdate ('Y-m-d', (int) round ($timestamp / 1000));
+    public static function ymd ($timestamp, $infix = '-') {
+        return gmdate ('Y' . $infix . 'm' . $infix . 'd', (int) round ($timestamp / 1000));
     }
 
     public static function ymdhms ($timestamp, $infix = ' ') {
@@ -553,7 +563,10 @@ abstract class Exchange {
             throw new InvalidAddress ($this->id . ' address is undefined');
         }
 
-        if (count (array_unique (str_split ($address))) == 1 || strlen ($address) < $this->minFundingAddressLength || strpos($address, ' ') !== false) {
+        if ((count (array_unique (str_split ($address))) === 1)    ||
+            (strlen ($address) < $this->minFundingAddressLength) ||
+            (strpos ($address, ' ') !== false)) {
+
             throw new InvalidAddress ($this->id . ' address is invalid or has less than ' . strval ($this->minFundingAddressLength) . ' characters: "' . strval ($address) . '"');
         }
 
@@ -627,7 +640,7 @@ abstract class Exchange {
             'chrome' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
             'chrome39' => 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36',
         );
-        $this->minFundingAddressLength = 10; // used in check_address
+        $this->minFundingAddressLength = 1; // used in check_address
         $this->substituteCommonCurrencyCodes = true;
         $this->timeframes = null;
         $this->parseJsonResponse = true;
@@ -638,6 +651,7 @@ abstract class Exchange {
             'uid' => false,
             'login' => false,
             'password' => false,
+            'twofa' => false, // 2-factor authentication (one-time password key)
         );
 
         // API methods metainfo
@@ -861,7 +875,6 @@ abstract class Exchange {
         } else if ($method == 'PUT') {
 
             curl_setopt ($this->curl, CURLOPT_CUSTOMREQUEST, "PUT");
-            curl_setopt ($this->curl, CURLOPT_PUT, true);
             curl_setopt ($this->curl, CURLOPT_POSTFIELDS, $body);
 
             $headers[] = 'X-HTTP-Method-Override: PUT';
@@ -1070,7 +1083,12 @@ abstract class Exchange {
             $base_currencies = array_map (function ($market) {
                 return array (
                     'id' => array_key_exists ('baseId', $market) ? $market['baseId'] : $market['base'],
+                    'numericId' => array_key_exists ('baseNumericId', $market) ? $market['baseNumericId'] : null,
                     'code' => $market['base'],
+                    'precision' => array_key_exists ('precision', $market) ? (
+                        array_key_exists ('base', $market['precision']) ? $market['precision']['base'] : (
+                            array_key_exists ('amount', $market['precision']) ? $market['precision']['amount'] : null
+                        )) : 8,
                 );
             }, array_filter ($values, function ($market) {
                 return array_key_exists ('base', $market);
@@ -1078,7 +1096,12 @@ abstract class Exchange {
             $quote_currencies = array_map (function ($market) {
                 return array (
                     'id' => array_key_exists ('quoteId', $market) ? $market['quoteId'] : $market['quote'],
+                    'numericId' => array_key_exists ('quoteNumericId', $market) ? $market['quoteNumericId'] : null,
                     'code' => $market['quote'],
+                    'precision' => array_key_exists ('precision', $market) ? (
+                        array_key_exists ('quote', $market['precision']) ? $market['precision']['quote'] : (
+                            array_key_exists ('price', $market['precision']) ? $market['precision']['price'] : null
+                        )) : 8,
                 );
             }, array_filter ($values, function ($market) {
                 return array_key_exists ('quote', $market);
@@ -1341,7 +1364,7 @@ abstract class Exchange {
         throw new NotSupported ($this->id . ' API does not allow to fetch all tickers at once with a single call to fetch_tickers () for now');
     }
 
-    public function fetchTickers ($symbols, $params = array ()) {
+    public function fetchTickers ($symbols = null, $params = array ()) {
         return $this->fetch_tickers ($symbols, $params);
     }
 
@@ -1453,6 +1476,41 @@ abstract class Exchange {
         return $this->fetch_ohlcv ($symbol, $timeframe, $since, $limit, $params);
     }
 
+    public function convert_trading_view_to_ohlcv ($ohlcvs) {
+        $result = array ();
+        for ($i = 0; $i < count ($ohlcvs['t']); $i++) {
+            $result[] = [
+                $ohlcvs['t'][$i] * 1000,
+                $ohlcvs['o'][$i],
+                $ohlcvs['h'][$i],
+                $ohlcvs['l'][$i],
+                $ohlcvs['c'][$i],
+                $ohlcvs['v'][$i],
+            ];
+        }
+        return $result;
+    }
+
+    public function convert_ohlcv_to_trading_view ($ohlcvs) {
+        $result = array (
+            't' => array (),
+            'o' => array (),
+            'h' => array (),
+            'l' => array (),
+            'c' => array (),
+            'v' => array (),
+        );
+        for ($i = 0; $i < count ($ohlcvs); $i++) {
+            $result['t'][] = intval ($ohlcvs[$i][0] / 1000);
+            $result['o'][] = $ohlcvs[$i][1];
+            $result['h'][] = $ohlcvs[$i][2];
+            $result['l'][] = $ohlcvs[$i][3];
+            $result['c'][] = $ohlcvs[$i][4];
+            $result['v'][] = $ohlcvs[$i][5];
+        }
+        return $result;
+    }
+
     public function edit_limit_buy_order ($id, $symbol, $amount, $price, $params = array ()) {
         return $this->edit_limit_order ($id, $symbol, 'buy', $amount, $price, $params);
     }
@@ -1505,7 +1563,7 @@ abstract class Exchange {
         return $this->create_order ($symbol, 'limit', $side, $amount, $price, $params);
     }
 
-    public function create_market_order ($symbol, $side, $amount, $price, $params = array ()) {
+    public function create_market_order ($symbol, $side, $amount, $price = null, $params = array ()) {
         return $this->create_order ($symbol, 'market', $side, $amount, $price, $params);
     }
 
@@ -1711,7 +1769,7 @@ abstract class Exchange {
             return call_user_func_array ($this->$function, $params);
         else {
             /* handle errors */
-            throw new ExchangeError ($function . ' not found');
+            throw new ExchangeError ($function . ' method not found, try underscore_notation instead of camelCase for the method being called');
         }
     }
 

@@ -211,7 +211,7 @@ class southxchange extends Exchange {
         $status = 'open';
         $symbol = $order['ListingCurrency'] . '/' . $order['ReferenceCurrency'];
         $timestamp = null;
-        $price = floatval ($order['LimitPrice']);
+        $price = $this->safe_float($order, 'LimitPrice');
         $amount = $this->safe_float($order, 'OriginalAmount');
         $remaining = $this->safe_float($order, 'Amount');
         $filled = null;
@@ -227,6 +227,7 @@ class southxchange extends Exchange {
             'id' => (string) $order['Code'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => 'limit',
             'side' => $orderType,

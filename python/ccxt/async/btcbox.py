@@ -240,6 +240,7 @@ class btcbox (Exchange):
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'amount': amount,
             'remaining': remaining,
             'filled': filled,

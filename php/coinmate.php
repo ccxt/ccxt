@@ -107,16 +107,16 @@ class coinmate extends Exchange {
         ), $params));
         $ticker = $response['data'];
         $timestamp = $ticker['timestamp'] * 1000;
-        $last = floatval ($ticker['last']);
+        $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['high']),
-            'low' => floatval ($ticker['low']),
-            'bid' => floatval ($ticker['bid']),
+            'high' => $this->safe_float($ticker, 'high'),
+            'low' => $this->safe_float($ticker, 'low'),
+            'bid' => $this->safe_float($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => floatval ($ticker['ask']),
+            'ask' => $this->safe_float($ticker, 'ask'),
             'vwap' => null,
             'askVolume' => null,
             'open' => null,
@@ -126,7 +126,7 @@ class coinmate extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($ticker['amount']),
+            'baseVolume' => $this->safe_float($ticker, 'amount'),
             'quoteVolume' => null,
             'info' => $ticker,
         );

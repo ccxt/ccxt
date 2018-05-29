@@ -69,18 +69,20 @@ class nova extends Exchange {
         $result = array ();
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
-            if (!$market['disabled']) {
-                $id = $market['marketname'];
-                list ($quote, $base) = explode ('_', $id);
-                $symbol = $base . '/' . $quote;
-                $result[] = array (
-                    'id' => $id,
-                    'symbol' => $symbol,
-                    'base' => $base,
-                    'quote' => $quote,
-                    'info' => $market,
-                );
-            }
+            $id = $market['marketname'];
+            list ($quote, $base) = explode ('_', $id);
+            $symbol = $base . '/' . $quote;
+            $active = true;
+            if ($market['disabled'])
+                $active = false;
+            $result[] = array (
+                'id' => $id,
+                'symbol' => $symbol,
+                'base' => $base,
+                'quote' => $quote,
+                'active' => $active,
+                'info' => $market,
+            );
         }
         return $result;
     }
@@ -100,13 +102,13 @@ class nova extends Exchange {
         ), $params));
         $ticker = $response['markets'][0];
         $timestamp = $this->milliseconds ();
-        $last = floatval ($ticker['last_price']);
+        $last = $this->safe_float($ticker, 'last_price');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['high24h']),
-            'low' => floatval ($ticker['low24h']),
+            'high' => $this->safe_float($ticker, 'high24h'),
+            'low' => $this->safe_float($ticker, 'low24h'),
             'bid' => $this->safe_float($ticker, 'bid'),
             'bidVolume' => null,
             'ask' => $this->safe_float($ticker, 'ask'),
@@ -116,11 +118,11 @@ class nova extends Exchange {
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => floatval ($ticker['change24h']),
+            'change' => $this->safe_float($ticker, 'change24h'),
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => floatval ($ticker['volume24h']),
+            'quoteVolume' => $this->safe_float($ticker, 'volume24h'),
             'info' => $ticker,
         );
     }
@@ -136,8 +138,8 @@ class nova extends Exchange {
             'order' => null,
             'type' => null,
             'side' => strtolower ($trade['tradetype']),
-            'price' => floatval ($trade['price']),
-            'amount' => floatval ($trade['amount']),
+            'price' => $this->safe_float($trade, 'price'),
+            'amount' => $this->safe_float($trade, 'amount'),
         );
     }
 

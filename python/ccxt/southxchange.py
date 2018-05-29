@@ -199,7 +199,7 @@ class southxchange (Exchange):
         status = 'open'
         symbol = order['ListingCurrency'] + '/' + order['ReferenceCurrency']
         timestamp = None
-        price = float(order['LimitPrice'])
+        price = self.safe_float(order, 'LimitPrice')
         amount = self.safe_float(order, 'OriginalAmount')
         remaining = self.safe_float(order, 'Amount')
         filled = None
@@ -214,6 +214,7 @@ class southxchange (Exchange):
             'id': str(order['Code']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': 'limit',
             'side': orderType,

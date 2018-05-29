@@ -140,16 +140,16 @@ class flowbtc (Exchange):
             'productPair': market['id'],
         }, params))
         timestamp = self.milliseconds()
-        last = float(ticker['last'])
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['bid']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'bid'),
             'bidVolume': None,
-            'ask': float(ticker['ask']),
+            'ask': self.safe_float(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -159,8 +159,8 @@ class flowbtc (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['volume24hr']),
-            'quoteVolume': float(ticker['volume24hrProduct2']),
+            'baseVolume': self.safe_float(ticker, 'volume24hr'),
+            'quoteVolume': self.safe_float(ticker, 'volume24hrProduct2'),
             'info': ticker,
         }
 

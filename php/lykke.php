@@ -270,6 +270,7 @@ class lykke extends Exchange {
             'id' => $order['Id'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => null,
             'side' => null,

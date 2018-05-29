@@ -210,7 +210,7 @@ module.exports = class southxchange extends Exchange {
         let status = 'open';
         let symbol = order['ListingCurrency'] + '/' + order['ReferenceCurrency'];
         let timestamp = undefined;
-        let price = parseFloat (order['LimitPrice']);
+        let price = this.safeFloat (order, 'LimitPrice');
         let amount = this.safeFloat (order, 'OriginalAmount');
         let remaining = this.safeFloat (order, 'Amount');
         let filled = undefined;
@@ -226,6 +226,7 @@ module.exports = class southxchange extends Exchange {
             'id': order['Code'].toString (),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': 'limit',
             'side': orderType,

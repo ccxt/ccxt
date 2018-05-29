@@ -23,6 +23,7 @@ class acx (Exchange):
                 'fetchTickers': True,
                 'fetchOHLCV': True,
                 'withdraw': True,
+                'fetchOrder': True,
             },
             'timeframes': {
                 '1m': '1',
@@ -279,18 +280,26 @@ class acx (Exchange):
             'id': str(order['id']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
             'type': order['ord_type'],
             'side': order['side'],
-            'price': float(order['price']),
-            'amount': float(order['volume']),
-            'filled': float(order['executed_volume']),
-            'remaining': float(order['remaining_volume']),
+            'price': self.safe_float(order, 'price'),
+            'amount': self.safe_float(order, 'volume'),
+            'filled': self.safe_float(order, 'executed_volume'),
+            'remaining': self.safe_float(order, 'remaining_volume'),
             'trades': None,
             'fee': None,
             'info': order,
         }
+
+    async def fetch_order(self, id, symbol=None, params={}):
+        await self.load_markets()
+        response = await self.privateGetOrder(self.extend({
+            'id': int(id),
+        }, params))
+        return self.parse_order(response)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()

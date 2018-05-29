@@ -76,10 +76,13 @@ class yobit (liqui):
                 'BCS': 'BitcoinStake',
                 'BLN': 'Bulleon',
                 'BTS': 'Bitshares2',
+                'CAT': 'BitClave',
+                'COV': 'Coven Coin',
                 'CPC': 'Capricoin',
                 'CS': 'CryptoSpots',
                 'DCT': 'Discount',
                 'DGD': 'DarkGoldCoin',
+                'DROP': 'FaucetCoin',
                 'ERT': 'Eristica Token',
                 'ICN': 'iCoin',
                 'KNC': 'KingN Coin',
@@ -90,6 +93,8 @@ class yobit (liqui):
                 'MDT': 'Midnight',
                 'NAV': 'NavajoCoin',
                 'OMG': 'OMGame',
+                'STK': 'StakeCoin',
+                'SUB': 'Subscriptio',
                 'PAY': 'EPAY',
                 'PLC': 'Platin Coin',
                 'REP': 'Republicoin',
@@ -134,7 +139,7 @@ class yobit (liqui):
                     else:
                         account = self.account()
                     account[key] = balances[side][lowercase]
-                    if account['total'] and account['free']:
+                    if (account['total'] is not None) and(account['free'] is not None):
                         account['used'] = account['total'] - account['free']
                     result[currency] = account
         return self.parse_balance(result)
@@ -153,6 +158,7 @@ class yobit (liqui):
         }
 
     async def fetch_deposit_address(self, code, params={}):
+        await self.load_markets()
         currency = self.currency(code)
         request = {
             'coinName': currency['id'],
@@ -168,11 +174,12 @@ class yobit (liqui):
             'info': response,
         }
 
-    async def withdraw(self, currency, amount, address, tag=None, params={}):
+    async def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
         await self.load_markets()
+        currency = self.currency(code)
         response = await self.privatePostWithdrawCoinsToAddress(self.extend({
-            'coinName': currency,
+            'coinName': currency['id'],
             'amount': amount,
             'address': address,
         }, params))
@@ -186,11 +193,11 @@ class yobit (liqui):
             response = json.loads(body)
             if 'success' in response:
                 if not response['success']:
-                    if response['error_log'].find('Insufficient funds') >= 0:  # not enougTh is a typo inside Liqui's own API...
-                        raise InsufficientFunds(self.id + ' ' + self.json(response))
-                    elif response['error_log'] == 'Requests too often':
-                        raise DDoSProtection(self.id + ' ' + self.json(response))
-                    elif (response['error_log'] == 'not available') or (response['error_log'] == 'external service unavailable'):
-                        raise DDoSProtection(self.id + ' ' + self.json(response))
-                    else:
-                        raise ExchangeError(self.id + ' ' + self.json(response))
+                    if 'error_log' in response:
+                        if response['error_log'].find('Insufficient funds') >= 0:  # not enougTh is a typo inside Liqui's own API...
+                            raise InsufficientFunds(self.id + ' ' + self.json(response))
+                        elif response['error_log'] == 'Requests too often':
+                            raise DDoSProtection(self.id + ' ' + self.json(response))
+                        elif (response['error_log'] == 'not available') or (response['error_log'] == 'external service unavailable'):
+                            raise DDoSProtection(self.id + ' ' + self.json(response))
+                    raise ExchangeError(self.id + ' ' + self.json(response))

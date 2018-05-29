@@ -25,12 +25,12 @@ module.exports = class indodax extends Exchange {
                 'fetchCurrencies': false,
                 'withdraw': true,
             },
-            'version': '1.7', // as of 6 November 2017
+            'version': '1.8', // as of 9 April 2018
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/37443283-2fddd0e4-281c-11e8-9741-b4f1419001b5.jpg',
                 'api': {
-                    'public': 'https://vip.bitcoin.co.id/api',
-                    'private': 'https://vip.bitcoin.co.id/tapi',
+                    'public': 'https://indodax.com/api',
+                    'private': 'https://indodax.com/tapi',
                 },
                 'www': 'https://www.indodax.com',
                 'doc': 'https://indodax.com/downloads/BITCOINCOID-API-DOCUMENTATION.pdf',
@@ -127,19 +127,19 @@ module.exports = class indodax extends Exchange {
             'pair': market['id'],
         }, params));
         let ticker = response['ticker'];
-        let timestamp = parseFloat (ticker['server_time']) * 1000;
+        let timestamp = this.safeFloat (ticker, 'server_time') * 1000;
         let baseVolume = 'vol_' + market['baseId'].toLowerCase ();
         let quoteVolume = 'vol_' + market['quoteId'].toLowerCase ();
-        let last = parseFloat (ticker['last']);
+        let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']),
-            'low': parseFloat (ticker['low']),
-            'bid': parseFloat (ticker['buy']),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'buy'),
             'bidVolume': undefined,
-            'ask': parseFloat (ticker['sell']),
+            'ask': this.safeFloat (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -165,8 +165,8 @@ module.exports = class indodax extends Exchange {
             'symbol': market['symbol'],
             'type': undefined,
             'side': trade['type'],
-            'price': parseFloat (trade['price']),
-            'amount': parseFloat (trade['amount']),
+            'price': this.safeFloat (trade, 'price'),
+            'amount': this.safeFloat (trade, 'amount'),
         };
     }
 
@@ -228,6 +228,7 @@ module.exports = class indodax extends Exchange {
             'id': order['order_id'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': 'limit',
             'side': side,
@@ -407,6 +408,8 @@ module.exports = class indodax extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body, response = undefined) {
+        if (typeof body !== 'string')
+            return;
         // { success: 0, error: "invalid order." }
         // or
         // [{ data, ... }, { ... }, ... ]
