@@ -353,18 +353,43 @@ module.exports = class gateio extends Exchange {
         return status;
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined, createOrderSymbol = undefined, createOrderSide = undefined) {
         let symbol = undefined;
         if (!market)
             market = this.safeValue (this.marketsById, order['currencyPair']);
         if (market)
             symbol = market['symbol'];
-        let timestamp = this.safeInteger (order, 'timestamp') * 1000;
+        if (createOrderSymbol) {
+            symbol = createOrderSymbol;
+        }
+        let datetime = undefined;
+        let timestamp = undefined;
+        if ('timestamp' in order) {
+            timestamp = this.safeInteger (order, 'timestamp', 0) * 1000;
+        } else {
+            timestamp = this.milliseconds ();
+        }
+        if (timestamp > 0) {
+            datetime = this.iso8601 (timestamp);
+        }
         let price = this.safeFloat (order, 'filledRate');
         let amount = this.safeFloat (order, 'initialAmount');
         let filled = this.safeFloat (order, 'filledAmount');
         let remaining = this.safeFloat (order, 'amount');
-        let status = this.parseOrderStatus (this.safeString (order, 'status'));
+        let status = undefined;
+        if ('status' in order) {
+            status = this.parseOrderStatus (this.safeString (order, 'status'));
+        } else if (createOrderSymbol) {
+            if (this.safeInteger (order, 'code') === 0) {
+                status = 'open';
+            }
+        }
+        let side = undefined;
+        if ('type' in order) {
+            side = this.safeString (order, 'type');
+        } else if (createOrderSide) {
+            side = createOrderSide;
+        }
         let feeCost = this.safeFloat (order, 'feeValue');
         let feeCurrency = this.safeString (order, 'feeCurrency');
         if (typeof feeCurrency !== 'undefined') {
@@ -374,12 +399,12 @@ module.exports = class gateio extends Exchange {
         }
         return {
             'id': this.safeString (order, 'orderNumber'),
-            'datetime': this.iso8601 (timestamp),
+            'datetime': datetime,
             'timestamp': timestamp,
             'status': status,
             'symbol': symbol,
             'type': 'limit',
-            'side': this.safeString (order, 'type'),
+            'side': side,
             'price': price,
             'cost': undefined,
             'amount': amount,
@@ -405,7 +430,7 @@ module.exports = class gateio extends Exchange {
             'amount': amount,
         };
         let response = await this[method] (this.extend (order, params));
-        return this.parseOrder (response);
+        return this.parseOrder (response, undefined, symbol, side);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
