@@ -142,9 +142,6 @@ module.exports = class coinmarketcap extends Exchange {
                 let base = this.currencyCode (market['symbol'], market['name']);
                 let symbol = base + '/' + quote;
                 let id = baseId + '/' + quoteId;
-                if (market['symbol'].indexOf ('dao') >= 0) {
-                    console.log (market);
-                }
                 result.push ({
                     'id': id,
                     'symbol': symbol,
