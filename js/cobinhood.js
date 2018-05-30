@@ -401,17 +401,47 @@ module.exports = class cobinhood extends Exchange {
         let price = this.safeFloat (order, 'eq_price');
         let amount = this.safeFloat (order, 'size');
         let filled = this.safeFloat (order, 'filled');
-        let remaining = amount - filled;
-        // new, queued, open, partially_filled, filled, cancelled
-        let status = order['state'];
-        if (status === 'filled') {
-            status = 'closed';
-        } else if (status === 'cancelled') {
-            status = 'canceled';
-        } else {
-            status = 'open';
+        let remaining = undefined;
+        if (typeof amount !== 'undefined' && typeof filled !== 'undefined') {
+            remaining = amount - filled;
         }
-        let side = (order['side'] === 'bid') ? 'buy' : 'sell';
+        let cost = undefined;
+        if (typeof price !== 'undefined' && typeof amount !== 'undefined') {
+            cost = price * amount;
+        }
+        let status = undefined;
+        let state = this.safeString (order, 'state');
+        if (typeof state !== 'undefined') {
+            if (state === 'filled') {
+                status = 'closed';
+            } else if (state === 'rejected') {
+                status = 'closed';
+            } else if (state === 'partially_filled') {
+                status = 'open';
+            } else if (state === 'pending_cancellation') {
+                status = 'open';
+            } else if (state === 'pending_modification') {
+                status = 'open';
+            } else if (state === 'open') {
+                status = 'open';
+            } else if (state === 'new') { // anyone seen this in the wild?
+                status = 'open';
+            } else if (state === 'queued') {
+                status = 'open';
+            } else if (state === 'cancelled') {
+                status = 'canceled';
+            } else if (state === 'triggered') {
+                status = 'triggered';
+            }
+        }
+        let side = undefined;
+        if ('side' in order) {
+            if (order['side' === 'bid']) {
+                side = 'buy';
+            } else if (order['side'] === 'ask') {
+                side = 'sell';
+            }
+        }
         return {
             'id': order['id'],
             'datetime': this.iso8601 (timestamp),
@@ -422,7 +452,7 @@ module.exports = class cobinhood extends Exchange {
             'type': order['type'], // market, limit, stop, stop_limit, trailing_stop, fill_or_kill
             'side': side,
             'price': price,
-            'cost': price * amount,
+            'cost': cost,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
