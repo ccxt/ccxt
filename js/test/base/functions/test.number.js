@@ -70,10 +70,10 @@ assert (decimalToPrecision ('12.3456', ROUND, 0, DECIMAL_PLACES) === '12');
 // assert (decimalToPrecision ('123.456', ROUND, -1, DECIMAL_PLACES) === '120');  // not yet supported
 // assert (decimalToPrecision ('123.456', ROUND, -2, DECIMAL_PLACES) === '100');  // not yet supported
 
-assert (decimalToPrecision ( '9.999', ROUND, 3, DECIMAL_PLACES) === '9.999');
-assert (decimalToPrecision ( '9.999', ROUND, 2, DECIMAL_PLACES) === '10');
-assert (decimalToPrecision ( '9.999', ROUND, 2, DECIMAL_PLACES, PAD_WITH_ZERO) === '10.00');
-assert (decimalToPrecision ( '99.999', ROUND, 2, DECIMAL_PLACES, PAD_WITH_ZERO) === '100.00');
+assert (decimalToPrecision ('9.999', ROUND, 3, DECIMAL_PLACES) === '9.999');
+assert (decimalToPrecision ('9.999', ROUND, 2, DECIMAL_PLACES) === '10');
+assert (decimalToPrecision ('9.999', ROUND, 2, DECIMAL_PLACES, PAD_WITH_ZERO) === '10.00');
+assert (decimalToPrecision ('99.999', ROUND, 2, DECIMAL_PLACES, PAD_WITH_ZERO) === '100.00');
 assert (decimalToPrecision ('-99.999', ROUND, 2, DECIMAL_PLACES, PAD_WITH_ZERO) === '-100.00');
 
 // ----------------------------------------------------------------------------

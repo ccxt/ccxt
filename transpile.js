@@ -785,7 +785,7 @@ function transpilePrecisionTests () {
 
     const jsFile = './js/test/base/functions/test.number.js'
     const pyFile = './python/test/test_decimal_to_precision.py'
-    const phpFile = './php/test/precisionTests.php'
+    const phpFile = './php/test/decimal_to_precision.php'
 
     log.magenta ('Transpiling from', jsFile.yellow)
 
