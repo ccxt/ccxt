@@ -25,10 +25,18 @@ function replaceInFile (filename, regex, replacement) {
 // ----------------------------------------------------------------------------
 
 function regexAll (text, array) {
+
     for (let i in array) {
         let regex = array[i][0]
+        if (text.indexOf ('testDecimalToPrecisionErrorHandling') >= 0) {
+            log.green (regex,  array[i][1])
+            log.yellow (text.slice (0, 1000))
+        }
         regex = typeof regex === 'string' ? new RegExp (regex, 'g') : new RegExp (regex)
         text = text.replace (regex, array[i][1])
+        if (text.indexOf ('testDecimalToPrecisionErrorHandling') >= 0) {
+            log.cyan (text.slice (0, 1000))
+        }
     }
     return text
 }
@@ -198,7 +206,7 @@ const pythonRegexes = [
     [ /Math\.ceil\s*\(([^\)]+)\)/g, 'int(math.ceil($1))' ],
     [ /Math\.log/g, 'math.log' ],
     [ /(\([^\)]+\)|[^\s]+)\s*\?\s*([^\:]+)\s+\:\s*([^\n]+)/g, '$2 if $1 else $3'],
-    [ / \/\//g, ' #' ],
+    [ /(^|\s)\/\//g, '$1#' ],
     [ /([^\n\s]) #/g, '$1  #' ],   // PEP8 E261
     [ /\.indexOf/g, '.find'],
     [ /\strue/g, ' True'],
@@ -436,12 +444,28 @@ const phpFolder     = './php/'
 
 // ----------------------------------------------------------------------------
 
-function transpileJavaScriptToPython3 ({ js, className }) {
+function transpileJavaScriptToPython3 ({ js, className, removeEmptyLines }) {
+
+    if (js.indexOf ('testDecimalToPrecisionErrorHandling') >= 0) {
+        log.yellow ('-------------------------------------------------------------')
+        log.bright.yellow (js.slice (0, 500))
+        log.yellow ('-------------------------------------------------------------')
+    }
 
     // transpile JS → Python 3
     let python3Body = regexAll (js, pythonRegexes)
-        .replace (/$\s*$/gm, '')
-        .replace (/\'([абвгдеёжзийклмнопрстуфхцчшщъыьэюя服务端忙碌]+)\'/gm, "u'$1'")
+
+    if (removeEmptyLines)
+        python3Body = python3Body.replace (/$\s*$/gm, '')
+
+    python3Body = python3Body.replace (/\'([абвгдеёжзийклмнопрстуфхцчшщъыьэюя服务端忙碌]+)\'/gm, "u'$1'")
+
+    if (js.indexOf ('testDecimalToPrecisionErrorHandling') >= 0) {
+        log.yellow ('-------------------------------------------------------------')
+        log.bright.yellow (python3Body.slice (0, 500))
+        log.yellow ('-------------------------------------------------------------')
+    }
+
 
     // special case for Python OrderedDicts
     let orderedDictRegex = /\.ordered\s+\(\{([^\}]+)\}\)/g
@@ -453,6 +477,12 @@ function transpileJavaScriptToPython3 ({ js, className }) {
 
     // special case for Python super
     python3Body = python3Body.replace (/super\./g, 'super(' + className + ', self).')
+
+    if (js.indexOf ('testDecimalToPrecisionErrorHandling') >= 0) {
+        log.yellow ('-------------------------------------------------------------')
+        log.bright.yellow (python3Body)
+        log.yellow ('-------------------------------------------------------------')
+    }
 
     return python3Body
 }
@@ -474,7 +504,7 @@ function transpileJavaScriptToPHP ({ js, variables }) {
     // match all local variables (let, const or var)
     let localVariablesRegex = /[^a-zA-Z0-9_](?:let|const|var)\s+(?:\[([^\]]+)\]|([a-zA-Z0-9_]+))/g // local variables
 
-    let allVariables = variables.map (x => x); // clone the array
+    let allVariables = (variables || []).map (x => x); // clone the array
     // process the variables created in destructuring assignments as well
     let localVariablesMatches
     while (localVariablesMatches = localVariablesRegex.exec (js)) {
@@ -527,13 +557,6 @@ function transpileJavaScriptToPythonAndPHP (args) {
 // ----------------------------------------------------------------------------
 
 function transpileDerivedExchangeClass (contents) {
-
-    // match all required imports
-    let requireRegex = /^const\s+[^\=]+\=\s*require\s*\(\'[^\']+\'\);*$/gm
-    let requireMatches = contents.match (requireRegex)
-
-    // log.yellow (requireMatches)
-    // process.exit (1)
 
     let exchangeClassDeclarationMatches = contents.match (/^module\.exports\s*=\s*class\s+([\S]+)\s+extends\s+([\S]+)\s+{([\s\S]+?)^};*/m)
 
@@ -606,7 +629,7 @@ function transpileDerivedExchangeClass (contents) {
         let js = lines.slice (1, -1).join ("\n")
 
         // transpile everything
-        let { python3Body, python2Body, phpBody } = transpileJavaScriptToPythonAndPHP ({ js, className, variables })
+        let { python3Body, python2Body, phpBody } = transpileJavaScriptToPythonAndPHP ({ js, className, variables, removeEmptyLines: true })
 
         // compile the final Python code for the method signature
         let pythonString = 'def ' + method + '(self' + (pythonArgs.length ? ', ' + pythonArgs : '') + '):'
@@ -669,22 +692,6 @@ function transpileDerivedExchangeFile (folder, filename) {
         log.red ('See https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md on how to build this library properly\n')
         throw e // rethrow it
     }
-}
-
-// ----------------------------------------------------------------------------
-
-function transpileJavaScriptFileToPythonAndPHPFiles (jsFile, pythonFile, phpFile) {
-
-    const js = fs.readFileSync (jsFile).toString ()
-    log.bright.blue (js)
-    process.exit ()
-    let { python3Body, python2Body, phpBody } = transpileJavaScriptToPythonAndPHP ({ js })
-
-    log.bright.blue ('---------------------- HERE ---------------------')
-    log.yellow (python2Body)
-    log.cyan (phpBody)
-    process.exit ();
-
 }
 
 //-----------------------------------------------------------------------------
@@ -801,44 +808,84 @@ function exportTypeScriptDeclarations (classes) {
 const transpileWarning = '# PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n' +
     '# https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n'
 
-    /*
-
-function transpilePrecisionTests (jsTests, pythonTests, phpTests) {
-    log.magenta ('Transpiling ' + jsTests.yellow + ' → ' + pythonTests.yellow + ' and ' + phpTests.yellow)
-    const regex = /^equal +\(decimalToPrecision \( *?'([0-9.-]+)', +(\w+), +([0-9.-]+), +(\w+)(?:, )?(\w*?)\), +'([0-9.-]+)'\)/mg
-    const deleteRegex = /^ +|throws .*"\)/mg
-    let jscontents = fs.readFileSync (jsTests, 'utf8')
-    jscontents = jscontents.replace (deleteRegex, '')
-    let match = regex.exec (jscontents)
-    let pythonContent = ''
-    let phpContent = ''
-    while (match) {
-        match[5] = match[5] === '' ? 'NO_PADDING' : match[5]
-        match[1] = "'" + match[1] + "'"
-        match[6] = "'" + match[6] + "'"
-        let args = '(' + match.slice (1, 6).join (', ') + ')'
-        pythonContent = pythonContent + '\nassert decimal_to_precision' + args + ' == ' + match[6]
-        phpContent = phpContent + '\nassert(Exchange::decimalToPrecision' + args + ' == ' + match[6] + ', $desc . "' + args + '");'
-        match = regex.exec (jscontents)
-    }
-    const pythonFile = fs.readFileSync (pythonTests, 'utf-8')
-    const phpFile = fs.readFileSync (phpTests, 'utf-8')
-
-    let transpiledPython = pythonFile.slice (0, pythonFile.indexOf (transpileWarning) + transpileWarning.length) + pythonContent + '\n'
-    let transpiledPhp = phpFile.slice (0, phpFile.indexOf (transpileWarning) + transpileWarning.length) + phpContent + '\n'
-    overwriteFile(pythonTests, transpiledPython)
-    overwriteFile(phpTests, transpiledPhp)
-}
-
-*/
-
 //-----------------------------------------------------------------------------
 
 function transpilePrecisionTests () {
+
     const jsFile = './js/test/base/functions/test.number.js'
     const pyFile = './python/test/test_decimal_to_precision.py'
     const phpFile = './php/test/precisionTests.php'
-    transpileJavaScriptFileToPythonAndPHPFiles (jsFile, pyFile, phpFile)
+
+    let js = fs.readFileSync (jsFile).toString ()
+
+    js = regexAll (js, [
+        [ /\'use strict\';?\s+/g, '' ],
+        [ /[^\n]+require[^\n]+\n/g, '' ],
+        [ /decimalToPrecision/g, 'decimal_to_precision' ],
+        [ /numberToString/g, 'number_to_string' ],
+        // [ /([^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}\s\=\s*require\s*([^\;]+)/g, '' ],
+    ])
+
+    let { python3Body, python2Body, phpBody } = transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
+
+    const pythonHeader =
+"import os\n\
+import sys\n\
+\n\
+root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))\n\
+sys.path.append(root)\n\
+\n\
+# -----------------------------------------------------------------------------\n\
+\n\
+from ccxt.base.decimal_to_precision import decimal_to_precision  # noqa F401\n\
+from ccxt.base.decimal_to_precision import TRUNCATE              # noqa F401\n\
+from ccxt.base.decimal_to_precision import ROUND                 # noqa F401\n\
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES        # noqa F401\n\
+from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS    # noqa F401\n\
+from ccxt.base.decimal_to_precision import PAD_WITH_ZERO         # noqa F401\n\
+from ccxt.base.decimal_to_precision import NO_PADDING            # noqa F401\n\
+\n\
+# -----------------------------------------------------------------------------\n\
+\n\
+# PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n\
+# https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n\
+\n\
+"
+
+    // log.yellow (pythonHeader + python2Body)
+
+    const phpHeader =
+"<?php\n\
+\n\
+include_once ('ccxt.php');\n\
+use ccxt\\Exchange;\n\
+use const ccxt\\DECIMAL_PLACES;\n\
+use const ccxt\\NO_PADDING;\n\
+use const ccxt\\PAD_WITH_ZERO;\n\
+use const ccxt\\ROUND;\n\
+use const ccxt\\SIGNIFICANT_DIGITS;\n\
+use const ccxt\\TRUNCATE;\n\
+\n\
+// ----------------------------------------------------------------------------\n\
+// testDecimalToPrecisionErrorHandling\n\
+//\n\
+// $this->expectException ('ccxt\\\\BaseError');\n\
+// $this->expectExceptionMessageRegExp ('/Negative precision is not yet supported/');\n\
+// Exchange::decimalToPrecision ('123456.789', TRUNCATE, -2, DECIMAL_PLACES);\n\
+//\n\
+// $this->expectException ('ccxt\\\\BaseError');\n\
+// $this->expectExceptionMessageRegExp ('/Invalid number/');\n\
+// Exchange::decimalToPrecision ('foo');\n\
+\n\
+// ----------------------------------------------------------------------------\n\
+\n\
+// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n\
+// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n\
+\n\
+"
+
+    // log.cyan (phpHeader + phpBody)
+
 }
 
 //-----------------------------------------------------------------------------
