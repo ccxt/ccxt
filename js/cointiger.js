@@ -510,10 +510,15 @@ module.exports = class cointiger extends huobipro {
         if (typeof symbol === 'undefined')
             throw new ExchangeError (this.id + ' cancelOrder requires a symbol argument');
         let market = this.market (symbol);
-        return await this.privateDeleteOrder (this.extend ({
+        let response = await this.privateDeleteOrder (this.extend ({
             'symbol': market['id'],
             'order_id': id,
         }, params));
+        return {
+            'id': id,
+            'symbol': symbol,
+            'info': response,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
