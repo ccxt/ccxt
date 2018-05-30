@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InsufficientFunds, InvalidNonce } = require ('./base/errors');
+const { ExchangeError, InsufficientFunds, InvalidNonce, InvalidOrder } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -593,8 +593,18 @@ module.exports = class cobinhood extends Exchange {
             throw new ExchangeError (this.id + ' ' + body);
         }
         let response = JSON.parse (body);
-        let errorCode = this.safeValue (response['error'], 'error_code');
         const feedback = this.id + ' ' + this.json (response);
+        let errorCode = this.safeValue (response['error'], 'error_code');
+        let fetchOrCancelUrlPrefix = this.urls['api']['web'] + '/' + this.implodeParams ('trading/orders/', {});
+        if (url.substr (0, fetchOrCancelUrlPrefix.length) === fetchOrCancelUrlPrefix) {
+            // Cobinhood returns vague "parameter_error" on fetchOrder() and cancelOrder() calls
+            // for any order IDs is not in the "open" state or invalid in the first place.
+            if (method === 'DELETE' || method === 'GET') {
+                if (errorCode === 'parameter_error') {
+                    throw new InvalidOrder (feedback);
+                }
+            }
+        }
         const exceptions = this.exceptions;
         if (errorCode in exceptions) {
             throw new exceptions[errorCode] (feedback);
