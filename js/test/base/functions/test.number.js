@@ -25,9 +25,9 @@ assert (decimalToPrecision ('12.3456', TRUNCATE, 2, DECIMAL_PLACES) === '12.34')
 assert (decimalToPrecision ('12.3456', TRUNCATE, 1, DECIMAL_PLACES) === '12.3');
 assert (decimalToPrecision ('12.3456', TRUNCATE, 0, DECIMAL_PLACES) === '12');
 
-// assert (decimalToPrecision ('12.3456', TRUNCATE, -1, DECIMAL_PLACES) === '10');   // not yet supported
-// assert (decimalToPrecision ('123.456', TRUNCATE, -2, DECIMAL_PLACES) === '120');  // not yet supported
-// assert (decimalToPrecision ('123.456', TRUNCATE, -3, DECIMAL_PLACES) === '100');  // not yet supported
+// assert (decimalToPrecision ('12.3456', TRUNCATE, -1, DECIMAL_PLACES) === '10');  // not yet supported
+// assert (decimalToPrecision ('123.456', TRUNCATE, -2, DECIMAL_PLACES) === '120'); // not yet supported
+// assert (decimalToPrecision ('123.456', TRUNCATE, -3, DECIMAL_PLACES) === '100'); // not yet supported
 
 assert (decimalToPrecision ('0', TRUNCATE, 0, DECIMAL_PLACES) === '0');
 
