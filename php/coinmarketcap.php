@@ -143,9 +143,6 @@ class coinmarketcap extends Exchange {
                 $base = $this->currency_code ($market['symbol'], $market['name']);
                 $symbol = $base . '/' . $quote;
                 $id = $baseId . '/' . $quoteId;
-                if (mb_strpos ($market['symbol'], 'dao') !== false) {
-                    var_dump ($market);
-                }
                 $result[] = array (
                     'id' => $id,
                     'symbol' => $symbol,

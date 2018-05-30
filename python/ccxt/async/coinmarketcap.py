@@ -141,8 +141,6 @@ class coinmarketcap (Exchange):
                 base = self.currency_code(market['symbol'], market['name'])
                 symbol = base + '/' + quote
                 id = baseId + '/' + quoteId
-                if market['symbol'].find('dao') >= 0:
-                    print(market)
                 result.append({
                     'id': id,
                     'symbol': symbol,
