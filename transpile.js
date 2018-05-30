@@ -170,6 +170,7 @@ const pythonRegexes = [
     [ /\}\s*else\s*\{/g, 'else:' ],
     [ /else\s*[\n]/g, "else:\n" ],
     [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(?:\<=|\>=|<|>)\s*(.*)\.length\s*\;[^\)]+\)\s*{/g, 'for $1 in range($2, len($3)):'],
+    [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(?:\<=|\>=|<|>)\s*(.*)\s*\;[^\)]+\)\s*{/g, 'for $1 in range($2, $3):'],
     [ /\s\|\|\s/g, ' or ' ],
     [ /\s\&\&\s/g, ' and ' ],
     [ /\!([^\=])/g, 'not $1'],
@@ -266,6 +267,7 @@ const phpRegexes = [
     [ '([^a-z]+) (' + Object.keys (errors).join ('|') + ')([^\\s])', "$1 '\\\\ccxt\\\\$2'$3" ],
     [ /\}\s+catch \(([\S]+)\) {/g, '} catch (Exception $$$1) {' ],
     [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(\<=|\>=|<|>)\s*(.*)\.length\s*\;([^\)]+)\)\s*{/g, 'for ($1 = $2; $1 $3 count ($4);$5) {' ],
+    [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(\<=|\>=|<|>)\s*(.*)\s*\;([^\)]+)\)\s*{/g, 'for ($1 = $2; $1 $3 $4;$5) {' ],
     [ /([^\s]+)\.length\;/g, 'is_array ($1) ? count ($1) : 0;' ],
     [ /([^\s\(]+)\.length/g, 'strlen ($1)' ],
     [ /\.push\s*\(([\s\S]+?)\)\;/g, '[] = $1;' ],
@@ -500,6 +502,9 @@ function transpileJavaScriptToPHP ({ js, variables }) {
 
 function transpileJavaScriptToPythonAndPHP (args) {
 
+    // log.bright.red (Object.keys (args))
+    // process.exit ()
+
     //-------------------------------------------------------------------------
 
     // transpile JS → Python 3
@@ -641,14 +646,9 @@ function transpileDerivedExchangeFile (folder, filename) {
 
     try {
 
-        filename = 'bitfinex.js'
-
         let contents = fs.readFileSync (folder + filename, 'utf8')
 
         let { python2, python3, php, className, baseClass } = transpileDerivedExchangeClass (contents)
-
-        log.green.bright (' HERE ', php );
-        process.exit ();
 
         const python2Filename = python2Folder + filename.replace ('.js', '.py')
         const python3Filename = python3Folder + filename.replace ('.js', '.py')
@@ -674,11 +674,16 @@ function transpileDerivedExchangeFile (folder, filename) {
 
 function transpileJavaScriptFileToPythonAndPHPFiles (jsFile, pythonFile, phpFile) {
 
+    const js = fs.readFileSync (jsFile).toString ()
+    log.bright.blue (js)
+    process.exit ()
+    let { python3Body, python2Body, phpBody } = transpileJavaScriptToPythonAndPHP ({ js })
+
     log.bright.blue ('---------------------- HERE ---------------------')
+    log.yellow (python2Body)
+    log.cyan (phpBody)
     process.exit ();
 
-    const js = js.readFileSync (js)
-    let { python3Body, python2Body, phpBody } = transpileJavaScriptToPythonAndPHP ({ js })
 }
 
 //-----------------------------------------------------------------------------
@@ -829,7 +834,7 @@ function transpilePrecisionTests (jsTests, pythonTests, phpTests) {
 //-----------------------------------------------------------------------------
 
 function transpilePrecisionTests () {
-    const jsFile = './js/test/base/function/test.number.js'
+    const jsFile = './js/test/base/functions/test.number.js'
     const pyFile = './python/test/test_decimal_to_precision.py'
     const phpFile = './php/test/precisionTests.php'
     transpileJavaScriptFileToPythonAndPHPFiles (jsFile, pyFile, phpFile)
