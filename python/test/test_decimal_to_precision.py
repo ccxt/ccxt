@@ -6,8 +6,6 @@ sys.path.append(root)
 
 # -----------------------------------------------------------------------------
 
-from decimal import getcontext
-
 from ccxt.base.decimal_to_precision import decimal_to_precision  # noqa F401
 from ccxt.base.decimal_to_precision import TRUNCATE              # noqa F401
 from ccxt.base.decimal_to_precision import ROUND                 # noqa F401
@@ -36,45 +34,43 @@ from ccxt.base.decimal_to_precision import NO_PADDING            # noqa F401
 # ----------------------------------------------------------------------------
 # testDecimalToPrecisionTruncationToNDigitsAfterDot
 
-# assert(decimal_to_precision('12.3456000', TRUNCATE, 100, DECIMAL_PLACES) == '12.3456')
-# assert(decimal_to_precision('12.3456', TRUNCATE, 100, DECIMAL_PLACES) == '12.3456')
-# assert(decimal_to_precision('12.3456', TRUNCATE, 4, DECIMAL_PLACES) == '12.3456')
-# assert(decimal_to_precision('12.3456', TRUNCATE, 3, DECIMAL_PLACES) == '12.345')
-# assert(decimal_to_precision('12.3456', TRUNCATE, 2, DECIMAL_PLACES) == '12.34')
-# assert(decimal_to_precision('12.3456', TRUNCATE, 1, DECIMAL_PLACES) == '12.3')
-# assert(decimal_to_precision('12.3456', TRUNCATE, 0, DECIMAL_PLACES) == '12')
+assert(decimal_to_precision('12.3456000', TRUNCATE, 100, DECIMAL_PLACES) == '12.3456')
+assert(decimal_to_precision('12.3456', TRUNCATE, 100, DECIMAL_PLACES) == '12.3456')
+assert(decimal_to_precision('12.3456', TRUNCATE, 4, DECIMAL_PLACES) == '12.3456')
+assert(decimal_to_precision('12.3456', TRUNCATE, 3, DECIMAL_PLACES) == '12.345')
+assert(decimal_to_precision('12.3456', TRUNCATE, 2, DECIMAL_PLACES) == '12.34')
+assert(decimal_to_precision('12.3456', TRUNCATE, 1, DECIMAL_PLACES) == '12.3')
+assert(decimal_to_precision('12.3456', TRUNCATE, 0, DECIMAL_PLACES) == '12')
 
-# # assert(decimal_to_precision('12.3456', TRUNCATE, -1, DECIMAL_PLACES) == '10')  # not yet supported
-# # assert(decimal_to_precision('123.456', TRUNCATE, -2, DECIMAL_PLACES) == '120')  # not yet supported
-# # assert(decimal_to_precision('123.456', TRUNCATE, -3, DECIMAL_PLACES) == '100')  # not yet supported
+# assert(decimal_to_precision('12.3456', TRUNCATE, -1, DECIMAL_PLACES) == '10')  # not yet supported
+# assert(decimal_to_precision('123.456', TRUNCATE, -2, DECIMAL_PLACES) == '120')  # not yet supported
+# assert(decimal_to_precision('123.456', TRUNCATE, -3, DECIMAL_PLACES) == '100')  # not yet supported
 
-# assert(decimal_to_precision('0', TRUNCATE, 0, DECIMAL_PLACES) == '0')
+assert(decimal_to_precision('0', TRUNCATE, 0, DECIMAL_PLACES) == '0')
 
 # ----------------------------------------------------------------------------
 # testDecimalToPrecisionTruncationToNSignificantDigits
 
-# assert(decimal_to_precision('0.000123456700', TRUNCATE, 100, SIGNIFICANT_DIGITS) == '0.0001234567')
-# assert(decimal_to_precision('0.0001234567', TRUNCATE, 100, SIGNIFICANT_DIGITS) == '0.0001234567')
-# assert(decimal_to_precision('0.0001234567', TRUNCATE, 7, SIGNIFICANT_DIGITS) == '0.0001234567')
+assert(decimal_to_precision('0.000123456700', TRUNCATE, 100, SIGNIFICANT_DIGITS) == '0.0001234567')
+assert(decimal_to_precision('0.0001234567', TRUNCATE, 100, SIGNIFICANT_DIGITS) == '0.0001234567')
+assert(decimal_to_precision('0.0001234567', TRUNCATE, 7, SIGNIFICANT_DIGITS) == '0.0001234567')
 
-# assert(decimal_to_precision('0.000123456', TRUNCATE, 6, SIGNIFICANT_DIGITS) == '0.000123456')
-print(decimal_to_precision('0.000123456', TRUNCATE, 5, SIGNIFICANT_DIGITS))
-print(getcontext().prec)
-# assert(decimal_to_precision('0.000123456', TRUNCATE, 5, SIGNIFICANT_DIGITS) == '0.00012345')
-# assert(decimal_to_precision('0.000123456', TRUNCATE, 2, SIGNIFICANT_DIGITS) == '0.00012')
-# assert(decimal_to_precision('0.000123456', TRUNCATE, 1, SIGNIFICANT_DIGITS) == '0.0001')
+assert(decimal_to_precision('0.000123456', TRUNCATE, 6, SIGNIFICANT_DIGITS) == '0.000123456')
+assert(decimal_to_precision('0.000123456', TRUNCATE, 5, SIGNIFICANT_DIGITS) == '0.00012345')
+assert(decimal_to_precision('0.000123456', TRUNCATE, 2, SIGNIFICANT_DIGITS) == '0.00012')
+assert(decimal_to_precision('0.000123456', TRUNCATE, 1, SIGNIFICANT_DIGITS) == '0.0001')
 
-# assert(decimal_to_precision('123.0000987654', TRUNCATE, 10, SIGNIFICANT_DIGITS) == '123.0000987')
-# assert(decimal_to_precision('123.0000987654', TRUNCATE, 8, SIGNIFICANT_DIGITS) == '123.00009')
-# assert(decimal_to_precision('123.0000987654', TRUNCATE, 7, SIGNIFICANT_DIGITS) == '123')
-# assert(decimal_to_precision('123.0000987654', TRUNCATE, 7, SIGNIFICANT_DIGITS, PAD_WITH_ZERO) == '123.0000')
-# assert(decimal_to_precision('123.0000987654', TRUNCATE, 4, SIGNIFICANT_DIGITS, PAD_WITH_ZERO) == '123.0')
+assert(decimal_to_precision('123.0000987654', TRUNCATE, 10, SIGNIFICANT_DIGITS) == '123.0000987')
+assert(decimal_to_precision('123.0000987654', TRUNCATE, 8, SIGNIFICANT_DIGITS) == '123.00009')
+assert(decimal_to_precision('123.0000987654', TRUNCATE, 7, SIGNIFICANT_DIGITS) == '123')
+assert(decimal_to_precision('123.0000987654', TRUNCATE, 7, SIGNIFICANT_DIGITS, PAD_WITH_ZERO) == '123.0000')
+assert(decimal_to_precision('123.0000987654', TRUNCATE, 4, SIGNIFICANT_DIGITS, PAD_WITH_ZERO) == '123.0')
 
-# assert(decimal_to_precision('123.0000987654', TRUNCATE, 2, SIGNIFICANT_DIGITS) == '120')
-# assert(decimal_to_precision('123.0000987654', TRUNCATE, 1, SIGNIFICANT_DIGITS) == '100')
-# assert(decimal_to_precision('123.0000987654', TRUNCATE, 1, SIGNIFICANT_DIGITS, PAD_WITH_ZERO) == '100')
+assert(decimal_to_precision('123.0000987654', TRUNCATE, 2, SIGNIFICANT_DIGITS) == '120')
+assert(decimal_to_precision('123.0000987654', TRUNCATE, 1, SIGNIFICANT_DIGITS) == '100')
+assert(decimal_to_precision('123.0000987654', TRUNCATE, 1, SIGNIFICANT_DIGITS, PAD_WITH_ZERO) == '100')
 
-# assert(decimal_to_precision('0', TRUNCATE, 0, SIGNIFICANT_DIGITS) == '0')
+assert(decimal_to_precision('0', TRUNCATE, 0, SIGNIFICANT_DIGITS) == '0')
 
 # ----------------------------------------------------------------------------
 # testDecimalToPrecisionRoundingToNDigitsAfterDot
