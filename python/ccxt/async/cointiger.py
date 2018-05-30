@@ -470,7 +470,7 @@ class cointiger (huobipro):
         timestamp = self.milliseconds()
         return {
             'info': response,
-            'id': str(response['order_id']),
+            'id': str(response['data']['order_id']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,

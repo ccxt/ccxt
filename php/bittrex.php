@@ -150,6 +150,7 @@ class bittrex extends Exchange {
                 'UUID_INVALID' => '\\ccxt\\OrderNotFound',
                 'RATE_NOT_PROVIDED' => '\\ccxt\\InvalidOrder', // createLimitBuyOrder ('ETH/BTC', 1, 0)
                 'WHITELIST_VIOLATION_IP' => '\\ccxt\\PermissionDenied',
+                'INVALID_ORDER' => '\\ccxt\\InvalidOrder',
             ),
             'options' => array (
                 'parseOrderStatus' => false,
