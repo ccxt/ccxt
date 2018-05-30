@@ -486,7 +486,7 @@ class cointiger extends huobipro {
         $timestamp = $this->milliseconds ();
         return array (
             'info' => $response,
-            'id' => (string) $response['order_id'],
+            'id' => (string) $response['data']['order_id'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'lastTradeTimestamp' => null,
