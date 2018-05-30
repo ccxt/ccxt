@@ -537,7 +537,7 @@ module.exports = class cointiger extends huobipro {
             }, urlParams)));
             url += '&sign=' + this.decode (signature);
             if (method === 'POST') {
-                body = /* JSON.stringify (query); */ this.urlencode (query);
+                body = this.urlencode (query);
                 headers = {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 };
@@ -550,7 +550,6 @@ module.exports = class cointiger extends huobipro {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         }
-        // console.log ({ 'url': url, 'method': method, 'body': body, 'headers': headers })
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
