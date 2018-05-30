@@ -326,10 +326,13 @@ module.exports = class kucoin extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetOpenOrders (this.extend ({
+        let request = {
             'symbol': market['id'],
-            'limit': limit,
-        }, params));
+        };
+        if (typeof limit !== 'undefined') {
+            request['limit'] = limit;
+        }
+        let response = await this.publicGetOpenOrders (this.extend (request, params));
         let dataInResponse = ('data' in response);
         let orderbook = undefined;
         let timestamp = undefined;
