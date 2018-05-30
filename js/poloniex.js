@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, RequestTimeout, AuthenticationError, DDoSProtection, InsufficientFunds, OrderNotFound, OrderNotCached, InvalidOrder, CancelPending, InvalidNonce } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, RequestTimeout, AuthenticationError, DDoSProtection, InsufficientFunds, OrderNotFound, OrderNotCached, InvalidOrder, CancelPending, InvalidNonce, AccountFrozen } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -849,6 +849,8 @@ module.exports = class poloniex extends Exchange {
                 throw new InvalidNonce (feedback);
             } else if (error.indexOf ('You have already called cancelOrder or moveOrder on this order.') >= 0) {
                 throw new CancelPending (feedback);
+            } else if (error.indexOf('This account is frozen.') >= 0) {
+                throw new AccountFrozen (feedback);
             } else {
                 throw new ExchangeError (this.id + ': unknown error: ' + this.json (response));
             }
