@@ -17,6 +17,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import ExchangeNotAvailable
 
 
@@ -84,6 +85,7 @@ class cointiger (huobipro):
                 '2': ExchangeError,
                 '5': InvalidOrder,
                 '6': InvalidOrder,
+                '8': OrderNotFound,
                 '16': AuthenticationError,  # funding password not set
                 '100001': ExchangeError,
                 '100002': ExchangeNotAvailable,
