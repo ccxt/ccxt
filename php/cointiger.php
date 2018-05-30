@@ -354,7 +354,7 @@ class cointiger extends huobipro {
             }
             $account = $this->account ();
             $account['used'] = floatval ($balance['lock']);
-            $account['free'] = $balance['normal'];
+            $account['free'] = floatval ($balance['normal']);
             $account['total'] = $this->sum ($account['used'], $account['free']);
             $result[$code] = $account;
         }
