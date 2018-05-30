@@ -183,6 +183,7 @@ module.exports = class lykke extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        let close = parseFloat (ticker['lastPrice']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -195,8 +196,8 @@ module.exports = class lykke extends Exchange {
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'last': parseFloat (ticker['lastPrice']),
+            'close': close,
+            'last': close,
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
