@@ -213,6 +213,7 @@ module.exports = class cointiger extends huobipro {
             if (id in this.options['marketsByUppercaseId']) {
                 // this endpoint returns uppercase ids
                 symbol = this.options['marketsByUppercaseId'][id]['symbol'];
+                market = this.options['marketsByUppercaseId'][id];
             }
             result[symbol] = this.parseTicker (response[id], market);
         }
