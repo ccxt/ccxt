@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, InvalidAddress } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, InvalidAddress, InsufficientFunds } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -188,6 +188,17 @@ module.exports = class gatecoin extends Exchange {
                     'taker': 0.0035,
                 },
             },
+            'commonCurrencies': {
+                'BCP': 'BCPT',
+                'FLI': 'FLIXX',
+                'MAN': 'MANA',
+                'SLT': 'SALT',
+                'TRA': 'TRAC',
+                'WGS': 'WINGS',
+            },
+            'exceptions': {
+                '1005': InsufficientFunds,
+            },
         });
     }
 
@@ -200,8 +211,8 @@ module.exports = class gatecoin extends Exchange {
             let id = market['tradingCode'];
             let baseId = market['baseCurrency'];
             let quoteId = market['quoteCurrency'];
-            let base = baseId;
-            let quote = quoteId;
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
             let precision = {
                 'amount': 8,
@@ -244,7 +255,10 @@ module.exports = class gatecoin extends Exchange {
         let result = { 'info': balances };
         for (let b = 0; b < balances.length; b++) {
             let balance = balances[b];
-            let currency = balance['currency'];
+            let currencyId = balance['currency'];
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id)
+                code = this.currencies_by_id[currencyId]['code'];
             let account = {
                 'free': balance['availableBalance'],
                 'used': this.sum (
@@ -254,7 +268,7 @@ module.exports = class gatecoin extends Exchange {
                 ),
                 'total': balance['balance'],
             };
-            result[currency] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
@@ -281,22 +295,22 @@ module.exports = class gatecoin extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
-        let baseVolume = parseFloat (ticker['volume']);
-        let vwap = parseFloat (ticker['vwap']);
+        let baseVolume = this.safeFloat (ticker, 'volume');
+        let vwap = this.safeFloat (ticker, 'vwap');
         let quoteVolume = baseVolume * vwap;
-        let last = parseFloat (ticker['last']);
+        let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']),
-            'low': parseFloat (ticker['low']),
-            'bid': parseFloat (ticker['bid']),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': parseFloat (ticker['ask']),
+            'ask': this.safeFloat (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': vwap,
-            'open': parseFloat (ticker['open']),
+            'open': this.safeFloat (ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': undefined,
@@ -413,7 +427,8 @@ module.exports = class gatecoin extends Exchange {
             request['Count'] = limit;
         request = this.extend (request, params);
         let response = await this.publicGetPublicTickerHistoryCurrencyPairTimeframe (request);
-        return this.parseOHLCVs (response['tickers'], market, timeframe, since, limit);
+        let ohlcvs = this.parseOHLCVs (response['tickers'], market, timeframe, since, limit);
+        return this.sortBy (ohlcvs, 0);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -527,6 +542,7 @@ module.exports = class gatecoin extends Exchange {
             'id': id,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
+            'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
             'type': type,
@@ -632,11 +648,7 @@ module.exports = class gatecoin extends Exchange {
             'DigiCurrency': currency['id'],
         };
         let response = await this.privatePostElectronicWalletDepositWalletsDigiCurrency (this.extend (request, params));
-        let result = response['addresses'];
-        let numResults = result.length;
-        if (numResults < 1)
-            throw new InvalidAddress (this.id + ' privatePostElectronicWalletDepositWalletsDigiCurrency() returned no addresses');
-        let address = this.safeString (result[0], 'address');
+        let address = response['address'];
         this.checkAddress (address);
         return {
             'currency': code,
@@ -644,5 +656,26 @@ module.exports = class gatecoin extends Exchange {
             'status': 'ok',
             'info': response,
         };
+    }
+
+    handleErrors (code, reason, url, method, headers, body) {
+        if (typeof body !== 'string')
+            return; // fallback to default error handler
+        if (body.length < 2)
+            return; // fallback to default error handler
+        if (body[0] === '{') {
+            let response = JSON.parse (body);
+            if ('responseStatus' in response) {
+                let errorCode = this.safeString (response['responseStatus'], 'errorCode');
+                if (typeof errorCode !== 'undefined') {
+                    const feedback = this.id + ' ' + body;
+                    const exceptions = this.exceptions;
+                    if (errorCode in exceptions) {
+                        throw new exceptions[errorCode] (feedback);
+                    }
+                    throw new ExchangeError (feedback);
+                }
+            }
+        }
     }
 };

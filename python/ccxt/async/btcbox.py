@@ -26,6 +26,10 @@ class btcbox (Exchange):
             'version': 'v1',
             'has': {
                 'CORS': False,
+                'fetchOrder': True,
+                'fetchOrders': True,
+                'fetchOpenOrders': True,
+                'fetchTickers': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/31275803-4df755a8-aaa1-11e7-9abb-11ec2fad9f2d.jpg',
@@ -236,6 +240,7 @@ class btcbox (Exchange):
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'amount': amount,
             'remaining': remaining,
             'filled': filled,

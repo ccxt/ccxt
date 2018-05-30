@@ -23,6 +23,7 @@ class coinex (Exchange):
             'has': {
                 'fetchTickers': True,
                 'fetchOHLCV': True,
+                'fetchOrder': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'fetchMyTrades': True,
@@ -142,13 +143,13 @@ class coinex (Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': True,
-                'taker': float(market['taker_fee_rate']),
-                'maker': float(market['maker_fee_rate']),
+                'taker': self.safe_float(market, 'taker_fee_rate'),
+                'maker': self.safe_float(market, 'maker_fee_rate'),
                 'info': market,
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': float(market['least_amount']),
+                        'min': self.safe_float(market, 'least_amount'),
                         'max': None,
                     },
                     'price': {
@@ -163,16 +164,16 @@ class coinex (Exchange):
         timestamp = ticker['date']
         symbol = market['symbol']
         ticker = ticker['ticker']
-        last = float(ticker['last'])
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['buy']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'buy'),
             'bidVolume': None,
-            'ask': float(ticker['sell']),
+            'ask': self.safe_float(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -182,7 +183,7 @@ class coinex (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['vol']),
+            'baseVolume': self.safe_float(ticker, 'vol'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -232,8 +233,8 @@ class coinex (Exchange):
         else:
             tradeId = None
         timestamp *= 1000
-        price = float(trade['price'])
-        amount = float(trade['amount'])
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'amount')
         symbol = market['symbol']
         cost = self.safe_float(trade, 'deal_money')
         if not cost:
@@ -303,7 +304,7 @@ class coinex (Exchange):
     def parse_order(self, order, market=None):
         # TODO: check if it's actually milliseconds, since examples were in seconds
         timestamp = self.safe_integer(order, 'create_time') * 1000
-        price = float(order['price'])
+        price = self.safe_float(order, 'price')
         cost = self.safe_float(order, 'deal_money')
         amount = self.safe_float(order, 'amount')
         filled = self.safe_float(order, 'deal_amount')
@@ -320,6 +321,7 @@ class coinex (Exchange):
             'id': self.safe_string(order, 'id'),
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
+            'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
             'type': order['order_type'],
@@ -332,7 +334,7 @@ class coinex (Exchange):
             'trades': None,
             'fee': {
                 'currency': market['quote'],
-                'cost': float(order['deal_fee']),
+                'cost': self.safe_float(order, 'deal_fee'),
             },
             'info': order,
         }
@@ -434,7 +436,7 @@ class coinex (Exchange):
                 'Authorization': signature.upper(),
                 'Content-Type': 'application/json',
             }
-            if method == 'GET':
+            if (method == 'GET') or (method == 'DELETE'):
                 url += '?' + urlencoded
             else:
                 body = self.json(query)

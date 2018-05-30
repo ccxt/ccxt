@@ -124,11 +124,11 @@ class zaif (Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': float(market['item_unit_min']),
+                        'min': self.safe_float(market, 'item_unit_min'),
                         'max': None,
                     },
                     'price': {
-                        'min': float(market['aux_unit_min']),
+                        'min': self.safe_float(market, 'aux_unit_min'),
                         'max': None,
                     },
                     'cost': {
@@ -260,6 +260,7 @@ class zaif (Exchange):
             'id': str(order['id']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'status': 'open',
             'symbol': market['symbol'],
             'type': 'limit',

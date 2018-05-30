@@ -12,6 +12,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 
 
@@ -66,6 +67,7 @@ class binance (Exchange):
                     'v1': 'https://api.binance.com/api/v1',
                 },
                 'www': 'https://www.binance.com',
+                'referral': 'https://www.binance.com/?ref=10205187',
                 'doc': 'https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md',
                 'fees': [
                     'https://binance.zendesk.com/hc/en-us/articles/115000429332',
@@ -265,12 +267,16 @@ class binance (Exchange):
             },
             # exchange-specific options
             'options': {
+                'defaultTimeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
+                'defaultLimitOrderType': 'limit',  # or 'limit_maker'
+                'hasAlreadyAuthenticatedSuccessfully': False,
                 'warnOnFetchOpenOrdersWithoutSymbol': True,
                 'recvWindow': 5 * 1000,  # 5 sec, binance default
                 'timeDifference': 0,  # the difference between system clock and Binance clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
             },
             'exceptions': {
+                '-1000': ExchangeNotAvailable,  # {"code":-1000,"msg":"An unknown error occured while processing the request."}
                 '-1013': InvalidOrder,  # createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
                 '-1021': InvalidNonce,  # 'your time is ahead of server'
                 '-1100': InvalidOrder,  # createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
@@ -347,16 +353,16 @@ class binance (Exchange):
                 filter = filters['PRICE_FILTER']
                 entry['precision']['price'] = self.precision_from_string(filter['tickSize'])
                 entry['limits']['price'] = {
-                    'min': float(filter['minPrice']),
-                    'max': float(filter['maxPrice']),
+                    'min': self.safe_float(filter, 'minPrice'),
+                    'max': self.safe_float(filter, 'maxPrice'),
                 }
             if 'LOT_SIZE' in filters:
                 filter = filters['LOT_SIZE']
                 entry['precision']['amount'] = self.precision_from_string(filter['stepSize'])
-                entry['lot'] = float(filter['stepSize'])  # lot size is deprecated as of 2018.02.06
+                entry['lot'] = self.safe_float(filter, 'stepSize')  # lot size is deprecated as of 2018.02.06
                 entry['limits']['amount'] = {
-                    'min': float(filter['minQty']),
-                    'max': float(filter['maxQty']),
+                    'min': self.safe_float(filter, 'minQty'),
+                    'max': self.safe_float(filter, 'maxQty'),
                 }
             if 'MIN_NOTIONAL' in filters:
                 entry['limits']['cost']['min'] = float(filters['MIN_NOTIONAL']['minNotional'])
@@ -453,7 +459,7 @@ class binance (Exchange):
             tickers.append(self.parse_ticker(rawTickers[i]))
         return self.filter_by_array(tickers, 'symbol', symbols)
 
-    async def fetch_bid_asks(self, symbols=None, params={}):
+    async def fetch_bids_asks(self, symbols=None, params={}):
         await self.load_markets()
         rawTickers = await self.publicGetTickerBookTicker(params)
         return self.parse_tickers(rawTickers, symbols)
@@ -473,16 +479,17 @@ class binance (Exchange):
             float(ohlcv[5]),
         ]
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=500, params={}):
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
             'interval': self.timeframes[timeframe],
-            'limit': limit,  # default == max == 500
         }
         if since is not None:
             request['startTime'] = since
+        if limit is not None:
+            request['limit'] = limit  # default == max == 500
         response = await self.publicGetKlines(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
@@ -506,9 +513,12 @@ class binance (Exchange):
         fee = None
         if 'commission' in trade:
             fee = {
-                'cost': float(trade['commission']),
+                'cost': self.safe_float(trade, 'commission'),
                 'currency': self.common_currency_code(trade['commissionAsset']),
             }
+        takerOrMaker = None
+        if 'isMaker' in trade:
+            takerOrMaker = 'maker' if trade['isMaker'] else 'taker'
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -517,6 +527,7 @@ class binance (Exchange):
             'id': id,
             'order': order,
             'type': None,
+            'takerOrMaker': takerOrMaker,
             'side': side,
             'price': price,
             'cost': price * amount,
@@ -561,24 +572,35 @@ class binance (Exchange):
             timestamp = order['time']
         elif 'transactTime' in order:
             timestamp = order['transactTime']
-        else:
-            raise ExchangeError(self.id + ' malformed order: ' + self.json(order))
-        price = float(order['price'])
-        amount = float(order['origQty'])
+        iso8601 = None
+        if timestamp is not None:
+            iso8601 = self.iso8601(timestamp)
+        price = self.safe_float(order, 'price')
+        amount = self.safe_float(order, 'origQty')
         filled = self.safe_float(order, 'executedQty', 0.0)
-        remaining = max(amount - filled, 0.0)
+        remaining = None
         cost = None
-        if price is not None:
-            if filled is not None:
+        if filled is not None:
+            if amount is not None:
+                remaining = max(amount - filled, 0.0)
+            if price is not None:
                 cost = price * filled
+        id = self.safe_string(order, 'orderId')
+        type = self.safe_string(order, 'type')
+        if type is not None:
+            type = type.lower()
+        side = self.safe_string(order, 'side')
+        if side is not None:
+            side = side.lower()
         result = {
             'info': order,
-            'id': str(order['orderId']),
+            'id': id,
             'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'datetime': iso8601,
+            'lastTradeTimestamp': None,
             'symbol': symbol,
-            'type': order['type'].lower(),
-            'side': order['side'].lower(),
+            'type': type,
+            'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -592,6 +614,12 @@ class binance (Exchange):
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        # the next 5 lines are added to support for testing orders
+        method = 'privatePostOrder'
+        test = self.safe_value(params, 'test', False)
+        if test:
+            method += 'Test'
+            params = self.omit(params, 'test')
         order = {
             'symbol': market['id'],
             'quantity': self.amount_to_string(symbol, amount),
@@ -599,11 +627,14 @@ class binance (Exchange):
             'side': side.upper(),
         }
         if type == 'limit':
+            order['type'] = self.options['defaultLimitOrderType'].upper()
             order = self.extend(order, {
                 'price': self.price_to_precision(symbol, price),
-                'timeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
+                'timeInForce': self.options['defaultTimeInForce'],  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
             })
-        response = await self.privatePostOrder(self.extend(order, params))
+        elif type == 'limit_maker':
+            order['price'] = self.price_to_precision(symbol, price)
+        response = await getattr(self, method)(self.extend(order, params))
         return self.parse_order(response)
 
     async def fetch_order(self, id, symbol=None, params={}):
@@ -787,16 +818,34 @@ class binance (Exchange):
         if len(body) > 0:
             if body[0] == '{':
                 response = json.loads(body)
+                # check success value for wapi endpoints
+                # response in format {'msg': 'The coin does not exist.', 'success': True/false}
+                success = self.safe_value(response, 'success', True)
+                if not success:
+                    if 'msg' in response:
+                        try:
+                            response = json.loads(response['msg'])
+                        except Exception as e:
+                            response = {}
                 # checks against error codes
                 error = self.safe_string(response, 'code')
                 if error is not None:
                     exceptions = self.exceptions
                     if error in exceptions:
+                        # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
+                        # despite that their message is very confusing, it is raised by Binance
+                        # on a temporary ban(the API key is valid, but disabled for a while)
+                        if (error == '-2015') and self.options['hasAlreadyAuthenticatedSuccessfully']:
+                            raise DDoSProtection(self.id + ' temporary banned: ' + body)
                         raise exceptions[error](self.id + ' ' + body)
                     else:
                         raise ExchangeError(self.id + ': unknown error code: ' + body + ' ' + error)
-                # check success value for wapi endpoints
-                # response in format {'msg': 'The coin does not exist.', 'success': True/false}
-                success = self.safe_value(response, 'success', True)
                 if not success:
                     raise ExchangeError(self.id + ': success value False: ' + body)
+
+    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = await self.fetch2(path, api, method, params, headers, body)
+        # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
+        if (api == 'private') or (api == 'wapi'):
+            self.options['hasAlreadyAuthenticatedSuccessfully'] = True
+        return response

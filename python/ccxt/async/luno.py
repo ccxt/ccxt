@@ -146,6 +146,7 @@ class luno (Exchange):
             'id': order['order_id'],
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
+            'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
             'type': None,
@@ -171,16 +172,16 @@ class luno (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
-        last = float(ticker['last_trade'])
+        last = self.safe_float(ticker, 'last_trade')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': float(ticker['bid']),
+            'bid': self.safe_float(ticker, 'bid'),
             'bidVolume': None,
-            'ask': float(ticker['ask']),
+            'ask': self.safe_float(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -190,7 +191,7 @@ class luno (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['rolling_24_hour_volume']),
+            'baseVolume': self.safe_float(ticker, 'rolling_24_hour_volume'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -228,8 +229,8 @@ class luno (Exchange):
             'symbol': market['symbol'],
             'type': None,
             'side': side,
-            'price': float(trade['price']),
-            'amount': float(trade['volume']),
+            'price': self.safe_float(trade, 'price'),
+            'amount': self.safe_float(trade, 'volume'),
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -243,10 +244,10 @@ class luno (Exchange):
         response = await self.publicGetTrades(self.extend(request, params))
         return self.parse_trades(response['trades'], market, since, limit)
 
-    async def create_order(self, market, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         method = 'privatePost'
-        order = {'pair': self.market_id(market)}
+        order = {'pair': self.market_id(symbol)}
         if type == 'market':
             method += 'Marketorder'
             order['type'] = side.upper()

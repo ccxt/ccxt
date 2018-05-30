@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.12.79'
+__version__ = '1.14.89'
 
 # -----------------------------------------------------------------------------
 
@@ -158,6 +158,21 @@ class Exchange(BaseExchange):
         if self.has['fetchCurrencies']:
             currencies = await self.fetch_currencies()
         return self.set_markets(markets, currencies)
+
+    async def load_fees(self):
+        await self.load_markets()
+        self.populate_fees()
+        if not (self.has['fetchTradingFees'] or self.has['fetchFundingFees']):
+            return self.fees
+
+        fetched_fees = self.fetch_fees()
+        if fetched_fees['funding']:
+            self.fees['funding']['fee_loaded'] = True
+        if fetched_fees['trading']:
+            self.fees['trading']['fee_loaded'] = True
+
+        self.fees = self.deep_extend(self.fees, fetched_fees)
+        return self.fees
 
     async def fetch_markets(self):
         return self.markets

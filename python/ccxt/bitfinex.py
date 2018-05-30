@@ -9,14 +9,16 @@ import hashlib
 import math
 import json
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import NotSupported
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import ROUND
+from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS
 
 
@@ -121,6 +123,7 @@ class bitfinex (Exchange):
                         'orders',
                         'orders/hist',
                         'position/claim',
+                        'position/close',
                         'positions',
                         'summary',
                         'taken_funds',
@@ -169,63 +172,90 @@ class bitfinex (Exchange):
                 'funding': {
                     'tierBased': False,  # True for tier-based/progressive
                     'percentage': False,  # fixed commission
+                    # Actually deposit fees are free for larger deposits(> $1000 USD equivalent)
+                    # these values below are deprecated, we should not hardcode fees and limits anymore
+                    # to be reimplemented with bitfinex funding fees from their API or web endpoints
                     'deposit': {
-                        'BTC': 0.0005,
+                        'BTC': 0.0004,
                         'IOTA': 0.5,
-                        'ETH': 0.01,
-                        'BCH': 0.01,
-                        'LTC': 0.1,
-                        'EOS': 0.1,
-                        'XMR': 0.04,
-                        'SAN': 0.1,
-                        'DASH': 0.01,
-                        'ETC': 0.01,
-                        'XRP': 0.02,
-                        'YYW': 0.1,
-                        'NEO': 0,
-                        'ZEC': 0.1,
-                        'BTG': 0,
-                        'OMG': 0.1,
-                        'DATA': 1,
-                        'QASH': 1,
-                        'ETP': 0.01,
-                        'QTUM': 0.01,
-                        'EDO': 0.5,
-                        'AVT': 0.5,
-                        'USDT': 0,
-                    },
-                    'withdraw': {
-                        'BTC': 0.0008,
-                        'IOTA': 0.5,
-                        'ETH': 0.01,
-                        'ETC': 0.01,
+                        'ETH': 0.0027,
                         'BCH': 0.0001,
                         'LTC': 0.001,
-                        'EOS': 0.8609,
+                        'EOS': 0.24279,
                         'XMR': 0.04,
-                        'SAN': 3.2779,
+                        'SAN': 0.99269,
                         'DASH': 0.01,
+                        'ETC': 0.01,
                         'XRP': 0.02,
-                        'YYW': 40.543,
+                        'YYW': 16.915,
                         'NEO': 0,
                         'ZEC': 0.001,
                         'BTG': 0,
-                        'OMG': 0.5897,
-                        'DATA': 52.405,
-                        'FUN': 90.402,
-                        'GNT': 15.435,
-                        'MNA': 76.821,
-                        'BAT': 17.223,
-                        'SPK': 24.708,
-                        'QASH': 6.1629,
+                        'OMG': 0.14026,
+                        'DATA': 20.773,
+                        'QASH': 1.9858,
                         'ETP': 0.01,
                         'QTUM': 0.01,
-                        'EDO': 2.5238,
-                        'AVT': 3.2495,
-                        'USDT': 20.0,
-                        'ZRX': 5.6442,
-                        'TNB': 87.511,
-                        'SNT': 32.736,
+                        'EDO': 0.95001,
+                        'AVT': 1.3045,
+                        'USDT': 0,
+                        'TRX': 28.184,
+                        'ZRX': 1.9947,
+                        'RCN': 10.793,
+                        'TNB': 31.915,
+                        'SNT': 14.976,
+                        'RLC': 1.414,
+                        'GNT': 5.8952,
+                        'SPK': 10.893,
+                        'REP': 0.041168,
+                        'BAT': 6.1546,
+                        'ELF': 1.8753,
+                        'FUN': 32.336,
+                        'SNG': 18.622,
+                        'AID': 8.08,
+                        'MNA': 16.617,
+                        'NEC': 1.6504,
+                    },
+                    'withdraw': {
+                        'BTC': 0.0004,
+                        'IOTA': 0.5,
+                        'ETH': 0.0027,
+                        'BCH': 0.0001,
+                        'LTC': 0.001,
+                        'EOS': 0.24279,
+                        'XMR': 0.04,
+                        'SAN': 0.99269,
+                        'DASH': 0.01,
+                        'ETC': 0.01,
+                        'XRP': 0.02,
+                        'YYW': 16.915,
+                        'NEO': 0,
+                        'ZEC': 0.001,
+                        'BTG': 0,
+                        'OMG': 0.14026,
+                        'DATA': 20.773,
+                        'QASH': 1.9858,
+                        'ETP': 0.01,
+                        'QTUM': 0.01,
+                        'EDO': 0.95001,
+                        'AVT': 1.3045,
+                        'USDT': 20,
+                        'TRX': 28.184,
+                        'ZRX': 1.9947,
+                        'RCN': 10.793,
+                        'TNB': 31.915,
+                        'SNT': 14.976,
+                        'RLC': 1.414,
+                        'GNT': 5.8952,
+                        'SPK': 10.893,
+                        'REP': 0.041168,
+                        'BAT': 6.1546,
+                        'ELF': 1.8753,
+                        'FUN': 32.336,
+                        'SNG': 18.622,
+                        'AID': 8.08,
+                        'MNA': 16.617,
+                        'NEC': 1.6504,
                     },
                 },
             },
@@ -234,16 +264,20 @@ class bitfinex (Exchange):
                 'BCU': 'CST_BCU',
                 'DAT': 'DATA',
                 'DSH': 'DASH',  # Bitfinex names Dash as DSH, instead of DASH
+                'IOS': 'IOST',
                 'IOT': 'IOTA',
                 'MNA': 'MANA',
                 'QSH': 'QASH',
                 'QTM': 'QTUM',
                 'SNG': 'SNGLS',
                 'SPK': 'SPANK',
+                'STJ': 'STORJ',
                 'YYW': 'YOYOW',
+                'USD': 'USDT',
             },
             'exceptions': {
                 'exact': {
+                    'temporarily_unavailable': ExchangeNotAvailable,  # Sorry, the service is temporarily unavailable. See https://www.bitfinex.com/ for more info.
                     'Order could not be cancelled.': OrderNotFound,  # non-existent order
                     'No such order found.': OrderNotFound,  # ?
                     'Order price must be positive.': InvalidOrder,  # on price <= 0
@@ -258,6 +292,7 @@ class bitfinex (Exchange):
                     'Invalid order: not enough exchange balance for ': InsufficientFunds,  # when buying cost is greater than the available quote currency
                     'Invalid order: minimum size for ': InvalidOrder,  # when amount below limits.amount.min
                     'Invalid order': InvalidOrder,  # ?
+                    'The available balance is only': InsufficientFunds,  # {"status":"error","message":"Cannot withdraw 1.0027 ETH from your exchange wallet. The available balance is only 0.0 ETH. If you have limit orders, open positions, unused or active margin funding, self will decrease your available balance. To increase it, you can cancel limit orders or reduce/close your positions.","withdrawal_id":0,"fees":"0.0027"}
                 },
             },
             'precisionMode': SIGNIFICANT_DIGITS,
@@ -308,8 +343,8 @@ class bitfinex (Exchange):
             }
             limits = {
                 'amount': {
-                    'min': float(market['minimum_order_size']),
-                    'max': float(market['maximum_order_size']),
+                    'min': self.safe_float(market, 'minimum_order_size'),
+                    'max': self.safe_float(market, 'maximum_order_size'),
                 },
                 'price': {
                     'min': math.pow(10, -precision['price']),
@@ -341,7 +376,7 @@ class bitfinex (Exchange):
         return self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
 
     def amount_to_precision(self, symbol, amount):
-        return self.decimal_to_precision(amount, ROUND, self.markets[symbol]['precision']['amount'], self.precisionMode)
+        return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], self.precisionMode)
 
     def fee_to_precision(self, currency, fee):
         return self.decimal_to_precision(fee, ROUND, self.currencies[currency]['precision'], self.precisionMode)
@@ -349,13 +384,17 @@ class bitfinex (Exchange):
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]
         rate = market[takerOrMaker]
-        cost = amount * price
+        cost = amount * rate
         key = 'quote'
+        if side == 'sell':
+            cost *= price
+        else:
+            key = 'base'
         return {
             'type': takerOrMaker,
             'currency': market[key],
             'rate': rate,
-            'cost': float(self.fee_to_precision(market[key], rate * cost)),
+            'cost': float(self.fee_to_precision(market[key], cost)),
         }
 
     def fetch_balance(self, params={}):
@@ -407,7 +446,7 @@ class bitfinex (Exchange):
         return self.parse_ticker(ticker, market)
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = float(ticker['timestamp']) * 1000
+        timestamp = self.safe_float(ticker, 'timestamp') * 1000
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -423,16 +462,16 @@ class bitfinex (Exchange):
                 base = self.common_currency_code(baseId)
                 quote = self.common_currency_code(quoteId)
                 symbol = base + '/' + quote
-        last = float(ticker['last_price'])
+        last = self.safe_float(ticker, 'last_price')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['bid']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'bid'),
             'bidVolume': None,
-            'ask': float(ticker['ask']),
+            'ask': self.safe_float(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -441,8 +480,8 @@ class bitfinex (Exchange):
             'previousClose': None,
             'change': None,
             'percentage': None,
-            'average': float(ticker['mid']),
-            'baseVolume': float(ticker['volume']),
+            'average': self.safe_float(ticker, 'mid'),
+            'baseVolume': self.safe_float(ticker, 'volume'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -451,8 +490,8 @@ class bitfinex (Exchange):
         timestamp = int(float(trade['timestamp'])) * 1000
         side = trade['type'].lower()
         orderId = self.safe_string(trade, 'order_id')
-        price = float(trade['price'])
-        amount = float(trade['amount'])
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'amount')
         cost = price * amount
         fee = None
         if 'fee_amount' in trade:
@@ -507,10 +546,10 @@ class bitfinex (Exchange):
         orderType = type
         if (type == 'limit') or (type == 'market'):
             orderType = 'exchange ' + type
-        # amount = self.amount_to_precision(symbol, amount)
+        amount = self.amount_to_precision(symbol, amount)
         order = {
             'symbol': self.market_id(symbol),
-            'amount': str(amount),
+            'amount': amount,
             'side': side,
             'type': orderType,
             'ocoorder': False,
@@ -520,8 +559,7 @@ class bitfinex (Exchange):
         if type == 'market':
             order['price'] = str(self.nonce())
         else:
-            # price = self.price_to_precision(symbol, price)
-            order['price'] = str(price)
+            order['price'] = self.price_to_precision(symbol, price)
         result = self.privatePostOrderNew(self.extend(order, params))
         return self.parse_order(result)
 
@@ -558,6 +596,7 @@ class bitfinex (Exchange):
             'id': str(order['id']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': orderType,
             'side': side,
@@ -573,6 +612,9 @@ class bitfinex (Exchange):
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
+        if symbol is not None:
+            if not(symbol in list(self.markets.keys())):
+                raise ExchangeError(self.id + ' has no symbol ' + symbol)
         response = self.privatePostOrders(params)
         orders = self.parse_orders(response, None, since, limit)
         if symbol:
@@ -608,10 +650,10 @@ class bitfinex (Exchange):
             ohlcv[5],
         ]
 
-    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=100, params={}):
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         self.load_markets()
-        if since is None:
-            since = self.milliseconds() - self.parse_timeframe(timeframe) * limit * 1000
+        if limit is None:
+            limit = 100
         market = self.market(symbol)
         v2id = 't' + market['id']
         request = {
@@ -619,30 +661,73 @@ class bitfinex (Exchange):
             'timeframe': self.timeframes[timeframe],
             'sort': 1,
             'limit': limit,
-            'start': since,
         }
+        if since is not None:
+            request['start'] = since
         response = self.v2GetCandlesTradeTimeframeSymbolHist(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def get_currency_name(self, currency):
         names = {
-            'BTC': 'bitcoin',
-            'LTC': 'litecoin',
-            'ETH': 'ethereum',
-            'ETC': 'ethereumc',
-            'OMNI': 'mastercoin',
-            'ZEC': 'zcash',
-            'XMR': 'monero',
-            'USD': 'wire',
-            'DASH': 'dash',
-            'XRP': 'ripple',
-            'EOS': 'eos',
-            'BCH': 'bcash',  # undocumented
-            'USDT': 'tetheruso',  # undocumented
-            'NEO': 'neo',  # #1811
+            'AGI': 'agi',
+            'AID': 'aid',
+            'AIO': 'aio',
+            'ANT': 'ant',
             'AVT': 'aventus',  # #1811
-            'QTUM': 'qtum',  # #1811
+            'BAT': 'bat',
+            'BCH': 'bcash',  # undocumented
+            'BCI': 'bci',
+            'BFT': 'bft',
+            'BTC': 'bitcoin',
+            'BTG': 'bgold',
+            'CFI': 'cfi',
+            'DAI': 'dai',
+            'DASH': 'dash',
+            'DATA': 'datacoin',
+            'DTH': 'dth',
             'EDO': 'eidoo',  # #1811
+            'ELF': 'elf',
+            'EOS': 'eos',
+            'ETC': 'ethereumc',
+            'ETH': 'ethereum',
+            'ETP': 'metaverse',
+            'FUN': 'fun',
+            'GNT': 'golem',
+            'IOST': 'ios',
+            'IOTA': 'iota',
+            'LRC': 'lrc',
+            'LTC': 'litecoin',
+            'MANA': 'mna',
+            'MIT': 'mit',
+            'MTN': 'mtn',
+            'NEO': 'neo',
+            'ODE': 'ode',
+            'OMG': 'omisego',
+            'OMNI': 'mastercoin',
+            'QASH': 'qash',
+            'QTUM': 'qtum',  # #1811
+            'RCN': 'rcn',
+            'RDN': 'rdn',
+            'REP': 'rep',
+            'REQ': 'req',
+            'RLC': 'rlc',
+            'SAN': 'santiment',
+            'SNGLS': 'sng',
+            'SNT': 'status',
+            'SPANK': 'spk',
+            'STJ': 'stj',
+            'TNB': 'tnb',
+            'TRX': 'trx',
+            'USD': 'wire',
+            'USDT': 'tetheruso',  # undocumented
+            'WAX': 'wax',
+            'XLM': 'xlm',
+            'XMR': 'monero',
+            'XRP': 'ripple',
+            'XVG': 'xvg',
+            'YOYOW': 'yoyow',
+            'ZEC': 'zcash',
+            'ZRX': 'zrx',
         }
         if currency in names:
             return names[currency]
@@ -696,9 +781,17 @@ class bitfinex (Exchange):
             request['payment_id'] = tag
         responses = self.privatePostWithdraw(self.extend(request, params))
         response = responses[0]
+        id = response['withdrawal_id']
+        message = response['message']
+        errorMessage = self.find_broadly_matched_key(self.exceptions['broad'], message)
+        if id == 0:
+            if errorMessage is not None:
+                Exception = self.exceptions['broad'][errorMessage]
+                raise Exception(self.id + ' ' + message)
+            raise ExchangeError(self.id + ' withdraw returned an id of zero: ' + self.json(response))
         return {
             'info': response,
-            'id': response['withdrawal_id'],
+            'id': id,
         }
 
     def nonce(self):

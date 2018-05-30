@@ -158,10 +158,13 @@ class coinegg (Exchange):
                 '404': 'IP restriction does not request the resource',
                 '405': 'Currency transactions are temporarily closed',
             },
+            'options': {
+                'quoteIds': ['btc', 'eth', 'usc'],
+            },
         })
 
     async def fetch_markets(self):
-        quoteIds = ['btc', 'usc']
+        quoteIds = self.options['quoteIds']
         result = []
         for b in range(0, len(quoteIds)):
             quoteId = quoteIds[b]
@@ -219,16 +222,16 @@ class coinegg (Exchange):
     def parse_ticker(self, ticker, market=None):
         symbol = market['symbol']
         timestamp = self.milliseconds()
-        last = float(ticker['last'])
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['buy']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'buy'),
             'bidVolume': None,
-            'ask': float(ticker['sell']),
+            'ask': self.safe_float(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -238,7 +241,7 @@ class coinegg (Exchange):
             'change': self.safe_float(ticker, 'change'),
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['vol']),
+            'baseVolume': self.safe_float(ticker, 'vol'),
             'quoteVolume': self.safe_float(ticker, 'quoteVol'),
             'info': ticker,
         }
@@ -254,7 +257,7 @@ class coinegg (Exchange):
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
-        quoteIds = ['btc', 'usc']
+        quoteIds = self.options['quoteIds']
         result = {}
         for b in range(0, len(quoteIds)):
             quoteId = quoteIds[b]
@@ -294,8 +297,8 @@ class coinegg (Exchange):
 
     def parse_trade(self, trade, market=None):
         timestamp = int(trade['date']) * 1000
-        price = float(trade['price'])
-        amount = float(trade['amount'])
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'amount')
         symbol = market['symbol']
         cost = self.cost_to_precision(symbol, price * amount)
         return {
@@ -324,37 +327,36 @@ class coinegg (Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        balances = await self.privatePostBalance(params)
-        result = {'info': balances}
-        balances = self.omit(balances['data'], 'uid')
-        rows = list(balances.keys())
-        for i in range(0, len(rows)):
-            row = rows[i]
-            id, type = row.split('_')
-            id = id.upper()
-            type = type.upper()
-            currency = self.common_currency_code(id)
-            if currency in self.currencies:
-                if not(currency in list(result.keys())):
-                    result[currency] = {
-                        'free': None,
-                        'used': None,
-                        'total': None,
-                    }
-                type = (type == 'used' if 'LOCK' else 'free')
-                result[currency][type] = float(balances[row])
+        response = await self.privatePostBalance(params)
+        result = {}
+        balances = self.omit(response['data'], 'uid')
+        keys = list(balances.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            currencyId, accountType = key.split('_')
+            code = currencyId
+            if currencyId in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
+            if not(code in list(result.keys())):
+                result[code] = {
+                    'free': None,
+                    'used': None,
+                    'total': None,
+                }
+            accountType = 'used' if (accountType == 'lock') else 'free'
+            result[code][accountType] = float(balances[key])
         currencies = list(result.keys())
         for i in range(0, len(currencies)):
             currency = currencies[i]
             result[currency]['total'] = self.sum(result[currency]['free'], result[currency]['used'])
-        return self.parse_balance(result)
+        return self.parse_balance(self.extend({'info': response}, result))
 
     def parse_order(self, order, market=None):
         symbol = market['symbol']
         timestamp = self.parse8601(order['datetime'])
-        price = float(order['price'])
-        amount = float(order['amount_original'])
-        remaining = float(order['amount_outstanding'])
+        price = self.safe_float(order, 'price')
+        amount = self.safe_float(order, 'amount_original')
+        remaining = self.safe_float(order, 'amount_outstanding')
         filled = amount - remaining
         status = self.safe_string(order, 'status')
         if status == 'cancelled':
@@ -366,6 +368,7 @@ class coinegg (Exchange):
             'id': self.safe_string(order, 'id'),
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
+            'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
             'type': 'limit',
@@ -485,9 +488,11 @@ class coinegg (Exchange):
         # private endpoints return the following structure:
         # {"result":true,"data":{...}} - success
         # {"result":false,"code":"103"} - failure
+        # {"code":0,"msg":"Suceess","data":{"uid":"2716039","btc_balance":"0.00000000","btc_lock":"0.00000000","xrp_balance":"0.00000000","xrp_lock":"0.00000000"}}
         result = self.safe_value(response, 'result')
         if result is None:
-            # public endpoint
+            # public endpoint ← self comment left here by the contributor, in fact a missing result does not necessarily mean a public endpoint...
+            # we should just check the code and don't rely on the result at all here...
             return
         if result is True:
             # success

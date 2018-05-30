@@ -4,6 +4,13 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import hashlib
 import json
 from ccxt.base.errors import ExchangeError
@@ -30,19 +37,17 @@ class indodax (Exchange):
                 'fetchOpenOrders': True,
                 'fetchMyTrades': False,
                 'fetchCurrencies': False,
-                'withdraw': False,
+                'withdraw': True,
             },
-            'version': '1.7',  # as of 6 November 2017
+            'version': '1.8',  # as of 9 April 2018
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/37443283-2fddd0e4-281c-11e8-9741-b4f1419001b5.jpg',
                 'api': {
-                    'public': 'https://vip.bitcoin.co.id/api',
-                    'private': 'https://vip.bitcoin.co.id/tapi',
+                    'public': 'https://indodax.com/api',
+                    'private': 'https://indodax.com/tapi',
                 },
                 'www': 'https://www.indodax.com',
-                'doc': [
-                    'https://vip.bitcoin.co.id/downloads/BITCOINCOID-API-DOCUMENTATION.pdf',
-                ],
+                'doc': 'https://indodax.com/downloads/BITCOINCOID-API-DOCUMENTATION.pdf',
             },
             'api': {
                 'public': {
@@ -62,6 +67,7 @@ class indodax (Exchange):
                         'openOrders',
                         'cancelOrder',
                         'orderHistory',
+                        'withdrawCoin',
                     ],
                 },
             },
@@ -131,19 +137,19 @@ class indodax (Exchange):
             'pair': market['id'],
         }, params))
         ticker = response['ticker']
-        timestamp = float(ticker['server_time']) * 1000
+        timestamp = self.safe_float(ticker, 'server_time') * 1000
         baseVolume = 'vol_' + market['baseId'].lower()
         quoteVolume = 'vol_' + market['quoteId'].lower()
-        last = float(ticker['last'])
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['buy']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'buy'),
             'bidVolume': None,
-            'ask': float(ticker['sell']),
+            'ask': self.safe_float(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -168,8 +174,8 @@ class indodax (Exchange):
             'symbol': market['symbol'],
             'type': None,
             'side': trade['type'],
-            'price': float(trade['price']),
-            'amount': float(trade['amount']),
+            'price': self.safe_float(trade, 'price'),
+            'amount': self.safe_float(trade, 'amount'),
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -225,6 +231,7 @@ class indodax (Exchange):
             'id': order['order_id'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': 'limit',
             'side': side,
@@ -330,6 +337,49 @@ class indodax (Exchange):
             'type': params['side'],
         }, params))
 
+    def withdraw(self, code, amount, address, tag=None, params={}):
+        self.check_address(address)
+        self.load_markets()
+        currency = self.currency(code)
+        # Custom string you need to provide to identify each withdrawal request.
+        # Will be passed to callback URL(assigned via website to the API key)
+        # so your system can identify the request and confirm it.
+        # Alphanumeric, max length 255.
+        requestId = self.milliseconds()
+        # alternatively:
+        # requestId = self.uuid()
+        request = {
+            'currency': currency['id'],
+            'withdraw_amount': amount,
+            'withdraw_address': address,
+            'request_id': str(requestId),
+        }
+        if tag:
+            request['withdraw_memo'] = tag
+        response = self.privatePostWithdrawCoin(self.extend(request, params))
+        #
+        #     {
+        #         "success": 1,
+        #         "status": "approved",
+        #         "withdraw_currency": "xrp",
+        #         "withdraw_address": "rwWr7KUZ3ZFwzgaDGjKBysADByzxvohQ3C",
+        #         "withdraw_amount": "10000.00000000",
+        #         "fee": "2.00000000",
+        #         "amount_after_fee": "9998.00000000",
+        #         "submit_time": "1509469200",
+        #         "withdraw_id": "xrp-12345",
+        #         "txid": "",
+        #         "withdraw_memo": "123123"
+        #     }
+        #
+        id = None
+        if ('txid' in list(response.keys())) and len((response['txid']) > 0):
+            id = response['txid']
+        return {
+            'info': response,
+            'id': id,
+        }
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]
         if api == 'public':
@@ -348,6 +398,8 @@ class indodax (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response=None):
+        if not isinstance(body, basestring):
+            return
         # {success: 0, error: "invalid order."}
         # or
         # [{data, ...}, {...}, ...]

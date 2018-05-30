@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, InvalidNonce, InsufficientFunds, InvalidOrder, OrderNotFound, NotSupported, PermissionDenied } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, InvalidNonce, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -18,8 +18,8 @@ module.exports = class bitbank extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchMyTrades': true,
-                // 'fetchDepositAddress': true,
-                // 'withdraw': true,
+                'fetchDepositAddress': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1min',
@@ -71,14 +71,14 @@ module.exports = class bitbank extends Exchange {
                 },
             },
             'markets': {
-                'BCH/BTC': { 'id': 'bcc_btc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'baseId': 'BCC' },
-                'BCH/JPY': { 'id': 'bcc_jpy', 'symbol': 'BCH/JPY', 'base': 'BCH', 'quote': 'JPY', 'baseId': 'BCC' },
-                'MONA/BTC': { 'id': 'mona_btc', 'symbol': 'MONA/BTC', 'base': 'MONA', 'quote': 'BTC' },
-                'MONA/JPY': { 'id': 'mona_jpy', 'symbol': 'MONA/JPY', 'base': 'MONA', 'quote': 'JPY' },
-                'ETH/BTC': { 'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC' },
-                'LTC/BTC': { 'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
-                'XRP/JPY': { 'id': 'xrp_jpy', 'symbol': 'XRP/JPY', 'base': 'XRP', 'quote': 'JPY' },
-                'BTC/JPY': { 'id': 'btc_jpy', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY' },
+                'BCH/BTC': { 'id': 'bcc_btc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'baseId': 'bcc', 'quoteId': 'btc' },
+                'BCH/JPY': { 'id': 'bcc_jpy', 'symbol': 'BCH/JPY', 'base': 'BCH', 'quote': 'JPY', 'baseId': 'bcc', 'quoteId': 'jpy' },
+                'MONA/BTC': { 'id': 'mona_btc', 'symbol': 'MONA/BTC', 'base': 'MONA', 'quote': 'BTC', 'baseId': 'mona', 'quoteId': 'btc' },
+                'MONA/JPY': { 'id': 'mona_jpy', 'symbol': 'MONA/JPY', 'base': 'MONA', 'quote': 'JPY', 'baseId': 'mona', 'quoteId': 'jpy' },
+                'ETH/BTC': { 'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'baseId': 'eth', 'quoteId': 'btc' },
+                'LTC/BTC': { 'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'baseId': 'ltc', 'quoteId': 'btc' },
+                'XRP/JPY': { 'id': 'xrp_jpy', 'symbol': 'XRP/JPY', 'base': 'XRP', 'quote': 'JPY', 'baseId': 'xrp', 'quoteId': 'jpy' },
+                'BTC/JPY': { 'id': 'btc_jpy', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY', 'baseId': 'btc', 'quoteId': 'jpy' },
             },
             'fees': {
                 'trading': {
@@ -102,22 +102,39 @@ module.exports = class bitbank extends Exchange {
                 'price': 8,
                 'amount': 8,
             },
+            'exceptions': {
+                '20001': AuthenticationError,
+                '20002': AuthenticationError,
+                '20003': AuthenticationError,
+                '20005': AuthenticationError,
+                '20004': InvalidNonce,
+                '40020': InvalidOrder,
+                '40021': InvalidOrder,
+                '40025': ExchangeError,
+                '40013': OrderNotFound,
+                '40014': OrderNotFound,
+                '50008': PermissionDenied,
+                '50009': OrderNotFound,
+                '50010': OrderNotFound,
+                '60001': InsufficientFunds,
+                '60005': InvalidOrder,
+            },
         });
     }
 
     parseTicker (ticker, market = undefined) {
         let symbol = market['symbol'];
         let timestamp = ticker['timestamp'];
-        let last = parseFloat (ticker['last']);
+        let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']),
-            'low': parseFloat (ticker['low']),
-            'bid': parseFloat (ticker['buy']),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'buy'),
             'bidVolume': undefined,
-            'ask': parseFloat (ticker['sell']),
+            'ask': this.safeFloat (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -127,7 +144,7 @@ module.exports = class bitbank extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': parseFloat (ticker['vol']),
+            'baseVolume': this.safeFloat (ticker, 'vol'),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -153,8 +170,8 @@ module.exports = class bitbank extends Exchange {
 
     parseTrade (trade, market = undefined) {
         let timestamp = trade['executed_at'];
-        let price = parseFloat (trade['price']);
-        let amount = parseFloat (trade['amount']);
+        let price = this.safeFloat (trade, 'price');
+        let amount = this.safeFloat (trade, 'amount');
         let symbol = market['symbol'];
         let cost = this.costToPrecision (symbol, price * amount);
         let id = this.safeString (trade, 'transaction_id');
@@ -227,13 +244,16 @@ module.exports = class bitbank extends Exchange {
         for (let i = 0; i < balances.length; i++) {
             let balance = balances[i];
             let id = balance['asset'];
-            let currency = this.commonCurrencyCode (id);
+            let code = id;
+            if (id in this.currencies_by_id) {
+                code = this.currencies_by_id[id]['code'];
+            }
             let account = {
                 'free': parseFloat (balance['free_amount']),
                 'used': parseFloat (balance['locked_amount']),
                 'total': parseFloat (balance['onhand_amount']),
             };
-            result[currency] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
@@ -246,8 +266,8 @@ module.exports = class bitbank extends Exchange {
         }
         if (market)
             symbol = market['symbol'];
-        let timestamp = this.safeInteger (order, 'ordered_at') * 1000;
-        let price = parseFloat (order['price']);
+        let timestamp = this.safeInteger (order, 'ordered_at');
+        let price = this.safeFloat (order, 'price');
         let amount = this.safeFloat (order, 'start_amount');
         let filled = this.safeFloat (order, 'executed_amount');
         let remaining = this.safeFloat (order, 'remaining_amount');
@@ -265,14 +285,21 @@ module.exports = class bitbank extends Exchange {
         } else {
             status = 'open';
         }
+        let type = this.safeString (order, 'type');
+        if (typeof type !== 'undefined')
+            type = type.toLowerCase ();
+        let side = this.safeString (order, 'side');
+        if (typeof side !== 'undefined')
+            side = side.toLowerCase ();
         return {
             'id': this.safeString (order, 'order_id'),
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
+            'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
-            'type': order['type'],
-            'side': order['side'],
+            'type': type,
+            'side': side,
             'price': price,
             'cost': cost,
             'amount': amount,
@@ -355,48 +382,38 @@ module.exports = class bitbank extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
-        //
-        // TODO: test
-        //
-        //     await this.loadMarkets ();
-        //     let currency = this.currency (code);
-        //     let response = await this.privatePostReturnDepositAddresses (this.extend ({
-        //         'asset': currency['id'],
-        //     }, params));
-        //     // Not sure about this if there could be more accounts...
-        //     let accounts = response['data']['accounts'];
-        //     let address = this.safeString (accounts[0], 'address');
-        //     let status = address ? 'ok' : 'none';
-        //     return {
-        //         'currency': currency,
-        //         'address': address,
-        //         'tag': undefined,
-        //         'status': status,
-        //         'info': response,
-        //     };
-        //
-        throw new NotSupported (this.id + ' fetchDepositAddress is not implemented!');
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let response = await this.privateGetUserWithdrawalAccount (this.extend ({
+            'asset': currency['id'],
+        }, params));
+        // Not sure about this if there could be more accounts...
+        let accounts = response['data']['accounts'];
+        let address = this.safeString (accounts[0], 'address');
+        let status = address ? 'ok' : 'none';
+        return {
+            'currency': currency,
+            'address': address,
+            'tag': undefined,
+            'status': status,
+            'info': response,
+        };
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
-        //
-        // TODO: test
-        //
-        //     if (!('uuid' in params)) {
-        //         throw new ExchangeError (this.id + ' uuid is required for withdrawal');
-        //     }
-        //     await this.loadMarkets ();
-        //     let currency = this.currency (code);
-        //     let response = await this.privatePostRequestWithdrawal (this.extend ({
-        //         'asset': currency['id'],
-        //         'amount': amount,
-        //     }, params));
-        //     return {
-        //         'info': response,
-        //         'id': response['data']['txid'],
-        //     };
-        //
-        throw new NotSupported (this.id + ' withdraw is not implemented!');
+        if (!('uuid' in params)) {
+            throw new ExchangeError (this.id + ' uuid is required for withdrawal');
+        }
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let response = await this.privatePostUserRequestWithdrawal (this.extend ({
+            'asset': currency['id'],
+            'amount': amount,
+        }, params));
+        return {
+            'info': response,
+            'id': response['data']['txid'],
+        };
     }
 
     nonce () {
@@ -501,21 +518,7 @@ module.exports = class bitbank extends Exchange {
                 '70005': 'Order can not be accepted because purchase order is currently suspended',
                 '70006': 'We can not accept orders because we are currently unsubscribed ',
             };
-            let errorClasses = {
-                '20001': AuthenticationError,
-                '20002': AuthenticationError,
-                '20003': AuthenticationError,
-                '20005': AuthenticationError,
-                '20004': InvalidNonce,
-                '40020': InvalidOrder,
-                '40021': InvalidOrder,
-                '40013': OrderNotFound,
-                '40014': OrderNotFound,
-                '50008': PermissionDenied,
-                '50009': OrderNotFound,
-                '50010': OrderNotFound,
-                '60001': InsufficientFunds,
-            };
+            let errorClasses = this.exceptions;
             let code = this.safeString (data, 'code');
             let message = this.safeString (errorMessages, code, 'Error');
             let ErrorClass = this.safeValue (errorClasses, code);

@@ -88,6 +88,9 @@ module.exports = class qryptos extends Exchange {
                     'user': {
                         'not_enough_free_balance': InsufficientFunds,
                     },
+                    'price': {
+                        'must_be_positive': InvalidOrder,
+                    },
                     'quantity': {
                         'less_than_order_size': InvalidOrder,
                     },
@@ -185,7 +188,7 @@ module.exports = class qryptos extends Exchange {
             if (ticker['last_traded_price']) {
                 let length = ticker['last_traded_price'].length;
                 if (length > 0)
-                    last = parseFloat (ticker['last_traded_price']);
+                    last = this.safeFloat (ticker, 'last_traded_price');
             }
         }
         let symbol = undefined;
@@ -240,7 +243,21 @@ module.exports = class qryptos extends Exchange {
     }
 
     parseTrade (trade, market) {
+        // {             id:  12345,
+        //         quantity: "6.789",
+        //            price: "98765.4321",
+        //       taker_side: "sell",
+        //       created_at:  1512345678,
+        //          my_side: "buy"           }
         let timestamp = trade['created_at'] * 1000;
+        // 'taker_side' gets filled for both fetchTrades and fetchMyTrades
+        let takerSide = this.safeString (trade, 'taker_side');
+        // 'my_side' gets filled for fetchMyTrades only and may differ from 'taker_side'
+        let mySide = this.safeString (trade, 'my_side');
+        let side = (typeof mySide !== 'undefined') ? mySide : takerSide;
+        let takerOrMaker = undefined;
+        if (typeof mySide !== 'undefined')
+            takerOrMaker = (takerSide === mySide) ? 'taker' : 'maker';
         return {
             'info': trade,
             'id': trade['id'].toString (),
@@ -249,9 +266,10 @@ module.exports = class qryptos extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
             'type': undefined,
-            'side': trade['taker_side'],
-            'price': parseFloat (trade['price']),
-            'amount': parseFloat (trade['quantity']),
+            'side': side,
+            'takerOrMaker': takerOrMaker,
+            'price': this.safeFloat (trade, 'price'),
+            'amount': this.safeFloat (trade, 'quantity'),
         };
     }
 
@@ -321,9 +339,9 @@ module.exports = class qryptos extends Exchange {
                 status = 'canceled';
             }
         }
-        let amount = parseFloat (order['quantity']);
-        let filled = parseFloat (order['filled_quantity']);
-        let price = parseFloat (order['price']);
+        let amount = this.safeFloat (order, 'quantity');
+        let filled = this.safeFloat (order, 'filled_quantity');
+        let price = this.safeFloat (order, 'price');
         let symbol = undefined;
         if (market) {
             symbol = market['symbol'];
@@ -332,6 +350,7 @@ module.exports = class qryptos extends Exchange {
             'id': order['id'].toString (),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
             'type': order['order_type'],
             'status': status,
             'symbol': symbol,
@@ -343,7 +362,7 @@ module.exports = class qryptos extends Exchange {
             'trades': undefined,
             'fee': {
                 'currency': undefined,
-                'cost': parseFloat (order['order_fee']),
+                'cost': this.safeFloat (order, 'order_fee'),
             },
             'info': order,
         };
@@ -454,7 +473,7 @@ module.exports = class qryptos extends Exchange {
             // { "errors": { "quantity": ["less_than_order_size"] }}
             if ('errors' in response) {
                 const errors = response['errors'];
-                const errorTypes = ['user', 'quantity'];
+                const errorTypes = ['user', 'quantity', 'price'];
                 for (let i = 0; i < errorTypes.length; i++) {
                     const errorType = errorTypes[i];
                     if (errorType in errors) {
