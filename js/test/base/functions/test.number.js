@@ -1,29 +1,9 @@
 'use strict'
 
-//-----------------------------------------------------------------------------
-
-const { numberToString
-      , decimalToPrecision
-      , ROUND
-      , TRUNCATE
-      , DECIMAL_PLACES
-      , PAD_WITH_ZERO
-      , SIGNIFICANT_DIGITS } = require ('../../../../ccxt');
-
+const { numberToString, decimalToPrecision, ROUND, TRUNCATE, DECIMAL_PLACES, PAD_WITH_ZERO, SIGNIFICANT_DIGITS } = require ('../../../../ccxt');
 const assert = require ('assert');
 
-//-----------------------------------------------------------------------------
-// testDecimalToPrecisionErrorHandling
-//
-// throws (() =>
-//     decimalToPrecision ('123456.789', TRUNCATE, -2, DECIMAL_PLACES),
-//         'negative precision is not yet supported')
-//
-// throws (() =>
-//     decimalToPrecision ('foo'),
-//         "invalid number (contains an illegal character 'f')")
-
-//-----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // numberToString works
 
 assert (numberToString (-7.9e-7) === '-0.0000007899999999999999');
@@ -34,7 +14,7 @@ assert (numberToString ( 12.345) === '12.345');
 
 assert (numberToString (0) === '0');
 
-//-----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // testDecimalToPrecisionTruncationToNDigitsAfterDot
 
 assert (decimalToPrecision ('12.3456000', TRUNCATE, 100, DECIMAL_PLACES) === '12.3456');
@@ -51,7 +31,7 @@ assert (decimalToPrecision ('12.3456', TRUNCATE, 0, DECIMAL_PLACES) === '12');
 
 assert (decimalToPrecision ('0', TRUNCATE, 0, DECIMAL_PLACES) === '0');
 
-//-----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // testDecimalToPrecisionTruncationToNSignificantDigits
 
 assert (decimalToPrecision ('0.000123456700', TRUNCATE, 100, SIGNIFICANT_DIGITS) === '0.0001234567');
@@ -75,7 +55,7 @@ assert (decimalToPrecision ('123.0000987654', TRUNCATE, 1, SIGNIFICANT_DIGITS, P
 
 assert (decimalToPrecision ('0', TRUNCATE, 0, SIGNIFICANT_DIGITS) === '0');
 
-//-----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // testDecimalToPrecisionRoundingToNDigitsAfterDot
 
 assert (decimalToPrecision ('12.3456000', ROUND, 100, DECIMAL_PLACES) === '12.3456');
@@ -96,7 +76,7 @@ assert (decimalToPrecision ( '9.999', ROUND, 2, DECIMAL_PLACES, PAD_WITH_ZERO) =
 assert (decimalToPrecision ( '99.999', ROUND, 2, DECIMAL_PLACES, PAD_WITH_ZERO) === '100.00');
 assert (decimalToPrecision ('-99.999', ROUND, 2, DECIMAL_PLACES, PAD_WITH_ZERO) === '-100.00');
 
-//-----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // testDecimalToPrecisionRoundingToNSignificantDigits
 
 assert (decimalToPrecision ('0.000123456700', ROUND, 100, SIGNIFICANT_DIGITS) === '0.0001234567');
@@ -122,13 +102,13 @@ assert (decimalToPrecision ('0.098765', ROUND, 1, SIGNIFICANT_DIGITS, PAD_WITH_Z
 
 assert (decimalToPrecision ('0', ROUND, 0, SIGNIFICANT_DIGITS) === '0');
 
-//-----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // testDecimalToPrecisionNegativeNumbers
 
 assert (decimalToPrecision ('-0.123456', TRUNCATE, 5, DECIMAL_PLACES) === '-0.12345');
 assert (decimalToPrecision ('-0.123456', ROUND, 5, DECIMAL_PLACES) === '-0.12346');
 
-//-----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // decimalToPrecision: without dot / trailing dot
 
 assert (decimalToPrecision ('123', TRUNCATE, 0) === '123');
@@ -142,14 +122,20 @@ assert (decimalToPrecision ('123.', TRUNCATE, 5, DECIMAL_PLACES, PAD_WITH_ZERO) 
 assert (decimalToPrecision ('0.', TRUNCATE, 0) === '0');
 assert (decimalToPrecision ('0.', TRUNCATE, 5, DECIMAL_PLACES, PAD_WITH_ZERO) === '0.00000');
 
-//-----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // decimalToPrecision: rounding for equidistant digits
 
 assert (decimalToPrecision ('1.44', ROUND, 1, DECIMAL_PLACES) === '1.4');
 assert (decimalToPrecision ('1.45', ROUND, 1, DECIMAL_PLACES) === '1.5');
-assert (decimalToPrecision ('1.45', ROUND, 0, DECIMAL_PLACES) === '1');   // not 2!
+assert (decimalToPrecision ('1.45', ROUND, 0, DECIMAL_PLACES) === '1'); // not 2
 
-//-----------------------------------------------------------------------------
-
-// it ('decimalToPrecision works', () => {
-// })
+// ----------------------------------------------------------------------------
+// testDecimalToPrecisionErrorHandling (todo)
+//
+// throws (() =>
+//     decimalToPrecision ('123456.789', TRUNCATE, -2, DECIMAL_PLACES),
+//         'negative precision is not yet supported')
+//
+// throws (() =>
+//     decimalToPrecision ('foo'),
+//         "invalid number (contains an illegal character 'f')")
