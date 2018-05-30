@@ -70,6 +70,7 @@ class cointiger extends huobipro {
                 '1' => '\\ccxt\\InsufficientFunds',
                 '2' => '\\ccxt\\ExchangeError',
                 '5' => '\\ccxt\\InvalidOrder',
+                '6' => '\\ccxt\\InvalidOrder',
                 '16' => '\\ccxt\\AuthenticationError', // funding password not set
                 '100001' => '\\ccxt\\ExchangeError',
                 '100002' => '\\ccxt\\ExchangeNotAvailable',

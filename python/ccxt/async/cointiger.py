@@ -83,6 +83,7 @@ class cointiger (huobipro):
                 '1': InsufficientFunds,
                 '2': ExchangeError,
                 '5': InvalidOrder,
+                '6': InvalidOrder,
                 '16': AuthenticationError,  # funding password not set
                 '100001': ExchangeError,
                 '100002': ExchangeNotAvailable,
