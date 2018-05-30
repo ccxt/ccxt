@@ -28,15 +28,8 @@ function regexAll (text, array) {
 
     for (let i in array) {
         let regex = array[i][0]
-        if (text.indexOf ('testDecimalToPrecisionErrorHandling') >= 0) {
-            log.green (regex,  array[i][1])
-            log.yellow (text.slice (0, 1000))
-        }
         regex = typeof regex === 'string' ? new RegExp (regex, 'g') : new RegExp (regex)
         text = text.replace (regex, array[i][1])
-        if (text.indexOf ('testDecimalToPrecisionErrorHandling') >= 0) {
-            log.cyan (text.slice (0, 1000))
-        }
     }
     return text
 }
@@ -446,12 +439,6 @@ const phpFolder     = './php/'
 
 function transpileJavaScriptToPython3 ({ js, className, removeEmptyLines }) {
 
-    if (js.indexOf ('testDecimalToPrecisionErrorHandling') >= 0) {
-        log.yellow ('-------------------------------------------------------------')
-        log.bright.yellow (js.slice (0, 500))
-        log.yellow ('-------------------------------------------------------------')
-    }
-
     // transpile JS → Python 3
     let python3Body = regexAll (js, pythonRegexes)
 
@@ -459,13 +446,6 @@ function transpileJavaScriptToPython3 ({ js, className, removeEmptyLines }) {
         python3Body = python3Body.replace (/$\s*$/gm, '')
 
     python3Body = python3Body.replace (/\'([абвгдеёжзийклмнопрстуфхцчшщъыьэюя服务端忙碌]+)\'/gm, "u'$1'")
-
-    if (js.indexOf ('testDecimalToPrecisionErrorHandling') >= 0) {
-        log.yellow ('-------------------------------------------------------------')
-        log.bright.yellow (python3Body.slice (0, 500))
-        log.yellow ('-------------------------------------------------------------')
-    }
-
 
     // special case for Python OrderedDicts
     let orderedDictRegex = /\.ordered\s+\(\{([^\}]+)\}\)/g
@@ -477,12 +457,6 @@ function transpileJavaScriptToPython3 ({ js, className, removeEmptyLines }) {
 
     // special case for Python super
     python3Body = python3Body.replace (/super\./g, 'super(' + className + ', self).')
-
-    if (js.indexOf ('testDecimalToPrecisionErrorHandling') >= 0) {
-        log.yellow ('-------------------------------------------------------------')
-        log.bright.yellow (python3Body)
-        log.yellow ('-------------------------------------------------------------')
-    }
 
     return python3Body
 }
@@ -532,9 +506,6 @@ function transpileJavaScriptToPHP ({ js, variables }) {
 // ----------------------------------------------------------------------------
 
 function transpileJavaScriptToPythonAndPHP (args) {
-
-    // log.bright.red (Object.keys (args))
-    // process.exit ()
 
     //-------------------------------------------------------------------------
 
@@ -816,6 +787,8 @@ function transpilePrecisionTests () {
     const pyFile = './python/test/test_decimal_to_precision.py'
     const phpFile = './php/test/precisionTests.php'
 
+    log.magenta ('Transpiling from', jsFile.yellow)
+
     let js = fs.readFileSync (jsFile).toString ()
 
     js = regexAll (js, [
@@ -823,7 +796,6 @@ function transpilePrecisionTests () {
         [ /[^\n]+require[^\n]+\n/g, '' ],
         [ /decimalToPrecision/g, 'decimal_to_precision' ],
         [ /numberToString/g, 'number_to_string' ],
-        // [ /([^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}\s\=\s*require\s*([^\;]+)/g, '' ],
     ])
 
     let { python3Body, python2Body, phpBody } = transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
@@ -851,8 +823,6 @@ from ccxt.base.decimal_to_precision import NO_PADDING            # noqa F401\n\
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n\
 \n\
 "
-
-    // log.yellow (pythonHeader + python2Body)
 
     const phpHeader =
 "<?php\n\
@@ -884,8 +854,17 @@ use const ccxt\\TRUNCATE;\n\
 \n\
 "
 
-    // log.cyan (phpHeader + phpBody)
+    const python = pythonHeader + python2Body
+    const php = phpHeader + phpBody
 
+    // log.yellow (python)
+    // log.cyan (php)
+
+    log.magenta ('→', pyFile.yellow)
+    log.magenta ('→', phpFile.yellow)
+
+    overwriteFile (pyFile, python)
+    overwriteFile (phpFile, php)
 }
 
 //-----------------------------------------------------------------------------
@@ -906,7 +885,7 @@ exportTypeScriptDeclarations (classes)
 
 transpilePrecisionTests ()
 transpilePythonAsyncToSync ('./python/test/test_async.py', './python/test/test.py')
-// transpilePrecisionTests ('./js/test/base/functions/test.number.js', './python/test/test_decimal_to_precision.py', './php/test/precisionTests.php')
+// transpilePrecisionTests ('./js/test/base/functions/test.number.js', './python/test/test_decimal_to_precision.py', './php/test/decimal_to_precision.php')
 
 //-----------------------------------------------------------------------------
 
