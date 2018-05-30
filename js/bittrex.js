@@ -504,8 +504,18 @@ module.exports = class bittrex extends Exchange {
         if (typeof side === 'undefined')
             side = this.safeString (order, 'Type');
         let isBuyOrder = (side === 'LIMIT_BUY') || (side === 'BUY');
-        side = isBuyOrder ? 'buy' : 'sell';
-        let status = 'open';
+        let isSellOrder = (side === 'LIMIT_SELL') || (side === 'SELL');
+        if (isBuyOrder) {
+            side = 'buy';
+        }
+        if (isSellOrder) {
+            side = 'sell';
+        }
+        // We parse different fields in a very specific order.
+        // Order might well be closed and then canceled.
+        let status = undefined;
+        if (('Opened' in order) && order['Opened'])
+            status = 'open';
         if (('Closed' in order) && order['Closed'])
             status = 'closed';
         if (('CancelInitiated' in order) && order['CancelInitiated'])
@@ -564,8 +574,11 @@ module.exports = class bittrex extends Exchange {
         let price = this.safeFloat (order, 'Limit');
         let cost = this.safeFloat (order, 'Price');
         let amount = this.safeFloat (order, 'Quantity');
-        let remaining = this.safeFloat (order, 'QuantityRemaining', 0.0);
-        let filled = amount - remaining;
+        let remaining = this.safeFloat (order, 'QuantityRemaining');
+        let filled = undefined;
+        if (typeof amount !== 'undefined' && typeof remaining !== 'undefined') {
+            filled = amount - remaining;
+        }
         if (!cost) {
             if (price && amount)
                 cost = price * amount;
