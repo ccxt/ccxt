@@ -485,7 +485,7 @@ module.exports = class cointiger extends huobipro {
         let timestamp = this.milliseconds ();
         return {
             'info': response,
-            'id': response['order_id'].toString (),
+            'id': response['data']['order_id'].toString (),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -537,7 +537,7 @@ module.exports = class cointiger extends huobipro {
             }, urlParams)));
             url += '&sign=' + this.decode (signature);
             if (method === 'POST') {
-                body = this.urlencode (query);
+                body = /* JSON.stringify (query); */ this.urlencode (query);
                 headers = {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 };
@@ -550,6 +550,7 @@ module.exports = class cointiger extends huobipro {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         }
+        // console.log ({ 'url': url, 'method': method, 'body': body, 'headers': headers })
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
