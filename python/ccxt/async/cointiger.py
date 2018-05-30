@@ -350,7 +350,7 @@ class cointiger (huobipro):
                 code = self.currencies_by_id[id]['code']
             account = self.account()
             account['used'] = float(balance['lock'])
-            account['free'] = balance['normal']
+            account['free'] = float(balance['normal'])
             account['total'] = self.sum(account['used'], account['free'])
             result[code] = account
         return self.parse_balance(result)
