@@ -511,10 +511,15 @@ class cointiger extends huobipro {
         if ($symbol === null)
             throw new ExchangeError ($this->id . ' cancelOrder requires a $symbol argument');
         $market = $this->market ($symbol);
-        return $this->privateDeleteOrder (array_merge (array (
+        $response = $this->privateDeleteOrder (array_merge (array (
             'symbol' => $market['id'],
             'order_id' => $id,
         ), $params));
+        return array (
+            'id' => $id,
+            'symbol' => $symbol,
+            'info' => $response,
+        );
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

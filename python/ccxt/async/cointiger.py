@@ -495,10 +495,15 @@ class cointiger (huobipro):
         if symbol is None:
             raise ExchangeError(self.id + ' cancelOrder requires a symbol argument')
         market = self.market(symbol)
-        return await self.privateDeleteOrder(self.extend({
+        response = await self.privateDeleteOrder(self.extend({
             'symbol': market['id'],
             'order_id': id,
         }, params))
+        return {
+            'id': id,
+            'symbol': symbol,
+            'info': response,
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         self.check_required_credentials()
