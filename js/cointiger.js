@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const huobipro = require ('./huobipro.js');
-const { ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -70,6 +70,7 @@ module.exports = class cointiger extends huobipro {
                 '2': ExchangeError,
                 '5': InvalidOrder,
                 '6': InvalidOrder,
+                '8': OrderNotFound,
                 '16': AuthenticationError, // funding password not set
                 '100001': ExchangeError,
                 '100002': ExchangeNotAvailable,
