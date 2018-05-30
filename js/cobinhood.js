@@ -485,7 +485,7 @@ module.exports = class cobinhood extends Exchange {
         let response = await this.privateDeleteTradingOrdersOrderId (this.extend ({
             'order_id': id,
         }, params));
-        return response;
+        return this.parseOrder (response);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
