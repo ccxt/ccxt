@@ -171,6 +171,7 @@ class Exchange(object):
         'fetchTickers': False,
         'fetchTrades': True,
         'fetchTradingFees': False,
+        'fetchTradingLimits': False,
         'withdraw': False,
     }
 
@@ -1054,6 +1055,20 @@ class Exchange(object):
 
     def fetch_total_balance(self, params={}):
         return self.fetch_partial_balance('total', params)
+
+    def load_trading_limits(self, symbols=None, reload=False, params={}):
+        if self.has['fetchTradingLimits']:
+            if reload or not('limitsLoaded' in list(self.options.keys())):
+                response = self.fetch_trading_limits(symbols)
+                limits = response['limits']
+                keys = list(limits.keys())
+                for i in range(0, len(keys)):
+                    symbol = keys[i]
+                    self.markets[symbol] = self.deep_extend(self.markets[symbol], {
+                        'limits': limits[symbol],
+                    })
+                self.options['limitsLoaded'] = self.milliseconds()
+        return self.markets
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         if not self.has['fetchTrades']:
