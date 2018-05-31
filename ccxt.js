@@ -84,6 +84,7 @@ const exchanges = {
     'chbtc':                   require ('./js/chbtc.js'),
     'chilebit':                require ('./js/chilebit.js'),
     'cobinhood':               require ('./js/cobinhood.js'),
+    'coinbase':                require ('./js/coinbase.js'),
     'coincheck':               require ('./js/coincheck.js'),
     'coinegg':                 require ('./js/coinegg.js'),
     'coinex':                  require ('./js/coinex.js'),
