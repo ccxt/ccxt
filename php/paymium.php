@@ -106,8 +106,8 @@ class paymium extends Exchange {
             'id' => $this->market_id($symbol),
         ), $params));
         $timestamp = $ticker['at'] * 1000;
-        $vwap = floatval ($ticker['vwap']);
-        $baseVolume = floatval ($ticker['volume']);
+        $vwap = $this->safe_float($ticker, 'vwap');
+        $baseVolume = $this->safe_float($ticker, 'volume');
         $quoteVolume = $baseVolume * $vwap;
         $last = $this->safe_float($ticker, 'price');
         return array (
@@ -159,14 +159,14 @@ class paymium extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function create_order ($market, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $order = array (
             'type' => $this->capitalize ($type) . 'Order',
-            'currency' => $this->market_id($market),
+            'currency' => $this->market_id($symbol),
             'direction' => $side,
             'amount' => $amount,
         );
-        if ($type === 'market')
+        if ($type !== 'market')
             $order['price'] = $price;
         $response = $this->privatePostUserOrders (array_merge ($order, $params));
         return array (
@@ -176,8 +176,8 @@ class paymium extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        return $this->privatePostCancelOrder (array_merge (array (
-            'orderNumber' => $id,
+        return $this->privateDeleteUserOrdersUUIDCancel (array_merge (array (
+            'UUID' => $id,
         ), $params));
     }
 

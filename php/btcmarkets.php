@@ -23,6 +23,7 @@ class btcmarkets extends Exchange {
                 'fetchClosedOrders' => 'emulated',
                 'fetchOpenOrders' => true,
                 'fetchMyTrades' => true,
+                'cancelOrders' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/29142911-0e1acfc2-7d5c-11e7-98c4-07d9532b29d7.jpg',
@@ -151,16 +152,16 @@ class btcmarkets extends Exchange {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
-        $last = floatval ($ticker['lastPrice']);
+        $last = $this->safe_float($ticker, 'lastPrice');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => null,
             'low' => null,
-            'bid' => floatval ($ticker['bestBid']),
+            'bid' => $this->safe_float($ticker, 'bestBid'),
             'bidVolume' => null,
-            'ask' => floatval ($ticker['bestAsk']),
+            'ask' => $this->safe_float($ticker, 'bestAsk'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -170,7 +171,7 @@ class btcmarkets extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($ticker['volume24h']),
+            'baseVolume' => $this->safe_float($ticker, 'volume24h'),
             'quoteVolume' => null,
             'info' => $ticker,
         );
@@ -304,6 +305,7 @@ class btcmarkets extends Exchange {
             'id' => (string) $order['id'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => null,
             'symbol' => $market['symbol'],
             'type' => $type,
             'side' => $side,

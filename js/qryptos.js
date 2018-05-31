@@ -188,7 +188,7 @@ module.exports = class qryptos extends Exchange {
             if (ticker['last_traded_price']) {
                 let length = ticker['last_traded_price'].length;
                 if (length > 0)
-                    last = parseFloat (ticker['last_traded_price']);
+                    last = this.safeFloat (ticker, 'last_traded_price');
             }
         }
         let symbol = undefined;
@@ -255,6 +255,9 @@ module.exports = class qryptos extends Exchange {
         // 'my_side' gets filled for fetchMyTrades only and may differ from 'taker_side'
         let mySide = this.safeString (trade, 'my_side');
         let side = (typeof mySide !== 'undefined') ? mySide : takerSide;
+        let takerOrMaker = undefined;
+        if (typeof mySide !== 'undefined')
+            takerOrMaker = (takerSide === mySide) ? 'taker' : 'maker';
         return {
             'info': trade,
             'id': trade['id'].toString (),
@@ -264,8 +267,9 @@ module.exports = class qryptos extends Exchange {
             'symbol': market['symbol'],
             'type': undefined,
             'side': side,
-            'price': parseFloat (trade['price']),
-            'amount': parseFloat (trade['quantity']),
+            'takerOrMaker': takerOrMaker,
+            'price': this.safeFloat (trade, 'price'),
+            'amount': this.safeFloat (trade, 'quantity'),
         };
     }
 
@@ -335,9 +339,9 @@ module.exports = class qryptos extends Exchange {
                 status = 'canceled';
             }
         }
-        let amount = parseFloat (order['quantity']);
-        let filled = parseFloat (order['filled_quantity']);
-        let price = parseFloat (order['price']);
+        let amount = this.safeFloat (order, 'quantity');
+        let filled = this.safeFloat (order, 'filled_quantity');
+        let price = this.safeFloat (order, 'price');
         let symbol = undefined;
         if (market) {
             symbol = market['symbol'];
@@ -346,6 +350,7 @@ module.exports = class qryptos extends Exchange {
             'id': order['id'].toString (),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
             'type': order['order_type'],
             'status': status,
             'symbol': symbol,
@@ -357,7 +362,7 @@ module.exports = class qryptos extends Exchange {
             'trades': undefined,
             'fee': {
                 'currency': undefined,
-                'cost': parseFloat (order['order_fee']),
+                'cost': this.safeFloat (order, 'order_fee'),
             },
             'info': order,
         };

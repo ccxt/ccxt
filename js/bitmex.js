@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, DDoSProtection, OrderNotFound, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, DDoSProtection, OrderNotFound, AuthenticationError, PermissionDenied } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -129,6 +129,13 @@ module.exports = class bitmex extends Exchange {
                     ],
                 },
             },
+            'exceptions': {
+                'Invalid API Key.': AuthenticationError,
+                'Access Denied': PermissionDenied,
+            },
+            'options': {
+                'fetchTickerQuotes': true,
+            },
         });
     }
 
@@ -159,16 +166,33 @@ module.exports = class bitmex extends Exchange {
                 future = true;
                 type = 'future';
             }
-            let maker = market['makerFee'];
-            let taker = market['takerFee'];
+            let precision = {
+                'amount': undefined,
+                'price': undefined,
+            };
+            if (market['lotSize'])
+                precision['amount'] = this.precisionFromString (this.truncate_to_string (market['lotSize'], 16));
+            if (market['tickSize'])
+                precision['price'] = this.precisionFromString (this.truncate_to_string (market['tickSize'], 16));
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'active': active,
-                'taker': taker,
-                'maker': maker,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': market['lotSize'],
+                        'max': market['maxOrderQty'],
+                    },
+                    'price': {
+                        'min': market['tickSize'],
+                        'max': market['maxPrice'],
+                    },
+                },
+                'taker': market['takerFee'],
+                'maker': market['makerFee'],
                 'type': type,
                 'spot': false,
                 'swap': swap,
@@ -285,9 +309,15 @@ module.exports = class bitmex extends Exchange {
             'count': 1,
             'reverse': true,
         }, params);
-        let quotes = await this.publicGetQuoteBucketed (request);
-        let quotesLength = quotes.length;
-        let quote = quotes[quotesLength - 1];
+        let bid = undefined;
+        let ask = undefined;
+        if (this.options['fetchTickerQuotes']) {
+            let quotes = await this.publicGetQuoteBucketed (request);
+            let quotesLength = quotes.length;
+            let quote = quotes[quotesLength - 1];
+            bid = this.safeFloat (quote, 'bidPrice');
+            ask = this.safeFloat (quote, 'askPrice');
+        }
         let tickers = await this.publicGetTradeBucketed (request);
         let ticker = tickers[0];
         let timestamp = this.milliseconds ();
@@ -298,13 +328,13 @@ module.exports = class bitmex extends Exchange {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']),
-            'low': parseFloat (ticker['low']),
-            'bid': parseFloat (quote['bidPrice']),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': bid,
             'bidVolume': undefined,
-            'ask': parseFloat (quote['askPrice']),
+            'ask': ask,
             'askVolume': undefined,
-            'vwap': parseFloat (ticker['vwap']),
+            'vwap': this.safeFloat (ticker, 'vwap'),
             'open': open,
             'close': close,
             'last': close,
@@ -312,8 +342,8 @@ module.exports = class bitmex extends Exchange {
             'change': change,
             'percentage': change / open * 100,
             'average': this.sum (open, close) / 2,
-            'baseVolume': parseFloat (ticker['homeNotional']),
-            'quoteVolume': parseFloat (ticker['foreignNotional']),
+            'baseVolume': this.safeFloat (ticker, 'homeNotional'),
+            'quoteVolume': this.safeFloat (ticker, 'foreignNotional'),
             'info': ticker,
         };
     }
@@ -422,7 +452,7 @@ module.exports = class bitmex extends Exchange {
             iso8601 = this.iso8601 (timestamp);
         }
         let price = this.safeFloat (order, 'price');
-        let amount = parseFloat (order['orderQty']);
+        let amount = this.safeFloat (order, 'orderQty');
         let filled = this.safeFloat (order, 'cumQty', 0.0);
         let remaining = Math.max (amount - filled, 0.0);
         let cost = undefined;
@@ -434,6 +464,7 @@ module.exports = class bitmex extends Exchange {
             'id': order['orderID'].toString (),
             'timestamp': timestamp,
             'datetime': iso8601,
+            'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': order['ordType'].toLowerCase (),
             'side': order['side'].toLowerCase (),
@@ -470,7 +501,7 @@ module.exports = class bitmex extends Exchange {
             'orderQty': amount,
             'ordType': this.capitalize (type),
         };
-        if (type === 'limit')
+        if (typeof price !== 'undefined')
             request['price'] = price;
         let response = await this.privatePostOrder (this.extend (request, params));
         let order = this.parseOrder (response);
@@ -543,13 +574,15 @@ module.exports = class bitmex extends Exchange {
                     let response = JSON.parse (body);
                     if ('error' in response) {
                         if ('message' in response['error']) {
+                            let feedback = this.id + ' ' + this.json (response);
                             let message = this.safeValue (response['error'], 'message');
+                            let exceptions = this.exceptions;
                             if (typeof message !== 'undefined') {
-                                if (message === 'Invalid API Key.')
-                                    throw new AuthenticationError (this.id + ' ' + this.json (response));
+                                if (message in exceptions) {
+                                    throw new exceptions[message] (feedback);
+                                }
                             }
-                            // stub code, need proper handling
-                            throw new ExchangeError (this.id + ' ' + this.json (response));
+                            throw new ExchangeError (feedback);
                         }
                     }
                 }

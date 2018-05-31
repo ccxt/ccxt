@@ -18,6 +18,7 @@ class gemini extends Exchange {
             'version' => 'v1',
             'has' => array (
                 'fetchDepositAddress' => false,
+                'createDepositAddress' => true,
                 'CORS' => false,
                 'fetchBidsAsks' => false,
                 'fetchTickers' => false,
@@ -117,16 +118,16 @@ class gemini extends Exchange {
         $timestamp = $ticker['volume']['timestamp'];
         $baseVolume = $market['base'];
         $quoteVolume = $market['quote'];
-        $last = floatval ($ticker['last']);
+        $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => null,
             'low' => null,
-            'bid' => floatval ($ticker['bid']),
+            'bid' => $this->safe_float($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => floatval ($ticker['ask']),
+            'ask' => $this->safe_float($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -156,12 +157,12 @@ class gemini extends Exchange {
                 $currency = $this->common_currency_code($currency);
             }
             $fee = array (
-                'cost' => floatval ($trade['fee_amount']),
+                'cost' => $this->safe_float($trade, 'fee_amount'),
                 'currency' => $currency,
             );
         }
-        $price = floatval ($trade['price']);
-        $amount = floatval ($trade['amount']);
+        $price = $this->safe_float($trade, 'price');
+        $amount = $this->safe_float($trade, 'amount');
         return array (
             'id' => (string) $trade['tid'],
             'order' => $order,
@@ -292,5 +293,21 @@ class gemini extends Exchange {
             if ($response['result'] === 'error')
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         return $response;
+    }
+
+    public function create_deposit_address ($code, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency ($code);
+        $response = $this->privatePostDepositCurrencyNewAddress (array_merge (array (
+            'currency' => $currency['id'],
+        ), $params));
+        $address = $this->safe_string($response, 'address');
+        $this->check_address($address);
+        return array (
+            'currency' => $code,
+            'address' => $address,
+            'status' => 'ok',
+            'info' => $response,
+        );
     }
 }

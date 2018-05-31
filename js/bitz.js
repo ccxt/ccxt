@@ -15,6 +15,7 @@ module.exports = class bitz extends Exchange {
             'countries': 'HK',
             'rateLimit': 1000,
             'version': 'v1',
+            'userAgent': this.userAgents['chrome'],
             'has': {
                 'fetchTickers': true,
                 'fetchOHLCV': true,
@@ -124,6 +125,9 @@ module.exports = class bitz extends Exchange {
             'options': {
                 'lastNonceTimestamp': 0,
             },
+            'commonCurrencies': {
+                'PXC': 'Pixiecoin',
+            },
         });
     }
 
@@ -163,17 +167,20 @@ module.exports = class bitz extends Exchange {
         let result = { 'info': response };
         let keys = Object.keys (balances);
         for (let i = 0; i < keys.length; i++) {
-            let currency = keys[i];
-            let balance = parseFloat (balances[currency]);
-            if (currency in this.currencies_by_id)
-                currency = this.currencies_by_id[currency]['code'];
-            else
-                currency = currency.toUpperCase ();
-            let account = this.account ();
-            account['free'] = balance;
-            account['used'] = undefined;
-            account['total'] = balance;
-            result[currency] = account;
+            let id = keys[i];
+            let idHasUnderscore = (id.indexOf ('_') >= 0);
+            if (!idHasUnderscore) {
+                let code = id.toUpperCase ();
+                if (id in this.currencies_by_id) {
+                    code = this.currencies_by_id[id]['code'];
+                }
+                let account = this.account ();
+                let usedField = id + '_lock';
+                account['used'] = this.safeFloat (balances, usedField);
+                account['total'] = this.safeFloat (balances, id);
+                account['free'] = account['total'] - account['used'];
+                result[code] = account;
+            }
         }
         return this.parseBalance (result);
     }
@@ -181,16 +188,16 @@ module.exports = class bitz extends Exchange {
     parseTicker (ticker, market = undefined) {
         let timestamp = ticker['date'] * 1000;
         let symbol = market['symbol'];
-        let last = parseFloat (ticker['last']);
+        let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']),
-            'low': parseFloat (ticker['low']),
-            'bid': parseFloat (ticker['buy']),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'buy'),
             'bidVolume': undefined,
-            'ask': parseFloat (ticker['sell']),
+            'ask': this.safeFloat (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -200,7 +207,7 @@ module.exports = class bitz extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': parseFloat (ticker['vol']),
+            'baseVolume': this.safeFloat (ticker, 'vol'),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -246,8 +253,8 @@ module.exports = class bitz extends Exchange {
         utcDate = utcDate.split ('T');
         utcDate = utcDate[0] + ' ' + trade['t'] + '+08';
         let timestamp = this.parse8601 (utcDate);
-        let price = parseFloat (trade['p']);
-        let amount = parseFloat (trade['n']);
+        let price = this.safeFloat (trade, 'p');
+        let amount = this.safeFloat (trade, 'n');
         let symbol = market['symbol'];
         let cost = this.priceToPrecision (symbol, amount * price);
         return {
@@ -296,7 +303,15 @@ module.exports = class bitz extends Exchange {
             side = this.safeString (order, 'type');
             if (typeof side !== 'undefined')
                 side = (side === 'in') ? 'buy' : 'sell';
+            if (typeof side === 'undefined')
+                side = this.safeString (order, 'flag');
         }
+        let amount = this.safeFloat (order, 'number');
+        let remaining = this.safeFloat (order, 'numberover');
+        let filled = undefined;
+        if (typeof amount !== 'undefined')
+            if (typeof remaining !== 'undefined')
+                filled = amount - remaining;
         let timestamp = undefined;
         let iso8601 = undefined;
         if ('datetime' in order) {
@@ -307,6 +322,7 @@ module.exports = class bitz extends Exchange {
             'id': order['id'],
             'datetime': iso8601,
             'timestamp': timestamp,
+            'lastTradeTimestamp': undefined,
             'status': 'open',
             'symbol': symbol,
             'type': 'limit',
@@ -314,8 +330,8 @@ module.exports = class bitz extends Exchange {
             'price': order['price'],
             'cost': undefined,
             'amount': order['number'],
-            'filled': undefined,
-            'remaining': undefined,
+            'filled': filled,
+            'remaining': remaining,
             'trades': undefined,
             'fee': undefined,
             'info': order,
@@ -326,6 +342,8 @@ module.exports = class bitz extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let orderType = (side === 'buy') ? 'in' : 'out';
+        if (!this.password)
+            throw new ExchangeError (this.id + ' createOrder() requires you to set exchange.password = "YOUR_TRADING_PASSWORD" (a trade password is NOT THE SAME as your login password)');
         let request = {
             'coin': market['id'],
             'type': orderType,
@@ -368,7 +386,7 @@ module.exports = class bitz extends Exchange {
             this.options['lastNonceTimestamp'] = currentTimestamp;
             this.options['lastNonce'] = 100000;
         }
-        this.options['lastNonce'] += 1;
+        this.options['lastNonce'] = this.sum (this.options['lastNonce'], 1);
         return this.options['lastNonce'];
     }
 

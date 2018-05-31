@@ -26,6 +26,9 @@ class chilebit extends foxbit {
                 'www' => 'https://chilebit.net',
                 'doc' => 'https://blinktrade.com/docs',
             ),
+            'options' => array (
+                'brokerId' => '9', // https://blinktrade.com/docs/#brokers
+            ),
         ));
     }
 }

@@ -256,10 +256,10 @@ class braziliex extends Exchange {
         } else {
             $timestamp = $this->parse8601 ($trade['date']);
         }
-        $price = floatval ($trade['price']);
-        $amount = floatval ($trade['amount']);
+        $price = $this->safe_float($trade, 'price');
+        $amount = $this->safe_float($trade, 'amount');
         $symbol = $market['symbol'];
-        $cost = floatval ($trade['total']);
+        $cost = $this->safe_float($trade, 'total');
         $orderId = $this->safe_string($trade, 'order_number');
         return array (
             'timestamp' => $timestamp,
@@ -319,7 +319,7 @@ class braziliex extends Exchange {
         $timestamp = $this->safe_value($order, 'timestamp');
         if (!$timestamp)
             $timestamp = $this->parse8601 ($order['date']);
-        $price = floatval ($order['price']);
+        $price = $this->safe_float($order, 'price');
         $cost = $this->safe_float($order, 'total', 0.0);
         $amount = $this->safe_float($order, 'amount');
         $filledPercentage = $this->safe_float($order, 'progress');
@@ -332,6 +332,7 @@ class braziliex extends Exchange {
             'id' => $order['order_number'],
             'datetime' => $this->iso8601 ($timestamp),
             'timestamp' => $timestamp,
+            'lastTradeTimestamp' => null,
             'status' => 'open',
             'symbol' => $symbol,
             'type' => 'limit',

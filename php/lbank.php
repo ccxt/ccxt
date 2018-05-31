@@ -18,7 +18,9 @@ class lbank extends Exchange {
             'has' => array (
                 'fetchTickers' => true,
                 'fetchOHLCV' => true,
-                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrders' => true,
+                'fetchOpenOrders' => false, // status 0 API doesn't work
                 'fetchClosedOrders' => true,
             ),
             'timeframes' => array (
@@ -105,7 +107,7 @@ class lbank extends Exchange {
             list ($baseId, $quoteId) = explode ('_', $id);
             $base = $this->common_currency_code(strtoupper ($baseId));
             $quote = $this->common_currency_code(strtoupper ($quoteId));
-            $symbol = implode ('/', array ($base, $quote));
+            $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => 8,
                 'price' => 8,
@@ -143,7 +145,7 @@ class lbank extends Exchange {
 
     public function parse_ticker ($ticker, $market = null) {
         $symbol = $market['symbol'];
-        $timestamp = $ticker['timestamp'];
+        $timestamp = $this->safe_integer($ticker, 'timestamp');
         $info = $ticker;
         $ticker = $info['ticker'];
         $last = $this->safe_float($ticker, 'latest');
@@ -166,7 +168,7 @@ class lbank extends Exchange {
             'percentage' => null,
             'average' => null,
             'baseVolume' => $this->safe_float($ticker, 'vol'),
-            'quoteVolume' => null,
+            'quoteVolume' => $this->safe_float($ticker, 'turnover'),
             'info' => $info,
         );
     }
@@ -208,8 +210,8 @@ class lbank extends Exchange {
     public function parse_trade ($trade, $market = null) {
         $symbol = $market['symbol'];
         $timestamp = intval ($trade['date_ms']);
-        $price = floatval ($trade['price']);
-        $amount = floatval ($trade['amount']);
+        $price = $this->safe_float($trade, 'price');
+        $amount = $this->safe_float($trade, 'amount');
         $cost = $this->cost_to_precision($symbol, $price * $amount);
         return array (
             'timestamp' => $timestamp,
@@ -262,10 +264,12 @@ class lbank extends Exchange {
         $this->load_markets();
         $response = $this->privatePostUserInfo ($params);
         $result = array ( 'info' => $response );
-        $currencies = is_array (array_merge ($response['info']['free'], $response['info']['freeze'])) ? array_keys (array_merge ($response['info']['free'], $response['info']['freeze'])) : array ();
-        for ($i = 0; $i < count ($currencies); $i++) {
-            $id = $currencies[$i];
-            $currency = $this->common_currency_code($id);
+        $ids = is_array (array_merge ($response['info']['free'], $response['info']['freeze'])) ? array_keys (array_merge ($response['info']['free'], $response['info']['freeze'])) : array ();
+        for ($i = 0; $i < count ($ids); $i++) {
+            $id = $ids[$i];
+            $code = $id;
+            if (is_array ($this->currencies_by_id) && array_key_exists ($id, $this->currencies_by_id))
+                $code = $this->currencies_by_id[$id]['code'];
             $free = $this->safe_float($response['info']['free'], $id, 0.0);
             $used = $this->safe_float($response['info']['freeze'], $id, 0.0);
             $account = array (
@@ -274,32 +278,47 @@ class lbank extends Exchange {
                 'total' => 0.0,
             );
             $account['total'] = $this->sum ($account['free'], $account['used']);
-            $result[$currency] = $account;
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
 
+    public function parse_order_status ($status) {
+        $statuses = array (
+            '-1' => 'cancelled', // cancelled
+            '0' => 'open', // not traded
+            '1' => 'open', // partial deal
+            '2' => 'closed', // complete deal
+            '4' => 'closed', // disposal processing
+        );
+        return $this->safe_string($statuses, $status);
+    }
+
     public function parse_order ($order, $market = null) {
-        $symbol = $this->safe_value($this->marketsById, $order['symbol'], array ( 'symbol' => null ));
+        $symbol = null;
+        $responseMarket = $this->safe_value($this->marketsById, $order['symbol']);
+        if ($responseMarket !== null) {
+            $symbol = $responseMarket['symbol'];
+        } else if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
         $timestamp = $this->safe_integer($order, 'create_time');
         // Limit Order Request Returns => Order Price
         // Market Order Returns => cny $amount of $market $order
-        $price = floatval ($order['price']);
-        $amount = $this->safe_float($order, 'amount');
-        $filled = $this->safe_float($order, 'deal_amount');
-        $cost = $filled * $this->safe_float($order, 'avg_price');
-        $status = $this->safe_integer($order, 'status');
-        if ($status === -1 || $status === 4) {
-            $status = 'canceled';
-        } else if ($status === 2) {
-            $status = 'closed';
-        } else {
-            $status = 'open';
+        $price = $this->safe_float($order, 'price');
+        $amount = $this->safe_float($order, 'amount', 0.0);
+        $filled = $this->safe_float($order, 'deal_amount', 0.0);
+        $av_price = $this->safe_float($order, 'avg_price');
+        $cost = null;
+        if ($av_price !== null) {
+            $cost = $filled * $av_price;
         }
+        $status = $this->parse_order_status($this->safe_string($order, 'status'));
         return array (
             'id' => $this->safe_string($order, 'order_id'),
             'datetime' => $this->iso8601 ($timestamp),
             'timestamp' => $timestamp,
+            'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
             'type' => $this->safe_string($order, 'order_type'),
@@ -307,8 +326,8 @@ class lbank extends Exchange {
             'price' => $price,
             'cost' => $cost,
             'amount' => $amount,
-            'filled' => null,
-            'remaining' => null,
+            'filled' => $filled,
+            'remaining' => $amount - $filled,
             'trades' => null,
             'fee' => null,
             'info' => $this->safe_value($order, 'info', $order),
@@ -352,13 +371,19 @@ class lbank extends Exchange {
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
+        // Id can be a list of ids delimited by a comma
         $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->privatePostOrdersInfo (array_merge (array (
             'symbol' => $market['id'],
             'order_id' => $id,
         ), $params));
-        return $this->parse_order($response['orders'][0], $market);
+        $orders = $this->parse_orders($response['orders'], $market);
+        if (strlen ($orders) === 1) {
+            return $orders[0];
+        } else {
+            return $orders;
+        }
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -372,18 +397,11 @@ class lbank extends Exchange {
         return $this->parse_orders($response['orders'], null, $since, $limit);
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $response = $this->fetch_orders(array_merge (array (
-            'status' => 0,
-        ), $params));
-        return $response;
-    }
-
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $response = $this->fetch_orders(array_merge (array (
-            'status' => 1,
-        ), $params));
-        return $response;
+        $orders = $this->fetch_orders($symbol, $since, $limit, $params);
+        $closed = $this->filter_by($orders, 'status', 'closed');
+        $cancelled = $this->filter_by($orders, 'status', 'cancelled'); // $cancelled $orders may be partially filled
+        return $closed . $cancelled;
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

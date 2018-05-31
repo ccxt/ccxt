@@ -100,6 +100,7 @@ module.exports = class Exchange {
                 'fetchTickers': false,
                 'fetchTrades': true,
                 'fetchTradingFees': false,
+                'fetchTradingLimits': false,
                 'withdraw': false,
             },
             'urls': {
@@ -116,6 +117,7 @@ module.exports = class Exchange {
                 'uid':      false,
                 'login':    false,
                 'password': false,
+                'twofa':    false, // 2-factor authentication (one-time password key)
             },
             'markets': undefined, // to be filled manually or by fetchMarkets
             'currencies': {}, // to be filled manually or by fetchMarkets
@@ -180,7 +182,7 @@ module.exports = class Exchange {
         this.origin = '*' // CORS origin
 
         this.iso8601          = timestamp => ((typeof timestamp === 'undefined') ? timestamp : new Date (timestamp).toISOString ())
-        this.parse8601        = x => Date.parse (((x.indexOf ('+') >= 0) || (x.slice (-1) === 'Z')) ? x : (x + 'Z'))
+        this.parse8601        = x => Date.parse ((((x.indexOf ('+') >= 0) || (x.slice (-1) === 'Z')) ? x : (x + 'Z').replace (/\s(\d\d):/, 'T$1:')))
         this.parseDate        = (x) => {
             if (typeof x === 'undefined')
                 return x
@@ -191,7 +193,7 @@ module.exports = class Exchange {
         this.microseconds     = () => now () * 1000 // TODO: utilize performance.now for that purpose
         this.seconds          = () => Math.floor (now () / 1000)
 
-        this.minFundingAddressLength = 10 // used in checkAddress
+        this.minFundingAddressLength = 1 // used in checkAddress
         this.substituteCommonCurrencyCodes = true  // reserved
 
         // do not delete this line, it is needed for users to be able to define their own fetchImplementation
@@ -286,7 +288,7 @@ module.exports = class Exchange {
             throw new InvalidAddress (this.id + ' address is undefined')
 
         // check the address is not the same letter like 'aaaaa' nor too short nor has a space
-        if ((unique (address).length < 2) || address.length < this.minFundingAddressLength || address.includes (' '))
+        if ((unique (address).length === 1) || address.length < this.minFundingAddressLength || address.includes (' '))
             throw new InvalidAddress (this.id + ' address is invalid or has less than ' + this.minFundingAddressLength.toString () + ' characters: "' + address.toString () + '"')
 
         return address
@@ -446,7 +448,7 @@ module.exports = class Exchange {
         }
     }
 
-    handleErrors (statusCode, statusText, url, method, requestHeaders, responseBody, json) {
+    handleErrors (statusCode, statusText, url, method, responseHeaders, responseBody, json) {
         // override me
     }
 
@@ -533,6 +535,7 @@ module.exports = class Exchange {
                 values.filter (market => 'base' in market)
                     .map (market => ({
                         id: market.baseId || market.base,
+                        numericId: (typeof market.baseNumericId !== 'undefined') ? market.baseNumericId : undefined,
                         code: market.base,
                         precision: market.precision ? (market.precision.base || market.precision.amount) : 8,
                     }))
@@ -540,6 +543,7 @@ module.exports = class Exchange {
                 values.filter (market => 'quote' in market)
                     .map (market => ({
                         id: market.quoteId || market.quote,
+                        numericId: (typeof market.quoteNumericId !== 'undefined') ? market.quoteNumericId : undefined,
                         code: market.quote,
                         precision: market.precision ? (market.precision.quote || market.precision.price) : 8,
                     }))
@@ -592,6 +596,41 @@ module.exports = class Exchange {
         return ohlcvc.map (c => c.slice (0, -1))
     }
 
+    convertTradingViewToOHLCV (ohlcvs) {
+        let result = [];
+        for (let i = 0; i < ohlcvs['t'].length; i++) {
+            result.push ([
+                ohlcvs['t'][i] * 1000,
+                ohlcvs['o'][i],
+                ohlcvs['h'][i],
+                ohlcvs['l'][i],
+                ohlcvs['c'][i],
+                ohlcvs['v'][i],
+            ]);
+        }
+        return result;
+    }
+
+    convertOHLCVToTradingView (ohlcvs) {
+        let result = {
+            't': [],
+            'o': [],
+            'h': [],
+            'l': [],
+            'c': [],
+            'v': [],
+        };
+        for (let i = 0; i < ohlcvs.length; i++) {
+            result['t'].push (parseInt (ohlcvs[i][0] / 1000));
+            result['o'].push (ohlcvs[i][1]);
+            result['h'].push (ohlcvs[i][2]);
+            result['l'].push (ohlcvs[i][3]);
+            result['c'].push (ohlcvs[i][4]);
+            result['v'].push (ohlcvs[i][5]);
+        }
+        return result;
+    }
+
     fetchTickers (symbols = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchTickers not supported yet')
     }
@@ -631,7 +670,7 @@ module.exports = class Exchange {
     }
 
     fetchMarkets () {
-        return new Promise ((resolve, reject) => resolve (this.markets))
+        return new Promise ((resolve, reject) => resolve (Object.values (this.markets)))
     }
 
     async fetchOrderStatus (id, market = undefined) {
@@ -844,6 +883,24 @@ module.exports = class Exchange {
         return this.fetchPartialBalance ('total', params)
     }
 
+    async loadTradingLimits (symbols = undefined, reload = false, params = {}) {
+        if (this.has['fetchTradingLimits']) {
+            if (reload || !('limitsLoaded' in this.options)) {
+                let response = await this.fetchTradingLimits (symbols);
+                let limits = response['limits'];
+                let keys = Object.keys (limits);
+                for (let i = 0; i < keys.length; i++) {
+                    let symbol = keys[i];
+                    this.markets[symbol] = this.deepExtend (this.markets[symbol], {
+                        'limits': limits[symbol],
+                    });
+                }
+                this.options['limitsLoaded'] = this.milliseconds ();
+            }
+        }
+        return this.markets;
+    }
+
     filterBySinceLimit (array, since = undefined, limit = undefined) {
         if (typeof since !== 'undefined')
             array = array.filter (entry => entry.timestamp >= since)
@@ -1002,14 +1059,15 @@ module.exports = class Exchange {
         }
     }
 
-    ymd (timestamp, infix = ' ') {
+    ymd (timestamp, infix = '-') {
+        infix = infix || ''
         let date = new Date (timestamp)
-        let Y = date.getUTCFullYear ()
+        let Y = date.getUTCFullYear ().toString ()
         let m = date.getUTCMonth () + 1
         let d = date.getUTCDate ()
-        m = m < 10 ? ('0' + m) : m
-        d = d < 10 ? ('0' + d) : d
-        return Y + '-' + m + '-' + d
+        m = m < 10 ? ('0' + m) : m.toString ()
+        d = d < 10 ? ('0' + d) : d.toString ()
+        return Y + infix + m + infix + d
     }
 
     ymdhms (timestamp, infix = ' ') {

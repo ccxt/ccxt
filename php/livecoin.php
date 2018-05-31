@@ -85,6 +85,7 @@ class livecoin extends Exchange {
                 ),
             ),
             'commonCurrencies' => array (
+                'CPC' => 'Capricoin',
                 'CRC' => 'CryCash',
                 'ORE' => 'Orectic',
                 'RUR' => 'RUB',
@@ -232,7 +233,12 @@ class livecoin extends Exchange {
         $currencies = array (
             array ( 'id' => 'USD', 'code' => 'USD', 'name' => 'US Dollar' ),
             array ( 'id' => 'EUR', 'code' => 'EUR', 'name' => 'Euro' ),
-            array ( 'id' => 'RUR', 'code' => 'RUR', 'name' => 'Russian ruble' ),
+            // array ( 'id' => 'RUR', 'code' => 'RUB', 'name' => 'Russian ruble' ),
+        );
+        $currencies[] = array (
+            'id' => 'RUR',
+            'code' => $this->common_currency_code('RUR'),
+            'name' => 'Russian ruble',
         );
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
@@ -294,21 +300,21 @@ class livecoin extends Exchange {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
-        $vwap = floatval ($ticker['vwap']);
-        $baseVolume = floatval ($ticker['volume']);
+        $vwap = $this->safe_float($ticker, 'vwap');
+        $baseVolume = $this->safe_float($ticker, 'volume');
         $quoteVolume = $baseVolume * $vwap;
-        $last = floatval ($ticker['last']);
+        $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['high']),
-            'low' => floatval ($ticker['low']),
-            'bid' => floatval ($ticker['best_bid']),
+            'high' => $this->safe_float($ticker, 'high'),
+            'low' => $this->safe_float($ticker, 'low'),
+            'bid' => $this->safe_float($ticker, 'best_bid'),
             'bidVolume' => null,
-            'ask' => floatval ($ticker['best_ask']),
+            'ask' => $this->safe_float($ticker, 'best_ask'),
             'askVolume' => null,
-            'vwap' => floatval ($ticker['vwap']),
+            'vwap' => $this->safe_float($ticker, 'vwap'),
             'open' => null,
             'close' => $last,
             'last' => $last,
@@ -415,6 +421,7 @@ class livecoin extends Exchange {
             'id' => $order['id'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
             'type' => $type,
@@ -481,10 +488,15 @@ class livecoin extends Exchange {
         if ($type === 'limit')
             $order['price'] = $this->price_to_precision($symbol, $price);
         $response = $this->$method (array_merge ($order, $params));
-        return array (
+        $result = array (
             'info' => $response,
             'id' => (string) $response['orderId'],
         );
+        $success = $this->safe_value($response, 'success');
+        if ($success) {
+            $result['status'] = 'open';
+        }
+        return $result;
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
@@ -503,7 +515,10 @@ class livecoin extends Exchange {
                 throw new InvalidOrder ($message);
             } else if (is_array ($response) && array_key_exists ('cancelled', $response)) {
                 if ($response['cancelled']) {
-                    return $response;
+                    return array (
+                        'status' => 'canceled',
+                        'info' => $response,
+                    );
                 } else {
                     throw new OrderNotFound ($message);
                 }
@@ -596,6 +611,10 @@ class livecoin extends Exchange {
             // returns status $code 200 even if $success === false
             $success = $this->safe_value($response, 'success', true);
             if (!$success) {
+                $message = $this->safe_string($response, 'message', '');
+                if (mb_strpos ($message, 'Cannot find order') !== false) {
+                    throw new OrderNotFound ($this->id . ' ' . $body);
+                }
                 throw new ExchangeError ($this->id . ' ' . $body);
             }
         }

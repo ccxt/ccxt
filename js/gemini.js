@@ -17,6 +17,7 @@ module.exports = class gemini extends Exchange {
             'version': 'v1',
             'has': {
                 'fetchDepositAddress': false,
+                'createDepositAddress': true,
                 'CORS': false,
                 'fetchBidsAsks': false,
                 'fetchTickers': false,
@@ -116,16 +117,16 @@ module.exports = class gemini extends Exchange {
         let timestamp = ticker['volume']['timestamp'];
         let baseVolume = market['base'];
         let quoteVolume = market['quote'];
-        let last = parseFloat (ticker['last']);
+        let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
             'low': undefined,
-            'bid': parseFloat (ticker['bid']),
+            'bid': this.safeFloat (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': parseFloat (ticker['ask']),
+            'ask': this.safeFloat (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -155,12 +156,12 @@ module.exports = class gemini extends Exchange {
                 currency = this.commonCurrencyCode (currency);
             }
             fee = {
-                'cost': parseFloat (trade['fee_amount']),
+                'cost': this.safeFloat (trade, 'fee_amount'),
                 'currency': currency,
             };
         }
-        let price = parseFloat (trade['price']);
-        let amount = parseFloat (trade['amount']);
+        let price = this.safeFloat (trade, 'price');
+        let amount = this.safeFloat (trade, 'amount');
         return {
             'id': trade['tid'].toString (),
             'order': order,
@@ -291,5 +292,21 @@ module.exports = class gemini extends Exchange {
             if (response['result'] === 'error')
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
+    }
+
+    async createDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let response = await this.privatePostDepositCurrencyNewAddress (this.extend ({
+            'currency': currency['id'],
+        }, params));
+        let address = this.safeString (response, 'address');
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'status': 'ok',
+            'info': response,
+        };
     }
 };

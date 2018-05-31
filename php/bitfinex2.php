@@ -23,6 +23,7 @@ class bitfinex2 extends bitfinex {
                 'createOrder' => false,
                 'deposit' => false,
                 'editOrder' => false,
+                'fetchDepositAddress' => false,
                 'fetchClosedOrders' => false,
                 'fetchFundingFees' => false,
                 'fetchMyTrades' => false,
@@ -114,6 +115,7 @@ class bitfinex2 extends bitfinex {
                         'auth/w/alert/set',
                         'auth/w/alert/{type}:{symbol}:{price}/del',
                         'auth/calc/order/avail',
+                        'auth/r/ledgers/{symbol}/hist',
                     ),
                 ),
             ),
@@ -166,9 +168,7 @@ class bitfinex2 extends bitfinex {
     }
 
     public function get_currency_id ($code) {
-        $isFiat = $this->is_fiat ($code);
-        $prefix = $isFiat ? 'f' : 't';
-        return $prefix . $code;
+        return 'f' . $code;
     }
 
     public function fetch_markets () {
@@ -191,8 +191,8 @@ class bitfinex2 extends bitfinex {
             );
             $limits = array (
                 'amount' => array (
-                    'min' => floatval ($market['minimum_order_size']),
-                    'max' => floatval ($market['maximum_order_size']),
+                    'min' => $this->safe_float($market, 'minimum_order_size'),
+                    'max' => $this->safe_float($market, 'maximum_order_size'),
                 ),
                 'price' => array (
                     'min' => pow (10, -$precision['price']),
@@ -232,16 +232,28 @@ class bitfinex2 extends bitfinex {
             $total = $balance[2];
             $available = $balance[4];
             if ($accountType === $balanceType) {
-                if ($currency[0] === 't')
+                $code = $currency;
+                if (is_array ($this->currencies_by_id) && array_key_exists ($currency, $this->currencies_by_id)) {
+                    $code = $this->currencies_by_id[$currency]['code'];
+                } else if ($currency[0] === 't') {
                     $currency = mb_substr ($currency, 1);
-                $uppercase = strtoupper ($currency);
-                $uppercase = $this->common_currency_code($uppercase);
+                    $code = strtoupper ($currency);
+                    $code = $this->common_currency_code($code);
+                }
                 $account = $this->account ();
-                $account['free'] = $available;
                 $account['total'] = $total;
-                if ($account['free'])
+                if (!$available) {
+                    if ($available === 0) {
+                        $account['free'] = 0;
+                        $account['used'] = $total;
+                    } else {
+                        $account['free'] = null;
+                    }
+                } else {
+                    $account['free'] = $available;
                     $account['used'] = $account['total'] - $account['free'];
-                $result[$uppercase] = $account;
+                }
+                $result[$code] = $account;
             }
         }
         return $this->parse_balance($result);
@@ -390,6 +402,10 @@ class bitfinex2 extends bitfinex {
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         throw new NotSupported ($this->id . ' fetchOrder not implemented yet');
+    }
+
+    public function fetch_deposit_address ($currency, $params = array ()) {
+        throw new NotSupported ($this->id . ' fetchDepositAddress() not implemented yet.');
     }
 
     public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {

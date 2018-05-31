@@ -102,8 +102,8 @@ class paymium (Exchange):
             'id': self.market_id(symbol),
         }, params))
         timestamp = ticker['at'] * 1000
-        vwap = float(ticker['vwap'])
-        baseVolume = float(ticker['volume'])
+        vwap = self.safe_float(ticker, 'vwap')
+        baseVolume = self.safe_float(ticker, 'volume')
         quoteVolume = baseVolume * vwap
         last = self.safe_float(ticker, 'price')
         return {
@@ -152,14 +152,14 @@ class paymium (Exchange):
         }, params))
         return self.parse_trades(response, market, since, limit)
 
-    async def create_order(self, market, type, side, amount, price=None, params={}):
+    async def create_order(self, symbol, type, side, amount, price=None, params={}):
         order = {
             'type': self.capitalize(type) + 'Order',
-            'currency': self.market_id(market),
+            'currency': self.market_id(symbol),
             'direction': side,
             'amount': amount,
         }
-        if type == 'market':
+        if type != 'market':
             order['price'] = price
         response = await self.privatePostUserOrders(self.extend(order, params))
         return {
@@ -168,8 +168,8 @@ class paymium (Exchange):
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
-        return await self.privatePostCancelOrder(self.extend({
-            'orderNumber': id,
+        return await self.privateDeleteUserOrdersUUIDCancel(self.extend({
+            'UUID': id,
         }, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

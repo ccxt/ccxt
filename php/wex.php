@@ -151,7 +151,7 @@ class wex extends liqui {
                         return;
                     }
                     $feedback = $this->id . ' ' . $this->json ($response);
-                    $messages = $this->exceptions.messages;
+                    $messages = $this->exceptions['messages'];
                     if (is_array ($messages) && array_key_exists ($error, $messages)) {
                         throw new $messages[$error] ($feedback);
                     }

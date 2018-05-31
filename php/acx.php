@@ -21,6 +21,7 @@ class acx extends Exchange {
                 'fetchTickers' => true,
                 'fetchOHLCV' => true,
                 'withdraw' => true,
+                'fetchOrder' => true,
             ),
             'timeframes' => array (
                 '1m' => '1',
@@ -294,18 +295,27 @@ class acx extends Exchange {
             'id' => (string) $order['id'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
             'type' => $order['ord_type'],
             'side' => $order['side'],
-            'price' => floatval ($order['price']),
-            'amount' => floatval ($order['volume']),
-            'filled' => floatval ($order['executed_volume']),
-            'remaining' => floatval ($order['remaining_volume']),
+            'price' => $this->safe_float($order, 'price'),
+            'amount' => $this->safe_float($order, 'volume'),
+            'filled' => $this->safe_float($order, 'executed_volume'),
+            'remaining' => $this->safe_float($order, 'remaining_volume'),
             'trades' => null,
             'fee' => null,
             'info' => $order,
         );
+    }
+
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
+        $response = $this->privateGetOrder (array_merge (array (
+            'id' => intval ($id),
+        ), $params));
+        return $this->parse_order($response);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {

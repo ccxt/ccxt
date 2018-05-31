@@ -150,7 +150,7 @@ module.exports = class wex extends liqui {
                         return;
                     }
                     const feedback = this.id + ' ' + this.json (response);
-                    const messages = this.exceptions.messages;
+                    const messages = this.exceptions['messages'];
                     if (error in messages) {
                         throw new messages[error] (feedback);
                     }

@@ -37,7 +37,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.12.117'
+const version = '1.14.107'
 
 Exchange.ccxtVersion = version
 
@@ -96,6 +96,7 @@ const exchanges = {
     'coinone':                 require ('./js/coinone.js'),
     'coinsecure':              require ('./js/coinsecure.js'),
     'coinspot':                require ('./js/coinspot.js'),
+    'cointiger':               require ('./js/cointiger.js'),
     'coolcoin':                require ('./js/coolcoin.js'),
     'cryptopia':               require ('./js/cryptopia.js'),
     'dsx':                     require ('./js/dsx.js'),
@@ -146,6 +147,7 @@ const exchanges = {
     'southxchange':            require ('./js/southxchange.js'),
     'surbitcoin':              require ('./js/surbitcoin.js'),
     'therock':                 require ('./js/therock.js'),
+    'tidebit':                 require ('./js/tidebit.js'),
     'tidex':                   require ('./js/tidex.js'),
     'urdubit':                 require ('./js/urdubit.js'),
     'vaultoro':                require ('./js/vaultoro.js'),

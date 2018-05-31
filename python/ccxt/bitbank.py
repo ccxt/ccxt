@@ -124,22 +124,23 @@ class bitbank (Exchange):
                 '50009': OrderNotFound,
                 '50010': OrderNotFound,
                 '60001': InsufficientFunds,
+                '60005': InvalidOrder,
             },
         })
 
     def parse_ticker(self, ticker, market=None):
         symbol = market['symbol']
         timestamp = ticker['timestamp']
-        last = float(ticker['last'])
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['buy']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'buy'),
             'bidVolume': None,
-            'ask': float(ticker['sell']),
+            'ask': self.safe_float(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -149,7 +150,7 @@ class bitbank (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['vol']),
+            'baseVolume': self.safe_float(ticker, 'vol'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -172,8 +173,8 @@ class bitbank (Exchange):
 
     def parse_trade(self, trade, market=None):
         timestamp = trade['executed_at']
-        price = float(trade['price'])
-        amount = float(trade['amount'])
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'amount')
         symbol = market['symbol']
         cost = self.cost_to_precision(symbol, price * amount)
         id = self.safe_string(trade, 'transaction_id')
@@ -240,13 +241,15 @@ class bitbank (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             id = balance['asset']
-            currency = self.common_currency_code(id)
+            code = id
+            if id in self.currencies_by_id:
+                code = self.currencies_by_id[id]['code']
             account = {
                 'free': float(balance['free_amount']),
                 'used': float(balance['locked_amount']),
                 'total': float(balance['onhand_amount']),
             }
-            result[currency] = account
+            result[code] = account
         return self.parse_balance(result)
 
     def parse_order(self, order, market=None):
@@ -256,8 +259,8 @@ class bitbank (Exchange):
             market = self.marketsById[marketId]
         if market:
             symbol = market['symbol']
-        timestamp = self.safe_integer(order, 'ordered_at') * 1000
-        price = float(order['price'])
+        timestamp = self.safe_integer(order, 'ordered_at')
+        price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'start_amount')
         filled = self.safe_float(order, 'executed_amount')
         remaining = self.safe_float(order, 'remaining_amount')
@@ -274,14 +277,21 @@ class bitbank (Exchange):
             status = 'canceled'
         else:
             status = 'open'
+        type = self.safe_string(order, 'type')
+        if type is not None:
+            type = type.lower()
+        side = self.safe_string(order, 'side')
+        if side is not None:
+            side = side.lower()
         return {
             'id': self.safe_string(order, 'order_id'),
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
+            'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
-            'type': order['type'],
-            'side': order['side'],
+            'type': type,
+            'side': side,
             'price': price,
             'cost': cost,
             'amount': amount,

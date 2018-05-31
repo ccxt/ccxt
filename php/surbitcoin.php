@@ -26,6 +26,9 @@ class surbitcoin extends foxbit {
                 'www' => 'https://surbitcoin.com',
                 'doc' => 'https://blinktrade.com/docs',
             ),
+            'options' => array (
+                'brokerId' => '1', // https://blinktrade.com/docs/#brokers
+            ),
         ));
     }
 }

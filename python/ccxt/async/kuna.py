@@ -133,15 +133,25 @@ class kuna (acx):
         symbol = None
         if market:
             symbol = market['symbol']
+        side = self.safe_string(trade, 'side')
+        sideMap = {
+            'ask': 'sell',
+            'bid': 'buy',
+        }
+        side = sideMap[side]
+        cost = self.safe_float(trade, 'funds')
+        order = self.safe_string(trade, 'order_id')
         return {
             'id': str(trade['id']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
             'type': None,
-            'side': None,
-            'price': float(trade['price']),
-            'amount': float(trade['volume']),
+            'side': side,
+            'price': self.safe_float(trade, 'price'),
+            'amount': self.safe_float(trade, 'volume'),
+            'cost': cost,
+            'order': order,
             'info': trade,
         }
 
@@ -153,35 +163,10 @@ class kuna (acx):
         }, params))
         return self.parse_trades(response, market, since, limit)
 
-    def parse_my_trade(self, trade, market):
-        timestamp = self.parse8601(trade['created_at'])
-        symbol = None
-        if market:
-            symbol = market['symbol']
-        return {
-            'id': trade['id'],
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'price': trade['price'],
-            'amount': trade['volume'],
-            'cost': trade['funds'],
-            'symbol': symbol,
-            'side': trade['side'],
-            'order': trade['order_id'],
-        }
-
-    def parse_my_trades(self, trades, market=None):
-        parsedTrades = []
-        for i in range(0, len(trades)):
-            trade = trades[i]
-            parsedTrade = self.parse_my_trade(trade, market)
-            parsedTrades.append(parsedTrade)
-        return parsedTrades
-
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
             raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         response = await self.privateGetTradesMy({'market': market['id']})
-        return self.parse_my_trades(response, market)
+        return self.parse_trades(response, market, since, limit)

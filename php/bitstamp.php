@@ -212,22 +212,22 @@ class bitstamp extends Exchange {
             'pair' => $this->market_id($symbol),
         ), $params));
         $timestamp = intval ($ticker['timestamp']) * 1000;
-        $vwap = floatval ($ticker['vwap']);
-        $baseVolume = floatval ($ticker['volume']);
+        $vwap = $this->safe_float($ticker, 'vwap');
+        $baseVolume = $this->safe_float($ticker, 'volume');
         $quoteVolume = $baseVolume * $vwap;
-        $last = floatval ($ticker['last']);
+        $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['high']),
-            'low' => floatval ($ticker['low']),
-            'bid' => floatval ($ticker['bid']),
+            'high' => $this->safe_float($ticker, 'high'),
+            'low' => $this->safe_float($ticker, 'low'),
+            'bid' => $this->safe_float($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => floatval ($ticker['ask']),
+            'ask' => $this->safe_float($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => $vwap,
-            'open' => floatval ($ticker['open']),
+            'open' => $this->safe_float($ticker, 'open'),
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
@@ -432,6 +432,8 @@ class bitstamp extends Exchange {
             $request['pair'] = $market['id'];
             $method .= 'Pair';
         }
+        if ($limit !== null)
+            $request['limit'] = $limit;
         $response = $this->$method (array_merge ($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
@@ -514,6 +516,7 @@ class bitstamp extends Exchange {
             'id' => $id,
             'datetime' => $iso8601,
             'timestamp' => $timestamp,
+            'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
             'type' => null,
@@ -531,8 +534,8 @@ class bitstamp extends Exchange {
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $market = null;
+        $this->load_markets();
         if ($symbol !== null) {
-            $this->load_markets();
             $market = $this->market ($symbol);
         }
         $orders = $this->privatePostOpenOrdersAll ();

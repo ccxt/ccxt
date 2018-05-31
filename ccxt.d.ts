@@ -265,7 +265,7 @@ declare module 'ccxt' {
         marketIds (symbols: string[]): string[];
         symbol (symbol: string): string;
         extractParams (str: string): string[];
-        createOrder (market: string, type: string, side: string, amount: string, price?: string, params?: string): Promise<any>;
+        createOrder (symbol: string, type: string, side: string, amount: string, price?: string, params?: string): Promise<any>;
         fetchBalance (params?: any): Promise<Balances>;
         fetchTotalBalance (params?: any): Promise<PartialBalances>;
         fetchUsedBalance (params?: any): Promise<PartialBalances>;
@@ -343,6 +343,7 @@ declare module 'ccxt' {
     export class coinone extends Exchange {}
     export class coinsecure extends Exchange {}
     export class coinspot extends Exchange {}
+    export class cointiger extends huobipro {}
     export class coolcoin extends coinegg {}
     export class cryptopia extends Exchange {}
     export class dsx extends liqui {}
@@ -393,6 +394,7 @@ declare module 'ccxt' {
     export class southxchange extends Exchange {}
     export class surbitcoin extends foxbit {}
     export class therock extends Exchange {}
+    export class tidebit extends Exchange {}
     export class tidex extends liqui {}
     export class urdubit extends foxbit {}
     export class vaultoro extends Exchange {}

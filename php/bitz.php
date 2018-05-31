@@ -16,6 +16,7 @@ class bitz extends Exchange {
             'countries' => 'HK',
             'rateLimit' => 1000,
             'version' => 'v1',
+            'userAgent' => $this->userAgents['chrome'],
             'has' => array (
                 'fetchTickers' => true,
                 'fetchOHLCV' => true,
@@ -125,6 +126,9 @@ class bitz extends Exchange {
             'options' => array (
                 'lastNonceTimestamp' => 0,
             ),
+            'commonCurrencies' => array (
+                'PXC' => 'Pixiecoin',
+            ),
         ));
     }
 
@@ -164,17 +168,20 @@ class bitz extends Exchange {
         $result = array ( 'info' => $response );
         $keys = is_array ($balances) ? array_keys ($balances) : array ();
         for ($i = 0; $i < count ($keys); $i++) {
-            $currency = $keys[$i];
-            $balance = floatval ($balances[$currency]);
-            if (is_array ($this->currencies_by_id) && array_key_exists ($currency, $this->currencies_by_id))
-                $currency = $this->currencies_by_id[$currency]['code'];
-            else
-                $currency = strtoupper ($currency);
-            $account = $this->account ();
-            $account['free'] = $balance;
-            $account['used'] = null;
-            $account['total'] = $balance;
-            $result[$currency] = $account;
+            $id = $keys[$i];
+            $idHasUnderscore = (mb_strpos ($id, '_') !== false);
+            if (!$idHasUnderscore) {
+                $code = strtoupper ($id);
+                if (is_array ($this->currencies_by_id) && array_key_exists ($id, $this->currencies_by_id)) {
+                    $code = $this->currencies_by_id[$id]['code'];
+                }
+                $account = $this->account ();
+                $usedField = $id . '_lock';
+                $account['used'] = $this->safe_float($balances, $usedField);
+                $account['total'] = $this->safe_float($balances, $id);
+                $account['free'] = $account['total'] - $account['used'];
+                $result[$code] = $account;
+            }
         }
         return $this->parse_balance($result);
     }
@@ -182,16 +189,16 @@ class bitz extends Exchange {
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = $ticker['date'] * 1000;
         $symbol = $market['symbol'];
-        $last = floatval ($ticker['last']);
+        $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['high']),
-            'low' => floatval ($ticker['low']),
-            'bid' => floatval ($ticker['buy']),
+            'high' => $this->safe_float($ticker, 'high'),
+            'low' => $this->safe_float($ticker, 'low'),
+            'bid' => $this->safe_float($ticker, 'buy'),
             'bidVolume' => null,
-            'ask' => floatval ($ticker['sell']),
+            'ask' => $this->safe_float($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -201,7 +208,7 @@ class bitz extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($ticker['vol']),
+            'baseVolume' => $this->safe_float($ticker, 'vol'),
             'quoteVolume' => null,
             'info' => $ticker,
         );
@@ -247,8 +254,8 @@ class bitz extends Exchange {
         $utcDate = explode ('T', $utcDate);
         $utcDate = $utcDate[0] . ' ' . $trade['t'] . '+08';
         $timestamp = $this->parse8601 ($utcDate);
-        $price = floatval ($trade['p']);
-        $amount = floatval ($trade['n']);
+        $price = $this->safe_float($trade, 'p');
+        $amount = $this->safe_float($trade, 'n');
         $symbol = $market['symbol'];
         $cost = $this->price_to_precision($symbol, $amount * $price);
         return array (
@@ -297,7 +304,15 @@ class bitz extends Exchange {
             $side = $this->safe_string($order, 'type');
             if ($side !== null)
                 $side = ($side === 'in') ? 'buy' : 'sell';
+            if ($side === null)
+                $side = $this->safe_string($order, 'flag');
         }
+        $amount = $this->safe_float($order, 'number');
+        $remaining = $this->safe_float($order, 'numberover');
+        $filled = null;
+        if ($amount !== null)
+            if ($remaining !== null)
+                $filled = $amount - $remaining;
         $timestamp = null;
         $iso8601 = null;
         if (is_array ($order) && array_key_exists ('datetime', $order)) {
@@ -308,6 +323,7 @@ class bitz extends Exchange {
             'id' => $order['id'],
             'datetime' => $iso8601,
             'timestamp' => $timestamp,
+            'lastTradeTimestamp' => null,
             'status' => 'open',
             'symbol' => $symbol,
             'type' => 'limit',
@@ -315,8 +331,8 @@ class bitz extends Exchange {
             'price' => $order['price'],
             'cost' => null,
             'amount' => $order['number'],
-            'filled' => null,
-            'remaining' => null,
+            'filled' => $filled,
+            'remaining' => $remaining,
             'trades' => null,
             'fee' => null,
             'info' => $order,
@@ -327,6 +343,8 @@ class bitz extends Exchange {
         $this->load_markets();
         $market = $this->market ($symbol);
         $orderType = ($side === 'buy') ? 'in' : 'out';
+        if (!$this->password)
+            throw new ExchangeError ($this->id . ' createOrder() requires you to set exchange.password = "YOUR_TRADING_PASSWORD" (a trade password is NOT THE SAME as your login password)');
         $request = array (
             'coin' => $market['id'],
             'type' => $orderType,
@@ -369,7 +387,7 @@ class bitz extends Exchange {
             $this->options['lastNonceTimestamp'] = $currentTimestamp;
             $this->options['lastNonce'] = 100000;
         }
-        $this->options['lastNonce'] .= 1;
+        $this->options['lastNonce'] = $this->sum ($this->options['lastNonce'], 1);
         return $this->options['lastNonce'];
     }
 

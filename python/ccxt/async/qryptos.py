@@ -187,7 +187,7 @@ class qryptos (Exchange):
             if ticker['last_traded_price']:
                 length = len(ticker['last_traded_price'])
                 if length > 0:
-                    last = float(ticker['last_traded_price'])
+                    last = self.safe_float(ticker, 'last_traded_price')
         symbol = None
         if market:
             symbol = market['symbol']
@@ -248,6 +248,9 @@ class qryptos (Exchange):
         # 'my_side' gets filled for fetchMyTrades only and may differ from 'taker_side'
         mySide = self.safe_string(trade, 'my_side')
         side = mySide if (mySide is not None) else takerSide
+        takerOrMaker = None
+        if mySide is not None:
+            takerOrMaker = 'taker' if (takerSide == mySide) else 'maker'
         return {
             'info': trade,
             'id': str(trade['id']),
@@ -257,8 +260,9 @@ class qryptos (Exchange):
             'symbol': market['symbol'],
             'type': None,
             'side': side,
-            'price': float(trade['price']),
-            'amount': float(trade['quantity']),
+            'takerOrMaker': takerOrMaker,
+            'price': self.safe_float(trade, 'price'),
+            'amount': self.safe_float(trade, 'quantity'),
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -320,9 +324,9 @@ class qryptos (Exchange):
                 status = 'closed'
             elif order['status'] == 'cancelled':  # 'll' intended
                 status = 'canceled'
-        amount = float(order['quantity'])
-        filled = float(order['filled_quantity'])
-        price = float(order['price'])
+        amount = self.safe_float(order, 'quantity')
+        filled = self.safe_float(order, 'filled_quantity')
+        price = self.safe_float(order, 'price')
         symbol = None
         if market:
             symbol = market['symbol']
@@ -330,6 +334,7 @@ class qryptos (Exchange):
             'id': str(order['id']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'type': order['order_type'],
             'status': status,
             'symbol': symbol,
@@ -341,7 +346,7 @@ class qryptos (Exchange):
             'trades': None,
             'fee': {
                 'currency': None,
-                'cost': float(order['order_fee']),
+                'cost': self.safe_float(order, 'order_fee'),
             },
             'info': order,
         }

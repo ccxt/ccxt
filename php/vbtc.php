@@ -26,6 +26,9 @@ class vbtc extends foxbit {
                 'www' => 'https://vbtc.exchange',
                 'doc' => 'https://blinktrade.com/docs',
             ),
+            'options' => array (
+                'brokerId' => '3', // https://blinktrade.com/docs/#brokers
+            ),
         ));
     }
 }
