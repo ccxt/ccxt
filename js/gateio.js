@@ -22,6 +22,9 @@ module.exports = class gateio extends Exchange {
                 'withdraw': true,
                 'createDepositAddress': true,
                 'fetchDepositAddress': true,
+                'fetchClosedOrders': true,
+                'fetchOpenOrders': true,
+                'fetchOrders': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
@@ -448,6 +451,26 @@ module.exports = class gateio extends Exchange {
 
     async fetchDepositAddress (code, params = {}) {
         return await this.queryDepositAddress ('Deposit', code, params);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (typeof symbol !== 'undefined') {
+            market = this.market (symbol);
+        }
+        let response = this.privatePostOpenOrders ();
+        return this.parseOrders (response['orders'], market, since, limit);
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (typeof symbol === 'undefined')
+            throw new ExchangeError (this.id + ' fetchMyTrades requires symbol param');
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let id = market['id'];
+        let response = this.privatePostTradeHistory (this.extend ({ 'currencyPair': id }, params));
+        return this.parseTrades (response['trades'], market, since, limit);
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
