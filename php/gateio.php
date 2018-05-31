@@ -23,6 +23,9 @@ class gateio extends Exchange {
                 'withdraw' => true,
                 'createDepositAddress' => true,
                 'fetchDepositAddress' => true,
+                'fetchClosedOrders' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrders' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
@@ -449,6 +452,26 @@ class gateio extends Exchange {
 
     public function fetch_deposit_address ($code, $params = array ()) {
         return $this->query_deposit_address ('Deposit', $code, $params);
+    }
+
+    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market ($symbol);
+        }
+        $response = $this->privatePostOpenOrders ();
+        return $this->parse_orders($response['orders'], $market, $since, $limit);
+    }
+
+    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null)
+            throw new ExchangeError ($this->id . ' fetchMyTrades requires $symbol param');
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $id = $market['id'];
+        $response = $this->privatePostTradeHistory (array_merge (array ( 'currencyPair' => $id ), $params));
+        return $this->parse_trades($response['trades'], $market, $since, $limit);
     }
 
     public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
