@@ -137,7 +137,7 @@ module.exports = class coinbase extends Exchange {
             let currency = balance['balance']['currency'];
             let account = {
                 'free': this.safeFloat (balance['balance'], 'amount'),
-                'used': null,
+                'used': undefined,
                 'total': this.safeFloat (balance['balance'], 'amount'),
             };
             result[currency] = account;
