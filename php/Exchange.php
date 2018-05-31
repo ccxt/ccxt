@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.14.114';
+$version = '1.14.115';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -87,6 +87,7 @@ abstract class Exchange {
         'chbtc',
         'chilebit',
         'cobinhood',
+        'coinbase',
         'coincheck',
         'coinegg',
         'coinex',
