@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, RequestTimeout, AuthenticationError, DDoSProtection, InsufficientFunds, OrderNotFound, OrderNotCached, InvalidOrder, AccountFrozen, CancelPending, InvalidNonce } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, RequestTimeout, AuthenticationError, DDoSProtection, InsufficientFunds, OrderNotFound, OrderNotCached, InvalidOrder, AccountSuspended, CancelPending, InvalidNonce } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -844,7 +844,7 @@ module.exports = class poloniex extends Exchange {
             } else if (error.indexOf ('Total must be at least') >= 0) {
                 throw new InvalidOrder (feedback);
             } else if (error.indexOf('This account is frozen.') >= 0) {
-                throw new AccountFrozen (feedback);
+                throw new AccountSuspended (feedback);
             } else if (error.indexOf ('Not enough') >= 0) {
                 throw new InsufficientFunds (feedback);
             } else if (error.indexOf ('Nonce must be greater') >= 0) {

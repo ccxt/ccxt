@@ -15,6 +15,7 @@ module.exports = subclass (
             'ExchangeError': {
                 'AuthenticationError': {
                     'PermissionDenied': {},
+                    'AccountSuspended': {},
                 },
                 'BadResponse': {
                     'NullResponse': {},
@@ -25,7 +26,6 @@ module.exports = subclass (
                     'OrderNotFound': {},
                     'OrderNotCached': {},
                     'CancelPending': {},
-                    'AccountFrozen': {},
                 },
                 'NotSupported': {},
             },
