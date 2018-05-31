@@ -30,11 +30,11 @@ module.exports = class lykke extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/34487620-3139a7b0-efe6-11e7-90f5-e520cef74451.jpg',
                 'api': {
-                    'mobile': 'https://api.lykkex.com/api',
+                    'mobile': 'https://public-api.lykke.com/api',
                     'public': 'https://hft-api.lykke.com/api',
                     'private': 'https://hft-api.lykke.com/api',
                     'test': {
-                        'mobile': 'https://api.lykkex.com/api',
+                        'mobile': 'https://public-api.lykke.com/api',
                         'public': 'https://hft-service-dev.lykkex.net/api',
                         'private': 'https://hft-service-dev.lykkex.net/api',
                     },
@@ -49,7 +49,7 @@ module.exports = class lykke extends Exchange {
             'api': {
                 'mobile': {
                     'get': [
-                        'AllAssetPairRates/{market}',
+                        'Market/{market}',
                     ],
                 },
                 'public': {
@@ -183,26 +183,26 @@ module.exports = class lykke extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
-        ticker = ticker['Result'];
+        let close = parseFloat (ticker['lastPrice']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
             'low': undefined,
-            'bid': parseFloat (ticker['Rate']['Bid']),
+            'bid': parseFloat (ticker['bid']),
             'bidVolume': undefined,
-            'ask': parseFloat (ticker['Rate']['Ask']),
+            'ask': parseFloat (ticker['ask']),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'last': undefined,
+            'close': close,
+            'last': close,
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': undefined,
+            'baseVolume': parseFloat (ticker['volume24H']),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -211,7 +211,7 @@ module.exports = class lykke extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let ticker = await this.mobileGetAllAssetPairRatesMarket (this.extend ({
+        let ticker = await this.mobileGetMarketMarket (this.extend ({
             'market': market['id'],
         }, params));
         return this.parseTicker (ticker, market);

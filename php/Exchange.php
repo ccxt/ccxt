@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.14.79';
+$version = '1.14.102';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -1806,6 +1806,7 @@ abstract class Exchange {
     }
 
     public static function decimal_to_precision ($x, $roundingMode = ROUND, $numPrecisionDigits = null, $countingMode = DECIMAL_PLACES, $paddingMode = NO_PADDING) {
+
         if ($numPrecisionDigits < 0) {
             throw new BaseError ('Negative precision is not yet supported');
         }
@@ -1817,6 +1818,8 @@ abstract class Exchange {
         if (!is_numeric ($x)) {
             throw new BaseError ('Invalid number');
         }
+
+        assert ($roundingMode === ROUND || $roundingMode === TRUNCATE);
 
         $result = '';
         if ($roundingMode === ROUND) {
@@ -1849,6 +1852,8 @@ abstract class Exchange {
 
         $hasDot = strpos ($result, '.') !== false;
         if ($paddingMode === NO_PADDING) {
+            if ($result === '' && $numPrecisionDigits === 0)
+                return '0';
             if ($hasDot) {
                 $result = rtrim ($result, '0.');
             }

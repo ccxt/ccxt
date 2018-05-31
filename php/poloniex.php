@@ -844,6 +844,8 @@ class poloniex extends Exchange {
                 throw new DDoSProtection ($feedback);
             } else if (mb_strpos ($error, 'Total must be at least') !== false) {
                 throw new InvalidOrder ($feedback);
+            } else if (mb_strpos ($error, 'This account is frozen.') !== false) {
+                throw new AccountSuspended ($feedback);
             } else if (mb_strpos ($error, 'Not enough') !== false) {
                 throw new InsufficientFunds ($feedback);
             } else if (mb_strpos ($error, 'Nonce must be greater') !== false) {

@@ -110,7 +110,7 @@ class coinmarketcap extends Exchange {
             'GET Protocol' => 'GET Protocol',
             'Global Tour Coin' => 'Global Tour Coin', // conflict with GTC (Game.com)
             'GuccioneCoin' => 'GuccioneCoin', // conflict with GCC (Global Cryptocurrency)
-            'Hi Mutual Society' => 'Hi Mutual Society', // conflict with HMC (HarmonyCoin)
+            'HarmonyCoin' => 'HarmonyCoin', // conflict with HMC (Hi Mutual Society)
             'Huncoin' => 'Huncoin', // conflict with HNC (Helleniccoin)
             'iCoin' => 'iCoin',
             'Infinity Economics' => 'Infinity Economics', // conflict with XIN (Mixin)
@@ -143,9 +143,6 @@ class coinmarketcap extends Exchange {
                 $base = $this->currency_code ($market['symbol'], $market['name']);
                 $symbol = $base . '/' . $quote;
                 $id = $baseId . '/' . $quoteId;
-                if (mb_strpos ($market['symbol'], 'dao') !== false) {
-                    var_dump ($market);
-                }
                 $result[] = array (
                     'id' => $id,
                     'symbol' => $symbol,

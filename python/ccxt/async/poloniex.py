@@ -9,6 +9,7 @@ import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -786,6 +787,8 @@ class poloniex (Exchange):
                 raise DDoSProtection(feedback)
             elif error.find('Total must be at least') >= 0:
                 raise InvalidOrder(feedback)
+            elif error.find('This account is frozen.') >= 0:
+                raise AccountSuspended(feedback)
             elif error.find('Not enough') >= 0:
                 raise InsufficientFunds(feedback)
             elif error.find('Nonce must be greater') >= 0:
