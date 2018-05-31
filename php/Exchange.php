@@ -1806,6 +1806,7 @@ abstract class Exchange {
     }
 
     public static function decimal_to_precision ($x, $roundingMode = ROUND, $numPrecisionDigits = null, $countingMode = DECIMAL_PLACES, $paddingMode = NO_PADDING) {
+
         if ($numPrecisionDigits < 0) {
             throw new BaseError ('Negative precision is not yet supported');
         }
@@ -1817,6 +1818,8 @@ abstract class Exchange {
         if (!is_numeric ($x)) {
             throw new BaseError ('Invalid number');
         }
+
+        assert ($roundingMode === ROUND || $roundingMode === TRUNCATE);
 
         $result = '';
         if ($roundingMode === ROUND) {
