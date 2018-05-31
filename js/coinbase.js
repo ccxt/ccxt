@@ -124,7 +124,7 @@ module.exports = class coinbase extends Exchange {
                 'identity_verification_required': AuthenticationError, // 400 Identity verification is required to complete this request
                 'jumio_verification_required': AuthenticationError, // 400 Document verification is required to complete this request
                 'jumio_face_match_verification_required': AuthenticationError, // 400 Document verification including face match is required to complete this request
-                'unverified_email': AuthenticationError, // 400	User has not verified their email
+                'unverified_email': AuthenticationError, // 400 User has not verified their email
                 'authentication_error': AuthenticationError, // 401 Invalid auth (generic)
                 'invalid_token': AuthenticationError, // 401 Invalid Oauth token
                 'revoked_token': AuthenticationError, // 401 Revoked Oauth token
