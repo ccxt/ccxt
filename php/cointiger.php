@@ -18,6 +18,7 @@ class cointiger extends huobipro {
             'has' => array (
                 'fetchCurrencies' => false,
                 'fetchTickers' => true,
+                'fetchTradingLimits' => false,
                 'fetchOrder' => false,
             ),
             'headers' => array (
