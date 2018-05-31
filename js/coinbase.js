@@ -55,7 +55,6 @@ module.exports = class coinbase extends Exchange {
                 'apiKey': true,
                 'secret': true,
             },
-            'version': 'v2',
             'api': {
                 'public': {
                     'get': [
@@ -119,7 +118,7 @@ module.exports = class coinbase extends Exchange {
             'exceptions': {
                 'two_factor_required': AuthenticationError, // 402 When sending money over 2fa limit
                 'param_required': ExchangeError, // 400 Missing parameter
-                'validation_error': ExchangeError,	// 400 Unable to validate POST/PUT
+                'validation_error': ExchangeError, // 400 Unable to validate POST/PUT
                 'invalid_request': ExchangeError, // 400 Invalid request
                 'personal_details_required': AuthenticationError, // 400 User’s personal detail required to complete this request
                 'identity_verification_required': AuthenticationError, // 400 Identity verification is required to complete this request
@@ -208,7 +207,7 @@ module.exports = class coinbase extends Exchange {
             return; // fallback to default error handler
         if ((body[0] === '{') || (body[0] === '[')) {
             let response = JSON.parse (body);
-            let feedback = id + ' ' + body;
+            let feedback = this.id + ' ' + body;
             //
             //    {"error": "invalid_request", "error_description": "The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed."}
             //
