@@ -527,13 +527,28 @@ module.exports = class cryptopia extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostCancelTrade (this.extend ({
-            'Type': 'Trade',
-            'OrderId': id,
-        }, params));
-        if (id in this.orders)
-            this.orders[id]['status'] = 'canceled';
-        return response;
+        let response = undefined;
+        try {
+            response = await this.privatePostCancelTrade (this.extend ({
+                'Type': 'Trade',
+                'OrderId': id,
+            }, params));
+            // We do not know if it is indeed canceled, but cryptopia
+            // lacks any reasonable method to get information on executed
+            // or canceled order id.
+            if (id in this.orders)
+                this.orders[id]['status'] = 'canceled';
+        } catch (e) {
+            if (this.last_json_response) {
+                let message = this.safeString (this.last_json_response, 'Error');
+                if (message) {
+                    if (message.indexOf ('does not exist') >= 0)
+                        throw new OrderNotFound (this.id + ' cancelOrder() error: ' + this.last_http_response);
+                }
+            }
+            throw e;
+        }
+        return this.parseOrder (response);
     }
 
     parseOrder (order, market = undefined) {
@@ -552,20 +567,35 @@ module.exports = class cryptopia extends Exchange {
                 }
             }
         }
-        let timestamp = this.parse8601 (order['TimeStamp']);
+        let timestamp = this.safeInteger (order, 'TimeStamp');
+        let datetime = undefined;
+        if (timestamp) {
+            datetime = this.iso8601 (timestamp);
+        }
         let amount = this.safeFloat (order, 'Amount');
         let remaining = this.safeFloat (order, 'Remaining');
-        let filled = amount - remaining;
+        let filled = undefined;
+        if (typeof amount !== 'undefined' && typeof remaining !== 'undefined') {
+            filled = amount - remaining;
+        }
+        let id = this.safeValue (order, 'OrderId');
+        if (typeof id !== 'undefined') {
+            id = id.toString ();
+        }
+        let side = this.safeString (order, 'Type');
+        if (typeof side !== 'undefined') {
+            side = side.toLowerCase ();
+        }
         return {
-            'id': order['OrderId'].toString (),
+            'id': id,
             'info': this.omit (order, 'status'),
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': datetime,
             'lastTradeTimestamp': undefined,
             'status': order['status'],
             'symbol': symbol,
             'type': 'limit',
-            'side': order['Type'].toLowerCase (),
+            'side': side,
             'price': this.safeFloat (order, 'Rate'),
             'cost': this.safeFloat (order, 'Total'),
             'amount': amount,
