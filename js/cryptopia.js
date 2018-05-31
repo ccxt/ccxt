@@ -527,12 +527,27 @@ module.exports = class cryptopia extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostCancelTrade (this.extend ({
-            'Type': 'Trade',
-            'OrderId': id,
-        }, params));
-        if (id in this.orders)
-            this.orders[id]['status'] = 'canceled';
+        let response = undefined;
+        try {
+            response = await this.privatePostCancelTrade (this.extend ({
+                'Type': 'Trade',
+                'OrderId': id,
+            }, params));
+            // We do not know if it is indeed canceled, but cryptopia
+            // lacks any reasonable method to get information on executed
+            // or canceled order id.
+            if (id in this.orders)
+                this.orders[id]['status'] = 'canceled';
+        } catch (e) {
+            if (this.last_json_response) {
+                let message = this.safeString (this.last_json_response, 'Error');
+                if (message) {
+                    if (message.indexOf ('does not exist') >= 0)
+                        throw new OrderNotFound (this.id + ' cancelOrder() error: ' + this.last_http_response);
+                }
+            }
+            throw e;
+        }
         return response;
     }
 
