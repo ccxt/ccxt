@@ -630,6 +630,21 @@ class gatecoin (Exchange):
             'info': response,
         }
 
+    def create_user_wallet(self, code, address, name, password, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'DigiCurrency': currency['id'],
+            'AddressName': name,
+            'Address': address,
+            'Password': password,
+        }
+        response = self.privatePostElectronicWalletUserWalletsDigiCurrency(self.extend(request, params))
+        return {
+            'status': 'ok',
+            'info': response,
+        }
+
     def handle_errors(self, code, reason, url, method, headers, body):
         if not isinstance(body, basestring):
             return  # fallback to default error handler

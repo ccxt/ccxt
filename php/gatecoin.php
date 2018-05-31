@@ -659,6 +659,22 @@ class gatecoin extends Exchange {
         );
     }
 
+    public function create_user_wallet ($code, $address, $name, $password, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency ($code);
+        $request = array (
+            'DigiCurrency' => $currency['id'],
+            'AddressName' => $name,
+            'Address' => $address,
+            'Password' => $password,
+        );
+        $response = $this->privatePostElectronicWalletUserWalletsDigiCurrency (array_merge ($request, $params));
+        return array (
+            'status' => 'ok',
+            'info' => $response,
+        );
+    }
+
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
         if (gettype ($body) != 'string')
             return; // fallback to default error handler
