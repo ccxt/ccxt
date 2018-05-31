@@ -843,7 +843,7 @@ module.exports = class poloniex extends Exchange {
                 throw new DDoSProtection (feedback);
             } else if (error.indexOf ('Total must be at least') >= 0) {
                 throw new InvalidOrder (feedback);
-            } else if (error.indexOf('This account is frozen.') >= 0) {
+            } else if (error.indexOf ('This account is frozen.') >= 0) {
                 throw new AccountSuspended (feedback);
             } else if (error.indexOf ('Not enough') >= 0) {
                 throw new InsufficientFunds (feedback);
