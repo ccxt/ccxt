@@ -50,10 +50,10 @@ module.exports = class btcturk extends Exchange {
                 },
             },
             'markets': {
-                'BTC/TRY': { 'id': 'BTCTRY', 'symbol': 'BTC/TRY', 'base': 'BTC', 'quote': 'TRY', 'maker': 0.002 * 1.18, 'taker': 0.0035 * 1.18 },
-                'ETH/TRY': { 'id': 'ETHTRY', 'symbol': 'ETH/TRY', 'base': 'ETH', 'quote': 'TRY', 'maker': 0.002 * 1.18, 'taker': 0.0035 * 1.18 },
-                'XRP/TRY': { 'id': 'XRPTRY', 'symbol': 'XRP/TRY', 'base': 'XRP', 'quote': 'TRY', 'maker': 0.002 * 1.18, 'taker': 0.0035 * 1.18 },
-                'ETH/BTC': { 'id': 'ETHBTC', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'maker': 0.002 * 1.18, 'taker': 0.0035 * 1.18 },
+                'BTC/TRY': { 'id': 'BTCTRY', 'symbol': 'BTC/TRY', 'base': 'BTC', 'quote': 'TRY', 'baseId': 'btc', 'quoteId': 'try', 'maker': 0.002 * 1.18, 'taker': 0.0035 * 1.18 },
+                'ETH/TRY': { 'id': 'ETHTRY', 'symbol': 'ETH/TRY', 'base': 'ETH', 'quote': 'TRY', 'baseId': 'eth', 'quoteId': 'try', 'maker': 0.002 * 1.18, 'taker': 0.0035 * 1.18 },
+                'XRP/TRY': { 'id': 'XRPTRY', 'symbol': 'XRP/TRY', 'base': 'XRP', 'quote': 'TRY', 'baseId': 'xrp', 'quoteId': 'try', 'maker': 0.002 * 1.18, 'taker': 0.0035 * 1.18 },
+                'ETH/BTC': { 'id': 'ETHBTC', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'baseId': 'eth', 'quoteId': 'btc', 'maker': 0.002 * 1.18, 'taker': 0.0035 * 1.18 },
             },
         });
     }
@@ -61,18 +61,20 @@ module.exports = class btcturk extends Exchange {
     async fetchBalance (params = {}) {
         let response = await this.privateGetBalance ();
         let result = { 'info': response };
-        let currencies = Object.keys (this.currencies);
-        for (let i = 0; i < currencies.length; i++) {
-            let currency = currencies[i];
-            let currency_lowercase = currency.toLowerCase ();
+        let codes = Object.keys (this.currencies);
+        for (let i = 0; i < codes.length; i++) {
+            let code = codes[i];
+            let currency = this.currencies[code];
             let account = this.account ();
-            let available = currency_lowercase + '_available';
-            if (available in response) {
-                account['free'] = response[available];
-                account['total'] = response[currency_lowercase + '_balance'];
-                account['used'] = response[currency_lowercase + '_reserved'];
+            let free = currency['id'] + '_available';
+            let total = currency['id'] + '_balance';
+            let used = currency['id'] + '_reserved';
+            if (free in response) {
+                account['free'] = this.safeFloat (response, free);
+                account['total'] = this.safeFloat (response, total);
+                account['used'] = this.safeFloat (response, used);
             }
-            result[currency] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
