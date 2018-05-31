@@ -11,7 +11,7 @@ If your question is formulated in a short manner like the above, we won't help. 
 
 ## I am calling a method and I get an error, what am I doing wrong?
 
-You're not reporting the issue properly ) Please, help the community to help you ) Read this and follow the steps: https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-submit-an-issue. Once again, your code to reproduce the issue and your verbose request and response **ARE REQUIRED**.
+You're not reporting the issue properly ) Please, help the community to help you ) Read this and follow the steps: https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-submit-an-issue. Once again, your code to reproduce the issue and your verbose request and response **ARE REQUIRED**. *The error traceback is not enough.*
 
 ## Can you implement feature `foo` in exchange `bar`?
 
