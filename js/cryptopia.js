@@ -567,20 +567,35 @@ module.exports = class cryptopia extends Exchange {
                 }
             }
         }
-        let timestamp = this.parse8601 (order['TimeStamp']);
+        let timestamp = this.safeInteger (order, 'TimeStamp');
+        let datetime = undefined;
+        if (timestamp) {
+            datetime = this.iso8601 (timestamp);
+        }
         let amount = this.safeFloat (order, 'Amount');
         let remaining = this.safeFloat (order, 'Remaining');
-        let filled = amount - remaining;
+        let filled = undefined;
+        if (typeof amount !== 'undefined' && typeof remaining !== 'undefined') {
+            filled = amount - remaining;
+        }
+        let id = this.safeValue (order, 'OrderId');
+        if (typeof id !== 'undefined') {
+            id = id.toString ();
+        }
+        let side = this.safeString (order, 'Type');
+        if (typeof side !== 'undefined') {
+            side = side.toLowerCase ();
+        }
         return {
-            'id': order['OrderId'].toString (),
+            'id': id,
             'info': this.omit (order, 'status'),
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': datetime,
             'lastTradeTimestamp': undefined,
             'status': order['status'],
             'symbol': symbol,
             'type': 'limit',
-            'side': order['Type'].toLowerCase (),
+            'side': side,
             'price': this.safeFloat (order, 'Rate'),
             'cost': this.safeFloat (order, 'Total'),
             'amount': amount,
