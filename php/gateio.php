@@ -76,6 +76,40 @@ class gateio extends Exchange {
                     'taker' => 0.002,
                 ),
             ),
+            'exceptions' => array (
+                '4' => '\\ccxt\\DDoSProtection',
+                '7' => '\\ccxt\\NotSupported',
+                '8' => '\\ccxt\\NotSupported',
+                '9' => '\\ccxt\\NotSupported',
+                '15' => '\\ccxt\\DDoSProtection',
+                '16' => '\\ccxt\\OrderNotFound',
+                '17' => '\\ccxt\\OrderNotFound',
+                '21' => '\\ccxt\\InsufficientFunds',
+            ),
+            // https://gate.io/api2#errCode
+            'errorCodeNames' => array (
+                '1' => 'Invalid request',
+                '2' => 'Invalid version',
+                '3' => 'Invalid request',
+                '4' => 'Too many attempts',
+                '5' => 'Invalid sign',
+                '6' => 'Invalid sign',
+                '7' => 'Currency is not supported',
+                '8' => 'Currency is not supported',
+                '9' => 'Currency is not supported',
+                '10' => 'Verified failed',
+                '11' => 'Obtaining address failed',
+                '12' => 'Empty params',
+                '13' => 'Internal error, please report to administrator',
+                '14' => 'Invalid user',
+                '15' => 'Cancel order too fast, please wait 1 min and try again',
+                '16' => 'Invalid order id or order is already closed',
+                '17' => 'Invalid orderid',
+                '18' => 'Invalid amount',
+                '19' => 'Not permitted or trade is disabled',
+                '20' => 'Your order size is too small',
+                '21' => 'You don\'t have enough fund',
+            ),
         ));
     }
 
@@ -195,6 +229,34 @@ class gateio extends Exchange {
         );
     }
 
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+        if (strlen ($body) <= 0) {
+            return;
+        }
+        if ($body[0] !== '{') {
+            return;
+        }
+        $jsonbodyParsed = json_decode ($body, $as_associative_array = true);
+        $resultString = $this->safe_string($jsonbodyParsed, 'result', '');
+        if ($resultString !== 'false') {
+            return;
+        }
+        $errorCode = $this->safe_string($jsonbodyParsed, 'code');
+        if ($errorCode !== null) {
+            $exceptions = $this->exceptions;
+            $errorCodeNames = $this->errorCodeNames;
+            if (is_array ($exceptions) && array_key_exists ($errorCode, $exceptions)) {
+                $message = '';
+                if (is_array ($errorCodeNames) && array_key_exists ($errorCode, $errorCodeNames)) {
+                    $message = $errorCodeNames[$errorCode];
+                } else {
+                    $message = $this->safe_string($jsonbodyParsed, 'message', '(unknown)');
+                }
+                throw new $exceptions[$errorCode] ($message);
+            }
+        }
+    }
+
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
         $tickers = $this->publicGetTickers ($params);
@@ -253,52 +315,140 @@ class gateio extends Exchange {
         return $this->parse_trades($response['data'], $market, $since, $limit);
     }
 
+    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $response = $this->privatePostOpenOrders ($params);
+        return $this->parse_orders($response['result']['orders'], null, $since, $limit);
+    }
+
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
+        $response = $this->privatePostGetOrder (array_merge (array (
+            'orderNumber' => $id,
+            'currencyPair' => $this->market_id($symbol),
+        ), $params));
+        return $this->parse_order($response['order']);
+    }
+
+    public function parse_order_status ($status) {
+        $statuses = array (
+            'cancelled' => 'canceled',
+            // 'closed' => 'closed', // these two $statuses aren't actually needed
+            // 'open' => 'open', // as they are mapped one-to-one
+        );
+        if (is_array ($statuses) && array_key_exists ($status, $statuses))
+            return $statuses[$status];
+        return $status;
+    }
+
+    public function parse_order ($order, $market = null) {
+        $id = $this->safe_string($order, 'orderNumber');
+        $symbol = null;
+        if ($market === null) {
+            $marketId = $this->safe_string($order, 'currencyPair');
+            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+            }
+        }
+        if ($market !== null)
+            $symbol = $market['symbol'];
+        $timestamp = $this->safe_integer($order, 'timestamp');
+        if ($timestamp !== null)
+            $timestamp *= 1000;
+        $status = $this->safe_string($order, 'status');
+        if ($status !== null)
+            $status = $this->parse_order_status($status);
+        $side = $this->safe_string($order, 'type');
+        $price = $this->safe_float($order, 'filledRate');
+        $amount = $this->safe_float($order, 'initialAmount');
+        $filled = $this->safe_float($order, 'filledAmount');
+        $remaining = $this->safe_float($order, 'leftAmount');
+        $feeCost = $this->safe_float($order, 'feeValue');
+        $feeCurrency = $this->safe_string($order, 'feeCurrency');
+        if ($feeCurrency !== null) {
+            if (is_array ($this->currencies_by_id) && array_key_exists ($feeCurrency, $this->currencies_by_id)) {
+                $feeCurrency = $this->currencies_by_id[$feeCurrency]['code'];
+            }
+        }
+        return array (
+            'id' => $id,
+            'datetime' => $this->iso8601 ($timestamp),
+            'timestamp' => $timestamp,
+            'status' => $status,
+            'symbol' => $symbol,
+            'type' => 'limit',
+            'side' => $side,
+            'price' => $price,
+            'cost' => null,
+            'amount' => $amount,
+            'filled' => $filled,
+            'remaining' => $remaining,
+            'trades' => null,
+            'fee' => array (
+                'cost' => $feeCost,
+                'currency' => $feeCurrency,
+            ),
+            'info' => $order,
+        );
+    }
+
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         if ($type === 'market')
             throw new ExchangeError ($this->id . ' allows limit orders only');
         $this->load_markets();
         $method = 'privatePost' . $this->capitalize ($side);
+        $market = $this->market ($symbol);
         $order = array (
-            'currencyPair' => $this->market_id($symbol),
+            'currencyPair' => $market['id'],
             'rate' => $price,
             'amount' => $amount,
         );
         $response = $this->$method (array_merge ($order, $params));
-        return array (
-            'info' => $response,
-            'id' => $response['orderNumber'],
-        );
+        return $this->parse_order(array_merge (array (
+            'status' => 'open',
+            'type' => $side,
+            'initialAmount' => $amount,
+        )), $response, $market);
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->privatePostCancelOrder (array ( 'orderNumber' => $id ));
+        return $this->privatePostCancelOrder (array (
+            'orderNumber' => $id,
+            'currencyPair' => $this->market_id($symbol),
+        ));
     }
 
-    public function query_deposit_address ($method, $currency, $params = array ()) {
+    public function query_deposit_address ($method, $code, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency ($code);
         $method = 'privatePost' . $method . 'Address';
         $response = $this->$method (array_merge (array (
-            'currency' => $currency,
+            'currency' => $currency['id'],
         ), $params));
-        $address = null;
-        if (is_array ($response) && array_key_exists ('addr', $response))
-            $address = $this->safe_string($response, 'addr');
+        $address = $this->safe_string($response, 'addr');
+        $tag = null;
         if (($address !== null) && (mb_strpos ($address, 'address') !== false))
             throw new InvalidAddress ($this->id . ' queryDepositAddress ' . $address);
+        if ($code === 'XRP') {
+            $parts = $address.split ('/', 2);
+            $address = $parts[0];
+            $tag = $parts[1];
+        }
         return array (
             'currency' => $currency,
             'address' => $address,
+            'tag' => $tag,
             'status' => ($address !== null) ? 'ok' : 'none',
             'info' => $response,
         );
     }
 
-    public function create_deposit_address ($currency, $params = array ()) {
-        return $this->query_deposit_address ('New', $currency, $params);
+    public function create_deposit_address ($code, $params = array ()) {
+        return $this->query_deposit_address ('New', $code, $params);
     }
 
-    public function fetch_deposit_address ($currency, $params = array ()) {
-        return $this->query_deposit_address ('Deposit', $currency, $params);
+    public function fetch_deposit_address ($code, $params = array ()) {
+        return $this->query_deposit_address ('Deposit', $code, $params);
     }
 
     public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {

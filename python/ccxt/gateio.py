@@ -13,8 +13,13 @@ except NameError:
     basestring = str  # Python 2
 import hashlib
 import math
+import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
+from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import NotSupported
+from ccxt.base.errors import DDoSProtection
 
 
 class gateio (Exchange):
@@ -85,6 +90,40 @@ class gateio (Exchange):
                     'maker': 0.002,
                     'taker': 0.002,
                 },
+            },
+            'exceptions': {
+                '4': DDoSProtection,
+                '7': NotSupported,
+                '8': NotSupported,
+                '9': NotSupported,
+                '15': DDoSProtection,
+                '16': OrderNotFound,
+                '17': OrderNotFound,
+                '21': InsufficientFunds,
+            },
+            # https://gate.io/api2#errCode
+            'errorCodeNames': {
+                '1': 'Invalid request',
+                '2': 'Invalid version',
+                '3': 'Invalid request',
+                '4': 'Too many attempts',
+                '5': 'Invalid sign',
+                '6': 'Invalid sign',
+                '7': 'Currency is not supported',
+                '8': 'Currency is not supported',
+                '9': 'Currency is not supported',
+                '10': 'Verified failed',
+                '11': 'Obtaining address failed',
+                '12': 'Empty params',
+                '13': 'Internal error, please report to administrator',
+                '14': 'Invalid user',
+                '15': 'Cancel order too fast, please wait 1 min and try again',
+                '16': 'Invalid order id or order is already closed',
+                '17': 'Invalid orderid',
+                '18': 'Invalid amount',
+                '19': 'Not permitted or trade is disabled',
+                '20': 'Your order size is too small',
+                '21': 'You don\'t have enough fund',
             },
         })
 
@@ -194,6 +233,27 @@ class gateio (Exchange):
             'info': ticker,
         }
 
+    def handle_errors(self, code, reason, url, method, headers, body):
+        if len(body) <= 0:
+            return
+        if body[0] != '{':
+            return
+        jsonbodyParsed = json.loads(body)
+        resultString = self.safe_string(jsonbodyParsed, 'result', '')
+        if resultString != 'false':
+            return
+        errorCode = self.safe_string(jsonbodyParsed, 'code')
+        if errorCode is not None:
+            exceptions = self.exceptions
+            errorCodeNames = self.errorCodeNames
+            if errorCode in exceptions:
+                message = ''
+                if errorCode in errorCodeNames:
+                    message = errorCodeNames[errorCode]
+                else:
+                    message = self.safe_string(jsonbodyParsed, 'message', '(unknown)')
+                raise exceptions[errorCode](message)
+
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
         tickers = self.publicGetTickers(params)
@@ -247,48 +307,127 @@ class gateio (Exchange):
         }, params))
         return self.parse_trades(response['data'], market, since, limit)
 
+    def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        response = self.privatePostOpenOrders(params)
+        return self.parse_orders(response['result']['orders'], None, since, limit)
+
+    def fetch_order(self, id, symbol=None, params={}):
+        self.load_markets()
+        response = self.privatePostGetOrder(self.extend({
+            'orderNumber': id,
+            'currencyPair': self.market_id(symbol),
+        }, params))
+        return self.parse_order(response['order'])
+
+    def parse_order_status(self, status):
+        statuses = {
+            'cancelled': 'canceled',
+            # 'closed': 'closed',  # these two statuses aren't actually needed
+            # 'open': 'open',  # as they are mapped one-to-one
+        }
+        if status in statuses:
+            return statuses[status]
+        return status
+
+    def parse_order(self, order, market=None):
+        id = self.safe_string(order, 'orderNumber')
+        symbol = None
+        if market is None:
+            marketId = self.safe_string(order, 'currencyPair')
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+        if market is not None:
+            symbol = market['symbol']
+        timestamp = self.safe_integer(order, 'timestamp')
+        if timestamp is not None:
+            timestamp *= 1000
+        status = self.safe_string(order, 'status')
+        if status is not None:
+            status = self.parse_order_status(status)
+        side = self.safe_string(order, 'type')
+        price = self.safe_float(order, 'filledRate')
+        amount = self.safe_float(order, 'initialAmount')
+        filled = self.safe_float(order, 'filledAmount')
+        remaining = self.safe_float(order, 'leftAmount')
+        feeCost = self.safe_float(order, 'feeValue')
+        feeCurrency = self.safe_string(order, 'feeCurrency')
+        if feeCurrency is not None:
+            if feeCurrency in self.currencies_by_id:
+                feeCurrency = self.currencies_by_id[feeCurrency]['code']
+        return {
+            'id': id,
+            'datetime': self.iso8601(timestamp),
+            'timestamp': timestamp,
+            'status': status,
+            'symbol': symbol,
+            'type': 'limit',
+            'side': side,
+            'price': price,
+            'cost': None,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'trades': None,
+            'fee': {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            },
+            'info': order,
+        }
+
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
         self.load_markets()
         method = 'privatePost' + self.capitalize(side)
+        market = self.market(symbol)
         order = {
-            'currencyPair': self.market_id(symbol),
+            'currencyPair': market['id'],
             'rate': price,
             'amount': amount,
         }
         response = getattr(self, method)(self.extend(order, params))
-        return {
-            'info': response,
-            'id': response['orderNumber'],
-        }
+        return self.parse_order(self.extend({
+            'status': 'open',
+            'type': side,
+            'initialAmount': amount,
+        }), response, market)
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        return self.privatePostCancelOrder({'orderNumber': id})
+        return self.privatePostCancelOrder({
+            'orderNumber': id,
+            'currencyPair': self.market_id(symbol),
+        })
 
-    def query_deposit_address(self, method, currency, params={}):
+    def query_deposit_address(self, method, code, params={}):
+        self.load_markets()
+        currency = self.currency(code)
         method = 'privatePost' + method + 'Address'
         response = getattr(self, method)(self.extend({
-            'currency': currency,
+            'currency': currency['id'],
         }, params))
-        address = None
-        if 'addr' in response:
-            address = self.safe_string(response, 'addr')
+        address = self.safe_string(response, 'addr')
+        tag = None
         if (address is not None) and(address.find('address') >= 0):
             raise InvalidAddress(self.id + ' queryDepositAddress ' + address)
+        if code == 'XRP':
+            parts = address.split('/', 2)
+            address = parts[0]
+            tag = parts[1]
         return {
             'currency': currency,
             'address': address,
+            'tag': tag,
             'status': 'ok' if (address is not None) else 'none',
             'info': response,
         }
 
-    def create_deposit_address(self, currency, params={}):
-        return self.query_deposit_address('New', currency, params)
+    def create_deposit_address(self, code, params={}):
+        return self.query_deposit_address('New', code, params)
 
-    def fetch_deposit_address(self, currency, params={}):
-        return self.query_deposit_address('Deposit', currency, params)
+    def fetch_deposit_address(self, code, params={}):
+        return self.query_deposit_address('Deposit', code, params)
 
     def withdraw(self, currency, amount, address, tag=None, params={}):
         self.check_address(address)
