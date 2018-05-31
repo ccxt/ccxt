@@ -355,8 +355,11 @@ module.exports = class gateio extends Exchange {
 
     parseOrder (order, market = undefined, createOrderSymbol = undefined, createOrderSide = undefined, createOrderInitialAmount = undefined) {
         let symbol = undefined;
-        if (!market)
-            market = this.safeValue (this.marketsById, order['currencyPair']);
+        if (!market) {
+            if ('currencyPair' in order) {
+                market = this.safeValue (this.marketsById, order['currencyPair']);
+            }
+        }
         if (market)
             symbol = market['symbol'];
         if (createOrderSymbol) {
