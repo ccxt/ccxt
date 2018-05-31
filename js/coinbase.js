@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, DDoSProtection } = require ('./base/errors');
 
 // ----------------------------------------------------------------------------
 
@@ -115,6 +115,25 @@ module.exports = class coinbase extends Exchange {
                     ],
                 },
             },
+            'exceptions': {
+                'two_factor_required': AuthenticationError, // 402 When sending money over 2fa limit
+                'param_required': ExchangeError, // 400 Missing parameter
+                'validation_error': ExchangeError,	// 400 Unable to validate POST/PUT
+                'invalid_request': ExchangeError, // 400 Invalid request
+                'personal_details_required': AuthenticationError, // 400 User’s personal detail required to complete this request
+                'identity_verification_required': AuthenticationError, // 400 Identity verification is required to complete this request
+                'jumio_verification_required': AuthenticationError, // 400 Document verification is required to complete this request
+                'jumio_face_match_verification_required': AuthenticationError, // 400 Document verification including face match is required to complete this request
+                'unverified_email': AuthenticationError, // 400	User has not verified their email
+                'authentication_error': AuthenticationError, // 401 Invalid auth (generic)
+                'invalid_token': AuthenticationError, // 401 Invalid Oauth token
+                'revoked_token': AuthenticationError, // 401 Revoked Oauth token
+                'expired_token': AuthenticationError, // 401 Expired Oauth token
+                'invalid_scope': AuthenticationError, // 403 User hasn’t authenticated necessary scope
+                'not_found': ExchangeError, // 404 Resource not found
+                'rate_limit_exceeded': DDoSProtection, // 429 Rate limit exceeded
+                'internal_server_error': ExchangeError, // 500 Internal server error
+            },
             'markets': {
                 'BTC/USD': { 'id': 'btc-usd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD' },
                 'LTC/USD': { 'id': 'ltc-usd', 'symbol': 'LTC/USD', 'base': 'LTC', 'quote': 'USD' },
@@ -182,25 +201,52 @@ module.exports = class coinbase extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body) {
-        if ((code === 400) || (code === 404) || (code === 401)) {
-            if (body[0] === '{') {
-                let response = JSON.parse (body);
-                let message = response['errors'][0]['message'];
-                let error = this.id + ' ' + message;
-                if (message === 'invalid api key') {
-                    throw new AuthenticationError (error);
+        if (typeof body !== 'string')
+            return; // fallback to default error handler
+        if (body.length < 2)
+            return; // fallback to default error handler
+        if ((body[0] === '{') || (body[0] === '[')) {
+            let response = JSON.parse (body);
+            let feedback = id + ' ' + body;
+            //
+            //    {"error": "invalid_request", "error_description": "The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed."}
+            //
+            // or
+            //
+            //    {
+            //      "errors": [
+            //        {
+            //          "id": "not_found",
+            //          "message": "Not found"
+            //        }
+            //      ]
+            //    }
+            //
+            let exceptions = this.exceptions;
+            let errorCode = this.safeString (response, 'error');
+            if (typeof errorCode !== 'undefined') {
+                if (errorCode in exceptions) {
+                    throw new exceptions[errorCode] (feedback);
+                } else {
+                    throw new ExchangeError (feedback);
                 }
-                throw new ExchangeError (this.id + ' ' + message);
             }
-            throw new ExchangeError (this.id + ' ' + body);
+            let errors = this.safeValue (response, 'errors');
+            if (typeof errors !== 'undefined') {
+                if (Array.isArray (errors)) {
+                    let numErrors = errors.length;
+                    if (numErrors > 0) {
+                        errorCode = this.safeString (errors[0], 'id');
+                        if (typeof errorCode !== 'undefined') {
+                            if (errorCode in exceptions) {
+                                throw new exceptions[errorCode] (feedback);
+                            } else {
+                                throw new ExchangeError (feedback);
+                            }
+                        }
+                    }
+                }
+            }
         }
-    }
-
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('message' in response) {
-            throw new ExchangeError (this.id + ' ' + this.json (response));
-        }
-        return response;
     }
 };
