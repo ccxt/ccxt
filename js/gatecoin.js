@@ -658,6 +658,22 @@ module.exports = class gatecoin extends Exchange {
         };
     }
 
+    async createUserWallet (code, address, name, password, params = {}) {
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let request = {
+            'DigiCurrency': currency['id'],
+            'AddressName': name,
+            'Address': address,
+            'Password': password,
+        };
+        let response = await this.privatePostElectronicWalletUserWalletsDigiCurrency (this.extend (request, params));
+        return {
+            'status': 'ok',
+            'info': response,
+        };
+    }
+
     handleErrors (code, reason, url, method, headers, body) {
         if (typeof body !== 'string')
             return; // fallback to default error handler
