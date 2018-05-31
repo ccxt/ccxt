@@ -548,7 +548,7 @@ module.exports = class cryptopia extends Exchange {
             }
             throw e;
         }
-        return response;
+        return this.parseOrder (response);
     }
 
     parseOrder (order, market = undefined) {
