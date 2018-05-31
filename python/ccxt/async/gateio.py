@@ -38,6 +38,9 @@ class gateio (Exchange):
                 'withdraw': True,
                 'createDepositAddress': True,
                 'fetchDepositAddress': True,
+                'fetchClosedOrders': True,
+                'fetchOpenOrders': True,
+                'fetchOrders': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
@@ -428,6 +431,23 @@ class gateio (Exchange):
 
     async def fetch_deposit_address(self, code, params={}):
         return await self.query_deposit_address('Deposit', code, params)
+
+    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        response = self.privatePostOpenOrders()
+        return self.parse_orders(response['orders'], market, since, limit)
+
+    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ExchangeError(self.id + ' fetchMyTrades requires symbol param')
+        await self.load_markets()
+        market = self.market(symbol)
+        id = market['id']
+        response = self.privatePostTradeHistory(self.extend({'currencyPair': id}, params))
+        return self.parse_trades(response['trades'], market, since, limit)
 
     async def withdraw(self, currency, amount, address, tag=None, params={}):
         self.check_address(address)
