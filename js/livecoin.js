@@ -391,9 +391,13 @@ module.exports = class livecoin extends Exchange {
         let timestamp = undefined;
         let datetime = undefined;
         if ('lastModificationTime' in order) {
-            timestamp = this.safeInteger (order, 'lastModificationTime');
-            if (!timestamp) {
-                timestamp = this.parse8601 (order['lastModificationTime']);
+            timestamp = this.safeString (order, 'lastModificationTime');
+            if (typeof timestamp !== 'undefined') {
+                if (timestamp.indexOf ('T') >= 0) {
+                    timestamp = this.parse8601 (timestamp);
+                } else {
+                    timestamp = this.safeInteger (order, 'lastModificationTime');
+                }
             }
         }
         if (timestamp) {
