@@ -684,6 +684,7 @@ abstract class Exchange {
             'fetchTickers' => false,
             'fetchTrades' => true,
             'fetchTradingFees' => false,
+            'fetchTradingLimits' => false,
             'withdraw' => false,
         );
 
@@ -1256,6 +1257,24 @@ abstract class Exchange {
 
     public function fetchTotalBalance ($params = array ()) {
         return $this->fetch_total_balance ($params);
+    }
+
+    public function load_trading_limits ($symbols = null, $reload = false, $params = array ()) {
+        if ($this->has['fetchTradingLimits']) {
+            if ($reload || !(is_array ($this->options) && array_key_exists ('limitsLoaded', $this->options))) {
+                $response = $this->fetch_trading_limits ($symbols);
+                $limits = $response['limits'];
+                $keys = is_array ($limits) ? array_keys ($limits) : array ();
+                for ($i = 0; $i < count ($keys); $i++) {
+                    $symbol = $keys[$i];
+                    $this->markets[$symbol] = array_replace_recursive ($this->markets[$symbol], array (
+                        'limits' => $limits[$symbol],
+                    ));
+                }
+                $this->options['limitsLoaded'] = $this->milliseconds ();
+            }
+        }
+        return $this->markets;
     }
 
     public function filter_by_since_limit ($array, $since = null, $limit = null) {
