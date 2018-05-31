@@ -1852,6 +1852,8 @@ abstract class Exchange {
 
         $hasDot = strpos ($result, '.') !== false;
         if ($paddingMode === NO_PADDING) {
+            if ($result === '' && $numPrecisionDigits === 0)
+                return '0';
             if ($hasDot) {
                 $result = rtrim ($result, '0.');
             }
