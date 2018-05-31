@@ -1,7 +1,8 @@
 <?php
+
 namespace ccxt;
 
-include_once ('ccxt.php');
+include_once ('./php/Exchange.php');
 
 // ----------------------------------------------------------------------------
 // testDecimalToPrecisionErrorHandling

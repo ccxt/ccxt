@@ -825,9 +825,10 @@ from ccxt.base.decimal_to_precision import NO_PADDING            # noqa F401\n\
 
     const phpHeader =
 "<?php\n\
+\n\
 namespace ccxt;\n\
 \n\
-include_once ('ccxt.php');\n\
+include_once ('./php/Exchange.php');\n\
 \n\
 // ----------------------------------------------------------------------------\n\
 // testDecimalToPrecisionErrorHandling\n\
