@@ -100,6 +100,7 @@ module.exports = class Exchange {
                 'fetchTickers': false,
                 'fetchTrades': true,
                 'fetchTradingFees': false,
+                'fetchTradingLimits': false,
                 'withdraw': false,
             },
             'urls': {
@@ -880,6 +881,24 @@ module.exports = class Exchange {
 
     fetchTotalBalance (params = {}) {
         return this.fetchPartialBalance ('total', params)
+    }
+
+    async loadTradingLimits (symbols = undefined, reload = false, params = {}) {
+        if (this.has['fetchTradingLimits']) {
+            if (reload || !('limitsLoaded' in this.options)) {
+                let response = await this.fetchTradingLimits (symbols);
+                let limits = response['limits'];
+                let keys = Object.keys (limits);
+                for (let i = 0; i < keys.length; i++) {
+                    let symbol = keys[i];
+                    this.markets[symbol] = this.deepExtend (this.markets[symbol], {
+                        'limits': limits[symbol],
+                    });
+                }
+                this.options['limitsLoaded'] = this.milliseconds ();
+            }
+        }
+        return this.markets;
     }
 
     filterBySinceLimit (array, since = undefined, limit = undefined) {
