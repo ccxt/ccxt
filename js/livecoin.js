@@ -22,6 +22,7 @@ module.exports = class livecoin extends Exchange {
                 'fetchCurrencies': true,
                 'fetchTradingFees': true,
                 'fetchOrders': true,
+                'fetchOrder': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'withdraw': true,
@@ -377,49 +378,101 @@ module.exports = class livecoin extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let request = {
+            'orderId': id,
+        };
+        let response = await this.privateGetExchangeOrder (this.extend (request, params));
+        return this.parseOrder (response);
+    }
+
     parseOrder (order, market = undefined) {
-        let timestamp = this.safeInteger (order, 'lastModificationTime');
-        if (!timestamp)
-            timestamp = this.parse8601 (order['lastModificationTime']);
+        let timestamp = undefined;
+        let datetime = undefined;
+        if ('lastModificationTime' in order) {
+            timestamp = this.safeString (order, 'lastModificationTime');
+            if (typeof timestamp !== 'undefined') {
+                if (timestamp.indexOf ('T') >= 0) {
+                    timestamp = this.parse8601 (timestamp);
+                } else {
+                    timestamp = this.safeInteger (order, 'lastModificationTime');
+                }
+            }
+        }
+        if (timestamp) {
+            datetime = this.iso8601 (timestamp);
+        }
         let trades = undefined;
         if ('trades' in order)
             // TODO currently not supported by livecoin
             // trades = this.parseTrades (order['trades'], market, since, limit);
             trades = undefined;
         let status = undefined;
-        if (order['orderStatus'] === 'OPEN' || order['orderStatus'] === 'PARTIALLY_FILLED') {
+        let orderStatus = undefined;
+        if ('status' in order) {
+            orderStatus = this.safeString (order, 'status');
+        }
+        if ('orderStatus' in order) {
+            orderStatus = this.safeString (order, 'orderStatus');
+        }
+        if (orderStatus === 'OPEN' || orderStatus === 'PARTIALLY_FILLED') {
             status = 'open';
-        } else if (order['orderStatus'] === 'EXECUTED' || order['orderStatus'] === 'PARTIALLY_FILLED_AND_CANCELLED') {
+        } else if (orderStatus === 'EXECUTED' || orderStatus === 'PARTIALLY_FILLED_AND_CANCELLED') {
             status = 'closed';
         } else {
             status = 'canceled';
         }
-        let symbol = order['currencyPair'];
-        let parts = symbol.split ('/');
-        let quote = parts[1];
+        let symbol = undefined;
+        if ('currencyPair' in order) {
+            symbol = order['currencyPair'];
+        }
+        if ('symbol' in order) {
+            symbol = order['symbol'];
+        }
+        let parts = undefined;
+        let quote = undefined;
+        if (symbol) {
+            parts = symbol.split ('/');
+            quote = parts[1];
+        }
+        // originally:
         // let [ base, quote ] = symbol.split ('/');
         let type = undefined;
         let side = undefined;
-        if (order['type'].indexOf ('MARKET') >= 0) {
-            type = 'market';
-        } else {
-            type = 'limit';
+        if ('type' in order) {
+            if (order['type'].indexOf ('MARKET') >= 0) {
+                type = 'market';
+            }
+            if (order['type'].indexOf ('LIMIT') >= 0) {
+                type = 'limit';
+            }
+            if (order['type'].indexOf ('SELL') >= 0) {
+                side = 'sell';
+            }
+            if (order['type'].indexOf ('BUY') >= 0) {
+                side = 'buy';
+            }
         }
-        if (order['type'].indexOf ('SELL') >= 0) {
-            side = 'sell';
-        } else {
-            side = 'buy';
+        let price = this.safeFloat (order, 'price');
+        let cost = this.safeFloat (order, 'commissionByTrade'); // commission_rate?
+        let remaining = undefined;
+        if ('remainingQuantity' in order) {
+            remaining = this.safeFloat (order, 'remainingQuantity');
         }
-        let price = this.safeFloat (order, 'price', 0.0);
-        let cost = this.safeFloat (order, 'commissionByTrade', 0.0);
-        let remaining = this.safeFloat (order, 'remainingQuantity', 0.0);
+        if ('remaining_quantity' in order) {
+            remaining = this.safeFloat (order, 'remaining_quantity');
+        }
         let amount = this.safeFloat (order, 'quantity', remaining);
-        let filled = amount - remaining;
+        let filled = undefined;
+        if (typeof remaining !== 'undefined') {
+            filled = amount - remaining;
+        }
         return {
             'info': order,
             'id': order['id'],
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': datetime,
             'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
