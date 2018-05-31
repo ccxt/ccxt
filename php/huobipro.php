@@ -128,21 +128,6 @@ class huobipro extends Exchange {
         ));
     }
 
-    public function load_trading_limits ($symbols = null, $reload = false, $params = array ()) {
-        if ($reload || !(is_array ($this->options) && array_key_exists ('limitsLoaded', $this->options))) {
-            $response = $this->fetch_trading_limits ($symbols);
-            $limits = $response['limits'];
-            $keys = is_array ($limits) ? array_keys ($limits) : array ();
-            for ($i = 0; $i < count ($keys); $i++) {
-                $symbol = $keys[$i];
-                $this->markets[$symbol] = array_replace_recursive ($this->markets[$symbol], array (
-                    'limits' => $limits[$symbol],
-                ));
-            }
-        }
-        return $this->markets;
-    }
-
     public function fetch_trading_limits ($symbols = null, $params = array ()) {
         //  by default it will try load withdrawal fees of all currencies (with separate requests)
         //  however if you define codes = array ( 'ETH', 'BTC' ) in args it will only load those
