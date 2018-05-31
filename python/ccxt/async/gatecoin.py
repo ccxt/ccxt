@@ -16,8 +16,11 @@ import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
+from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import OrderNotFound
 
 
 class gatecoin (Exchange):
@@ -212,6 +215,9 @@ class gatecoin (Exchange):
             },
             'exceptions': {
                 '1005': InsufficientFunds,
+                '1008': OrderNotFound,
+                '1057': InvalidOrder,
+                '1044': OrderNotFound,  # already canceled
             },
         })
 
@@ -441,17 +447,25 @@ class gatecoin (Exchange):
             else:
                 raise AuthenticationError(self.id + ' two-factor authentication requires a missing ValidationCode parameter')
         response = await self.privatePostTradeOrders(self.extend(order, params))
+        # At self point response.responseStatus.message has been verified
+        # in handleErrors() to be == 'OK', so we assume the order has
+        # indeed been opened.
         return {
             'info': response,
-            'id': response['clOrderId'],
+            'status': 'open',
+            'id': self.safe_string(response, 'clOrderId'),  # response['clOrderId'],
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        return await self.privateDeleteTradeOrdersOrderID({'OrderID': id})
+        response = await self.privateDeleteTradeOrdersOrderID({'OrderID': id})
+        return response
 
     def parse_order_status(self, status):
         statuses = {
+            '1': 'open',  # New
+            '2': 'open',  # Filling
+            '4': 'canceled',
             '6': 'closed',
         }
         if status in statuses:
@@ -571,14 +585,6 @@ class gatecoin (Exchange):
                 body = self.json(self.extend({'nonce': nonce}, params))
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = await self.fetch2(path, api, method, params, headers, body)
-        if 'responseStatus' in response:
-            if 'message' in response['responseStatus']:
-                if response['responseStatus']['message'] == 'OK':
-                    return response
-        raise ExchangeError(self.id + ' ' + self.json(response))
-
     async def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
         await self.load_markets()
@@ -650,13 +656,19 @@ class gatecoin (Exchange):
             return  # fallback to default error handler
         if len(body) < 2:
             return  # fallback to default error handler
+        if body.find('You are not authorized') >= 0:
+            raise PermissionDenied(body)
         if body[0] == '{':
             response = json.loads(body)
             if 'responseStatus' in response:
                 errorCode = self.safe_string(response['responseStatus'], 'errorCode')
+                message = self.safe_string(response['responseStatus'], 'message')
+                feedback = self.id + ' ' + body
                 if errorCode is not None:
-                    feedback = self.id + ' ' + body
                     exceptions = self.exceptions
                     if errorCode in exceptions:
                         raise exceptions[errorCode](feedback)
+                    raise ExchangeError(feedback)
+                # Sometimes there isn't 'errorCode' but 'message' is present and is not 'OK'
+                elif message is not None and message != 'OK':
                     raise ExchangeError(feedback)
