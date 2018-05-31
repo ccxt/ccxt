@@ -376,7 +376,8 @@ module.exports = class bitso extends Exchange {
         let response = await this.privateGetOrdersOid ({
             'oid': id,
         });
-        if (!Array.isArray (response['payload']) || (response['payload'].length !== 1)) {
+        let numOrders = response['payload'].length;
+        if (!Array.isArray (response['payload']) || (numOrders !== 1)) {
             throw new OrderNotFound (this.id + ': The order ' + id + ' not found.');
         }
         return this.parseOrder (response['payload'][0], market);
