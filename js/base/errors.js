@@ -25,6 +25,7 @@ module.exports = subclass (
                     'OrderNotFound': {},
                     'OrderNotCached': {},
                     'CancelPending': {},
+                    'AccountFrozen': {},
                 },
                 'NotSupported': {},
             },
