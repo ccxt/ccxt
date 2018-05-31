@@ -14,6 +14,7 @@ module.exports = class coinbase extends Exchange {
             'name': 'coinbase',
             'countries': 'US',
             'rateLimit': 1000,
+            'version': 'v2',
             'userAgent': this.userAgents['chrome'],
             'has': {
                 'CORS': true,
@@ -182,7 +183,7 @@ module.exports = class coinbase extends Exchange {
                     payload = body;
                 }
             }
-            let what = nonce + method + '/v2' + request + payload;
+            let what = nonce + method + '/' + this.version + request + payload;
             let signature = this.hmac (this.encode (what), this.secret);
             headers = {
                 'CB-ACCESS-KEY': this.apiKey,
