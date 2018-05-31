@@ -61,20 +61,19 @@ module.exports = class btcturk extends Exchange {
     async fetchBalance (params = {}) {
         let response = await this.privateGetBalance ();
         let result = { 'info': response };
-        let base = {
-            'free': response['bitcoin_available'],
-            'used': response['bitcoin_reserved'],
-            'total': response['bitcoin_balance'],
-        };
-        let quote = {
-            'free': response['money_available'],
-            'used': response['money_reserved'],
-            'total': response['money_balance'],
-        };
-        let symbol = this.symbols[0];
-        let market = this.markets[symbol];
-        result[market['base']] = base;
-        result[market['quote']] = quote;
+        let currencies = Object.keys (this.currencies);
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
+            let currency_lowercase = currency.toLowerCase ();
+            let account = this.account ();
+            let available = currency_lowercase + '_available';
+            if (available in response) {
+                account['free'] = response[available];
+                account['total'] = response[currency_lowercase + '_balance'];
+                account['used'] = response[currency_lowercase + '_reserved'];
+            }
+            result[currency] = account;
+        }
         return this.parseBalance (result);
     }
 
