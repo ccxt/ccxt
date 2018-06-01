@@ -255,25 +255,6 @@ module.exports = class bit2c extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseTrade2 (trade, market = undefined) {
-        let timestamp = parseInt (trade['date']) * 1000;
-        let symbol = undefined;
-        if (market)
-            symbol = market['symbol'];
-        return {
-            'id': trade['tid'].toString (),
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'order': undefined,
-            'type': undefined,
-            'side': undefined,
-            'price': trade['price'],
-            'amount': trade['amount'],
-        };
-    }
-
     parseTrade (trade, market = undefined) {
         let timestamp = undefined;
         let id = undefined;
@@ -282,39 +263,36 @@ module.exports = class bit2c extends Exchange {
         let orderId = undefined;
         let feeCost = undefined;
         let side = undefined;
-        let symbol = undefined;
-        if ('reference' in trade) {
-            // this.safeFloat (ticker, 'high')
-            // Private Trade
+        let reference = this.safeString (trade, 'reference');
+        if (typeof reference !== 'undefined') {
             timestamp = this.safeInteger (trade, 'ticks') * 1000;
             price = this.safeFloat (trade, 'price');
             amount = this.safeFloat (trade, 'firstAmount');
+            let reference_parts = reference.split ('|'); // reference contains: 'pair|orderId|tradeId'
             if (typeof market === 'undefined') {
                 let marketId = this.safeString (trade, 'pair');
-                if (marketId in this.markets_by_id[marketId])
+                if (marketId in this.markets_by_id[marketId]) {
                     market = this.markets_by_id[marketId];
+                } else if (reference_parts[0] in this.markets_by_id) {
+                    market = this.markets_by_id[reference_parts[0]];
+                }
             }
-            // if(symbol is None):
-            //    marketId = self.safe_string(trade, 'pair')
-            //    symbol = [self.markets[market]['symbol'] for market in self.markets if self.markets[market]['id'] == marketId][0]
-            reference = this.safeString (trade, 'reference').split('|'); // reference contain: 'pair|orderId|tradeId'
-            orderId = reference[1];
-            id = reference[2];
-            action = this.safeInteger (trade, 'action');
-            if (action == 0) {
+            orderId = reference_parts[1];
+            id = reference_parts[2];
+            side = this.safeInteger (trade, 'action');
+            if (side === 0) {
                 side = 'buy';
-            }
-            else if (action == 1) {
+            } else if (side === 1) {
                 side = 'sell';
             }
             feeCost = this.safeFloat (trade, 'feeAmount');
         } else {
-        // Public Trade
             timestamp = this.safeInteger (trade, 'date') * 1000;
             id = this.safeInteger (trade, 'tid');
             price = this.safeFloat (trade, 'price');
             amount = this.safeFloat (trade, 'amount');
         }
+        let symbol = undefined;
         if (typeof market !== 'undefined')
             symbol = market['symbol'];
         return {
