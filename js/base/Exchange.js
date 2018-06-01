@@ -1059,6 +1059,17 @@ module.exports = class Exchange {
         }
     }
 
+    mdy (timestamp, infix = '-') {
+        infix = infix || ''
+        let date = new Date (timestamp)
+        let Y = date.getUTCFullYear ().toString ()
+        let m = date.getUTCMonth () + 1
+        let d = date.getUTCDate ()
+        m = m < 10 ? ('0' + m) : m.toString ()
+        d = d < 10 ? ('0' + d) : d.toString ()
+        return m + infix + d + infix + y
+    }
+
     ymd (timestamp, infix = '-') {
         infix = infix || ''
         let date = new Date (timestamp)

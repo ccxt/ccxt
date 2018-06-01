@@ -509,6 +509,10 @@ abstract class Exchange {
         return $time;
     }
 
+    public static function dmy ($timestamp, $infix = '-') {
+        return gmdate ('m' . $infix . 'd' . $infix . 'Y', (int) round ($timestamp / 1000));
+    }
+
     public static function ymd ($timestamp, $infix = '-') {
         return gmdate ('Y' . $infix . 'm' . $infix . 'd', (int) round ($timestamp / 1000));
     }
