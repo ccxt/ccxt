@@ -135,25 +135,6 @@ module.exports = class bit2c extends Exchange {
         };
     }
 
-    parseTrade (trade, market = undefined) {
-        let timestamp = parseInt (trade['date']) * 1000;
-        let symbol = undefined;
-        if (market)
-            symbol = market['symbol'];
-        return {
-            'id': trade['tid'].toString (),
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'order': undefined,
-            'type': undefined,
-            'side': undefined,
-            'price': trade['price'],
-            'amount': trade['amount'],
-        };
-    }
-
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         let market = this.market (symbol);
         let response = await this.publicGetExchangesPairTrades (this.extend ({
@@ -253,18 +234,18 @@ module.exports = class bit2c extends Exchange {
             'info': order,
         };
     }
-    
+
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         let method = 'privateGetOrderOrderhistory';
-        //toTime = datetime.datetime.now()
-        //fromTime = datetime.datetime.fromtimestamp(since)
         let request = {};
+        if (typeof limit !== 'undefined')
+            request['take'] = limit;
         request['take'] = limit;
         if (typeof since !== 'undefined') {
-            //request['toTime'] = toTime.strftime('%m.%d.%Y')     
-            //request['fromTime'] = fromTime.strftime('%m.%d.%Y')
+            request['toTime'] = this.ymd (this.milliseconds (), '.');
+            request['fromTime'] = this.ymd (since, '.');
         }
         if (typeof symbol !== 'undefined') {
             market = this.market (symbol);
@@ -273,7 +254,26 @@ module.exports = class bit2c extends Exchange {
         let response = await this[method] (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
-    
+
+    parseTrade2 (trade, market = undefined) {
+        let timestamp = parseInt (trade['date']) * 1000;
+        let symbol = undefined;
+        if (market)
+            symbol = market['symbol'];
+        return {
+            'id': trade['tid'].toString (),
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'order': undefined,
+            'type': undefined,
+            'side': undefined,
+            'price': trade['price'],
+            'amount': trade['amount'],
+        };
+    }
+
     parseTrade (trade, market = undefined) {
         let timestamp = undefined;
         let id = undefined;
@@ -283,14 +283,18 @@ module.exports = class bit2c extends Exchange {
         let feeCost = undefined;
         let side = undefined;
         let symbol = undefined;
-        if (typeof market !== 'undefined')
-            symbol = market['symbol'];
-        if('reference' in trade){ // this.safeFloat (ticker, 'high')
+        if ('reference' in trade) {
+            // this.safeFloat (ticker, 'high')
             // Private Trade
             timestamp = this.safeInteger (trade, 'ticks') * 1000;
             price = this.safeFloat (trade, 'price');
             amount = this.safeFloat (trade, 'firstAmount');
-            //if(symbol is None):
+            if (typeof market === 'undefined') {
+                let marketId = this.safeString (trade, 'pair');
+                if (marketId in this.markets_by_id[marketId])
+                    market = this.markets_by_id[marketId];
+            }
+            // if(symbol is None):
             //    marketId = self.safe_string(trade, 'pair')
             //    symbol = [self.markets[market]['symbol'] for market in self.markets if self.markets[market]['id'] == marketId][0]
             reference = this.safeString (trade, 'reference').split('|'); // reference contain: 'pair|orderId|tradeId'
@@ -311,9 +315,11 @@ module.exports = class bit2c extends Exchange {
             price = this.safeFloat (trade, 'price');
             amount = this.safeFloat (trade, 'amount');
         }
+        if (typeof market !== 'undefined')
+            symbol = market['symbol'];
         return {
             'info': trade,
-            'id': id,          
+            'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
