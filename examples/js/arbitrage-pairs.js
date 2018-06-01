@@ -41,7 +41,7 @@ let proxies = [
 
         log (ids.join (', ').yellow)
 
-        // load all markets from all exchanges 
+        // load all markets from all exchanges
         for (let id of ids) {
 
             // instantiate the exchange by id
@@ -56,7 +56,7 @@ let proxies = [
             // basic round-robin proxy scheduler
             let currentProxy = 0
             let maxRetries   = proxies.length
-            
+
             for (let numRetries = 0; numRetries < maxRetries; numRetries++) {
 
                 try { // try to load exchange markets using current proxy
@@ -82,11 +82,11 @@ let proxies = [
                     }
 
                     // retry next proxy in round-robin fashion in case of error
-                    currentProxy = ++currentProxy % proxies.length 
+                    currentProxy = ++currentProxy % proxies.length
                 }
             }
 
-            log (id.green, 'loaded', exchange.symbols.length.green, 'markets')
+            log (id.green, 'loaded', exchange.symbols.length.toString ().green, 'markets')
         }
 
         log ('Loaded all markets'.green)
@@ -96,8 +96,8 @@ let proxies = [
 
         // filter out symbols that are not present on at least two exchanges
         let arbitrableSymbols = uniqueSymbols
-            .filter (symbol => 
-                ids.filter (id => 
+            .filter (symbol =>
+                ids.filter (id =>
                     (exchanges[id].symbols.indexOf (symbol) >= 0)).length > 1)
             .sort ((id1, id2) => (id1 > id2) ? 1 : ((id2 > id1) ? -1 : 0))
 

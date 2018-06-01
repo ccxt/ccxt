@@ -25,4 +25,7 @@ class chilebit (foxbit):
                 'www': 'https://chilebit.net',
                 'doc': 'https://blinktrade.com/docs',
             },
+            'options': {
+                'brokerId': '9',  # https://blinktrade.com/docs/#brokers
+            },
         })

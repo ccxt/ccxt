@@ -18,6 +18,7 @@ module.exports = class kraken extends Exchange {
             'has': {
                 'createDepositAddress': true,
                 'fetchDepositAddress': true,
+                'fetchTradingFees': true,
                 'CORS': false,
                 'fetchCurrencies': true,
                 'fetchTickers': true,
@@ -45,7 +46,7 @@ module.exports = class kraken extends Exchange {
                 'api': {
                     'public': 'https://api.kraken.com',
                     'private': 'https://api.kraken.com',
-                    'zendesk': 'https://kraken.zendesk.com/hc/en-us/articles',
+                    'zendesk': 'https://support.kraken.com/hc/en-us/articles',
                 },
                 'www': 'https://www.kraken.com',
                 'doc': [
@@ -187,6 +188,16 @@ module.exports = class kraken extends Exchange {
                 'cacheDepositMethodsOnFetchDepositAddress': true, // will issue up to two calls in fetchDepositAddress
                 'depositMethods': {},
             },
+            'exceptions': {
+                'EFunding:Unknown withdraw key': ExchangeError,
+                'EFunding:Invalid amount': InsufficientFunds,
+                'EService:Unavailable': ExchangeNotAvailable,
+                'EDatabase:Internal error': ExchangeNotAvailable,
+                'EService:Busy': ExchangeNotAvailable,
+                'EAPI:Rate limit exceeded': DDoSProtection,
+                'EQuery:Unknown asset': ExchangeError,
+                'EGeneral:Internal error': ExchangeNotAvailable,
+            },
         });
     }
 
@@ -196,19 +207,6 @@ module.exports = class kraken extends Exchange {
 
     feeToPrecision (symbol, fee) {
         return this.truncate (parseFloat (fee), this.markets[symbol]['precision']['amount']);
-    }
-
-    handleErrors (code, reason, url, method, headers, body) {
-        if (body.indexOf ('Invalid order') >= 0)
-            throw new InvalidOrder (this.id + ' ' + body);
-        if (body.indexOf ('Invalid nonce') >= 0)
-            throw new InvalidNonce (this.id + ' ' + body);
-        if (body.indexOf ('Insufficient funds') >= 0)
-            throw new InsufficientFunds (this.id + ' ' + body);
-        if (body.indexOf ('Cancel pending') >= 0)
-            throw new CancelPending (this.id + ' ' + body);
-        if (body.indexOf ('Invalid arguments:volume') >= 0)
-            throw new InvalidOrder (this.id + ' ' + body);
     }
 
     async fetchMinOrderSizes () {
@@ -250,8 +248,10 @@ module.exports = class kraken extends Exchange {
         for (let i = 0; i < keys.length; i++) {
             let id = keys[i];
             let market = markets['result'][id];
-            let base = market['base'];
-            let quote = market['quote'];
+            let baseId = market['base'];
+            let quoteId = market['quote'];
+            let base = baseId;
+            let quote = quoteId;
             if ((base[0] === 'X') || (base[0] === 'Z'))
                 base = base.slice (1);
             if ((quote[0] === 'X') || (quote[0] === 'Z'))
@@ -268,8 +268,7 @@ module.exports = class kraken extends Exchange {
                 'amount': market['lot_decimals'],
                 'price': market['pair_decimals'],
             };
-            let lot = Math.pow (10, -precision['amount']);
-            let minAmount = lot;
+            let minAmount = Math.pow (10, -precision['amount']);
             if (base in limits)
                 minAmount = limits[base];
             result.push ({
@@ -277,12 +276,13 @@ module.exports = class kraken extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'darkpool': darkpool,
                 'info': market,
                 'altname': market['altname'],
                 'maker': maker,
                 'taker': parseFloat (market['fees'][0][1]) / 100,
-                'lot': lot,
                 'active': true,
                 'precision': precision,
                 'limits': {
@@ -317,7 +317,6 @@ module.exports = class kraken extends Exchange {
             'info': undefined,
             'maker': undefined,
             'taker': undefined,
-            'lot': amountLimits['min'],
             'active': false,
             'precision': precision,
             'limits': limits,
@@ -422,6 +421,7 @@ module.exports = class kraken extends Exchange {
         let baseVolume = parseFloat (ticker['v'][1]);
         let vwap = parseFloat (ticker['p'][1]);
         let quoteVolume = baseVolume * vwap;
+        let last = parseFloat (ticker['c'][0]);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -429,12 +429,14 @@ module.exports = class kraken extends Exchange {
             'high': parseFloat (ticker['h'][1]),
             'low': parseFloat (ticker['l'][1]),
             'bid': parseFloat (ticker['b'][0]),
+            'bidVolume': undefined,
             'ask': parseFloat (ticker['a'][0]),
+            'askVolume': undefined,
             'vwap': vwap,
-            'open': parseFloat (ticker['o']),
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['c'][0]),
+            'open': this.safeFloat (ticker, 'o'),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
@@ -526,14 +528,14 @@ module.exports = class kraken extends Exchange {
             timestamp = parseInt (trade['time'] * 1000);
             side = trade['type'];
             type = trade['ordertype'];
-            price = parseFloat (trade['price']);
-            amount = parseFloat (trade['vol']);
+            price = this.safeFloat (trade, 'price');
+            amount = this.safeFloat (trade, 'vol');
             if ('fee' in trade) {
                 let currency = undefined;
                 if (market)
                     currency = market['quote'];
                 fee = {
-                    'cost': parseFloat (trade['fee']),
+                    'cost': this.safeFloat (trade, 'fee'),
                     'currency': currency,
                 };
             }
@@ -559,6 +561,7 @@ module.exports = class kraken extends Exchange {
             'side': side,
             'price': price,
             'amount': amount,
+            'cost': price * amount,
             'fee': fee,
         };
     }
@@ -586,19 +589,25 @@ module.exports = class kraken extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostBalance ();
-        let balances = response['result'];
+        let balances = this.safeValue (response, 'result');
+        if (typeof balances === 'undefined')
+            throw new ExchangeNotAvailable (this.id + ' fetchBalance failed due to a malformed response ' + this.json (response));
         let result = { 'info': balances };
         let currencies = Object.keys (balances);
         for (let c = 0; c < currencies.length; c++) {
             let currency = currencies[c];
             let code = currency;
-            // X-ISO4217-A3 standard currency codes
-            if (code[0] === 'X') {
-                code = code.slice (1);
-            } else if (code[0] === 'Z') {
-                code = code.slice (1);
+            if (code in this.currencies_by_id) {
+                code = this.currencies_by_id[code]['code'];
+            } else {
+                // X-ISO4217-A3 standard currency codes
+                if (code[0] === 'X') {
+                    code = code.slice (1);
+                } else if (code[0] === 'Z') {
+                    code = code.slice (1);
+                }
+                code = this.commonCurrencyCode (code);
             }
-            code = this.commonCurrencyCode (code);
             let balance = parseFloat (balances[currency]);
             let account = {
                 'free': balance,
@@ -649,18 +658,18 @@ module.exports = class kraken extends Exchange {
         let side = description['type'];
         let type = description['ordertype'];
         let symbol = undefined;
-        if (!market)
+        if (typeof market === 'undefined')
             market = this.findMarketByAltnameOrId (description['pair']);
         let timestamp = parseInt (order['opentm'] * 1000);
-        let amount = parseFloat (order['vol']);
-        let filled = parseFloat (order['vol_exec']);
+        let amount = this.safeFloat (order, 'vol');
+        let filled = this.safeFloat (order, 'vol_exec');
         let remaining = amount - filled;
         let fee = undefined;
         let cost = this.safeFloat (order, 'cost');
         let price = this.safeFloat (description, 'price');
         if (!price)
             price = this.safeFloat (order, 'price');
-        if (market) {
+        if (typeof market !== 'undefined') {
             symbol = market['symbol'];
             if ('fee' in order) {
                 let flags = order['oflags'];
@@ -681,6 +690,7 @@ module.exports = class kraken extends Exchange {
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
             'status': order['status'],
             'symbol': symbol,
             'type': type,
@@ -735,7 +745,10 @@ module.exports = class kraken extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             trades[ids[i]]['id'] = ids[i];
         }
-        return this.parseTrades (trades, undefined, since, limit);
+        let result = this.parseTrades (trades, undefined, since, limit);
+        if (typeof symbol === 'undefined')
+            return result;
+        return this.filterBySymbol (result, symbol);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -761,6 +774,8 @@ module.exports = class kraken extends Exchange {
             request['start'] = parseInt (since / 1000);
         let response = await this.privatePostOpenOrders (this.extend (request, params));
         let orders = this.parseOrders (response['result']['open'], undefined, since, limit);
+        if (typeof symbol === 'undefined')
+            return orders;
         return this.filterBySymbol (orders, symbol);
     }
 
@@ -771,6 +786,8 @@ module.exports = class kraken extends Exchange {
             request['start'] = parseInt (since / 1000);
         let response = await this.privatePostClosedOrders (this.extend (request, params));
         let orders = this.parseOrders (response['result']['closed'], undefined, since, limit);
+        if (typeof symbol === 'undefined')
+            return orders;
         return this.filterBySymbol (orders, symbol);
     }
 
@@ -807,7 +824,7 @@ module.exports = class kraken extends Exchange {
             if (this.options['cacheDepositMethodsOnFetchDepositAddress']) {
                 // cache depositMethods
                 if (!(code in this.options['depositMethods']))
-                    this.options['depositMethods'][code] = this.fetchDepositMethods (code);
+                    this.options['depositMethods'][code] = await this.fetchDepositMethods (code);
                 method = this.options['depositMethods'][code][0]['method'];
             } else {
                 throw new ExchangeError (this.id + ' fetchDepositAddress() requires an extra `method` parameter. Use fetchDepositMethods ("' + code + '") to get a list of available deposit methods or enable the exchange property .options["cacheDepositMethodsOnFetchDepositAddress"] = true');
@@ -880,26 +897,33 @@ module.exports = class kraken extends Exchange {
         return this.milliseconds ();
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if (typeof response !== 'string')
-            if ('error' in response) {
-                let numErrors = response['error'].length;
-                if (numErrors) {
-                    let message = this.id + ' ' + this.json (response);
-                    for (let i = 0; i < response['error'].length; i++) {
-                        if (response['error'][i] === 'EFunding:Unknown withdraw key')
-                            throw new ExchangeError (message);
-                        if (response['error'][i] === 'EService:Unavailable')
-                            throw new ExchangeNotAvailable (message);
-                        if (response['error'][i] === 'EDatabase:Internal error')
-                            throw new ExchangeNotAvailable (message);
-                        if (response['error'][i] === 'EService:Busy')
-                            throw new DDoSProtection (message);
+    handleErrors (code, reason, url, method, headers, body) {
+        if (body.indexOf ('Invalid order') >= 0)
+            throw new InvalidOrder (this.id + ' ' + body);
+        if (body.indexOf ('Invalid nonce') >= 0)
+            throw new InvalidNonce (this.id + ' ' + body);
+        if (body.indexOf ('Insufficient funds') >= 0)
+            throw new InsufficientFunds (this.id + ' ' + body);
+        if (body.indexOf ('Cancel pending') >= 0)
+            throw new CancelPending (this.id + ' ' + body);
+        if (body.indexOf ('Invalid arguments:volume') >= 0)
+            throw new InvalidOrder (this.id + ' ' + body);
+        if (body[0] === '{') {
+            let response = JSON.parse (body);
+            if (typeof response !== 'string') {
+                if ('error' in response) {
+                    let numErrors = response['error'].length;
+                    if (numErrors) {
+                        let message = this.id + ' ' + this.json (response);
+                        for (let i = 0; i < response['error'].length; i++) {
+                            if (response['error'][i] in this.exceptions) {
+                                throw new this.exceptions[response['error'][i]] (message);
+                            }
+                        }
+                        throw new ExchangeError (message);
                     }
-                    throw new ExchangeError (message);
                 }
             }
-        return response;
+        }
     }
 };

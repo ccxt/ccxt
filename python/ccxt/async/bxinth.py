@@ -126,6 +126,7 @@ class bxinth (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
+        last = self.safe_float(ticker, 'last_price')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -133,16 +134,18 @@ class bxinth (Exchange):
             'high': None,
             'low': None,
             'bid': float(ticker['orderbook']['bids']['highbid']),
+            'bidVolume': None,
             'ask': float(ticker['orderbook']['asks']['highbid']),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['last_price']),
-            'change': float(ticker['change']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
+            'change': self.safe_float(ticker, 'change'),
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['volume_24hours']),
+            'baseVolume': self.safe_float(ticker, 'volume_24hours'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -181,8 +184,8 @@ class bxinth (Exchange):
             'symbol': market['symbol'],
             'type': None,
             'side': trade['trade_type'],
-            'price': float(trade['rate']),
-            'amount': float(trade['amount']),
+            'price': self.safe_float(trade, 'rate'),
+            'amount': self.safe_float(trade, 'amount'),
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):

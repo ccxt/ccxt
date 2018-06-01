@@ -126,23 +126,26 @@ module.exports = class coincheck extends Exchange {
             throw new NotSupported (this.id + ' fetchTicker () supports BTC/JPY only');
         let ticker = await this.publicGetTicker (params);
         let timestamp = ticker['timestamp'] * 1000;
+        let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']),
-            'low': parseFloat (ticker['low']),
-            'bid': parseFloat (ticker['bid']),
-            'ask': parseFloat (ticker['ask']),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'bid'),
+            'bidVolume': undefined,
+            'ask': this.safeFloat (ticker, 'ask'),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': parseFloat (ticker['volume']),
+            'baseVolume': this.safeFloat (ticker, 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -157,8 +160,8 @@ module.exports = class coincheck extends Exchange {
             'symbol': market['symbol'],
             'type': undefined,
             'side': trade['order_type'],
-            'price': parseFloat (trade['rate']),
-            'amount': parseFloat (trade['amount']),
+            'price': this.safeFloat (trade, 'rate'),
+            'amount': this.safeFloat (trade, 'amount'),
             'info': trade,
         };
     }

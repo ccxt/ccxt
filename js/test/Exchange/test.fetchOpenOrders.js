@@ -27,7 +27,7 @@ module.exports = async (exchange, symbol) => {
 
         for (let i = 0; i < orders.length; i++) {
             let order = orders[i]
-            testOrder (order, symbol, now)
+            testOrder (exchange, order, symbol, now)
             assert (order.status === 'open')
         }
 

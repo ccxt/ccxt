@@ -255,7 +255,7 @@ class coinexchange (Exchange):
                         'HC': 0.01,
                         'HEALTHY': 0.01,
                         'HIGH': 0.01,
-                        'HMC': 0.01,
+                        'HarmonyCoin': 0.01,
                         'HNC': 0.01,
                         'HOC': 0.01,
                         'HODL': 0.01,
@@ -542,8 +542,15 @@ class coinexchange (Exchange):
             'commonCurrencies': {
                 'BON': 'BonPeKaO',
                 'ETN': 'Ethernex',
+                'GET': 'GreenEnergyToken',
+                'GDC': 'GoldenCryptoCoin',
+                'GTC': 'GlobalTourCoin',
+                'HMC': 'HarmonyCoin',
                 'HNC': 'Huncoin',
                 'MARS': 'MarsBux',
+                'MER': 'TheMermaidCoin',
+                'RUB': 'RubbleCoin',
+                'UP': 'UpscaleToken',
             },
         })
 
@@ -623,6 +630,7 @@ class coinexchange (Exchange):
         if market:
             symbol = market['symbol']
         timestamp = self.milliseconds()
+        last = self.safe_float(ticker, 'LastPrice')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -630,12 +638,14 @@ class coinexchange (Exchange):
             'high': self.safe_float(ticker, 'HighPrice'),
             'low': self.safe_float(ticker, 'LowPrice'),
             'bid': self.safe_float(ticker, 'BidPrice'),
+            'bidVolume': None,
             'ask': self.safe_float(ticker, 'AskPrice'),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': self.safe_float(ticker, 'LastPrice'),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': self.safe_float(ticker, 'Change'),
             'percentage': None,
             'average': None,

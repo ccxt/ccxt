@@ -70,8 +70,11 @@ module.exports = class ccex extends Exchange {
                 },
             },
             'commonCurrencies': {
-                'IOT': 'IoTcoin',
                 'BLC': 'Cryptobullcoin',
+                'CRC': 'CoreCoin',
+                'IOT': 'IoTcoin',
+                'LUX': 'Luxmi',
+                'VIT': 'VitalCoin',
                 'XID': 'InternationalDiamond',
             },
         });
@@ -194,24 +197,27 @@ module.exports = class ccex extends Exchange {
     parseTicker (ticker, market = undefined) {
         let timestamp = ticker['updated'] * 1000;
         let symbol = undefined;
-        if (market)
+        if (typeof market !== 'undefined')
             symbol = market['symbol'];
+        let last = this.safeFloat (ticker, 'lastprice');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']),
-            'low': parseFloat (ticker['low']),
-            'bid': parseFloat (ticker['buy']),
-            'ask': parseFloat (ticker['sell']),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'buy'),
+            'bidVolume': undefined,
+            'ask': this.safeFloat (ticker, 'sell'),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['lastprice']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
-            'average': parseFloat (ticker['avg']),
+            'average': this.safeFloat (ticker, 'avg'),
             'baseVolume': undefined,
             'quoteVolume': this.safeFloat (ticker, 'buysupport'),
             'info': ticker,
@@ -221,18 +227,18 @@ module.exports = class ccex extends Exchange {
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         let tickers = await this.webGetPrices (params);
-        let result = { 'info': tickers };
+        let result = {};
         let ids = Object.keys (tickers);
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
             let ticker = tickers[id];
-            let uppercase = id.toUpperCase ();
             let market = undefined;
             let symbol = undefined;
-            if (uppercase in this.markets_by_id) {
-                market = this.markets_by_id[uppercase];
+            if (id in this.markets_by_id) {
+                market = this.markets_by_id[id];
                 symbol = market['symbol'];
             } else {
+                let uppercase = id.toUpperCase ();
                 let [ base, quote ] = uppercase.split ('-');
                 base = this.commonCurrencyCode (base);
                 quote = this.commonCurrencyCode (quote);

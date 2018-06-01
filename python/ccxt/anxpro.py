@@ -114,6 +114,7 @@ class anxpro (Exchange):
         bid = self.safe_float(ticker['buy'], 'value')
         ask = self.safe_float(ticker['sell'], 'value')
         baseVolume = float(ticker['vol']['value'])
+        last = float(ticker['last']['value'])
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -121,12 +122,14 @@ class anxpro (Exchange):
             'high': float(ticker['high']['value']),
             'low': float(ticker['low']['value']),
             'bid': bid,
+            'bidVolume': None,
             'ask': ask,
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['last']['value']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': float(ticker['avg']['value']),
@@ -198,7 +201,8 @@ class anxpro (Exchange):
             nonce = self.nonce()
             body = self.urlencode(self.extend({'nonce': nonce}, query))
             secret = base64.b64decode(self.secret)
-            auth = request + '\0' + body
+            # eslint-disable-next-line quotes
+            auth = request + "\0" + body
             signature = self.hmac(self.encode(auth), secret, hashlib.sha512, 'base64')
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',

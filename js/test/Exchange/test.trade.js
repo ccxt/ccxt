@@ -25,12 +25,19 @@ module.exports = (exchange, trade, symbol, now) => {
 
     const isExchangeTimeDrifting = [
         'bitfinex',
+        'bitfinex2',
         'kraken', // override for kraken and possibly other exchanges as well
     ].includes (exchange.id)
 
     const adjustedNow = now + (isExchangeTimeDrifting ? 10000 : 0)
 
-    assert (trade.timestamp < adjustedNow, 'trade.timestamp is greater than or equal to current time: trade: ' + exchange.iso8601 (trade.timestamp) + ' now: ' + exchange.iso8601 (now))
+    const exchangesExcludedFromTimestampCheck = [
+        'gdax',
+    ]
+
+    if (!exchangesExcludedFromTimestampCheck.includes (exchange.id))
+        assert (trade.timestamp < adjustedNow, 'trade.timestamp is greater than or equal to current time: trade: ' + exchange.iso8601 (trade.timestamp) + ' now: ' + exchange.iso8601 (now))
+
     //------------------------------------------------------------------
 
     assert (trade.datetime === exchange.iso8601 (trade.timestamp))

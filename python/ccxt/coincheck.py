@@ -124,23 +124,26 @@ class coincheck (Exchange):
             raise NotSupported(self.id + ' fetchTicker() supports BTC/JPY only')
         ticker = self.publicGetTicker(params)
         timestamp = ticker['timestamp'] * 1000
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['bid']),
-            'ask': float(ticker['ask']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'bid'),
+            'bidVolume': None,
+            'ask': self.safe_float(ticker, 'ask'),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['volume']),
+            'baseVolume': self.safe_float(ticker, 'volume'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -154,8 +157,8 @@ class coincheck (Exchange):
             'symbol': market['symbol'],
             'type': None,
             'side': trade['order_type'],
-            'price': float(trade['rate']),
-            'amount': float(trade['amount']),
+            'price': self.safe_float(trade, 'rate'),
+            'amount': self.safe_float(trade, 'amount'),
             'info': trade,
         }
 

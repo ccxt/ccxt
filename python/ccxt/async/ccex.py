@@ -72,8 +72,11 @@ class ccex (Exchange):
                 },
             },
             'commonCurrencies': {
-                'IOT': 'IoTcoin',
                 'BLC': 'Cryptobullcoin',
+                'CRC': 'CoreCoin',
+                'IOT': 'IoTcoin',
+                'LUX': 'Luxmi',
+                'VIT': 'VitalCoin',
                 'XID': 'InternationalDiamond',
             },
         })
@@ -184,24 +187,27 @@ class ccex (Exchange):
     def parse_ticker(self, ticker, market=None):
         timestamp = ticker['updated'] * 1000
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
+        last = self.safe_float(ticker, 'lastprice')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['buy']),
-            'ask': float(ticker['sell']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'buy'),
+            'bidVolume': None,
+            'ask': self.safe_float(ticker, 'sell'),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['lastprice']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
-            'average': float(ticker['avg']),
+            'average': self.safe_float(ticker, 'avg'),
             'baseVolume': None,
             'quoteVolume': self.safe_float(ticker, 'buysupport'),
             'info': ticker,
@@ -210,18 +216,18 @@ class ccex (Exchange):
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
         tickers = await self.webGetPrices(params)
-        result = {'info': tickers}
+        result = {}
         ids = list(tickers.keys())
         for i in range(0, len(ids)):
             id = ids[i]
             ticker = tickers[id]
-            uppercase = id.upper()
             market = None
             symbol = None
-            if uppercase in self.markets_by_id:
-                market = self.markets_by_id[uppercase]
+            if id in self.markets_by_id:
+                market = self.markets_by_id[id]
                 symbol = market['symbol']
             else:
+                uppercase = id.upper()
                 base, quote = uppercase.split('-')
                 base = self.common_currency_code(base)
                 quote = self.common_currency_code(quote)

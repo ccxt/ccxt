@@ -17,6 +17,7 @@ module.exports = class wex extends liqui {
             'has': {
                 'CORS': false,
                 'fetchTickers': true,
+                'fetchDepositAddress': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30652751-d74ec8f8-9e31-11e7-98c5-71469fcef03e.jpg',
@@ -83,6 +84,9 @@ module.exports = class wex extends liqui {
                     'external service unavailable': DDoSProtection,
                 },
             },
+            'commonCurrencies': {
+                'RUR': 'RUB',
+            },
         });
     }
 
@@ -91,6 +95,7 @@ module.exports = class wex extends liqui {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -98,18 +103,32 @@ module.exports = class wex extends liqui {
             'high': this.safeFloat (ticker, 'high'),
             'low': this.safeFloat (ticker, 'low'),
             'bid': this.safeFloat (ticker, 'sell'),
+            'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'buy'),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': this.safeFloat (ticker, 'last'),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': this.safeFloat (ticker, 'avg'),
             'baseVolume': this.safeFloat (ticker, 'vol_cur'),
             'quoteVolume': this.safeFloat (ticker, 'vol'),
             'info': ticker,
+        };
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        let request = { 'coinName': this.commonCurrencyCode (code) };
+        let response = await this.privatePostCoinDepositAddress (this.extend (request, params));
+        return {
+            'currency': code,
+            'address': response['return']['address'],
+            'tag': undefined,
+            'status': 'ok',
+            'info': response,
         };
     }
 
@@ -131,7 +150,7 @@ module.exports = class wex extends liqui {
                         return;
                     }
                     const feedback = this.id + ' ' + this.json (response);
-                    const messages = this.exceptions.messages;
+                    const messages = this.exceptions['messages'];
                     if (error in messages) {
                         throw new messages[error] (feedback);
                     }

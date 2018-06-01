@@ -6,6 +6,8 @@
 from ccxt.base.exchange import Exchange
 import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidNonce
 
 
 class cobinhood (Exchange):
@@ -23,6 +25,9 @@ class cobinhood (Exchange):
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'fetchOrder': True,
+                'fetchDepositAddress': True,
+                'createDepositAddress': True,
+                'withdraw': True,
             },
             'requiredCredentials': {
                 'apiKey': True,
@@ -125,6 +130,10 @@ class cobinhood (Exchange):
                 'amount': 8,
                 'price': 8,
             },
+            'exceptions': {
+                'insufficient_balance': InsufficientFunds,
+                'invalid_nonce': InvalidNonce,
+            },
         })
 
     def fetch_currencies(self, params={}):
@@ -135,14 +144,12 @@ class cobinhood (Exchange):
             currency = currencies[i]
             id = currency['currency']
             code = self.common_currency_code(id)
-            fundingNotFrozen = not currency['funding_frozen']
-            active = currency['is_active'] and fundingNotFrozen
-            minUnit = float(currency['min_unit'])
+            minUnit = self.safe_float(currency, 'min_unit')
             result[code] = {
                 'id': id,
                 'code': code,
                 'name': currency['name'],
-                'active': active,
+                'active': True,
                 'status': 'ok',
                 'fiat': False,
                 'precision': self.precision_from_string(currency['min_unit']),
@@ -166,12 +173,10 @@ class cobinhood (Exchange):
                 },
                 'funding': {
                     'withdraw': {
-                        'active': fundingNotFrozen,
-                        'fee': float(currency['withdrawal_fee']),
+                        'fee': self.safe_float(currency, 'withdrawal_fee'),
                     },
                     'deposit': {
-                        'active': fundingNotFrozen,
-                        'fee': float(currency['deposit_fee']),
+                        'fee': self.safe_float(currency, 'deposit_fee'),
                     },
                 },
                 'info': currency,
@@ -193,6 +198,7 @@ class cobinhood (Exchange):
                 'amount': 8,
                 'price': self.precision_from_string(market['quote_increment']),
             }
+            active = self.safe_value(market, 'is_active', True)
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -200,12 +206,12 @@ class cobinhood (Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'active': market['is_active'],
+                'active': active,
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': float(market['base_min_size']),
-                        'max': float(market['base_max_size']),
+                        'min': self.safe_float(market, 'base_min_size'),
+                        'max': self.safe_float(market, 'base_max_size'),
                     },
                     'price': {
                         'min': None,
@@ -233,10 +239,12 @@ class cobinhood (Exchange):
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['24h_high']),
-            'low': float(ticker['24h_low']),
-            'bid': float(ticker['highest_bid']),
-            'ask': float(ticker['lowest_ask']),
+            'high': self.safe_float(ticker, '24h_high'),
+            'low': self.safe_float(ticker, '24h_low'),
+            'bid': self.safe_float(ticker, 'highest_bid'),
+            'bidVolume': None,
+            'ask': self.safe_float(ticker, 'lowest_ask'),
+            'askVolume': None,
             'vwap': None,
             'open': None,
             'close': last,
@@ -245,7 +253,7 @@ class cobinhood (Exchange):
             'change': self.safe_float(ticker, 'percentChanged24hr'),
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['24h_volume']),
+            'baseVolume': self.safe_float(ticker, '24h_volume'),
             'quoteVolume': self.safe_float(ticker, 'quote_volume'),
             'info': ticker,
         }
@@ -283,8 +291,8 @@ class cobinhood (Exchange):
         if market:
             symbol = market['symbol']
         timestamp = trade['timestamp']
-        price = float(trade['price'])
-        amount = float(trade['size'])
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'size')
         cost = float(self.cost_to_precision(symbol, price * amount))
         side = trade['maker_side'] == 'sell' if 'bid' else 'buy'
         return {
@@ -368,15 +376,17 @@ class cobinhood (Exchange):
 
     def parse_order(self, order, market=None):
         symbol = None
-        if not market:
-            marketId = order['trading_pair']
+        if market is None:
+            marketId = self.safe_string(order, 'trading_pair')
+            if marketId is None:
+                marketId = self.safe_string(order, 'trading_pair_id')
             market = self.markets_by_id[marketId]
-        if market:
+        if market is not None:
             symbol = market['symbol']
         timestamp = order['timestamp']
-        price = float(order['price'])
-        amount = float(order['size'])
-        filled = float(order['filled'])
+        price = self.safe_float(order, 'eq_price')
+        amount = self.safe_float(order, 'size')
+        filled = self.safe_float(order, 'filled')
         remaining = amount - filled
         # new, queued, open, partially_filled, filled, cancelled
         status = order['state']
@@ -391,6 +401,7 @@ class cobinhood (Exchange):
             'id': order['id'],
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
+            'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
             'type': order['type'],  # market, limit, stop, stop_limit, trailing_stop, fill_or_kill
@@ -450,7 +461,7 @@ class cobinhood (Exchange):
             'order_id': id,
         }, params))
         market = None if (symbol is None) else self.market(symbol)
-        return self.parse_trades(response['result'], market)
+        return self.parse_trades(response['result']['trades'], market)
 
     def create_deposit_address(self, code, params={}):
         self.load_markets()
@@ -473,7 +484,10 @@ class cobinhood (Exchange):
         response = self.privateGetWalletDepositAddresses(self.extend({
             'currency': currency['id'],
         }, params))
-        address = self.safe_string(response['result']['deposit_addresses'], 'address')
+        addresses = self.safe_value(response['result'], 'deposit_addresses', [])
+        address = None
+        if len(addresses) > 0:
+            address = self.safe_string(addresses[0], 'address')
         self.check_address(address)
         return {
             'currency': code,
@@ -519,5 +533,9 @@ class cobinhood (Exchange):
         if body[0] != '{':
             raise ExchangeError(self.id + ' ' + body)
         response = json.loads(body)
-        message = self.safe_value(response['error'], 'error_code')
-        raise ExchangeError(self.id + ' ' + message)
+        errorCode = self.safe_value(response['error'], 'error_code')
+        feedback = self.id + ' ' + self.json(response)
+        exceptions = self.exceptions
+        if errorCode in exceptions:
+            raise exceptions[errorCode](feedback)
+        raise ExchangeError(feedback)

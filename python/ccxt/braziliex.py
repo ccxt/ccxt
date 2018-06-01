@@ -182,6 +182,7 @@ class braziliex (Exchange):
         symbol = market['symbol']
         timestamp = ticker['date']
         ticker = ticker['ticker']
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -189,12 +190,14 @@ class braziliex (Exchange):
             'high': self.safe_float(ticker, 'highestBid24'),
             'low': self.safe_float(ticker, 'lowestAsk24'),
             'bid': self.safe_float(ticker, 'highestBid'),
+            'bidVolume': None,
             'ask': self.safe_float(ticker, 'lowestAsk'),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': self.safe_float(ticker, 'last'),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': self.safe_float(ticker, 'percentChange'),
             'percentage': None,
             'average': None,
@@ -245,10 +248,10 @@ class braziliex (Exchange):
             timestamp = self.parse8601(trade['date_exec'])
         else:
             timestamp = self.parse8601(trade['date'])
-        price = float(trade['price'])
-        amount = float(trade['amount'])
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'amount')
         symbol = market['symbol']
-        cost = float(trade['total'])
+        cost = self.safe_float(trade, 'total')
         orderId = self.safe_string(trade, 'order_number')
         return {
             'timestamp': timestamp,
@@ -303,7 +306,7 @@ class braziliex (Exchange):
         timestamp = self.safe_value(order, 'timestamp')
         if not timestamp:
             timestamp = self.parse8601(order['date'])
-        price = float(order['price'])
+        price = self.safe_float(order, 'price')
         cost = self.safe_float(order, 'total', 0.0)
         amount = self.safe_float(order, 'amount')
         filledPercentage = self.safe_float(order, 'progress')
@@ -316,6 +319,7 @@ class braziliex (Exchange):
             'id': order['order_number'],
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
+            'lastTradeTimestamp': None,
             'status': 'open',
             'symbol': symbol,
             'type': 'limit',
