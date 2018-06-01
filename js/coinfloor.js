@@ -74,23 +74,23 @@ module.exports = class coinfloor extends Exchange {
             market = this.findMarket (params['id']);
         if (!market)
             throw new NotSupported (this.id + ' fetchBalance requires a symbol param');
-        let info = await this.privatePostIdBalance ({
+        let response = await this.privatePostIdBalance ({
             'id': market['id'],
         });
         let result = {
-            'info': info,
+            'info': response,
         };
         // base/quote used for keys e.g. "xbt_reserved"
         let keys = market['id'].toLowerCase ().split ('/');
         result[market['base']] = {
-            'free': parseFloat (info[keys[0] + '_available']),
-            'used': parseFloat (info[keys[0] + '_reserved']),
-            'total': parseFloat (info[keys[0] + '_balance']),
+            'free': parseFloat (response[keys[0] + '_available']),
+            'used': parseFloat (response[keys[0] + '_reserved']),
+            'total': parseFloat (response[keys[0] + '_balance']),
         };
         result[market['quote']] = {
-            'free': parseFloat (info[keys[1] + '_available']),
-            'used': parseFloat (info[keys[1] + '_reserved']),
-            'total': parseFloat (info[keys[1] + '_balance']),
+            'free': parseFloat (response[keys[1] + '_available']),
+            'used': parseFloat (response[keys[1] + '_reserved']),
+            'total': parseFloat (response[keys[1] + '_balance']),
         };
         return this.parseBalance (result);
     }
