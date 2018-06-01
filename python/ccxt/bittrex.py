@@ -590,6 +590,8 @@ class bittrex (Exchange):
                 if message == 'UUID_INVALID':
                     raise OrderNotFound(self.id + ' fetchOrder() error: ' + self.last_http_response)
             raise e
+        if not response['result']:
+            raise OrderNotFound(self.id + ' order ' + id + ' not found')
         return self.parse_order(response['result'])
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
