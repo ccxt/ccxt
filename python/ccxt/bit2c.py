@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
-import datetime
+
 
 class bit2c (Exchange):
 
@@ -131,24 +131,6 @@ class bit2c (Exchange):
             'info': ticker,
         }
 
-    def parse_trade(self, trade, market=None):
-        timestamp = int(trade['date']) * 1000
-        symbol = None
-        if market:
-            symbol = market['symbol']
-        return {
-            'id': str(trade['tid']),
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
-            'order': None,
-            'type': None,
-            'side': None,
-            'price': trade['price'],
-            'amount': trade['amount'],
-        }
-
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         market = self.market(symbol)
         response = self.publicGetExchangesPairTrades(self.extend({
@@ -243,21 +225,17 @@ class bit2c (Exchange):
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         market = None
-               
         method = 'privateGetOrderOrderhistory'
-        toTime = datetime.datetime.now()
-        fromTime = datetime.datetime.fromtimestamp(since)
-        
         request = {}
+        if limit is not None:
+            request['take'] = limit
         request['take'] = limit
         if since is not None:
-            request['toTime'] = toTime.strftime('%m.%d.%Y')     
-            request['fromTime'] = fromTime.strftime('%m.%d.%Y')        
-
+            request['toTime'] = self.ymd(self.milliseconds(), '.')
+            request['fromTime'] = self.ymd(since, '.')
         if symbol is not None:
             market = self.market(symbol)
             request['pair'] = market['id']
-
         response = getattr(self, method)(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
@@ -269,39 +247,37 @@ class bit2c (Exchange):
         orderId = None
         feeCost = None
         side = None
-        symbol = market['symbol'] if market is not None else None
-
-        # Private Trade
-        if('reference' in trade):
+        reference = self.safe_string(trade, 'reference')
+        if reference is not None:
             timestamp = self.safe_integer(trade, 'ticks') * 1000
             price = self.safe_float(trade, 'price')
             amount = self.safe_float(trade, 'firstAmount')
-            if(symbol is None):
+            reference_parts = reference.split('|')  # reference contains: 'pair|orderId|tradeId'
+            if market is None:
                 marketId = self.safe_string(trade, 'pair')
-                symbol = [self.markets[market]['symbol'] for market in self.markets if self.markets[market]['id'] == marketId][0]
-
-            reference = self.safe_string(trade, 'reference').split('|') # reference contain: 'pair|orderId|tradeId'
-            orderId = reference[1]
-            id = reference[2]
-            
-            action = self.safe_integer(trade, 'action')
-            if action == 0:
+                if marketId in self.markets_by_id[marketId]:
+                    market = self.markets_by_id[marketId]
+                elif reference_parts[0] in self.markets_by_id:
+                    market = self.markets_by_id[reference_parts[0]]
+            orderId = reference_parts[1]
+            id = reference_parts[2]
+            side = self.safe_integer(trade, 'action')
+            if side == 0:
                 side = 'buy'
-            elif action == 1:
+            elif side == 1:
                 side = 'sell'
-
             feeCost = self.safe_float(trade, 'feeAmount')
-        
-        # Public Trade
         else:
             timestamp = self.safe_integer(trade, 'date') * 1000
             id = self.safe_integer(trade, 'tid')
             price = self.safe_float(trade, 'price')
             amount = self.safe_float(trade, 'amount')
-
-        return  {
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
+        return {
             'info': trade,
-            'id': id,          
+            'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
