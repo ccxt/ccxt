@@ -409,7 +409,7 @@ module.exports = class gateio extends Exchange {
             'status': 'open',
             'type': side,
             'initialAmount': amount,
-        }), response, market);
+        }, response), market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
