@@ -410,7 +410,7 @@ class gateio extends Exchange {
             'status' => 'open',
             'type' => $side,
             'initialAmount' => $amount,
-        )), $response, $market);
+        ), $response), $market);
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
