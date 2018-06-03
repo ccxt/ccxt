@@ -485,7 +485,7 @@ module.exports = class gateio extends Exchange {
             'currency': currency.toLowerCase (),
             'amount': amount,
             'address': address, // Address must exist in you AddressBook in security settings
-        }, params))
+        }, params));
         return {
             'info': response,
             'id': undefined,
