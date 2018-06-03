@@ -41,6 +41,7 @@ class gateio (Exchange):
                 'fetchClosedOrders': True,
                 'fetchOpenOrders': True,
                 'fetchOrders': True,
+                'fetchOrder': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
@@ -312,7 +313,7 @@ class gateio (Exchange):
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         response = await self.privatePostOpenOrders(params)
-        return self.parse_orders(response['result']['orders'], None, since, limit)
+        return self.parse_orders(response['orders'], None, since, limit)
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
