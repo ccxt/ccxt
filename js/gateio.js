@@ -25,6 +25,7 @@ module.exports = class gateio extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchOpenOrders': true,
                 'fetchOrders': true,
+                'fetchOrder': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
