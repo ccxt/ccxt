@@ -319,7 +319,7 @@ module.exports = class gateio extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let response = await this.privatePostOpenOrders (params);
-        return this.parseOrders (response['result']['orders'], undefined, since, limit);
+        return this.parseOrders (response['orders'], undefined, since, limit);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
