@@ -365,6 +365,10 @@ module.exports = class gateio extends Exchange {
         let amount = this.safeFloat (order, 'initialAmount');
         let filled = this.safeFloat (order, 'filledAmount');
         let remaining = this.safeFloat (order, 'leftAmount');
+        if (typeof remaining !== 'undefined') {
+            // In the order status response, this field has a different name.
+            remaining = this.safeFloat (order, 'left');
+        }
         let feeCost = this.safeFloat (order, 'feeValue');
         let feeCurrency = this.safeString (order, 'feeCurrency');
         if (typeof feeCurrency !== 'undefined') {
@@ -481,7 +485,7 @@ module.exports = class gateio extends Exchange {
             'currency': currency.toLowerCase (),
             'amount': amount,
             'address': address, // Address must exist in you AddressBook in security settings
-        }, params));
+        }, params))
         return {
             'info': response,
             'id': undefined,
