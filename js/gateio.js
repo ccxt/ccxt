@@ -365,7 +365,7 @@ module.exports = class gateio extends Exchange {
         let amount = this.safeFloat (order, 'initialAmount');
         let filled = this.safeFloat (order, 'filledAmount');
         let remaining = this.safeFloat (order, 'leftAmount');
-        if (typeof remaining !== 'undefined') {
+        if (typeof remaining === 'undefined') {
             // In the order status response, this field has a different name.
             remaining = this.safeFloat (order, 'left');
         }
