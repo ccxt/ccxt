@@ -353,6 +353,9 @@ class gateio (Exchange):
         amount = self.safe_float(order, 'initialAmount')
         filled = self.safe_float(order, 'filledAmount')
         remaining = self.safe_float(order, 'leftAmount')
+        if remaining is None:
+            # In the order status response, self field has a different name.
+            remaining = self.safe_float(order, 'left')
         feeCost = self.safe_float(order, 'feeValue')
         feeCurrency = self.safe_string(order, 'feeCurrency')
         if feeCurrency is not None:

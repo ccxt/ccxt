@@ -366,6 +366,10 @@ class gateio extends Exchange {
         $amount = $this->safe_float($order, 'initialAmount');
         $filled = $this->safe_float($order, 'filledAmount');
         $remaining = $this->safe_float($order, 'leftAmount');
+        if ($remaining === null) {
+            // In the $order $status response, this field has a different name.
+            $remaining = $this->safe_float($order, 'left');
+        }
         $feeCost = $this->safe_float($order, 'feeValue');
         $feeCurrency = $this->safe_string($order, 'feeCurrency');
         if ($feeCurrency !== null) {
