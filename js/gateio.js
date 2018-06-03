@@ -25,6 +25,7 @@ module.exports = class gateio extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchOpenOrders': true,
                 'fetchOrders': true,
+                'fetchOrder': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
@@ -319,7 +320,7 @@ module.exports = class gateio extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let response = await this.privatePostOpenOrders (params);
-        return this.parseOrders (response['result']['orders'], undefined, since, limit);
+        return this.parseOrders (response['orders'], undefined, since, limit);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -364,6 +365,10 @@ module.exports = class gateio extends Exchange {
         let amount = this.safeFloat (order, 'initialAmount');
         let filled = this.safeFloat (order, 'filledAmount');
         let remaining = this.safeFloat (order, 'leftAmount');
+        if (typeof remaining === 'undefined') {
+            // In the order status response, this field has a different name.
+            remaining = this.safeFloat (order, 'left');
+        }
         let feeCost = this.safeFloat (order, 'feeValue');
         let feeCurrency = this.safeString (order, 'feeCurrency');
         if (typeof feeCurrency !== 'undefined') {

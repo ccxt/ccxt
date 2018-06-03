@@ -26,6 +26,7 @@ class gateio extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrders' => true,
+                'fetchOrder' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
@@ -320,7 +321,7 @@ class gateio extends Exchange {
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $response = $this->privatePostOpenOrders ($params);
-        return $this->parse_orders($response['result']['orders'], null, $since, $limit);
+        return $this->parse_orders($response['orders'], null, $since, $limit);
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
@@ -365,6 +366,10 @@ class gateio extends Exchange {
         $amount = $this->safe_float($order, 'initialAmount');
         $filled = $this->safe_float($order, 'filledAmount');
         $remaining = $this->safe_float($order, 'leftAmount');
+        if ($remaining === null) {
+            // In the $order $status response, this field has a different name.
+            $remaining = $this->safe_float($order, 'left');
+        }
         $feeCost = $this->safe_float($order, 'feeValue');
         $feeCurrency = $this->safe_string($order, 'feeCurrency');
         if ($feeCurrency !== null) {
