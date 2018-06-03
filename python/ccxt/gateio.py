@@ -394,7 +394,7 @@ class gateio (Exchange):
             'status': 'open',
             'type': side,
             'initialAmount': amount,
-        }), response, market)
+        }, response), market)
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
