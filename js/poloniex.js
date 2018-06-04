@@ -192,7 +192,7 @@ module.exports = class poloniex extends Exchange {
                 'XMR': 0.0001,
                 'USDT': 1.0,
             }[quote];
-            if (minimalCost === undefined) {
+            if (type minimalCost === 'undefined') {
                 minimalCost = 0.00000000;
             }
             result.push (this.extend (this.fees['trading'], {
