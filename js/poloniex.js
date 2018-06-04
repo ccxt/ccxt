@@ -187,14 +187,14 @@ module.exports = class poloniex extends Exchange {
             quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
             let minimalCost = {
-                'BTC': 0.0001, 
-                'ETH': 0.0001, 
-                'XMR': 0.0001, 
-                'USDT': 1.0
+                'BTC': 0.0001,
+                'ETH': 0.0001,
+                'XMR': 0.0001,
+                'USDT': 1.0,
             }[quote];
             if (minimalCost === undefined) {
-                minimalCost == 0.00000000;
-            };
+                minimalCost = 0.00000000;
+            }
             result.push (this.extend (this.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
