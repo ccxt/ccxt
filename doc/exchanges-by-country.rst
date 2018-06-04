@@ -288,6 +288,8 @@ The ccxt library currently supports the following cryptocurrency exchange market
 +----------------------------+------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | US                         | |btcx|                 | btcx                 | `BTCX <https://btc-x.is>`__                                                       | 1     | `API <https://btc-x.is/custom/api-document.html>`__                                               |
 +----------------------------+------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
+| US                         | |coinbase|             | coinbase             | `coinbase <https://www.coinbase.com>`__                                           | 2     | `API <https://developers.coinbase.com/api/v2>`__                                                  |
++----------------------------+------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | US                         | |coinexchange|         | coinexchange         | `CoinExchange <https://www.coinexchange.io>`__                                    | \*    | `API <https://coinexchangeio.github.io/slate/>`__                                                 |
 +----------------------------+------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | US                         | |coingi|               | coingi               | `Coingi <https://coingi.com>`__                                                   | \*    | `API <http://docs.coingi.apiary.io/>`__                                                           |
@@ -427,6 +429,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
 .. |liqui| image:: https://user-images.githubusercontent.com/1294454/27982022-75aea828-63a0-11e7-9511-ca584a8edd74.jpg
 .. |_1broker| image:: https://user-images.githubusercontent.com/1294454/27766021-420bd9fc-5ecb-11e7-8ed6-56d0081efed2.jpg
 .. |bittrex| image:: https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg
+.. |coinbase| image:: https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg
 .. |coinmarketcap| image:: https://user-images.githubusercontent.com/1294454/28244244-9be6312a-69ed-11e7-99c1-7c1797275265.jpg
 .. |gdax| image:: https://user-images.githubusercontent.com/1294454/27766527-b1be41c6-5edb-11e7-95f6-5b496c469e2c.jpg
 .. |gemini| image:: https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg

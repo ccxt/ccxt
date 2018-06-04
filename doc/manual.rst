@@ -55,7 +55,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 Exchanges
 =========
 
-The ccxt library currently supports the following 115 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 116 cryptocurrency exchange markets and trading APIs:
 
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 |                        | id                   | name                                                                              | ver   | doc                                                                                               | countries                                  |
@@ -139,6 +139,8 @@ The ccxt library currently supports the following 115 cryptocurrency exchange ma
 | |chilebit|             | chilebit             | `ChileBit <https://chilebit.net>`__                                               | 1     | `API <https://blinktrade.com/docs>`__                                                             | Chile                                      |
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |cobinhood|            | cobinhood            | `COBINHOOD <https://cobinhood.com>`__                                             | \*    | `API <https://cobinhood.github.io/api-public>`__                                                  | Taiwan                                     |
++------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
+| |coinbase|             | coinbase             | `coinbase <https://www.coinbase.com>`__                                           | 2     | `API <https://developers.coinbase.com/api/v2>`__                                                  | US                                         |
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |coincheck|            | coincheck            | `coincheck <https://coincheck.com>`__                                             | \*    | `API <https://coincheck.com/documents/exchange/api>`__                                            | Japan, Indonesia                           |
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -1982,6 +1984,10 @@ Most of methods returning orders within ccxt unified API will usually yield an o
 -  The ``lastTradeTimestamp`` timestamp may have no value and may be ``undefined/None/null`` where not supported by the exchange or in case of an open order (an order that has not been filled nor partially filled yet).
 -  The ``lastTradeTimestamp``, if any, designates the timestamp of the last trade, in case the order is filled fully or partially, otherwise ``lastTradeTimestamp`` is ``undefined/None/null``.
 -  Order ``status`` prevails or has precedence over the ``lastTradeTimestamp``.
+-  The ``cost`` of an order is:
+-  ``if (status === 'open' and filled === 0) { amount * price }``
+-  ``if (status === 'closed' || status === 'canceled') { filled * price }``
+-  The ``cost`` of an order means the total *quote* volume of the order (whereas the ``amount`` is the *base* volume). The value of ``cost`` should be as close to the actual most recent known order cost as possible. The ``cost`` field itself is there mostly for convenience and can be deduced from other fields.
 
 Placing Orders
 ~~~~~~~~~~~~~~
@@ -2229,9 +2235,9 @@ Trade structure
         },
     }
 
-**The work on ``'fee'`` info is still in progress, fee info may be missing partially or entirely, depending on the exchange capabilities.**
-
-**The ``fee`` currency may be different from both traded currencies (for example, an ETH/BTC order with fees in USD).**
+-  The work on ``'fee'`` info is still in progress, fee info may be missing partially or entirely, depending on the exchange capabilities.
+-  The ``fee`` currency may be different from both traded currencies (for example, an ETH/BTC order with fees in USD).
+-  The ``cost`` of the trade means ``amount * price``. It is the total *quote* volume of the trade (whereas ``amount`` is the *base* volume). The cost field itself is there mostly for convenience and can be deduced from other fields.
 
 Trades By Order Id
 ~~~~~~~~~~~~~~~~~~
@@ -2680,6 +2686,7 @@ Notes
 .. |chbtc| image:: https://user-images.githubusercontent.com/1294454/28555659-f0040dc2-7109-11e7-9d99-688a438bf9f4.jpg
 .. |chilebit| image:: https://user-images.githubusercontent.com/1294454/27991414-1298f0d8-647f-11e7-9c40-d56409266336.jpg
 .. |cobinhood| image:: https://user-images.githubusercontent.com/1294454/35755576-dee02e5c-0878-11e8-989f-1595d80ba47f.jpg
+.. |coinbase| image:: https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg
 .. |coincheck| image:: https://user-images.githubusercontent.com/1294454/27766464-3b5c3c74-5ed9-11e7-840e-31b32968e1da.jpg
 .. |coinegg| image:: https://user-images.githubusercontent.com/1294454/36770310-adfa764e-1c5a-11e8-8e09-449daac3d2fb.jpg
 .. |coinex| image:: https://user-images.githubusercontent.com/1294454/38046312-0b450aac-32c8-11e8-99ab-bc6b136b6cc7.jpg

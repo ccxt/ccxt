@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.14.102';
+$version = '1.14.123';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -87,6 +87,7 @@ abstract class Exchange {
         'chbtc',
         'chilebit',
         'cobinhood',
+        'coinbase',
         'coincheck',
         'coinegg',
         'coinex',
@@ -508,6 +509,10 @@ abstract class Exchange {
         return $time;
     }
 
+    public static function dmy ($timestamp, $infix = '-') {
+        return gmdate ('m' . $infix . 'd' . $infix . 'Y', (int) round ($timestamp / 1000));
+    }
+
     public static function ymd ($timestamp, $infix = '-') {
         return gmdate ('Y' . $infix . 'm' . $infix . 'd', (int) round ($timestamp / 1000));
     }
@@ -684,6 +689,7 @@ abstract class Exchange {
             'fetchTickers' => false,
             'fetchTrades' => true,
             'fetchTradingFees' => false,
+            'fetchTradingLimits' => false,
             'withdraw' => false,
         );
 
@@ -1256,6 +1262,24 @@ abstract class Exchange {
 
     public function fetchTotalBalance ($params = array ()) {
         return $this->fetch_total_balance ($params);
+    }
+
+    public function load_trading_limits ($symbols = null, $reload = false, $params = array ()) {
+        if ($this->has['fetchTradingLimits']) {
+            if ($reload || !(is_array ($this->options) && array_key_exists ('limitsLoaded', $this->options))) {
+                $response = $this->fetch_trading_limits ($symbols);
+                $limits = $response['limits'];
+                $keys = is_array ($limits) ? array_keys ($limits) : array ();
+                for ($i = 0; $i < count ($keys); $i++) {
+                    $symbol = $keys[$i];
+                    $this->markets[$symbol] = array_replace_recursive ($this->markets[$symbol], array (
+                        'limits' => $limits[$symbol],
+                    ));
+                }
+                $this->options['limitsLoaded'] = $this->milliseconds ();
+            }
+        }
+        return $this->markets;
     }
 
     public function filter_by_since_limit ($array, $since = null, $limit = null) {
