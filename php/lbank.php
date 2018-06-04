@@ -191,9 +191,11 @@ class lbank extends Exchange {
         for ($i = 0; $i < count ($tickers); $i++) {
             $ticker = $tickers[$i];
             $id = $ticker['symbol'];
-            $market = $this->marketsById[$id];
-            $symbol = $market['symbol'];
-            $result[$symbol] = $this->parse_ticker($ticker, $market);
+            if (is_array ($this->marketsById) && array_key_exists ($id, $this->marketsById)) {
+                $market = $this->marketsById[$id];
+                $symbol = $market['symbol'];
+                $result[$symbol] = $this->parse_ticker($ticker, $market);
+            }
         }
         return $result;
     }
