@@ -617,6 +617,9 @@ class bittrex extends Exchange {
             }
             throw $e;
         }
+        if (!$response['result']) {
+            throw new OrderNotFound ($this->id . ' order ' . $id . ' not found');
+        }
         return $this->parse_order($response['result']);
     }
 

@@ -614,10 +614,6 @@ module.exports = class gatecoin extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        return this.fetch2 (path, api, method, params, headers, body);
-    }
-
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
@@ -667,6 +663,22 @@ module.exports = class gatecoin extends Exchange {
         return {
             'currency': code,
             'address': address,
+            'status': 'ok',
+            'info': response,
+        };
+    }
+
+    async createUserWallet (code, address, name, password, params = {}) {
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let request = {
+            'DigiCurrency': currency['id'],
+            'AddressName': name,
+            'Address': address,
+            'Password': password,
+        };
+        let response = await this.privatePostElectronicWalletUserWalletsDigiCurrency (this.extend (request, params));
+        return {
             'status': 'ok',
             'info': response,
         };

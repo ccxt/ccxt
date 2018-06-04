@@ -32,6 +32,7 @@ class cointiger (huobipro):
             'has': {
                 'fetchCurrencies': False,
                 'fetchTickers': True,
+                'fetchTradingLimits': False,
                 'fetchOrder': False,
             },
             'headers': {
