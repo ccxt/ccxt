@@ -150,7 +150,7 @@ module.exports = class gateio extends Exchange {
                 'ETH': 0.001,
                 'BTC': 0.0001,
             }[quote];
-            if (minimumCost === undefined) {
+            if (typeof minimumCost === 'undefined') {
                 minimumCost = amountLimits['min'] * priceLimits['min'];
             }
             let costLimits = {
