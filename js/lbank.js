@@ -190,9 +190,11 @@ module.exports = class lbank extends Exchange {
         for (let i = 0; i < tickers.length; i++) {
             let ticker = tickers[i];
             let id = ticker['symbol'];
-            let market = this.marketsById[id];
-            let symbol = market['symbol'];
-            result[symbol] = this.parseTicker (ticker, market);
+            if (id in this.marketsById) {
+                let market = this.marketsById[id];
+                let symbol = market['symbol'];
+                result[symbol] = this.parseTicker (ticker, market);
+            }
         }
         return result;
     }
