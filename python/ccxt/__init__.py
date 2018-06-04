@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.14.79'
+__version__ = '1.14.123'
 
 # ----------------------------------------------------------------------------
 
@@ -42,6 +42,7 @@ from ccxt.base.errors import ExchangeError                  # noqa: F401
 from ccxt.base.errors import NotSupported                   # noqa: F401
 from ccxt.base.errors import AuthenticationError            # noqa: F401
 from ccxt.base.errors import PermissionDenied               # noqa: F401
+from ccxt.base.errors import AccountSuspended               # noqa: F401
 from ccxt.base.errors import InvalidNonce                   # noqa: F401
 from ccxt.base.errors import InsufficientFunds              # noqa: F401
 from ccxt.base.errors import InvalidOrder                   # noqa: F401
@@ -97,6 +98,7 @@ from ccxt.cex import cex                                    # noqa: F401
 from ccxt.chbtc import chbtc                                # noqa: F401
 from ccxt.chilebit import chilebit                          # noqa: F401
 from ccxt.cobinhood import cobinhood                        # noqa: F401
+from ccxt.coinbase import coinbase                          # noqa: F401
 from ccxt.coincheck import coincheck                        # noqa: F401
 from ccxt.coinegg import coinegg                            # noqa: F401
 from ccxt.coinex import coinex                              # noqa: F401
@@ -214,6 +216,7 @@ exchanges = [
     'chbtc',
     'chilebit',
     'cobinhood',
+    'coinbase',
     'coincheck',
     'coinegg',
     'coinex',

@@ -77,9 +77,11 @@ const cfscrapeCookies = (url) => {
 
 const timeout = 30000
 let exchange = undefined
+const enableRateLimit = true
+
 try {
 
-    exchange = new (ccxt)[exchangeId] ({ verbose, timeout })
+    exchange = new (ccxt)[exchangeId] ({ verbose, timeout, enableRateLimit })
 
 } catch (e) {
 

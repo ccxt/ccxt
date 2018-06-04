@@ -150,6 +150,7 @@ class bittrex extends Exchange {
                 'UUID_INVALID' => '\\ccxt\\OrderNotFound',
                 'RATE_NOT_PROVIDED' => '\\ccxt\\InvalidOrder', // createLimitBuyOrder ('ETH/BTC', 1, 0)
                 'WHITELIST_VIOLATION_IP' => '\\ccxt\\PermissionDenied',
+                'INVALID_ORDER' => '\\ccxt\\InvalidOrder',
             ),
             'options' => array (
                 'parseOrderStatus' => false,
@@ -615,6 +616,9 @@ class bittrex extends Exchange {
                     throw new OrderNotFound ($this->id . ' fetchOrder() error => ' . $this->last_http_response);
             }
             throw $e;
+        }
+        if (!$response['result']) {
+            throw new OrderNotFound ($this->id . ' order ' . $id . ' not found');
         }
         return $this->parse_order($response['result']);
     }

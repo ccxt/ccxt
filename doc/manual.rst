@@ -55,7 +55,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 Exchanges
 =========
 
-The ccxt library currently supports the following 115 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 116 cryptocurrency exchange markets and trading APIs:
 
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 |                        | id                   | name                                                                              | ver   | doc                                                                                               | countries                                  |
@@ -78,7 +78,7 @@ The ccxt library currently supports the following 115 cryptocurrency exchange ma
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |bitbank|              | bitbank              | `bitbank <https://bitbank.cc/>`__                                                 | 1     | `API <https://docs.bitbank.cc/>`__                                                                | Japan                                      |
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
-| |bitbay|               | bitbay               | `BitBay <https://bitbay.net>`__                                                   | \*    | `API <https://bitbay.net/public-api>`__                                                           | Poland, EU                                 |
+| |bitbay|               | bitbay               | `BitBay <https://bitbay.net>`__                                                   | \*    | `API <https://bitbay.net/public-api>`__                                                           | Malta, EU                                  |
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |bitfinex|             | bitfinex             | `Bitfinex <https://www.bitfinex.com>`__                                           | 1     | `API <https://bitfinex.readme.io/v1/docs>`__                                                      | British Virgin Islands                     |
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -140,6 +140,8 @@ The ccxt library currently supports the following 115 cryptocurrency exchange ma
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |cobinhood|            | cobinhood            | `COBINHOOD <https://cobinhood.com>`__                                             | \*    | `API <https://cobinhood.github.io/api-public>`__                                                  | Taiwan                                     |
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
+| |coinbase|             | coinbase             | `coinbase <https://www.coinbase.com>`__                                           | 2     | `API <https://developers.coinbase.com/api/v2>`__                                                  | US                                         |
++------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |coincheck|            | coincheck            | `coincheck <https://coincheck.com>`__                                             | \*    | `API <https://coincheck.com/documents/exchange/api>`__                                            | Japan, Indonesia                           |
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |coinegg|              | coinegg              | `CoinEgg <https://www.coinegg.com>`__                                             | \*    | `API <https://www.coinegg.com/explain.api.html>`__                                                | China, UK                                  |
@@ -164,7 +166,7 @@ The ccxt library currently supports the following 115 cryptocurrency exchange ma
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |coinspot|             | coinspot             | `CoinSpot <https://www.coinspot.com.au>`__                                        | \*    | `API <https://www.coinspot.com.au/api>`__                                                         | Australia                                  |
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
-| |cointiger|            | cointiger            | `CoinTiger <https://www.cointiger.com/exchange/register.html?refCode=FfvDtt>`__   | 1     | `API <https://github.com/cointiger/api-docs-en/wiki>`__                                           | China                                      |
+| |cointiger|            | cointiger            | `CoinTiger <https://www.cointiger.pro/exchange/register.html?refCode=FfvDtt>`__   | 1     | `API <https://github.com/cointiger/api-docs-en/wiki>`__                                           | China                                      |
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |coolcoin|             | coolcoin             | `CoolCoin <https://www.coolcoin.com>`__                                           | \*    | `API <https://www.coolcoin.com/help.api.html>`__                                                  | Hong Kong                                  |
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -810,8 +812,20 @@ Historically various symbolic names have been used to designate same trading pai
 -  ``DSH → DASH``: Try not to confuse symbols and currencies. The ``DSH`` (Dashcoin) is not the same as ``DASH`` (Dash). Some exchanges have ``DASH`` labelled inconsistently as ``DSH``, the ccxt library does a correction for that as well (``DSH → DASH``), but only on certain exchanges that have these two currencies confused, whereas most exchanges have them both correct. Just remember that ``DASH/BTC`` is not the same as ``DSH/BTC``.
 -  ``NANO`` → ``XRB``: ``NANO`` is the newer code for Raiblocks, however, CCXT unified API uses the older ``XRB`` for backward-compatibility with existing exchanges and data providers.
 
+Notes On Naming Consistency
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Each exchange has an associative array of substitutions for cryptocurrency symbolic codes in the ``exchange.commonCurrencies`` property. Sometimes the user may notice exotic symbol names with mixed-case words and spaces in the code. The logic behind having these names is explained by the rules for resolving conflicts in naming and currency-coding when one or more currencies have the same symbolic code with different exchanges:
+
+-  First, we gather all info available from the exchanges themselves about the currency codes in question. They usually have a description of their coin listings somewhere in their API or their docs, knowledgebases or elsewhere on their websites.
+-  When we identify each particular cryptocurrency standing behind the currency code, we look them up on `CoinMarketCap <https://coinmarketcap.com>`__.
+-  The currency that has the greatest market capitalization of all wins the currency code and keeps it. For example, HMC often stand for either ``Hi Mutual Society`` or ``HarmonyCoin``. In this case ``Hi Mutual Society`` retains the code ``HMC``, and ``HarmonyCoin`` will have its name as its code, literally, ``HarmonyCoin``. So, there may be trading pairs with symbols like ``HMC/USD`` (for ``Hi Mutual Society``) and ``HarmonyCoin/USD`` – those are two different markets.
+-  If market cap of a particular coin is unknown or is not enough to determine the winner, we also take trading volumes and other factors into consideration.
+-  When the winner is determined all other competing currencies get their code names properly remapped and substituted within conflicting exchanges via ``.commonCurrencies``.
+-  Unfortunately this is a work in progress, because new currencies get listed daily and new exchanges are added from time to time, so, in general this is a never-ending process of self-correction in a quickly changing environment, practically, in *"live mode"*. We are thankful for all reported conflicts and mismatches you may find.
+
 Consistency Of Base And Quote Currencies
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 It depends on which exchange you are using, but some of them have a reversed (inconsistent) pairing of ``base`` and ``quote``. They actually have base and quote misplaced (switched/reversed sides). In that case you'll see a difference of parsed ``base`` and ``quote`` currency values with the unparsed ``info`` in the market substructure.
 
@@ -1970,6 +1984,10 @@ Most of methods returning orders within ccxt unified API will usually yield an o
 -  The ``lastTradeTimestamp`` timestamp may have no value and may be ``undefined/None/null`` where not supported by the exchange or in case of an open order (an order that has not been filled nor partially filled yet).
 -  The ``lastTradeTimestamp``, if any, designates the timestamp of the last trade, in case the order is filled fully or partially, otherwise ``lastTradeTimestamp`` is ``undefined/None/null``.
 -  Order ``status`` prevails or has precedence over the ``lastTradeTimestamp``.
+-  The ``cost`` of an order is:
+-  ``if (status === 'open' and filled === 0) { amount * price }``
+-  ``if (status === 'closed' || status === 'canceled') { filled * price }``
+-  The ``cost`` of an order means the total *quote* volume of the order (whereas the ``amount`` is the *base* volume). The value of ``cost`` should be as close to the actual most recent known order cost as possible. The ``cost`` field itself is there mostly for convenience and can be deduced from other fields.
 
 Placing Orders
 ~~~~~~~~~~~~~~
@@ -2217,9 +2235,9 @@ Trade structure
         },
     }
 
-**The work on ``'fee'`` info is still in progress, fee info may be missing partially or entirely, depending on the exchange capabilities.**
-
-**The ``fee`` currency may be different from both traded currencies (for example, an ETH/BTC order with fees in USD).**
+-  The work on ``'fee'`` info is still in progress, fee info may be missing partially or entirely, depending on the exchange capabilities.
+-  The ``fee`` currency may be different from both traded currencies (for example, an ETH/BTC order with fees in USD).
+-  The ``cost`` of the trade means ``amount * price``. It is the total *quote* volume of the trade (whereas ``amount`` is the *base* volume). The cost field itself is there mostly for convenience and can be deduced from other fields.
 
 Trades By Order Id
 ~~~~~~~~~~~~~~~~~~
@@ -2668,6 +2686,7 @@ Notes
 .. |chbtc| image:: https://user-images.githubusercontent.com/1294454/28555659-f0040dc2-7109-11e7-9d99-688a438bf9f4.jpg
 .. |chilebit| image:: https://user-images.githubusercontent.com/1294454/27991414-1298f0d8-647f-11e7-9c40-d56409266336.jpg
 .. |cobinhood| image:: https://user-images.githubusercontent.com/1294454/35755576-dee02e5c-0878-11e8-989f-1595d80ba47f.jpg
+.. |coinbase| image:: https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg
 .. |coincheck| image:: https://user-images.githubusercontent.com/1294454/27766464-3b5c3c74-5ed9-11e7-840e-31b32968e1da.jpg
 .. |coinegg| image:: https://user-images.githubusercontent.com/1294454/36770310-adfa764e-1c5a-11e8-8e09-449daac3d2fb.jpg
 .. |coinex| image:: https://user-images.githubusercontent.com/1294454/38046312-0b450aac-32c8-11e8-99ab-bc6b136b6cc7.jpg

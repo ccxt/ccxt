@@ -24,7 +24,7 @@ class lbank (Exchange):
                 'fetchOHLCV': True,
                 'fetchOrder': True,
                 'fetchOrders': True,
-                'fetchOpenOrders': True,
+                'fetchOpenOrders': False,  # status 0 API doesn't work
                 'fetchClosedOrders': True,
             },
             'timeframes': {
@@ -355,13 +355,18 @@ class lbank (Exchange):
         return response
 
     def fetch_order(self, id, symbol=None, params={}):
+        # Id can be a list of ids delimited by a comma
         self.load_markets()
         market = self.market(symbol)
         response = self.privatePostOrdersInfo(self.extend({
             'symbol': market['id'],
             'order_id': id,
         }, params))
-        return self.parse_order(response['orders'][0], market)
+        orders = self.parse_orders(response['orders'], market)
+        if len(orders) == 1:
+            return orders[0]
+        else:
+            return orders
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -373,14 +378,8 @@ class lbank (Exchange):
         }, params))
         return self.parse_orders(response['orders'], None, since, limit)
 
-    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        response = self.fetch_orders(symbol, since, limit, self.extend({
-            'status': 0,
-        }, params))
-        return response
-
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        orders = self.fetch_orders(symbol, since, limit)
+        orders = self.fetch_orders(symbol, since, limit, params)
         closed = self.filter_by(orders, 'status', 'closed')
         cancelled = self.filter_by(orders, 'status', 'cancelled')  # cancelled orders may be partially filled
         return closed + cancelled

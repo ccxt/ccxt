@@ -327,10 +327,13 @@ class kucoin extends Exchange {
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetOpenOrders (array_merge (array (
+        $request = array (
             'symbol' => $market['id'],
-            'limit' => $limit,
-        ), $params));
+        );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->publicGetOpenOrders (array_merge ($request, $params));
         $dataInResponse = (is_array ($response) && array_key_exists ('data', $response));
         $orderbook = null;
         $timestamp = null;

@@ -326,10 +326,12 @@ class kucoin (Exchange):
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetOpenOrders(self.extend({
+        request = {
             'symbol': market['id'],
-            'limit': limit,
-        }, params))
+        }
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.publicGetOpenOrders(self.extend(request, params))
         dataInResponse = ('data' in list(response.keys()))
         orderbook = None
         timestamp = None

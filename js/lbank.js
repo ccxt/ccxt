@@ -19,7 +19,7 @@ module.exports = class lbank extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
-                'fetchOpenOrders': true,
+                'fetchOpenOrders': false, // status 0 API doesn't work
                 'fetchClosedOrders': true,
             },
             'timeframes': {
@@ -370,13 +370,19 @@ module.exports = class lbank extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        // Id can be a list of ids delimited by a comma
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.privatePostOrdersInfo (this.extend ({
             'symbol': market['id'],
             'order_id': id,
         }, params));
-        return this.parseOrder (response['orders'][0], market);
+        let orders = this.parseOrders (response['orders'], market);
+        if (orders.length === 1) {
+            return orders[0];
+        } else {
+            return orders;
+        }
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -390,15 +396,8 @@ module.exports = class lbank extends Exchange {
         return this.parseOrders (response['orders'], undefined, since, limit);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let response = await this.fetchOrders (symbol, since, limit, this.extend ({
-            'status': 0,
-        }, params));
-        return response;
-    }
-
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let orders = await this.fetchOrders (symbol, since, limit);
+        let orders = await this.fetchOrders (symbol, since, limit, params);
         let closed = this.filterBy (orders, 'status', 'closed');
         let cancelled = this.filterBy (orders, 'status', 'cancelled'); // cancelled orders may be partially filled
         return closed + cancelled;
