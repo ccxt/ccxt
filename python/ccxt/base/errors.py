@@ -26,6 +26,7 @@ __all__ = [
     'NotSupported',
     'AuthenticationError',
     'PermissionDenied',
+    'AccountSuspended',
     'InsufficientFunds',
     'InvalidOrder',
     'OrderNotFound',
@@ -75,6 +76,11 @@ class AuthenticationError(ExchangeError):
 
 class PermissionDenied(AuthenticationError):
     """Raised when API credentials are required but missing or wrong"""
+    pass
+
+
+class AccountSuspended(AuthenticationError):
+    """Raised when user account has been suspended or deactivated by the exchange"""
     pass
 
 

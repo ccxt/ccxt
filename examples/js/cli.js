@@ -3,11 +3,15 @@
 //-----------------------------------------------------------------------------
 
 const [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x => !x.startsWith ('--'))
-const verbose = process.argv.includes ('--verbose')
-const cloudscrape = process.argv.includes ('--cloudscrape')
-const cfscrape = process.argv.includes ('--cfscrape')
-const poll = process.argv.includes ('--poll')
-const loadMarkets = process.argv.includes ('--load-markets')
+    , verbose = process.argv.includes ('--verbose')
+    , cloudscrape = process.argv.includes ('--cloudscrape')
+    , cfscrape = process.argv.includes ('--cfscrape')
+    , poll = process.argv.includes ('--poll')
+    , loadMarkets = process.argv.includes ('--load-markets')
+    , no_details = process.argv.includes ('--no-details')
+    , no_table = process.argv.includes ('--no-table')
+    , iso8601 = process.argv.includes ('--iso8601')
+    , no_info = process.argv.includes ('--no-info')
 
 //-----------------------------------------------------------------------------
 
@@ -72,7 +76,19 @@ const cfscrapeCookies = (url) => {
 //-----------------------------------------------------------------------------
 
 const timeout = 30000
-const exchange = new (ccxt)[exchangeId] ({ verbose, timeout })
+let exchange = undefined
+const enableRateLimit = true
+
+try {
+
+    exchange = new (ccxt)[exchangeId] ({ verbose, timeout, enableRateLimit })
+
+} catch (e) {
+
+    log.red (e)
+    printUsage ()
+    process.exit ()
+}
 
 //-----------------------------------------------------------------------------
 
@@ -102,24 +118,57 @@ let printSupportedExchanges = function () {
     log ('node', process.argv[1], 'bitfinex fetchBalance')
     log ('node', process.argv[1], 'kraken fetchOrderBook ETH/BTC')
     printSupportedExchanges ()
+    log ('Supported options:')
+    log ('--verbose         Print verbose output')
+    log ('--cloudscrape     Use https://github.com/codemanki/cloudscraper to bypass Cloudflare')
+    log ('--cfscrape        Use https://github.com/Anorov/cloudflare-scrape to bypass Cloudflare (requires python and cfscrape)')
+    log ('--poll            Repeat continuously in rate-limited mode')
+    log ('--load-markets    Pre-load markets (for debugging)')
+    log ('--no-details      Do not print detailed fetch responses')
+    log ('--no-table        Do not print tabulated fetch responses')
+    log ('--iso8601         Print timestamps as ISO8601 datetimes')
 }
 
 //-----------------------------------------------------------------------------
 
-const printHumanReadable = (result) => {
+const printHumanReadable = (exchange, result) => {
 
     if (Array.isArray (result)) {
 
         let arrayOfObjects = (typeof result[0] === 'object')
 
-        result.forEach (object => {
-            if (arrayOfObjects)
-                log ('-------------------------------------------')
-            log (object)
-        })
+        if (!no_details)
+            result.forEach (object => {
+                if (arrayOfObjects)
+                    log ('-------------------------------------------')
+                log (object)
+            })
 
-        if (arrayOfObjects)
-            log (result.length > 0 ? asTable (result) : result)
+        if (!no_table)
+            if (arrayOfObjects) {
+                log (result.length > 0 ? asTable (result.map (element => {
+                    let keys = Object.keys (element)
+                    if (no_info) {
+                        delete element['info']
+                    }
+                    keys.forEach (key => {
+                        if (typeof element[key] === 'number') {
+                            if (!iso8601)
+                                return element[key]
+                            try {
+                                const iso8601 = exchange.iso8601 (element[key])
+                                if (iso8601.match (/^20[0-9]{2}[-]?/))
+                                    element[key] = iso8601
+                                else
+                                    throw new Error ('wrong date')
+                            } catch (e) {
+                                return element[key]
+                            }
+                        }
+                    })
+                    return element
+                })) : result)
+            }
 
     } else {
 
@@ -144,6 +193,8 @@ async function main () {
                 return undefined
             if (param[0] === '{' || param[0] === '[')
                 return JSON.parse (param)
+            if (param.match (/[0-9]{4}[-]?[0-9]{2}[-]?[0-9]{2}[T\s]?[0-9]{2}[:]?[0-9]{2}[:]?[0-9]{2}/g))
+                return exchange.parse8601 (param)
             if (param.match (/[a-zA-Z-]/g))
                 return param
             if (param.match (/^[+0-9\.-]+$/))
@@ -171,7 +222,7 @@ async function main () {
                 try {
 
                     const result = await exchange[methodName] (... args)
-                    printHumanReadable (result)
+                    printHumanReadable (exchange, result)
 
                 } catch (e) {
 
@@ -202,7 +253,7 @@ async function main () {
 
         } else {
 
-            printHumanReadable (exchange[methodName])
+            printHumanReadable (exchange, exchange[methodName])
         }
     }
 }

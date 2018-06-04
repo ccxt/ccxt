@@ -72,11 +72,12 @@ class ccex (Exchange):
                 },
             },
             'commonCurrencies': {
-                'IOT': 'IoTcoin',
                 'BLC': 'Cryptobullcoin',
-                'XID': 'InternationalDiamond',
-                'LUX': 'Luxmi',
                 'CRC': 'CoreCoin',
+                'IOT': 'IoTcoin',
+                'LUX': 'Luxmi',
+                'VIT': 'VitalCoin',
+                'XID': 'InternationalDiamond',
             },
         })
 

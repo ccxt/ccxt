@@ -21,6 +21,7 @@ module.exports = class cryptopia extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchMyTrades': true,
+                'fetchOHLCV': true,
                 'fetchOrder': 'emulated',
                 'fetchOrderBooks': true,
                 'fetchOrders': 'emulated',
@@ -31,7 +32,11 @@ module.exports = class cryptopia extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/29484394-7b4ea6e2-84c6-11e7-83e5-1fccf4b2dc81.jpg',
-                'api': 'https://www.cryptopia.co.nz/api',
+                'api': {
+                    'public': 'https://www.cryptopia.co.nz/api',
+                    'private': 'https://www.cryptopia.co.nz/api',
+                    'web': 'https://www.cryptopia.co.nz',
+                },
                 'www': 'https://www.cryptopia.co.nz',
                 'referral': 'https://www.cryptopia.co.nz/Register?referrer=kroitor',
                 'doc': [
@@ -40,7 +45,22 @@ module.exports = class cryptopia extends Exchange {
                     'https://www.cryptopia.co.nz/Forum/Thread/256',
                 ],
             },
+            'timeframes': {
+                '15m': 15,
+                '30m': 30,
+                '1h': 60,
+                '2h': 120,
+                '4h': 240,
+                '12h': 720,
+                '1d': 1440,
+                '1w': 10080,
+            },
             'api': {
+                'web': {
+                    'get': [
+                        'Exchange/GetTradePairChart',
+                    ],
+                },
                 'public': {
                     'get': [
                         'GetCurrencies',
@@ -161,6 +181,43 @@ module.exports = class cryptopia extends Exchange {
         }, params));
         let orderbook = response['Data'];
         return this.parseOrderBook (orderbook, undefined, 'Buy', 'Sell', 'Price', 'Volume');
+    }
+
+    async fetchOHLCV (symbol, timeframe = '15m', since = undefined, limit = undefined, params = {}) {
+        let dataRange = 0;
+        if (typeof since !== 'undefined') {
+            const dataRanges = [
+                86400,
+                172800,
+                604800,
+                1209600,
+                2592000,
+                7776000,
+                15552000,
+            ];
+            const numDataRanges = dataRanges.length;
+            let now = this.seconds ();
+            let sinceSeconds = parseInt (since / 1000);
+            for (let i = 1; i < numDataRanges; i++) {
+                if ((now - sinceSeconds) > dataRanges[i]) {
+                    dataRange = i;
+                }
+            }
+        }
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'tradePairId': market['id'],
+            'dataRange': dataRange,
+            'dataGroup': this.timeframes[timeframe],
+        };
+        let response = await this.webGetExchangeGetTradePairChart (this.extend (request, params));
+        let candles = response['Candle'];
+        let volumes = response['Volume'];
+        for (let i = 0; i < candles.length; i++) {
+            candles[i].push (volumes[i]['basev']);
+        }
+        return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
     joinMarketIds (ids, glue = '-') {
@@ -646,12 +703,9 @@ module.exports = class cryptopia extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + this.implodeParams (path, params);
+        let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (api === 'public') {
-            if (Object.keys (query).length)
-                url += '?' + this.urlencode (query);
-        } else {
+        if (api === 'private') {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             body = this.json (query, { 'convertArraysToObjects': true });
@@ -667,12 +721,17 @@ module.exports = class cryptopia extends Exchange {
                 'Content-Type': 'application/json',
                 'Authorization': auth,
             };
+        } else {
+            if (Object.keys (query).length)
+                url += '?' + this.urlencode (query);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
+        if (api === 'web')
+            return response;
         if (response) {
             if ('Success' in response)
                 if (response['Success']) {

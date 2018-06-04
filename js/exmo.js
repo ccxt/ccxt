@@ -18,6 +18,7 @@ module.exports = class exmo extends Exchange {
             'has': {
                 'CORS': false,
                 'fetchClosedOrders': 'emulated',
+                'fetchDepositAddress': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': 'emulated',
                 'fetchOrders': 'emulated',
@@ -539,6 +540,28 @@ module.exports = class exmo extends Exchange {
             'trades': trades,
             'fee': fee,
             'info': order,
+        };
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privatePostDepositAddress (params);
+        let depositAddress = this.safeString (response, code);
+        let status = 'ok';
+        let address = undefined;
+        let tag = undefined;
+        if (depositAddress) {
+            let addressAndTag = depositAddress.split (',');
+            address = addressAndTag[0];
+            tag = addressAndTag[1];
+        }
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'status': status,
+            'info': response,
         };
     }
 

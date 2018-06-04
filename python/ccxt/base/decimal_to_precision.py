@@ -32,23 +32,31 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=D
     assert counting_mode in [DECIMAL_PLACES, SIGNIFICANT_DIGITS]
     assert padding_mode in [NO_PADDING, PAD_WITH_ZERO]
 
+    context = decimal.getcontext()
+
+    precision = min(context.prec - 2, precision)
+
     # all default except decimal.Underflow (raised when a number is rounded to zero)
-    decimal.getcontext().traps[decimal.Underflow] = True
+    context.traps[decimal.Underflow] = True
 
     dec = decimal.Decimal(n)
     string = str(dec)
 
-    def quant(x):
+    def power_of_10(x):
         return decimal.Decimal('10') ** (-x)
 
     if rounding_mode == ROUND:
         if counting_mode == DECIMAL_PLACES:
-            precise = str(dec.quantize(quant(precision)))  # ROUND_HALF_EVEN is default context
+            context.rounding = decimal.ROUND_HALF_UP
+            precise = str(dec.quantize(power_of_10(precision)))  # ROUND_HALF_EVEN is default context
+            context.rounding = decimal.ROUND_HALF_EVEN
         elif counting_mode == SIGNIFICANT_DIGITS:
             q = precision - dec.adjusted() - 1
-            sigfig = quant(q)
+            sigfig = power_of_10(q)
             if q < 0:
-                below = sigfig * decimal.Decimal(string[:precision])
+                string_to_precision = string[:precision]
+                # string_to_precision is '' when we have zero precision
+                below = sigfig * decimal.Decimal(string_to_precision if string_to_precision else '0')
                 above = below + sigfig
                 precise = str(min((below, above), key=lambda x: abs(x - dec)))
             else:
@@ -64,16 +72,20 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=D
             dot = string.index('.') if '.' in string else 0
             start = dot - dec.adjusted()
             end = start + precision
+            # need to clarify these conditionals
             if dot >= end:
                 end -= 1
-            if dec.adjusted() < 0:
-                end += 1
+            # not sure if we should keep this
+            # if dec.adjusted() < 0:
+            #     end += 1
             precise = string[:end].ljust(dot, '0')
 
-    if '.' == precise[-1]:
+    if '.' == (precise[-1] if precise else ''):
         raise ValueError
 
     if padding_mode == NO_PADDING:
+        if precise == '' and precision == 0:
+            return '0'
         return precise.rstrip('0').rstrip('.') if '.' in precise else precise
     elif padding_mode == PAD_WITH_ZERO:
         if '.' in precise:

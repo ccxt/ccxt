@@ -5,7 +5,6 @@
 
 from ccxt.base.exchange import Exchange
 import base64
-from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
 
 
@@ -69,17 +68,32 @@ class coinfloor (Exchange):
         })
 
     def fetch_balance(self, params={}):
-        symbol = None
+        market = None
         if 'symbol' in params:
-            symbol = params['symbol']
+            market = self.find_market(params['symbol'])
         if 'id' in params:
-            symbol = params['id']
-        if not symbol:
-            raise ExchangeError(self.id + ' fetchBalance requires a symbol param')
-        # todo parse balance
-        return self.privatePostIdBalance({
-            'id': self.market_id(symbol),
+            market = self.find_market(params['id'])
+        if not market:
+            raise NotSupported(self.id + ' fetchBalance requires a symbol param')
+        response = self.privatePostIdBalance({
+            'id': market['id'],
         })
+        result = {
+            'info': response,
+        }
+        # base/quote used for keys e.g. "xbt_reserved"
+        keys = market['id'].lower().split('/')
+        result[market['base']] = {
+            'free': float(response[keys[0] + '_available']),
+            'used': float(response[keys[0] + '_reserved']),
+            'total': float(response[keys[0] + '_balance']),
+        }
+        result[market['quote']] = {
+            'free': float(response[keys[1] + '_available']),
+            'used': float(response[keys[1] + '_reserved']),
+            'total': float(response[keys[1] + '_balance']),
+        }
+        return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         orderbook = self.publicGetIdOrderBook(self.extend({

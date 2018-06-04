@@ -150,6 +150,7 @@ module.exports = class bittrex extends Exchange {
                 'UUID_INVALID': OrderNotFound,
                 'RATE_NOT_PROVIDED': InvalidOrder, // createLimitBuyOrder ('ETH/BTC', 1, 0)
                 'WHITELIST_VIOLATION_IP': PermissionDenied,
+                'INVALID_ORDER': InvalidOrder,
             },
             'options': {
                 'parseOrderStatus': false,
@@ -624,6 +625,9 @@ module.exports = class bittrex extends Exchange {
                     throw new OrderNotFound (this.id + ' fetchOrder() error: ' + this.last_http_response);
             }
             throw e;
+        }
+        if (!response['result']) {
+            throw new OrderNotFound (this.id + ' order ' + id + ' not found');
         }
         return this.parseOrder (response['result']);
     }

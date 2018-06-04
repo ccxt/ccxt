@@ -120,26 +120,11 @@ module.exports = class huobipro extends Exchange {
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
                 'fetchMarketsMethod': 'publicGetCommonSymbols',
-                'fetchBalanceMethod': 'privateGetHadaxAccountAccountsIdBalance',
+                'fetchBalanceMethod': 'privateGetAccountAccountsIdBalance',
                 'createOrderMethod': 'privatePostOrderOrdersPlace',
                 'language': 'en-US',
             },
         });
-    }
-
-    async loadTradingLimits (symbols = undefined, reload = false, params = {}) {
-        if (reload || !('limitsLoaded' in this.options)) {
-            let response = await this.fetchTradingLimits (symbols);
-            let limits = response['limits'];
-            let keys = Object.keys (limits);
-            for (let i = 0; i < keys.length; i++) {
-                let symbol = keys[i];
-                this.markets[symbol] = this.deepExtend (this.markets[symbol], {
-                    'limits': limits[symbol],
-                });
-            }
-        }
-        return this.markets;
     }
 
     async fetchTradingLimits (symbols = undefined, params = {}) {

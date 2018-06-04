@@ -121,26 +121,11 @@ class huobipro extends Exchange {
             'options' => array (
                 'createMarketBuyOrderRequiresPrice' => true,
                 'fetchMarketsMethod' => 'publicGetCommonSymbols',
-                'fetchBalanceMethod' => 'privateGetHadaxAccountAccountsIdBalance',
+                'fetchBalanceMethod' => 'privateGetAccountAccountsIdBalance',
                 'createOrderMethod' => 'privatePostOrderOrdersPlace',
                 'language' => 'en-US',
             ),
         ));
-    }
-
-    public function load_trading_limits ($symbols = null, $reload = false, $params = array ()) {
-        if ($reload || !(is_array ($this->options) && array_key_exists ('limitsLoaded', $this->options))) {
-            $response = $this->fetch_trading_limits ($symbols);
-            $limits = $response['limits'];
-            $keys = is_array ($limits) ? array_keys ($limits) : array ();
-            for ($i = 0; $i < count ($keys); $i++) {
-                $symbol = $keys[$i];
-                $this->markets[$symbol] = array_replace_recursive ($this->markets[$symbol], array (
-                    'limits' => $limits[$symbol],
-                ));
-            }
-        }
-        return $this->markets;
     }
 
     public function fetch_trading_limits ($symbols = null, $params = array ()) {

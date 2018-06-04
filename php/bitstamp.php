@@ -534,8 +534,8 @@ class bitstamp extends Exchange {
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $market = null;
+        $this->load_markets();
         if ($symbol !== null) {
-            $this->load_markets();
             $market = $this->market ($symbol);
         }
         $orders = $this->privatePostOpenOrdersAll ();

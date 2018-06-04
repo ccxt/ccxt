@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.14.69'
+__version__ = '1.14.123'
 
 # -----------------------------------------------------------------------------
 
@@ -171,6 +171,7 @@ class Exchange(object):
         'fetchTickers': False,
         'fetchTrades': True,
         'fetchTradingFees': False,
+        'fetchTradingLimits': False,
         'withdraw': False,
     }
 
@@ -671,6 +672,11 @@ class Exchange(object):
         return utc.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-6] + "{:<03d}".format(int(timestamp) % 1000) + 'Z'
 
     @staticmethod
+    def dmy(timestamp, infix='-'):
+        utc_datetime = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
+        return utc_datetime.strftime('%m' + infix + '%d' + infix + '%Y')
+
+    @staticmethod
     def ymd(timestamp, infix='-'):
         utc_datetime = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
         return utc_datetime.strftime('%Y' + infix + '%m' + infix + '%d')
@@ -1054,6 +1060,20 @@ class Exchange(object):
 
     def fetch_total_balance(self, params={}):
         return self.fetch_partial_balance('total', params)
+
+    def load_trading_limits(self, symbols=None, reload=False, params={}):
+        if self.has['fetchTradingLimits']:
+            if reload or not('limitsLoaded' in list(self.options.keys())):
+                response = self.fetch_trading_limits(symbols)
+                limits = response['limits']
+                keys = list(limits.keys())
+                for i in range(0, len(keys)):
+                    symbol = keys[i]
+                    self.markets[symbol] = self.deep_extend(self.markets[symbol], {
+                        'limits': limits[symbol],
+                    })
+                self.options['limitsLoaded'] = self.milliseconds()
+        return self.markets
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         if not self.has['fetchTrades']:

@@ -533,8 +533,8 @@ module.exports = class bitstamp extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let market = undefined;
+        await this.loadMarkets ();
         if (typeof symbol !== 'undefined') {
-            await this.loadMarkets ();
             market = this.market (symbol);
         }
         let orders = await this.privatePostOpenOrdersAll ();

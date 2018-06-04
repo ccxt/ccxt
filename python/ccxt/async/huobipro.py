@@ -135,23 +135,11 @@ class huobipro (Exchange):
             'options': {
                 'createMarketBuyOrderRequiresPrice': True,
                 'fetchMarketsMethod': 'publicGetCommonSymbols',
-                'fetchBalanceMethod': 'privateGetHadaxAccountAccountsIdBalance',
+                'fetchBalanceMethod': 'privateGetAccountAccountsIdBalance',
                 'createOrderMethod': 'privatePostOrderOrdersPlace',
                 'language': 'en-US',
             },
         })
-
-    async def load_trading_limits(self, symbols=None, reload=False, params={}):
-        if reload or not('limitsLoaded' in list(self.options.keys())):
-            response = await self.fetch_trading_limits(symbols)
-            limits = response['limits']
-            keys = list(limits.keys())
-            for i in range(0, len(keys)):
-                symbol = keys[i]
-                self.markets[symbol] = self.deep_extend(self.markets[symbol], {
-                    'limits': limits[symbol],
-                })
-        return self.markets
 
     async def fetch_trading_limits(self, symbols=None, params={}):
         #  by default it will try load withdrawal fees of all currencies(with separate requests)

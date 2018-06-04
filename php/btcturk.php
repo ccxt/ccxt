@@ -51,10 +51,10 @@ class btcturk extends Exchange {
                 ),
             ),
             'markets' => array (
-                'BTC/TRY' => array ( 'id' => 'BTCTRY', 'symbol' => 'BTC/TRY', 'base' => 'BTC', 'quote' => 'TRY', 'maker' => 0.002 * 1.18, 'taker' => 0.0035 * 1.18 ),
-                'ETH/TRY' => array ( 'id' => 'ETHTRY', 'symbol' => 'ETH/TRY', 'base' => 'ETH', 'quote' => 'TRY', 'maker' => 0.002 * 1.18, 'taker' => 0.0035 * 1.18 ),
-                'XRP/TRY' => array ( 'id' => 'XRPTRY', 'symbol' => 'XRP/TRY', 'base' => 'XRP', 'quote' => 'TRY', 'maker' => 0.002 * 1.18, 'taker' => 0.0035 * 1.18 ),
-                'ETH/BTC' => array ( 'id' => 'ETHBTC', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'maker' => 0.002 * 1.18, 'taker' => 0.0035 * 1.18 ),
+                'BTC/TRY' => array ( 'id' => 'BTCTRY', 'symbol' => 'BTC/TRY', 'base' => 'BTC', 'quote' => 'TRY', 'baseId' => 'btc', 'quoteId' => 'try', 'maker' => 0.002 * 1.18, 'taker' => 0.0035 * 1.18 ),
+                'ETH/TRY' => array ( 'id' => 'ETHTRY', 'symbol' => 'ETH/TRY', 'base' => 'ETH', 'quote' => 'TRY', 'baseId' => 'eth', 'quoteId' => 'try', 'maker' => 0.002 * 1.18, 'taker' => 0.0035 * 1.18 ),
+                'XRP/TRY' => array ( 'id' => 'XRPTRY', 'symbol' => 'XRP/TRY', 'base' => 'XRP', 'quote' => 'TRY', 'baseId' => 'xrp', 'quoteId' => 'try', 'maker' => 0.002 * 1.18, 'taker' => 0.0035 * 1.18 ),
+                'ETH/BTC' => array ( 'id' => 'ETHBTC', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'baseId' => 'eth', 'quoteId' => 'btc', 'maker' => 0.002 * 1.18, 'taker' => 0.0035 * 1.18 ),
             ),
         ));
     }
@@ -62,20 +62,21 @@ class btcturk extends Exchange {
     public function fetch_balance ($params = array ()) {
         $response = $this->privateGetBalance ();
         $result = array ( 'info' => $response );
-        $base = array (
-            'free' => $response['bitcoin_available'],
-            'used' => $response['bitcoin_reserved'],
-            'total' => $response['bitcoin_balance'],
-        );
-        $quote = array (
-            'free' => $response['money_available'],
-            'used' => $response['money_reserved'],
-            'total' => $response['money_balance'],
-        );
-        $symbol = $this->symbols[0];
-        $market = $this->markets[$symbol];
-        $result[$market['base']] = $base;
-        $result[$market['quote']] = $quote;
+        $codes = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
+        for ($i = 0; $i < count ($codes); $i++) {
+            $code = $codes[$i];
+            $currency = $this->currencies[$code];
+            $account = $this->account ();
+            $free = $currency['id'] . '_available';
+            $total = $currency['id'] . '_balance';
+            $used = $currency['id'] . '_reserved';
+            if (is_array ($response) && array_key_exists ($free, $response)) {
+                $account['free'] = $this->safe_float($response, $free);
+                $account['total'] = $this->safe_float($response, $total);
+                $account['used'] = $this->safe_float($response, $used);
+            }
+            $result[$code] = $account;
+        }
         return $this->parse_balance($result);
     }
 

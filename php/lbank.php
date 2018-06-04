@@ -20,7 +20,7 @@ class lbank extends Exchange {
                 'fetchOHLCV' => true,
                 'fetchOrder' => true,
                 'fetchOrders' => true,
-                'fetchOpenOrders' => true,
+                'fetchOpenOrders' => false, // status 0 API doesn't work
                 'fetchClosedOrders' => true,
             ),
             'timeframes' => array (
@@ -107,7 +107,7 @@ class lbank extends Exchange {
             list ($baseId, $quoteId) = explode ('_', $id);
             $base = $this->common_currency_code(strtoupper ($baseId));
             $quote = $this->common_currency_code(strtoupper ($quoteId));
-            $symbol = implode ('/', array ($base, $quote));
+            $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => 8,
                 'price' => 8,
@@ -371,13 +371,19 @@ class lbank extends Exchange {
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
+        // Id can be a list of ids delimited by a comma
         $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->privatePostOrdersInfo (array_merge (array (
             'symbol' => $market['id'],
             'order_id' => $id,
         ), $params));
-        return $this->parse_order($response['orders'][0], $market);
+        $orders = $this->parse_orders($response['orders'], $market);
+        if (strlen ($orders) === 1) {
+            return $orders[0];
+        } else {
+            return $orders;
+        }
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -391,15 +397,8 @@ class lbank extends Exchange {
         return $this->parse_orders($response['orders'], null, $since, $limit);
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $response = $this->fetch_orders($symbol, $since, $limit, array_merge (array (
-            'status' => 0,
-        ), $params));
-        return $response;
-    }
-
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $orders = $this->fetch_orders($symbol, $since, $limit);
+        $orders = $this->fetch_orders($symbol, $since, $limit, $params);
         $closed = $this->filter_by($orders, 'status', 'closed');
         $cancelled = $this->filter_by($orders, 'status', 'cancelled'); // $cancelled $orders may be partially filled
         return $closed . $cancelled;
