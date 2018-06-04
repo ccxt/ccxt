@@ -436,8 +436,6 @@ module.exports = class livecoin extends Exchange {
             parts = symbol.split ('/');
             quote = parts[1];
         }
-        // originally:
-        // let [ base, quote ] = symbol.split ('/');
         let type = undefined;
         let side = undefined;
         if ('type' in order) {
@@ -455,7 +453,6 @@ module.exports = class livecoin extends Exchange {
             }
         }
         let price = this.safeFloat (order, 'price');
-        let cost = this.safeFloat (order, 'commissionByTrade'); // commission_rate?
         let remaining = undefined;
         if ('remainingQuantity' in order) {
             remaining = this.safeFloat (order, 'remainingQuantity');
@@ -468,7 +465,7 @@ module.exports = class livecoin extends Exchange {
         if (typeof remaining !== 'undefined') {
             filled = amount - remaining;
         }
-        return {
+        const result = {
             'info': order,
             'id': order['id'],
             'timestamp': timestamp,
@@ -479,15 +476,38 @@ module.exports = class livecoin extends Exchange {
             'type': type,
             'side': side,
             'price': price,
-            'cost': cost,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
             'trades': trades,
-            'fee': {
-                'cost': cost,
-                'currency': quote,
-            },
+        };
+        const fee = this.calculateOrderFee (status, amount, filled, price, quote);
+        if (typeof fee !== 'undefined') {
+            result['fee'] = fee;
+            result['cost'] = fee.cost;
+        }
+        return result;
+    }
+
+    calculateOrderFee (status, amount, filled, price, quote) {
+        let cost = undefined;
+        if (status === 'open') {
+            if (typeof filled !== 'undefined' && typeof amount !== 'undefined' && typeof price !== 'undefined') {
+                cost = amount * price;
+            }
+        }
+        if (status === 'closed' || status === 'canceled') {
+            if (typeof filled !== 'undefined' && typeof price !== 'undefined') {
+                cost = filled * price;
+            }
+        }
+        if (typeof cost === 'undefined') {
+            return undefined;
+        }
+        return {
+            'cost': cost,
+            'currency': quote,
+            'price': price,
         };
     }
 
