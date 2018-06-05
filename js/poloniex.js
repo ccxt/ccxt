@@ -186,6 +186,15 @@ module.exports = class poloniex extends Exchange {
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
+            let minimalCost = {
+                'BTC': 0.0001,
+                'ETH': 0.0001,
+                'XMR': 0.0001,
+                'USDT': 1.0,
+            }[quote];
+            if (typeof minimalCost === 'undefined') {
+                minimalCost = 0.00000000;
+            }
             result.push (this.extend (this.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
@@ -206,7 +215,7 @@ module.exports = class poloniex extends Exchange {
                         'max': 1000000000,
                     },
                     'cost': {
-                        'min': 0.00000000,
+                        'min': minimalCost,
                         'max': 1000000000,
                     },
                 },
