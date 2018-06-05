@@ -190,9 +190,10 @@ class lbank (Exchange):
         for i in range(0, len(tickers)):
             ticker = tickers[i]
             id = ticker['symbol']
-            market = self.marketsById[id]
-            symbol = market['symbol']
-            result[symbol] = self.parse_ticker(ticker, market)
+            if id in self.marketsById:
+                market = self.marketsById[id]
+                symbol = market['symbol']
+                result[symbol] = self.parse_ticker(ticker, market)
         return result
 
     async def fetch_order_book(self, symbol, limit=60, params={}):
