@@ -354,9 +354,12 @@ module.exports = class gateio extends Exchange {
         }
         if (typeof market !== 'undefined')
             symbol = market['symbol'];
+        let datetime = undefined;
         let timestamp = this.safeInteger (order, 'timestamp');
-        if (typeof timestamp !== 'undefined')
+        if (typeof timestamp !== 'undefined') {
             timestamp *= 1000;
+            datetime = this.iso8601 (timestamp);
+        }
         let status = this.safeString (order, 'status');
         if (typeof status !== 'undefined')
             status = this.parseOrderStatus (status);
@@ -378,7 +381,7 @@ module.exports = class gateio extends Exchange {
         }
         return {
             'id': id,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': datetime,
             'timestamp': timestamp,
             'status': status,
             'symbol': symbol,
