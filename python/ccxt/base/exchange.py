@@ -665,7 +665,7 @@ class Exchange(object):
         return int(time.time() * 1000000)
 
     @staticmethod
-    def iso8601(timestamp = None):
+    def iso8601(timestamp=None):
         if timestamp is None:
             return timestamp
         if not isinstance(timestamp, int):
@@ -695,7 +695,7 @@ class Exchange(object):
         return utc_datetime.strftime('%Y-%m-%d' + infix + '%H:%M:%S')
 
     @staticmethod
-    def parse_date(timestamp = None):
+    def parse_date(timestamp=None):
         if timestamp is None:
             return timestamp
         if not isinstance(timestamp, str):
@@ -711,7 +711,7 @@ class Exchange(object):
             return Exchange.parse8601(timestamp)
 
     @staticmethod
-    def parse8601(timestamp = None):
+    def parse8601(timestamp=None):
         if timestamp is None:
             return timestamp
         if not isinstance(timestamp, str):
