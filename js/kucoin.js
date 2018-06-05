@@ -346,6 +346,7 @@ module.exports = class kucoin extends Exchange {
         } else {
             orderbook = response['data'];
             timestamp = this.safeInteger (response, 'timestamp');
+            timestamp = this.safeInteger (response['data'], 'timestamp', timestamp);
         }
         return this.parseOrderBook (orderbook, timestamp, 'BUY', 'SELL');
     }
