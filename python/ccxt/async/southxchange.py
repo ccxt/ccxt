@@ -61,6 +61,7 @@ class southxchange (Exchange):
             },
             'commonCurrencies': {
                 'SMT': 'SmartNode',
+                'MTC': 'Marinecoin',
             },
         })
 
