@@ -22,12 +22,12 @@ it ('iso8601', done => {
     equal (exchange.iso8601(514862627000), '1986-04-26T01:23:47.000Z');
     equal (exchange.iso8601(0),            '1970-01-01T00:00:00.000Z');
 
-    equal (exchange.iso8601(-1),   null);
-    equal (exchange.iso8601(),     null);
-    equal (exchange.iso8601(null), null);
-    equal (exchange.iso8601(''),   null);
-    equal (exchange.iso8601('a'),  null);
-    equal (exchange.iso8601({}),   null);
+    equal (exchange.iso8601(-1),   undefined);
+    equal (exchange.iso8601(),     undefined);
+    equal (exchange.iso8601(null), undefined);
+    equal (exchange.iso8601(''),   undefined);
+    equal (exchange.iso8601('a'),  undefined);
+    equal (exchange.iso8601({}),   undefined);
 
     done();
 });
@@ -41,16 +41,16 @@ it ('parse8601', done => {
 
     equal(exchange.parse8601('1986-04-26T01:23:47.000Z'), 514862627000);
 
-    equal(exchange.parse8601('1977-13-13T00:00:00.000Z'), null);
-    equal(exchange.parse8601('1986-04-26T25:71:47.000Z'), null);
+    equal(exchange.parse8601('1977-13-13T00:00:00.000Z'), undefined);
+    equal(exchange.parse8601('1986-04-26T25:71:47.000Z'), undefined);
 
-    equal(exchange.parse8601('3333'), null);
-    equal(exchange.parse8601('Sr90'), null);
-    equal(exchange.parse8601(''),     null);
-    equal(exchange.parse8601(),       null);
-    equal(exchange.parse8601(null),   null);
-    equal(exchange.parse8601({}),     null);
-    equal(exchange.parse8601(33),     null);
+    equal(exchange.parse8601('3333'), undefined);
+    equal(exchange.parse8601('Sr90'), undefined);
+    equal(exchange.parse8601(''),     undefined);
+    equal(exchange.parse8601(),       undefined);
+    equal(exchange.parse8601(null),   undefined);
+    equal(exchange.parse8601({}),     undefined);
+    equal(exchange.parse8601(33),     undefined);
 
     done();
 });
@@ -64,7 +64,7 @@ it ('parseDate', done => {
 
     equal(exchange.parseDate('1986-04-26 00:00:00'), 514857600000);
     equal(exchange.parseDate('1986-04-26T01:23:47.000Z'), 514862627000);
-    equal(exchange.parseDate('1986-13-13 00:00:00'), null);
+    equal(exchange.parseDate('1986-13-13 00:00:00'), undefined);
 
     done();
 });

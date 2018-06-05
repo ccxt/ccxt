@@ -187,57 +187,57 @@ module.exports = class Exchange {
 
             // undefined, null and lots of nasty non-numeric values yield NaN
             if (isNaN (_timestampNumber) || _timestampNumber < 0) {
-                return null;
+                return undefined;
             }
 
             if (_timestampNumber < 0) {
-                return null;
+                return undefined;
             }
 
             // last line of defence
             try {
                 return new Date (_timestampNumber).toISOString ();
             } catch (e) {
-                return null;
+                return undefined;
             }
         }
 
         this.parse8601 = (x) => {
             if (typeof x !== 'string' || !x) {
-                return null;
+                return undefined;
             }
 
             if (x.match (/^[0-9]+$/)) {
                 // a valid number in a string, not a date.
-                return null;
+                return undefined;
             }
 
             if (x.indexOf ('-') < 0 || x.indexOf (':') < 0) { // no date can be without a dash and a colon
-                return null;
+                return undefined;
             }
 
             // last line of defence
             try {
                 const candidate = Date.parse (((x.indexOf ('+') >= 0) || (x.slice (-1) === 'Z')) ? x : (x + 'Z').replace (/\s(\d\d):/, 'T$1:'));
                 if (isNaN (candidate)) {
-                    return null;
+                    return undefined;
                 }
                 return candidate;
             } catch (e) {
-                return null;
+                return undefined;
             }
         }
 
         this.parseDate = (x) => {
             if (typeof x !== 'string' || !x) {
-                return null;
+                return undefined;
             }
 
             if (x.indexOf ('GMT') >= 0) {
                 try {
                     return Date.parse (x);
                 } catch (e) {
-                    return null;
+                    return undefined;
                 }
             }
 
