@@ -10,12 +10,13 @@ sys.path.append(root)
 
 # ------------------------------------------------------------------------------
 
-import ccxt # noqa: E402
+import ccxt  # noqa: E402
 
 # ------------------------------------------------------------------------------
 
 
 exchange = ccxt.Exchange()
+
 
 class TestExchange(TestCase):
     def test_iso8601(self):
