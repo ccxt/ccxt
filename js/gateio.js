@@ -113,6 +113,17 @@ module.exports = class gateio extends Exchange {
                 '20': 'Your order size is too small',
                 '21': 'You don\'t have enough fund',
             },
+            'options': {
+                'limits': {
+                    'cost': {
+                        'min': {
+                            'BTC': 0.0001,
+                            'ETH': 0.001,
+                            'USDT': 1,
+                        },
+                    },
+                },
+            },
         });
     }
 
@@ -145,8 +156,10 @@ module.exports = class gateio extends Exchange {
                 'min': Math.pow (10, -details['decimal_places']),
                 'max': undefined,
             };
+            let defaultCost = amountLimits['min'] * priceLimits['min'];
+            let minCost = this.safeFloat (this.options['limits']['cost']['min'], quote, defaultCost);
             let costLimits = {
-                'min': amountLimits['min'] * priceLimits['min'],
+                'min': minCost,
                 'max': undefined,
             };
             let limits = {

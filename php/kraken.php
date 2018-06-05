@@ -629,8 +629,13 @@ class kraken extends Exchange {
             'ordertype' => $type,
             'volume' => $this->amount_to_precision($symbol, $amount),
         );
-        if ($type === 'limit')
+        $priceIsDefined = ($price !== null);
+        $marketOrder = ($type === 'market');
+        $limitOrder = ($type === 'limit');
+        $shouldIncludePrice = $limitOrder || (!$marketOrder && $priceIsDefined);
+        if ($shouldIncludePrice) {
             $order['price'] = $this->price_to_precision($symbol, $price);
+        }
         $response = $this->privatePostAddOrder (array_merge ($order, $params));
         $id = $this->safe_value($response['result'], 'txid');
         if ($id !== null) {
