@@ -145,8 +145,16 @@ module.exports = class gateio extends Exchange {
                 'min': Math.pow (10, -details['decimal_places']),
                 'max': undefined,
             };
+            let minimumCost = {
+                'USDT': 1,
+                'ETH': 0.001,
+                'BTC': 0.0001,
+            }[quote];
+            if (typeof minimumCost === 'undefined') {
+                minimumCost = amountLimits['min'] * priceLimits['min'];
+            }
             let costLimits = {
-                'min': amountLimits['min'] * priceLimits['min'],
+                'min': minimumCost,
                 'max': undefined,
             };
             let limits = {
