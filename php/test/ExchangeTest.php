@@ -180,5 +180,6 @@ class ExchangeTest extends TestCase {
         $this->assertSame (514848227000, Exchange::parse_date ('1986-04-26T01:23:47+04:00'));
         $this->assertSame (514848227000, Exchange::parse_date ('25 Apr 1986 21:23:47 GMT'));
         $this->assertSame (514862627000, Exchange::parse_date ('1986-04-26T01:23:47.000Z'));
+        $this->assertSame (514862627123, Exchange::parse_date ('1986-04-26T01:23:47.123Z'));
     }
 }

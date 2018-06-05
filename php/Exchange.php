@@ -512,6 +512,9 @@ abstract class Exchange {
         if ($time === false)
             return null;
         $time *= 1000;
+        if (preg_match ('/\.(?<milliseconds>[0-9]{1,3})/', $timestamp, $match)) {
+            $time += (int) str_pad($match['milliseconds'], 3, '0', STR_PAD_RIGHT);
+        }
         return $time;
     }
 
