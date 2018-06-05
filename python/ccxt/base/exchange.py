@@ -665,11 +665,20 @@ class Exchange(object):
         return int(time.time() * 1000000)
 
     @staticmethod
-    def iso8601(timestamp):
+    def iso8601(timestamp = None):
         if timestamp is None:
             return timestamp
-        utc = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
-        return utc.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-6] + "{:<03d}".format(int(timestamp) % 1000) + 'Z'
+        if not isinstance(timestamp, int):
+            return None
+        if int(timestamp) < 0:
+            return None
+
+        try:
+            utc = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
+            return utc.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-6] + "{:<03d}".format(int(timestamp) % 1000) + 'Z'
+        except (TypeError, OverflowError, OSError):
+            print('here')
+            return None
 
     @staticmethod
     def dmy(timestamp, infix='-'):
