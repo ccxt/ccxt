@@ -903,17 +903,17 @@ module.exports = class Exchange {
     }
 
     filterBySinceLimit (array, since = undefined, limit = undefined) {
-        if (typeof since !== 'undefined')
+        if (typeof since !== 'undefined' && since !== null)
             array = array.filter (entry => entry.timestamp >= since)
-        if (typeof limit !== 'undefined')
+        if (typeof limit !== 'undefined' && limit !== null)
             array = array.slice (0, limit)
         return array
     }
 
     filterBySymbolSinceLimit (array, symbol = undefined, since = undefined, limit = undefined) {
 
-        const symbolIsDefined = typeof symbol !== 'undefined'
-        const sinceIsDefined = typeof since !== 'undefined'
+        const symbolIsDefined = typeof symbol !== 'undefined' && symbol !== null
+        const sinceIsDefined = typeof since !== 'undefined' && since !== null
 
         // single-pass filter for both symbol and since
         if (symbolIsDefined || sinceIsDefined)
@@ -921,7 +921,7 @@ module.exports = class Exchange {
                 ((symbolIsDefined ? (entry.symbol === symbol)  : true) &&
                  (sinceIsDefined  ? (entry.timestamp >= since) : true)))
 
-        if (typeof limit !== 'undefined')
+        if (typeof limit !== 'undefined' && limit !== null)
             array = Object.values (array).slice (0, limit)
 
         return array
@@ -932,7 +932,7 @@ module.exports = class Exchange {
         objects = Object.values (objects)
 
         // return all of them if no values were passed
-        if (typeof values === 'undefined')
+        if (typeof values === 'undefined' || values === null)
             return indexed ? indexBy (objects, key) : objects
 
         let result = []
