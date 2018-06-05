@@ -2,11 +2,12 @@
 
 //-----------------------------------------------------------------------------
 
-const [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x => !x.startsWith ('--'))
+let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x => !x.startsWith ('--'))
     , verbose = process.argv.includes ('--verbose')
     , cloudscrape = process.argv.includes ('--cloudscrape')
     , cfscrape = process.argv.includes ('--cfscrape')
     , poll = process.argv.includes ('--poll')
+    , no_send = process.argv.includes ('--no-send')
     , loadMarkets = process.argv.includes ('--load-markets')
     , no_details = process.argv.includes ('--no-details')
     , no_table = process.argv.includes ('--no-table')
@@ -123,6 +124,7 @@ let printSupportedExchanges = function () {
     log ('--cloudscrape     Use https://github.com/codemanki/cloudscraper to bypass Cloudflare')
     log ('--cfscrape        Use https://github.com/Anorov/cloudflare-scrape to bypass Cloudflare (requires python and cfscrape)')
     log ('--poll            Repeat continuously in rate-limited mode')
+    log ("--no-send         Print the request but don't actually send it to the exchange (sets verbose and load-markets)")
     log ('--load-markets    Pre-load markets (for debugging)')
     log ('--no-details      Do not print detailed fetch responses')
     log ('--no-table        Do not print tabulated fetch responses')
@@ -210,8 +212,26 @@ async function main () {
         if (cfscrape)
             exchange.headers = cfscrapeCookies (www)
 
+        loadMarkets = no_send ? true : loadMarkets
+
         if (loadMarkets)
             await exchange.loadMarkets ()
+
+        if (no_send) {
+
+            exchange.verbose = no_send
+            exchange.fetch = function fetch (url, method = 'GET', headers = undefined, body = undefined) {
+                log.dim.noLocate ('-------------------------------------------')
+                log.dim.noLocate (exchange.iso8601 (exchange.milliseconds ()))
+                log.green.unlimited ({
+                    url,
+                    method,
+                    headers,
+                    body,
+                })
+                process.exit ()
+            }
+        }
 
         if (typeof exchange[methodName] === 'function') {
 
