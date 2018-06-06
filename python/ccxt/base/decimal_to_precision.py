@@ -78,7 +78,7 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=D
             # not sure if we should keep this
             # if dec.adjusted() < 0:
             #     end += 1
-            precise = string[:end].ljust(dot, '0')
+            precise = string[:end+dot]
 
     if '.' == (precise[-1] if precise else ''):
         raise ValueError
