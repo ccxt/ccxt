@@ -181,7 +181,7 @@ module.exports = class coinbase extends Exchange {
                 }
             }
             let what = nonce + method + '/' + this.version + request + payload;
-            let signature = this.hmac (this.encode (what), this.secret);
+            let signature = this.hmac (this.encode (what), this.encode (this.secret));
             headers = {
                 'CB-ACCESS-KEY': this.apiKey,
                 'CB-ACCESS-SIGN': this.decode (signature),
