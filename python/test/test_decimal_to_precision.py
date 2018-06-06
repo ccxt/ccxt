@@ -59,17 +59,19 @@ assert(decimal_to_precision('0.000123456', TRUNCATE, 5, SIGNIFICANT_DIGITS) == '
 assert(decimal_to_precision('0.000123456', TRUNCATE, 2, SIGNIFICANT_DIGITS) == '0.00012')
 assert(decimal_to_precision('0.000123456', TRUNCATE, 1, SIGNIFICANT_DIGITS) == '0.0001')
 
-assert(decimal_to_precision('123.0000987654', TRUNCATE, 10, SIGNIFICANT_DIGITS) == '123.0000987')
+assert(decimal_to_precision('123.0000987654', TRUNCATE, 10, SIGNIFICANT_DIGITS, PAD_WITH_ZERO) == '123.0000987')
 assert(decimal_to_precision('123.0000987654', TRUNCATE, 8, SIGNIFICANT_DIGITS) == '123.00009')
-assert(decimal_to_precision('123.0000987654', TRUNCATE, 7, SIGNIFICANT_DIGITS) == '123')
 assert(decimal_to_precision('123.0000987654', TRUNCATE, 7, SIGNIFICANT_DIGITS, PAD_WITH_ZERO) == '123.0000')
-assert(decimal_to_precision('123.0000987654', TRUNCATE, 4, SIGNIFICANT_DIGITS, PAD_WITH_ZERO) == '123.0')
-
+assert(decimal_to_precision('123.0000987654', TRUNCATE, 6, SIGNIFICANT_DIGITS) == '123.000')
+assert(decimal_to_precision('123.0000987654', TRUNCATE, 5, SIGNIFICANT_DIGITS, PAD_WITH_ZERO) == '123.00')
+assert(decimal_to_precision('123.0000987654', TRUNCATE, 4, SIGNIFICANT_DIGITS) == '123.0')
+assert(decimal_to_precision('123.0000987654', TRUNCATE, 3, SIGNIFICANT_DIGITS, PAD_WITH_ZERO) == '123')
 assert(decimal_to_precision('123.0000987654', TRUNCATE, 2, SIGNIFICANT_DIGITS) == '120')
 assert(decimal_to_precision('123.0000987654', TRUNCATE, 1, SIGNIFICANT_DIGITS) == '100')
 assert(decimal_to_precision('123.0000987654', TRUNCATE, 1, SIGNIFICANT_DIGITS, PAD_WITH_ZERO) == '100')
 
-assert(decimal_to_precision('0', TRUNCATE, 0, SIGNIFICANT_DIGITS) == '0')
+assert(decimal_to_precision('1234.69', TRUNCATE, 0, SIGNIFICANT_DIGITS) == '0')
+assert(decimal_to_precision('1234.69', TRUNCATE, 0, SIGNIFICANT_DIGITS, PAD_WITH_ZERO) == '0')
 
 # ----------------------------------------------------------------------------
 # testDecimalToPrecisionRoundingToNDigitsAfterDot
