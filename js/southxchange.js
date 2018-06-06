@@ -59,6 +59,7 @@ module.exports = class southxchange extends Exchange {
             },
             'commonCurrencies': {
                 'SMT': 'SmartNode',
+                'MTC': 'Marinecoin',
             },
         });
     }

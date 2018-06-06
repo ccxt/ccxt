@@ -6,6 +6,7 @@
 from ccxt.async.base.exchange import Exchange
 import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidNonce
 
@@ -133,6 +134,7 @@ class cobinhood (Exchange):
             'exceptions': {
                 'insufficient_balance': InsufficientFunds,
                 'invalid_nonce': InvalidNonce,
+                'unauthorized_scope': PermissionDenied,
             },
         })
 

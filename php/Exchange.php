@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.14.123';
+$version = '1.14.141';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -486,23 +486,32 @@ abstract class Exchange {
     }
 
     public static function iso8601 ($timestamp) {
-        if (!isset ($timestamp))
-            return $timestamp;
+        if (!is_numeric ($timestamp) || intval ($timestamp) != $timestamp)
+            return null;
+        $timestamp = (int) $timestamp;
+        if ($timestamp < 0)
+            return null;
         $result = date ('c', (int) round ($timestamp / 1000));
         $msec = (int) $timestamp % 1000;
         return str_replace ('+', sprintf (".%03d+", $msec), $result);
     }
 
     public static function parse_date ($timestamp) {
-        if (!isset ($timestamp))
-            return $timestamp;
-        if (strstr ($timestamp, 'GMT'))
-            return strtotime ($timestamp) * 1000;
         return static::parse8601 ($timestamp);
     }
 
     public static function parse8601 ($timestamp) {
-        $time = strtotime ($timestamp) * 1000;
+        if (!$timestamp || !is_string ($timestamp))
+            return null;
+        $timedata = date_parse ($timestamp);
+        if (!$timedata || $timedata['error_count'] > 0 || $timedata['warning_count'] > 0 || (isset ($timedata['relative']) && count ($timedata['relative']) > 0))
+            return null;
+        if ($timedata['hour'] === false ||  $timedata['minute'] === false || $timedata['second'] === false || $timedata['year'] === false || $timedata['month'] === false || $timedata['day'] === false)
+            return null;
+        $time = strtotime($timestamp);
+        if ($time === false)
+            return null;
+        $time *= 1000;
         if (preg_match ('/\.(?<milliseconds>[0-9]{1,3})/', $timestamp, $match)) {
             $time += (int) str_pad($match['milliseconds'], 3, '0', STR_PAD_RIGHT);
         }
@@ -903,7 +912,7 @@ abstract class Exchange {
 
         // we probably only need to set it once on startup
         if ($this->curlopt_interface) {
-			curl_setopt ($this->curl, CURLOPT_INTERFACE, $this->curlopt_interface);
+            curl_setopt ($this->curl, CURLOPT_INTERFACE, $this->curlopt_interface);
         }
 
         /*
@@ -1472,9 +1481,9 @@ abstract class Exchange {
         return $this->fetch_balance ();
     }
 
-	public function fetch_balance ($params = array ()) {
-		throw new NotSupported ($this->id . ' fetch_balance() not implemented yet');
-	}
+    public function fetch_balance ($params = array ()) {
+        throw new NotSupported ($this->id . ' fetch_balance() not implemented yet');
+    }
 
     public function fetchOrderBook ($symbol, $limit = null, $params = array ()) {
         return $this->fetch_order_book ($symbol, $limit, $params);

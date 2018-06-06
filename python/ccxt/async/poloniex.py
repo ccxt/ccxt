@@ -142,6 +142,18 @@ class poloniex (Exchange):
                 'STR': 'XLM',
                 'BCC': 'BTCtalkcoin',
             },
+            'options': {
+                'limits': {
+                    'cost': {
+                        'min': {
+                            'BTC': 0.0001,
+                            'ETH': 0.0001,
+                            'XMR': 0.0001,
+                            'USDT': 1.0,
+                        },
+                    },
+                },
+            },
         })
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
@@ -196,6 +208,7 @@ class poloniex (Exchange):
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
+            minCost = self.safe_float(self.options['limits']['cost']['min'], quote, 0.0)
             result.append(self.extend(self.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
@@ -216,7 +229,7 @@ class poloniex (Exchange):
                         'max': 1000000000,
                     },
                     'cost': {
-                        'min': 0.00000000,
+                        'min': minCost,
                         'max': 1000000000,
                     },
                 },
