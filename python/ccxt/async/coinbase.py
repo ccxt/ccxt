@@ -257,7 +257,6 @@ class coinbase (Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        # headers = self.options['defaultHeaders']
         if method == 'GET':
             if query:
                 request += '?' + self.urlencode(query)
@@ -272,12 +271,12 @@ class coinbase (Exchange):
                     payload = body
             what = nonce + method + '/' + self.version + request + payload
             signature = self.hmac(self.encode(what), self.encode(self.secret))
-            headers = self.extend({
+            headers = {
                 'CB-ACCESS-KEY': self.apiKey,
                 'CB-ACCESS-SIGN': signature,
                 'CB-ACCESS-TIMESTAMP': nonce,
                 'Content-Type': 'application/json',
-            }, headers)
+            }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body):
