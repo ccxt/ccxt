@@ -16,6 +16,9 @@ module.exports = class coinbase extends Exchange {
             'rateLimit': 400, // 10k calls per hour
             'version': 'v2',
             'userAgent': this.userAgents['chrome'],
+            'headers': {
+                'CB-VERSION': '2018-05-30',
+            },
             'has': {
                 'CORS': true,
                 'cancelOrder': false,
@@ -138,9 +141,6 @@ module.exports = class coinbase extends Exchange {
                 'ETH/USD': { 'id': 'eth-usd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD' },
                 'BCH/USD': { 'id': 'bch-usd', 'symbol': 'BCH/USD', 'base': 'BCH', 'quote': 'USD' },
             },
-            'options': {
-                'CB-VERSION': '2018-03-05',
-            },
         });
     }
 
@@ -253,9 +253,7 @@ module.exports = class coinbase extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        headers = {
-            'CB-VERSION': this.options['CB-VERSION'],
-        };
+        // headers = this.options['defaultHeaders'];
         if (method === 'GET') {
             if (Object.keys (query).length)
                 request += '?' + this.urlencode (query);
