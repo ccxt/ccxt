@@ -746,10 +746,6 @@ module.exports = class cryptopia extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        return this.fetch2 (path, api, method, params, headers, body);
-    }
-
     nonce () {
         return this.milliseconds ();
     }
