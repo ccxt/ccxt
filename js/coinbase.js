@@ -195,21 +195,18 @@ module.exports = class coinbase extends Exchange {
     async fetchTicker (symbol, params = {}) {
         let timestamp = this.seconds ();
         symbol = symbol.replace ('/', '-');
-        let response_buy = await this.publicGetPricesSymbolBuy (this.extend ({
+        let request = this.extend ({
             'symbol': symbol,
-        }, params));
-        response_buy = this.getDatum (response_buy);
-        let response_sell = await this.publicGetPricesSymbolSell (this.extend ({
-            'symbol': symbol,
-        }, params));
-        response_sell = this.getDatum (response_sell);
-        let response_spot = await this.publicGetPricesSymbolSpot (this.extend ({
-            'symbol': symbol,
-        }, params));
-        response_spot = this.getDatum (response_spot);
-        let buy = this.safeFloat (response_buy, 'amount');
-        let sell = this.safeFloat (response_sell, 'amount');
-        let spot = this.safeFloat (response_spot, 'amount');
+        }, params);
+        let response_buy = await this.publicGetPricesSymbolBuy (request);
+        let response_sell = await this.publicGetPricesSymbolSell (request);
+        let response_spot = await this.publicGetPricesSymbolSpot (request);
+        let buy_data = response_buy['data'];
+        let sell_data = response_sell['data'];
+        let spot_data = response_spot['data'];
+        let buy = this.safeFloat (buy_data, 'amount');
+        let sell = this.safeFloat (sell_data, 'amount');
+        let spot = this.safeFloat (spot_data, 'amount');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -239,9 +236,9 @@ module.exports = class coinbase extends Exchange {
     }
 
     async fetchBalance (params = {}) {
-        let balances = await this.privateGetAccounts ();
-        balances = this.getDatum (balances);
-        let result = { 'info': balances };
+        let response = await this.privateGetAccounts ();
+        let balances = response['data'];
+        let result = { 'info': response };
         for (let b = 0; b < balances.length; b++) {
             let balance = balances[b];
             let currency = balance['balance']['currency'];
@@ -333,14 +330,10 @@ module.exports = class coinbase extends Exchange {
                     }
                 }
             }
+            let data = this.safeValue (response, 'data');
+            if (typeof data === 'undefined')
+                throw new ExchangeError (this.id + ' failed due to a malformed response ' + this.json (response));
         }
-    }
-
-    getDatum (response) {
-        let datum = this.safeValue (response, 'data');
-        if (typeof datum === 'undefined')
-            throw new ExchangeError (this.id + ' failed due to a malformed response ' + this.json (response));
-        return datum;
     }
 };
 
