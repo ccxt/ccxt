@@ -146,8 +146,8 @@ module.exports = class coinbase extends Exchange {
 
     async fetchTime () {
         let response = await this.publicGetTime ();
-        response = this.getDatum (response);
-        return this.parse8601 (response['iso']);
+        let data = response['data'];
+        return this.parse8601 (data['iso']);
     }
 
     async fetchCurrencies (params = {}) {
