@@ -139,7 +139,7 @@ module.exports = class coinbase extends Exchange {
                 'BCH/USD': { 'id': 'bch-usd', 'symbol': 'BCH/USD', 'base': 'BCH', 'quote': 'USD' },
             },
             'options': {
-                'coinbase_version': '2018-05-30',
+                'CB-VERSION': '2018-03-05',
             },
         });
     }
@@ -199,22 +199,19 @@ module.exports = class coinbase extends Exchange {
         let request = this.extend ({
             'symbol': market['id'],
         }, params);
-        let response_buy = await this.publicGetPricesSymbolBuy (request);
-        let response_sell = await this.publicGetPricesSymbolSell (request);
-        let response_spot = await this.publicGetPricesSymbolSpot (request);
-        let buy_data = response_buy['data'];
-        let sell_data = response_sell['data'];
-        let spot_data = response_spot['data'];
-        let buy = this.safeFloat (buy_data, 'amount');
-        let sell = this.safeFloat (sell_data, 'amount');
-        let spot = this.safeFloat (spot_data, 'amount');
+        let buy = await this.publicGetPricesSymbolBuy (request);
+        let sell = await this.publicGetPricesSymbolSell (request);
+        let spot = await this.publicGetPricesSymbolSpot (request);
+        let ask = this.safeFloat (buy['data'], 'amount');
+        let bid = this.safeFloat (sell['data'], 'amount');
+        let last = this.safeFloat (spot['data'], 'amount');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'bid': sell,
-            'ask': buy,
-            'last': spot,
+            'bid': bid,
+            'ask': ask,
+            'last': last,
             'high': undefined,
             'low': undefined,
             'bidVolume': undefined,
@@ -229,9 +226,9 @@ module.exports = class coinbase extends Exchange {
             'baseVolume': undefined,
             'quoteVolume': undefined,
             'info': {
-                'buy': response_buy,
-                'sell': response_sell,
-                'spot': response_spot,
+                'buy': buy,
+                'sell': sell,
+                'spot': spot,
             },
         };
     }
@@ -256,7 +253,9 @@ module.exports = class coinbase extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        headers = { 'CB-VERSION': this.options['coinbase_version'] };
+        headers = {
+            'CB-VERSION': this.options['CB-VERSION'],
+        };
         if (method === 'GET') {
             if (Object.keys (query).length)
                 request += '?' + this.urlencode (query);
