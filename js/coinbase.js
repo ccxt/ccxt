@@ -152,7 +152,7 @@ module.exports = class coinbase extends Exchange {
 
     async fetchCurrencies (params = {}) {
         let response = await this.publicGetCurrencies (params);
-        let currencies = this.getDatum (response);
+        let currencies = response['data'];
         let result = {};
         for (let c = 0; c < currencies.length; c++) {
             let currency = currencies[c];
@@ -193,10 +193,11 @@ module.exports = class coinbase extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
         let timestamp = this.seconds ();
-        symbol = symbol.replace ('/', '-');
+        let market = this.market (symbol);
         let request = this.extend ({
-            'symbol': symbol,
+            'symbol': market['id'],
         }, params);
         let response_buy = await this.publicGetPricesSymbolBuy (request);
         let response_sell = await this.publicGetPricesSymbolSell (request);
