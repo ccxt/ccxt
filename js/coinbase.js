@@ -13,9 +13,12 @@ module.exports = class coinbase extends Exchange {
             'id': 'coinbase',
             'name': 'coinbase',
             'countries': 'US',
-            'rateLimit': 1000,
+            'rateLimit': 400, // 10k calls per hour
             'version': 'v2',
             'userAgent': this.userAgents['chrome'],
+            'headers': {
+                'CB-VERSION': '2018-05-30',
+            },
             'has': {
                 'CORS': true,
                 'cancelOrder': false,
@@ -24,7 +27,7 @@ module.exports = class coinbase extends Exchange {
                 'deposit': false,
                 'fetchBalance': true,
                 'fetchClosedOrders': false,
-                'fetchCurrencies': false,
+                'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchMarkets': false,
                 'fetchMyTrades': false,
@@ -33,7 +36,7 @@ module.exports = class coinbase extends Exchange {
                 'fetchOrder': false,
                 'fetchOrderBook': false,
                 'fetchOrders': false,
-                'fetchTicker': false,
+                'fetchTicker': true,
                 'fetchTickers': false,
                 'fetchBidsAsks': false,
                 'fetchTrades': false,
@@ -60,9 +63,9 @@ module.exports = class coinbase extends Exchange {
                         'time',
                         'exchange-rates',
                         'users/{user_id}',
-                        'prices/{currency_pair}/buy',
-                        'prices/{currency_pair}/sell',
-                        'prices/{currency_pair}/spot',
+                        'prices/{symbol}/buy',
+                        'prices/{symbol}/sell',
+                        'prices/{symbol}/spot',
                     ],
                 },
                 'private': {
@@ -143,14 +146,99 @@ module.exports = class coinbase extends Exchange {
 
     async fetchTime () {
         let response = await this.publicGetTime ();
-        return this.parse8601 (response['data']['iso']);
+        let data = response['data'];
+        return this.parse8601 (data['iso']);
+    }
+
+    async fetchCurrencies (params = {}) {
+        let response = await this.publicGetCurrencies (params);
+        let currencies = response['data'];
+        let result = {};
+        for (let c = 0; c < currencies.length; c++) {
+            let currency = currencies[c];
+            let id = currency['id'];
+            let name = currency['name'];
+            let code = this.commonCurrencyCode (id);
+            let minimum = this.safeFloat (currency, 'min_size');
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency, // the original payload
+                'name': name,
+                'active': true,
+                'status': 'ok',
+                'fee': undefined,
+                'precision': undefined,
+                'limits': {
+                    'amount': {
+                        'min': minimum,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+            };
+        }
+        return result;
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        let timestamp = this.seconds ();
+        let market = this.market (symbol);
+        let request = this.extend ({
+            'symbol': market['id'],
+        }, params);
+        let buy = await this.publicGetPricesSymbolBuy (request);
+        let sell = await this.publicGetPricesSymbolSell (request);
+        let spot = await this.publicGetPricesSymbolSpot (request);
+        let ask = this.safeFloat (buy['data'], 'amount');
+        let bid = this.safeFloat (sell['data'], 'amount');
+        let last = this.safeFloat (spot['data'], 'amount');
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'bid': bid,
+            'ask': ask,
+            'last': last,
+            'high': undefined,
+            'low': undefined,
+            'bidVolume': undefined,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': undefined,
+            'close': undefined,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': undefined,
+            'info': {
+                'buy': buy,
+                'sell': sell,
+                'spot': spot,
+            },
+        };
     }
 
     async fetchBalance (params = {}) {
-        let balances = await this.privateGetAccounts ();
-        let result = { 'info': balances };
-        for (let b = 0; b < balances.data.length; b++) {
-            let balance = balances.data[b];
+        let response = await this.privateGetAccounts ();
+        let balances = response['data'];
+        let result = { 'info': response };
+        for (let b = 0; b < balances.length; b++) {
+            let balance = balances[b];
             let currency = balance['balance']['currency'];
             let account = {
                 'free': this.safeFloat (balance['balance'], 'amount'),
@@ -165,6 +253,7 @@ module.exports = class coinbase extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
+        // headers = this.options['defaultHeaders'];
         if (method === 'GET') {
             if (Object.keys (query).length)
                 request += '?' + this.urlencode (query);
@@ -182,18 +271,12 @@ module.exports = class coinbase extends Exchange {
             }
             let what = nonce + method + '/' + this.version + request + payload;
             let signature = this.hmac (this.encode (what), this.encode (this.secret));
-            headers = {
+            headers = this.extend ({
                 'CB-ACCESS-KEY': this.apiKey,
-                'CB-ACCESS-SIGN': this.decode (signature),
+                'CB-ACCESS-SIGN': signature,
                 'CB-ACCESS-TIMESTAMP': nonce,
-                'CB-VERSION': '2018-05-30',
                 'Content-Type': 'application/json',
-            };
-        }
-        if (!headers) {
-            headers = {
-                'CB-VERSION': '2018-05-30',
-            };
+            }, headers);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
@@ -245,6 +328,10 @@ module.exports = class coinbase extends Exchange {
                     }
                 }
             }
+            let data = this.safeValue (response, 'data');
+            if (typeof data === 'undefined')
+                throw new ExchangeError (this.id + ' failed due to a malformed response ' + this.json (response));
         }
     }
 };
+
