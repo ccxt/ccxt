@@ -254,7 +254,6 @@ class coinbase extends Exchange {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
-        // $headers = $this->options['defaultHeaders'];
         if ($method === 'GET') {
             if ($query)
                 $request .= '?' . $this->urlencode ($query);
@@ -272,12 +271,12 @@ class coinbase extends Exchange {
             }
             $what = $nonce . $method . '/' . $this->version . $request . $payload;
             $signature = $this->hmac ($this->encode ($what), $this->encode ($this->secret));
-            $headers = array_merge (array (
+            $headers = array (
                 'CB-ACCESS-KEY' => $this->apiKey,
                 'CB-ACCESS-SIGN' => $signature,
                 'CB-ACCESS-TIMESTAMP' => $nonce,
                 'Content-Type' => 'application/json',
-            ), $headers);
+            );
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
