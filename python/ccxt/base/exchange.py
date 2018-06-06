@@ -665,11 +665,19 @@ class Exchange(object):
         return int(time.time() * 1000000)
 
     @staticmethod
-    def iso8601(timestamp):
+    def iso8601(timestamp=None):
         if timestamp is None:
             return timestamp
-        utc = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
-        return utc.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-6] + "{:<03d}".format(int(timestamp) % 1000) + 'Z'
+        if not isinstance(timestamp, int):
+            return None
+        if int(timestamp) < 0:
+            return None
+
+        try:
+            utc = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
+            return utc.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-6] + "{:<03d}".format(int(timestamp) % 1000) + 'Z'
+        except (TypeError, OverflowError, OSError):
+            return None
 
     @staticmethod
     def dmy(timestamp, infix='-'):
@@ -687,18 +695,25 @@ class Exchange(object):
         return utc_datetime.strftime('%Y-%m-%d' + infix + '%H:%M:%S')
 
     @staticmethod
-    def parse_date(timestamp):
+    def parse_date(timestamp=None):
         if timestamp is None:
             return timestamp
+        if not isinstance(timestamp, str):
+            return None
         if 'GMT' in timestamp:
-            string = ''.join([str(value) for value in parsedate(timestamp)[:6]]) + '.000Z'
-            dt = datetime.datetime.strptime(string, "%Y%m%d%H%M%S.%fZ")
-            return calendar.timegm(dt.utctimetuple()) * 1000
+            try:
+                string = ''.join([str(value) for value in parsedate(timestamp)[:6]]) + '.000Z'
+                dt = datetime.datetime.strptime(string, "%Y%m%d%H%M%S.%fZ")
+                return calendar.timegm(dt.utctimetuple()) * 1000
+            except (TypeError, OverflowError, OSError):
+                return None
         else:
             return Exchange.parse8601(timestamp)
 
     @staticmethod
-    def parse8601(timestamp):
+    def parse8601(timestamp=None):
+        if timestamp is None:
+            return timestamp
         yyyy = '([0-9]{4})-?'
         mm = '([0-9]{2})-?'
         dd = '([0-9]{2})(?:T|[\\s])?'
@@ -708,19 +723,24 @@ class Exchange(object):
         ms = '(\\.[0-9]{1,3})?'
         tz = '(?:(\\+|\\-)([0-9]{2})\\:?([0-9]{2})|Z)?'
         regex = r'' + yyyy + mm + dd + h + m + s + ms + tz
-        match = re.search(regex, timestamp, re.IGNORECASE)
-        yyyy, mm, dd, h, m, s, ms, sign, hours, minutes = match.groups()
-        ms = ms or '.000'
-        msint = int(ms[1:])
-        sign = sign or ''
-        sign = int(sign + '1')
-        hours = int(hours or 0) * sign
-        minutes = int(minutes or 0) * sign
-        offset = datetime.timedelta(hours=hours, minutes=minutes)
-        string = yyyy + mm + dd + h + m + s + ms + 'Z'
-        dt = datetime.datetime.strptime(string, "%Y%m%d%H%M%S.%fZ")
-        dt = dt + offset
-        return calendar.timegm(dt.utctimetuple()) * 1000 + msint
+        try:
+            match = re.search(regex, timestamp, re.IGNORECASE)
+            if match is None:
+                return None
+            yyyy, mm, dd, h, m, s, ms, sign, hours, minutes = match.groups()
+            ms = ms or '.000'
+            msint = int(ms[1:])
+            sign = sign or ''
+            sign = int(sign + '1')
+            hours = int(hours or 0) * sign
+            minutes = int(minutes or 0) * sign
+            offset = datetime.timedelta(hours=hours, minutes=minutes)
+            string = yyyy + mm + dd + h + m + s + ms + 'Z'
+            dt = datetime.datetime.strptime(string, "%Y%m%d%H%M%S.%fZ")
+            dt = dt + offset
+            return calendar.timegm(dt.utctimetuple()) * 1000 + msint
+        except (TypeError, OverflowError, OSError, ValueError):
+            return None
 
     @staticmethod
     def hash(request, algorithm='md5', digest='hex'):
