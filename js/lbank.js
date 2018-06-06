@@ -389,11 +389,14 @@ module.exports = class lbank extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        if (typeof limit === 'undefined') {
+            limit = 100;
+        }
         let market = this.market (symbol);
         let response = await this.privatePostOrdersInfoHistory (this.extend ({
             'symbol': market['id'],
             'current_page': 1,
-            'page_length': 100,
+            'page_length': limit,
         }, params));
         return this.parseOrders (response['orders'], undefined, since, limit);
     }

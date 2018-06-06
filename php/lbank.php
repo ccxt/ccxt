@@ -390,11 +390,14 @@ class lbank extends Exchange {
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
+        if ($limit === null) {
+            $limit = 100;
+        }
         $market = $this->market ($symbol);
         $response = $this->privatePostOrdersInfoHistory (array_merge (array (
             'symbol' => $market['id'],
             'current_page' => 1,
-            'page_length' => 100,
+            'page_length' => $limit,
         ), $params));
         return $this->parse_orders($response['orders'], null, $since, $limit);
     }

@@ -371,11 +371,13 @@ class lbank (Exchange):
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
+        if limit is None:
+            limit = 100
         market = self.market(symbol)
         response = await self.privatePostOrdersInfoHistory(self.extend({
             'symbol': market['id'],
             'current_page': 1,
-            'page_length': 100,
+            'page_length': limit,
         }, params))
         return self.parse_orders(response['orders'], None, since, limit)
 
