@@ -714,8 +714,6 @@ class Exchange(object):
     def parse8601(timestamp=None):
         if timestamp is None:
             return timestamp
-        if not isinstance(timestamp, str):
-            return None
         yyyy = '([0-9]{4})-?'
         mm = '([0-9]{2})-?'
         dd = '([0-9]{2})(?:T|[\\s])?'
@@ -727,6 +725,8 @@ class Exchange(object):
         regex = r'' + yyyy + mm + dd + h + m + s + ms + tz
         try:
             match = re.search(regex, timestamp, re.IGNORECASE)
+            if match is None:
+                return None
             yyyy, mm, dd, h, m, s, ms, sign, hours, minutes = match.groups()
             ms = ms or '.000'
             msint = int(ms[1:])
@@ -739,7 +739,7 @@ class Exchange(object):
             dt = datetime.datetime.strptime(string, "%Y%m%d%H%M%S.%fZ")
             dt = dt + offset
             return calendar.timegm(dt.utctimetuple()) * 1000 + msint
-        except (TypeError, OverflowError, OSError, ValueError, AttributeError):
+        except (TypeError, OverflowError, OSError, ValueError):
             return None
 
     @staticmethod
