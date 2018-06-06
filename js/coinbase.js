@@ -270,12 +270,12 @@ module.exports = class coinbase extends Exchange {
             }
             let what = nonce + method + '/' + this.version + request + payload;
             let signature = this.hmac (this.encode (what), this.encode (this.secret));
-            headers = this.extend ({
+            headers = {
                 'CB-ACCESS-KEY': this.apiKey,
                 'CB-ACCESS-SIGN': signature,
                 'CB-ACCESS-TIMESTAMP': nonce,
                 'Content-Type': 'application/json',
-            }, headers);
+            };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
