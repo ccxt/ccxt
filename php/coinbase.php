@@ -14,9 +14,12 @@ class coinbase extends Exchange {
             'id' => 'coinbase',
             'name' => 'coinbase',
             'countries' => 'US',
-            'rateLimit' => 1000,
+            'rateLimit' => 400, // 10k calls per hour
             'version' => 'v2',
             'userAgent' => $this->userAgents['chrome'],
+            'headers' => array (
+                'CB-VERSION' => '2018-05-30',
+            ),
             'has' => array (
                 'CORS' => true,
                 'cancelOrder' => false,
@@ -25,7 +28,7 @@ class coinbase extends Exchange {
                 'deposit' => false,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => false,
-                'fetchCurrencies' => false,
+                'fetchCurrencies' => true,
                 'fetchDepositAddress' => false,
                 'fetchMarkets' => false,
                 'fetchMyTrades' => false,
@@ -34,7 +37,7 @@ class coinbase extends Exchange {
                 'fetchOrder' => false,
                 'fetchOrderBook' => false,
                 'fetchOrders' => false,
-                'fetchTicker' => false,
+                'fetchTicker' => true,
                 'fetchTickers' => false,
                 'fetchBidsAsks' => false,
                 'fetchTrades' => false,
@@ -61,9 +64,9 @@ class coinbase extends Exchange {
                         'time',
                         'exchange-rates',
                         'users/{user_id}',
-                        'prices/{currency_pair}/buy',
-                        'prices/{currency_pair}/sell',
-                        'prices/{currency_pair}/spot',
+                        'prices/{symbol}/buy',
+                        'prices/{symbol}/sell',
+                        'prices/{symbol}/spot',
                     ),
                 ),
                 'private' => array (
@@ -144,14 +147,99 @@ class coinbase extends Exchange {
 
     public function fetch_time () {
         $response = $this->publicGetTime ();
-        return $this->parse8601 ($response['data']['iso']);
+        $data = $response['data'];
+        return $this->parse8601 ($data['iso']);
+    }
+
+    public function fetch_currencies ($params = array ()) {
+        $response = $this->publicGetCurrencies ($params);
+        $currencies = $response['data'];
+        $result = array ();
+        for ($c = 0; $c < count ($currencies); $c++) {
+            $currency = $currencies[$c];
+            $id = $currency['id'];
+            $name = $currency['name'];
+            $code = $this->common_currency_code($id);
+            $minimum = $this->safe_float($currency, 'min_size');
+            $result[$code] = array (
+                'id' => $id,
+                'code' => $code,
+                'info' => $currency, // the original payload
+                'name' => $name,
+                'active' => true,
+                'status' => 'ok',
+                'fee' => null,
+                'precision' => null,
+                'limits' => array (
+                    'amount' => array (
+                        'min' => $minimum,
+                        'max' => null,
+                    ),
+                    'price' => array (
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'cost' => array (
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'withdraw' => array (
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
+            );
+        }
+        return $result;
+    }
+
+    public function fetch_ticker ($symbol, $params = array ()) {
+        $this->load_markets();
+        $timestamp = $this->seconds ();
+        $market = $this->market ($symbol);
+        $request = array_merge (array (
+            'symbol' => $market['id'],
+        ), $params);
+        $buy = $this->publicGetPricesSymbolBuy ($request);
+        $sell = $this->publicGetPricesSymbolSell ($request);
+        $spot = $this->publicGetPricesSymbolSpot ($request);
+        $ask = $this->safe_float($buy['data'], 'amount');
+        $bid = $this->safe_float($sell['data'], 'amount');
+        $last = $this->safe_float($spot['data'], 'amount');
+        return array (
+            'symbol' => $symbol,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'bid' => $bid,
+            'ask' => $ask,
+            'last' => $last,
+            'high' => null,
+            'low' => null,
+            'bidVolume' => null,
+            'askVolume' => null,
+            'vwap' => null,
+            'open' => null,
+            'close' => null,
+            'previousClose' => null,
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => null,
+            'quoteVolume' => null,
+            'info' => array (
+                'buy' => $buy,
+                'sell' => $sell,
+                'spot' => $spot,
+            ),
+        );
     }
 
     public function fetch_balance ($params = array ()) {
-        $balances = $this->privateGetAccounts ();
-        $result = array ( 'info' => $balances );
-        for ($b = 0; $b < count ($balances.data); $b++) {
-            $balance = $balances.data[$b];
+        $response = $this->privateGetAccounts ();
+        $balances = $response['data'];
+        $result = array ( 'info' => $response );
+        for ($b = 0; $b < count ($balances); $b++) {
+            $balance = $balances[$b];
             $currency = $balance['balance']['currency'];
             $account = array (
                 'free' => $this->safe_float($balance['balance'], 'amount'),
@@ -166,6 +254,7 @@ class coinbase extends Exchange {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
+        // $headers = $this->options['defaultHeaders'];
         if ($method === 'GET') {
             if ($query)
                 $request .= '?' . $this->urlencode ($query);
@@ -183,18 +272,12 @@ class coinbase extends Exchange {
             }
             $what = $nonce . $method . '/' . $this->version . $request . $payload;
             $signature = $this->hmac ($this->encode ($what), $this->encode ($this->secret));
-            $headers = array (
+            $headers = array_merge (array (
                 'CB-ACCESS-KEY' => $this->apiKey,
-                'CB-ACCESS-SIGN' => $this->decode ($signature),
+                'CB-ACCESS-SIGN' => $signature,
                 'CB-ACCESS-TIMESTAMP' => $nonce,
-                'CB-VERSION' => '2018-05-30',
                 'Content-Type' => 'application/json',
-            );
-        }
-        if (!$headers) {
-            $headers = array (
-                'CB-VERSION' => '2018-05-30',
-            );
+            ), $headers);
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
@@ -246,6 +329,9 @@ class coinbase extends Exchange {
                     }
                 }
             }
+            $data = $this->safe_value($response, 'data');
+            if ($data === null)
+                throw new ExchangeError ($this->id . ' failed due to a malformed $response ' . $this->json ($response));
         }
     }
 }

@@ -24,9 +24,12 @@ class coinbase (Exchange):
             'id': 'coinbase',
             'name': 'coinbase',
             'countries': 'US',
-            'rateLimit': 1000,
+            'rateLimit': 400,  # 10k calls per hour
             'version': 'v2',
             'userAgent': self.userAgents['chrome'],
+            'headers': {
+                'CB-VERSION': '2018-05-30',
+            },
             'has': {
                 'CORS': True,
                 'cancelOrder': False,
@@ -35,7 +38,7 @@ class coinbase (Exchange):
                 'deposit': False,
                 'fetchBalance': True,
                 'fetchClosedOrders': False,
-                'fetchCurrencies': False,
+                'fetchCurrencies': True,
                 'fetchDepositAddress': False,
                 'fetchMarkets': False,
                 'fetchMyTrades': False,
@@ -44,7 +47,7 @@ class coinbase (Exchange):
                 'fetchOrder': False,
                 'fetchOrderBook': False,
                 'fetchOrders': False,
-                'fetchTicker': False,
+                'fetchTicker': True,
                 'fetchTickers': False,
                 'fetchBidsAsks': False,
                 'fetchTrades': False,
@@ -71,9 +74,9 @@ class coinbase (Exchange):
                         'time',
                         'exchange-rates',
                         'users/{user_id}',
-                        'prices/{currency_pair}/buy',
-                        'prices/{currency_pair}/sell',
-                        'prices/{currency_pair}/spot',
+                        'prices/{symbol}/buy',
+                        'prices/{symbol}/sell',
+                        'prices/{symbol}/spot',
                     ],
                 },
                 'private': {
@@ -153,13 +156,95 @@ class coinbase (Exchange):
 
     async def fetch_time(self):
         response = await self.publicGetTime()
-        return self.parse8601(response['data']['iso'])
+        data = response['data']
+        return self.parse8601(data['iso'])
+
+    async def fetch_currencies(self, params={}):
+        response = await self.publicGetCurrencies(params)
+        currencies = response['data']
+        result = {}
+        for c in range(0, len(currencies)):
+            currency = currencies[c]
+            id = currency['id']
+            name = currency['name']
+            code = self.common_currency_code(id)
+            minimum = self.safe_float(currency, 'min_size')
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,  # the original payload
+                'name': name,
+                'active': True,
+                'status': 'ok',
+                'fee': None,
+                'precision': None,
+                'limits': {
+                    'amount': {
+                        'min': minimum,
+                        'max': None,
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+            }
+        return result
+
+    async def fetch_ticker(self, symbol, params={}):
+        await self.load_markets()
+        timestamp = self.seconds()
+        market = self.market(symbol)
+        request = self.extend({
+            'symbol': market['id'],
+        }, params)
+        buy = await self.publicGetPricesSymbolBuy(request)
+        sell = await self.publicGetPricesSymbolSell(request)
+        spot = await self.publicGetPricesSymbolSpot(request)
+        ask = self.safe_float(buy['data'], 'amount')
+        bid = self.safe_float(sell['data'], 'amount')
+        last = self.safe_float(spot['data'], 'amount')
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'bid': bid,
+            'ask': ask,
+            'last': last,
+            'high': None,
+            'low': None,
+            'bidVolume': None,
+            'askVolume': None,
+            'vwap': None,
+            'open': None,
+            'close': None,
+            'previousClose': None,
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': None,
+            'quoteVolume': None,
+            'info': {
+                'buy': buy,
+                'sell': sell,
+                'spot': spot,
+            },
+        }
 
     async def fetch_balance(self, params={}):
-        balances = await self.privateGetAccounts()
-        result = {'info': balances}
-        for b in range(0, len(balances.data)):
-            balance = balances.data[b]
+        response = await self.privateGetAccounts()
+        balances = response['data']
+        result = {'info': response}
+        for b in range(0, len(balances)):
+            balance = balances[b]
             currency = balance['balance']['currency']
             account = {
                 'free': self.safe_float(balance['balance'], 'amount'),
@@ -172,6 +257,7 @@ class coinbase (Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
+        # headers = self.options['defaultHeaders']
         if method == 'GET':
             if query:
                 request += '?' + self.urlencode(query)
@@ -186,17 +272,12 @@ class coinbase (Exchange):
                     payload = body
             what = nonce + method + '/' + self.version + request + payload
             signature = self.hmac(self.encode(what), self.encode(self.secret))
-            headers = {
+            headers = self.extend({
                 'CB-ACCESS-KEY': self.apiKey,
-                'CB-ACCESS-SIGN': self.decode(signature),
+                'CB-ACCESS-SIGN': signature,
                 'CB-ACCESS-TIMESTAMP': nonce,
-                'CB-VERSION': '2018-05-30',
                 'Content-Type': 'application/json',
-            }
-        if not headers:
-            headers = {
-                'CB-VERSION': '2018-05-30',
-            }
+            }, headers)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body):
@@ -239,3 +320,6 @@ class coinbase (Exchange):
                                 raise exceptions[errorCode](feedback)
                             else:
                                 raise ExchangeError(feedback)
+            data = self.safe_value(response, 'data')
+            if data is None:
+                raise ExchangeError(self.id + ' failed due to a malformed response ' + self.json(response))
