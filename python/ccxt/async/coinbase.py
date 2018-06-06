@@ -185,7 +185,7 @@ class coinbase (Exchange):
                     body = self.json(query)
                     payload = body
             what = nonce + method + '/' + self.version + request + payload
-            signature = self.hmac(self.encode(what), self.secret)
+            signature = self.hmac(self.encode(what), self.encode(self.secret))
             headers = {
                 'CB-ACCESS-KEY': self.apiKey,
                 'CB-ACCESS-SIGN': self.decode(signature),

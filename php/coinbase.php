@@ -182,7 +182,7 @@ class coinbase extends Exchange {
                 }
             }
             $what = $nonce . $method . '/' . $this->version . $request . $payload;
-            $signature = $this->hmac ($this->encode ($what), $this->secret);
+            $signature = $this->hmac ($this->encode ($what), $this->encode ($this->secret));
             $headers = array (
                 'CB-ACCESS-KEY' => $this->apiKey,
                 'CB-ACCESS-SIGN' => $this->decode ($signature),
