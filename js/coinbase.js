@@ -253,7 +253,6 @@ module.exports = class coinbase extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        // headers = this.options['defaultHeaders'];
         if (method === 'GET') {
             if (Object.keys (query).length)
                 request += '?' + this.urlencode (query);
