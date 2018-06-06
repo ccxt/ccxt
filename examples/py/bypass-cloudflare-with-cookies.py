@@ -35,7 +35,7 @@ try:
         print('Cfscraping...')
 
         url = exchange.urls['www']
-        tokens, user_agent = cfscrape.get_tokens(url);
+        tokens, user_agent = cfscrape.get_tokens(url)
         exchange.headers = {
             'cookie': '; '.join([key + '=' + tokens[key] for key in tokens]),
             'user-agent': user_agent,
