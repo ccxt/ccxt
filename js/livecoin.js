@@ -388,6 +388,18 @@ module.exports = class livecoin extends Exchange {
         return this.parseOrder (response);
     }
 
+    parseOrderStatus (status) {
+        const statuses = {
+            'OPEN': 'open',
+            'PARTIALLY_FILLED': 'open',
+            'EXECUTED': 'closed',
+            'PARTIALLY_FILLED_AND_CANCELLED': 'canceled',
+        };
+        if (status in statuses)
+            return statuses[status];
+        return status;
+    }
+
     parseOrder (order, market = undefined) {
         let timestamp = undefined;
         let datetime = undefined;
@@ -404,69 +416,59 @@ module.exports = class livecoin extends Exchange {
         if (timestamp) {
             datetime = this.iso8601 (timestamp);
         }
+        // TODO currently not supported by livecoin
+        // let trades = this.parseTrades (order['trades'], market, since, limit);
         let trades = undefined;
-        if ('trades' in order)
-            // TODO currently not supported by livecoin
-            // trades = this.parseTrades (order['trades'], market, since, limit);
-            trades = undefined;
-        let status = undefined;
-        let orderStatus = undefined;
-        if ('status' in order) {
-            orderStatus = this.safeString (order, 'status');
-        }
-        if ('orderStatus' in order) {
-            orderStatus = this.safeString (order, 'orderStatus');
-        }
-        if (orderStatus === 'OPEN' || orderStatus === 'PARTIALLY_FILLED') {
-            status = 'open';
-        } else if (orderStatus === 'EXECUTED' || orderStatus === 'PARTIALLY_FILLED_AND_CANCELLED') {
-            status = 'closed';
-        } else {
-            status = 'canceled';
-        }
+        let status = this.safeString (order, 'status');
+        status = this.safeString (order, 'orderStatus', status);
+        status = this.parseOrderStatus (status);
         let symbol = undefined;
-        if ('currencyPair' in order) {
-            symbol = order['currencyPair'];
-        }
-        if ('symbol' in order) {
-            symbol = order['symbol'];
-        }
-        let parts = undefined;
-        let quote = undefined;
-        if (symbol) {
-            parts = symbol.split ('/');
-            quote = parts[1];
+        if (typeof market === 'undefined') {
+            let marketId = this.safeString (order, 'currencyPair');
+            marketId = this.safeString (order, 'symbol', marketId);
+            if (marketId in this.markets_by_id)
+                market = this.markets_by_id[marketId];
         }
         let type = undefined;
         let side = undefined;
         if ('type' in order) {
-            if (order['type'].indexOf ('MARKET') >= 0) {
-                type = 'market';
-            }
-            if (order['type'].indexOf ('LIMIT') >= 0) {
-                type = 'limit';
-            }
-            if (order['type'].indexOf ('SELL') >= 0) {
-                side = 'sell';
-            }
-            if (order['type'].indexOf ('BUY') >= 0) {
-                side = 'buy';
-            }
+            let orderType = order['type'].toLowerCase ().split ('_');
+            type = orderType[0];
+            side = orderType[1];
         }
         let price = this.safeFloat (order, 'price');
-        let remaining = undefined;
-        if ('remainingQuantity' in order) {
-            remaining = this.safeFloat (order, 'remainingQuantity');
-        }
-        if ('remaining_quantity' in order) {
-            remaining = this.safeFloat (order, 'remaining_quantity');
-        }
+        // of the next two lines the latter overrides the former, if present in the order structure
+        let remaining = this.safeFloat (order, 'remainingQuantity');
+        remaining = this.safeFloat (order, 'remaining_quantity', remaining);
         let amount = this.safeFloat (order, 'quantity', remaining);
         let filled = undefined;
         if (typeof remaining !== 'undefined') {
             filled = amount - remaining;
         }
-        const result = {
+        let cost = undefined;
+        if (status === 'open') {
+            if (typeof filled !== 'undefined' && typeof amount !== 'undefined' && typeof price !== 'undefined') {
+                cost = amount * price;
+            }
+        } else if (status === 'closed' || status === 'canceled') {
+            if (typeof filled !== 'undefined' && typeof price !== 'undefined') {
+                cost = filled * price;
+            }
+        }
+        if (typeof cost !== 'undefined') {
+            return undefined;
+        }
+        const feeRate = this.safeFloat (order, 'commission_rate');
+        let feeCost = undefined;
+        if (typeof cost !== 'undefined') {
+            feeCost = cost * feeRate;
+        }
+        let feeCurrency = undefined;
+        if (typeof market !== 'undefined') {
+            symbol = market['symbol'];
+            feeCurrency = market['quote'];
+        }
+        return {
             'info': order,
             'id': order['id'],
             'timestamp': timestamp,
@@ -478,37 +480,15 @@ module.exports = class livecoin extends Exchange {
             'side': side,
             'price': price,
             'amount': amount,
+            'cost': cost,
             'filled': filled,
             'remaining': remaining,
             'trades': trades,
-        };
-        const fee = this.calculateOrderFee (status, amount, filled, price, quote);
-        if (typeof fee !== 'undefined') {
-            result['fee'] = fee;
-            result['cost'] = fee.cost;
-        }
-        return result;
-    }
-
-    calculateOrderFee (status, amount, filled, price, quote) {
-        let cost = undefined;
-        if (status === 'open') {
-            if (typeof filled !== 'undefined' && typeof amount !== 'undefined' && typeof price !== 'undefined') {
-                cost = amount * price;
-            }
-        }
-        if (status === 'closed' || status === 'canceled') {
-            if (typeof filled !== 'undefined' && typeof price !== 'undefined') {
-                cost = filled * price;
-            }
-        }
-        if (typeof cost === 'undefined') {
-            return undefined;
-        }
-        return {
-            'cost': cost,
-            'currency': quote,
-            'price': price,
+            'fee': {
+                'cost': feeCost,
+                'currency': feeCurrency,
+                'rate': feeRate,
+            },
         };
     }
 
