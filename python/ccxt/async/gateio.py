@@ -129,6 +129,17 @@ class gateio (Exchange):
                 '20': 'Your order size is too small',
                 '21': 'You don\'t have enough fund',
             },
+            'options': {
+                'limits': {
+                    'cost': {
+                        'min': {
+                            'BTC': 0.0001,
+                            'ETH': 0.001,
+                            'USDT': 1,
+                        },
+                    },
+                },
+            },
         })
 
     async def fetch_markets(self):
@@ -160,8 +171,10 @@ class gateio (Exchange):
                 'min': math.pow(10, -details['decimal_places']),
                 'max': None,
             }
+            defaultCost = amountLimits['min'] * priceLimits['min']
+            minCost = self.safe_float(self.options['limits']['cost']['min'], quote, defaultCost)
             costLimits = {
-                'min': amountLimits['min'] * priceLimits['min'],
+                'min': minCost,
                 'max': None,
             }
             limits = {
@@ -342,9 +355,11 @@ class gateio (Exchange):
                 market = self.markets_by_id[marketId]
         if market is not None:
             symbol = market['symbol']
+        datetime = None
         timestamp = self.safe_integer(order, 'timestamp')
         if timestamp is not None:
             timestamp *= 1000
+            datetime = self.iso8601(timestamp)
         status = self.safe_string(order, 'status')
         if status is not None:
             status = self.parse_order_status(status)
@@ -363,7 +378,7 @@ class gateio (Exchange):
                 feeCurrency = self.currencies_by_id[feeCurrency]['code']
         return {
             'id': id,
-            'datetime': self.iso8601(timestamp),
+            'datetime': datetime,
             'timestamp': timestamp,
             'status': status,
             'symbol': symbol,

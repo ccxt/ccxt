@@ -89,6 +89,7 @@ class yobit extends liqui {
                 'LUN' => 'LunarCoin',
                 'MDT' => 'Midnight',
                 'NAV' => 'NavajoCoin',
+                'NBT' => 'NiceBytes',
                 'OMG' => 'OMGame',
                 'STK' => 'StakeCoin',
                 'SUB' => 'Subscriptio',

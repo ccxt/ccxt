@@ -130,6 +130,7 @@ class cobinhood extends Exchange {
             'exceptions' => array (
                 'insufficient_balance' => '\\ccxt\\InsufficientFunds',
                 'invalid_nonce' => '\\ccxt\\InvalidNonce',
+                'unauthorized_scope' => '\\ccxt\\PermissionDenied',
             ),
         ));
     }

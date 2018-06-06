@@ -182,15 +182,68 @@ module.exports = class Exchange {
         this.proxy = ''
         this.origin = '*' // CORS origin
 
-        this.iso8601          = timestamp => ((typeof timestamp === 'undefined') ? timestamp : new Date (timestamp).toISOString ())
-        this.parse8601        = x => Date.parse ((((x.indexOf ('+') >= 0) || (x.slice (-1) === 'Z')) ? x : (x + 'Z').replace (/\s(\d\d):/, 'T$1:')))
-        this.parseDate        = (x) => {
-            if (typeof x === 'undefined')
-                return x
-            return ((x.indexOf ('GMT') >= 0) ?
-                Date.parse (x) :
-                this.parse8601 (x))
+        this.iso8601 = (timestamp) => {
+            const _timestampNumber = parseInt (timestamp, 10);
+
+            // undefined, null and lots of nasty non-numeric values yield NaN
+            if (isNaN (_timestampNumber) || _timestampNumber < 0) {
+                return undefined;
+            }
+
+            if (_timestampNumber < 0) {
+                return undefined;
+            }
+
+            // last line of defence
+            try {
+                return new Date (_timestampNumber).toISOString ();
+            } catch (e) {
+                return undefined;
+            }
         }
+
+        this.parse8601 = (x) => {
+            if (typeof x !== 'string' || !x) {
+                return undefined;
+            }
+
+            if (x.match (/^[0-9]+$/)) {
+                // a valid number in a string, not a date.
+                return undefined;
+            }
+
+            if (x.indexOf ('-') < 0 || x.indexOf (':') < 0) { // no date can be without a dash and a colon
+                return undefined;
+            }
+
+            // last line of defence
+            try {
+                const candidate = Date.parse (((x.indexOf ('+') >= 0) || (x.slice (-1) === 'Z')) ? x : (x + 'Z').replace (/\s(\d\d):/, 'T$1:'));
+                if (isNaN (candidate)) {
+                    return undefined;
+                }
+                return candidate;
+            } catch (e) {
+                return undefined;
+            }
+        }
+
+        this.parseDate = (x) => {
+            if (typeof x !== 'string' || !x) {
+                return undefined;
+            }
+
+            if (x.indexOf ('GMT') >= 0) {
+                try {
+                    return Date.parse (x);
+                } catch (e) {
+                    return undefined;
+                }
+            }
+
+            return this.parse8601 (x);
+        }
+
         this.microseconds     = () => now () * 1000 // TODO: utilize performance.now for that purpose
         this.seconds          = () => Math.floor (now () / 1000)
 
@@ -903,17 +956,17 @@ module.exports = class Exchange {
     }
 
     filterBySinceLimit (array, since = undefined, limit = undefined) {
-        if (typeof since !== 'undefined')
+        if (typeof since !== 'undefined' && since !== null)
             array = array.filter (entry => entry.timestamp >= since)
-        if (typeof limit !== 'undefined')
+        if (typeof limit !== 'undefined' && limit !== null)
             array = array.slice (0, limit)
         return array
     }
 
     filterBySymbolSinceLimit (array, symbol = undefined, since = undefined, limit = undefined) {
 
-        const symbolIsDefined = typeof symbol !== 'undefined'
-        const sinceIsDefined = typeof since !== 'undefined'
+        const symbolIsDefined = typeof symbol !== 'undefined' && symbol !== null
+        const sinceIsDefined = typeof since !== 'undefined' && since !== null
 
         // single-pass filter for both symbol and since
         if (symbolIsDefined || sinceIsDefined)
@@ -921,7 +974,7 @@ module.exports = class Exchange {
                 ((symbolIsDefined ? (entry.symbol === symbol)  : true) &&
                  (sinceIsDefined  ? (entry.timestamp >= since) : true)))
 
-        if (typeof limit !== 'undefined')
+        if (typeof limit !== 'undefined' && limit !== null)
             array = Object.values (array).slice (0, limit)
 
         return array
@@ -932,7 +985,7 @@ module.exports = class Exchange {
         objects = Object.values (objects)
 
         // return all of them if no values were passed
-        if (typeof values === 'undefined')
+        if (typeof values === 'undefined' || values === null)
             return indexed ? indexBy (objects, key) : objects
 
         let result = []
