@@ -425,7 +425,8 @@ class livecoin (Exchange):
         type = None
         side = None
         if 'type' in order:
-            orderType = order['type'].lower().split('_')
+            lowercaseType = order['type'].lower()
+            orderType = lowercaseType.split('_')
             type = orderType[0]
             side = orderType[1]
         price = self.safe_float(order, 'price')
@@ -437,14 +438,8 @@ class livecoin (Exchange):
         if remaining is not None:
             filled = amount - remaining
         cost = None
-        if status == 'open':
-            if filled is not None and amount is not None and price is not None:
-                cost = amount * price
-        elif status == 'closed' or status == 'canceled':
-            if filled is not None and price is not None:
-                cost = filled * price
-        if cost is not None:
-            return None
+        if filled is not None and price is not None:
+            cost = filled * price
         feeRate = self.safe_float(order, 'commission_rate')
         feeCost = None
         if cost is not None:
