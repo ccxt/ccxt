@@ -456,7 +456,7 @@ class gateio (Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        response = self.privatePostOpenOrders()
+        response = await self.privatePostOpenOrders()
         return self.parse_orders(response['orders'], market, since, limit)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
@@ -465,7 +465,7 @@ class gateio (Exchange):
         await self.load_markets()
         market = self.market(symbol)
         id = market['id']
-        response = self.privatePostTradeHistory(self.extend({'currencyPair': id}, params))
+        response = await self.privatePostTradeHistory(self.extend({'currencyPair': id}, params))
         return self.parse_trades(response['trades'], market, since, limit)
 
     async def withdraw(self, currency, amount, address, tag=None, params={}):
