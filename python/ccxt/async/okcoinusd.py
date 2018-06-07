@@ -152,6 +152,20 @@ class okcoinusd (Exchange):
             },
             'options': {
                 'warnOnFetchOHLCVLimitArgument': True,
+                'fiats': ['USD', 'CNY'],
+                'futures': {
+                    'BCH': True,
+                    'BTC': True,
+                    'BTG': True,
+                    'EOS': True,
+                    'ETC': True,
+                    'ETH': True,
+                    'LTC': True,
+                    'NEO': True,
+                    'QTUM': True,
+                    'USDT': True,
+                    'XUC': True,
+                },
             },
         })
 
@@ -159,16 +173,6 @@ class okcoinusd (Exchange):
         response = await self.webGetSpotMarketsProducts()
         markets = response['data']
         result = []
-        futureMarkets = {
-            'BCH/USD': True,
-            'BTC/USD': True,
-            'ETC/USD': True,
-            'ETH/USD': True,
-            'LTC/USD': True,
-            'XRP/USD': True,
-            'EOS/USD': True,
-            'BTG/USD': True,
-        }
         for i in range(0, len(markets)):
             id = markets[i]['symbol']
             baseId, quoteId = id.split('_')
@@ -219,18 +223,20 @@ class okcoinusd (Exchange):
                 },
             })
             result.append(market)
-            futureQuote = 'USD' if (market['quote'] == 'USDT') else market['quote']
-            futureSymbol = market['base'] + '/' + futureQuote
-            if (self.has['futures']) and(futureSymbol in list(futureMarkets.keys())):
-                result.append(self.extend(market, {
-                    'quote': 'USD',
-                    'symbol': market['base'] + '/USD',
-                    'id': market['id'].replace('usdt', 'usd'),
-                    'quoteId': market['quoteId'].replace('usdt', 'usd'),
-                    'type': 'future',
-                    'spot': False,
-                    'future': True,
-                }))
+            if (self.has['futures']) and(market['base'] in list(self.options['futures'].keys())):
+                fiats = self.options['fiats']
+                for j in range(0, len(fiats)):
+                    fiat = fiats[j]
+                    lowercaseFiat = fiat.lower()
+                    result.append(self.extend(market, {
+                        'quote': fiat,
+                        'symbol': market['base'] + '/' + fiat,
+                        'id': market['base'].lower() + '_' + lowercaseFiat,
+                        'quoteId': lowercaseFiat,
+                        'type': 'future',
+                        'spot': False,
+                        'future': True,
+                    }))
         return result
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
