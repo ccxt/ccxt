@@ -572,4 +572,8 @@ module.exports = class cobinhood extends Exchange {
         }
         throw new ExchangeError (feedback);
     }
+
+    nonce () {
+        return this.milliseconds ();
+    }
 };
