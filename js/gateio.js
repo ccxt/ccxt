@@ -480,7 +480,7 @@ module.exports = class gateio extends Exchange {
         if (typeof symbol !== 'undefined') {
             market = this.market (symbol);
         }
-        let response = this.privatePostOpenOrders ();
+        let response = await this.privatePostOpenOrders ();
         return this.parseOrders (response['orders'], market, since, limit);
     }
 
@@ -490,7 +490,7 @@ module.exports = class gateio extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let id = market['id'];
-        let response = this.privatePostTradeHistory (this.extend ({ 'currencyPair': id }, params));
+        let response = await this.privatePostTradeHistory (this.extend ({ 'currencyPair': id }, params));
         return this.parseTrades (response['trades'], market, since, limit);
     }
 
