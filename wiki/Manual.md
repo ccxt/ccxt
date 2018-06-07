@@ -408,7 +408,50 @@ Exchanges usually impose what is called a *rate limit*. Exchanges will remember 
 
 Most exchanges allow **up to 1 or 2 requests per second**. Exchanges may temporarily restrict your access to their API or ban you for some period of time if you are too aggressive with your requests.
 
-**The `exchange.rateLimit` property is set to a safe default which is sub-optimal. Some exchanges may have varying rate limits for different endpoints. It is up to the library user to tweak `rateLimit` according to application-specific purposes.**
+**The `exchange.rateLimit` property is set to a safe default which is sub-optimal. Some exchanges may have varying rate limits for different endpoints. It is up to the user to tweak `rateLimit` according to application-specific purposes.**
+
+The CCXT library has a built-in experimental rate-limiter that will do the necessary throttling in background transparently to the user. **WARNING: users are responsible for at least some type of rate-limiting: either by implementing a custom algorithm or by doing it with the built-in rate-limiter.**.
+
+Turn on the built-in rate-limiter with `.enableRateLimit` property, like so:
+
+```JavaScript
+// JavaScript
+
+// enable built-in rate limiting upon instantiation of the exchange
+const exchange = new ccxt.bitfinex ({
+    'enableRateLimit': true,
+})
+
+// or switch the built-in rate-limiter on or off later after instantiation
+exchange.enableRateLimit = true // enable
+exchange.enableRateLimit = false // disable
+```
+
+```Python
+# Python
+
+# enable built-in rate limiting upon instantiation of the exchange
+exchange = ccxt.bitfinex({
+    'enableRateLimit': True,
+})
+
+# or switch the built-in rate-limiter on or off later after instantiation
+exchange.enableRateLimit = True  # enable
+exchange.enableRateLimit = False  # disable
+```
+
+```PHP
+// PHP
+
+// enable built-in rate limiting upon instantiation of the exchange
+$exchange = new \ccxt\bitfinex (array (
+    'enableRateLimit' => true,
+));
+
+// or switch the built-in rate-limiter on or off later after instantiation
+$exchange->enableRateLimit = true; // enable
+$exchange->enableRateLimit = false; // disable
+```
 
 ### DDoS Protection By Cloudflare / Incapsula
 
@@ -2424,7 +2467,7 @@ In case you experience any difficulty connecting to a particular exchange, do th
   - https://github.com/ccxt/ccxt/blob/master/examples/py/bypass-cloudflare.py
   - https://github.com/ccxt/ccxt/blob/master/examples/py/bypass-cloudflare-with-cookies.py
 - Check your nonce. If you used your API keys with other software, you most likely should [override your nonce function](#overriding-the-nonce) to match your previous nonce value. A nonce usually can be easily reset by generating a new unused keypair. If you are getting nonce errors with an existing key, try with a new API key that hasn't been used yet.
-- Check your request rate if you are getting nonce errors. Your private requests should not follow one another quickly. You should not send them one after another in a split second or in short time. The exchange will most likely ban you if you don't make a delay before sending each new request. In other words, you should not hit their rate limit by sending unlimited private requests too frequently. Add a delay to your subsequent requests, like show in the long-poller [examples](https://github.com/ccxt/ccxt/tree/master/examples), also [here](https://github.com/ccxt/ccxt/wiki/Manual#order-book--market-depth).
+- Check your request rate if you are getting nonce errors. Your private requests should not follow one another quickly. You should not send them one after another in a split second or in short time. The exchange will most likely ban you if you don't make a delay before sending each new request. In other words, you should not hit their rate limit by sending unlimited private requests too frequently. Add a delay to your subsequent requests or enable the built-in rate-limiter, like shown in the long-poller [examples](https://github.com/ccxt/ccxt/tree/master/examples), also [here](https://github.com/ccxt/ccxt/wiki/Manual#order-book--market-depth).
 - Read the [docs for your exchange](https://github.com/ccxt/ccxt/wiki/Exchanges) and compare your verbose output to the docs.
 - Check your connectivity with the exchange by accessing it with your browser.
 - Check your connection with the exchange through a proxy. Read the [Proxy](https://github.com/ccxt/ccxt/wiki/Install#proxy) section for more details.
