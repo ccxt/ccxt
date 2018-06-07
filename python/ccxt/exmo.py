@@ -525,7 +525,9 @@ class exmo (Exchange):
         if depositAddress:
             addressAndTag = depositAddress.split(',')
             address = addressAndTag[0]
-            tag = addressAndTag[1]
+            numParts = len(addressAndTag)
+            if numParts > 1:
+                tag = addressAndTag[1]
         self.check_address(address)
         return {
             'currency': code,
