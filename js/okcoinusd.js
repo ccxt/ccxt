@@ -145,6 +145,20 @@ module.exports = class okcoinusd extends Exchange {
             },
             'options': {
                 'warnOnFetchOHLCVLimitArgument': true,
+                'fiats': [ 'USD', 'CNY' ],
+                'futures': {
+                    'BCH': true,
+                    'BTC': true,
+                    'BTG': true,
+                    'EOS': true,
+                    'ETC': true,
+                    'ETH': true,
+                    'LTC': true,
+                    'NEO': true,
+                    'QTUM': true,
+                    'USDT': true,
+                    'XUC': true,
+                },
             },
         });
     }
@@ -153,16 +167,6 @@ module.exports = class okcoinusd extends Exchange {
         let response = await this.webGetSpotMarketsProducts ();
         let markets = response['data'];
         let result = [];
-        const futureMarkets = {
-            'BCH/USD': true,
-            'BTC/USD': true,
-            'ETC/USD': true,
-            'ETH/USD': true,
-            'LTC/USD': true,
-            'XRP/USD': true,
-            'EOS/USD': true,
-            'BTG/USD': true,
-        };
         for (let i = 0; i < markets.length; i++) {
             let id = markets[i]['symbol'];
             let [ baseId, quoteId ] = id.split ('_');
@@ -213,18 +217,21 @@ module.exports = class okcoinusd extends Exchange {
                 },
             });
             result.push (market);
-            let futureQuote = (market['quote'] === 'USDT') ? 'USD' : market['quote'];
-            let futureSymbol = market['base'] + '/' + futureQuote;
-            if ((this.has['futures']) && (futureSymbol in futureMarkets)) {
-                result.push (this.extend (market, {
-                    'quote': 'USD',
-                    'symbol': market['base'] + '/USD',
-                    'id': market['id'].replace ('usdt', 'usd'),
-                    'quoteId': market['quoteId'].replace ('usdt', 'usd'),
-                    'type': 'future',
-                    'spot': false,
-                    'future': true,
-                }));
+            if ((this.has['futures']) && (market['base'] in this.options['futures'])) {
+                let fiats = this.options['fiats'];
+                for (let j = 0; j < fiats.length; j++) {
+                    const fiat = fiats[j];
+                    const lowercaseFiat = fiat.toLowerCase ();
+                    result.push (this.extend (market, {
+                        'quote': fiat,
+                        'symbol': market['base'] + '/' + fiat,
+                        'id': market['base'].toLowerCase () + '_' + lowercaseFiat,
+                        'quoteId': lowercaseFiat,
+                        'type': 'future',
+                        'spot': false,
+                        'future': true,
+                    }));
+                }
             }
         }
         return result;
