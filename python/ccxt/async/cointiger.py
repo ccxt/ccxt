@@ -526,7 +526,7 @@ class cointiger (huobipro):
                 'api_key': self.apiKey,
                 'time': timestamp,
             }, urlParams)))
-            url += '&sign=' + self.decode(signature)
+            url += '&sign=' + signature
             if method == 'POST':
                 body = self.urlencode(query)
                 headers = {
