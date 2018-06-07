@@ -543,7 +543,7 @@ module.exports = class cointiger extends huobipro {
                 'api_key': this.apiKey,
                 'time': timestamp,
             }, urlParams)));
-            url += '&sign=' + this.decode (signature);
+            url += '&sign=' + signature;
             if (method === 'POST') {
                 body = this.urlencode (query);
                 headers = {
