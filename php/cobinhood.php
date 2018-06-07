@@ -573,4 +573,8 @@ class cobinhood extends Exchange {
         }
         throw new ExchangeError ($feedback);
     }
+
+    public function nonce () {
+        return $this->milliseconds ();
+    }
 }

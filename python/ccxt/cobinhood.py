@@ -541,3 +541,6 @@ class cobinhood (Exchange):
         if errorCode in exceptions:
             raise exceptions[errorCode](feedback)
         raise ExchangeError(feedback)
+
+    def nonce(self):
+        return self.milliseconds()

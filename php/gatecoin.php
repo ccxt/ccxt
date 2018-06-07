@@ -201,7 +201,8 @@ class gatecoin extends Exchange {
                 '1005' => '\\ccxt\\InsufficientFunds',
                 '1008' => '\\ccxt\\OrderNotFound',
                 '1057' => '\\ccxt\\InvalidOrder',
-                '1044' => '\\ccxt\\OrderNotFound', // already canceled
+                '1044' => '\\ccxt\\OrderNotFound', // already canceled,
+                '1054' => '\\ccxt\\OrderNotFound', // already executed
             ),
         ));
     }
