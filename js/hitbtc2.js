@@ -890,9 +890,10 @@ module.exports = class hitbtc2 extends hitbtc {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        return await this.privateDeleteOrderClientOrderId (this.extend ({
+        const response = await this.privateDeleteOrderClientOrderId (this.extend ({
             'clientOrderId': id,
         }, params));
+        return this.parseOrder (response);
     }
 
     parseOrder (order, market = undefined) {

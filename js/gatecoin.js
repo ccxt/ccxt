@@ -458,6 +458,14 @@ module.exports = class gatecoin extends Exchange {
             'status': 'open',
             'id': this.safeString (response, 'clOrderId'), // response['clOrderId'],
         };
+        if ('responseStatus' in response) {
+            if ('message' in response['responseStatus']) {
+                if (response['responseStatus']['message'] === 'OK') {
+                    result['status'] = 'open';
+                }
+            }
+        }
+        return result;
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -701,6 +709,9 @@ module.exports = class gatecoin extends Exchange {
                     throw new ExchangeError (feedback);
                 }
             }
+        }
+        if (body.indexOf ('You are not authorized') >= 0) {
+            throw new PermissionDenied (body);
         }
     }
 };
