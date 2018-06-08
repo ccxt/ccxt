@@ -596,12 +596,11 @@ module.exports = class cobinhood extends Exchange {
         let response = JSON.parse (body);
         const feedback = this.id + ' ' + this.json (response);
         let errorCode = this.safeValue (response['error'], 'error_code');
-        let fetchOrCancelUrlPrefix = this.urls['api']['web'] + '/' + this.implodeParams ('trading/orders/', {});
-        if (url.substr (0, fetchOrCancelUrlPrefix.length) === fetchOrCancelUrlPrefix) {
-            // Cobinhood returns vague "parameter_error" on fetchOrder() and cancelOrder() calls
-            // for any order IDs is not in the "open" state or invalid in the first place.
-            if (method === 'DELETE' || method === 'GET') {
-                if (errorCode === 'parameter_error') {
+        if (method === 'DELETE' || method === 'GET') {
+            if (errorCode === 'parameter_error') {
+                if (url.indexOf ('trading/orders/') >= 0) {
+                    // Cobinhood returns vague "parameter_error" on fetchOrder() and cancelOrder() calls
+                    // for invalid order IDs as well as orders that are not "open"
                     throw new InvalidOrder (feedback);
                 }
             }
