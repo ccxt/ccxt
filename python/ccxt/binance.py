@@ -578,7 +578,7 @@ class binance (Exchange):
             iso8601 = self.iso8601(timestamp)
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'origQty')
-        filled = self.safe_float(order, 'executedQty', 0.0)
+        filled = self.safe_float(order, 'executedQty')
         remaining = None
         cost = None
         if filled is not None:
@@ -696,7 +696,7 @@ class binance (Exchange):
             'orderId': int(id),
             # 'origClientOrderId': id,
         }, params))
-        return response
+        return self.parse_order(response)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:

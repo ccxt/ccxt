@@ -891,9 +891,10 @@ class hitbtc2 extends hitbtc {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->privateDeleteOrderClientOrderId (array_merge (array (
+        $response = $this->privateDeleteOrderClientOrderId (array_merge (array (
             'clientOrderId' => $id,
         ), $params));
+        return $this->parse_order($response);
     }
 
     public function parse_order ($order, $market = null) {
