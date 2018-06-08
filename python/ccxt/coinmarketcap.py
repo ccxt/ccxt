@@ -215,7 +215,7 @@ class coinmarketcap (Exchange):
         tickers = {}
         for t in range(0, len(response)):
             ticker = response[t]
-            currencyId = self.currencies[currency]['id'] if (currency in list(self.currencies.keys())) else currency.lower()
+            currencyId = currency.lower()
             id = ticker['id'] + '/' + currencyId
             symbol = id
             market = None

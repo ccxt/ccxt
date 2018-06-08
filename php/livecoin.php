@@ -23,6 +23,7 @@ class livecoin extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchTradingFees' => true,
                 'fetchOrders' => true,
+                'fetchOrder' => true,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
                 'withdraw' => true,
@@ -89,6 +90,7 @@ class livecoin extends Exchange {
                 'CRC' => 'CryCash',
                 'ORE' => 'Orectic',
                 'RUR' => 'RUB',
+                'TPI' => 'ThaneCoin',
                 'XBT' => 'Bricktox',
             ),
             'exceptions' => array (
@@ -378,63 +380,107 @@ class livecoin extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
+        $request = array (
+            'orderId' => $id,
+        );
+        $response = $this->privateGetExchangeOrder (array_merge ($request, $params));
+        return $this->parse_order($response);
+    }
+
+    public function parse_order_status ($status) {
+        $statuses = array (
+            'OPEN' => 'open',
+            'PARTIALLY_FILLED' => 'open',
+            'EXECUTED' => 'closed',
+            'PARTIALLY_FILLED_AND_CANCELLED' => 'canceled',
+        );
+        if (is_array ($statuses) && array_key_exists ($status, $statuses))
+            return $statuses[$status];
+        return $status;
+    }
+
     public function parse_order ($order, $market = null) {
-        $timestamp = $this->safe_integer($order, 'lastModificationTime');
-        if (!$timestamp)
-            $timestamp = $this->parse8601 ($order['lastModificationTime']);
-        $trades = null;
-        if (is_array ($order) && array_key_exists ('trades', $order))
-            // TODO currently not supported by livecoin
-            // $trades = $this->parse_trades($order['trades'], $market, since, limit);
-            $trades = null;
-        $status = null;
-        if ($order['orderStatus'] === 'OPEN' || $order['orderStatus'] === 'PARTIALLY_FILLED') {
-            $status = 'open';
-        } else if ($order['orderStatus'] === 'EXECUTED' || $order['orderStatus'] === 'PARTIALLY_FILLED_AND_CANCELLED') {
-            $status = 'closed';
-        } else {
-            $status = 'canceled';
+        $timestamp = null;
+        $datetime = null;
+        if (is_array ($order) && array_key_exists ('lastModificationTime', $order)) {
+            $timestamp = $this->safe_string($order, 'lastModificationTime');
+            if ($timestamp !== null) {
+                if (mb_strpos ($timestamp, 'T') !== false) {
+                    $timestamp = $this->parse8601 ($timestamp);
+                } else {
+                    $timestamp = $this->safe_integer($order, 'lastModificationTime');
+                }
+            }
         }
-        $symbol = $order['currencyPair'];
-        $parts = explode ('/', $symbol);
-        $quote = $parts[1];
-        // list ($base, $quote) = explode ('/', $symbol);
+        if ($timestamp) {
+            $datetime = $this->iso8601 ($timestamp);
+        }
+        // TODO currently not supported by livecoin
+        // $trades = $this->parse_trades($order['trades'], $market, since, limit);
+        $trades = null;
+        $status = $this->safe_string($order, 'status');
+        $status = $this->safe_string($order, 'orderStatus', $status);
+        $status = $this->parse_order_status($status);
+        $symbol = null;
+        if ($market === null) {
+            $marketId = $this->safe_string($order, 'currencyPair');
+            $marketId = $this->safe_string($order, 'symbol', $marketId);
+            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
+                $market = $this->markets_by_id[$marketId];
+        }
         $type = null;
         $side = null;
-        if (mb_strpos ($order['type'], 'MARKET') !== false) {
-            $type = 'market';
-        } else {
-            $type = 'limit';
+        if (is_array ($order) && array_key_exists ('type', $order)) {
+            $lowercaseType = strtolower ($order['type']);
+            $orderType = explode ('_', $lowercaseType);
+            $type = $orderType[0];
+            $side = $orderType[1];
         }
-        if (mb_strpos ($order['type'], 'SELL') !== false) {
-            $side = 'sell';
-        } else {
-            $side = 'buy';
-        }
-        $price = $this->safe_float($order, 'price', 0.0);
-        $cost = $this->safe_float($order, 'commissionByTrade', 0.0);
-        $remaining = $this->safe_float($order, 'remainingQuantity', 0.0);
+        $price = $this->safe_float($order, 'price');
+        // of the next two lines the latter overrides the former, if present in the $order structure
+        $remaining = $this->safe_float($order, 'remainingQuantity');
+        $remaining = $this->safe_float($order, 'remaining_quantity', $remaining);
         $amount = $this->safe_float($order, 'quantity', $remaining);
-        $filled = $amount - $remaining;
+        $filled = null;
+        if ($remaining !== null) {
+            $filled = $amount - $remaining;
+        }
+        $cost = null;
+        if ($filled !== null && $price !== null) {
+            $cost = $filled * $price;
+        }
+        $feeRate = $this->safe_float($order, 'commission_rate');
+        $feeCost = null;
+        if ($cost !== null) {
+            $feeCost = $cost * $feeRate;
+        }
+        $feeCurrency = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+            $feeCurrency = $market['quote'];
+        }
         return array (
             'info' => $order,
             'id' => $order['id'],
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $datetime,
             'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
             'price' => $price,
-            'cost' => $cost,
             'amount' => $amount,
+            'cost' => $cost,
             'filled' => $filled,
             'remaining' => $remaining,
             'trades' => $trades,
             'fee' => array (
-                'cost' => $cost,
-                'currency' => $quote,
+                'cost' => $feeCost,
+                'currency' => $feeCurrency,
+                'rate' => $feeRate,
             ),
         );
     }

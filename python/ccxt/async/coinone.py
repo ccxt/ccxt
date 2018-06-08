@@ -8,6 +8,7 @@ import base64
 import hashlib
 import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import ExchangeNotAvailable
 
 
@@ -237,23 +238,66 @@ class coinone (Exchange):
         if type != 'limit':
             raise ExchangeError(self.id + ' allows limit orders only')
         await self.load_markets()
-        order = {
+        request = {
             'price': price,
             'currency': self.market_id(symbol),
             'qty': amount,
         }
         method = 'privatePostOrder' + self.capitalize(type) + self.capitalize(side)
-        response = await getattr(self, method)(self.extend(order, params))
-        # todo: return the full order structure
-        # return self.parse_order(response, market)
-        orderId = self.safe_string(response, 'orderId')
-        return {
+        response = await getattr(self, method)(self.extend(request, params))
+        id = self.safe_string(response, 'orderId')
+        timestamp = self.milliseconds()
+        cost = price * amount
+        order = {
             'info': response,
-            'id': orderId,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'cost': cost,
+            'average': None,
+            'amount': amount,
+            'filled': None,
+            'remaining': None,
+            'status': None,
+            'fee': None,
         }
+        self.orders[id] = order
+        return order
 
     async def cancel_order(self, id, symbol=None, params={}):
-        return await self.privatePostOrderCancel({'orderID': id})
+        order = self.safe_value(self.orders, id)
+        amount = None
+        price = None
+        side = None
+        if order is None:
+            price = self.safe_float(params, 'price')
+            if price is None:
+                # eslint-disable-next-line quotes
+                raise InvalidOrder(self.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of self class earlier. The price parameter is missing. To cancel the order, pass {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.")
+            amount = self.safe_float(params, 'qty')
+            if amount is None:
+                # eslint-disable-next-line quotes
+                raise InvalidOrder(self.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of self class earlier. The `qty`(amount) parameter is missing. To cancel the order, pass {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.")
+            side = self.safe_float(params, 'is_ask')
+            if side is None:
+                # eslint-disable-next-line quotes
+                raise InvalidOrder(self.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of self class earlier. The `is_ask`(side) parameter is missing. To cancel the order, pass {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.")
+        else:
+            price = order['price']
+            amount = order['amount']
+            side = 0 if (order['side'] == 'buy') else 1
+        request = {
+            'order_id': id,
+            'price': price,
+            'qty': amount,
+            'is_ask': side,
+        }
+        return await self.privatePostOrderCancel(self.extend(request, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = self.implode_params(path, params)

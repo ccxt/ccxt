@@ -62,8 +62,8 @@ class vaultoro (Exchange):
         result = []
         markets = await self.publicGetMarkets()
         market = markets['data']
-        baseId = market['BaseCurrency']
-        quoteId = market['MarketCurrency']
+        baseId = market['MarketCurrency']
+        quoteId = market['BaseCurrency']
         base = self.common_currency_code(baseId)
         quote = self.common_currency_code(quoteId)
         symbol = base + '/' + quote
