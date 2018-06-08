@@ -477,7 +477,7 @@ class bittrex (Exchange):
         request = {}
         request[orderIdField] = id
         response = await self.marketGetCancel(self.extend(request, params))
-        return response
+        return self.parse_order(response)
 
     def parse_symbol(self, id):
         quote, base = id.split('-')
@@ -490,8 +490,16 @@ class bittrex (Exchange):
         if side is None:
             side = self.safe_string(order, 'Type')
         isBuyOrder = (side == 'LIMIT_BUY') or (side == 'BUY')
-        side = 'buy' if isBuyOrder else 'sell'
-        status = 'open'
+        isSellOrder = (side == 'LIMIT_SELL') or (side == 'SELL')
+        if isBuyOrder:
+            side = 'buy'
+        if isSellOrder:
+            side = 'sell'
+        # We parse different fields in a very specific order.
+        # Order might well be closed and then canceled.
+        status = None
+        if ('Opened' in list(order.keys())) and order['Opened']:
+            status = 'open'
         if ('Closed' in list(order.keys())) and order['Closed']:
             status = 'closed'
         if ('CancelInitiated' in list(order.keys())) and order['CancelInitiated']:
@@ -544,8 +552,10 @@ class bittrex (Exchange):
         price = self.safe_float(order, 'Limit')
         cost = self.safe_float(order, 'Price')
         amount = self.safe_float(order, 'Quantity')
-        remaining = self.safe_float(order, 'QuantityRemaining', 0.0)
-        filled = amount - remaining
+        remaining = self.safe_float(order, 'QuantityRemaining')
+        filled = None
+        if amount is not None and remaining is not None:
+            filled = amount - remaining
         if not cost:
             if price and amount:
                 cost = price * amount

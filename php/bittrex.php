@@ -491,7 +491,7 @@ class bittrex extends Exchange {
         $request = array ();
         $request[$orderIdField] = $id;
         $response = $this->marketGetCancel (array_merge ($request, $params));
-        return $response;
+        return $this->parse_order($response);
     }
 
     public function parse_symbol ($id) {
@@ -506,8 +506,18 @@ class bittrex extends Exchange {
         if ($side === null)
             $side = $this->safe_string($order, 'Type');
         $isBuyOrder = ($side === 'LIMIT_BUY') || ($side === 'BUY');
-        $side = $isBuyOrder ? 'buy' : 'sell';
-        $status = 'open';
+        $isSellOrder = ($side === 'LIMIT_SELL') || ($side === 'SELL');
+        if ($isBuyOrder) {
+            $side = 'buy';
+        }
+        if ($isSellOrder) {
+            $side = 'sell';
+        }
+        // We parse different fields in a very specific $order.
+        // Order might well be closed and then canceled.
+        $status = null;
+        if ((is_array ($order) && array_key_exists ('Opened', $order)) && $order['Opened'])
+            $status = 'open';
         if ((is_array ($order) && array_key_exists ('Closed', $order)) && $order['Closed'])
             $status = 'closed';
         if ((is_array ($order) && array_key_exists ('CancelInitiated', $order)) && $order['CancelInitiated'])
@@ -566,8 +576,11 @@ class bittrex extends Exchange {
         $price = $this->safe_float($order, 'Limit');
         $cost = $this->safe_float($order, 'Price');
         $amount = $this->safe_float($order, 'Quantity');
-        $remaining = $this->safe_float($order, 'QuantityRemaining', 0.0);
-        $filled = $amount - $remaining;
+        $remaining = $this->safe_float($order, 'QuantityRemaining');
+        $filled = null;
+        if ($amount !== null && $remaining !== null) {
+            $filled = $amount - $remaining;
+        }
         if (!$cost) {
             if ($price && $amount)
                 $cost = $price * $amount;
