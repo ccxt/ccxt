@@ -398,7 +398,7 @@ module.exports = class cobinhood extends Exchange {
             'open': 'open',
             'new': 'open',
             'queued': 'open',
-            'cancelled': 'canceled,
+            'cancelled': 'canceled',
             'triggered': 'triggered',
         };
         if (status in statuses)
