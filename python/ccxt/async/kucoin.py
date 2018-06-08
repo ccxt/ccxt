@@ -344,7 +344,8 @@ class kucoin (Exchange):
             }
         else:
             orderbook = response['data']
-            timestamp = response['data']['timestamp']
+            timestamp = self.safe_integer(response, 'timestamp')
+            timestamp = self.safe_integer(response['data'], 'timestamp', timestamp)
         return self.parse_order_book(orderbook, timestamp, 'BUY', 'SELL')
 
     def parse_order(self, order, market=None):

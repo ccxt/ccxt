@@ -167,6 +167,7 @@ class bittrex (Exchange):
                 'UUID_INVALID': OrderNotFound,
                 'RATE_NOT_PROVIDED': InvalidOrder,  # createLimitBuyOrder('ETH/BTC', 1, 0)
                 'WHITELIST_VIOLATION_IP': PermissionDenied,
+                'INVALID_ORDER': InvalidOrder,
             },
             'options': {
                 'parseOrderStatus': False,
@@ -589,6 +590,8 @@ class bittrex (Exchange):
                 if message == 'UUID_INVALID':
                     raise OrderNotFound(self.id + ' fetchOrder() error: ' + self.last_http_response)
             raise e
+        if not response['result']:
+            raise OrderNotFound(self.id + ' order ' + id + ' not found')
         return self.parse_order(response['result'])
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):

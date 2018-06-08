@@ -190,9 +190,10 @@ class lbank (Exchange):
         for i in range(0, len(tickers)):
             ticker = tickers[i]
             id = ticker['symbol']
-            market = self.marketsById[id]
-            symbol = market['symbol']
-            result[symbol] = self.parse_ticker(ticker, market)
+            if id in self.marketsById:
+                market = self.marketsById[id]
+                symbol = market['symbol']
+                result[symbol] = self.parse_ticker(ticker, market)
         return result
 
     async def fetch_order_book(self, symbol, limit=60, params={}):
@@ -370,11 +371,13 @@ class lbank (Exchange):
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
+        if limit is None:
+            limit = 100
         market = self.market(symbol)
         response = await self.privatePostOrdersInfoHistory(self.extend({
             'symbol': market['id'],
             'current_page': 1,
-            'page_length': 100,
+            'page_length': limit,
         }, params))
         return self.parse_orders(response['orders'], None, since, limit)
 

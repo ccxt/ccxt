@@ -79,6 +79,7 @@ class okcoinusd extends Exchange {
                         'cancel_order',
                         'cancel_otc_order',
                         'cancel_withdraw',
+                        'funds_transfer',
                         'future_batch_trade',
                         'future_cancel',
                         'future_devolve',
@@ -103,6 +104,7 @@ class okcoinusd extends Exchange {
                         'trade',
                         'trade_history',
                         'trade_otc_order',
+                        'wallet_info',
                         'withdraw',
                         'withdraw_info',
                         'unrepayments_info',
@@ -144,6 +146,20 @@ class okcoinusd extends Exchange {
             ),
             'options' => array (
                 'warnOnFetchOHLCVLimitArgument' => true,
+                'fiats' => array ( 'USD', 'CNY' ),
+                'futures' => array (
+                    'BCH' => true,
+                    'BTC' => true,
+                    'BTG' => true,
+                    'EOS' => true,
+                    'ETC' => true,
+                    'ETH' => true,
+                    'LTC' => true,
+                    'NEO' => true,
+                    'QTUM' => true,
+                    'USDT' => true,
+                    'XUC' => true,
+                ),
             ),
         ));
     }
@@ -152,16 +168,6 @@ class okcoinusd extends Exchange {
         $response = $this->webGetSpotMarketsProducts ();
         $markets = $response['data'];
         $result = array ();
-        $futureMarkets = array (
-            'BCH/USD' => true,
-            'BTC/USD' => true,
-            'ETC/USD' => true,
-            'ETH/USD' => true,
-            'LTC/USD' => true,
-            'XRP/USD' => true,
-            'EOS/USD' => true,
-            'BTG/USD' => true,
-        );
         for ($i = 0; $i < count ($markets); $i++) {
             $id = $markets[$i]['symbol'];
             list ($baseId, $quoteId) = explode ('_', $id);
@@ -212,18 +218,21 @@ class okcoinusd extends Exchange {
                 ),
             ));
             $result[] = $market;
-            $futureQuote = ($market['quote'] === 'USDT') ? 'USD' : $market['quote'];
-            $futureSymbol = $market['base'] . '/' . $futureQuote;
-            if (($this->has['futures']) && (is_array ($futureMarkets) && array_key_exists ($futureSymbol, $futureMarkets))) {
-                $result[] = array_merge ($market, array (
-                    'quote' => 'USD',
-                    'symbol' => $market['base'] . '/USD',
-                    'id' => str_replace ('usdt', 'usd', $market['id']),
-                    'quoteId' => str_replace ('usdt', 'usd', $market['quoteId']),
-                    'type' => 'future',
-                    'spot' => false,
-                    'future' => true,
-                ));
+            if (($this->has['futures']) && (is_array ($this->options['futures']) && array_key_exists ($market['base'], $this->options['futures']))) {
+                $fiats = $this->options['fiats'];
+                for ($j = 0; $j < count ($fiats); $j++) {
+                    $fiat = $fiats[$j];
+                    $lowercaseFiat = strtolower ($fiat);
+                    $result[] = array_merge ($market, array (
+                        'quote' => $fiat,
+                        'symbol' => $market['base'] . '/' . $fiat,
+                        'id' => strtolower ($market['base']) . '_' . $lowercaseFiat,
+                        'quoteId' => $lowercaseFiat,
+                        'type' => 'future',
+                        'spot' => false,
+                        'future' => true,
+                    ));
+                }
             }
         }
         return $result;

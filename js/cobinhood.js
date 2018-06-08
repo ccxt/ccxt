@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InsufficientFunds, InvalidNonce } = require ('./base/errors');
+const { ExchangeError, InsufficientFunds, InvalidNonce, PermissionDenied } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -129,6 +129,7 @@ module.exports = class cobinhood extends Exchange {
             'exceptions': {
                 'insufficient_balance': InsufficientFunds,
                 'invalid_nonce': InvalidNonce,
+                'unauthorized_scope': PermissionDenied,
             },
         });
     }
@@ -570,5 +571,9 @@ module.exports = class cobinhood extends Exchange {
             throw new exceptions[errorCode] (feedback);
         }
         throw new ExchangeError (feedback);
+    }
+
+    nonce () {
+        return this.milliseconds ();
     }
 };

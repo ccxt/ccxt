@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, InvalidOrder } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -243,24 +243,71 @@ module.exports = class coinone extends Exchange {
         if (type !== 'limit')
             throw new ExchangeError (this.id + ' allows limit orders only');
         await this.loadMarkets ();
-        let order = {
+        let request = {
             'price': price,
             'currency': this.marketId (symbol),
             'qty': amount,
         };
         let method = 'privatePostOrder' + this.capitalize (type) + this.capitalize (side);
-        let response = await this[method] (this.extend (order, params));
-        // todo: return the full order structure
-        // return this.parseOrder (response, market);
-        let orderId = this.safeString (response, 'orderId');
-        return {
+        let response = await this[method] (this.extend (request, params));
+        let id = this.safeString (response, 'orderId');
+        let timestamp = this.milliseconds ();
+        let cost = price * amount;
+        let order = {
             'info': response,
-            'id': orderId,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'cost': cost,
+            'average': undefined,
+            'amount': amount,
+            'filled': undefined,
+            'remaining': undefined,
+            'status': undefined,
+            'fee': undefined,
         };
+        this.orders[id] = order;
+        return order;
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        return await this.privatePostOrderCancel ({ 'orderID': id });
+        let order = this.safeValue (this.orders, id);
+        let amount = undefined;
+        let price = undefined;
+        let side = undefined;
+        if (typeof order === 'undefined') {
+            price = this.safeFloat (params, 'price');
+            if (typeof price === 'undefined') {
+                // eslint-disable-next-line quotes
+                throw new InvalidOrder (this.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of this class earlier. The price parameter is missing. To cancel the order, pass {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.");
+            }
+            amount = this.safeFloat (params, 'qty');
+            if (typeof amount === 'undefined') {
+                // eslint-disable-next-line quotes
+                throw new InvalidOrder (this.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of this class earlier. The `qty` (amount) parameter is missing. To cancel the order, pass {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.");
+            }
+            side = this.safeFloat (params, 'is_ask');
+            if (typeof side === 'undefined') {
+                // eslint-disable-next-line quotes
+                throw new InvalidOrder (this.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of this class earlier. The `is_ask` (side) parameter is missing. To cancel the order, pass {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.");
+            }
+        } else {
+            price = order['price'];
+            amount = order['amount'];
+            side = (order['side'] === 'buy') ? 0 : 1;
+        }
+        let request = {
+            'order_id': id,
+            'price': price,
+            'qty': amount,
+            'is_ask': side,
+        };
+        return await this.privatePostOrderCancel (this.extend (request, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

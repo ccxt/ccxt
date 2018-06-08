@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const huobipro = require ('./huobipro.js');
-const { ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -17,6 +17,7 @@ module.exports = class cointiger extends huobipro {
             'has': {
                 'fetchCurrencies': false,
                 'fetchTickers': true,
+                'fetchTradingLimits': false,
                 'fetchOrder': false,
             },
             'headers': {
@@ -69,6 +70,8 @@ module.exports = class cointiger extends huobipro {
                 '1': InsufficientFunds,
                 '2': ExchangeError,
                 '5': InvalidOrder,
+                '6': InvalidOrder,
+                '8': OrderNotFound,
                 '16': AuthenticationError, // funding password not set
                 '100001': ExchangeError,
                 '100002': ExchangeNotAvailable,
@@ -353,7 +356,7 @@ module.exports = class cointiger extends huobipro {
             }
             let account = this.account ();
             account['used'] = parseFloat (balance['lock']);
-            account['free'] = balance['normal'];
+            account['free'] = parseFloat (balance['normal']);
             account['total'] = this.sum (account['used'], account['free']);
             result[code] = account;
         }
@@ -485,7 +488,7 @@ module.exports = class cointiger extends huobipro {
         let timestamp = this.milliseconds ();
         return {
             'info': response,
-            'id': response['order_id'].toString (),
+            'id': response['data']['order_id'].toString (),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -508,10 +511,15 @@ module.exports = class cointiger extends huobipro {
         if (typeof symbol === 'undefined')
             throw new ExchangeError (this.id + ' cancelOrder requires a symbol argument');
         let market = this.market (symbol);
-        return await this.privateDeleteOrder (this.extend ({
+        let response = await this.privateDeleteOrder (this.extend ({
             'symbol': market['id'],
             'order_id': id,
         }, params));
+        return {
+            'id': id,
+            'symbol': symbol,
+            'info': response,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -535,7 +543,7 @@ module.exports = class cointiger extends huobipro {
                 'api_key': this.apiKey,
                 'time': timestamp,
             }, urlParams)));
-            url += '&sign=' + this.decode (signature);
+            url += '&sign=' + signature;
             if (method === 'POST') {
                 body = this.urlencode (query);
                 headers = {
