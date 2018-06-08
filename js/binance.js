@@ -595,7 +595,7 @@ module.exports = class binance extends Exchange {
             iso8601 = this.iso8601 (timestamp);
         let price = this.safeFloat (order, 'price');
         let amount = this.safeFloat (order, 'origQty');
-        let filled = this.safeFloat (order, 'executedQty', 0.0);
+        let filled = this.safeFloat (order, 'executedQty');
         let remaining = undefined;
         let cost = undefined;
         if (typeof filled !== 'undefined') {
@@ -723,7 +723,7 @@ module.exports = class binance extends Exchange {
             'orderId': parseInt (id),
             // 'origClientOrderId': id,
         }, params));
-        return response;
+        return this.parseOrder (response);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
