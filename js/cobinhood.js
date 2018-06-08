@@ -387,13 +387,30 @@ module.exports = class cobinhood extends Exchange {
         }
         return this.parseBalance (result);
     }
+    
+    parseOrderStatus (status) {
+        let statuses = {
+            'filled': 'closed',
+            'rejected': 'closed',
+            'partially_filled': 'open',
+            'pending_cancellation': 'open',
+            'pending_modification': 'open',
+            'open': 'open',
+            'new': 'open',
+            'queued': 'open',
+            'cancelled': 'canceled,
+            'triggered': 'triggered',
+        };
+        if (status in statuses)
+            return statuses[status];
+        return status;
+    }
 
     parseOrder (order, market = undefined) {
         let symbol = undefined;
         if (typeof market === 'undefined') {
             let marketId = this.safeString (order, 'trading_pair');
-            if (typeof marketId === 'undefined')
-                marketId = this.safeString (order, 'trading_pair_id');
+            marketId = this.safeString (order, 'trading_pair_id', marketId);
             market = this.markets_by_id[marketId];
         }
         if (typeof market !== 'undefined')
@@ -403,45 +420,21 @@ module.exports = class cobinhood extends Exchange {
         let amount = this.safeFloat (order, 'size');
         let filled = this.safeFloat (order, 'filled');
         let remaining = undefined;
-        if (typeof amount !== 'undefined' && typeof filled !== 'undefined') {
-            remaining = amount - filled;
-        }
         let cost = undefined;
-        if (typeof price !== 'undefined' && typeof amount !== 'undefined') {
-            cost = price * amount;
-        }
-        let status = undefined;
-        let state = this.safeString (order, 'state');
-        if (typeof state !== 'undefined') {
-            if (state === 'filled') {
-                status = 'closed';
-            } else if (state === 'rejected') {
-                status = 'closed';
-            } else if (state === 'partially_filled') {
-                status = 'open';
-            } else if (state === 'pending_cancellation') {
-                status = 'open';
-            } else if (state === 'pending_modification') {
-                status = 'open';
-            } else if (state === 'open') {
-                status = 'open';
-            } else if (state === 'new') { // anyone seen this in the wild?
-                status = 'open';
-            } else if (state === 'queued') {
-                status = 'open';
-            } else if (state === 'cancelled') {
-                status = 'canceled';
-            } else if (state === 'triggered') {
-                status = 'triggered';
+        if (typeof amount !== 'undefined') {
+            if (typeof filled !== 'undefined') {
+                remaining = amount - filled;
+            }
+            if (typeof price !== 'undefined') {
+                cost = price * amount;
             }
         }
-        let side = undefined;
-        if ('side' in order) {
-            if (order['side'] === 'bid') {
-                side = 'buy';
-            } else if (order['side'] === 'ask') {
-                side = 'sell';
-            }
+        let status = this.parseOrderStatus (this.safeString (order, 'state'));
+        let side = this.safeString (order, 'side');
+        if (side === 'bid') {
+            side = 'buy';
+        } else if (side === 'ask') {
+            side = 'sell';
         }
         return {
             'id': order['id'],
