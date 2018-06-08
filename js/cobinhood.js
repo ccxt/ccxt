@@ -437,7 +437,7 @@ module.exports = class cobinhood extends Exchange {
         }
         let side = undefined;
         if ('side' in order) {
-            if (order['side' === 'bid']) {
+            if (order['side'] === 'bid') {
                 side = 'buy';
             } else if (order['side'] === 'ask') {
                 side = 'sell';
