@@ -596,7 +596,7 @@ class binance extends Exchange {
             $iso8601 = $this->iso8601 ($timestamp);
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'origQty');
-        $filled = $this->safe_float($order, 'executedQty', 0.0);
+        $filled = $this->safe_float($order, 'executedQty');
         $remaining = null;
         $cost = null;
         if ($filled !== null) {
@@ -724,7 +724,7 @@ class binance extends Exchange {
             'orderId' => intval ($id),
             // 'origClientOrderId' => $id,
         ), $params));
-        return $response;
+        return $this->parse_order($response);
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
