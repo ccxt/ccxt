@@ -146,10 +146,10 @@ module.exports = class bittrex extends Exchange {
                 'QUANTITY_NOT_PROVIDED': InvalidOrder,
                 'MIN_TRADE_REQUIREMENT_NOT_MET': InvalidOrder,
                 'ORDER_NOT_OPEN': InvalidOrder,
+                'INVALID_ORDER': InvalidOrder,
                 'UUID_INVALID': OrderNotFound,
                 'RATE_NOT_PROVIDED': InvalidOrder, // createLimitBuyOrder ('ETH/BTC', 1, 0)
                 'WHITELIST_VIOLATION_IP': PermissionDenied,
-                'INVALID_ORDER': InvalidOrder,
             },
             'options': {
                 'parseOrderStatus': false,
@@ -728,14 +728,6 @@ module.exports = class bittrex extends Exchange {
                 const message = this.safeString (response, 'message');
                 const feedback = this.id + ' ' + this.json (response);
                 const exceptions = this.exceptions;
-                if (message in exceptions)
-                    throw new exceptions[message] (feedback);
-                if (typeof message !== 'undefined') {
-                    if (message.indexOf ('throttled. Try again') >= 0)
-                        throw new DDoSProtection (feedback);
-                    if (message.indexOf ('problem') >= 0)
-                        throw new ExchangeNotAvailable (feedback); // 'There was a problem processing your request.  If this problem persists, please contact...')
-                }
                 if (message === 'APIKEY_INVALID') {
                     if (this.options['hasAlreadyAuthenticatedSuccessfully']) {
                         throw new DDoSProtection (feedback);
@@ -745,7 +737,39 @@ module.exports = class bittrex extends Exchange {
                 }
                 if (message === 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT')
                     throw new InvalidOrder (this.id + ' order cost should be over 50k satoshi ' + this.json (response));
-                throw new ExchangeError (this.id + ' ' + this.json (response));
+                if (message === 'INVALID_ORDER') {
+                    // Bittrex will return an ambiguous INVALID_ORDER message
+                    // upon canceling already-canceled and closed orders
+                    // therefore this special case for cancelOrder
+                    // let url = 'https://bittrex.com/api/v1.1/market/cancel?apikey=API_KEY&uuid=ORDER_UUID'
+                    let cancel = 'cancel';
+                    let indexOfCancel = url.indexOf (cancel);
+                    if (indexOfCancel >= 0) {
+                        let parts = url.split ('&');
+                        let orderId = undefined;
+                        for (let i = 0; i < parts.length; i++) {
+                            let part = parts[i];
+                            let keyValue = part.split ('=');
+                            if (keyValue[0] === 'uuid') {
+                                orderId = keyValue[1];
+                                break;
+                            }
+                        }
+                        if (typeof orderId !== 'undefined')
+                            throw new OrderNotFound (this.id + ' cancelOrder ' + orderId + ' ' + this.json (response));
+                        else
+                            throw new OrderNotFound (this.id + ' cancelOrder ' + this.json (response));
+                    }
+                }
+                if (message in exceptions)
+                    throw new exceptions[message] (feedback);
+                if (typeof message !== 'undefined') {
+                    if (message.indexOf ('throttled. Try again') >= 0)
+                        throw new DDoSProtection (feedback);
+                    if (message.indexOf ('problem') >= 0)
+                        throw new ExchangeNotAvailable (feedback); // 'There was a problem processing your request.  If this problem persists, please contact...')
+                }
+                throw new ExchangeError (feedback);
             }
         }
     }
