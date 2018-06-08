@@ -164,10 +164,10 @@ class bittrex (Exchange):
                 'QUANTITY_NOT_PROVIDED': InvalidOrder,
                 'MIN_TRADE_REQUIREMENT_NOT_MET': InvalidOrder,
                 'ORDER_NOT_OPEN': InvalidOrder,
+                'INVALID_ORDER': InvalidOrder,
                 'UUID_INVALID': OrderNotFound,
                 'RATE_NOT_PROVIDED': InvalidOrder,  # createLimitBuyOrder('ETH/BTC', 1, 0)
                 'WHITELIST_VIOLATION_IP': PermissionDenied,
-                'INVALID_ORDER': InvalidOrder,
             },
             'options': {
                 'parseOrderStatus': False,
@@ -692,13 +692,6 @@ class bittrex (Exchange):
                 message = self.safe_string(response, 'message')
                 feedback = self.id + ' ' + self.json(response)
                 exceptions = self.exceptions
-                if message in exceptions:
-                    raise exceptions[message](feedback)
-                if message is not None:
-                    if message.find('throttled. Try again') >= 0:
-                        raise DDoSProtection(feedback)
-                    if message.find('problem') >= 0:
-                        raise ExchangeNotAvailable(feedback)  # 'There was a problem processing your request.  If self problem persists, please contact...')
                 if message == 'APIKEY_INVALID':
                     if self.options['hasAlreadyAuthenticatedSuccessfully']:
                         raise DDoSProtection(feedback)
@@ -706,7 +699,34 @@ class bittrex (Exchange):
                         raise AuthenticationError(feedback)
                 if message == 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT':
                     raise InvalidOrder(self.id + ' order cost should be over 50k satoshi ' + self.json(response))
-                raise ExchangeError(self.id + ' ' + self.json(response))
+                if message == 'INVALID_ORDER':
+                    # Bittrex will return an ambiguous INVALID_ORDER message
+                    # upon canceling already-canceled and closed orders
+                    # therefore self special case for cancelOrder
+                    # url = 'https://bittrex.com/api/v1.1/market/cancel?apikey=API_KEY&uuid=ORDER_UUID'
+                    cancel = 'cancel'
+                    indexOfCancel = url.find(cancel)
+                    if indexOfCancel >= 0:
+                        parts = url.split('&')
+                        orderId = None
+                        for i in range(0, len(parts)):
+                            part = parts[i]
+                            keyValue = part.split('=')
+                            if keyValue[0] == 'uuid':
+                                orderId = keyValue[1]
+                                break
+                        if orderId is not None:
+                            raise OrderNotFound(self.id + ' cancelOrder ' + orderId + ' ' + self.json(response))
+                        else:
+                            raise OrderNotFound(self.id + ' cancelOrder ' + self.json(response))
+                if message in exceptions:
+                    raise exceptions[message](feedback)
+                if message is not None:
+                    if message.find('throttled. Try again') >= 0:
+                        raise DDoSProtection(feedback)
+                    if message.find('problem') >= 0:
+                        raise ExchangeNotAvailable(feedback)  # 'There was a problem processing your request.  If self problem persists, please contact...')
+                raise ExchangeError(feedback)
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = await self.fetch2(path, api, method, params, headers, body)

@@ -147,10 +147,10 @@ class bittrex extends Exchange {
                 'QUANTITY_NOT_PROVIDED' => '\\ccxt\\InvalidOrder',
                 'MIN_TRADE_REQUIREMENT_NOT_MET' => '\\ccxt\\InvalidOrder',
                 'ORDER_NOT_OPEN' => '\\ccxt\\InvalidOrder',
+                'INVALID_ORDER' => '\\ccxt\\InvalidOrder',
                 'UUID_INVALID' => '\\ccxt\\OrderNotFound',
                 'RATE_NOT_PROVIDED' => '\\ccxt\\InvalidOrder', // createLimitBuyOrder ('ETH/BTC', 1, 0)
                 'WHITELIST_VIOLATION_IP' => '\\ccxt\\PermissionDenied',
-                'INVALID_ORDER' => '\\ccxt\\InvalidOrder',
             ),
             'options' => array (
                 'parseOrderStatus' => false,
@@ -729,14 +729,6 @@ class bittrex extends Exchange {
                 $message = $this->safe_string($response, 'message');
                 $feedback = $this->id . ' ' . $this->json ($response);
                 $exceptions = $this->exceptions;
-                if (is_array ($exceptions) && array_key_exists ($message, $exceptions))
-                    throw new $exceptions[$message] ($feedback);
-                if ($message !== null) {
-                    if (mb_strpos ($message, 'throttled. Try again') !== false)
-                        throw new DDoSProtection ($feedback);
-                    if (mb_strpos ($message, 'problem') !== false)
-                        throw new ExchangeNotAvailable ($feedback); // 'There was a problem processing your request.  If this problem persists, please contact...')
-                }
                 if ($message === 'APIKEY_INVALID') {
                     if ($this->options['hasAlreadyAuthenticatedSuccessfully']) {
                         throw new DDoSProtection ($feedback);
@@ -746,7 +738,39 @@ class bittrex extends Exchange {
                 }
                 if ($message === 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT')
                     throw new InvalidOrder ($this->id . ' order cost should be over 50k satoshi ' . $this->json ($response));
-                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+                if ($message === 'INVALID_ORDER') {
+                    // Bittrex will return an ambiguous INVALID_ORDER $message
+                    // upon canceling already-canceled and closed orders
+                    // therefore this special case for cancelOrder
+                    // $url = 'https://bittrex.com/api/v1.1/market/$cancel?apikey=API_KEY&uuid=ORDER_UUID'
+                    $cancel = 'cancel';
+                    $indexOfCancel = mb_strpos ($url, $cancel);
+                    if ($indexOfCancel >= 0) {
+                        $parts = explode ('&', $url);
+                        $orderId = null;
+                        for ($i = 0; $i < count ($parts); $i++) {
+                            $part = $parts[$i];
+                            $keyValue = explode ('=', $part);
+                            if ($keyValue[0] === 'uuid') {
+                                $orderId = $keyValue[1];
+                                break;
+                            }
+                        }
+                        if ($orderId !== null)
+                            throw new OrderNotFound ($this->id . ' cancelOrder ' . $orderId . ' ' . $this->json ($response));
+                        else
+                            throw new OrderNotFound ($this->id . ' cancelOrder ' . $this->json ($response));
+                    }
+                }
+                if (is_array ($exceptions) && array_key_exists ($message, $exceptions))
+                    throw new $exceptions[$message] ($feedback);
+                if ($message !== null) {
+                    if (mb_strpos ($message, 'throttled. Try again') !== false)
+                        throw new DDoSProtection ($feedback);
+                    if (mb_strpos ($message, 'problem') !== false)
+                        throw new ExchangeNotAvailable ($feedback); // 'There was a problem processing your request.  If this problem persists, please contact...')
+                }
+                throw new ExchangeError ($feedback);
             }
         }
     }
