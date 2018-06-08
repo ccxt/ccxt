@@ -17,6 +17,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import ExchangeNotAvailable
 
 
@@ -31,6 +32,7 @@ class cointiger (huobipro):
             'has': {
                 'fetchCurrencies': False,
                 'fetchTickers': True,
+                'fetchTradingLimits': False,
                 'fetchOrder': False,
             },
             'headers': {
@@ -83,6 +85,8 @@ class cointiger (huobipro):
                 '1': InsufficientFunds,
                 '2': ExchangeError,
                 '5': InvalidOrder,
+                '6': InvalidOrder,
+                '8': OrderNotFound,
                 '16': AuthenticationError,  # funding password not set
                 '100001': ExchangeError,
                 '100002': ExchangeNotAvailable,
@@ -350,7 +354,7 @@ class cointiger (huobipro):
                 code = self.currencies_by_id[id]['code']
             account = self.account()
             account['used'] = float(balance['lock'])
-            account['free'] = balance['normal']
+            account['free'] = float(balance['normal'])
             account['total'] = self.sum(account['used'], account['free'])
             result[code] = account
         return self.parse_balance(result)
@@ -470,7 +474,7 @@ class cointiger (huobipro):
         timestamp = self.milliseconds()
         return {
             'info': response,
-            'id': str(response['order_id']),
+            'id': str(response['data']['order_id']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -492,10 +496,15 @@ class cointiger (huobipro):
         if symbol is None:
             raise ExchangeError(self.id + ' cancelOrder requires a symbol argument')
         market = self.market(symbol)
-        return self.privateDeleteOrder(self.extend({
+        response = self.privateDeleteOrder(self.extend({
             'symbol': market['id'],
             'order_id': id,
         }, params))
+        return {
+            'id': id,
+            'symbol': symbol,
+            'info': response,
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         self.check_required_credentials()
@@ -517,7 +526,7 @@ class cointiger (huobipro):
                 'api_key': self.apiKey,
                 'time': timestamp,
             }, urlParams)))
-            url += '&sign=' + self.decode(signature)
+            url += '&sign=' + signature
             if method == 'POST':
                 body = self.urlencode(query)
                 headers = {

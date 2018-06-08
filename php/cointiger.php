@@ -18,6 +18,7 @@ class cointiger extends huobipro {
             'has' => array (
                 'fetchCurrencies' => false,
                 'fetchTickers' => true,
+                'fetchTradingLimits' => false,
                 'fetchOrder' => false,
             ),
             'headers' => array (
@@ -70,6 +71,8 @@ class cointiger extends huobipro {
                 '1' => '\\ccxt\\InsufficientFunds',
                 '2' => '\\ccxt\\ExchangeError',
                 '5' => '\\ccxt\\InvalidOrder',
+                '6' => '\\ccxt\\InvalidOrder',
+                '8' => '\\ccxt\\OrderNotFound',
                 '16' => '\\ccxt\\AuthenticationError', // funding password not set
                 '100001' => '\\ccxt\\ExchangeError',
                 '100002' => '\\ccxt\\ExchangeNotAvailable',
@@ -354,7 +357,7 @@ class cointiger extends huobipro {
             }
             $account = $this->account ();
             $account['used'] = floatval ($balance['lock']);
-            $account['free'] = $balance['normal'];
+            $account['free'] = floatval ($balance['normal']);
             $account['total'] = $this->sum ($account['used'], $account['free']);
             $result[$code] = $account;
         }
@@ -486,7 +489,7 @@ class cointiger extends huobipro {
         $timestamp = $this->milliseconds ();
         return array (
             'info' => $response,
-            'id' => (string) $response['order_id'],
+            'id' => (string) $response['data']['order_id'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'lastTradeTimestamp' => null,
@@ -509,10 +512,15 @@ class cointiger extends huobipro {
         if ($symbol === null)
             throw new ExchangeError ($this->id . ' cancelOrder requires a $symbol argument');
         $market = $this->market ($symbol);
-        return $this->privateDeleteOrder (array_merge (array (
+        $response = $this->privateDeleteOrder (array_merge (array (
             'symbol' => $market['id'],
             'order_id' => $id,
         ), $params));
+        return array (
+            'id' => $id,
+            'symbol' => $symbol,
+            'info' => $response,
+        );
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -536,7 +544,7 @@ class cointiger extends huobipro {
                 'api_key' => $this->apiKey,
                 'time' => $timestamp,
             ), $urlParams)));
-            $url .= '&sign=' . $this->decode ($signature);
+            $url .= '&sign=' . $signature;
             if ($method === 'POST') {
                 $body = $this->urlencode ($query);
                 $headers = array (

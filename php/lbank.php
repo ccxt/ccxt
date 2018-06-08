@@ -191,9 +191,11 @@ class lbank extends Exchange {
         for ($i = 0; $i < count ($tickers); $i++) {
             $ticker = $tickers[$i];
             $id = $ticker['symbol'];
-            $market = $this->marketsById[$id];
-            $symbol = $market['symbol'];
-            $result[$symbol] = $this->parse_ticker($ticker, $market);
+            if (is_array ($this->marketsById) && array_key_exists ($id, $this->marketsById)) {
+                $market = $this->marketsById[$id];
+                $symbol = $market['symbol'];
+                $result[$symbol] = $this->parse_ticker($ticker, $market);
+            }
         }
         return $result;
     }
@@ -388,11 +390,14 @@ class lbank extends Exchange {
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
+        if ($limit === null) {
+            $limit = 100;
+        }
         $market = $this->market ($symbol);
         $response = $this->privatePostOrdersInfoHistory (array_merge (array (
             'symbol' => $market['id'],
             'current_page' => 1,
-            'page_length' => 100,
+            'page_length' => $limit,
         ), $params));
         return $this->parse_orders($response['orders'], null, $since, $limit);
     }

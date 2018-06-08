@@ -53,30 +53,29 @@ class btcturk (Exchange):
                 },
             },
             'markets': {
-                'BTC/TRY': {'id': 'BTCTRY', 'symbol': 'BTC/TRY', 'base': 'BTC', 'quote': 'TRY', 'maker': 0.002 * 1.18, 'taker': 0.0035 * 1.18},
-                'ETH/TRY': {'id': 'ETHTRY', 'symbol': 'ETH/TRY', 'base': 'ETH', 'quote': 'TRY', 'maker': 0.002 * 1.18, 'taker': 0.0035 * 1.18},
-                'XRP/TRY': {'id': 'XRPTRY', 'symbol': 'XRP/TRY', 'base': 'XRP', 'quote': 'TRY', 'maker': 0.002 * 1.18, 'taker': 0.0035 * 1.18},
-                'ETH/BTC': {'id': 'ETHBTC', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'maker': 0.002 * 1.18, 'taker': 0.0035 * 1.18},
+                'BTC/TRY': {'id': 'BTCTRY', 'symbol': 'BTC/TRY', 'base': 'BTC', 'quote': 'TRY', 'baseId': 'btc', 'quoteId': 'try', 'maker': 0.002 * 1.18, 'taker': 0.0035 * 1.18},
+                'ETH/TRY': {'id': 'ETHTRY', 'symbol': 'ETH/TRY', 'base': 'ETH', 'quote': 'TRY', 'baseId': 'eth', 'quoteId': 'try', 'maker': 0.002 * 1.18, 'taker': 0.0035 * 1.18},
+                'XRP/TRY': {'id': 'XRPTRY', 'symbol': 'XRP/TRY', 'base': 'XRP', 'quote': 'TRY', 'baseId': 'xrp', 'quoteId': 'try', 'maker': 0.002 * 1.18, 'taker': 0.0035 * 1.18},
+                'ETH/BTC': {'id': 'ETHBTC', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'baseId': 'eth', 'quoteId': 'btc', 'maker': 0.002 * 1.18, 'taker': 0.0035 * 1.18},
             },
         })
 
     async def fetch_balance(self, params={}):
         response = await self.privateGetBalance()
         result = {'info': response}
-        base = {
-            'free': response['bitcoin_available'],
-            'used': response['bitcoin_reserved'],
-            'total': response['bitcoin_balance'],
-        }
-        quote = {
-            'free': response['money_available'],
-            'used': response['money_reserved'],
-            'total': response['money_balance'],
-        }
-        symbol = self.symbols[0]
-        market = self.markets[symbol]
-        result[market['base']] = base
-        result[market['quote']] = quote
+        codes = list(self.currencies.keys())
+        for i in range(0, len(codes)):
+            code = codes[i]
+            currency = self.currencies[code]
+            account = self.account()
+            free = currency['id'] + '_available'
+            total = currency['id'] + '_balance'
+            used = currency['id'] + '_reserved'
+            if free in response:
+                account['free'] = self.safe_float(response, free)
+                account['total'] = self.safe_float(response, total)
+                account['used'] = self.safe_float(response, used)
+            result[code] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):

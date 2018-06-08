@@ -130,6 +130,7 @@ class cobinhood extends Exchange {
             'exceptions' => array (
                 'insufficient_balance' => '\\ccxt\\InsufficientFunds',
                 'invalid_nonce' => '\\ccxt\\InvalidNonce',
+                'unauthorized_scope' => '\\ccxt\\PermissionDenied',
             ),
         ));
     }
@@ -571,5 +572,9 @@ class cobinhood extends Exchange {
             throw new $exceptions[$errorCode] ($feedback);
         }
         throw new ExchangeError ($feedback);
+    }
+
+    public function nonce () {
+        return $this->milliseconds ();
     }
 }

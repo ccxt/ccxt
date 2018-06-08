@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, RequestTimeout, AuthenticationError, DDoSProtection, InsufficientFunds, OrderNotFound, OrderNotCached, InvalidOrder, CancelPending, InvalidNonce } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, RequestTimeout, AuthenticationError, DDoSProtection, InsufficientFunds, OrderNotFound, OrderNotCached, InvalidOrder, AccountSuspended, CancelPending, InvalidNonce } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -127,6 +127,18 @@ module.exports = class poloniex extends Exchange {
                 'STR': 'XLM',
                 'BCC': 'BTCtalkcoin',
             },
+            'options': {
+                'limits': {
+                    'cost': {
+                        'min': {
+                            'BTC': 0.0001,
+                            'ETH': 0.0001,
+                            'XMR': 0.0001,
+                            'USDT': 1.0,
+                        },
+                    },
+                },
+            },
         });
     }
 
@@ -186,6 +198,7 @@ module.exports = class poloniex extends Exchange {
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
+            let minCost = this.safeFloat (this.options['limits']['cost']['min'], quote, 0.0);
             result.push (this.extend (this.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
@@ -206,7 +219,7 @@ module.exports = class poloniex extends Exchange {
                         'max': 1000000000,
                     },
                     'cost': {
-                        'min': 0.00000000,
+                        'min': minCost,
                         'max': 1000000000,
                     },
                 },
@@ -843,6 +856,8 @@ module.exports = class poloniex extends Exchange {
                 throw new DDoSProtection (feedback);
             } else if (error.indexOf ('Total must be at least') >= 0) {
                 throw new InvalidOrder (feedback);
+            } else if (error.indexOf ('This account is frozen.') >= 0) {
+                throw new AccountSuspended (feedback);
             } else if (error.indexOf ('Not enough') >= 0) {
                 throw new InsufficientFunds (feedback);
             } else if (error.indexOf ('Nonce must be greater') >= 0) {

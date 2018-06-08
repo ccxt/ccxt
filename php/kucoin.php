@@ -346,7 +346,8 @@ class kucoin extends Exchange {
             );
         } else {
             $orderbook = $response['data'];
-            $timestamp = $response['data']['timestamp'];
+            $timestamp = $this->safe_integer($response, 'timestamp');
+            $timestamp = $this->safe_integer($response['data'], 'timestamp', $timestamp);
         }
         return $this->parse_order_book($orderbook, $timestamp, 'BUY', 'SELL');
     }

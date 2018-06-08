@@ -223,7 +223,7 @@ class coinmarketcap extends Exchange {
         $tickers = array ();
         for ($t = 0; $t < count ($response); $t++) {
             $ticker = $response[$t];
-            $currencyId = (is_array ($this->currencies) && array_key_exists ($currency, $this->currencies)) ? $this->currencies[$currency]['id'] : strtolower ($currency);
+            $currencyId = strtolower ($currency);
             $id = $ticker['id'] . '/' . $currencyId;
             $symbol = $id;
             $market = null;

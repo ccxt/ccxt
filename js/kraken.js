@@ -628,8 +628,13 @@ module.exports = class kraken extends Exchange {
             'ordertype': type,
             'volume': this.amountToPrecision (symbol, amount),
         };
-        if (type === 'limit')
+        let priceIsDefined = (typeof price !== 'undefined');
+        let marketOrder = (type === 'market');
+        let limitOrder = (type === 'limit');
+        let shouldIncludePrice = limitOrder || (!marketOrder && priceIsDefined);
+        if (shouldIncludePrice) {
             order['price'] = this.priceToPrecision (symbol, price);
+        }
         let response = await this.privatePostAddOrder (this.extend (order, params));
         let id = this.safeValue (response['result'], 'txid');
         if (typeof id !== 'undefined') {

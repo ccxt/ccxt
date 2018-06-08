@@ -102,6 +102,7 @@ class bibox (Exchange):
             'exceptions': {
                 '2021': InsufficientFunds,  # Insufficient balance available for withdrawal
                 '2015': AuthenticationError,  # Google authenticator is wrong
+                '2027': InsufficientFunds,  # Insufficient balance available(for trade)
                 '2033': OrderNotFound,  # operation failednot  Orders have been completed or revoked
                 '2067': InvalidOrder,  # Does not support market orders
                 '2068': InvalidOrder,  # The number of orders can not be less than
