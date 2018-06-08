@@ -6,15 +6,18 @@ I'm trying to run the code, but it's not working, how do I fix it?
 
 If your question is formulated in a short manner like the above, we won't help. We don't teach programming. If you're unable to read and understand the `Manual <https://github.com/ccxt/ccxt/wiki>`__ or you can't follow the guides from the `CONTRIBUTING <https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md>`__ doc on how to report an issue, we won't help either. Read the Manual. You should not risk money and time without reading the entire Manual very carefully. Namely, when asking a question:
 - Use the search button for duplicates first!
-- **Post your output in verbose mode!** It's written and mentioned everywhere, in the `Troubleshooting <https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting>`__ section, in the `README <https://github.com/ccxt/ccxt/blob/master/README.md>`__ and in many answers to similar questions among `previous issues <https://github.com/ccxt/ccxt/issues>`__ and `pull requests <https://github.com/ccxt/ccxt/pulls>`__.
-- Post your code to reproduce the problem. Make it a complete short runnable program, don't swallow the lines and make it as compact as you can (5-10 lines of code), including the instantation code.
+- **Post your request and response in ``verbose`` mode!** It's written and mentioned everywhere, in the `Troubleshooting <https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting>`__ section, in the `README <https://github.com/ccxt/ccxt/blob/master/README.md>`__ and in many answers to similar questions among `previous issues <https://github.com/ccxt/ccxt/issues>`__ and `pull requests <https://github.com/ccxt/ccxt/pulls>`__.
+- **Post your code** to reproduce the problem. Make it a complete short runnable program, don't swallow the lines and make it as compact as you can (5-10 lines of code), including the instantation code.
+- **Surround code and output with triple backticks: \`\`\`GOOD\`\`\`**.
+- Don't confuse the backtick symbol (\`) with the quote symbol ('): '''BAD'''
+- Don't confuse a single backtick with triple backticks: \`BAD\`
 - Post your version number of ccxt
 - Post your language version number, how do you think we can guess it otherwise?
 
 I am calling a method and I get an error, what am I doing wrong?
 ----------------------------------------------------------------
 
-You're not reporting the issue properly ) Please, help the community to help you ) Read this and follow the steps: https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-submit-an-issue
+You're not reporting the issue properly ) Please, help the community to help you ) Read this and follow the steps: https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-submit-an-issue. Once again, your code to reproduce the issue and your verbose request and response **ARE REQUIRED**. *The error traceback is not enough.*
 
 Can you implement feature ``foo`` in exchange ``bar``?
 ------------------------------------------------------

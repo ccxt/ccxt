@@ -55,7 +55,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 Exchanges
 =========
 
-The ccxt library currently supports the following 115 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 116 cryptocurrency exchange markets and trading APIs:
 
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 |                        | id                   | name                                                                              | ver   | doc                                                                                               | countries                                  |
@@ -139,6 +139,8 @@ The ccxt library currently supports the following 115 cryptocurrency exchange ma
 | |chilebit|             | chilebit             | `ChileBit <https://chilebit.net>`__                                               | 1     | `API <https://blinktrade.com/docs>`__                                                             | Chile                                      |
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |cobinhood|            | cobinhood            | `COBINHOOD <https://cobinhood.com>`__                                             | \*    | `API <https://cobinhood.github.io/api-public>`__                                                  | Taiwan                                     |
++------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
+| |coinbase|             | coinbase             | `coinbase <https://www.coinbase.com>`__                                           | 2     | `API <https://developers.coinbase.com/api/v2>`__                                                  | US                                         |
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |coincheck|            | coincheck            | `coincheck <https://coincheck.com>`__                                             | \*    | `API <https://coincheck.com/documents/exchange/api>`__                                            | Japan, Indonesia                           |
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -526,7 +528,50 @@ Exchanges usually impose what is called a *rate limit*. Exchanges will remember 
 
 Most exchanges allow **up to 1 or 2 requests per second**. Exchanges may temporarily restrict your access to their API or ban you for some period of time if you are too aggressive with your requests.
 
-**The ``exchange.rateLimit`` property is set to a safe default which is sub-optimal. Some exchanges may have varying rate limits for different endpoints. It is up to the library user to tweak ``rateLimit`` according to application-specific purposes.**
+**The ``exchange.rateLimit`` property is set to a safe default which is sub-optimal. Some exchanges may have varying rate limits for different endpoints. It is up to the user to tweak ``rateLimit`` according to application-specific purposes.**
+
+The CCXT library has a built-in experimental rate-limiter that will do the necessary throttling in background transparently to the user. **WARNING: users are responsible for at least some type of rate-limiting: either by implementing a custom algorithm or by doing it with the built-in rate-limiter.**.
+
+Turn on the built-in rate-limiter with ``.enableRateLimit`` property, like so:
+
+.. code:: javascript
+
+    // JavaScript
+
+    // enable built-in rate limiting upon instantiation of the exchange
+    const exchange = new ccxt.bitfinex ({
+        'enableRateLimit': true,
+    })
+
+    // or switch the built-in rate-limiter on or off later after instantiation
+    exchange.enableRateLimit = true // enable
+    exchange.enableRateLimit = false // disable
+
+.. code:: python
+
+    # Python
+
+    # enable built-in rate limiting upon instantiation of the exchange
+    exchange = ccxt.bitfinex({
+        'enableRateLimit': True,
+    })
+
+    # or switch the built-in rate-limiter on or off later after instantiation
+    exchange.enableRateLimit = True  # enable
+    exchange.enableRateLimit = False  # disable
+
+.. code:: php
+
+    // PHP
+
+    // enable built-in rate limiting upon instantiation of the exchange
+    $exchange = new \ccxt\bitfinex (array (
+        'enableRateLimit' => true,
+    ));
+
+    // or switch the built-in rate-limiter on or off later after instantiation
+    $exchange->enableRateLimit = true; // enable
+    $exchange->enableRateLimit = false; // disable
 
 DDoS Protection By Cloudflare / Incapsula
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -538,6 +583,7 @@ If you encounter DDoS protection errors and cannot reach a particular exchange t
 -  try using a cloudscraper:
 -  https://github.com/ccxt/ccxt/blob/master/examples/js/bypass-cloudflare.js
 -  https://github.com/ccxt/ccxt/blob/master/examples/py/bypass-cloudflare.py
+-  https://github.com/ccxt/ccxt/blob/master/examples/py/bypass-cloudflare-with-cookies.py
 -  use a proxy (this is less responsive, though)
 -  ask the exchange support to add you to a whitelist
 -  run your software in close proximity to the exchange (same country, same city, same datacenter, same server rack, same server)
@@ -1982,6 +2028,10 @@ Most of methods returning orders within ccxt unified API will usually yield an o
 -  The ``lastTradeTimestamp`` timestamp may have no value and may be ``undefined/None/null`` where not supported by the exchange or in case of an open order (an order that has not been filled nor partially filled yet).
 -  The ``lastTradeTimestamp``, if any, designates the timestamp of the last trade, in case the order is filled fully or partially, otherwise ``lastTradeTimestamp`` is ``undefined/None/null``.
 -  Order ``status`` prevails or has precedence over the ``lastTradeTimestamp``.
+-  The ``cost`` of an order is:
+-  ``if (status === 'open' and filled === 0) { amount * price }``
+-  ``if (status === 'closed' || status === 'canceled') { filled * price }``
+-  The ``cost`` of an order means the total *quote* volume of the order (whereas the ``amount`` is the *base* volume). The value of ``cost`` should be as close to the actual most recent known order cost as possible. The ``cost`` field itself is there mostly for convenience and can be deduced from other fields.
 
 Placing Orders
 ~~~~~~~~~~~~~~
@@ -2229,9 +2279,9 @@ Trade structure
         },
     }
 
-**The work on ``'fee'`` info is still in progress, fee info may be missing partially or entirely, depending on the exchange capabilities.**
-
-**The ``fee`` currency may be different from both traded currencies (for example, an ETH/BTC order with fees in USD).**
+-  The work on ``'fee'`` info is still in progress, fee info may be missing partially or entirely, depending on the exchange capabilities.
+-  The ``fee`` currency may be different from both traded currencies (for example, an ETH/BTC order with fees in USD).
+-  The ``cost`` of the trade means ``amount * price``. It is the total *quote* volume of the trade (whereas ``amount`` is the *base* volume). The cost field itself is there mostly for convenience and can be deduced from other fields.
 
 Trades By Order Id
 ~~~~~~~~~~~~~~~~~~
@@ -2620,8 +2670,9 @@ In case you experience any difficulty connecting to a particular exchange, do th
 -  If it is a Cloudflare protection error, try these examples:
 -  https://github.com/ccxt/ccxt/blob/master/examples/js/bypass-cloudflare.js
 -  https://github.com/ccxt/ccxt/blob/master/examples/py/bypass-cloudflare.py
+-  https://github.com/ccxt/ccxt/blob/master/examples/py/bypass-cloudflare-with-cookies.py
 -  Check your nonce. If you used your API keys with other software, you most likely should `override your nonce function <#overriding-the-nonce>`__ to match your previous nonce value. A nonce usually can be easily reset by generating a new unused keypair. If you are getting nonce errors with an existing key, try with a new API key that hasn't been used yet.
--  Check your request rate if you are getting nonce errors. Your private requests should not follow one another quickly. You should not send them one after another in a split second or in short time. The exchange will most likely ban you if you don't make a delay before sending each new request. In other words, you should not hit their rate limit by sending unlimited private requests too frequently. Add a delay to your subsequent requests, like show in the long-poller `examples <https://github.com/ccxt/ccxt/tree/master/examples>`__, also `here <https://github.com/ccxt/ccxt/wiki/Manual#order-book--market-depth>`__.
+-  Check your request rate if you are getting nonce errors. Your private requests should not follow one another quickly. You should not send them one after another in a split second or in short time. The exchange will most likely ban you if you don't make a delay before sending each new request. In other words, you should not hit their rate limit by sending unlimited private requests too frequently. Add a delay to your subsequent requests or enable the built-in rate-limiter, like shown in the long-poller `examples <https://github.com/ccxt/ccxt/tree/master/examples>`__, also `here <https://github.com/ccxt/ccxt/wiki/Manual#order-book--market-depth>`__.
 -  Read the `docs for your exchange <https://github.com/ccxt/ccxt/wiki/Exchanges>`__ and compare your verbose output to the docs.
 -  Check your connectivity with the exchange by accessing it with your browser.
 -  Check your connection with the exchange through a proxy. Read the `Proxy <https://github.com/ccxt/ccxt/wiki/Install#proxy>`__ section for more details.
@@ -2680,6 +2731,7 @@ Notes
 .. |chbtc| image:: https://user-images.githubusercontent.com/1294454/28555659-f0040dc2-7109-11e7-9d99-688a438bf9f4.jpg
 .. |chilebit| image:: https://user-images.githubusercontent.com/1294454/27991414-1298f0d8-647f-11e7-9c40-d56409266336.jpg
 .. |cobinhood| image:: https://user-images.githubusercontent.com/1294454/35755576-dee02e5c-0878-11e8-989f-1595d80ba47f.jpg
+.. |coinbase| image:: https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg
 .. |coincheck| image:: https://user-images.githubusercontent.com/1294454/27766464-3b5c3c74-5ed9-11e7-840e-31b32968e1da.jpg
 .. |coinegg| image:: https://user-images.githubusercontent.com/1294454/36770310-adfa764e-1c5a-11e8-8e09-449daac3d2fb.jpg
 .. |coinex| image:: https://user-images.githubusercontent.com/1294454/38046312-0b450aac-32c8-11e8-99ab-bc6b136b6cc7.jpg

@@ -554,7 +554,10 @@ class exmo extends Exchange {
         if ($depositAddress) {
             $addressAndTag = explode (',', $depositAddress);
             $address = $addressAndTag[0];
-            $tag = $addressAndTag[1];
+            $numParts = is_array ($addressAndTag) ? count ($addressAndTag) : 0;
+            if ($numParts > 1) {
+                $tag = $addressAndTag[1];
+            }
         }
         $this->check_address($address);
         return array (

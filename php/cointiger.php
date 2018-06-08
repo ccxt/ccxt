@@ -18,6 +18,7 @@ class cointiger extends huobipro {
             'has' => array (
                 'fetchCurrencies' => false,
                 'fetchTickers' => true,
+                'fetchTradingLimits' => false,
                 'fetchOrder' => false,
             ),
             'headers' => array (
@@ -543,7 +544,7 @@ class cointiger extends huobipro {
                 'api_key' => $this->apiKey,
                 'time' => $timestamp,
             ), $urlParams)));
-            $url .= '&sign=' . $this->decode ($signature);
+            $url .= '&sign=' . $signature;
             if ($method === 'POST') {
                 $body = $this->urlencode ($query);
                 $headers = array (

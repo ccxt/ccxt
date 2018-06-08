@@ -4,13 +4,22 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import base64
 import hashlib
 import math
+import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import OrderNotCached
+from ccxt.base.errors import InvalidNonce
 
 
 class cryptopia (Exchange):
@@ -501,6 +510,9 @@ class cryptopia (Exchange):
                 'Type': 'Trade',
                 'OrderId': id,
             }, params))
+            # We do not know if it is indeed canceled, but cryptopia
+            # lacks any reasonable method to get information on executed
+            # or canceled order id.
             if id in self.orders:
                 self.orders[id]['status'] = 'canceled'
         except Exception as e:
@@ -510,7 +522,7 @@ class cryptopia (Exchange):
                     if message.find('does not exist') >= 0:
                         raise OrderNotFound(self.id + ' cancelOrder() error: ' + self.last_http_response)
             raise e
-        return response
+        return self.parse_order(response)
 
     def parse_order(self, order, market=None):
         symbol = None
@@ -525,20 +537,31 @@ class cryptopia (Exchange):
                 if id in self.options['marketsByLabel']:
                     market = self.options['marketsByLabel'][id]
                     symbol = market['symbol']
-        timestamp = self.parse8601(order['TimeStamp'])
+        timestamp = self.safe_integer(order, 'TimeStamp')
+        datetime = None
+        if timestamp:
+            datetime = self.iso8601(timestamp)
         amount = self.safe_float(order, 'Amount')
         remaining = self.safe_float(order, 'Remaining')
-        filled = amount - remaining
+        filled = None
+        if amount is not None and remaining is not None:
+            filled = amount - remaining
+        id = self.safe_value(order, 'OrderId')
+        if id is not None:
+            id = str(id)
+        side = self.safe_string(order, 'Type')
+        if side is not None:
+            side = side.lower()
         return {
-            'id': str(order['OrderId']),
+            'id': id,
             'info': self.omit(order, 'status'),
             'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'datetime': datetime,
             'lastTradeTimestamp': None,
             'status': order['status'],
             'symbol': symbol,
             'type': 'limit',
-            'side': order['Type'].lower(),
+            'side': side,
             'price': self.safe_float(order, 'Rate'),
             'cost': self.safe_float(order, 'Total'),
             'amount': amount,
@@ -670,17 +693,37 @@ class cryptopia (Exchange):
                 url += '?' + self.urlencode(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
-        if api == 'web':
-            return response
-        if response:
+    def nonce(self):
+        return self.milliseconds()
+
+    def handle_errors(self, code, reason, url, method, headers, body):
+        if not isinstance(body, basestring):
+            return  # fallback to default error handler
+        if len(body) < 2:
+            return  # fallback to default error handler
+        fixedJSONString = self.sanitize_broken_json_string(body)
+        if fixedJSONString[0] == '{':
+            response = json.loads(fixedJSONString)
             if 'Success' in response:
-                if response['Success']:
-                    return response
-                elif 'Error' in response:
-                    error = self.safe_string(response, 'error')
-                    if error is not None:
+                success = self.safe_string(response, 'Success')
+                if success == 'false':
+                    error = self.safe_string(response, 'Error')
+                    feedback = self.id
+                    if isinstance(error, basestring):
+                        feedback = feedback + ' ' + error
+                        if error.find('does not exist') >= 0:
+                            raise OrderNotFound(feedback)
                         if error.find('Insufficient Funds') >= 0:
-                            raise InsufficientFunds(self.id + ' ' + self.json(response))
-        raise ExchangeError(self.id + ' ' + self.json(response))
+                            raise InsufficientFunds(feedback)
+                        if error.find('Nonce has already been used') >= 0:
+                            raise InvalidNonce(feedback)
+                    else:
+                        feedback = feedback + ' ' + fixedJSONString
+                    raise ExchangeError(feedback)
+
+    def sanitize_broken_json_string(self, jsonString):
+        pos = jsonString.find('{')
+        return jsonString.substr(pos) if (pos >= 0) else jsonString
+
+    def parse_json(self, response, responseBody, url, method):
+        return super(cryptopia, self).parseJson(response, self.sanitize_broken_json_string(responseBody), url, method)

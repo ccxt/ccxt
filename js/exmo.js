@@ -553,7 +553,10 @@ module.exports = class exmo extends Exchange {
         if (depositAddress) {
             let addressAndTag = depositAddress.split (',');
             address = addressAndTag[0];
-            tag = addressAndTag[1];
+            let numParts = addressAndTag.length;
+            if (numParts > 1) {
+                tag = addressAndTag[1];
+            }
         }
         this.checkAddress (address);
         return {

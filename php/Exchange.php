@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.14.102';
+$version = '1.14.158';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -87,6 +87,7 @@ abstract class Exchange {
         'chbtc',
         'chilebit',
         'cobinhood',
+        'coinbase',
         'coincheck',
         'coinegg',
         'coinex',
@@ -485,27 +486,40 @@ abstract class Exchange {
     }
 
     public static function iso8601 ($timestamp) {
-        if (!isset ($timestamp))
-            return $timestamp;
+        if (!is_numeric ($timestamp) || intval ($timestamp) != $timestamp)
+            return null;
+        $timestamp = (int) $timestamp;
+        if ($timestamp < 0)
+            return null;
         $result = date ('c', (int) round ($timestamp / 1000));
         $msec = (int) $timestamp % 1000;
         return str_replace ('+', sprintf (".%03d+", $msec), $result);
     }
 
     public static function parse_date ($timestamp) {
-        if (!isset ($timestamp))
-            return $timestamp;
-        if (strstr ($timestamp, 'GMT'))
-            return strtotime ($timestamp) * 1000;
         return static::parse8601 ($timestamp);
     }
 
     public static function parse8601 ($timestamp) {
-        $time = strtotime ($timestamp) * 1000;
+        if (!$timestamp || !is_string ($timestamp))
+            return null;
+        $timedata = date_parse ($timestamp);
+        if (!$timedata || $timedata['error_count'] > 0 || $timedata['warning_count'] > 0 || (isset ($timedata['relative']) && count ($timedata['relative']) > 0))
+            return null;
+        if ($timedata['hour'] === false ||  $timedata['minute'] === false || $timedata['second'] === false || $timedata['year'] === false || $timedata['month'] === false || $timedata['day'] === false)
+            return null;
+        $time = strtotime($timestamp);
+        if ($time === false)
+            return null;
+        $time *= 1000;
         if (preg_match ('/\.(?<milliseconds>[0-9]{1,3})/', $timestamp, $match)) {
             $time += (int) str_pad($match['milliseconds'], 3, '0', STR_PAD_RIGHT);
         }
         return $time;
+    }
+
+    public static function dmy ($timestamp, $infix = '-') {
+        return gmdate ('m' . $infix . 'd' . $infix . 'Y', (int) round ($timestamp / 1000));
     }
 
     public static function ymd ($timestamp, $infix = '-') {
@@ -684,6 +698,7 @@ abstract class Exchange {
             'fetchTickers' => false,
             'fetchTrades' => true,
             'fetchTradingFees' => false,
+            'fetchTradingLimits' => false,
             'withdraw' => false,
         );
 
@@ -897,7 +912,7 @@ abstract class Exchange {
 
         // we probably only need to set it once on startup
         if ($this->curlopt_interface) {
-			curl_setopt ($this->curl, CURLOPT_INTERFACE, $this->curlopt_interface);
+            curl_setopt ($this->curl, CURLOPT_INTERFACE, $this->curlopt_interface);
         }
 
         /*
@@ -1258,6 +1273,24 @@ abstract class Exchange {
         return $this->fetch_total_balance ($params);
     }
 
+    public function load_trading_limits ($symbols = null, $reload = false, $params = array ()) {
+        if ($this->has['fetchTradingLimits']) {
+            if ($reload || !(is_array ($this->options) && array_key_exists ('limitsLoaded', $this->options))) {
+                $response = $this->fetch_trading_limits ($symbols);
+                $limits = $response['limits'];
+                $keys = is_array ($limits) ? array_keys ($limits) : array ();
+                for ($i = 0; $i < count ($keys); $i++) {
+                    $symbol = $keys[$i];
+                    $this->markets[$symbol] = array_replace_recursive ($this->markets[$symbol], array (
+                        'limits' => $limits[$symbol],
+                    ));
+                }
+                $this->options['limitsLoaded'] = $this->milliseconds ();
+            }
+        }
+        return $this->markets;
+    }
+
     public function filter_by_since_limit ($array, $since = null, $limit = null) {
         $result = array ();
         $array = array_values ($array);
@@ -1448,9 +1481,9 @@ abstract class Exchange {
         return $this->fetch_balance ();
     }
 
-	public function fetch_balance ($params = array ()) {
-		throw new NotSupported ($this->id . ' fetch_balance() not implemented yet');
-	}
+    public function fetch_balance ($params = array ()) {
+        throw new NotSupported ($this->id . ' fetch_balance() not implemented yet');
+    }
 
     public function fetchOrderBook ($symbol, $limit = null, $params = array ()) {
         return $this->fetch_order_book ($symbol, $limit, $params);

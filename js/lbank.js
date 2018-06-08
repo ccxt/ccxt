@@ -190,9 +190,11 @@ module.exports = class lbank extends Exchange {
         for (let i = 0; i < tickers.length; i++) {
             let ticker = tickers[i];
             let id = ticker['symbol'];
-            let market = this.marketsById[id];
-            let symbol = market['symbol'];
-            result[symbol] = this.parseTicker (ticker, market);
+            if (id in this.marketsById) {
+                let market = this.marketsById[id];
+                let symbol = market['symbol'];
+                result[symbol] = this.parseTicker (ticker, market);
+            }
         }
         return result;
     }
@@ -387,11 +389,14 @@ module.exports = class lbank extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        if (typeof limit === 'undefined') {
+            limit = 100;
+        }
         let market = this.market (symbol);
         let response = await this.privatePostOrdersInfoHistory (this.extend ({
             'symbol': market['id'],
             'current_page': 1,
-            'page_length': 100,
+            'page_length': limit,
         }, params));
         return this.parseOrders (response['orders'], undefined, since, limit);
     }
