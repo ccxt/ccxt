@@ -783,7 +783,8 @@ module.exports = class cryptopia extends Exchange {
         }
     }
 
-    sanitizeBrokenJSONString (jsonString) { // sometimes cryptopia will return a unicode symbol before actual JSON string.
+    sanitizeBrokenJSONString (jsonString) {
+        // sometimes cryptopia will return a unicode symbol before actual JSON string.
         const pos = jsonString.indexOf ('{');
         return (pos >= 0) ? jsonString.substr (pos) : jsonString;
     }
