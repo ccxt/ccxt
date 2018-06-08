@@ -387,7 +387,7 @@ module.exports = class cobinhood extends Exchange {
         }
         return this.parseBalance (result);
     }
-    
+
     parseOrderStatus (status) {
         let statuses = {
             'filled': 'closed',
