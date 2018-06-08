@@ -534,6 +534,9 @@ class cryptopia extends Exchange {
                 'Type' => 'Trade',
                 'OrderId' => $id,
             ), $params));
+            // We do not know if it is indeed canceled, but cryptopia
+            // lacks any reasonable method to get information on executed
+            // or canceled order $id.
             if (is_array ($this->orders) && array_key_exists ($id, $this->orders))
                 $this->orders[$id]['status'] = 'canceled';
         } catch (Exception $e) {
@@ -546,7 +549,7 @@ class cryptopia extends Exchange {
             }
             throw $e;
         }
-        return $response;
+        return $this->parse_order($response);
     }
 
     public function parse_order ($order, $market = null) {
@@ -565,20 +568,35 @@ class cryptopia extends Exchange {
                 }
             }
         }
-        $timestamp = $this->parse8601 ($order['TimeStamp']);
+        $timestamp = $this->safe_integer($order, 'TimeStamp');
+        $datetime = null;
+        if ($timestamp) {
+            $datetime = $this->iso8601 ($timestamp);
+        }
         $amount = $this->safe_float($order, 'Amount');
         $remaining = $this->safe_float($order, 'Remaining');
-        $filled = $amount - $remaining;
+        $filled = null;
+        if ($amount !== null && $remaining !== null) {
+            $filled = $amount - $remaining;
+        }
+        $id = $this->safe_value($order, 'OrderId');
+        if ($id !== null) {
+            $id = (string) $id;
+        }
+        $side = $this->safe_string($order, 'Type');
+        if ($side !== null) {
+            $side = strtolower ($side);
+        }
         return array (
-            'id' => (string) $order['OrderId'],
+            'id' => $id,
             'info' => $this->omit ($order, 'status'),
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $datetime,
             'lastTradeTimestamp' => null,
             'status' => $order['status'],
             'symbol' => $symbol,
             'type' => 'limit',
-            'side' => strtolower ($order['Type']),
+            'side' => $side,
             'price' => $this->safe_float($order, 'Rate'),
             'cost' => $this->safe_float($order, 'Total'),
             'amount' => $amount,
@@ -729,22 +747,49 @@ class cryptopia extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if ($api === 'web')
-            return $response;
-        if ($response) {
-            if (is_array ($response) && array_key_exists ('Success', $response))
-                if ($response['Success']) {
-                    return $response;
-                } else if (is_array ($response) && array_key_exists ('Error', $response)) {
-                    $error = $this->safe_string($response, 'error');
-                    if ($error !== null) {
-                        if (mb_strpos ($error, 'Insufficient Funds') !== false)
-                            throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
+    public function nonce () {
+        return $this->milliseconds ();
+    }
+
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+        if (gettype ($body) != 'string')
+            return; // fallback to default $error handler
+        if (strlen ($body) < 2)
+            return; // fallback to default $error handler
+        $fixedJSONString = $this->sanitize_broken_json_string ($body);
+        if ($fixedJSONString[0] === '{') {
+            $response = json_decode ($fixedJSONString, $as_associative_array = true);
+            if (is_array ($response) && array_key_exists ('Success', $response)) {
+                $success = $this->safe_string($response, 'Success');
+                if ($success === 'false') {
+                    $error = $this->safe_string($response, 'Error');
+                    $feedback = $this->id;
+                    if (gettype ($error) == 'string') {
+                        $feedback = $feedback . ' ' . $error;
+                        if (mb_strpos ($error, 'does not exist') !== false) {
+                            throw new OrderNotFound ($feedback);
+                        }
+                        if (mb_strpos ($error, 'Insufficient Funds') !== false) {
+                            throw new InsufficientFunds ($feedback);
+                        }
+                        if (mb_strpos ($error, 'Nonce has already been used') !== false) {
+                            throw new InvalidNonce ($feedback);
+                        }
+                    } else {
+                        $feedback = $feedback . ' ' . $fixedJSONString;
                     }
+                    throw new ExchangeError ($feedback);
                 }
+            }
         }
-        throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+    }
+
+    public function sanitize_broken_json_string ($jsonString) {
+        $pos = mb_strpos ($jsonString, '{');
+        return ($pos >= 0) ? $jsonString.substr ($pos) : $jsonString;
+    }
+
+    public function parse_json ($response, $responseBody, $url, $method) {
+        return parent::parseJson ($response, $this->sanitize_broken_json_string ($responseBody), $url, $method);
     }
 }

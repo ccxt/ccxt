@@ -244,24 +244,71 @@ class coinone extends Exchange {
         if ($type !== 'limit')
             throw new ExchangeError ($this->id . ' allows limit orders only');
         $this->load_markets();
-        $order = array (
+        $request = array (
             'price' => $price,
             'currency' => $this->market_id($symbol),
             'qty' => $amount,
         );
         $method = 'privatePostOrder' . $this->capitalize ($type) . $this->capitalize ($side);
-        $response = $this->$method (array_merge ($order, $params));
-        // todo => return the full $order structure
-        // return $this->parse_order($response, market);
-        $orderId = $this->safe_string($response, 'orderId');
-        return array (
+        $response = $this->$method (array_merge ($request, $params));
+        $id = $this->safe_string($response, 'orderId');
+        $timestamp = $this->milliseconds ();
+        $cost = $price * $amount;
+        $order = array (
             'info' => $response,
-            'id' => $orderId,
+            'id' => $id,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => null,
+            'symbol' => $symbol,
+            'type' => $type,
+            'side' => $side,
+            'price' => $price,
+            'cost' => $cost,
+            'average' => null,
+            'amount' => $amount,
+            'filled' => null,
+            'remaining' => null,
+            'status' => null,
+            'fee' => null,
         );
+        $this->orders[$id] = $order;
+        return $order;
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        return $this->privatePostOrderCancel (array ( 'orderID' => $id ));
+        $order = $this->safe_value($this->orders, $id);
+        $amount = null;
+        $price = null;
+        $side = null;
+        if ($order === null) {
+            $price = $this->safe_float($params, 'price');
+            if ($price === null) {
+                // eslint-disable-next-line quotes
+                throw new InvalidOrder ($this->id . " cancelOrder could not find the $order $id " . $id . " in orders cache. The $order was probably created with a different instance of this class earlier. The $price parameter is missing. To cancel the $order, pass array ('price' => 12345, 'qty' => 1.2345, 'is_ask' => 0) in the $params argument of cancelOrder.");
+            }
+            $amount = $this->safe_float($params, 'qty');
+            if ($amount === null) {
+                // eslint-disable-next-line quotes
+                throw new InvalidOrder ($this->id . " cancelOrder could not find the $order $id " . $id . " in orders cache. The $order was probably created with a different instance of this class earlier. The `qty` ($amount) parameter is missing. To cancel the $order, pass array ('price' => 12345, 'qty' => 1.2345, 'is_ask' => 0) in the $params argument of cancelOrder.");
+            }
+            $side = $this->safe_float($params, 'is_ask');
+            if ($side === null) {
+                // eslint-disable-next-line quotes
+                throw new InvalidOrder ($this->id . " cancelOrder could not find the $order $id " . $id . " in orders cache. The $order was probably created with a different instance of this class earlier. The `is_ask` ($side) parameter is missing. To cancel the $order, pass array ('price' => 12345, 'qty' => 1.2345, 'is_ask' => 0) in the $params argument of cancelOrder.");
+            }
+        } else {
+            $price = $order['price'];
+            $amount = $order['amount'];
+            $side = ($order['side'] === 'buy') ? 0 : 1;
+        }
+        $request = array (
+            'order_id' => $id,
+            'price' => $price,
+            'qty' => $amount,
+            'is_ask' => $side,
+        );
+        return $this->privatePostOrderCancel (array_merge ($request, $params));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

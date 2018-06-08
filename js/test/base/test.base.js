@@ -19,6 +19,7 @@ describe ('ccxt base code', () => {
     require ('./functions/test.number')
     require ('./functions/test.time')
     require ('./functions/test.type')
+    require ('./functions/test.datetime')
 
 /*  ------------------------------------------------------------------------ */
 
