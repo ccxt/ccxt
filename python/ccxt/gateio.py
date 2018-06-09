@@ -349,10 +349,9 @@ class gateio (Exchange):
     def parse_order(self, order, market=None):
         id = self.safe_string(order, 'orderNumber')
         symbol = None
-        if market is None:
-            marketId = self.safe_string(order, 'currencyPair')
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
+        marketId = self.safe_string(order, 'currencyPair')
+        if marketId in self.markets_by_id:
+            market = self.markets_by_id[marketId]
         if market is not None:
             symbol = market['symbol']
         datetime = None

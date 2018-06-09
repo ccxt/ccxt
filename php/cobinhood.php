@@ -389,12 +389,29 @@ class cobinhood extends Exchange {
         return $this->parse_balance($result);
     }
 
+    public function parse_order_status ($status) {
+        $statuses = array (
+            'filled' => 'closed',
+            'rejected' => 'closed',
+            'partially_filled' => 'open',
+            'pending_cancellation' => 'open',
+            'pending_modification' => 'open',
+            'open' => 'open',
+            'new' => 'open',
+            'queued' => 'open',
+            'cancelled' => 'canceled',
+            'triggered' => 'triggered',
+        );
+        if (is_array ($statuses) && array_key_exists ($status, $statuses))
+            return $statuses[$status];
+        return $status;
+    }
+
     public function parse_order ($order, $market = null) {
         $symbol = null;
         if ($market === null) {
             $marketId = $this->safe_string($order, 'trading_pair');
-            if ($marketId === null)
-                $marketId = $this->safe_string($order, 'trading_pair_id');
+            $marketId = $this->safe_string($order, 'trading_pair_id', $marketId);
             $market = $this->markets_by_id[$marketId];
         }
         if ($market !== null)
@@ -403,17 +420,23 @@ class cobinhood extends Exchange {
         $price = $this->safe_float($order, 'eq_price');
         $amount = $this->safe_float($order, 'size');
         $filled = $this->safe_float($order, 'filled');
-        $remaining = $amount - $filled;
-        // new, queued, open, partially_filled, $filled, cancelled
-        $status = $order['state'];
-        if ($status === 'filled') {
-            $status = 'closed';
-        } else if ($status === 'cancelled') {
-            $status = 'canceled';
-        } else {
-            $status = 'open';
+        $remaining = null;
+        $cost = null;
+        if ($amount !== null) {
+            if ($filled !== null) {
+                $remaining = $amount - $filled;
+            }
+            if ($price !== null) {
+                $cost = $price * $amount;
+            }
         }
-        $side = ($order['side'] === 'bid') ? 'buy' : 'sell';
+        $status = $this->parse_order_status($this->safe_string($order, 'state'));
+        $side = $this->safe_string($order, 'side');
+        if ($side === 'bid') {
+            $side = 'buy';
+        } else if ($side === 'ask') {
+            $side = 'sell';
+        }
         return array (
             'id' => $order['id'],
             'datetime' => $this->iso8601 ($timestamp),
@@ -424,7 +447,7 @@ class cobinhood extends Exchange {
             'type' => $order['type'], // $market, limit, stop, stop_limit, trailing_stop, fill_or_kill
             'side' => $side,
             'price' => $price,
-            'cost' => $price * $amount,
+            'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
@@ -457,7 +480,7 @@ class cobinhood extends Exchange {
         $response = $this->privateDeleteTradingOrdersOrderId (array_merge (array (
             'order_id' => $id,
         ), $params));
-        return $response;
+        return $this->parse_order($response);
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
@@ -565,8 +588,17 @@ class cobinhood extends Exchange {
             throw new ExchangeError ($this->id . ' ' . $body);
         }
         $response = json_decode ($body, $as_associative_array = true);
-        $errorCode = $this->safe_value($response['error'], 'error_code');
         $feedback = $this->id . ' ' . $this->json ($response);
+        $errorCode = $this->safe_value($response['error'], 'error_code');
+        if ($method === 'DELETE' || $method === 'GET') {
+            if ($errorCode === 'parameter_error') {
+                if (mb_strpos ($url, 'trading/orders/') !== false) {
+                    // Cobinhood returns vague "parameter_error" on fetchOrder() and cancelOrder() calls
+                    // for invalid order IDs as well as orders that are not "open"
+                    throw new InvalidOrder ($feedback);
+                }
+            }
+        }
         $exceptions = $this->exceptions;
         if (is_array ($exceptions) && array_key_exists ($errorCode, $exceptions)) {
             throw new $exceptions[$errorCode] ($feedback);

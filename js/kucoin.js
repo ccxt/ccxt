@@ -333,10 +333,11 @@ module.exports = class kucoin extends Exchange {
             request['limit'] = limit;
         }
         let response = await this.publicGetOpenOrders (this.extend (request, params));
-        let dataInResponse = ('data' in response);
         let orderbook = undefined;
         let timestamp = undefined;
-        if (!dataInResponse) {
+        // sometimes kucoin returns this:
+        // {"success":true,"code":"OK","msg":"Operation succeeded.","timestamp":xxxxxxxxxxxxx,"data":null}
+        if (!('data' in response) || !response['data']) {
             if (this.options['fetchOrderBookWarning'])
                 throw new ExchangeError (this.id + " fetchOrderBook returned an null response. Set exchange.options['fetchOrderBookWarning'] = false to silence this warning");
             orderbook = {
