@@ -786,8 +786,11 @@ class cryptopia extends Exchange {
 
     public function sanitize_broken_json_string ($jsonString) {
         // sometimes cryptopia will return a unicode symbol before actual JSON string.
-        $pos = mb_strpos ($jsonString, '{');
-        return ($pos >= 0) ? $jsonString.substr ($pos) : $jsonString;
+        $indexOfBracket = mb_strpos ($jsonString, '{');
+        if ($indexOfBracket >= 0) {
+            return mb_substr ($jsonString, $indexOfBracket);
+        }
+        return $jsonString;
     }
 
     public function parse_json ($response, $responseBody, $url, $method) {
