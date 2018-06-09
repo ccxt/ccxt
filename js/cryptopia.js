@@ -785,8 +785,11 @@ module.exports = class cryptopia extends Exchange {
 
     sanitizeBrokenJSONString (jsonString) {
         // sometimes cryptopia will return a unicode symbol before actual JSON string.
-        const pos = jsonString.indexOf ('{');
-        return (pos >= 0) ? jsonString.slice (pos) : jsonString;
+        const indexOfBracket = jsonString.indexOf ('{');
+        if (indexOfBracket >= 0) {
+            return jsonString.slice (indexOfBracket);
+        }
+        return jsonString;
     }
 
     parseJson (response, responseBody, url, method) { // we have to sanitize JSON before trying to parse
