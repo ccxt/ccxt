@@ -23,6 +23,7 @@ class bibox extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchFundingFees' => true,
                 'fetchTickers' => true,
+                'fetchOrder' => true,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchMyTrades' => true,
@@ -420,6 +421,16 @@ class bibox extends Exchange {
             ), $params),
         ));
         return $response;
+    }
+
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
+        $response = $this->privatePostOrderpending (array (
+            'cmd' => 'orderpending/order',
+            'body' => array_merge (array (
+                'id' => $id,
+            ), $params),
+        ));
+        return $this->parse_order($response['result']);
     }
 
     public function parse_order ($order, $market = null) {

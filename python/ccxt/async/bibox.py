@@ -40,6 +40,7 @@ class bibox (Exchange):
                 'fetchDepositAddress': True,
                 'fetchFundingFees': True,
                 'fetchTickers': True,
+                'fetchOrder': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'fetchMyTrades': True,
@@ -411,6 +412,15 @@ class bibox (Exchange):
             }, params),
         })
         return response
+
+    async def fetch_order(self, id, symbol=None, params={}):
+        response = await self.privatePostOrderpending({
+            'cmd': 'orderpending/order',
+            'body': self.extend({
+                'id': id,
+            }, params),
+        })
+        return self.parse_order(response['result'])
 
     def parse_order(self, order, market=None):
         symbol = None
