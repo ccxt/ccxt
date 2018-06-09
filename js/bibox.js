@@ -536,7 +536,7 @@ module.exports = class bibox extends Exchange {
         let market = this.market (symbol);
         let size = (limit) ? limit : 200;
         let response = await this.privatePostOrderpending ({
-            'cmd': 'orderpending/orderHistoryList',
+            'cmd': 'orderpending/pendingHistoryList',
             'body': this.extend ({
                 'pair': market['id'],
                 'account_type': 0, // 0 - regular, 1 - margin
