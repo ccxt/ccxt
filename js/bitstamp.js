@@ -379,12 +379,12 @@ module.exports = class bitstamp extends Exchange {
         let method = 'privatePost' + this.capitalize (side);
         let order = {
             'pair': this.marketId (symbol),
-            'amount': amount,
+            'amount': this.amountToPrecision (symbol, amount),
         };
         if (type === 'market')
             method += 'Market';
         else
-            order['price'] = price;
+            order['price'] = this.priceToPrecision (symbol, price);
         method += 'Pair';
         let response = await this[method] (this.extend (order, params));
         return {
