@@ -281,14 +281,12 @@ module.exports = class bxinth extends Exchange {
             let nonce = this.nonce ();
             let auth = this.apiKey + nonce.toString () + this.secret;
             let signature = this.hash (this.encode (auth), 'sha256');
-            body = this.urlencode (this.extend ({
-                'key': this.apiKey,
-                'nonce': nonce,
-                'signature': signature,
-                // twofa: this.twofa,
-            }, params));
+            body = new FormData;
+            body.append('key', this.apiKey);
+            body.append('nonce', nonce);
+            body.append('signature', signature);
             headers = {
-                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Type': 'multipart/form-data',
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
