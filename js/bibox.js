@@ -220,12 +220,13 @@ module.exports = class bibox extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = trade['time'];
-        let side = this.safeInteger (trade, 'side');
-        side = this.safeInteger (trade, 'order_side', side);
+        let timestamp = trade['createdAt'];
+        let side = this.safeInteger (trade, 'order_side');
         side = (side === 1) ? 'buy' : 'sell';
         if (typeof market === 'undefined') {
-            let marketId = this.safeString (trade, 'pair');
+            let quote = this.safeString (trade, 'currency_symbol');
+            let base = this.safeString (trade, 'coin_symbol');
+            let marketId = base + "_" + quote;
             if (typeof marketId !== 'undefined')
                 if (marketId in this.markets_by_id)
                     market = this.markets_by_id[marketId];
@@ -536,7 +537,7 @@ module.exports = class bibox extends Exchange {
         let market = this.market (symbol);
         let size = (limit) ? limit : 200;
         let response = await this.privatePostOrderpending ({
-            'cmd': 'orderpending/pendingHistoryList',
+            'cmd': 'orderpending/orderHistoryList',
             'body': this.extend ({
                 'pair': market['id'],
                 'account_type': 0, // 0 - regular, 1 - margin
@@ -545,7 +546,7 @@ module.exports = class bibox extends Exchange {
             }, params),
         });
         let trades = this.safeValue (response['result'], 'items', []);
-        return this.parseOrders (trades, market, since, limit);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     async fetchDepositAddress (code, params = {}) {
