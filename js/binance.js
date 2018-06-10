@@ -647,14 +647,16 @@ module.exports = class binance extends Exchange {
             'type': type.toUpperCase (),
             'side': side.toUpperCase (),
         };
-        if (type === 'limit') {
-            order['type'] = this.options['defaultLimitOrderType'].toUpperCase ();
-            order = this.extend (order, {
-                'price': this.priceToPrecision (symbol, price),
-                'timeInForce': this.options['defaultTimeInForce'], // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
-            });
-        } else if (type === 'limit_maker') {
+        let priceIsDefined = (typeof price !== 'undefined');
+        let isMarketOrder = (type === 'market');
+        let isLimitOrder = (type === 'limit');
+        let shouldIncludePrice = isLimitOrder || (!isMarketOrder && priceIsDefined);
+        if (shouldIncludePrice) {
             order['price'] = this.priceToPrecision (symbol, price);
+        }
+        if (isLimitOrder) {
+            order['type'] = this.options['defaultLimitOrderType'].toUpperCase ();
+            order['timeInForce'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
         let response = await this[method] (this.extend (order, params));
         return this.parseOrder (response);
