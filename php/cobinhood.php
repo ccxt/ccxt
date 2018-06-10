@@ -25,6 +25,7 @@ class cobinhood extends Exchange {
                 'fetchDepositAddress' => true,
                 'createDepositAddress' => true,
                 'withdraw' => true,
+                'fetchMyTrades' => true,
             ),
             'requiredCredentials' => array (
                 'apiKey' => true,
@@ -96,6 +97,7 @@ class cobinhood extends Exchange {
                         'trading/orders/{order_id}/trades',
                         'trading/orders',
                         'trading/order_history',
+                        'trading/trades',
                         'trading/trades/{trade_id}',
                         'wallet/balances',
                         'wallet/ledger',
@@ -557,6 +559,17 @@ class cobinhood extends Exchange {
             'id' => $response['result']['withdrawal_id'],
             'info' => $response,
         );
+    }
+
+    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array ();
+        if ($symbol !== null) {
+            $request['trading_pair_id'] = $market['id'];
+        }
+        $response = $this->privateGetTradingTrades (array_merge ($request, $params));
+        return $this->parse_trades($response['result']['trades'], $market, $since, $limit);
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

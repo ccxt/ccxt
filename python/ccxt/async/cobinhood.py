@@ -30,6 +30,7 @@ class cobinhood (Exchange):
                 'fetchDepositAddress': True,
                 'createDepositAddress': True,
                 'withdraw': True,
+                'fetchMyTrades': True,
             },
             'requiredCredentials': {
                 'apiKey': True,
@@ -101,6 +102,7 @@ class cobinhood (Exchange):
                         'trading/orders/{order_id}/trades',
                         'trading/orders',
                         'trading/order_history',
+                        'trading/trades',
                         'trading/trades/{trade_id}',
                         'wallet/balances',
                         'wallet/ledger',
@@ -530,6 +532,15 @@ class cobinhood (Exchange):
             'id': response['result']['withdrawal_id'],
             'info': response,
         }
+
+    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {}
+        if symbol is not None:
+            request['trading_pair_id'] = market['id']
+        response = await self.privateGetTradingTrades(self.extend(request, params))
+        return self.parse_trades(response['result']['trades'], market, since, limit)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api']['web'] + '/' + self.implode_params(path, params)
