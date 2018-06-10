@@ -519,7 +519,7 @@ class bibox (Exchange):
         market = self.market(symbol)
         size = limit if (limit) else 200
         response = self.privatePostOrderpending({
-            'cmd': 'orderpending/orderHistoryList',
+            'cmd': 'orderpending/pendingHistoryList',
             'body': self.extend({
                 'pair': market['id'],
                 'account_type': 0,  # 0 - regular, 1 - margin

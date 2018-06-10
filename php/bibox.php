@@ -537,7 +537,7 @@ class bibox extends Exchange {
         $market = $this->market ($symbol);
         $size = ($limit) ? $limit : 200;
         $response = $this->privatePostOrderpending (array (
-            'cmd' => 'orderpending/orderHistoryList',
+            'cmd' => 'orderpending/pendingHistoryList',
             'body' => array_merge (array (
                 'pair' => $market['id'],
                 'account_type' => 0, // 0 - regular, 1 - margin
