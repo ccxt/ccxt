@@ -223,15 +223,12 @@ module.exports = class bibox extends Exchange {
         let timestamp = trade['createdAt'];
         let side = this.safeInteger (trade, 'order_side');
         side = (side === 1) ? 'buy' : 'sell';
-        if (typeof market === 'undefined') {
-            let quote = this.safeString (trade, 'currency_symbol');
-            let base = this.safeString (trade, 'coin_symbol');
-            let marketId = base + "_" + quote;
-            if (typeof marketId !== 'undefined')
-                if (marketId in this.markets_by_id)
-                    market = this.markets_by_id[marketId];
+        let symbol = undefined;
+        if (market) {
+            symbol = market['symbol'];
+        } else {
+            symbol = trade['coin_symbol'] + '/' + trade['currency_symbol'];
         }
-        let symbol = (typeof market !== 'undefined') ? market['symbol'] : undefined;
         let fee = undefined;
         if ('fee' in trade) {
             fee = {
