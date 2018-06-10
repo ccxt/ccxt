@@ -157,6 +157,7 @@ const pythonRegexes = [
         [ /hash \(([^,]+)\, \'(sha[0-9])\'/g, "hash($1, '$2'" ],
         [ /hmac \(([^,]+)\, ([^,]+)\, \'(md5)\'/g, 'hmac($1, $2, hashlib.$3' ],
         [ /hmac \(([^,]+)\, ([^,]+)\, \'(sha[0-9]+)\'/g, 'hmac($1, $2, hashlib.$3' ],
+        [ /new ([\S]+) \((.*)\)/g, '$1($2)'],
         [ /throw new ([\S]+) \((.*)\)/g, 'raise $1($2)'],
         [ /throw ([\S]+)/g, 'raise $1'],
         [ /try {/g, 'try:'],
