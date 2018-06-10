@@ -24,6 +24,7 @@ module.exports = class cobinhood extends Exchange {
                 'fetchDepositAddress': true,
                 'createDepositAddress': true,
                 'withdraw': true,
+                'fetchMyTrades': true,
             },
             'requiredCredentials': {
                 'apiKey': true,
@@ -95,6 +96,7 @@ module.exports = class cobinhood extends Exchange {
                         'trading/orders/{order_id}/trades',
                         'trading/orders',
                         'trading/order_history',
+                        'trading/trades',
                         'trading/trades/{trade_id}',
                         'wallet/balances',
                         'wallet/ledger',
@@ -556,6 +558,17 @@ module.exports = class cobinhood extends Exchange {
             'id': response['result']['withdrawal_id'],
             'info': response,
         };
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {};
+        if (typeof symbol !== 'undefined') {
+            request['trading_pair_id'] = market['id'];
+        }
+        let response = await this.privateGetTradingTrades (this.extend (request, params));
+        return this.parseTrades (response['result']['trades'], market, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
