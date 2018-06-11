@@ -228,7 +228,7 @@ module.exports = class bibox extends Exchange {
         let symbol = undefined;
         if (market) {
             symbol = market['symbol'];
-        } else if ('coin_symbol' in trade && 'currency_symbol' in trade) {
+        } else if (('coin_symbol' in trade) && ('currency_symbol' in trade)) {
             symbol = trade['coin_symbol'] + '/' + trade['currency_symbol'];
         } else if ('pair' in trade) {
             let marketId = trade['pair'];
