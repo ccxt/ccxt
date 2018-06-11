@@ -220,8 +220,10 @@ module.exports = class bibox extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = trade['createdAt'];
-        let side = this.safeInteger (trade, 'order_side');
+        let timestamp = this.safeInteger (trade, 'time');
+        timestamp = this.safeInteger (trade, 'createdAt', timestamp);
+        let side = this.safeInteger (trade, 'side');
+        side = this.safeInteger (trade, 'order_side', side);
         side = (side === 1) ? 'buy' : 'sell';
         let symbol = undefined;
         if (market) {
