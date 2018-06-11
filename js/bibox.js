@@ -228,8 +228,14 @@ module.exports = class bibox extends Exchange {
         let symbol = undefined;
         if (market) {
             symbol = market['symbol'];
-        } else {
+        } else if ('coin_symbol' in trade && 'currency_symbol' in trade) {
             symbol = trade['coin_symbol'] + '/' + trade['currency_symbol'];
+        } else if ('pair' in trade) {
+            let marketId = trade['pair']
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                symbol = (typeof market !== 'undefined') ? market['symbol'] : undefined;
+            }
         }
         let fee = undefined;
         if ('fee' in trade) {
