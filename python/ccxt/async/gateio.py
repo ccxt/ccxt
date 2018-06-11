@@ -227,6 +227,15 @@ class gateio (Exchange):
         if market:
             symbol = market['symbol']
         last = self.safe_float(ticker, 'last')
+        percentage = self.safe_float(ticker, 'percentChange')
+        open = None
+        change = None
+        average = None
+        if (last is not None) and(percentage is not None):
+            relativeChange = percentage / 100
+            open = last / self.sum(1, relativeChange)
+            change = last - open
+            average = self.sum(last, open) / 2
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -238,13 +247,13 @@ class gateio (Exchange):
             'ask': self.safe_float(ticker, 'lowestAsk'),
             'askVolume': None,
             'vwap': None,
-            'open': None,
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': self.safe_float(ticker, 'percentChange'),
-            'percentage': None,
-            'average': None,
+            'change': change,
+            'percentage': percentage,
+            'average': average,
             'baseVolume': self.safe_float(ticker, 'quoteVolume'),
             'quoteVolume': self.safe_float(ticker, 'baseVolume'),
             'info': ticker,
