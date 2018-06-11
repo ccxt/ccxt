@@ -228,32 +228,49 @@ class bibox (Exchange):
         return self.parse_tickers(response['result'], symbols)
 
     def parse_trade(self, trade, market=None):
-        timestamp = trade['time']
+        timestamp = self.safe_integer(trade, 'time')
+        timestamp = self.safe_integer(trade, 'createdAt', timestamp)
         side = self.safe_integer(trade, 'side')
         side = self.safe_integer(trade, 'order_side', side)
         side = 'buy' if (side == 1) else 'sell'
+        symbol = None
         if market is None:
             marketId = self.safe_string(trade, 'pair')
-            if marketId is not None:
-                if marketId in self.markets_by_id:
-                    market = self.markets_by_id[marketId]
-        symbol = market['symbol'] if (market is not None) else None
+            if marketId is None:
+                baseId = self.safe_string(trade, 'coin_symbol')
+                quoteId = self.safe_string(trade, 'currency_symbol')
+                if (baseId is not None) and(quoteId is not None):
+                    marketId = baseId + '_' + quoteId
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+        if market is not None:
+            symbol = market['symbol']
         fee = None
-        if 'fee' in trade:
+        feeCost = self.safe_float(trade, 'fee')
+        feeCurrency = None  # todo: deduce from market if market is defined
+        feeRate = None  # todo: deduce from market if market is defined
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'amount')
+        cost = price * amount
+        if feeCost is not None:
             fee = {
-                'cost': self.safe_float(trade, 'fee'),
-                'currency': None,
+                'cost': feeCost,
+                'currency': feeCurrency,
+                'rate': feeRate,
             }
         return {
-            'id': self.safe_string(trade, 'id'),
             'info': trade,
+            'id': self.safe_string(trade, 'id'),
+            'order': None,  # Bibox does not have it(documented) yet
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
             'type': 'limit',
+            'takerOrMaker': None,
             'side': side,
-            'price': self.safe_float(trade, 'price'),
-            'amount': self.safe_float(trade, 'amount'),
+            'price': price,
+            'amount': amount,
+            'cost': cost,
             'fee': fee,
         }
 
@@ -519,7 +536,7 @@ class bibox (Exchange):
         market = self.market(symbol)
         size = limit if (limit) else 200
         response = await self.privatePostOrderpending({
-            'cmd': 'orderpending/pendingHistoryList',
+            'cmd': 'orderpending/orderHistoryList',
             'body': self.extend({
                 'pair': market['id'],
                 'account_type': 0,  # 0 - regular, 1 - margin
@@ -528,7 +545,7 @@ class bibox (Exchange):
             }, params),
         })
         trades = self.safe_value(response['result'], 'items', [])
-        return self.parse_orders(trades, market, since, limit)
+        return self.parse_trades(trades, market, since, limit)
 
     async def fetch_deposit_address(self, code, params={}):
         await self.load_markets()

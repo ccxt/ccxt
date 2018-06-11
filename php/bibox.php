@@ -221,34 +221,53 @@ class bibox extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $trade['time'];
+        $timestamp = $this->safe_integer($trade, 'time');
+        $timestamp = $this->safe_integer($trade, 'createdAt', $timestamp);
         $side = $this->safe_integer($trade, 'side');
         $side = $this->safe_integer($trade, 'order_side', $side);
         $side = ($side === 1) ? 'buy' : 'sell';
+        $symbol = null;
         if ($market === null) {
             $marketId = $this->safe_string($trade, 'pair');
-            if ($marketId !== null)
-                if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
-                    $market = $this->markets_by_id[$marketId];
+            if ($marketId === null) {
+                $baseId = $this->safe_string($trade, 'coin_symbol');
+                $quoteId = $this->safe_string($trade, 'currency_symbol');
+                if (($baseId !== null) && ($quoteId !== null))
+                    $marketId = $baseId . '_' . $quoteId;
+            }
+            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
+                $market = $this->markets_by_id[$marketId];
         }
-        $symbol = ($market !== null) ? $market['symbol'] : null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
         $fee = null;
-        if (is_array ($trade) && array_key_exists ('fee', $trade)) {
+        $feeCost = $this->safe_float($trade, 'fee');
+        $feeCurrency = null; // todo => deduce from $market if $market is defined
+        $feeRate = null; // todo => deduce from $market if $market is defined
+        $price = $this->safe_float($trade, 'price');
+        $amount = $this->safe_float($trade, 'amount');
+        $cost = $price * $amount;
+        if ($feeCost !== null) {
             $fee = array (
-                'cost' => $this->safe_float($trade, 'fee'),
-                'currency' => null,
+                'cost' => $feeCost,
+                'currency' => $feeCurrency,
+                'rate' => $feeRate,
             );
         }
         return array (
-            'id' => $this->safe_string($trade, 'id'),
             'info' => $trade,
+            'id' => $this->safe_string($trade, 'id'),
+            'order' => null, // Bibox does not have it (documented) yet
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
             'type' => 'limit',
+            'takerOrMaker' => null,
             'side' => $side,
-            'price' => $this->safe_float($trade, 'price'),
-            'amount' => $this->safe_float($trade, 'amount'),
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
             'fee' => $fee,
         );
     }
@@ -537,7 +556,7 @@ class bibox extends Exchange {
         $market = $this->market ($symbol);
         $size = ($limit) ? $limit : 200;
         $response = $this->privatePostOrderpending (array (
-            'cmd' => 'orderpending/pendingHistoryList',
+            'cmd' => 'orderpending/orderHistoryList',
             'body' => array_merge (array (
                 'pair' => $market['id'],
                 'account_type' => 0, // 0 - regular, 1 - margin
@@ -546,7 +565,7 @@ class bibox extends Exchange {
             ), $params),
         ));
         $trades = $this->safe_value($response['result'], 'items', array ());
-        return $this->parse_orders($trades, $market, $since, $limit);
+        return $this->parse_trades($trades, $market, $since, $limit);
     }
 
     public function fetch_deposit_address ($code, $params = array ()) {
