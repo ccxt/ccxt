@@ -148,6 +148,11 @@ module.exports = class lbank extends Exchange {
         let info = ticker;
         ticker = info['ticker'];
         let last = this.safeFloat (ticker, 'latest');
+        let percentage = this.safeFloat (ticker, 'change');
+        let relativeChange = percentage / 100;
+        let open = last / this.sum (1, relativeChange);
+        let change = last - open;
+        let average = this.sum (last, open) / 2;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -163,9 +168,9 @@ module.exports = class lbank extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': this.safeFloat (ticker, 'change'),
-            'percentage': undefined,
-            'average': undefined,
+            'change': change,
+            'percentage': percentage,
+            'average': average,
             'baseVolume': this.safeFloat (ticker, 'vol'),
             'quoteVolume': this.safeFloat (ticker, 'turnover'),
             'info': info,
