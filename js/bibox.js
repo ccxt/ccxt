@@ -220,34 +220,53 @@ module.exports = class bibox extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = trade['time'];
+        let timestamp = this.safeInteger (trade, 'time');
+        timestamp = this.safeInteger (trade, 'createdAt', timestamp);
         let side = this.safeInteger (trade, 'side');
         side = this.safeInteger (trade, 'order_side', side);
         side = (side === 1) ? 'buy' : 'sell';
+        let symbol = undefined;
         if (typeof market === 'undefined') {
             let marketId = this.safeString (trade, 'pair');
-            if (typeof marketId !== 'undefined')
-                if (marketId in this.markets_by_id)
-                    market = this.markets_by_id[marketId];
+            if (typeof marketId === 'undefined') {
+                let baseId = this.safeString (trade, 'coin_symbol');
+                let quoteId = this.safeString (trade, 'currency_symbol');
+                if ((typeof baseId !== 'undefined') && (typeof quoteId !== 'undefined'))
+                    marketId = baseId + '_' + quoteId;
+            }
+            if (marketId in this.markets_by_id)
+                market = this.markets_by_id[marketId];
         }
-        let symbol = (typeof market !== 'undefined') ? market['symbol'] : undefined;
+        if (typeof market !== 'undefined') {
+            symbol = market['symbol'];
+        }
         let fee = undefined;
-        if ('fee' in trade) {
+        let feeCost = this.safeFloat (trade, 'fee');
+        let feeCurrency = undefined; // todo: deduce from market if market is defined
+        let feeRate = undefined; // todo: deduce from market if market is defined
+        let price = this.safeFloat (trade, 'price');
+        let amount = this.safeFloat (trade, 'amount');
+        let cost = price * amount;
+        if (typeof feeCost !== 'undefined') {
             fee = {
-                'cost': this.safeFloat (trade, 'fee'),
-                'currency': undefined,
+                'cost': feeCost,
+                'currency': feeCurrency,
+                'rate': feeRate,
             };
         }
         return {
-            'id': this.safeString (trade, 'id'),
             'info': trade,
+            'id': this.safeString (trade, 'id'),
+            'order': undefined, // Bibox does not have it (documented) yet
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'type': 'limit',
+            'takerOrMaker': undefined,
             'side': side,
-            'price': this.safeFloat (trade, 'price'),
-            'amount': this.safeFloat (trade, 'amount'),
+            'price': price,
+            'amount': amount,
+            'cost': cost,
             'fee': fee,
         };
     }
@@ -536,7 +555,7 @@ module.exports = class bibox extends Exchange {
         let market = this.market (symbol);
         let size = (limit) ? limit : 200;
         let response = await this.privatePostOrderpending ({
-            'cmd': 'orderpending/pendingHistoryList',
+            'cmd': 'orderpending/orderHistoryList',
             'body': this.extend ({
                 'pair': market['id'],
                 'account_type': 0, // 0 - regular, 1 - margin
@@ -545,7 +564,7 @@ module.exports = class bibox extends Exchange {
             }, params),
         });
         let trades = this.safeValue (response['result'], 'items', []);
-        return this.parseOrders (trades, market, since, limit);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     async fetchDepositAddress (code, params = {}) {
