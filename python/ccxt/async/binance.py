@@ -621,21 +621,39 @@ class binance (Exchange):
         if test:
             method += 'Test'
             params = self.omit(params, 'test')
+        uppercaseType = type.upper()
         order = {
             'symbol': market['id'],
             'quantity': self.amount_to_string(symbol, amount),
-            'type': type.upper(),
+            'type': uppercaseType,
             'side': side.upper(),
         }
-        priceIsDefined = (price is not None)
-        isMarketOrder = (type == 'market')
-        isLimitOrder = (type == 'limit')
-        shouldIncludePrice = isLimitOrder or (not isMarketOrder and priceIsDefined)
-        if shouldIncludePrice:
+        timeInForceIsRequired = False
+        priceIsRequired = False
+        stopPriceIsRequired = False
+        if uppercaseType == 'LIMIT':
+            priceIsRequired = True
+            timeInForceIsRequired = True
+        elif (uppercaseType == 'STOP_LOSS') or (uppercaseType == 'TAKE_PROFIT'):
+            stopPriceIsRequired = True
+        elif (uppercaseType == 'STOP_LOSS_LIMIT') or (uppercaseType == 'TAKE_PROFIT_LIMIT'):
+            stopPriceIsRequired = True
+            priceIsRequired = True
+            timeInForceIsRequired = True
+        elif uppercaseType == 'LIMIT_MAKER':
+            priceIsRequired = True
+        if priceIsRequired:
+            if price is None:
+                raise InvalidOrder(self.id + ' createOrder method requires a price argument for a ' + type + ' order')
             order['price'] = self.price_to_precision(symbol, price)
-        if isLimitOrder:
-            order['type'] = self.options['defaultLimitOrderType'].upper()
+        if timeInForceIsRequired:
             order['timeInForce'] = self.options['defaultTimeInForce']  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
+        if stopPriceIsRequired:
+            stopPrice = self.safe_float(params, 'stopPrice')
+            if stopPrice is None:
+                raise InvalidOrder(self.id + ' createOrder method requires a stopPrice extra param for a ' + type + ' order')
+            else:
+                order['stopPrice'] = self.price_to_precision(symbol, stopPrice)
         response = await getattr(self, method)(self.extend(order, params))
         return self.parse_order(response)
 
@@ -839,6 +857,9 @@ class binance (Exchange):
                         # on a temporary ban(the API key is valid, but disabled for a while)
                         if (error == '-2015') and self.options['hasAlreadyAuthenticatedSuccessfully']:
                             raise DDoSProtection(self.id + ' temporary banned: ' + body)
+                        message = self.safe_string(response, 'msg')
+                        if message == 'Order would trigger immediately.':
+                            raise InvalidOrder(self.id + ' ' + body)
                         raise exceptions[error](self.id + ' ' + body)
                     else:
                         raise ExchangeError(self.id + ': unknown error code: ' + body + ' ' + error)

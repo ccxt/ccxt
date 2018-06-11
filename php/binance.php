@@ -642,22 +642,43 @@ class binance extends Exchange {
             $method .= 'Test';
             $params = $this->omit ($params, 'test');
         }
+        $uppercaseType = strtoupper ($type);
         $order = array (
             'symbol' => $market['id'],
             'quantity' => $this->amount_to_string($symbol, $amount),
-            'type' => strtoupper ($type),
+            'type' => $uppercaseType,
             'side' => strtoupper ($side),
         );
-        $priceIsDefined = ($price !== null);
-        $isMarketOrder = ($type === 'market');
-        $isLimitOrder = ($type === 'limit');
-        $shouldIncludePrice = $isLimitOrder || (!$isMarketOrder && $priceIsDefined);
-        if ($shouldIncludePrice) {
+        $timeInForceIsRequired = false;
+        $priceIsRequired = false;
+        $stopPriceIsRequired = false;
+        if ($uppercaseType === 'LIMIT') {
+            $priceIsRequired = true;
+            $timeInForceIsRequired = true;
+        } else if (($uppercaseType === 'STOP_LOSS') || ($uppercaseType === 'TAKE_PROFIT')) {
+            $stopPriceIsRequired = true;
+        } else if (($uppercaseType === 'STOP_LOSS_LIMIT') || ($uppercaseType === 'TAKE_PROFIT_LIMIT')) {
+            $stopPriceIsRequired = true;
+            $priceIsRequired = true;
+            $timeInForceIsRequired = true;
+        } else if ($uppercaseType === 'LIMIT_MAKER') {
+            $priceIsRequired = true;
+        }
+        if ($priceIsRequired) {
+            if ($price === null)
+                throw new InvalidOrder ($this->id . ' createOrder $method requires a $price argument for a ' . $type . ' order');
             $order['price'] = $this->price_to_precision($symbol, $price);
         }
-        if ($isLimitOrder) {
-            $order['type'] = strtoupper ($this->options['defaultLimitOrderType']);
+        if ($timeInForceIsRequired) {
             $order['timeInForce'] = $this->options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+        }
+        if ($stopPriceIsRequired) {
+            $stopPrice = $this->safe_float($params, 'stopPrice');
+            if ($stopPrice === null) {
+                throw new InvalidOrder ($this->id . ' createOrder $method requires a $stopPrice extra param for a ' . $type . ' order');
+            } else {
+                $order['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
+            }
         }
         $response = $this->$method (array_merge ($order, $params));
         return $this->parse_order($response);
@@ -848,7 +869,7 @@ class binance extends Exchange {
         if (($code === 418) || ($code === 429))
             throw new DDoSProtection ($this->id . ' ' . (string) $code . ' ' . $reason . ' ' . $body);
         // $error $response in a form => array ( "$code" => -1013, "msg" => "Invalid quantity." )
-        // following block cointains legacy checks against message patterns in "msg" property
+        // following block cointains legacy checks against $message patterns in "msg" property
         // will switch "$code" checks eventually, when we know all of them
         if ($code >= 400) {
             if (mb_strpos ($body, 'Price * QTY is zero or less') !== false)
@@ -878,11 +899,14 @@ class binance extends Exchange {
                     $exceptions = $this->exceptions;
                     if (is_array ($exceptions) && array_key_exists ($error, $exceptions)) {
                         // a workaround for array ("$code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
-                        // despite that their message is very confusing, it is raised by Binance
+                        // despite that their $message is very confusing, it is raised by Binance
                         // on a temporary ban (the API key is valid, but disabled for a while)
                         if (($error === '-2015') && $this->options['hasAlreadyAuthenticatedSuccessfully']) {
                             throw new DDoSProtection ($this->id . ' temporary banned => ' . $body);
                         }
+                        $message = $this->safe_string($response, 'msg');
+                        if ($message === 'Order would trigger immediately.')
+                            throw new InvalidOrder ($this->id . ' ' . $body);
                         throw new $exceptions[$error] ($this->id . ' ' . $body);
                     } else {
                         throw new ExchangeError ($this->id . ' => unknown $error $code => ' . $body . ' ' . $error);
