@@ -241,22 +241,32 @@ module.exports = class bibox extends Exchange {
             symbol = market['symbol'];
         }
         let fee = undefined;
-        if ('fee' in trade) {
+        let feeCost = this.safeFloat (trade, 'fee');
+        let feeCurrency = undefined; // todo: deduce from market if market is defined
+        let feeRate = undefined; // todo: deduce from market if market is defined
+        let price = this.safeFloat (trade, 'price');
+        let amount = this.safeFloat (trade, 'amount');
+        let cost = price * amount;
+        if (typeof feeCost !== 'undefined') {
             fee = {
-                'cost': this.safeFloat (trade, 'fee'),
-                'currency': undefined,
+                'cost': feeCost,
+                'currency': feeCurrency,
+                'rate': feeRate,
             };
         }
         return {
-            'id': this.safeString (trade, 'id'),
             'info': trade,
+            'id': this.safeString (trade, 'id'),
+            'order': undefined, // Bibox does not have it (documented) yet
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'type': 'limit',
+            'takerOrMaker': undefined,
             'side': side,
-            'price': this.safeFloat (trade, 'price'),
-            'amount': this.safeFloat (trade, 'amount'),
+            'price': price,
+            'amount': amount,
+            'cost': cost,
             'fee': fee,
         };
     }
