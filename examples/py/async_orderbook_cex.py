@@ -39,7 +39,6 @@ async def main():
         print("ob received from: " + symbol)
         # pp.pprint(ob)
 
-    print("async_s")
     sys.stdout.flush()
 
     await exchange.async_subscribe_order_book(symbol)

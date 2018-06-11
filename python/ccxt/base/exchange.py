@@ -237,7 +237,7 @@ class Exchange(EventEmitter):
 
         if self.api:
             self.define_rest_api(self.api, 'request')
-
+        
         if self.asyncconf:
             self.define_async_connection(self.asyncconf)
 
@@ -297,6 +297,11 @@ class Exchange(EventEmitter):
                     setattr(self, underscore, partial)
 
     def define_async_connection(self, async_config):
+        def camel2snake(name):
+            return name[0].lower() + re.sub(r'(?!^)[A-Z]', lambda x: '_' + x.group(0).lower(), name[1:])
+        if 'methodmap' in async_config:
+            for m in async_config['methodmap']:
+                async_config['methodmap'][m] = camel2snake(async_config['methodmap'][m])
         if 'type' in async_config and async_config['type'] == 'ws':
             self.async_connection = WebsocketConnection(async_config, self.timeout, Exchange.loop)
             self.async_initialize()
@@ -1448,9 +1453,6 @@ class Exchange(EventEmitter):
             return await future
 
     async def async_subscribe_order_book(self, symbol):
-        print("async_subscribe_order_book")
-        sys.stdout.flush()
-
         await self.async_connect()
         oid = str(self.nonce()) + '-' + symbol + '-ob-subscribe'
         future = asyncio.Future()

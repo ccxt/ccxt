@@ -1170,6 +1170,8 @@ module.exports = class Exchange extends EventEmitter{
     }
 
     asyncSendJson (data) {
+        if (this.verbose)
+            console.log (data);
         this.asyncConnection.sendJson(data);
     }
 

@@ -724,10 +724,9 @@ abstract class Exchange extends CcxtEventEmitter {
 
         if ($this->api)
             $this->define_rest_api ($this->api, 'request');
-        
+
         if ($this->asyncconf)
             $this->define_async_connection ($this->asyncconf);
-
 
         if ($this->markets)
             $this->set_markets ($this->markets);
@@ -766,7 +765,14 @@ abstract class Exchange extends CcxtEventEmitter {
                 }
     }
 
-    public function define_async_connection ($async_config) {
+    public function define_async_connection (&$async_config) {
+        if (isset($async_config['methodmap'])) {
+            foreach($async_config['methodmap'] as $m => $method) {
+                $async_config['methodmap'][$m] =  preg_replace_callback('/[A-Z]/', function ($matches) {
+                    return '_' . strtolower($matches[0]);
+                }, $method);
+            }
+        }
         if ($async_config['type'] === 'ws') {
             $this->async_connection = new WebsocketConnection ($async_config, $this->timeout, self::$loop);
             $this->async_initialize ();
