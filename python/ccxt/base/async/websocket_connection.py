@@ -48,11 +48,14 @@ class WebsocketConnection(AsyncConnection):
         self.loop = loop # type: asyncio.BaseEventLoop
         self.client = None
          
-    def connect (self):
+    #def connect (self):
+    async def connect (self):
         if (self.client != None) and (self.client.state == WebSocketClientProtocol.STATE_OPEN):
-            return self.client.future
+            # return self.client.future
+            await self.client.future
         elif (self.client != None) and (self.client.state == WebSocketClientProtocol.STATE_CONNECTING):
-            return self.client.future
+            # return self.client.future
+            await self.client.future
         else:
             future = asyncio.Future(loop = self.loop)
             try:
@@ -66,12 +69,15 @@ class WebsocketConnection(AsyncConnection):
 
                 fut = self.loop.create_connection(factory, url_parsed.hostname, port, ssl=ssl)
                 self.loop.call_later(self.timeout/1000, lambda: future.done() or future.set_exception(TimeoutError()))
-                self.loop.run_until_complete(fut)
+                await fut
+                #self.loop.run_until_complete(fut)
                 self.client = client
             except Exception as ex:
                 future.done() or future.set_exception(ex)
                 self.emit('error', ex)
-            return future
+            # return future
+            await future
+
 
     def close (self):
         if self.client != None:

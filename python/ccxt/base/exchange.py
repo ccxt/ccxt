@@ -16,6 +16,8 @@ from ccxt.base.errors import RequestTimeout
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidAddress
 
+from ccxt.base.async.websocket_connection import WebsocketConnection
+
 # -----------------------------------------------------------------------------
 
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
@@ -49,11 +51,15 @@ from requests.utils import default_user_agent
 from requests.exceptions import HTTPError, Timeout, TooManyRedirects, RequestException
 # import socket
 from ssl import SSLError
-# import sys
+import sys
 import time
 import uuid
 import zlib
 from decimal import Decimal
+
+import asyncio
+from pyee import EventEmitter
+import json
 
 # -----------------------------------------------------------------------------
 
@@ -72,8 +78,11 @@ except NameError:
 # -----------------------------------------------------------------------------
 
 
-class Exchange(object):
+class Exchange(EventEmitter):
     """Base exchange class"""
+    # static variable
+    loop = asyncio.get_event_loop() # type: asyncio.BaseEventLoop
+
     id = None
     version = None
 
@@ -196,6 +205,10 @@ class Exchange(object):
     }
 
     def __init__(self, config={}):
+        super(Exchange, self).__init__()
+
+        self.asyncconf = {}
+        self.async_connection = None
 
         self.precision = {} if self.precision is None else self.precision
         self.limits = {} if self.limits is None else self.limits
@@ -225,6 +238,9 @@ class Exchange(object):
 
         if self.api:
             self.define_rest_api(self.api, 'request')
+
+        if self.asyncconf:
+            self.define_async_connection(self.asyncconf)
 
         if self.markets:
             self.set_markets(self.markets)
@@ -280,6 +296,11 @@ class Exchange(object):
                     partial = functools.partial(getattr(self, method_name), url, api_type, uppercase_method)
                     setattr(self, camelcase, partial)
                     setattr(self, underscore, partial)
+
+    def define_async_connection(self, async_config):
+        if 'type' in async_config and async_config['type'] == 'ws':
+            self.async_connection = WebsocketConnection(async_config, self.timeout, Exchange.loop)
+            self.async_initialize()
 
     def raise_error(self, exception_type, url=None, method=None, error=None, details=None):
         if error:
@@ -1020,6 +1041,58 @@ class Exchange(object):
             'datetime': self.iso8601(timestamp) if timestamp is not None else None,
             'nonce': None,
         }
+    
+    def parse_bids_asks2(self, bidasks, price_key=0, amount_key=1):
+        result = []
+        if len(bidasks):
+            if type(bidasks[0]) is list:
+                for bidask in bidasks:
+                    result.append(self.parse_bid_ask(bidask, price_key, amount_key))
+            elif type(bidasks[0]) is dict:
+                for bidask in bidasks:
+                    if (price_key in bidask) and (amount_key in bidask):
+                        result.append(self.parse_bid_ask(bidask, price_key, amount_key))
+            else:
+                self.raise_error(ExchangeError, details='unrecognized bidask format: ' + str(bidasks[0]))
+        return result
+
+
+    def searchIndexToInsertOrUpdate (self, value, orderedArray, key, descending = False):
+        direction = -1 if descending else 1
+        def compare(a, b):
+            return -direction if (a < b) else direction if (a > b) else 0
+        for i in range(len(orderedArray)):
+            if compare (orderedArray[i][key], value) >= 0:
+                return i
+        return i
+    
+    def updateBidAsk (self, bidAsk, currentBidsAsks, bids = False):
+        # insert or replace ordered
+        index = self.searchIndexToInsertOrUpdate (bidAsk[0], currentBidsAsks, 0, bids)
+        if ((index < len(currentBidsAsks)) and (currentBidsAsks[index][0] == bidAsk[0])):
+            # found
+            if (bidAsk[1] == 0):
+                # remove
+                del currentBidsAsks[index]
+            else:
+                # update
+                currentBidsAsks[index] = bidAsk
+        else:
+            if (bidAsk[1] != 0):
+                # insert
+                currentBidsAsks.insert( index, bidAsk)
+
+    def  mergeOrderBookDelta (self, currentOrderBook, orderbook, timestamp = None, bids_key = 'bids', asks_key = 'asks', price_key = 0, amount_key = 1):
+        bids = self.parse_bids_asks2(orderbook[bids_key], price_key, amount_key) if (bids_key in orderbook) and isinstance(orderbook[bids_key], list) else []
+        asks = self.parse_bids_asks2(orderbook[asks_key], price_key, amount_key) if (asks_key in orderbook) and isinstance(orderbook[asks_key], list) else []
+        for bid in bids:
+            self.updateBidAsk (bid, currentOrderBook['bids'], True)
+        for ask in asks:
+            self.updateBidAsk (ask, currentOrderBook['asks'], False)
+        
+        currentOrderBook['timestamp'] = timestamp
+        currentOrderBook['datetime'] = self.iso8601(timestamp) if timestamp is not None else None
+        return currentOrderBook
 
     def parse_balance(self, balance):
         currencies = self.omit(balance, 'info').keys()
@@ -1265,3 +1338,127 @@ class Exchange(object):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         raise NotSupported(self.id + ' sign() pure method must be redefined in derived classes')
+
+    # async methods
+    def async_reset_context(self):
+        self.asyncContext = {
+            'auth': False,
+            'ob': {},
+            'ticker': {},
+            'ready': False
+        }
+
+    async def async_connect(self):
+        if self.async_connection is None:
+            raise NotSupported("async service not supported by this exchange: " + self.id)
+        self.load_markets()
+        if not self.asyncContext['ready']:
+            print(self.asyncconf);print('wait4readyEvent' in self.asyncconf);sys.stdout.flush()
+            if 'wait4readyEvent' in self.asyncconf:
+                await self.async_connection.connect()
+                future = asyncio.Future()
+                @self.once(self.asyncconf['wait4readyEvent'])
+                def wait4ready_event(success, error = None):
+                    print(5);sys.stdout.flush()
+                    if success:
+                        self.asyncContext['ready'] = True
+                        future.done() or future.set_result(None)
+                    else:
+                        future.done() or future.set_exception(error)
+                print(4);sys.stdout.flush()
+                self.timeout_future(future, 'async_connect')
+                # self.loop.run_until_complete(future)
+                await future
+            else:
+                # self.loop.run_until_complete(self.async_connection.connect())
+                await self.async_connection.connect()
+
+    def asyncParseJson(self, raw_data):
+        return json.loads(raw_data)
+
+    def asyncClose(self):
+        self.async_connection.close()
+
+    def asyncSend(self, data):
+        if self.verbose:
+            print("Async send:" + data)
+            sys.stdout.flush()
+        self.async_connection.send(data)
+
+    def asyncSendJson(self, data):
+        if self.verbose:
+            print("Async send:" + json.dumps(data))
+            sys.stdout.flush()
+        self.async_connection.sendJson(data)
+
+    def async_initialize(self):
+        self.async_reset_context()
+        @self.async_connection.on('error')
+        def async_connection_error(error):
+            self.asyncContext['auth'] = False
+            self.async_reset_context()
+            self.emit('error', error)
+        
+        @self.async_connection.on('message')
+        def async_connection_message(msg):
+            if self.verbose:
+                print("Async recv:" + msg)
+                sys.stdout.flush()
+            try:
+                self._async_on_msg(msg)
+            except Exception as ex:
+                self.emit('error', ex)
+        
+        @self.async_connection.on('close')
+        def async_connection_close():
+            self.asyncContext['auth'] = False
+            self.emit('close')
+
+    def timeout_future(self, future, scope):
+        self.loop.call_later(self.timeout/1000, lambda: future.done() or future.set_exception(TimeoutError("timeout in scope: "+ scope)))
+
+    def clone_order_book(self, ob, limit=None):
+        ret = {
+            'timestamp': ob['timestamp'],
+            'datetime': ob['datetime'],
+            'nonce': ob['nonce']
+        }
+        if limit is None:
+            ret['bids'] = ob['bids'][:]
+            ret['asks'] = ob['asks'][:]
+        else:
+            ret['bids'] = ob['bids'][:limit]
+            ret['asks'] = ob['asks'][:limit]
+        return ret
+    
+    async def async_fetch_order_book(self, symbol, limit = None):
+        await self.async_connect()
+        if (self.asyncContext['ob'][symbol]):
+            return self.clone_order_book(self.asyncContext['ob'][symbol], limit)
+        else:
+            future = asyncio.Future()
+            def wait4orderbook(symbol_r, ob):
+                if symbol_r == symbol:
+                    self.remove_listener('ob', wait4orderbook)
+                    future.done() or future.set_result(self.clone_order_book(ob, limit))
+                
+            self.on('ob', wait4orderbook)
+            self.timeout_future(future, 'async_fetch_order_book')
+            return await future
+    
+    async def async_subscribe_order_book (self, symbol):
+        print("async_subscribe_order_book")
+        sys.stdout.flush()
+
+        await self.async_connect()
+        oid = str(self.nonce()) + '-' + symbol + '-ob-subscribe'
+        future = asyncio.Future()
+        @self.once(oid)
+        def wait4obsubscribe(success, data):
+            if success:
+                future.done() or future.set_result(data)
+            else:
+                future.done() or future.set_exception(data)
+        self.timeout_future(future, 'async_subscribe_order_book')
+        self._async_subscribe_order_book (symbol, oid)
+        await future

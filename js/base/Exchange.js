@@ -114,7 +114,7 @@ module.exports = class Exchange extends EventEmitter{
                 'fees': undefined,
             },
             'api': undefined,
-            'async': undefined,
+            'asyncconf': undefined,
             'requiredCredentials': {
                 'apiKey':   true,
                 'secret':   true,
@@ -254,8 +254,8 @@ module.exports = class Exchange extends EventEmitter{
         if (this.api)
             this.defineRestApi (this.api, 'request')
 
-        if (this.async)
-            this.defineAsyncConnection (this.async);
+        if (this.asyncconf)
+            this.defineAsyncConnection (this.asyncconf);
 
         this.initRestRateLimiter ()
 
@@ -857,7 +857,7 @@ module.exports = class Exchange extends EventEmitter{
                 currentBidsAsks[index] = bidAsk;
             }
         } else {
-            if (bidAsk[1] === 0) {
+            if (bidAsk[1] !== 0) {
                 // insert
                 currentBidsAsks.splice (index, 0, bidAsk);
             }
@@ -1139,9 +1139,9 @@ module.exports = class Exchange extends EventEmitter{
         }
         await this.loadMarkets();
         if (!this.asyncContext.ready) {
-            if (this.async.wait4readyEvent !== undefined){
+            if (this.asyncconf.wait4readyEvent !== undefined){
                 await new Promise(async (resolve, reject) => {
-                    this.once (this.async.wait4readyEvent, (success, error) => {
+                    this.once (this.asyncconf.wait4readyEvent, (success, error) => {
                         if (success) {
                             this.asyncContext.ready = true;
                             resolve();

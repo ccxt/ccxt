@@ -620,7 +620,7 @@ abstract class Exchange extends CcxtEventEmitter {
         $this->version   = null;
         $this->urls      = array ();
         $this->api       = array ();
-        $this->async     = array ();
+        $this->asyncconf = array ();
         $this->comment   = null;
 
         $this->markets     = null;
@@ -725,8 +725,8 @@ abstract class Exchange extends CcxtEventEmitter {
         if ($this->api)
             $this->define_rest_api ($this->api, 'request');
         
-        if ($this->async)
-            $this->define_async_connection ($this->async);
+        if ($this->asyncconf)
+            $this->define_async_connection ($this->asyncconf);
 
 
         if ($this->markets)
@@ -1250,7 +1250,7 @@ abstract class Exchange extends CcxtEventEmitter {
                 $currentBidsAsks[$index] = $bidAsk;
             }
         } else {
-            if ($bidAsk[1] === 0) {
+            if ($bidAsk[1] !== 0) {
                 // insert
                 array_splice ($currentBidsAsks, $index, 0, $bidAsk);
             }
@@ -1958,10 +1958,10 @@ abstract class Exchange extends CcxtEventEmitter {
         }
         $this->load_markets();
         if (!$this->asyncContext['ready']) {
-            if (isset ($this->async['wait4readyEvent'])) {
+            if (isset ($this->asyncconf['wait4readyEvent'])) {
                 Clue\React\Block\await ($this->async_connection->connect (), self::$loop);
                 $deferred = new \React\Promise\Deferred();
-                $this->once ($this->async['wait4readyEvent'], function ($success, $error = null) use ($deferred, $that){
+                $this->once ($this->asyncconf['wait4readyEvent'], function ($success, $error = null) use ($deferred, $that){
                     if ($success) {
                         $that->asyncContext['ready'] = true;
                         $deferred->resolve();
