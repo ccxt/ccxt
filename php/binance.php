@@ -648,14 +648,16 @@ class binance extends Exchange {
             'type' => strtoupper ($type),
             'side' => strtoupper ($side),
         );
-        if ($type === 'limit') {
-            $order['type'] = strtoupper ($this->options['defaultLimitOrderType']);
-            $order = array_merge ($order, array (
-                'price' => $this->price_to_precision($symbol, $price),
-                'timeInForce' => $this->options['defaultTimeInForce'], // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
-            ));
-        } else if ($type === 'limit_maker') {
+        $priceIsDefined = ($price !== null);
+        $isMarketOrder = ($type === 'market');
+        $isLimitOrder = ($type === 'limit');
+        $shouldIncludePrice = $isLimitOrder || (!$isMarketOrder && $priceIsDefined);
+        if ($shouldIncludePrice) {
             $order['price'] = $this->price_to_precision($symbol, $price);
+        }
+        if ($isLimitOrder) {
+            $order['type'] = strtoupper ($this->options['defaultLimitOrderType']);
+            $order['timeInForce'] = $this->options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
         $response = $this->$method (array_merge ($order, $params));
         return $this->parse_order($response);

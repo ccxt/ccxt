@@ -627,14 +627,15 @@ class binance (Exchange):
             'type': type.upper(),
             'side': side.upper(),
         }
-        if type == 'limit':
-            order['type'] = self.options['defaultLimitOrderType'].upper()
-            order = self.extend(order, {
-                'price': self.price_to_precision(symbol, price),
-                'timeInForce': self.options['defaultTimeInForce'],  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
-            })
-        elif type == 'limit_maker':
+        priceIsDefined = (price is not None)
+        isMarketOrder = (type == 'market')
+        isLimitOrder = (type == 'limit')
+        shouldIncludePrice = isLimitOrder or (not isMarketOrder and priceIsDefined)
+        if shouldIncludePrice:
             order['price'] = self.price_to_precision(symbol, price)
+        if isLimitOrder:
+            order['type'] = self.options['defaultLimitOrderType'].upper()
+            order['timeInForce'] = self.options['defaultTimeInForce']  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
         response = getattr(self, method)(self.extend(order, params))
         return self.parse_order(response)
 
