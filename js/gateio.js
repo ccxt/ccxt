@@ -221,6 +221,16 @@ module.exports = class gateio extends Exchange {
         if (market)
             symbol = market['symbol'];
         let last = this.safeFloat (ticker, 'last');
+        let percentage = this.safeFloat (ticker, 'percentChange');
+        let open = undefined;
+        let change = undefined;
+        let average = undefined;
+        if ((typeof last !== 'undefined') && (typeof percentage !== 'undefined')) {
+            let relativeChange = percentage / 100;
+            open = last / this.sum (1, relativeChange);
+            change = last - open;
+            average = this.sum (last, open) / 2;
+        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -232,13 +242,13 @@ module.exports = class gateio extends Exchange {
             'ask': this.safeFloat (ticker, 'lowestAsk'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': undefined,
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': this.safeFloat (ticker, 'percentChange'),
-            'percentage': undefined,
-            'average': undefined,
+            'change': change,
+            'percentage': percentage,
+            'average': average,
             'baseVolume': this.safeFloat (ticker, 'quoteVolume'),
             'quoteVolume': this.safeFloat (ticker, 'baseVolume'),
             'info': ticker,
