@@ -149,6 +149,11 @@ class lbank extends Exchange {
         $info = $ticker;
         $ticker = $info['ticker'];
         $last = $this->safe_float($ticker, 'latest');
+        $percentage = $this->safe_float($ticker, 'change');
+        $relativeChange = $percentage / 100;
+        $open = $last / $this->sum (1, $relativeChange);
+        $change = $last - $open;
+        $average = $this->sum ($last, $open) / 2;
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -164,9 +169,9 @@ class lbank extends Exchange {
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $this->safe_float($ticker, 'change'),
-            'percentage' => null,
-            'average' => null,
+            'change' => $change,
+            'percentage' => $percentage,
+            'average' => $average,
             'baseVolume' => $this->safe_float($ticker, 'vol'),
             'quoteVolume' => $this->safe_float($ticker, 'turnover'),
             'info' => $info,

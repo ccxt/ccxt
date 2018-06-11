@@ -150,6 +150,11 @@ class lbank (Exchange):
         info = ticker
         ticker = info['ticker']
         last = self.safe_float(ticker, 'latest')
+        percentage = self.safe_float(ticker, 'change')
+        relativeChange = percentage / 100
+        open = last / self.sum(1, relativeChange)
+        change = last - open
+        average = self.sum(last, open) / 2
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -165,9 +170,9 @@ class lbank (Exchange):
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': self.safe_float(ticker, 'change'),
-            'percentage': None,
-            'average': None,
+            'change': change,
+            'percentage': percentage,
+            'average': average,
             'baseVolume': self.safe_float(ticker, 'vol'),
             'quoteVolume': self.safe_float(ticker, 'turnover'),
             'info': info,
