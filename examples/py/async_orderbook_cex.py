@@ -1,4 +1,3 @@
-import asyncio
 import os
 import sys
 import pprint
@@ -7,9 +6,10 @@ pp = pprint.PrettyPrinter(depth=6)
 
 root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(root + '/python')
-import ccxt
+import ccxt  # noqa: E402
 
 loop = ccxt.Exchange.loop
+
 
 async def main():
     if len(sys.argv) <= 4:
@@ -21,7 +21,6 @@ async def main():
     symbol = sys.argv[3]
     limit = int(sys.argv[4])
 
-
     exchange = ccxt.cex({
         "apiKey": apiKey,
         "secret": secret,
@@ -31,22 +30,22 @@ async def main():
     })
 
     @exchange.on('error')
-    def async_error(err):
+    def async_error(err):  # pylint: disable=W0612
         print(err)
         loop.stop()
 
     @exchange.on('ob')
-    def async_ob(symbol, ob):
+    def async_ob(symbol, ob):  # pylint: disable=W0612
         print("ob received from: " + symbol)
-        #pp.pprint(ob)
+        # pp.pprint(ob)
 
     print("async_s")
     sys.stdout.flush()
 
     await exchange.async_subscribe_order_book(symbol)
-    ob = await exchange.async_fetch_order_book(symbol, limit)
+    ob = await exchange.async_fetch_order_book(symbol, limit)  # noqa: F841 pylint: disable=W0612
     print("od received\n")
-    #pp.pprint(ob)
+    # pp.pprint(ob)
 
 
 loop.run_until_complete(main())

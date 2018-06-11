@@ -59,7 +59,6 @@ from decimal import Decimal
 
 import asyncio
 from pyee import EventEmitter
-import json
 
 # -----------------------------------------------------------------------------
 
@@ -81,7 +80,7 @@ except NameError:
 class Exchange(EventEmitter):
     """Base exchange class"""
     # static variable
-    loop = asyncio.get_event_loop() # type: asyncio.BaseEventLoop
+    loop = asyncio.get_event_loop()  # type: asyncio.BaseEventLoop
 
     id = None
     version = None
@@ -1041,7 +1040,7 @@ class Exchange(EventEmitter):
             'datetime': self.iso8601(timestamp) if timestamp is not None else None,
             'nonce': None,
         }
-    
+
     def parse_bids_asks2(self, bidasks, price_key=0, amount_key=1):
         result = []
         if len(bidasks):
@@ -1056,19 +1055,20 @@ class Exchange(EventEmitter):
                 self.raise_error(ExchangeError, details='unrecognized bidask format: ' + str(bidasks[0]))
         return result
 
-
-    def searchIndexToInsertOrUpdate (self, value, orderedArray, key, descending = False):
+    def searchIndexToInsertOrUpdate(self, value, orderedArray, key, descending=False):
         direction = -1 if descending else 1
+
         def compare(a, b):
             return -direction if (a < b) else direction if (a > b) else 0
+
         for i in range(len(orderedArray)):
-            if compare (orderedArray[i][key], value) >= 0:
+            if compare(orderedArray[i][key], value) >= 0:
                 return i
         return i
-    
-    def updateBidAsk (self, bidAsk, currentBidsAsks, bids = False):
+
+    def updateBidAsk(self, bidAsk, currentBidsAsks, bids=False):
         # insert or replace ordered
-        index = self.searchIndexToInsertOrUpdate (bidAsk[0], currentBidsAsks, 0, bids)
+        index = self.searchIndexToInsertOrUpdate(bidAsk[0], currentBidsAsks, 0, bids)
         if ((index < len(currentBidsAsks)) and (currentBidsAsks[index][0] == bidAsk[0])):
             # found
             if (bidAsk[1] == 0):
@@ -1080,16 +1080,16 @@ class Exchange(EventEmitter):
         else:
             if (bidAsk[1] != 0):
                 # insert
-                currentBidsAsks.insert( index, bidAsk)
+                currentBidsAsks.insert(index, bidAsk)
 
-    def  mergeOrderBookDelta (self, currentOrderBook, orderbook, timestamp = None, bids_key = 'bids', asks_key = 'asks', price_key = 0, amount_key = 1):
+    def mergeOrderBookDelta(self, currentOrderBook, orderbook, timestamp=None, bids_key='bids', asks_key='asks', price_key=0, amount_key=1):
         bids = self.parse_bids_asks2(orderbook[bids_key], price_key, amount_key) if (bids_key in orderbook) and isinstance(orderbook[bids_key], list) else []
         asks = self.parse_bids_asks2(orderbook[asks_key], price_key, amount_key) if (asks_key in orderbook) and isinstance(orderbook[asks_key], list) else []
         for bid in bids:
-            self.updateBidAsk (bid, currentOrderBook['bids'], True)
+            self.updateBidAsk(bid, currentOrderBook['bids'], True)
         for ask in asks:
-            self.updateBidAsk (ask, currentOrderBook['asks'], False)
-        
+            self.updateBidAsk(ask, currentOrderBook['asks'], False)
+
         currentOrderBook['timestamp'] = timestamp
         currentOrderBook['datetime'] = self.iso8601(timestamp) if timestamp is not None else None
         return currentOrderBook
@@ -1353,19 +1353,18 @@ class Exchange(EventEmitter):
             raise NotSupported("async service not supported by this exchange: " + self.id)
         self.load_markets()
         if not self.asyncContext['ready']:
-            print(self.asyncconf);print('wait4readyEvent' in self.asyncconf);sys.stdout.flush()
             if 'wait4readyEvent' in self.asyncconf:
                 await self.async_connection.connect()
                 future = asyncio.Future()
+
                 @self.once(self.asyncconf['wait4readyEvent'])
-                def wait4ready_event(success, error = None):
-                    print(5);sys.stdout.flush()
+                def wait4ready_event(success, error=None):
                     if success:
                         self.asyncContext['ready'] = True
                         future.done() or future.set_result(None)
                     else:
                         future.done() or future.set_exception(error)
-                print(4);sys.stdout.flush()
+
                 self.timeout_future(future, 'async_connect')
                 # self.loop.run_until_complete(future)
                 await future
@@ -1393,12 +1392,13 @@ class Exchange(EventEmitter):
 
     def async_initialize(self):
         self.async_reset_context()
+
         @self.async_connection.on('error')
         def async_connection_error(error):
             self.asyncContext['auth'] = False
             self.async_reset_context()
             self.emit('error', error)
-        
+
         @self.async_connection.on('message')
         def async_connection_message(msg):
             if self.verbose:
@@ -1408,14 +1408,14 @@ class Exchange(EventEmitter):
                 self._async_on_msg(msg)
             except Exception as ex:
                 self.emit('error', ex)
-        
+
         @self.async_connection.on('close')
         def async_connection_close():
             self.asyncContext['auth'] = False
             self.emit('close')
 
     def timeout_future(self, future, scope):
-        self.loop.call_later(self.timeout/1000, lambda: future.done() or future.set_exception(TimeoutError("timeout in scope: "+ scope)))
+        self.loop.call_later(self.timeout / 1000, lambda: future.done() or future.set_exception(TimeoutError("timeout in scope: " + scope)))
 
     def clone_order_book(self, ob, limit=None):
         ret = {
@@ -1430,29 +1430,31 @@ class Exchange(EventEmitter):
             ret['bids'] = ob['bids'][:limit]
             ret['asks'] = ob['asks'][:limit]
         return ret
-    
-    async def async_fetch_order_book(self, symbol, limit = None):
+
+    async def async_fetch_order_book(self, symbol, limit=None):
         await self.async_connect()
         if (self.asyncContext['ob'][symbol]):
             return self.clone_order_book(self.asyncContext['ob'][symbol], limit)
         else:
             future = asyncio.Future()
+
             def wait4orderbook(symbol_r, ob):
                 if symbol_r == symbol:
                     self.remove_listener('ob', wait4orderbook)
                     future.done() or future.set_result(self.clone_order_book(ob, limit))
-                
+
             self.on('ob', wait4orderbook)
             self.timeout_future(future, 'async_fetch_order_book')
             return await future
-    
-    async def async_subscribe_order_book (self, symbol):
+
+    async def async_subscribe_order_book(self, symbol):
         print("async_subscribe_order_book")
         sys.stdout.flush()
 
         await self.async_connect()
         oid = str(self.nonce()) + '-' + symbol + '-ob-subscribe'
         future = asyncio.Future()
+
         @self.once(oid)
         def wait4obsubscribe(success, data):
             if success:
@@ -1460,5 +1462,5 @@ class Exchange(EventEmitter):
             else:
                 future.done() or future.set_exception(data)
         self.timeout_future(future, 'async_subscribe_order_book')
-        self._async_subscribe_order_book (symbol, oid)
+        self._async_subscribe_order_book(symbol, oid)
         await future

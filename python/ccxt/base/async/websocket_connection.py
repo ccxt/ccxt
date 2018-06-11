@@ -4,15 +4,14 @@ from .async_connection import AsyncConnection
 from autobahn.asyncio.websocket import WebSocketClientProtocol, \
     WebSocketClientFactory
 import asyncio
-import re
 from urllib.parse import urlparse
-import sys
+
 
 class MyClientProtocol(WebSocketClientProtocol):
     def __init__(self, event_emitter, future):
         super(MyClientProtocol, self).__init__()
-        self.event_emitter = event_emitter # type: pyee.EventEmitter
-        self.future = future # type: asyncio.Future
+        self.event_emitter = event_emitter  # type: pyee.EventEmitter
+        self.future = future  # type: asyncio.Future
         self.is_closing = False
 
     def onConnect(self, response):
@@ -37,27 +36,26 @@ class MyClientProtocol(WebSocketClientProtocol):
             self.event_emitter.emit('error', Exception(reason))
         else:
             self.event_emitter.emit('close')
-        
+
 
 class WebsocketConnection(AsyncConnection):
-
     def __init__(self, options, timeout, loop):
         super(WebsocketConnection, self).__init__()
         self.options = options
         self.timeout = timeout
-        self.loop = loop # type: asyncio.BaseEventLoop
+        self.loop = loop  # type: asyncio.BaseEventLoop
         self.client = None
-         
-    #def connect (self):
-    async def connect (self):
-        if (self.client != None) and (self.client.state == WebSocketClientProtocol.STATE_OPEN):
+
+    # def connect (self):
+    async def connect(self):
+        if (self.client is not None) and (self.client.state == WebSocketClientProtocol.STATE_OPEN):
             # return self.client.future
             await self.client.future
-        elif (self.client != None) and (self.client.state == WebSocketClientProtocol.STATE_CONNECTING):
+        elif (self.client is not None) and (self.client.state == WebSocketClientProtocol.STATE_CONNECTING):
             # return self.client.future
             await self.client.future
         else:
-            future = asyncio.Future(loop = self.loop)
+            future = asyncio.Future(loop=self.loop)
             try:
                 url_parsed = urlparse(self.options['url'])
                 ssl = True if url_parsed.scheme == 'wss' else False
@@ -68,9 +66,9 @@ class WebsocketConnection(AsyncConnection):
                 factory.protocol = lambda: client
 
                 fut = self.loop.create_connection(factory, url_parsed.hostname, port, ssl=ssl)
-                self.loop.call_later(self.timeout/1000, lambda: future.done() or future.set_exception(TimeoutError()))
+                self.loop.call_later(self.timeout / 1000, lambda: future.done() or future.set_exception(TimeoutError()))
                 await fut
-                #self.loop.run_until_complete(fut)
+                # self.loop.run_until_complete(fut)
                 self.client = client
             except Exception as ex:
                 future.done() or future.set_exception(ex)
@@ -78,14 +76,12 @@ class WebsocketConnection(AsyncConnection):
             # return future
             await future
 
-
-    def close (self):
-        if self.client != None:
+    def close(self):
+        if self.client is not None:
             self.client.is_closing = True
             self.client._closeConnection(True)
             self.client = None
 
-    def send (self, data):
-        if self.client != None:
+    def send(self, data):
+        if self.client is not None:
             self.client.sendMessage(data.encode('utf8'))
-    
