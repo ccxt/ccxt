@@ -316,11 +316,11 @@ class bitflyer (Exchange):
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=100, params={}):
         params['child_order_state'] = 'ACTIVE'
-        return await self.fetch_orders(symbol, since, limit, params)
+        return self.fetch_orders(symbol, since, limit, params)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=100, params={}):
         params['child_order_state'] = 'COMPLETED'
-        return await self.fetch_orders(symbol, since, limit, params)
+        return self.fetch_orders(symbol, since, limit, params)
 
     async def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
