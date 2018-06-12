@@ -543,51 +543,6 @@ module.exports = class cex extends Exchange {
         };
     }
 
-    _asyncOnMsgOld (data) {
-        let msg = this.asyncParseJson (data);
-        let e = this.safeString (msg, 'e');
-        let oid = this.safeString (msg, 'oid');
-        let resData = this.safeValue (msg, 'data', {});
-        if (e === 'connected') {
-            this.asyncSendJson (this._asyncAuthPayload ());
-        } else if (e === 'auth') {
-            this.asyncContext['auth'] = true;
-            if (msg['ok'] === 'ok') {
-                this.emit ('auth', true);
-            } else {
-                this.emit ('auth', false, new AuthenticationError (this.safeString (resData, 'error', 'auth error')));
-            }
-        } else if (e === 'ping') {
-            this.asyncSendJson ({ 'e': 'pong' });
-        } else if (e === 'order-book-subscribe') {
-            if (msg['ok'] === 'ok') {
-                let symbol = resData['pair'].replace (':', '/');
-                let timestamp = resData['timestamp'] * 1000;
-                let ob = this.parseOrderBook (resData, timestamp);
-                ob['nonce'] = resData['id'];
-                this.asyncContext['ob'][symbol] = ob;
-                this.emit (oid, true, ob);
-                this.emit ('ob', symbol, ob);
-            } else {
-                let error = new ExchangeError (this.safeString (resData, 'error', 'orderbook error'));
-                this.emit (oid, false, error);
-            }
-        } else if (e === 'md_update') {
-            let symbol = resData['pair'].replace (':', '/');
-            let timestamp = resData['time'];
-            let ob = this.asyncContext['ob'][symbol];
-            if (ob['nonce'] !== (resData['id'] - 1)) {
-                this.asyncClose ();
-                this.emit ('error', new ExchangeError ('invalid orderbook sequence in ' + this.id + ' ' + ob['nonce'] + ' !== ' + resData['id'] + ' -1'));
-            } else {
-                ob = this.mergeOrderBookDelta (ob, resData, timestamp);
-                ob['nonce'] = resData['id'];
-                this.asyncContext['ob'][symbol] = ob;
-                this.emit ('ob', symbol, ob);
-            }
-        }
-    }
-
     _asyncOnMsg (data) {
         let msg = this.asyncParseJson (data);
         let e = this.safeString (msg, 'e');
