@@ -217,7 +217,8 @@ class gatecoin (Exchange):
                 '1005': InsufficientFunds,
                 '1008': OrderNotFound,
                 '1057': InvalidOrder,
-                '1044': OrderNotFound,  # already canceled
+                '1044': OrderNotFound,  # already canceled,
+                '1054': OrderNotFound,  # already executed
             },
         })
 

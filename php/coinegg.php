@@ -211,6 +211,16 @@ class coinegg extends Exchange {
         $symbol = $market['symbol'];
         $timestamp = $this->milliseconds ();
         $last = $this->safe_float($ticker, 'last');
+        $percentage = $this->safe_float($ticker, 'change');
+        $open = null;
+        $change = null;
+        $average = null;
+        if ($percentage !== null) {
+            $relativeChange = $percentage / 100;
+            $open = $last / $this->sum (1, $relativeChange);
+            $change = $last - $open;
+            $average = $this->sum ($last, $open) / 2;
+        }
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -222,13 +232,13 @@ class coinegg extends Exchange {
             'ask' => $this->safe_float($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => null,
-            'open' => null,
+            'open' => $open,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $this->safe_float($ticker, 'change'),
-            'percentage' => null,
-            'average' => null,
+            'change' => $change,
+            'percentage' => $percentage,
+            'average' => $average,
             'baseVolume' => $this->safe_float($ticker, 'vol'),
             'quoteVolume' => $this->safe_float($ticker, 'quoteVol'),
             'info' => $ticker,

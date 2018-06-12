@@ -332,10 +332,11 @@ class kucoin (Exchange):
         if limit is not None:
             request['limit'] = limit
         response = await self.publicGetOpenOrders(self.extend(request, params))
-        dataInResponse = ('data' in list(response.keys()))
         orderbook = None
         timestamp = None
-        if not dataInResponse:
+        # sometimes kucoin returns self:
+        # {"success":true,"code":"OK","msg":"Operation succeeded.","timestamp":xxxxxxxxxxxxx,"data":null}
+        if not('data' in list(response.keys())) or not response['data']:
             if self.options['fetchOrderBookWarning']:
                 raise ExchangeError(self.id + " fetchOrderBook returned an null response. Set exchange.options['fetchOrderBookWarning'] = False to silence self warning")
             orderbook = {

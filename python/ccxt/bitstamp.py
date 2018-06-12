@@ -373,12 +373,12 @@ class bitstamp (Exchange):
         method = 'privatePost' + self.capitalize(side)
         order = {
             'pair': self.market_id(symbol),
-            'amount': amount,
+            'amount': self.amount_to_precision(symbol, amount),
         }
         if type == 'market':
             method += 'Market'
         else:
-            order['price'] = price
+            order['price'] = self.price_to_precision(symbol, price)
         method += 'Pair'
         response = getattr(self, method)(self.extend(order, params))
         return {

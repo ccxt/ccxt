@@ -595,7 +595,7 @@ module.exports = class binance extends Exchange {
             iso8601 = this.iso8601 (timestamp);
         let price = this.safeFloat (order, 'price');
         let amount = this.safeFloat (order, 'origQty');
-        let filled = this.safeFloat (order, 'executedQty', 0.0);
+        let filled = this.safeFloat (order, 'executedQty');
         let remaining = undefined;
         let cost = undefined;
         if (typeof filled !== 'undefined') {
@@ -641,20 +641,43 @@ module.exports = class binance extends Exchange {
             method += 'Test';
             params = this.omit (params, 'test');
         }
+        let uppercaseType = type.toUpperCase ();
         let order = {
             'symbol': market['id'],
             'quantity': this.amountToString (symbol, amount),
-            'type': type.toUpperCase (),
+            'type': uppercaseType,
             'side': side.toUpperCase (),
         };
-        if (type === 'limit') {
-            order['type'] = this.options['defaultLimitOrderType'].toUpperCase ();
-            order = this.extend (order, {
-                'price': this.priceToPrecision (symbol, price),
-                'timeInForce': this.options['defaultTimeInForce'], // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
-            });
-        } else if (type === 'limit_maker') {
+        let timeInForceIsRequired = false;
+        let priceIsRequired = false;
+        let stopPriceIsRequired = false;
+        if (uppercaseType === 'LIMIT') {
+            priceIsRequired = true;
+            timeInForceIsRequired = true;
+        } else if ((uppercaseType === 'STOP_LOSS') || (uppercaseType === 'TAKE_PROFIT')) {
+            stopPriceIsRequired = true;
+        } else if ((uppercaseType === 'STOP_LOSS_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
+            stopPriceIsRequired = true;
+            priceIsRequired = true;
+            timeInForceIsRequired = true;
+        } else if (uppercaseType === 'LIMIT_MAKER') {
+            priceIsRequired = true;
+        }
+        if (priceIsRequired) {
+            if (typeof price === 'undefined')
+                throw new InvalidOrder (this.id + ' createOrder method requires a price argument for a ' + type + ' order');
             order['price'] = this.priceToPrecision (symbol, price);
+        }
+        if (timeInForceIsRequired) {
+            order['timeInForce'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+        }
+        if (stopPriceIsRequired) {
+            let stopPrice = this.safeFloat (params, 'stopPrice');
+            if (typeof stopPrice === 'undefined') {
+                throw new InvalidOrder (this.id + ' createOrder method requires a stopPrice extra param for a ' + type + ' order');
+            } else {
+                order['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
+            }
         }
         let response = await this[method] (this.extend (order, params));
         return this.parseOrder (response);
@@ -723,7 +746,7 @@ module.exports = class binance extends Exchange {
             'orderId': parseInt (id),
             // 'origClientOrderId': id,
         }, params));
-        return response;
+        return this.parseOrder (response);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -880,6 +903,9 @@ module.exports = class binance extends Exchange {
                         if ((error === '-2015') && this.options['hasAlreadyAuthenticatedSuccessfully']) {
                             throw new DDoSProtection (this.id + ' temporary banned: ' + body);
                         }
+                        const message = this.safeString (response, 'msg');
+                        if (message === 'Order would trigger immediately.')
+                            throw new InvalidOrder (this.id + ' ' + body);
                         throw new exceptions[error] (this.id + ' ' + body);
                     } else {
                         throw new ExchangeError (this.id + ': unknown error code: ' + body + ' ' + error);

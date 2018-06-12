@@ -221,6 +221,16 @@ module.exports = class gateio extends Exchange {
         if (market)
             symbol = market['symbol'];
         let last = this.safeFloat (ticker, 'last');
+        let percentage = this.safeFloat (ticker, 'percentChange');
+        let open = undefined;
+        let change = undefined;
+        let average = undefined;
+        if ((typeof last !== 'undefined') && (typeof percentage !== 'undefined')) {
+            let relativeChange = percentage / 100;
+            open = last / this.sum (1, relativeChange);
+            change = last - open;
+            average = this.sum (last, open) / 2;
+        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -232,13 +242,13 @@ module.exports = class gateio extends Exchange {
             'ask': this.safeFloat (ticker, 'lowestAsk'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': undefined,
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': this.safeFloat (ticker, 'percentChange'),
-            'percentage': undefined,
-            'average': undefined,
+            'change': change,
+            'percentage': percentage,
+            'average': average,
             'baseVolume': this.safeFloat (ticker, 'quoteVolume'),
             'quoteVolume': this.safeFloat (ticker, 'baseVolume'),
             'info': ticker,
@@ -359,11 +369,9 @@ module.exports = class gateio extends Exchange {
     parseOrder (order, market = undefined) {
         let id = this.safeString (order, 'orderNumber');
         let symbol = undefined;
-        if (typeof market === 'undefined') {
-            let marketId = this.safeString (order, 'currencyPair');
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            }
+        let marketId = this.safeString (order, 'currencyPair');
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
         }
         if (typeof market !== 'undefined')
             symbol = market['symbol'];
@@ -480,7 +488,7 @@ module.exports = class gateio extends Exchange {
         if (typeof symbol !== 'undefined') {
             market = this.market (symbol);
         }
-        let response = this.privatePostOpenOrders ();
+        let response = await this.privatePostOpenOrders ();
         return this.parseOrders (response['orders'], market, since, limit);
     }
 
@@ -490,7 +498,7 @@ module.exports = class gateio extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let id = market['id'];
-        let response = this.privatePostTradeHistory (this.extend ({ 'currencyPair': id }, params));
+        let response = await this.privatePostTradeHistory (this.extend ({ 'currencyPair': id }, params));
         return this.parseTrades (response['trades'], market, since, limit);
     }
 

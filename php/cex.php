@@ -183,9 +183,13 @@ class cex extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $orderbook = $this->publicGetOrderBookPair (array_merge (array (
+        $request = array (
             'pair' => $this->market_id($symbol),
-        ), $params));
+        );
+        if ($limit !== null) {
+            $request['depth'] = $limit;
+        }
+        $orderbook = $this->publicGetOrderBookPair (array_merge ($request, $params));
         $timestamp = $orderbook['timestamp'] * 1000;
         return $this->parse_order_book($orderbook, $timestamp);
     }

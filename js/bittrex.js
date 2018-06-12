@@ -146,10 +146,10 @@ module.exports = class bittrex extends Exchange {
                 'QUANTITY_NOT_PROVIDED': InvalidOrder,
                 'MIN_TRADE_REQUIREMENT_NOT_MET': InvalidOrder,
                 'ORDER_NOT_OPEN': InvalidOrder,
+                'INVALID_ORDER': InvalidOrder,
                 'UUID_INVALID': OrderNotFound,
                 'RATE_NOT_PROVIDED': InvalidOrder, // createLimitBuyOrder ('ETH/BTC', 1, 0)
                 'WHITELIST_VIOLATION_IP': PermissionDenied,
-                'INVALID_ORDER': InvalidOrder,
             },
             'options': {
                 'parseOrderStatus': false,
@@ -490,7 +490,7 @@ module.exports = class bittrex extends Exchange {
         let request = {};
         request[orderIdField] = id;
         let response = await this.marketGetCancel (this.extend (request, params));
-        return response;
+        return this.parseOrder (response);
     }
 
     parseSymbol (id) {
@@ -505,8 +505,18 @@ module.exports = class bittrex extends Exchange {
         if (typeof side === 'undefined')
             side = this.safeString (order, 'Type');
         let isBuyOrder = (side === 'LIMIT_BUY') || (side === 'BUY');
-        side = isBuyOrder ? 'buy' : 'sell';
-        let status = 'open';
+        let isSellOrder = (side === 'LIMIT_SELL') || (side === 'SELL');
+        if (isBuyOrder) {
+            side = 'buy';
+        }
+        if (isSellOrder) {
+            side = 'sell';
+        }
+        // We parse different fields in a very specific order.
+        // Order might well be closed and then canceled.
+        let status = undefined;
+        if (('Opened' in order) && order['Opened'])
+            status = 'open';
         if (('Closed' in order) && order['Closed'])
             status = 'closed';
         if (('CancelInitiated' in order) && order['CancelInitiated'])
@@ -565,8 +575,11 @@ module.exports = class bittrex extends Exchange {
         let price = this.safeFloat (order, 'Limit');
         let cost = this.safeFloat (order, 'Price');
         let amount = this.safeFloat (order, 'Quantity');
-        let remaining = this.safeFloat (order, 'QuantityRemaining', 0.0);
-        let filled = amount - remaining;
+        let remaining = this.safeFloat (order, 'QuantityRemaining');
+        let filled = undefined;
+        if (typeof amount !== 'undefined' && typeof remaining !== 'undefined') {
+            filled = amount - remaining;
+        }
         if (!cost) {
             if (price && amount)
                 cost = price * amount;
@@ -728,14 +741,6 @@ module.exports = class bittrex extends Exchange {
                 const message = this.safeString (response, 'message');
                 const feedback = this.id + ' ' + this.json (response);
                 const exceptions = this.exceptions;
-                if (message in exceptions)
-                    throw new exceptions[message] (feedback);
-                if (typeof message !== 'undefined') {
-                    if (message.indexOf ('throttled. Try again') >= 0)
-                        throw new DDoSProtection (feedback);
-                    if (message.indexOf ('problem') >= 0)
-                        throw new ExchangeNotAvailable (feedback); // 'There was a problem processing your request.  If this problem persists, please contact...')
-                }
                 if (message === 'APIKEY_INVALID') {
                     if (this.options['hasAlreadyAuthenticatedSuccessfully']) {
                         throw new DDoSProtection (feedback);
@@ -745,7 +750,39 @@ module.exports = class bittrex extends Exchange {
                 }
                 if (message === 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT')
                     throw new InvalidOrder (this.id + ' order cost should be over 50k satoshi ' + this.json (response));
-                throw new ExchangeError (this.id + ' ' + this.json (response));
+                if (message === 'INVALID_ORDER') {
+                    // Bittrex will return an ambiguous INVALID_ORDER message
+                    // upon canceling already-canceled and closed orders
+                    // therefore this special case for cancelOrder
+                    // let url = 'https://bittrex.com/api/v1.1/market/cancel?apikey=API_KEY&uuid=ORDER_UUID'
+                    let cancel = 'cancel';
+                    let indexOfCancel = url.indexOf (cancel);
+                    if (indexOfCancel >= 0) {
+                        let parts = url.split ('&');
+                        let orderId = undefined;
+                        for (let i = 0; i < parts.length; i++) {
+                            let part = parts[i];
+                            let keyValue = part.split ('=');
+                            if (keyValue[0] === 'uuid') {
+                                orderId = keyValue[1];
+                                break;
+                            }
+                        }
+                        if (typeof orderId !== 'undefined')
+                            throw new OrderNotFound (this.id + ' cancelOrder ' + orderId + ' ' + this.json (response));
+                        else
+                            throw new OrderNotFound (this.id + ' cancelOrder ' + this.json (response));
+                    }
+                }
+                if (message in exceptions)
+                    throw new exceptions[message] (feedback);
+                if (typeof message !== 'undefined') {
+                    if (message.indexOf ('throttled. Try again') >= 0)
+                        throw new DDoSProtection (feedback);
+                    if (message.indexOf ('problem') >= 0)
+                        throw new ExchangeNotAvailable (feedback); // 'There was a problem processing your request.  If this problem persists, please contact...')
+                }
+                throw new ExchangeError (feedback);
             }
         }
     }

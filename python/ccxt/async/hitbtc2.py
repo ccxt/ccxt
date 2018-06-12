@@ -881,9 +881,10 @@ class hitbtc2 (hitbtc):
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        return await self.privateDeleteOrderClientOrderId(self.extend({
+        response = await self.privateDeleteOrderClientOrderId(self.extend({
             'clientOrderId': id,
         }, params))
+        return self.parse_order(response)
 
     def parse_order(self, order, market=None):
         created = None

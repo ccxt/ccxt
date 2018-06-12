@@ -150,6 +150,11 @@ class lbank (Exchange):
         info = ticker
         ticker = info['ticker']
         last = self.safe_float(ticker, 'latest')
+        percentage = self.safe_float(ticker, 'change')
+        relativeChange = percentage / 100
+        open = last / self.sum(1, relativeChange)
+        change = last - open
+        average = self.sum(last, open) / 2
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -165,9 +170,9 @@ class lbank (Exchange):
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': self.safe_float(ticker, 'change'),
-            'percentage': None,
-            'average': None,
+            'change': change,
+            'percentage': percentage,
+            'average': average,
             'baseVolume': self.safe_float(ticker, 'vol'),
             'quoteVolume': self.safe_float(ticker, 'turnover'),
             'info': info,
@@ -239,18 +244,29 @@ class lbank (Exchange):
         response = self.publicGetTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=None, params={}):
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+        return [
+            ohlcv[0] * 1000,
+            ohlcv[1],
+            ohlcv[2],
+            ohlcv[3],
+            ohlcv[4],
+            ohlcv[5],
+        ]
+
+    def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=1000, params={}):
         self.load_markets()
         market = self.market(symbol)
+        if since is None:
+            raise ExchangeError(self.id + ' fetchOHLCV requires a since argument')
+        if limit is None:
+            raise ExchangeError(self.id + ' fetchOHLCV requires a limit argument')
         request = {
             'symbol': market['id'],
             'type': self.timeframes[timeframe],
-            'size': 1000,
+            'size': limit,
+            'time': int(since / 1000),
         }
-        if since:
-            request['time'] = int(since / 1000)
-        if limit:
-            request['size'] = limit
         response = self.publicGetKline(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 

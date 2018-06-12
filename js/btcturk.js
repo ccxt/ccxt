@@ -49,13 +49,60 @@ module.exports = class btcturk extends Exchange {
                     ],
                 },
             },
-            'markets': {
-                'BTC/TRY': { 'id': 'BTCTRY', 'symbol': 'BTC/TRY', 'base': 'BTC', 'quote': 'TRY', 'baseId': 'btc', 'quoteId': 'try', 'maker': 0.002 * 1.18, 'taker': 0.0035 * 1.18 },
-                'ETH/TRY': { 'id': 'ETHTRY', 'symbol': 'ETH/TRY', 'base': 'ETH', 'quote': 'TRY', 'baseId': 'eth', 'quoteId': 'try', 'maker': 0.002 * 1.18, 'taker': 0.0035 * 1.18 },
-                'XRP/TRY': { 'id': 'XRPTRY', 'symbol': 'XRP/TRY', 'base': 'XRP', 'quote': 'TRY', 'baseId': 'xrp', 'quoteId': 'try', 'maker': 0.002 * 1.18, 'taker': 0.0035 * 1.18 },
-                'ETH/BTC': { 'id': 'ETHBTC', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'baseId': 'eth', 'quoteId': 'btc', 'maker': 0.002 * 1.18, 'taker': 0.0035 * 1.18 },
+            'fees': {
+                'trading': {
+                    'maker': 0.002 * 1.18,
+                    'taker': 0.0035 * 1.18,
+                },
             },
         });
+    }
+
+    async fetchMarkets () {
+        let response = await this.publicGetTicker ();
+        let result = [];
+        for (let i = 0; i < response.length; i++) {
+            let market = response[i];
+            let id = market['pair'];
+            let baseId = id.slice (0, 3);
+            let quoteId = id.slice (3, 6);
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
+            baseId = baseId.toLowerCase ();
+            quoteId = quoteId.toLowerCase ();
+            let symbol = base + '/' + quote;
+            let precision = {
+                'amount': 8,
+                'price': 8,
+            };
+            let active = true;
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': active,
+                'info': market,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': Math.pow (10, -precision['amount']),
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': Math.pow (10, -precision['price']),
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+            });
+        }
+        return result;
     }
 
     async fetchBalance (params = {}) {

@@ -210,6 +210,16 @@ module.exports = class coinegg extends Exchange {
         let symbol = market['symbol'];
         let timestamp = this.milliseconds ();
         let last = this.safeFloat (ticker, 'last');
+        let percentage = this.safeFloat (ticker, 'change');
+        let open = undefined;
+        let change = undefined;
+        let average = undefined;
+        if (typeof percentage !== 'undefined') {
+            let relativeChange = percentage / 100;
+            open = last / this.sum (1, relativeChange);
+            change = last - open;
+            average = this.sum (last, open) / 2;
+        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -221,13 +231,13 @@ module.exports = class coinegg extends Exchange {
             'ask': this.safeFloat (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': undefined,
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': this.safeFloat (ticker, 'change'),
-            'percentage': undefined,
-            'average': undefined,
+            'change': change,
+            'percentage': percentage,
+            'average': average,
             'baseVolume': this.safeFloat (ticker, 'vol'),
             'quoteVolume': this.safeFloat (ticker, 'quoteVol'),
             'info': ticker,

@@ -227,6 +227,15 @@ class gateio (Exchange):
         if market:
             symbol = market['symbol']
         last = self.safe_float(ticker, 'last')
+        percentage = self.safe_float(ticker, 'percentChange')
+        open = None
+        change = None
+        average = None
+        if (last is not None) and(percentage is not None):
+            relativeChange = percentage / 100
+            open = last / self.sum(1, relativeChange)
+            change = last - open
+            average = self.sum(last, open) / 2
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -238,13 +247,13 @@ class gateio (Exchange):
             'ask': self.safe_float(ticker, 'lowestAsk'),
             'askVolume': None,
             'vwap': None,
-            'open': None,
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': self.safe_float(ticker, 'percentChange'),
-            'percentage': None,
-            'average': None,
+            'change': change,
+            'percentage': percentage,
+            'average': average,
             'baseVolume': self.safe_float(ticker, 'quoteVolume'),
             'quoteVolume': self.safe_float(ticker, 'baseVolume'),
             'info': ticker,
@@ -349,10 +358,9 @@ class gateio (Exchange):
     def parse_order(self, order, market=None):
         id = self.safe_string(order, 'orderNumber')
         symbol = None
-        if market is None:
-            marketId = self.safe_string(order, 'currencyPair')
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
+        marketId = self.safe_string(order, 'currencyPair')
+        if marketId in self.markets_by_id:
+            market = self.markets_by_id[marketId]
         if market is not None:
             symbol = market['symbol']
         datetime = None
@@ -456,7 +464,7 @@ class gateio (Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        response = self.privatePostOpenOrders()
+        response = await self.privatePostOpenOrders()
         return self.parse_orders(response['orders'], market, since, limit)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
@@ -465,7 +473,7 @@ class gateio (Exchange):
         await self.load_markets()
         market = self.market(symbol)
         id = market['id']
-        response = self.privatePostTradeHistory(self.extend({'currencyPair': id}, params))
+        response = await self.privatePostTradeHistory(self.extend({'currencyPair': id}, params))
         return self.parse_trades(response['trades'], market, since, limit)
 
     async def withdraw(self, currency, amount, address, tag=None, params={}):

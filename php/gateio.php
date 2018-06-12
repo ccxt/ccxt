@@ -222,6 +222,16 @@ class gateio extends Exchange {
         if ($market)
             $symbol = $market['symbol'];
         $last = $this->safe_float($ticker, 'last');
+        $percentage = $this->safe_float($ticker, 'percentChange');
+        $open = null;
+        $change = null;
+        $average = null;
+        if (($last !== null) && ($percentage !== null)) {
+            $relativeChange = $percentage / 100;
+            $open = $last / $this->sum (1, $relativeChange);
+            $change = $last - $open;
+            $average = $this->sum ($last, $open) / 2;
+        }
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -233,13 +243,13 @@ class gateio extends Exchange {
             'ask' => $this->safe_float($ticker, 'lowestAsk'),
             'askVolume' => null,
             'vwap' => null,
-            'open' => null,
+            'open' => $open,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $this->safe_float($ticker, 'percentChange'),
-            'percentage' => null,
-            'average' => null,
+            'change' => $change,
+            'percentage' => $percentage,
+            'average' => $average,
             'baseVolume' => $this->safe_float($ticker, 'quoteVolume'),
             'quoteVolume' => $this->safe_float($ticker, 'baseVolume'),
             'info' => $ticker,
@@ -360,11 +370,9 @@ class gateio extends Exchange {
     public function parse_order ($order, $market = null) {
         $id = $this->safe_string($order, 'orderNumber');
         $symbol = null;
-        if ($market === null) {
-            $marketId = $this->safe_string($order, 'currencyPair');
-            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            }
+        $marketId = $this->safe_string($order, 'currencyPair');
+        if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+            $market = $this->markets_by_id[$marketId];
         }
         if ($market !== null)
             $symbol = $market['symbol'];
