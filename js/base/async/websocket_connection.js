@@ -68,4 +68,12 @@ module.exports = class WebsocketConnection extends AsyncConnection {
             this.client.ws.send (data);
         }
     }
+
+    isActive() {
+        if (this.client.ws == null){
+            return false;
+        }
+        return (this.client.ws.readyState == this.client.ws.OPEN) || 
+            (this.client.ws.readyState == this.client.ws.CONNECTING);
+    }
 };

@@ -28,6 +28,10 @@ module.exports = class AsyncConnection extends EventEmitter {
         throw new NotSupported('not implemented method <send>');
     }
 
+    isActive() {
+        throw new NotSupported('not implemented method <isActive>');
+    }
+
     sendJson(data) {
         this.send (JSON.stringify(data));
     }

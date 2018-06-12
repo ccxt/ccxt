@@ -124,6 +124,28 @@ module.exports = class binance extends Exchange {
                     ],
                 },
             },
+            'asyncconf': {
+                'conx-tpls': {
+                    'default' : {
+                        'type': 'ws-s',
+                        'baseurl': 'wss://stream.binance.com:9443',
+                    },
+                },
+                'methodmap': {
+                    'connected': '_asyncHandleConnected',
+                    'ob-delta': '_asyncHandleObUpdate',
+                },
+                'events': {
+                    'ob': {
+                        'conx-tpl': 'default',
+                        'generators': {
+                            'url': '{baseurl}',
+                            'alias': '{alias}',
+                            'stream': '{symbol}@depth/'
+                        },
+                    },
+                },
+            },
             'fees': {
                 'trading': {
                     'tierBased': false,

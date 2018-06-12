@@ -86,6 +86,24 @@ module.exports = class bitstamp extends Exchange {
                     ],
                 },
             },
+            'asyncconf': {
+                'conx-tpls': {
+                    'ob' : {
+                        'type': 'pusher',
+                        'key': 'de504dc5763aeef9ff52',
+                        'event': 'data',
+                    },
+                },
+                'methodmap': {
+                    'connected': '_asyncHandleConnected',
+                    'ob-delta': '_asyncHandleObUpdate',
+                },
+                'events': {
+                    'ob': {
+                        'conx-tpl': 'ob',
+                    },
+                },
+            },
             'fees': {
                 'trading': {
                     'tierBased': true,

@@ -23,12 +23,12 @@ async function fetchOrderBook (apiKey, secret, symbol, depth) {
         exchange.asyncClose();
     });
     exchange.on ('ob', (market, ob) => {
-        console.log (ob);
+        // console.log (ob);
     });
     await exchange.loadMarkets ();
     await exchange.asyncSubscribeOrderBook (symbol);
     let ob = await exchange.asyncFetchOrderBook(symbol, depth);
-    console.log (ob);
+    // console.log (ob);
 }
 
 ;(async function main () {
@@ -46,7 +46,7 @@ async function fetchOrderBook (apiKey, secret, symbol, depth) {
             printUsage ()
         }
     } catch (ex) {
-        log ('Error:'.red, ex.red);
+        log ('Error:'.red, ex);
         log (ex.stack);
     }
     // process.exit ()
