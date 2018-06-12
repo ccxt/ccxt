@@ -223,6 +223,15 @@ class coinegg (Exchange):
         symbol = market['symbol']
         timestamp = self.milliseconds()
         last = self.safe_float(ticker, 'last')
+        percentage = self.safe_float(ticker, 'change')
+        open = None
+        change = None
+        average = None
+        if percentage is not None:
+            relativeChange = percentage / 100
+            open = last / self.sum(1, relativeChange)
+            change = last - open
+            average = self.sum(last, open) / 2
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -234,13 +243,13 @@ class coinegg (Exchange):
             'ask': self.safe_float(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
-            'open': None,
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': self.safe_float(ticker, 'change'),
-            'percentage': None,
-            'average': None,
+            'change': change,
+            'percentage': percentage,
+            'average': average,
             'baseVolume': self.safe_float(ticker, 'vol'),
             'quoteVolume': self.safe_float(ticker, 'quoteVol'),
             'info': ticker,

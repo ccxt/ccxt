@@ -251,18 +251,30 @@ class lbank extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        return [
+            $ohlcv[0] * 1000,
+            $ohlcv[1],
+            $ohlcv[2],
+            $ohlcv[3],
+            $ohlcv[4],
+            $ohlcv[5],
+        ];
+    }
+
+    public function fetch_ohlcv ($symbol, $timeframe = '5m', $since = null, $limit = 1000, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
+        if ($since === null)
+            throw new ExchangeError ($this->id . ' fetchOHLCV requires a $since argument');
+        if ($limit === null)
+            throw new ExchangeError ($this->id . ' fetchOHLCV requires a $limit argument');
         $request = array (
             'symbol' => $market['id'],
             'type' => $this->timeframes[$timeframe],
-            'size' => 1000,
+            'size' => $limit,
+            'time' => intval ($since / 1000),
         );
-        if ($since)
-            $request['time'] = intval ($since / 1000);
-        if ($limit)
-            $request['size'] = $limit;
         $response = $this->publicGetKline (array_merge ($request, $params));
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
