@@ -455,8 +455,8 @@ module.exports = class bibox extends Exchange {
         let symbol = undefined;
         if (typeof market === 'undefined') {
             let marketId = undefined;
-            let baseId = this.safeString (trade, 'coin_symbol');
-            let quoteId = this.safeString (trade, 'currency_symbol');
+            let baseId = this.safeString (order, 'coin_symbol');
+            let quoteId = this.safeString (order, 'currency_symbol');
             if ((typeof baseId !== 'undefined') && (typeof quoteId !== 'undefined'))
                 marketId = baseId + '_' + quoteId;
             if (marketId in this.markets_by_id)
