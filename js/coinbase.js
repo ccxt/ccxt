@@ -16,6 +16,9 @@ module.exports = class coinbase extends Exchange {
             'rateLimit': 400, // 10k calls per hour
             'version': 'v2',
             'userAgent': this.userAgents['chrome'],
+            'headers': {
+                'CB-VERSION': '2018-05-30',
+            },
             'has': {
                 'CORS': true,
                 'cancelOrder': false,
@@ -138,21 +141,18 @@ module.exports = class coinbase extends Exchange {
                 'ETH/USD': { 'id': 'eth-usd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD' },
                 'BCH/USD': { 'id': 'bch-usd', 'symbol': 'BCH/USD', 'base': 'BCH', 'quote': 'USD' },
             },
-            'options': {
-                'coinbase_version': '2018-05-30',
-            },
         });
     }
 
     async fetchTime () {
         let response = await this.publicGetTime ();
-        response = this.getDatum (response);
-        return this.parse8601 (response['iso']);
+        let data = response['data'];
+        return this.parse8601 (data['iso']);
     }
 
     async fetchCurrencies (params = {}) {
         let response = await this.publicGetCurrencies (params);
-        let currencies = this.getDatum (response);
+        let currencies = response['data'];
         let result = {};
         for (let c = 0; c < currencies.length; c++) {
             let currency = currencies[c];
@@ -193,30 +193,25 @@ module.exports = class coinbase extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
         let timestamp = this.seconds ();
-        symbol = symbol.replace ('/', '-');
-        let response_buy = await this.publicGetPricesSymbolBuy (this.extend ({
-            'symbol': symbol,
-        }, params));
-        response_buy = this.getDatum (response_buy);
-        let response_sell = await this.publicGetPricesSymbolSell (this.extend ({
-            'symbol': symbol,
-        }, params));
-        response_sell = this.getDatum (response_sell);
-        let response_spot = await this.publicGetPricesSymbolSpot (this.extend ({
-            'symbol': symbol,
-        }, params));
-        response_spot = this.getDatum (response_spot);
-        let buy = this.safeFloat (response_buy, 'amount');
-        let sell = this.safeFloat (response_sell, 'amount');
-        let spot = this.safeFloat (response_spot, 'amount');
+        let market = this.market (symbol);
+        let request = this.extend ({
+            'symbol': market['id'],
+        }, params);
+        let buy = await this.publicGetPricesSymbolBuy (request);
+        let sell = await this.publicGetPricesSymbolSell (request);
+        let spot = await this.publicGetPricesSymbolSpot (request);
+        let ask = this.safeFloat (buy['data'], 'amount');
+        let bid = this.safeFloat (sell['data'], 'amount');
+        let last = this.safeFloat (spot['data'], 'amount');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'bid': sell,
-            'ask': buy,
-            'last': spot,
+            'bid': bid,
+            'ask': ask,
+            'last': last,
             'high': undefined,
             'low': undefined,
             'bidVolume': undefined,
@@ -231,17 +226,17 @@ module.exports = class coinbase extends Exchange {
             'baseVolume': undefined,
             'quoteVolume': undefined,
             'info': {
-                'buy': response_buy,
-                'sell': response_sell,
-                'spot': response_spot,
+                'buy': buy,
+                'sell': sell,
+                'spot': spot,
             },
         };
     }
 
     async fetchBalance (params = {}) {
-        let balances = await this.privateGetAccounts ();
-        balances = this.getDatum (balances);
-        let result = { 'info': balances };
+        let response = await this.privateGetAccounts ();
+        let balances = response['data'];
+        let result = { 'info': response };
         for (let b = 0; b < balances.length; b++) {
             let balance = balances[b];
             let currency = balance['balance']['currency'];
@@ -250,7 +245,13 @@ module.exports = class coinbase extends Exchange {
                 'used': undefined,
                 'total': this.safeFloat (balance['balance'], 'amount'),
             };
-            result[currency] = account;
+            // if there are multiple wallets/vaults of the same curency type, sum their values
+            if (currency in result) {
+                result[currency]['free'] += account['free'];
+                result[currency]['total'] += account['total'];
+            } else {
+                result[currency] = account;
+            }
         }
         return this.parseBalance (result);
     }
@@ -258,7 +259,6 @@ module.exports = class coinbase extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        headers = { 'CB-VERSION': this.options['coinbase_version'] };
         if (method === 'GET') {
             if (Object.keys (query).length)
                 request += '?' + this.urlencode (query);
@@ -276,12 +276,12 @@ module.exports = class coinbase extends Exchange {
             }
             let what = nonce + method + '/' + this.version + request + payload;
             let signature = this.hmac (this.encode (what), this.encode (this.secret));
-            headers = this.extend ({
+            headers = {
                 'CB-ACCESS-KEY': this.apiKey,
                 'CB-ACCESS-SIGN': signature,
                 'CB-ACCESS-TIMESTAMP': nonce,
                 'Content-Type': 'application/json',
-            }, headers);
+            };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
@@ -333,14 +333,10 @@ module.exports = class coinbase extends Exchange {
                     }
                 }
             }
+            let data = this.safeValue (response, 'data');
+            if (typeof data === 'undefined')
+                throw new ExchangeError (this.id + ' failed due to a malformed response ' + this.json (response));
         }
-    }
-
-    getDatum (response) {
-        let datum = this.safeValue (response, 'data');
-        if (typeof datum === 'undefined')
-            throw new ExchangeError (this.id + ' failed due to a malformed response ' + this.json (response));
-        return datum;
     }
 };
 
