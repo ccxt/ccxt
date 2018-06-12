@@ -465,7 +465,6 @@ module.exports = class bibox extends Exchange {
         if (typeof market !== 'undefined') {
             symbol = market['symbol'];
         }
-
         let type = (order['order_type'] === 1) ? 'market' : 'limit';
         let timestamp = order['createdAt'];
         let price = this.safeFloat (order, 'price');
