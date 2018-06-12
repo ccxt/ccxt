@@ -453,10 +453,17 @@ module.exports = class bibox extends Exchange {
 
     parseOrder (order, market = undefined) {
         let symbol = undefined;
-        if (market) {
+        if (typeof market === 'undefined') {
+            let marketId = undefined;
+            let baseId = this.safeString (order, 'coin_symbol');
+            let quoteId = this.safeString (order, 'currency_symbol');
+            if ((typeof baseId !== 'undefined') && (typeof quoteId !== 'undefined'))
+                marketId = baseId + '_' + quoteId;
+            if (marketId in this.markets_by_id)
+                market = this.markets_by_id[marketId];
+        }
+        if (typeof market !== 'undefined') {
             symbol = market['symbol'];
-        } else {
-            symbol = order['coin_symbol'] + '/' + order['currency_symbol'];
         }
         let type = (order['order_type'] === 1) ? 'market' : 'limit';
         let timestamp = order['createdAt'];
