@@ -141,6 +141,13 @@ module.exports = class coinbase extends Exchange {
                 'ETH/USD': { 'id': 'eth-usd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD' },
                 'BCH/USD': { 'id': 'bch-usd', 'symbol': 'BCH/USD', 'base': 'BCH', 'quote': 'USD' },
             },
+            'options': {
+                'acocunts': [
+                    'wallet',
+                    'fiat',
+                    // 'vault',
+                ],
+            },
         });
     }
 
@@ -236,16 +243,30 @@ module.exports = class coinbase extends Exchange {
     async fetchBalance (params = {}) {
         let response = await this.privateGetAccounts ();
         let balances = response['data'];
+        let accounts = this.safeValue (params, 'type', this.options['accounts']);
         let result = { 'info': response };
         for (let b = 0; b < balances.length; b++) {
             let balance = balances[b];
-            let currency = balance['balance']['currency'];
-            let account = {
-                'free': this.safeFloat (balance['balance'], 'amount'),
-                'used': undefined,
-                'total': this.safeFloat (balance['balance'], 'amount'),
-            };
-            result[currency] = account;
+            if (this.inArray (balance['type'], accounts)) {
+                let currencyId = balance['balance']['currency'];
+                let code = currencyId;
+                if (currencyId in this.currencies_by_id)
+                    code = this.currencies_by_id[currencyId]['code'];
+                let total = this.safeFloat (balance['balance'], 'amount');
+                let free = total;
+                let used = undefined;
+                if (code in result) {
+                    result[code]['free'] += total;
+                    result[code]['total'] += total;
+                } else {
+                    let account = {
+                        'free': free,
+                        'used': used,
+                        'total': total,
+                    };
+                    result[code] = account;
+                }
+            }
         }
         return this.parseBalance (result);
     }
