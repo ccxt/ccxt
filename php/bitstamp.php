@@ -634,7 +634,7 @@ class bitstamp extends Exchange {
     }
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body) {
-        if (gettype ($body) != 'string')
+        if (gettype ($body) !== 'string')
             return; // fallback to default error handler
         if (strlen ($body) < 2)
             return; // fallback to default error handler

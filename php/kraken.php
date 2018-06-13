@@ -916,7 +916,7 @@ class kraken extends Exchange {
             throw new InvalidOrder ($this->id . ' ' . $body);
         if ($body[0] === '{') {
             $response = json_decode ($body, $as_associative_array = true);
-            if (gettype ($response) != 'string') {
+            if (gettype ($response) !== 'string') {
                 if (is_array ($response) && array_key_exists ('error', $response)) {
                     $numErrors = is_array ($response['error']) ? count ($response['error']) : 0;
                     if ($numErrors) {

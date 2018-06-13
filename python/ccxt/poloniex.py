@@ -784,29 +784,29 @@ class poloniex (Exchange):
             # syntax error, resort to default error handler
             return
         if 'error' in response:
-            error = response['error']
+            message = response['error']
             feedback = self.id + ' ' + self.json(response)
-            if error == 'Invalid order number, or you are not the person who placed the order.':
+            if message == 'Invalid order number, or you are not the person who placed the order.':
                 raise OrderNotFound(feedback)
-            elif error == 'Connection timed out. Please try again.':
+            elif message == 'Connection timed out. Please try again.':
                 raise RequestTimeout(feedback)
-            elif error == 'Internal error. Please try again.':
+            elif message == 'Internal error. Please try again.':
                 raise ExchangeNotAvailable(feedback)
-            elif error == 'Order not found, or you are not the person who placed it.':
+            elif message == 'Order not found, or you are not the person who placed it.':
                 raise OrderNotFound(feedback)
-            elif error == 'Invalid API key/secret pair.':
+            elif message == 'Invalid API key/secret pair.':
                 raise AuthenticationError(feedback)
-            elif error == 'Please do not make more than 8 API calls per second.':
+            elif message == 'Please do not make more than 8 API calls per second.':
                 raise DDoSProtection(feedback)
-            elif error.find('Total must be at least') >= 0:
+            elif message.find('Total must be at least') >= 0:
                 raise InvalidOrder(feedback)
-            elif error.find('This account is frozen.') >= 0:
+            elif message.find('This account is frozen.') >= 0:
                 raise AccountSuspended(feedback)
-            elif error.find('Not enough') >= 0:
+            elif message.find('Not enough') >= 0:
                 raise InsufficientFunds(feedback)
-            elif error.find('Nonce must be greater') >= 0:
+            elif message.find('Nonce must be greater') >= 0:
                 raise InvalidNonce(feedback)
-            elif error.find('You have already called cancelOrder or moveOrder on self order.') >= 0:
+            elif message.find('You have already called cancelOrder or moveOrder on self order.') >= 0:
                 raise CancelPending(feedback)
             else:
-                raise ExchangeError(self.id + ': unknown error: ' + self.json(response))
+                raise ExchangeError(self.id + ' unknown error ' + self.json(response))

@@ -503,7 +503,7 @@ class coinegg extends Exchange {
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
         // checks against error codes
-        if (gettype ($body) != 'string')
+        if (gettype ($body) !== 'string')
             return;
         if (strlen ($body) === 0)
             return;

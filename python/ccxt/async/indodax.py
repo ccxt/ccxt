@@ -346,12 +346,12 @@ class indodax (Exchange):
         self.check_address(address)
         await self.load_markets()
         currency = self.currency(code)
-        # Custom string you need to provide to identify each withdrawal request.
+        # Custom string you need to provide to identify each withdrawal.
         # Will be passed to callback URL(assigned via website to the API key)
         # so your system can identify the request and confirm it.
         # Alphanumeric, max length 255.
         requestId = self.milliseconds()
-        # alternatively:
+        # Alternatively:
         # requestId = self.uuid()
         request = {
             'currency': currency['id'],

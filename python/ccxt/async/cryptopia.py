@@ -510,9 +510,8 @@ class cryptopia (Exchange):
                 'Type': 'Trade',
                 'OrderId': id,
             }, params))
-            # We do not know if it is indeed canceled, but cryptopia
-            # lacks any reasonable method to get information on executed
-            # or canceled order id.
+            # We do not know if it is indeed canceled, but cryptopia lacks any
+            # reasonable method to get information on executed or canceled order.
             if id in self.orders:
                 self.orders[id]['status'] = 'canceled'
         except Exception as e:

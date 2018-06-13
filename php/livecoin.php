@@ -641,7 +641,7 @@ class livecoin extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
-        if (gettype ($body) != 'string')
+        if (gettype ($body) !== 'string')
             return;
         if ($body[0] === '{') {
             $response = json_decode ($body, $as_associative_array = true);

@@ -534,9 +534,8 @@ class cryptopia extends Exchange {
                 'Type' => 'Trade',
                 'OrderId' => $id,
             ), $params));
-            // We do not know if it is indeed canceled, but cryptopia
-            // lacks any reasonable method to get information on executed
-            // or canceled order $id.
+            // We do not know if it is indeed canceled, but cryptopia lacks any
+            // reasonable method to get information on executed or canceled order.
             if (is_array ($this->orders) && array_key_exists ($id, $this->orders))
                 $this->orders[$id]['status'] = 'canceled';
         } catch (Exception $e) {
@@ -752,7 +751,7 @@ class cryptopia extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
-        if (gettype ($body) != 'string')
+        if (gettype ($body) !== 'string')
             return; // fallback to default $error handler
         if (strlen ($body) < 2)
             return; // fallback to default $error handler
@@ -764,7 +763,7 @@ class cryptopia extends Exchange {
                 if ($success === 'false') {
                     $error = $this->safe_string($response, 'Error');
                     $feedback = $this->id;
-                    if (gettype ($error) == 'string') {
+                    if (gettype ($error) === 'string') {
                         $feedback = $feedback . ' ' . $error;
                         if (mb_strpos ($error, 'does not exist') !== false) {
                             throw new OrderNotFound ($feedback);

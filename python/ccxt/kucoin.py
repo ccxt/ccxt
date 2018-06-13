@@ -338,7 +338,7 @@ class kucoin (Exchange):
         # {"success":true,"code":"OK","msg":"Operation succeeded.","timestamp":xxxxxxxxxxxxx,"data":null}
         if not('data' in list(response.keys())) or not response['data']:
             if self.options['fetchOrderBookWarning']:
-                raise ExchangeError(self.id + " fetchOrderBook returned an null response. Set exchange.options['fetchOrderBookWarning'] = False to silence self warning")
+                raise ExchangeError(self.id + " fetchOrderBook returned an null reply. Set exchange.options['fetchOrderBookWarning'] = False to silence self warning")
             orderbook = {
                 'BUY': [],
                 'SELL': [],

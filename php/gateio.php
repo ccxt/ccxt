@@ -462,7 +462,7 @@ class gateio extends Exchange {
         if (($address !== null) && (mb_strpos ($address, 'address') !== false))
             throw new InvalidAddress ($this->id . ' queryDepositAddress ' . $address);
         if ($code === 'XRP') {
-            $parts = $address.split ('/', 2);
+            $parts = $address->split ('/', 2);
             $address = $parts[0];
             $tag = $parts[1];
         }
@@ -546,7 +546,7 @@ class gateio extends Exchange {
             $message = $this->id . ' ' . $this->json ($response);
             if ($result === null)
                 throw new ExchangeError ($message);
-            if (gettype ($result) == 'string') {
+            if (gettype ($result) === 'string') {
                 if ($result !== 'true')
                     throw new ExchangeError ($message);
             } else if (!$result) {

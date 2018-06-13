@@ -289,7 +289,7 @@ class quadrigacx extends Exchange {
     }
 
     public function handle_errors ($statusCode, $statusText, $url, $method, $headers, $body) {
-        if (gettype ($body) != 'string')
+        if (gettype ($body) !== 'string')
             return; // fallback to default error handler
         if (strlen ($body) < 2)
             return;
@@ -302,7 +302,7 @@ class quadrigacx extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (gettype ($response) == 'string')
+        if (gettype ($response) === 'string')
             return $response;
         if (is_array ($response) && array_key_exists ('error', $response))
             throw new ExchangeError ($this->id . ' ' . $this->json ($response));

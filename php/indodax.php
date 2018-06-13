@@ -354,12 +354,12 @@ class indodax extends Exchange {
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency ($code);
-        // Custom string you need to provide to identify each withdrawal $request.
+        // Custom string you need to provide to identify each withdrawal.
         // Will be passed to callback URL (assigned via website to the API key)
         // so your system can identify the $request and confirm it.
         // Alphanumeric, max length 255.
         $requestId = $this->milliseconds ();
-        // alternatively:
+        // Alternatively:
         // $requestId = $this->uuid ();
         $request = array (
             'currency' => $currency['id'],
@@ -414,7 +414,7 @@ class indodax extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
-        if (gettype ($body) != 'string')
+        if (gettype ($body) !== 'string')
             return;
         // array ( success => 0, error => "invalid order." )
         // or

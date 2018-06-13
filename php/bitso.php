@@ -407,7 +407,7 @@ class bitso extends Exchange {
         $address = $this->safe_string($response['payload'], 'account_identifier');
         $tag = null;
         if ($code === 'XRP') {
-            $parts = $address.split ('?dt=', 2);
+            $parts = explode ('?dt=', $address);
             $address = $parts[0];
             $tag = $parts[1];
         }
@@ -477,7 +477,7 @@ class bitso extends Exchange {
     }
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body) {
-        if (gettype ($body) != 'string')
+        if (gettype ($body) !== 'string')
             return; // fallback to default $error handler
         if (strlen ($body) < 2)
             return; // fallback to default $error handler
@@ -488,7 +488,7 @@ class bitso extends Exchange {
                 //     array ("$success":false,"$error":{"$code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237")}
                 //
                 $success = $this->safe_value($response, 'success', false);
-                if (gettype ($success) == 'string') {
+                if (gettype ($success) === 'string') {
                     if (($success === 'true') || ($success === '1'))
                         $success = true;
                     else

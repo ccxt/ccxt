@@ -372,7 +372,7 @@ class bitbank (Exchange):
         response = await self.privateGetUserWithdrawalAccount(self.extend({
             'asset': currency['id'],
         }, params))
-        # Not sure about self if there could be more accounts...
+        # Not sure about self if there could be more than one account...
         accounts = response['data']['accounts']
         address = self.safe_string(accounts[0], 'address')
         status = 'ok' if address else 'none'

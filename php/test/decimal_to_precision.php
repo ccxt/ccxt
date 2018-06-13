@@ -8,8 +8,6 @@ include_once (__DIR__.'/../Exchange.php');
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // -----------------------------------------------------------------------------
-
-
 // testDecimalToPrecisionErrorHandling
 //
 // $this->expectException ('ccxt\\BaseError');
@@ -31,10 +29,8 @@ function decimal_to_precision ($x, $roundingMode = ROUND, $numPrecisionDigits = 
 
 // assert (number_to_string (-7.9e-7) === '-0.0000007899999999999999');
 // assert (number_to_string ( 7.9e-7) ===  '0.0000007899999999999999');
-
 // assert (number_to_string (-12.345) === '-12.345');
 // assert (number_to_string ( 12.345) === '12.345');
-
 // assert (number_to_string (0) === '0');
 
 // ----------------------------------------------------------------------------

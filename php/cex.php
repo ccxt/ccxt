@@ -212,7 +212,7 @@ class cex extends Exchange {
             $since = $this->milliseconds () - 86400000; // yesterday
         } else {
             if ($this->options['fetchOHLCVWarning']) {
-                throw new ExchangeError ($this->id . " fetchOHLCV warning => CEX can return historical candles for a certain date only, this might produce an empty or null $response. Set exchange.options['fetchOHLCVWarning'] = false or add (array ( 'options' => array ( 'fetchOHLCVWarning' => false ))) to constructor $params to suppress this warning message.");
+                throw new ExchangeError ($this->id . " fetchOHLCV warning => CEX can return historical candles for a certain date only, this might produce an empty or null reply. Set exchange.options['fetchOHLCVWarning'] = false or add (array ( 'options' => array ( 'fetchOHLCVWarning' => false ))) to constructor $params to suppress this warning message.");
             }
         }
         $ymd = $this->ymd ($since);
@@ -359,7 +359,7 @@ class cex extends Exchange {
         // Depending on the call, 'time' can be a unix int, unix string or ISO string
         // Yes, really
         $timestamp = $order['time'];
-        if (gettype ($order['time']) == 'string' && mb_strpos ($order['time'], 'T') !== false) {
+        if (gettype ($order['time']) === 'string' && mb_strpos ($order['time'], 'T') !== false) {
             // ISO8601 string
             $timestamp = $this->parse8601 ($timestamp);
         } else {

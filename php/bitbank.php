@@ -388,7 +388,7 @@ class bitbank extends Exchange {
         $response = $this->privateGetUserWithdrawalAccount (array_merge (array (
             'asset' => $currency['id'],
         ), $params));
-        // Not sure about this if there could be more $accounts...
+        // Not sure about this if there could be more than one account...
         $accounts = $response['data']['accounts'];
         $address = $this->safe_string($accounts[0], 'address');
         $status = $address ? 'ok' : 'none';
