@@ -339,7 +339,7 @@ module.exports = class kucoin extends Exchange {
         // {"success":true,"code":"OK","msg":"Operation succeeded.","timestamp":xxxxxxxxxxxxx,"data":null}
         if (!('data' in response) || !response['data']) {
             if (this.options['fetchOrderBookWarning'])
-                throw new ExchangeError (this.id + " fetchOrderBook returned an null response. Set exchange.options['fetchOrderBookWarning'] = false to silence this warning");
+                throw new ExchangeError (this.id + " fetchOrderBook returned an null reply. Set exchange.options['fetchOrderBookWarning'] = false to silence this warning");
             orderbook = {
                 'BUY': [],
                 'SELL': [],
