@@ -437,13 +437,12 @@ class bibox (Exchange):
                 'id': id,
             }, params),
         })
-        return self.parse_order(response['result'])
+        order = self.safe_value(response, 'result')
+        if self.is_empty(order):
+            raise OrderNotFound(self.id + ' order ' + id + ' not found')
+        return self.parse_order()
 
     def parse_order(self, order, market=None):
-        keys = list(order.keys())
-        numKeys = len(keys)
-        if numKeys < 1:
-            raise OrderNotFound('Order ' + order + ' does not exist on ' + self.id + '.')
         symbol = None
         if market is None:
             marketId = None

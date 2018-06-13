@@ -449,15 +449,14 @@ class bibox extends Exchange {
                 'id' => $id,
             ), $params),
         ));
-        return $this->parse_order($response['result']);
+        $order = $this->safe_value($response, 'result');
+        if ($this->is_empty($order)) {
+            throw new OrderNotFound ($this->id . ' $order ' . $id . ' not found');
+        }
+        return $this->parse_order();
     }
 
     public function parse_order ($order, $market = null) {
-        $keys = is_array ($order) ? array_keys ($order) : array ();
-        $numKeys = is_array ($keys) ? count ($keys) : 0;
-        if ($numKeys < 1) {
-            throw new OrderNotFound ('Order ' . $order . ' does not exist on ' . $this->id . '.');
-        }
         $symbol = null;
         if ($market === null) {
             $marketId = null;
