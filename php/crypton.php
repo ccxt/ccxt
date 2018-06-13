@@ -25,7 +25,7 @@ class crypton extends Exchange {
                 'fetchTickers' => true,
             ),
             'urls' => array (
-                'logo' => 'https://user-images.githubusercontent.com/40079891/41187456-833318d2-6b5e-11e8-8a70-e04240e25c1c.png',
+                'logo' => 'https://user-images.githubusercontent.com/1294454/41334251-905b5a78-6eed-11e8-91b9-f3aa435078a1.jpg',
                 'api' => 'https://api.cryptonbtc.com',
                 'www' => 'https://cryptonbtc.com',
                 'doc' => 'https://cryptonbtc.docs.apiary.io/',
@@ -72,11 +72,12 @@ class crypton extends Exchange {
 
     public function fetch_markets () {
         $response = $this->publicGetMarkets ();
+        $markets = $response['result'];
         $result = array ();
-        $keys = is_array ($response) ? array_keys ($response) : array ();
+        $keys = is_array ($markets) ? array_keys ($markets) : array ();
         for ($i = 0; $i < count ($keys); $i++) {
             $id = $keys[$i];
-            $market = $response[$id];
+            $market = $markets[$id];
             $baseId = $market['base'];
             $quoteId = $market['quote'];
             $base = $this->common_currency_code($baseId);
@@ -99,11 +100,15 @@ class crypton extends Exchange {
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => $market['minSize'],
+                        'min' => $this->safe_float($market, 'minSize'),
                         'max' => null,
                     ),
                     'price' => array (
-                        'min' => $market['priceStep'],
+                        'min' => $this->safe_float($market, 'priceStep'),
+                        'max' => null,
+                    ),
+                    'cost' => array (
+                        'min' => null,
                         'max' => null,
                     ),
                 ),
@@ -237,7 +242,7 @@ class crypton extends Exchange {
         if ($limit)
             $request['limit'] = $limit;
         $response = $this->publicGetMarketsIdTrades (array_merge ($request, $params));
-        return $this->parse_trades($response, $market, $since, $limit);
+        return $this->parse_trades($response['result'], $market, $since, $limit);
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -247,7 +252,7 @@ class crypton extends Exchange {
         if ($limit)
             $request['limit'] = $limit;
         $response = $this->privateGetFills (array_merge ($request, $params));
-        $trades = $this->parse_trades($response, $market, $since, $limit);
+        $trades = $this->parse_trades($response['result'], $market, $since, $limit);
         return $this->filter_by_symbol($trades, $symbol);
     }
 
@@ -305,7 +310,7 @@ class crypton extends Exchange {
             'id' => $id,
         );
         $response = $this->privateGetOrdersId (array_merge ($request, $params));
-        return $this->parse_order($response);
+        return $this->parse_order($response['result']);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -316,7 +321,7 @@ class crypton extends Exchange {
             $request['market'] = $this->market_id($symbol);
         }
         $response = $this->privateGetOrders (array_merge ($request, $params));
-        return $this->parse_orders($response, $market, $since, $limit);
+        return $this->parse_orders($response['result'], $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -329,7 +334,7 @@ class crypton extends Exchange {
             'price' => $this->price_to_precision($symbol, $price),
         );
         $response = $this->privatePostOrders (array_merge ($order, $params));
-        return $this->parse_order($response);
+        return $this->parse_order($response['result']);
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
@@ -338,7 +343,7 @@ class crypton extends Exchange {
             'id' => $id,
         );
         $response = $this->privateDeleteOrdersId (array_merge ($request, $params));
-        return $this->parse_order($response);
+        return $this->parse_order($response['result']);
     }
 
     public function parse_symbol ($id) {
@@ -354,8 +359,9 @@ class crypton extends Exchange {
         $response = $this->privateGetDepositAddressCurrency (array_merge (array (
             'currency' => $currency['id'],
         ), $params));
-        $address = $this->safe_string($response, 'address');
-        $tag = $this->safe_string($response, 'tag');
+        $result = $response['result'];
+        $address = $this->safe_string($result, 'address');
+        $tag = $this->safe_string($result, 'tag');
         $this->check_address($address);
         return array (
             'currency' => $code,
@@ -404,10 +410,5 @@ class crypton extends Exchange {
                 throw new ExchangeError ($this->id . ' ' . $body);
             }
         }
-    }
-
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        return $response['result'];
     }
 }

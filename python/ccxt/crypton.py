@@ -27,7 +27,7 @@ class crypton (Exchange):
                 'fetchTickers': True,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/40079891/41187456-833318d2-6b5e-11e8-8a70-e04240e25c1c.png',
+                'logo': 'https://user-images.githubusercontent.com/1294454/41334251-905b5a78-6eed-11e8-91b9-f3aa435078a1.jpg',
                 'api': 'https://api.cryptonbtc.com',
                 'www': 'https://cryptonbtc.com',
                 'doc': 'https://cryptonbtc.docs.apiary.io/',
@@ -73,11 +73,12 @@ class crypton (Exchange):
 
     def fetch_markets(self):
         response = self.publicGetMarkets()
+        markets = response['result']
         result = []
-        keys = list(response.keys())
+        keys = list(markets.keys())
         for i in range(0, len(keys)):
             id = keys[i]
-            market = response[id]
+            market = markets[id]
             baseId = market['base']
             quoteId = market['quote']
             base = self.common_currency_code(baseId)
@@ -100,11 +101,15 @@ class crypton (Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': market['minSize'],
+                        'min': self.safe_float(market, 'minSize'),
                         'max': None,
                     },
                     'price': {
-                        'min': market['priceStep'],
+                        'min': self.safe_float(market, 'priceStep'),
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
                         'max': None,
                     },
                 },
@@ -224,7 +229,7 @@ class crypton (Exchange):
         if limit:
             request['limit'] = limit
         response = self.publicGetMarketsIdTrades(self.extend(request, params))
-        return self.parse_trades(response, market, since, limit)
+        return self.parse_trades(response['result'], market, since, limit)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -233,7 +238,7 @@ class crypton (Exchange):
         if limit:
             request['limit'] = limit
         response = self.privateGetFills(self.extend(request, params))
-        trades = self.parse_trades(response, market, since, limit)
+        trades = self.parse_trades(response['result'], market, since, limit)
         return self.filter_by_symbol(trades, symbol)
 
     def parse_order(self, order, market=None):
@@ -287,7 +292,7 @@ class crypton (Exchange):
             'id': id,
         }
         response = self.privateGetOrdersId(self.extend(request, params))
-        return self.parse_order(response)
+        return self.parse_order(response['result'])
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -296,7 +301,7 @@ class crypton (Exchange):
         if symbol:
             request['market'] = self.market_id(symbol)
         response = self.privateGetOrders(self.extend(request, params))
-        return self.parse_orders(response, market, since, limit)
+        return self.parse_orders(response['result'], market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -308,7 +313,7 @@ class crypton (Exchange):
             'price': self.price_to_precision(symbol, price),
         }
         response = self.privatePostOrders(self.extend(order, params))
-        return self.parse_order(response)
+        return self.parse_order(response['result'])
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
@@ -316,7 +321,7 @@ class crypton (Exchange):
             'id': id,
         }
         response = self.privateDeleteOrdersId(self.extend(request, params))
-        return self.parse_order(response)
+        return self.parse_order(response['result'])
 
     def parse_symbol(self, id):
         base, quote = id.split('-')
@@ -330,8 +335,9 @@ class crypton (Exchange):
         response = self.privateGetDepositAddressCurrency(self.extend({
             'currency': currency['id'],
         }, params))
-        address = self.safe_string(response, 'address')
-        tag = self.safe_string(response, 'tag')
+        result = response['result']
+        address = self.safe_string(result, 'address')
+        tag = self.safe_string(result, 'tag')
         self.check_address(address)
         return {
             'currency': code,
@@ -372,7 +378,3 @@ class crypton (Exchange):
             success = self.safe_value(response, 'success')
             if not success:
                 raise ExchangeError(self.id + ' ' + body)
-
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
-        return response['result']

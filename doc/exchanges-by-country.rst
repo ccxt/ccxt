@@ -108,6 +108,8 @@ The ccxt library currently supports the following cryptocurrency exchange market
 +----------------------------+------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | EU                         | |coinmate|             | coinmate             | `CoinMate <https://coinmate.io>`__                                                | \*    | `API <http://docs.coinmate.apiary.io>`__                                                          |
 +----------------------------+------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
+| EU                         | |crypton|              | crypton              | `Crypton <https://cryptonbtc.com>`__                                              | 1     | `API <https://cryptonbtc.docs.apiary.io/>`__                                                      |
++----------------------------+------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | EU                         | |paymium|              | paymium              | `Paymium <https://www.paymium.com>`__                                             | 1     | `API <https://github.com/Paymium/api-documentation>`__                                            |
 +----------------------------+------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | EU                         | |virwox|               | virwox               | `VirWoX <https://www.virwox.com>`__                                               | \*    | `API <https://www.virwox.com/developers.php>`__                                                   |
@@ -371,6 +373,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
 .. |bl3p| image:: https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg
 .. |btcx| image:: https://user-images.githubusercontent.com/1294454/27766385-9fdcc98c-5ed6-11e7-8f14-66d5e5cd47e6.jpg
 .. |ccex| image:: https://user-images.githubusercontent.com/1294454/27766433-16881f90-5ed8-11e7-92f8-3d92cc747a6c.jpg
+.. |crypton| image:: https://user-images.githubusercontent.com/1294454/41334251-905b5a78-6eed-11e8-91b9-f3aa435078a1.jpg
 .. |paymium| image:: https://user-images.githubusercontent.com/1294454/27790564-a945a9d4-5ff9-11e7-9d2d-b635763f2f24.jpg
 .. |anxpro| image:: https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg
 .. |bitz| image:: https://user-images.githubusercontent.com/1294454/35862606-4f554f14-0b5d-11e8-957d-35058c504b6f.jpg
