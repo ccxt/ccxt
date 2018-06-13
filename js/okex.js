@@ -35,7 +35,7 @@ module.exports = class okex extends okcoinusd {
                 'YOYO': 'YOYOW',
             },
         });
-        result.api.web.get.push ('spot/markets/tickers');
+        result['api']['web']['get'].push ('spot/markets/tickers');
         return result;
     }
 
