@@ -454,10 +454,17 @@ class bibox extends Exchange {
 
     public function parse_order ($order, $market = null) {
         $symbol = null;
-        if ($market) {
+        if ($market === null) {
+            $marketId = null;
+            $baseId = $this->safe_string($order, 'coin_symbol');
+            $quoteId = $this->safe_string($order, 'currency_symbol');
+            if (($baseId !== null) && ($quoteId !== null))
+                $marketId = $baseId . '_' . $quoteId;
+            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
+                $market = $this->markets_by_id[$marketId];
+        }
+        if ($market !== null) {
             $symbol = $market['symbol'];
-        } else {
-            $symbol = $order['coin_symbol'] . '/' . $order['currency_symbol'];
         }
         $type = ($order['order_type'] === 1) ? 'market' : 'limit';
         $timestamp = $order['createdAt'];
