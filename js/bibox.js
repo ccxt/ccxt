@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, DDoSProtection, ExchangeNotAvailable, InvalidOrder, OrderNotFound, PermissionDenied, InsufficientFunds, BadResponse } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, DDoSProtection, ExchangeNotAvailable, InvalidOrder, OrderNotFound, PermissionDenied, InsufficientFunds, NullResponse } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -455,7 +455,7 @@ module.exports = class bibox extends Exchange {
         if (!('order_type' in order) ||
             !('order_side' in order) ||
             !('createdAt' in order))
-            throw new BadResponse (this.id + ' returned an empty response to query on order ' + order);
+            throw new NullResponse (this.id + ' returned an empty response to query on order ' + order);
         let symbol = undefined;
         if (typeof market === 'undefined') {
             let marketId = undefined;
