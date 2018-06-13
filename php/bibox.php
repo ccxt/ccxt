@@ -453,6 +453,11 @@ class bibox extends Exchange {
     }
 
     public function parse_order ($order, $market = null) {
+        $keys = is_array ($order) ? array_keys ($order) : array ();
+        $numKeys = is_array ($keys) ? count ($keys) : 0;
+        if ($numKeys < 1) {
+            throw new OrderNotFound ('Order ' . $order . ' does not exist on ' . $this->id . '.');
+        }
         $symbol = null;
         if ($market === null) {
             $marketId = null;
