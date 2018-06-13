@@ -209,8 +209,9 @@ const pythonRegexes = [
     [ /([^\s]+)\.toString \(\)/g, 'str($1)' ],
     [ /([^\s]+)\.join\s*\(\s*([^\)\[\]]+?)\s*\)/g, '$2.join($1)' ],
     [ /Math\.(max|min)\s/g, '$1' ],
-    [ /console\.log\s/g, 'print'],
-    [ /process\.exit\s+/g, 'sys.exit'],
+    [ / = new /g, ' = ' ], // python does not have a 'new' keyword
+    [ /console\.log\s/g, 'print' ],
+    [ /process\.exit\s+/g, 'sys.exit' ],
     [ /([^:+=\/\*\s-]+) \(/g, '$1(' ], // PEP8 E225 remove whitespaces before left ( round bracket
     [ /\[ /g, '[' ],              // PEP8 E201 remove whitespaces after left [ square bracket
     [ /\{ /g, '{' ],              // PEP8 E201 remove whitespaces after left { bracket
@@ -816,7 +817,7 @@ function transpileDateTimeTests () {
 
     js = regexAll (js, [
         [ /\'use strict\';?\s+/g, '' ],
-        [/const[^;]+;\s+/g, ''],
+        [ /[^\n]+require[^\n]+\n/g, '' ],
         [/^\/\*.*\s+/mg, ''],
     ])
 
