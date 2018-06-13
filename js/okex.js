@@ -78,13 +78,6 @@ module.exports = class okex extends okcoinusd {
         await this.loadMarkets ();
         let market = undefined;
         let request = {};
-        // todo, parse each symbol form the ARRAY of symbols accordingly
-        // next two lines are not correct
-        //    if (typeof symbol !== 'undefined') {
-        //        market = this.market (symbols);
-        //        request['symbol'] = market['id'];
-        //    }
-        //
         let response = await this.webGetSpotMarketsTickers (this.extend (request, params));
         let tickers = response['data'];
         let result = {};
@@ -104,7 +97,29 @@ module.exports = class okex extends okcoinusd {
     }
 
     async fetchTicker (symbol, params = {}) {
-        return this.fetchTickers (symbol, params);
+        await this.loadMarkets ();
+        let market = undefined;
+        let request = {};
+        if (typeof symbol !== 'undefined') {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        let response = await this.webGetSpotMarketsTickers (this.extend (request, params));
+        let tickers = response['data'];
+        let result = {};
+        for (let i = 0; i < tickers.length; i++) {
+            let ticker = tickers[i];
+            market = undefined;
+            if ('symbol' in ticker) {
+                let marketId = ticker['symbol'];
+                if (marketId in this.markets_by_id)
+                    market = this.markets_by_id[marketId];
+            }
+            ticker = this.parseTicker (this.extend (tickers[i]), market);
+            let symbol = ticker['symbol'];
+            result[symbol] = ticker;
+        }
+        return result;
     }
 
     parseTicker (ticker, market = undefined) {
