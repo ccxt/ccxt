@@ -406,7 +406,7 @@ module.exports = class bitso extends Exchange {
         let address = this.safeString (response['payload'], 'account_identifier');
         let tag = undefined;
         if (code === 'XRP') {
-            let parts = address.split ('?dt=', 2);
+            let parts = address.split ('?dt=');
             address = parts[0];
             tag = parts[1];
         }

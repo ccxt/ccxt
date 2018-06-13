@@ -8,10 +8,8 @@ const assert = require ('assert');
 
 // assert (numberToString (-7.9e-7) === '-0.0000007899999999999999');
 // assert (numberToString ( 7.9e-7) ===  '0.0000007899999999999999');
-
 // assert (numberToString (-12.345) === '-12.345');
 // assert (numberToString ( 12.345) === '12.345');
-
 // assert (numberToString (0) === '0');
 
 // ----------------------------------------------------------------------------

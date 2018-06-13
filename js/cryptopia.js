@@ -533,9 +533,8 @@ module.exports = class cryptopia extends Exchange {
                 'Type': 'Trade',
                 'OrderId': id,
             }, params));
-            // We do not know if it is indeed canceled, but cryptopia
-            // lacks any reasonable method to get information on executed
-            // or canceled order id.
+            // We do not know if it is indeed canceled, but cryptopia lacks any
+            // reasonable method to get information on executed or canceled order.
             if (id in this.orders)
                 this.orders[id]['status'] = 'canceled';
         } catch (e) {
