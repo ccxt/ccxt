@@ -2566,11 +2566,17 @@ Below is an outline of exception inheritance hierarchy:
     |
     +---+ ExchangeError
     |   |
-    |   +---+ NotSupported
-    |   |
     |   +---+ AuthenticationError
     |   |   |
     |   |   +---+ PermissionDenied
+    |   |   |
+    |   |   +---+ AccountSuspended
+    |   |
+    |   +---+ BadResponse
+    |   |   |
+    |   |   +---+ NullResponse
+    |   |
+    |   +---+ NotSupported
     |   |
     |   +---+ InsufficientFunds
     |   |
@@ -2605,8 +2611,10 @@ This exception is thrown when an exchange server replies with an error in JSON. 
 
 Other exceptions derived from ``ExchangeError``:
 
--  ``NotSupported``: This exception is raised if the endpoint is not offered/not supported by the exchange API.
 -  ``AuthenticationError``: Raised when an exchange requires one of the API credentials that you've missed to specify, or when there's a mistake in the keypair or an outdated nonce. Most of the time you need ``apiKey`` and ``secret``, sometimes you also need ``uid`` and/or ``password``.
+-  ``BadResponse``: Raised when an exchange returns a badly formed or incorrect response to a query.
+-  ``NullResponse``: Raised when an exchange returns an empty response to a query.
+-  ``NotSupported``: This exception is raised if the endpoint is not offered/not supported by the exchange API.
 -  ``PermissionDenied``: Raised when there's no access for specified action or insufficient permissions on the specified ``apiKey``.
 -  ``InsufficientFunds``: This exception is raised when you don't have enough currency on your account balance to place an order.
 -  ``InvalidAddress``: This exception is raised upon encountering a bad funding address or a funding address shorter than ``.minFundingAddressLength`` (10 characters by default) in a call to ``fetchDepositAddress``, ``createDepositAddress`` or ``withdraw``.
