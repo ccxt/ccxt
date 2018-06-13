@@ -452,7 +452,7 @@ module.exports = class bibox extends Exchange {
         if (this.isEmpty (order)) {
             throw new OrderNotFound (this.id + ' order ' + id + ' not found');
         }
-        return this.parseOrder ();
+        return this.parseOrder (order);
     }
 
     parseOrder (order, market = undefined) {
