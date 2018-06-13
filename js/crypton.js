@@ -24,7 +24,7 @@ module.exports = class crypton extends Exchange {
                 'fetchTickers': true,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/40079891/41187456-833318d2-6b5e-11e8-8a70-e04240e25c1c.png',
+                'logo': 'https://user-images.githubusercontent.com/1294454/41334251-905b5a78-6eed-11e8-91b9-f3aa435078a1.jpg',
                 'api': 'https://api.cryptonbtc.com',
                 'www': 'https://cryptonbtc.com',
                 'doc': 'https://cryptonbtc.docs.apiary.io/',
