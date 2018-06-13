@@ -564,6 +564,10 @@ class Exchange(object):
         return needle in haystack
 
     @staticmethod
+    def is_empty(object):
+        return not object
+
+    @staticmethod
     def extract_params(string):
         return re.findall(r'{([\w-]+)}', string)
 

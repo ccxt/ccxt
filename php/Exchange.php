@@ -378,6 +378,10 @@ abstract class Exchange {
         return array_values ($object);
     }
 
+    public static function is_empty ($object) {
+        return empty ($object);
+    }
+
     public static function keysort ($array) {
         $result = $array;
         ksort ($result);
