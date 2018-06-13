@@ -78,10 +78,13 @@ module.exports = class okex extends okcoinusd {
         await this.loadMarkets ();
         let market = undefined;
         let request = {};
-        if (undefined !== symbols) {
-            market = this.market (symbols);
-            request['symbol'] = market['id'];
-        }
+        // todo, parse each symbol form the ARRAY of symbols accordingly
+        // next two lines are not correct
+        //    if (typeof symbol !== 'undefined') {
+        //        market = this.market (symbols);
+        //        request['symbol'] = market['id'];
+        //    }
+        //
         let response = await this.webGetSpotMarketsTickers (this.extend (request, params));
         let tickers = response['data'];
         let result = {};
