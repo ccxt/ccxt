@@ -35,7 +35,7 @@ module.exports = class okex extends okcoinusd {
                 'YOYO': 'YOYOW',
             },
         });
-        result.api.web.get.push('spot/markets/tickers');
+        result.api.web.get.push ('spot/markets/tickers');
         return result;
     }
 
@@ -78,8 +78,7 @@ module.exports = class okex extends okcoinusd {
         await this.loadMarkets ();
         let market = undefined;
         let request = {};
-        if (undefined !== symbols)
-        {
+        if (undefined !== symbols) {
             market = this.market (symbols);
             request['symbol'] = market['id'];
         }
@@ -102,7 +101,7 @@ module.exports = class okex extends okcoinusd {
     }
 
     async fetchTicker (symbol, params = {}) {
-        return this.fetchTickers(symbol, params);
+        return this.fetchTickers (symbol, params);
     }
 
     parseTicker (ticker, market = undefined) {
