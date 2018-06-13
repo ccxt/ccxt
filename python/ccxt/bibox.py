@@ -440,7 +440,7 @@ class bibox (Exchange):
         order = self.safe_value(response, 'result')
         if self.is_empty(order):
             raise OrderNotFound(self.id + ' order ' + id + ' not found')
-        return self.parse_order()
+        return self.parse_order(order)
 
     def parse_order(self, order, market=None):
         symbol = None
