@@ -245,7 +245,13 @@ module.exports = class coinbase extends Exchange {
                 'used': undefined,
                 'total': this.safeFloat (balance['balance'], 'amount'),
             };
-            result[currency] = account;
+            // if there are multiple wallets/vaults of the same curency type, sum their values
+            if (currency in result) {
+                result[currency]['free'] += account['free'];
+                result[currency]['total'] += account['total'];
+            } else {
+                result[currency] = account;
+            }
         }
         return this.parseBalance (result);
     }
