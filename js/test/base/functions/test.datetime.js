@@ -4,7 +4,7 @@ const ccxt = require ('../../../../ccxt');
 const assert = require ('assert');
 
 const exchange = new ccxt.Exchange ({
-    'id': 'regirock'
+    'id': 'regirock',
 });
 
 // ----------------------------------------------------------------------------
