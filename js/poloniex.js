@@ -865,7 +865,7 @@ module.exports = class poloniex extends Exchange {
             } else if (message.indexOf ('You have already called cancelOrder or moveOrder on this order.') >= 0) {
                 throw new CancelPending (feedback);
             } else {
-                throw new ExchangeError (this.id + ': unknown error: ' + this.json (response));
+                throw new ExchangeError (this.id + ' unknown error ' + this.json (response));
             }
         }
     }
