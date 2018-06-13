@@ -353,12 +353,12 @@ module.exports = class indodax extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         let currency = this.currency (code);
-        // Custom string you need to provide to identify each withdrawal request.
+        // Custom string you need to provide to identify each withdrawal.
         // Will be passed to callback URL (assigned via website to the API key)
         // so your system can identify the request and confirm it.
         // Alphanumeric, max length 255.
         let requestId = this.milliseconds ();
-        // alternatively:
+        // Alternatively:
         // let requestId = this.uuid ();
         let request = {
             'currency': currency['id'],

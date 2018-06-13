@@ -387,7 +387,7 @@ module.exports = class bitbank extends Exchange {
         let response = await this.privateGetUserWithdrawalAccount (this.extend ({
             'asset': currency['id'],
         }, params));
-        // Not sure about this if there could be more accounts...
+        // Not sure about this if there could be more than one account...
         let accounts = response['data']['accounts'];
         let address = this.safeString (accounts[0], 'address');
         let status = address ? 'ok' : 'none';
