@@ -18,6 +18,7 @@ class quadrigacx extends Exchange {
             'version' => 'v2',
             'has' => array (
                 'fetchDepositAddress' => true,
+                'fetchTickers' => true,
                 'CORS' => true,
                 'withdraw' => true,
             ),
@@ -102,10 +103,48 @@ class quadrigacx extends Exchange {
         return $this->parse_order_book($orderbook, $timestamp);
     }
 
-    public function fetch_ticker ($symbol, $params = array ()) {
-        $ticker = $this->publicGetTicker (array_merge (array (
-            'book' => $this->market_id($symbol),
+    public function fetch_tickers ($symbols = null, $params = array ()) {
+        $response = $this->publicGetTicker (array_merge (array (
+            'book' => 'all',
         ), $params));
+        $ids = is_array ($response) ? array_keys ($response) : array ();
+        $result = array ();
+        for ($i = 0; $i < count ($ids); $i++) {
+            $id = $ids[$i];
+            $symbol = $id;
+            $market = null;
+            if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$id];
+                $symbol = $market['symbol'];
+            } else {
+                list ($baseId, $quoteId) = explode ('_', $id);
+                $base = strtoupper ($baseId);
+                $quote = strtoupper ($quoteId);
+                $base = $this->common_currency_code($base);
+                $quote = $this->common_currency_code($base);
+                $symbol = $base . '/' . $quote;
+                $market = array (
+                    'symbol' => $symbol,
+                );
+            }
+            $result[$symbol] = $this->parse_ticker($response[$id], $market);
+        }
+        return $result;
+    }
+
+    public function fetch_ticker ($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $response = $this->publicGetTicker (array_merge (array (
+            'book' => $market['id'],
+        ), $params));
+        return $this->parse_ticker($response, $market);
+    }
+
+    public function parse_ticker ($ticker, $market = null) {
+        $symbol = null;
+        if ($market !== null)
+            $symbol = $market['symbol'];
         $timestamp = intval ($ticker['timestamp']) * 1000;
         $vwap = $this->safe_float($ticker, 'vwap');
         $baseVolume = $this->safe_float($ticker, 'volume');
