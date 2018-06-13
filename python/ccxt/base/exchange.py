@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.14.186'
+__version__ = '1.14.188'
 
 # -----------------------------------------------------------------------------
 
@@ -562,6 +562,10 @@ class Exchange(object):
     @staticmethod
     def in_array(needle, haystack):
         return needle in haystack
+
+    @staticmethod
+    def is_empty(object):
+        return not object
 
     @staticmethod
     def extract_params(string):
