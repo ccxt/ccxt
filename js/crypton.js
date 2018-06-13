@@ -71,11 +71,12 @@ module.exports = class crypton extends Exchange {
 
     async fetchMarkets () {
         let response = await this.publicGetMarkets ();
+        let markets = response['result'];
         let result = [];
-        let keys = Object.keys (response);
+        let keys = Object.keys (markets);
         for (let i = 0; i < keys.length; i++) {
             let id = keys[i];
-            let market = response[id];
+            let market = markets[id];
             let baseId = market['base'];
             let quoteId = market['quote'];
             let base = this.commonCurrencyCode (baseId);
@@ -83,12 +84,8 @@ module.exports = class crypton extends Exchange {
             let symbol = base + '/' + quote;
             let precision = {
                 'amount': 8,
-                'price': 8,
+                'price': this.precisionFromString (this.safeString (market, 'priceStep')),
             };
-            let priceStep = this.safeString (market, 'priceStep');
-            if (typeof priceStep !== 'undefined') {
-                precision['price'] = this.precisionFromString (priceStep);
-            }
             let active = market['enabled'];
             result.push ({
                 'id': id,
@@ -107,6 +104,10 @@ module.exports = class crypton extends Exchange {
                     },
                     'price': {
                         'min': this.safeFloat (market, 'priceStep'),
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
                         'max': undefined,
                     },
                 },
@@ -240,7 +241,7 @@ module.exports = class crypton extends Exchange {
         if (limit)
             request['limit'] = limit;
         let response = await this.publicGetMarketsIdTrades (this.extend (request, params));
-        return this.parseTrades (response, market, since, limit);
+        return this.parseTrades (response['result'], market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -250,7 +251,7 @@ module.exports = class crypton extends Exchange {
         if (limit)
             request['limit'] = limit;
         let response = await this.privateGetFills (this.extend (request, params));
-        let trades = this.parseTrades (response, market, since, limit);
+        let trades = this.parseTrades (response['result'], market, since, limit);
         return this.filterBySymbol (trades, symbol);
     }
 
@@ -308,7 +309,7 @@ module.exports = class crypton extends Exchange {
             'id': id,
         };
         let response = await this.privateGetOrdersId (this.extend (request, params));
-        return this.parseOrder (response);
+        return this.parseOrder (response['result']);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -319,7 +320,7 @@ module.exports = class crypton extends Exchange {
             request['market'] = this.marketId (symbol);
         }
         let response = await this.privateGetOrders (this.extend (request, params));
-        return this.parseOrders (response, market, since, limit);
+        return this.parseOrders (response['result'], market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -332,7 +333,7 @@ module.exports = class crypton extends Exchange {
             'price': this.priceToPrecision (symbol, price),
         };
         let response = await this.privatePostOrders (this.extend (order, params));
-        return this.parseOrder (response);
+        return this.parseOrder (response['result']);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -341,7 +342,7 @@ module.exports = class crypton extends Exchange {
             'id': id,
         };
         let response = await this.privateDeleteOrdersId (this.extend (request, params));
-        return this.parseOrder (response);
+        return this.parseOrder (response['result']);
     }
 
     parseSymbol (id) {
@@ -357,8 +358,9 @@ module.exports = class crypton extends Exchange {
         let response = await this.privateGetDepositAddressCurrency (this.extend ({
             'currency': currency['id'],
         }, params));
-        let address = this.safeString (response, 'address');
-        let tag = this.safeString (response, 'tag');
+        let result = response['result'];
+        let address = this.safeString (result, 'address');
+        let tag = this.safeString (result, 'tag');
         this.checkAddress (address);
         return {
             'currency': code,
