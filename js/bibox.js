@@ -452,7 +452,9 @@ module.exports = class bibox extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        if (Object.keys (order).length < 1) {
+        let keys = Object.keys (order);
+        let numKeys = keys.length;
+        if (numKeys < 1) {
             throw new OrderNotFound ('Order ' + order + ' does not exist on ' + this.id + '.');
         }
         let symbol = undefined;
