@@ -4,12 +4,13 @@ module.exports = class AsyncSymbolContext {
     constructor(conxid){
         this.subscribed = false;
         this.subscribing = false;
-        this.data = null;
+        this.data = {};
         this.conxid = conxid;
     }
 
     reset() {
         this.subscribed = false;
-        this.data = null;
+        this.subscribing = false;
+        this.data = {};
     }
 }

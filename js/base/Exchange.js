@@ -1130,9 +1130,9 @@ module.exports = class Exchange extends EventEmitter{
     // async methods
     asyncContextGetSubscribedEventSymbols (conxid) {
         let ret = [];
-        for (key in this.asyncContext) {
-            for (symbol in this.asyncContext[key]) {
-                symbolContext = this.asyncContext[key][symbol];
+        for (let key in this.asyncContext) {
+            for (let symbol in this.asyncContext[key]) {
+                let symbolContext = this.asyncContext[key][symbol];
                 if ((symbolContext.conxid === conxid) && ((symbolContext.subscribed) ||(symbolContext.subscribing))){
                     ret.push ({
                         'event': key,
@@ -1153,8 +1153,9 @@ module.exports = class Exchange extends EventEmitter{
                 'trades': {},
             };
         } else {
-            for (key in this.asyncContext) {
-                for (symbolContext of this.asyncContext[key]) {
+            for (let key in this.asyncContext) {
+                for (let symbol in this.asyncContext[key]) {
+                    let symbolContext = this.asyncContext[key][symbol];
                     if (symbolContext.conxid === conxid) {
                         symbolContext.reset();
                     }
@@ -1204,6 +1205,9 @@ module.exports = class Exchange extends EventEmitter{
         for (let key in generators) {
             config[key] = this.implodeParams (generators[key], params);
         }
+        if (!(('id' in config) && ('url' in config) && ('type' in config))) {
+            throw new ExchangeError ("invalid async configuration in exchange: " + this.id);
+        }
         switch (config['type']){
             case 'ws':
                 return {
@@ -1212,17 +1216,20 @@ module.exports = class Exchange extends EventEmitter{
                     'reset-context': 'onconnect',
                 };
             case 'ws-s':
-                let susbcribed = this.asyncContextGetSubscribedEventSymbols();
-                let nextStreamList = [];
-                for (element of subscribed) {
+                let subscribed = this.asyncContextGetSubscribedEventSymbols(config['id']);
+                let nextStreamList = [this.implodeParams (generators['stream'], {
+                    'event': event,
+                    'symbol': this.marketId (symbol).toLowerCase (),
+                })];
+                for (let element of subscribed) {
                     let e = element['event'];
                     let s = element['symbol'];
-                    nextStreamList.push(implodeParams(generators['stream'], {
+                    nextStreamList.push(this.implodeParams(generators['stream'], {
                         'event': e,
-                        'symbol': s,
+                        'symbol': this.marketId (s).toLowerCase (),
                     }));
                 }
-                config['stream'] = sort(nextStreamList).join();
+                config['stream'] = nextStreamList.sort ().join ('');
                 config['url'] = config['url'] + config['stream'];
                 return {
                     'command': 'reconnect',
@@ -1241,12 +1248,12 @@ module.exports = class Exchange extends EventEmitter{
             switch(command['command']){
                 case 'reconnect':
                     if (conxConfig['id'] in this.asyncConectionPool){
-                        this.asyncConectionPool[conxConfig[id]]['conx'].close();
+                        this.asyncConectionPool[conxConfig['id']]['conx'].close();
                     }
                     if (command['reset-context'] === 'onreconnect') {
                         this.asyncResetContext(conxConfig['id']);
                     }
-                    this.asyncConectionPool[conxConfig['id']] = this.asyncInitialize(conxConfig, conxconfig['id']);
+                    this.asyncConectionPool[conxConfig['id']] = this.asyncInitialize(conxConfig, conxConfig['id']);
                     break;
                 case 'connect':
                     if (conxConfig['id'] in this.asyncConectionPool){
@@ -1254,6 +1261,9 @@ module.exports = class Exchange extends EventEmitter{
                             break;
                         }
                         this.asyncConectionPool[conxConfig['id']]['conx'].close();
+                        this.asyncResetContext(conxConfig['id']);
+                    } else {
+                        this.asyncResetContext(conxConfig['id']);
                     }
                     this.asyncConectionPool[conxConfig['id']] = this.asyncInitialize(conxConfig, conxConfig['id']);
                     break;
@@ -1270,7 +1280,7 @@ module.exports = class Exchange extends EventEmitter{
         await this.loadMarkets();
         if (!asyncConxInfo['ready']) {
             let wait4readyEvent = this.safeString (this.asyncconf['conx-tpls'][conxid], 'wait4readyEvent');
-            if (wait4readyEvent !== undefined){
+            if (wait4readyEvent != null){
                 await new Promise(async (resolve, reject) => {
                     this.once (wait4readyEvent, (success, error) => {
                         if (success) {
@@ -1325,6 +1335,10 @@ module.exports = class Exchange extends EventEmitter{
             default:
                 throw NotSupported ("invalid async connection: " + conxTpl['type'] + " for exchange " + this.id);
         }
+        asyncConnectionInfo['conx'].on ('open', () => {
+            asyncConnectionInfo['auth'] = false;
+            this._asyncEventOnOpen(conxid, asyncConnectionInfo);
+        });
         asyncConnectionInfo['conx'].on ('error', (err) => {
             asyncConnectionInfo['auth'] = false;
             this.asyncResetContext (conxid);
@@ -1341,6 +1355,7 @@ module.exports = class Exchange extends EventEmitter{
         });
         asyncConnectionInfo['conx'].on ('close', () => {
             asyncConnectionInfo['auth'] = false;
+            this.asyncResetContext (conxid);
             this.emit ('close', conxid);
         });
 
@@ -1375,13 +1390,13 @@ module.exports = class Exchange extends EventEmitter{
         return this.timeoutPromise (new Promise (async (resolve, reject) => {
             try {
                 await this.asyncEnsureConxActive ('ob', symbol, true);
-                if (this.asyncContext['ob'][symbol].data !== undefined) {
-                    resolve (this._cloneOrderBook (this.asyncContext.ob[symbol].data, limit));
+                if (this.asyncContext['ob'][symbol].data['ob'] != null) {
+                    resolve (this._cloneOrderBook (this.asyncContext.ob[symbol].data['ob'], limit));
                     return;
                 }
                 let f = (symbolR, ob) => {
                     if (symbolR === symbol) {
-                        this.removeListener (f);
+                        this.removeListener ('ob', f);
                         resolve (this._cloneOrderBook (ob, limit));
                     }
                 }
@@ -1397,24 +1412,57 @@ module.exports = class Exchange extends EventEmitter{
             try {
                 await this.asyncEnsureConxActive ('ob', symbol, true);
                 const oid = this.nonce() + '-' + symbol + '-ob-subscribe';
-                this.once (oid, (success, data) => {
+                this.once (oid, (success) => {
                     if (success) {
                         this.asyncContext['ob'][symbol].subscribed = true;
                         this.asyncContext['ob'][symbol].subscribing = false;
-                        resolve (data);
+                        resolve ();
                     } else {
                         this.asyncContext['ob'][symbol].subscribed = false;
                         this.asyncContext['ob'][symbol].subscribing = false;            
-                        reject (data);
+                        reject ();
                     }
                 });
-                this._asyncSubscribeOrderBook (symbol, oid);
                 this.asyncContext['ob'][symbol].subscribing = true;
+                this._asyncSubscribeOrderBook (symbol, oid);
             } catch (ex) {
                 reject (ex);
             }
         });
         return this.timeoutPromise (promise, 'asyncSubscribeOrderBook');
+    }
+
+    _asyncEventOnOpen (conexid, asyncConex) {
+
+    }
+
+    _asyncExecute (method, params, callback, context = {}, thisParam = null) {
+        try {
+            thisParam = thisParam != null ? thisParam: this;
+            let promise = method.apply (thisParam, params);
+            let that = this;
+            promise.then(function() {
+                let args = [].slice.call(arguments);
+                args.unshift(null);
+                args.unshift(context);
+                try {
+                    callback.apply (thisParam, args);
+                } catch (ex) {
+                    console.log (ex.stack);
+                    that.emit ('error', new ExchangeError (that.id + ': error invoking method ' + callback.name + ' in _asyncExecute: '+ ex));
+                }
+            }).catch(function(context, error) {
+                try {
+                    callback.apply (thisParam, [error]);
+                } catch (ex) {
+                    console.log (ex.stack);
+                    that.emit ('error', new ExchangeError (that.id + ': error invoking method ' + callback.name + ' in _asyncExecute: '+ ex));
+                }
+            });
+        } catch (ex) {
+            console.log (ex.stack);
+            that.emit ('error', new ExchangeError (that.id + ': error invoking method ' + method.name + ' in _asyncExecute: '+ ex));
+        }
     }
 
 }

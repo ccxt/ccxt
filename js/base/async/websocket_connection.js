@@ -28,6 +28,7 @@ module.exports = class WebsocketConnection extends AsyncConnection {
             client.ws = new WebSocket(this.config.url);
 
             client.ws.on('open', () => {
+                this.emit ('open');
                 resolve();
             });
 
@@ -59,7 +60,7 @@ module.exports = class WebsocketConnection extends AsyncConnection {
         if (this.client.ws != null) {
             this.client.isClosing = true;
             this.client.ws.close();
-            this.client = null;
+            this.client.ws = null;
         }
     }
 

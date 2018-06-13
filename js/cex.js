@@ -562,23 +562,23 @@ module.exports = class cex extends Exchange {
         };
     }
 
-    _asyncOnMsg (data, conxId='default') {
+    _asyncOnMsg (data, conxid='default') {
         let msg = this.asyncParseJson (data);
         let e = this.safeString (msg, 'e');
         let oid = this.safeString (msg, 'oid');
         let resData = this.safeValue (msg, 'data', {});
         if (e in this.asyncconf['methodmap']) {
             let method = this.asyncconf['methodmap'][e];
-            this[method] (msg, oid, resData, conxId);
+            this[method] (msg, oid, resData, conxid);
         }
     }
 
-    _asyncHandleConnected (msg, oid, resData, conxId='default') {
+    _asyncHandleConnected (msg, oid, resData, conxid='default') {
         this.asyncSendJson (this._asyncAuthPayload ());
     }
 
-    _asyncHandleAuth (msg, oid, resData, conxId='default') {
-        this.asyncConectionPool[conxId]['auth'] = true;
+    _asyncHandleAuth (msg, oid, resData, conxid='default') {
+        this.asyncConectionPool[conxid]['auth'] = true;
         if (msg['ok'] === 'ok') {
             this.emit ('auth', true);
         } else {
@@ -586,18 +586,18 @@ module.exports = class cex extends Exchange {
         }
     }
 
-    _asyncHandlePing (msg, oid, resData, conxId='default') {
+    _asyncHandlePing (msg, oid, resData, conxid='default') {
         this.asyncSendJson ({ 'e': 'pong' });
     }
 
-    _asyncHandleObSubscribe (msg, oid, resData, conxId='default') {
+    _asyncHandleObSubscribe (msg, oid, resData, conxid='default') {
         if (msg['ok'] === 'ok') {
             let symbol = resData['pair'].replace (':', '/');
             let timestamp = resData['timestamp'] * 1000;
             let ob = this.parseOrderBook (resData, timestamp);
             ob['nonce'] = resData['id'];
-            this.asyncContext['ob'][symbol].data = ob;
-            this.emit (oid, true, ob);
+            this.asyncContext['ob'][symbol].data['ob'] = ob;
+            this.emit (oid, true);
             this.emit ('ob', symbol, ob);
         } else {
             let error = new ExchangeError (this.safeString (resData, 'error', 'orderbook error'));
@@ -605,18 +605,18 @@ module.exports = class cex extends Exchange {
         }
     }
 
-    _asyncHandleObUpdate (msg, oid, resData, conxId='default') {
+    _asyncHandleObUpdate (msg, oid, resData, conxid='default') {
         let symbol = resData['pair'].replace (':', '/');
         let timestamp = resData['time'];
-        let ob = this.asyncContext['ob'][symbol].data;
+        let ob = this.asyncContext['ob'][symbol].data['ob'];
         if (ob['nonce'] !== (resData['id'] - 1)) {
             this.asyncClose ();
             this.emit ('error', new ExchangeError ('invalid orderbook sequence in ' + this.id + ' ' + ob['nonce'] + ' !== ' + resData['id'] + ' -1'));
         } else {
             ob = this.mergeOrderBookDelta (ob, resData, timestamp);
             ob['nonce'] = resData['id'];
-            this.asyncContext['ob'][symbol].data = ob;
-            this.emit ('ob', symbol, ob);
+            this.asyncContext['ob'][symbol].data['ob'] = ob;
+            this.emit ('ob', symbol, this._cloneOrderBook(ob));
         }
     }
 
@@ -645,15 +645,4 @@ module.exports = class cex extends Exchange {
             'oid': nonce,
         });
     }
-/*
-    _asyncSubscribePre (event, symbols) {
-        return {
-            'command': 'connect',
-            'conx': this.asyncconf['conex']['default'],
-            'id': 'default',
-            'reset-ctx': ['ob'],
-            'symbols': symbols,
-        };
-    }
-*/    
 };
