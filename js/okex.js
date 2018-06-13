@@ -8,7 +8,7 @@ const okcoinusd = require ('./okcoinusd.js');
 
 module.exports = class okex extends okcoinusd {
     describe () {
-        return this.deepExtend (super.describe (), {
+        let result = this.deepExtend (super.describe (), {
             'id': 'okex',
             'name': 'OKEX',
             'countries': [ 'CN', 'US' ],
@@ -35,6 +35,8 @@ module.exports = class okex extends okcoinusd {
                 'YOYO': 'YOYOW',
             },
         });
+        result.api.web.get.push('spot/markets/tickers');
+        return result;
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
@@ -74,23 +76,68 @@ module.exports = class okex extends okcoinusd {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
+        let market;
         let request = {};
-        let response = await this.publicGetTickers (this.extend (request, params));
-        let tickers = response['tickers'];
-        let timestamp = parseInt (response['date']) * 1000;
+        if (undefined !== symbols)
+        {
+            market = this.market (symbols);
+            request['symbol'] = market['id'];
+        }
+        let response = await this.webGetSpotMarketsTickers (this.extend (request, params));
+        let tickers = response['data'];
         let result = {};
         for (let i = 0; i < tickers.length; i++) {
             let ticker = tickers[i];
-            let market = undefined;
+            market = undefined;
             if ('symbol' in ticker) {
                 let marketId = ticker['symbol'];
                 if (marketId in this.markets_by_id)
                     market = this.markets_by_id[marketId];
             }
-            ticker = this.parseTicker (this.extend (tickers[i], { 'timestamp': timestamp }), market);
+            ticker = this.parseTicker (this.extend (tickers[i]), market);
             let symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
         return result;
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        return this.fetchTickers(symbol, params);
+    }
+
+    parseTicker (ticker, market = undefined) {
+        let timestamp = this.safeInteger (ticker, 'createdDate');
+        let symbol = undefined;
+        if (!market) {
+            if ('symbol' in ticker) {
+                let marketId = ticker['symbol'];
+                if (marketId in this.markets_by_id)
+                    market = this.markets_by_id[marketId];
+            }
+        }
+        if (market)
+            symbol = market['symbol'];
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'buy'),
+            'bidVolume': undefined,
+            'ask': this.safeFloat (ticker, 'sell'),
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': this.safeFloat (ticker, 'open'),
+            'close': this.safeFloat (ticker, 'close'),
+            'last': this.safeFloat (ticker, 'last'),
+            'previousClose': undefined,
+            'change': this.safeFloat (ticker, 'change'),
+            'percentage': this.safeFloat (ticker, 'changePercentage'),
+            'average': undefined,
+            'baseVolume': this.safeFloat (ticker, 'volume'),
+            'quoteVolume': undefined,
+            'info': ticker,
+        };
     }
 };
