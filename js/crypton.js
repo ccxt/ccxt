@@ -81,9 +81,10 @@ module.exports = class crypton extends Exchange {
             let base = this.commonCurrencyCode (baseId);
             let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
+            let priceStep = this.safeString (market, 'priceStep');
             let precision = {
                 'amount': 8,
-                'price': this.precisionFromString (this.safeString (market, 'priceStep')),
+                'price': this.precisionFromString (priceStep),
             };
             let active = market['enabled'];
             result.push ({
@@ -98,11 +99,11 @@ module.exports = class crypton extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': market['minSize'],
+                        'min': this.safeFloat (market, 'minSize'),
                         'max': undefined,
                     },
                     'price': {
-                        'min': market['priceStep'],
+                        'min': this.safeFloat (market, 'priceStep'),
                         'max': undefined,
                     },
                 },
