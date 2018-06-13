@@ -452,8 +452,9 @@ module.exports = class bibox extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        if (!('order_type' in order) || !('order_side' in order) || !('createdAt' in order))
-            throw new OrderNotFound ('Order ' + order + ' does not exist on ' + self.id + '.');
+        if (Object.keys (order).length < 1) {
+            throw new OrderNotFound ('Order ' + order + ' does not exist on ' + this.id + '.');
+        }
         let symbol = undefined;
         if (typeof market === 'undefined') {
             let marketId = undefined;
