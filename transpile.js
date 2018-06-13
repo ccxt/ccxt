@@ -318,6 +318,7 @@ const phpRegexes = [
     [ /([^\s]+)\.indexOf\s*\(([^\)]+)\)/g, 'mb_strpos ($1, $2)' ],
     [ /\(([^\s\(]+)\sin\s([^\)]+)\)/g, '(is_array ($2) && array_key_exists ($1, $2))' ],
     [ /([^\s]+)\.join\s*\(\s*([^\)]+?)\s*\)/g, 'implode ($2, $1)' ],
+    [ 'new ccxt\\.', 'new \\ccxt\\' ], // a special case for test_exchange_datetime_functions.php (and for other files, maybe)
     [ /Math\.(max|min)/g, '$1' ],
     [ /console\.log/g, 'var_dump'],
     [ /process\.exit/g, 'exit'],
@@ -512,9 +513,6 @@ function transpileJavaScriptToPHP ({ js, variables }) {
     // support for php syntax for object-pointer dereference
     // convert all $variable.property to $variable->property
     let variablePropertiesRegexes = allVariables.map (x => [ "([^a-zA-Z0-9\\.\\>'_])" + x + '\\.', '$1' + x + '->' ])
-
-    if (js.indexOf ('regirock') >= 0)
-        log.green (variablePropertiesRegexes)
 
     // transpile JS → PHP
     let phpBody = regexAll (js, phpRegexes.concat (phpVariablesRegexes).concat (variablePropertiesRegexes))
