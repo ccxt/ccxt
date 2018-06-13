@@ -499,6 +499,7 @@ function transpileJavaScriptToPHP ({ js, variables }) {
         }
     }
 
+    // match all variables instantiated in the catch()-block of a try-catch clause
     let catchClauseRegex = /catch \(([^)]+)\)/g
     let catchClauseMatches
     while (catchClauseMatches = catchClauseRegex.exec (js)) {
@@ -508,8 +509,15 @@ function transpileJavaScriptToPHP ({ js, variables }) {
     // append $ to all variables in the method (PHP syntax demands $ at the beginning of a variable name)
     let phpVariablesRegexes = allVariables.map (x => [ "([^$$a-zA-Z0-9\\.\\>'_])" + x + "([^a-zA-Z0-9'_])", '$1$$' + x + '$2' ])
 
+    // support for php syntax for object-pointer dereference
+    // convert all $variable.property to $variable->property
+    let variablePropertiesRegexes = allVariables.map (x => [ "([^a-zA-Z0-9\\.\\>'_])" + x + '\\.', '$1' + x + '->' ])
+
+    if (js.indexOf ('regirock') >= 0)
+        log.green (variablePropertiesRegexes)
+
     // transpile JS → PHP
-    let phpBody = regexAll (js, phpRegexes.concat (phpVariablesRegexes))
+    let phpBody = regexAll (js, phpRegexes.concat (phpVariablesRegexes).concat (variablePropertiesRegexes))
 
     return phpBody
 }
