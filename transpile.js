@@ -133,11 +133,14 @@ const pythonRegexes = [
     [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'undefined\'/g, '$1[$2] is not None' ],
     [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'undefined\'/g, '$1 is None' ],
     [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'undefined\'/g, '$1 is not None' ],
+    [ /typeof\s+(.+?)\s+\=\=\=?\s+\'undefined\'/g, '$1 is None' ],
+    [ /typeof\s+(.+?)\s+\!\=\=?\s+\'undefined\'/g, '$1 is not None' ],
     [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'string\'/g, 'isinstance($1[$2], basestring)' ],
     [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'string\'/g, 'not isinstance($1[$2], basestring)' ],
     [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'string\'/g, 'isinstance($1, basestring)' ],
     [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'string\'/g, 'not isinstance($1, basestring)' ],
     [ /undefined/g, 'None' ],
+    [ /null/g, 'None' ],
     [ /\=\=\=?/g, '==' ],
     [ /\!\=\=?/g, '!=' ],
     [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
@@ -828,7 +831,6 @@ function transpileDateTimeTests () {
     const pythonHeader =
 "\n\
 import ccxt  # noqa: F402\n\
-exchange = ccxt.Exchange\n\
 \n\
 # ----------------------------------------------------------------------------\n\
 \n"
