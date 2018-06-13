@@ -14,7 +14,7 @@ assert (exchange.iso8601 (0) === '1970-01-01T00:00:00.000Z');
 
 assert (typeof exchange.iso8601 (-1) === 'undefined');
 assert (typeof exchange.iso8601 () === 'undefined');
-assert (typeof exchange.iso8601 (null) === 'undefined');
+assert (typeof exchange.iso8601 (undefined) === 'undefined');
 assert (typeof exchange.iso8601 ('') === 'undefined');
 assert (typeof exchange.iso8601 ('a') === 'undefined');
 assert (typeof exchange.iso8601 ({}) === 'undefined');
@@ -30,7 +30,7 @@ assert (typeof exchange.parse8601 ('3333') === 'undefined');
 assert (typeof exchange.parse8601 ('Sr90') === 'undefined');
 assert (typeof exchange.parse8601 ('') === 'undefined');
 assert (typeof exchange.parse8601 () === 'undefined');
-assert (typeof exchange.parse8601 (null) === 'undefined');
+assert (typeof exchange.parse8601 (undefined) === 'undefined');
 assert (typeof exchange.parse8601 ({}) === 'undefined');
 assert (typeof exchange.parse8601 (33) === 'undefined');
 
