@@ -152,6 +152,13 @@ class coinbase (Exchange):
                 'ETH/USD': {'id': 'eth-usd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD'},
                 'BCH/USD': {'id': 'bch-usd', 'symbol': 'BCH/USD', 'base': 'BCH', 'quote': 'USD'},
             },
+            'options': {
+                'acocunts': [
+                    'wallet',
+                    'fiat',
+                    # 'vault',
+                ],
+            },
         })
 
     def fetch_time(self):
@@ -242,16 +249,28 @@ class coinbase (Exchange):
     def fetch_balance(self, params={}):
         response = self.privateGetAccounts()
         balances = response['data']
+        accounts = self.safe_value(params, 'type', self.options['accounts'])
         result = {'info': response}
         for b in range(0, len(balances)):
             balance = balances[b]
-            currency = balance['balance']['currency']
-            account = {
-                'free': self.safe_float(balance['balance'], 'amount'),
-                'used': None,
-                'total': self.safe_float(balance['balance'], 'amount'),
-            }
-            result[currency] = account
+            if self.in_array(balance['type'], accounts):
+                currencyId = balance['balance']['currency']
+                code = currencyId
+                if currencyId in self.currencies_by_id:
+                    code = self.currencies_by_id[currencyId]['code']
+                total = self.safe_float(balance['balance'], 'amount')
+                free = total
+                used = None
+                if code in result:
+                    result[code]['free'] += total
+                    result[code]['total'] += total
+                else:
+                    account = {
+                        'free': free,
+                        'used': used,
+                        'total': total,
+                    }
+                    result[code] = account
         return self.parse_balance(result)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

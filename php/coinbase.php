@@ -142,6 +142,13 @@ class coinbase extends Exchange {
                 'ETH/USD' => array ( 'id' => 'eth-usd', 'symbol' => 'ETH/USD', 'base' => 'ETH', 'quote' => 'USD' ),
                 'BCH/USD' => array ( 'id' => 'bch-usd', 'symbol' => 'BCH/USD', 'base' => 'BCH', 'quote' => 'USD' ),
             ),
+            'options' => array (
+                'acocunts' => array (
+                    'wallet',
+                    'fiat',
+                    // 'vault',
+                ),
+            ),
         ));
     }
 
@@ -237,16 +244,30 @@ class coinbase extends Exchange {
     public function fetch_balance ($params = array ()) {
         $response = $this->privateGetAccounts ();
         $balances = $response['data'];
+        $accounts = $this->safe_value($params, 'type', $this->options['accounts']);
         $result = array ( 'info' => $response );
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
-            $currency = $balance['balance']['currency'];
-            $account = array (
-                'free' => $this->safe_float($balance['balance'], 'amount'),
-                'used' => null,
-                'total' => $this->safe_float($balance['balance'], 'amount'),
-            );
-            $result[$currency] = $account;
+            if ($this->in_array($balance['type'], $accounts)) {
+                $currencyId = $balance['balance']['currency'];
+                $code = $currencyId;
+                if (is_array ($this->currencies_by_id) && array_key_exists ($currencyId, $this->currencies_by_id))
+                    $code = $this->currencies_by_id[$currencyId]['code'];
+                $total = $this->safe_float($balance['balance'], 'amount');
+                $free = $total;
+                $used = null;
+                if (is_array ($result) && array_key_exists ($code, $result)) {
+                    $result[$code]['free'] .= $total;
+                    $result[$code]['total'] .= $total;
+                } else {
+                    $account = array (
+                        'free' => $free,
+                        'used' => $used,
+                        'total' => $total,
+                    );
+                    $result[$code] = $account;
+                }
+            }
         }
         return $this->parse_balance($result);
     }
