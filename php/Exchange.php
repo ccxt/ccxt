@@ -44,7 +44,7 @@ const SIGNIFICANT_DIGITS = 1;
 const NO_PADDING = 0;
 const PAD_WITH_ZERO = 1;
 
-abstract class Exchange {
+class Exchange {
 
     public static $exchanges = array (
         '_1broker',
@@ -490,7 +490,9 @@ abstract class Exchange {
         return $sec . str_pad (substr ($msec, 2, 6), 6, '0');
     }
 
-    public static function iso8601 ($timestamp) {
+    public static function iso8601 ($timestamp = null) {
+        if (!isset ($timestamp))
+            return null;
         if (!is_numeric ($timestamp) || intval ($timestamp) != $timestamp)
             return null;
         $timestamp = (int) $timestamp;
@@ -498,14 +500,17 @@ abstract class Exchange {
             return null;
         $result = date ('c', (int) round ($timestamp / 1000));
         $msec = (int) $timestamp % 1000;
-        return str_replace ('+', sprintf (".%03d+", $msec), $result);
+        $result = str_replace ('+00:00', sprintf (".%03dZ", $msec), $result);
+        return $result;
     }
 
     public static function parse_date ($timestamp) {
         return static::parse8601 ($timestamp);
     }
 
-    public static function parse8601 ($timestamp) {
+    public static function parse8601 ($timestamp = null) {
+        if (!isset ($timestamp))
+            return null;
         if (!$timestamp || !is_string ($timestamp))
             return null;
         $timedata = date_parse ($timestamp);
