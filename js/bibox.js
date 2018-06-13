@@ -452,9 +452,7 @@ module.exports = class bibox extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        if (!('order_type' in order) ||
-            !('order_side' in order) ||
-            !('createdAt' in order))
+        if (!('order_type' in order) || !('order_side' in order) || !('createdAt' in order))
             throw new NullResponse (this.id + ' returned an empty response to query on order ' + order);
         let symbol = undefined;
         if (typeof market === 'undefined') {
