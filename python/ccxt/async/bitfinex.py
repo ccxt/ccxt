@@ -792,8 +792,8 @@ class bitfinex (Exchange):
         errorMessage = self.find_broadly_matched_key(self.exceptions['broad'], message)
         if id == 0:
             if errorMessage is not None:
-                Exception = self.exceptions['broad'][errorMessage]
-                raise Exception(self.id + ' ' + message)
+                ExceptionClass = self.exceptions['broad'][errorMessage]
+                raise ExceptionClass(self.id + ' ' + message)
             raise ExchangeError(self.id + ' withdraw returned an id of zero: ' + self.json(response))
         return {
             'info': response,
