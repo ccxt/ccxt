@@ -413,11 +413,11 @@ module.exports = class cobinhood extends Exchange {
         if (typeof market === 'undefined') {
             let marketId = this.safeString (order, 'trading_pair');
             marketId = this.safeString (order, 'trading_pair_id', marketId);
-            market = this.markets_by_id[marketId];
+            market = this.safeValue (this.markets_by_id, marketId);
         }
         if (typeof market !== 'undefined')
             symbol = market['symbol'];
-        let timestamp = order['timestamp'];
+        let timestamp = this.safeInteger (order, 'timestamp');
         let price = this.safeFloat (order, 'eq_price');
         let amount = this.safeFloat (order, 'size');
         let filled = this.safeFloat (order, 'filled');
