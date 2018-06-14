@@ -81,7 +81,7 @@ module.exports = class cex extends Exchange {
             },
             'asyncconf': {
                 'conx-tpls': {
-                    'default' : {
+                    'default': {
                         'type': 'ws',
                         'baseurl': 'wss://ws.cex.io/ws/',
                         'wait4readyEvent': 'auth',
@@ -562,7 +562,7 @@ module.exports = class cex extends Exchange {
         };
     }
 
-    _asyncOnMsg (data, conxid='default') {
+    _asyncOnMsg (data, conxid = 'default') {
         let msg = this.asyncParseJson (data);
         let e = this.safeString (msg, 'e');
         let oid = this.safeString (msg, 'oid');
@@ -573,12 +573,12 @@ module.exports = class cex extends Exchange {
         }
     }
 
-    _asyncHandleConnected (msg, oid, resData, conxid='default') {
+    _asyncHandleConnected (msg, oid, resData, conxid = 'default') {
         this.asyncSendJson (this._asyncAuthPayload ());
     }
 
-    _asyncHandleAuth (msg, oid, resData, conxid='default') {
-        this.asyncConectionPool[conxid]['auth'] = true;
+    _asyncHandleAuth (msg, oid, resData, conxid = 'default') {
+        this.asyncConnectionPool[conxid]['auth'] = true;
         if (msg['ok'] === 'ok') {
             this.emit ('auth', true);
         } else {
@@ -586,11 +586,11 @@ module.exports = class cex extends Exchange {
         }
     }
 
-    _asyncHandlePing (msg, oid, resData, conxid='default') {
+    _asyncHandlePing (msg, oid, resData, conxid = 'default') {
         this.asyncSendJson ({ 'e': 'pong' });
     }
 
-    _asyncHandleObSubscribe (msg, oid, resData, conxid='default') {
+    _asyncHandleObSubscribe (msg, oid, resData, conxid = 'default') {
         if (msg['ok'] === 'ok') {
             let symbol = resData['pair'].replace (':', '/');
             let timestamp = resData['timestamp'] * 1000;
@@ -605,7 +605,7 @@ module.exports = class cex extends Exchange {
         }
     }
 
-    _asyncHandleObUpdate (msg, oid, resData, conxid='default') {
+    _asyncHandleObUpdate (msg, oid, resData, conxid = 'default') {
         let symbol = resData['pair'].replace (':', '/');
         let timestamp = resData['time'];
         let ob = this.asyncContext['ob'][symbol].data['ob'];
@@ -616,7 +616,7 @@ module.exports = class cex extends Exchange {
             ob = this.mergeOrderBookDelta (ob, resData, timestamp);
             ob['nonce'] = resData['id'];
             this.asyncContext['ob'][symbol].data['ob'] = ob;
-            this.emit ('ob', symbol, this._cloneOrderBook(ob));
+            this.emit ('ob', symbol, this._cloneOrderBook (ob));
         }
     }
 

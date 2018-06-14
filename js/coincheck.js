@@ -32,7 +32,7 @@ module.exports = class coincheck extends Exchange {
                         'ticker',
                         'trades',
                     ],
-                },                
+                },
                 'private': {
                     'get': [
                         'accounts',
@@ -68,7 +68,7 @@ module.exports = class coincheck extends Exchange {
             },
             'asyncconf': {
                 'conx-tpls': {
-                    'default' : {
+                    'default': {
                         'type': 'ws',
                         'baseurl': 'wss://ws-api.coincheck.com/',
                     },
@@ -262,11 +262,11 @@ module.exports = class coincheck extends Exchange {
         throw new ExchangeError (this.id + ' ' + this.json (response));
     }
 
-    //  async methods
-
-    _asyncOnMsg (data, conxid='default') {
+    _asyncOnMsg (data, conxid = 'default') {
         let msg = this.asyncParseJson (data);
-        let id = this.safeInteger (msg, 0);
+        let id = this.safeInteger ({
+            'a': msg[0],
+        },'a');
         if (id === undefined) {
             // orderbook
             this._asyncHandleOb (msg, conxid);
@@ -274,17 +274,16 @@ module.exports = class coincheck extends Exchange {
     }
 
     _asyncHandleOb (msg, conxid = 'default') {
-        let symbol = this.findSymbol (this.safeString (msg, 0));
-        let ob = this.safeValue (msg, 1);
-
+        let symbol = this.findSymbol (msg[0]);
+        let ob = msg[1];
         // just testing
-        if (this.asyncContext['ob'][symbol].data['ob'] == null){
-            ob = this.parseOrderBook (ob, null);
+        if (!('ob' in this.asyncContext['ob'][symbol].data)) {
+            ob = this.parseOrderBook (ob, undefined);
             this.asyncContext['ob'][symbol].data['ob'] = ob;
             this.emit ('ob', symbol, ob);
         } else {
             let curob = this.asyncContext['ob'][symbol].data['ob'];
-            curob = this.mergeOrderBookDelta (curob, ob, null);
+            curob = this.mergeOrderBookDelta (curob, ob, undefined);
             this.asyncContext['ob'][symbol].data['ob'] = curob;
             this.emit ('ob', symbol, ob);
         }
@@ -292,10 +291,11 @@ module.exports = class coincheck extends Exchange {
 
     _asyncSubscribeOrderBook (symbol, nonce) {
         let payload = {
-            "type": "subscribe",
-            "channel": this.marketId (symbol) + "-orderbook",
+            'type': 'subscribe',
+            'channel': this.marketId (symbol) + '-orderbook',
         };
         this.asyncSendJson (payload);
-        this.emit (nonce, true)
+        let nonceStr = nonce.toString ();
+        this.emit (nonceStr, true);
     }
 };

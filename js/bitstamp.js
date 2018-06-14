@@ -88,7 +88,7 @@ module.exports = class bitstamp extends Exchange {
             },
             'asyncconf': {
                 'conx-tpls': {
-                    'ob' : {
+                    'ob': {
                         'type': 'pusher',
                         'key': 'de504dc5763aeef9ff52',
                         'event': 'data',

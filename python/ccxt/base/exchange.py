@@ -17,6 +17,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidAddress
 
 from ccxt.base.async.websocket_connection import WebsocketConnection
+from ccxt.base.async.async_symbol_context import AsyncSymbolContext
 
 # -----------------------------------------------------------------------------
 
@@ -207,7 +208,7 @@ class Exchange(EventEmitter):
         super(Exchange, self).__init__()
 
         self.asyncconf = {}
-        self.async_connection = None
+        self.asyncConnectionPool = {}
 
         self.precision = {} if self.precision is None else self.precision
         self.limits = {} if self.limits is None else self.limits
@@ -238,9 +239,14 @@ class Exchange(EventEmitter):
         if self.api:
             self.define_rest_api(self.api, 'request')
         
-        if self.asyncconf:
-            self.define_async_connection(self.asyncconf)
-
+        self.async_reset_context()
+        # remove this...
+        if 'methodmap' in self.asyncconf:
+            def camel2snake(name):
+                return name[0].lower() + re.sub(r'(?!^)[A-Z]', lambda x: '_' + x.group(0).lower(), name[1:])
+            for m in self.asyncconf['methodmap']:
+                self.asyncconf['methodmap'][m] = camel2snake(self.asyncconf['methodmap'][m])
+        
         if self.markets:
             self.set_markets(self.markets)
 
@@ -296,15 +302,16 @@ class Exchange(EventEmitter):
                     setattr(self, camelcase, partial)
                     setattr(self, underscore, partial)
 
-    def define_async_connection(self, async_config):
-        def camel2snake(name):
-            return name[0].lower() + re.sub(r'(?!^)[A-Z]', lambda x: '_' + x.group(0).lower(), name[1:])
-        if 'methodmap' in async_config:
-            for m in async_config['methodmap']:
-                async_config['methodmap'][m] = camel2snake(async_config['methodmap'][m])
-        if 'type' in async_config and async_config['type'] == 'ws':
-            self.async_connection = WebsocketConnection(async_config, self.timeout, Exchange.loop)
-            self.async_initialize()
+
+    #def define_async_connection(self, async_config):
+    #    def camel2snake(name):
+    #        return name[0].lower() + re.sub(r'(?!^)[A-Z]', lambda x: '_' + x.group(0).lower(), name[1:])
+    #    if 'methodmap' in async_config:
+    #        for m in async_config['methodmap']:
+    #            async_config['methodmap'][m] = camel2snake(async_config['methodmap'][m])
+    #    if 'type' in async_config and async_config['type'] == 'ws':
+    #        self.async_connection = WebsocketConnection(async_config, self.timeout, Exchange.loop)
+    #        self.async_initialize()
 
     def raise_error(self, exception_type, url=None, method=None, error=None, details=None):
         if error:
@@ -1345,27 +1352,142 @@ class Exchange(EventEmitter):
         raise NotSupported(self.id + ' sign() pure method must be redefined in derived classes')
 
     # async methods
-    def async_reset_context(self):
-        self.asyncContext = {
-            'auth': False,
-            'ob': {},
-            'ticker': {},
-            'ready': False
-        }
 
-    async def async_connect(self):
-        if self.async_connection is None:
-            raise NotSupported("async service not supported by this exchange: " + self.id)
+    def async_context_get_subscribed_event_symbols (self, conxid):
+        ret = []
+        for key in self.asyncContext:
+            for symbol in self.asyncContext[key]:
+                symbol_context = self.asyncContext[key][symbol]
+                if ((symbol_context.conxid == conxid) and ((symbol_context.subscribed) and(symbol_context.subscribing))):
+                    ret.append ({
+                        'event': key,
+                        'symbol': symbol,
+                    })
+        return ret
+    
+    def async_reset_context(self, conxid = None):
+        if conxid is None:
+            self.asyncContext = {
+                'ob': {},
+                'ticker': {},
+                'ohlvc': {},
+                'trades': {},
+            }
+        else:
+            for key in self.asyncContext:
+                for symbol in self.asyncContext[key]:
+                    symbol_context = self.asyncContext[key][symbol]
+                    if (symbol_context.conxid == conxid):
+                        symbol_context.reset()
+
+    
+    def async_connection_get(self, conxid = 'default'):
+        if (conxid not in self.asyncConnectionPool):
+            raise NotSupported ("async <" + conxid + "> not found in this exchange: " + self.id)
+        return self.asyncConnectionPool[conxid]
+
+    def _async_get_action_for_event(self, event, symbol, subscription=True):
+        # if subscription and still subscribed no action returned
+        sym = self.asyncContext[event][symbol] if (symbol in self.asyncContext[event]) else None
+        if (subscription and (sym is not None) and (sym.subscribed or sym.subscribing)):
+            return None
+        # if unsubscription and no subscribed and no subscribing no action returned
+        if ( not subscription and  ((sym is None) or (not sym.subscribed and not sym.subscribing))):
+            return None
+        # get conexion type for event
+        event_conf = self.safeValue(self.asyncconf['events'], event)
+        if (event_conf is None):
+            raise ExchangeError ("invalid async configuration for event: " + event + " in exchange: " + self.id)
+        conx_tpl_name = self.safeString (event_conf, 'conx-tpl', 'default')
+        conx_tpl = self.safeValue(self.asyncconf['conx-tpls'], conx_tpl_name)
+        if (conx_tpl is None):
+            raise ExchangeError ("tpl async conexion: " + conx_tpl_name + " does not exist in exchange: " + self.id)
+        generators = self.safeValue (event_conf, 'generators', {
+            'url': '{baseurl}',
+            'id': '{id}',
+            'stream': '{symbol}',
+        })
+        params = self.extend ({}, conx_tpl, {
+            'event': event,
+            'symbol': symbol,
+            'id': conx_tpl_name,
+        })
+        config = self.extend ({}, conx_tpl)
+        for key in generators:
+            config[key] = self.implode_params (generators[key], params)
+        if (not (('id' in config) and ('url' in config) and ('type' in config))):
+            raise ExchangeError ("invalid async configuration in exchange: " + self.id)
+        if (config['type'] == 'ws'):
+            return {
+                'action': 'connect',
+                'conx-config': config,
+                'reset-context': 'onconnect',
+            }
+        elif (config['type'] == 'ws-s'):
+            subscribed = self.async_context_get_subscribed_event_symbols(config['id'])
+            next_stream_list = [self.implode_params (generators['stream'], {
+                'event': event,
+                'symbol': self.market_id (symbol).lower(),
+            })]
+            for element in subscribed:
+                e = element['event']
+                s = element['symbol']
+                next_stream_list.append(self.implode_params(generators['stream'], {
+                    'event': e,
+                    'symbol': self.market_id (s).lower(),
+                }))
+            next_stream_list.sort ()
+            config['stream'] = ''.join(next_stream_list)
+            config['url'] = config['url'] + config['stream']
+            return {
+                'action': 'reconnect',
+                'conx-config': config,
+                'reset-context': 'onreconnect',
+            }
+        else:
+            raise NotSupported ("invalid async connection: " + config['type'] + " for exchange " + self.id)
+
+    async def async_ensure_conx_active (self, event, symbol, subscribe):
+        # await self.load_markets()
         self.load_markets()
-        if not self.asyncContext['ready']:
-            if 'wait4readyEvent' in self.asyncconf:
-                await self.async_connection.connect()
+        action = self._async_get_action_for_event (event, symbol, subscribe)
+        if (action is not None):
+            conx_config = self.safeValue (action, 'conx-config', {})
+            if (action['action'] == 'reconnect'):
+                if (conx_config['id'] in self.asyncConnectionPool):
+                    self.asyncConnectionPool[conx_config['id']]['conx'].close()
+                if (action['reset-context'] == 'onreconnect'):
+                    self.async_reset_context(conx_config['id'])
+                self.asyncConnectionPool[conx_config['id']] = self.async_initialize(conx_config, conx_config['id'])
+            elif (action['action'] == 'connect'):
+                if (conx_config['id'] in self.asyncConnectionPool):
+                    if (not self.asyncConnectionPool[conx_config['id']]['conx'].isActive()):
+                        self.asyncConnectionPool[conx_config['id']]['conx'].close()
+                        self.async_reset_context(conx_config['id'])
+                        self.asyncConnectionPool[conx_config['id']] = self.async_initialize(conx_config, conx_config['id'])
+                else:
+                    self.async_reset_context(conx_config['id'])
+                    self.asyncConnectionPool[conx_config['id']] = self.async_initialize(conx_config, conx_config['id'])
+            
+            if (symbol not in self.asyncContext['ob']):
+                self.asyncContext['ob'][symbol] = AsyncSymbolContext(conx_config['id'])
+            await self.async_connect (conx_config['id'])
+
+    async def async_connect (self, conxid = 'default'):
+        async_conx_info = self.async_connection_get(conxid)
+        async_connection = async_conx_info['conx']
+        # await self.load_markets()
+        self.load_markets()
+        if (not async_conx_info['ready']):
+            wait4ready_event = self.safeString (self.asyncconf['conx-tpls'][conxid], 'wait4readyEvent')
+            if (wait4ready_event is not None):
+                await async_connection.connect()
                 future = asyncio.Future()
 
-                @self.once(self.asyncconf['wait4readyEvent'])
+                @self.once(wait4ready_event)
                 def wait4ready_event(success, error=None):
                     if success:
-                        self.asyncContext['ready'] = True
+                        async_conx_info['ready'] = True
                         future.done() or future.set_result(None)
                     else:
                         future.done() or future.set_exception(error)
@@ -1374,55 +1496,76 @@ class Exchange(EventEmitter):
                 # self.loop.run_until_complete(future)
                 await future
             else:
-                # self.loop.run_until_complete(self.async_connection.connect())
-                await self.async_connection.connect()
+                await async_connection.connect()
 
     def asyncParseJson(self, raw_data):
         return json.loads(raw_data)
 
-    def asyncClose(self):
-        self.async_connection.close()
+    def asyncClose (self, conxid = 'default'):
+        async_conx_info = self.async_connection_get(conxid)
+        async_conx_info['conx'].close()
 
-    def asyncSend(self, data):
+    def asyncSend (self, data, conxid = 'default'):
+        async_conx_info = self.async_connection_get(conxid)
         if self.verbose:
             print("Async send:" + data)
             sys.stdout.flush()
-        self.async_connection.send(data)
+        async_conx_info['conx'].send(data)
 
-    def asyncSendJson(self, data):
-        if self.verbose:
+    def asyncSendJson (self, data, conxid = 'default'):
+        async_conx_info = self.async_connection_get(conxid)
+        if (self.verbose):
             print("Async send:" + json.dumps(data))
             sys.stdout.flush()
-        self.async_connection.sendJson(data)
+        async_conx_info['conx'].sendJson(data)
 
-    def async_initialize(self):
-        self.async_reset_context()
+    def async_initialize (self, async_config, conxid = 'default'):
+        async_connection_info = {
+            'auth': False,
+            'ready': False,
+            'conx': None,
+        }
+        if (async_config['type'] == 'ws'):
+            async_connection_info['conx'] = WebsocketConnection (async_config, self.timeout, Exchange.loop)
+        elif (async_config['type'] == 'ws-s'):
+            async_connection_info['conx'] = WebsocketConnection (async_config, self.timeout, Exchange.loop)
+        else:
+            raise NotSupported ("invalid async connection: " + async_config['type'] + " for exchange " + self.id)
+        
+        conx = async_connection_info['conx']
+        @conx.on('open')
+        def async_connection_open():
+            async_connection_info['auth'] = False
+            self._async_event_on_open(conxid, async_connection_info)
 
-        @self.async_connection.on('error')
+        @conx.on('error')
         def async_connection_error(error):
-            self.asyncContext['auth'] = False
-            self.async_reset_context()
-            self.emit('error', error)
+            async_connection_info['auth'] = False
+            self.async_reset_context(conxid)
+            self.emit('error', error, conxid)
 
-        @self.async_connection.on('message')
+        @conx.on('message')
         def async_connection_message(msg):
             if self.verbose:
-                print("Async recv:" + msg)
+                print(conxid + '<-' + msg)
                 sys.stdout.flush()
             try:
-                self._async_on_msg(msg)
+                self._async_on_msg(msg, conxid)
             except Exception as ex:
-                self.emit('error', ex)
+                self.emit('error', ex, conxid)
 
-        @self.async_connection.on('close')
+        @conx.on('close')
         def async_connection_close():
-            self.asyncContext['auth'] = False
-            self.emit('close')
+            async_connection_info['auth'] = False
+            self.async_reset_context (conxid)
+            self.emit('close', conxid)
+
+        return async_connection_info
 
     def timeout_future(self, future, scope):
         self.loop.call_later(self.timeout / 1000, lambda: future.done() or future.set_exception(TimeoutError("timeout in scope: " + scope)))
 
-    def clone_order_book(self, ob, limit=None):
+    def _cloneOrderBook(self, ob, limit=None):
         ret = {
             'timestamp': ob['timestamp'],
             'datetime': ob['datetime'],
@@ -1437,32 +1580,71 @@ class Exchange(EventEmitter):
         return ret
 
     async def async_fetch_order_book(self, symbol, limit=None):
-        await self.async_connect()
-        if (self.asyncContext['ob'][symbol]):
-            return self.clone_order_book(self.asyncContext['ob'][symbol], limit)
-        else:
-            future = asyncio.Future()
+        await self.async_ensure_conx_active ('ob', symbol, True)
+        if (('ob' in self.asyncContext['ob'][symbol].data) and (self.asyncContext['ob'][symbol].data['ob'] is not None)):
+            return self._cloneOrderBook(self.asyncContext['ob'][symbol].data['ob'], limit)
 
-            def wait4orderbook(symbol_r, ob):
-                if symbol_r == symbol:
-                    self.remove_listener('ob', wait4orderbook)
-                    future.done() or future.set_result(self.clone_order_book(ob, limit))
-
-            self.on('ob', wait4orderbook)
-            self.timeout_future(future, 'async_fetch_order_book')
-            return await future
-
-    async def async_subscribe_order_book(self, symbol):
-        await self.async_connect()
-        oid = str(self.nonce()) + '-' + symbol + '-ob-subscribe'
         future = asyncio.Future()
 
-        @self.once(oid)
-        def wait4obsubscribe(success, data):
+        def wait4orderbook(symbol_r, ob):
+            if symbol_r == symbol:
+                self.remove_listener('ob', wait4orderbook)
+                future.done() or future.set_result(self._cloneOrderBook(ob, limit))
+
+        self.on('ob', wait4orderbook)
+        self.timeout_future(future, 'async_fetch_order_book')
+        return await future
+
+    async def async_subscribe_order_book(self, symbol):
+        await self.async_ensure_conx_active ('ob', symbol, True)
+        oid = self.nonce() #  str(self.nonce()) + '-' + symbol + '-ob-subscribe'
+        future = asyncio.Future()
+        oidstr = str(oid)
+
+        @self.once(oidstr)
+        def wait4obsubscribe(success):
             if success:
-                future.done() or future.set_result(data)
+                self.asyncContext['ob'][symbol].subscribed = True
+                self.asyncContext['ob'][symbol].subscribing = False
+                future.done() or future.set_result(True)
             else:
-                future.done() or future.set_exception(data)
+                self.asyncContext['ob'][symbol].subscribed = False
+                self.asyncContext['ob'][symbol].subscribing = False
+                future.done() or future.set_exception(ExchangeError ('error subscribing to ' + symbol + ' in ' + self.id))
         self.timeout_future(future, 'async_subscribe_order_book')
         self._async_subscribe_order_book(symbol, oid)
         await future
+
+    def _async_event_on_open (self, conexid, asyncConex):
+        pass
+
+    def _asyncExecute (self, method, params, callback, context = {}, this_param = None):
+        this_param = this_param if (this_param is not None) else self
+        eself = self
+        # future = asyncio.Future()
+        def t():
+            try:
+                # ret = await getattr(self, method)(*params)
+                ret = getattr(self, method)(*params)
+                try:
+                    getattr(self, callback)(context, None, ret)
+                except Exception as ex:
+                    eself.emit ('error', ExchangeError (eself.id + ': error invoking method ' + callback + ' in _asyncExecute: '+ str(ex)))
+            except Exception as ex:
+                try:
+                    getattr(self, callback)(context, ex, None)
+                except Exception as ex:
+                    eself.emit ('error', ExchangeError (eself.id + ': error invoking method ' + callback + ' in _asyncExecute: '+ str(ex)))
+            #future.set_result(True)
+        
+        # asyncio.ensure_future(t(future), loop = self.loop)
+        # self.loop.call_soon(future)
+        self.loop.call_soon(t)
+
+        
+    def _asyncMethodMap (self, key):
+        if ('methodmap' not in self.asyncconf) or (key not in self.asyncconf['methodmap']):
+            raise ExchangeError (self.id + ': ' + key + ' not found in async methodmap')
+        return self.asyncconf['methodmap'][key]
+        
+
