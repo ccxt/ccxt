@@ -12,7 +12,7 @@ module.exports = class bitsane extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'bitsane',
             'name': 'Bitsane',
-            'countries': '',
+            'countries': 'IE', // Ireland
             'has': {
                 'fetchCurrencies': true,
                 'fetchTickers': true,
@@ -287,13 +287,18 @@ module.exports = class bitsane extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
             let balance = balances[id];
-            let currency = this.commonCurrencyCode (id);
+            let code = id;
+            if (id in this.currencies_by_id) {
+                code = this.currencies_by_id[id]['code'];
+            } else {
+                code = this.commonCurrencyCode (code);
+            }
             let account = {
                 'free': parseFloat (balance['amount']),
                 'used': parseFloat (balance['locked']),
                 'total': parseFloat (balance['total']),
             };
-            result[currency] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
