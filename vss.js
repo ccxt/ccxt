@@ -1,7 +1,6 @@
 "use strict";
 
 const fs        = require ('fs');
-const countries = require ('./countries');
 const log       = require ('ololog');
 const ansi      = require ('ansicolor').nice;
 
