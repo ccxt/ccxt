@@ -265,6 +265,7 @@ class binance extends Exchange {
                 'recvWindow' => 5 * 1000, // 5 sec, binance default
                 'timeDifference' => 0, // the difference between system clock and Binance clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
+                'parseOrderToPrecision' => false, // force amounts and costs in parseOrder to precision
             ),
             'exceptions' => array (
                 '-1000' => '\\ccxt\\ExchangeNotAvailable', // array ("code":-1000,"msg":"An unknown error occured while processing the request.")
@@ -600,10 +601,19 @@ class binance extends Exchange {
         $remaining = null;
         $cost = null;
         if ($filled !== null) {
-            if ($amount !== null)
-                $remaining = max ($amount - $filled, 0.0);
-            if ($price !== null)
+            if ($amount !== null) {
+                $remaining = $amount - $filled;
+                if ($this->options['parseOrderToPrecision']) {
+                    $remaining = floatval ($this->amount_to_precision($symbol, $remaining));
+                }
+                $remaining = max ($remaining, 0.0);
+            }
+            if ($price !== null) {
                 $cost = $price * $filled;
+                if ($this->options['parseOrderToPrecision']) {
+                    $cost = floatval ($this->cost_to_precision($symbol, $cost));
+                }
+            }
         }
         $id = $this->safe_string($order, 'orderId');
         $type = $this->safe_string($order, 'type');
