@@ -153,7 +153,7 @@ class coinbase (Exchange):
                 'BCH/USD': {'id': 'bch-usd', 'symbol': 'BCH/USD', 'base': 'BCH', 'quote': 'USD'},
             },
             'options': {
-                'acocunts': [
+                'accounts': [
                     'wallet',
                     'fiat',
                     # 'vault',

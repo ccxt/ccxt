@@ -143,7 +143,7 @@ class coinbase extends Exchange {
                 'BCH/USD' => array ( 'id' => 'bch-usd', 'symbol' => 'BCH/USD', 'base' => 'BCH', 'quote' => 'USD' ),
             ),
             'options' => array (
-                'acocunts' => array (
+                'accounts' => array (
                     'wallet',
                     'fiat',
                     // 'vault',
