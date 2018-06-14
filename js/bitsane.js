@@ -12,7 +12,7 @@ module.exports = class bitsane extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'bitsane',
             'name': 'Bitsane',
-            'countries': 'IE',
+            'countries': 'IE', // Ireland
             'has': {
                 'fetchCurrencies': true,
                 'fetchTickers': true,
@@ -72,6 +72,9 @@ module.exports = class bitsane extends Exchange {
                 '10': AuthenticationError,
                 '11': AuthenticationError,
             },
+            'options': {
+                'defaultCurrencyPrecision': 2,
+            },
         });
     }
 
@@ -82,28 +85,28 @@ module.exports = class bitsane extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
             let currency = currencies[id];
-            let precision = currency['precision'];
+            let precision = this.safeInteger (currency, 'precision', this.options['defaultCurrencyPrecision']);
             let code = this.commonCurrencyCode (id);
-            let canWithdraw = currency['withdrawal'];
-            let canDeposit = currency['deposit'];
+            let canWithdraw = this.safeValue (currency, 'withdrawal', true);
+            let canDeposit = this.safeValue (currency, 'deposit', true);
             let active = true;
             if (!canWithdraw || !canDeposit)
                 active = false;
             result[code] = {
                 'id': id,
                 'code': code,
-                'name': currency['full_name'],
+                'name': this.safeString (currency, 'full_name', code),
                 'active': active,
                 'status': 'ok',
                 'precision': precision,
                 'funding': {
                     'withdraw': {
                         'active': canWithdraw,
-                        'fee': currency['withdrawal_fee'],
+                        'fee': this.safeValue (currency, 'withdrawal_fee'),
                     },
                     'deposit': {
                         'active': canDeposit,
-                        'fee': currency['deposit_fee'],
+                        'fee': this.safeValue (currency, 'deposit_fee'),
                     },
                 },
                 'limits': {
@@ -283,16 +286,22 @@ module.exports = class bitsane extends Exchange {
         let response = await this.privatePostBalances (params);
         let result = { 'info': response };
         let balances = response['result'];
-        for (let i = 0; i < balances.length; i++) {
-            let balance = balances[i];
-            let id = balance['currency'];
-            let currency = this.commonCurrencyCode (id);
+        let ids = Object.keys (balances);
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
+            let balance = balances[id];
+            let code = id;
+            if (id in this.currencies_by_id) {
+                code = this.currencies_by_id[id]['code'];
+            } else {
+                code = this.commonCurrencyCode (code);
+            }
             let account = {
                 'free': parseFloat (balance['amount']),
                 'used': parseFloat (balance['locked']),
                 'total': parseFloat (balance['total']),
             };
-            result[currency] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
@@ -308,11 +317,11 @@ module.exports = class bitsane extends Exchange {
         let amount = this.safeFloat (order, 'original_amount');
         let filled = this.safeFloat (order, 'executed_amount');
         let remaining = this.safeFloat (order, 'remaining_amount');
-        let status = 'open';
+        let status = 'closed';
         if (order['is_cancelled']) {
             status = 'canceled';
-        } else if (order['is_closed']) {
-            status = 'closed';
+        } else if (order['is_live']) {
+            status = 'open';
         }
         return {
             'id': this.safeString (order, 'id'),
@@ -359,7 +368,7 @@ module.exports = class bitsane extends Exchange {
         let response = await this.privatePostOrderCancel (this.extend ({
             'order_id': id,
         }, params));
-        return this.parseOrder (response['result'][0]);
+        return this.parseOrder (response['result']);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -367,7 +376,7 @@ module.exports = class bitsane extends Exchange {
         let response = await this.privatePostOrderStatus (this.extend ({
             'order_id': id,
         }, params));
-        return this.parseOrder (response['result'][0]);
+        return this.parseOrder (response['result']);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -415,9 +424,9 @@ module.exports = class bitsane extends Exchange {
                 url += '?' + this.urlencode (params);
         } else {
             this.checkRequiredCredentials ();
-            body = this.urlencode (this.extend ({
+            body = this.extend ({
                 'nonce': this.nonce (),
-            }, params));
+            }, params);
             body = this.stringToBase64 (this.json (body));
             headers = {
                 'X-BS-APIKEY': this.apiKey,
