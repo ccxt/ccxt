@@ -132,7 +132,7 @@ class _1broker extends Exchange {
             $currency = $currencies[$c];
             $result[$currency] = $this->account ();
         }
-        $total = floatval ($response['balance']);
+        $total = $this->safe_float($response, 'balance');
         $result['BTC']['free'] = $total;
         $result['BTC']['total'] = $total;
         return $this->parse_balance($result);
@@ -145,8 +145,8 @@ class _1broker extends Exchange {
         ), $params));
         $orderbook = $response['response'][0];
         $timestamp = $this->parse8601 ($orderbook['updated']);
-        $bidPrice = floatval ($orderbook['bid']);
-        $askPrice = floatval ($orderbook['ask']);
+        $bidPrice = $this->safe_float($orderbook, 'bid');
+        $askPrice = $this->safe_float($orderbook, 'ask');
         $bid = array ( $bidPrice, null );
         $ask = array ( $askPrice, null );
         return array (
@@ -171,15 +171,15 @@ class _1broker extends Exchange {
         ), $params));
         $ticker = $result['response'][0];
         $timestamp = $this->parse8601 ($ticker['date']);
-        $open = floatval ($ticker['o']);
-        $close = floatval ($ticker['c']);
+        $open = $this->safe_float($ticker, 'o');
+        $close = $this->safe_float($ticker, 'c');
         $change = $close - $open;
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['h']),
-            'low' => floatval ($ticker['l']),
+            'high' => $this->safe_float($ticker, 'h'),
+            'low' => $this->safe_float($ticker, 'l'),
             'bid' => null,
             'bidVolume' => null,
             'ask' => null,

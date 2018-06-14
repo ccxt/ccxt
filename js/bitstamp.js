@@ -211,22 +211,22 @@ module.exports = class bitstamp extends Exchange {
             'pair': this.marketId (symbol),
         }, params));
         let timestamp = parseInt (ticker['timestamp']) * 1000;
-        let vwap = parseFloat (ticker['vwap']);
-        let baseVolume = parseFloat (ticker['volume']);
+        let vwap = this.safeFloat (ticker, 'vwap');
+        let baseVolume = this.safeFloat (ticker, 'volume');
         let quoteVolume = baseVolume * vwap;
-        let last = parseFloat (ticker['last']);
+        let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']),
-            'low': parseFloat (ticker['low']),
-            'bid': parseFloat (ticker['bid']),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': parseFloat (ticker['ask']),
+            'ask': this.safeFloat (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': vwap,
-            'open': parseFloat (ticker['open']),
+            'open': this.safeFloat (ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': undefined,
@@ -379,12 +379,12 @@ module.exports = class bitstamp extends Exchange {
         let method = 'privatePost' + this.capitalize (side);
         let order = {
             'pair': this.marketId (symbol),
-            'amount': amount,
+            'amount': this.amountToPrecision (symbol, amount),
         };
         if (type === 'market')
             method += 'Market';
         else
-            order['price'] = price;
+            order['price'] = this.priceToPrecision (symbol, price);
         method += 'Pair';
         let response = await this[method] (this.extend (order, params));
         return {
@@ -431,6 +431,8 @@ module.exports = class bitstamp extends Exchange {
             request['pair'] = market['id'];
             method += 'Pair';
         }
+        if (typeof limit !== 'undefined')
+            request['limit'] = limit;
         let response = await this[method] (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
@@ -531,8 +533,8 @@ module.exports = class bitstamp extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let market = undefined;
+        await this.loadMarkets ();
         if (typeof symbol !== 'undefined') {
-            await this.loadMarkets ();
             market = this.market (symbol);
         }
         let orders = await this.privatePostOpenOrdersAll ();

@@ -296,6 +296,7 @@ declare module 'ccxt' {
     export class acx extends Exchange {}
     export class allcoin extends okcoinusd {}
     export class anxpro extends Exchange {}
+    export class anybits extends bitsane {}
     export class bibox extends Exchange {}
     export class binance extends Exchange {}
     export class bit2c extends Exchange {}
@@ -309,6 +310,7 @@ declare module 'ccxt' {
     export class bitlish extends Exchange {}
     export class bitmarket extends Exchange {}
     export class bitmex extends Exchange {}
+    export class bitsane extends Exchange {}
     export class bitso extends Exchange {}
     export class bitstamp extends Exchange {}
     export class bitstamp1 extends Exchange {}
@@ -331,6 +333,7 @@ declare module 'ccxt' {
     export class chbtc extends zb {}
     export class chilebit extends foxbit {}
     export class cobinhood extends Exchange {}
+    export class coinbase extends Exchange {}
     export class coincheck extends Exchange {}
     export class coinegg extends Exchange {}
     export class coinex extends Exchange {}
@@ -343,7 +346,9 @@ declare module 'ccxt' {
     export class coinone extends Exchange {}
     export class coinsecure extends Exchange {}
     export class coinspot extends Exchange {}
+    export class cointiger extends huobipro {}
     export class coolcoin extends coinegg {}
+    export class crypton extends Exchange {}
     export class cryptopia extends Exchange {}
     export class dsx extends liqui {}
     export class ethfinex extends bitfinex {}

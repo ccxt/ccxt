@@ -49,7 +49,8 @@ module.exports = class kucoin extends Exchange {
                     'kitchen': 'https://kitchen.kucoin.com',
                     'kitchen-2': 'https://kitchen-2.kucoin.com',
                 },
-                'www': 'https://kucoin.com',
+                'www': 'https://www.kucoin.com',
+                'referral': 'https://www.kucoin.com/?r=E5wkqe',
                 'doc': 'https://kucoinapidocs.docs.apiary.io',
                 'fees': 'https://news.kucoin.com/en/fee',
             },
@@ -169,6 +170,7 @@ module.exports = class kucoin extends Exchange {
             },
             // exchange-specific options
             'options': {
+                'fetchOrderBookWarning': true, // raises a warning on null response in fetchOrderBook
                 'timeDifference': 0, // the difference between system clock and Kucoin clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
             },
@@ -300,8 +302,6 @@ module.exports = class kucoin extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privateGetAccountBalance (this.extend ({
-            'limit': 20, // default 12, max 20
-            'page': 1,
         }, params));
         let balances = response['data'];
         let result = { 'info': balances };
@@ -326,11 +326,30 @@ module.exports = class kucoin extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetOpenOrders (this.extend ({
+        let request = {
             'symbol': market['id'],
-        }, params));
-        let orderbook = response['data'];
-        return this.parseOrderBook (orderbook, undefined, 'BUY', 'SELL');
+        };
+        if (typeof limit !== 'undefined') {
+            request['limit'] = limit;
+        }
+        let response = await this.publicGetOpenOrders (this.extend (request, params));
+        let orderbook = undefined;
+        let timestamp = undefined;
+        // sometimes kucoin returns this:
+        // {"success":true,"code":"OK","msg":"Operation succeeded.","timestamp":xxxxxxxxxxxxx,"data":null}
+        if (!('data' in response) || !response['data']) {
+            if (this.options['fetchOrderBookWarning'])
+                throw new ExchangeError (this.id + " fetchOrderBook returned an null reply. Set exchange.options['fetchOrderBookWarning'] = false to silence this warning");
+            orderbook = {
+                'BUY': [],
+                'SELL': [],
+            };
+        } else {
+            orderbook = response['data'];
+            timestamp = this.safeInteger (response, 'timestamp');
+            timestamp = this.safeInteger (response['data'], 'timestamp', timestamp);
+        }
+        return this.parseOrderBook (orderbook, timestamp, 'BUY', 'SELL');
     }
 
     parseOrder (order, market = undefined) {
@@ -813,6 +832,7 @@ module.exports = class kucoin extends Exchange {
         let market = this.market (symbol);
         let response = await this.publicGetOpenDealOrders (this.extend ({
             'symbol': market['id'],
+            'limit': limit,
         }, params));
         return this.parseTrades (response['data'], market, since, limit);
     }
@@ -958,6 +978,8 @@ module.exports = class kucoin extends Exchange {
                 throw new InvalidOrder (feedback); // amount < limits.amount.min
             if (message.indexOf ('Min price:') >= 0)
                 throw new InvalidOrder (feedback); // price < limits.price.min
+            if (message.indexOf ('Max price:') >= 0)
+                throw new InvalidOrder (feedback); // price > limits.price.max
             if (message.indexOf ('The precision of price') >= 0)
                 throw new InvalidOrder (feedback); // price violates precision.price
         } else if (code === 'NO_BALANCE') {

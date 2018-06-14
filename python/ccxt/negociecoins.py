@@ -97,16 +97,16 @@ class negociecoins (Exchange):
     def parse_ticker(self, ticker, market=None):
         timestamp = ticker['date'] * 1000
         symbol = market['symbol'] if (market is not None) else None
-        last = float(ticker['last'])
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['buy']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'buy'),
             'bidVolume': None,
-            'ask': float(ticker['sell']),
+            'ask': self.safe_float(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -116,7 +116,7 @@ class negociecoins (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['vol']),
+            'baseVolume': self.safe_float(ticker, 'vol'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -138,8 +138,8 @@ class negociecoins (Exchange):
 
     def parse_trade(self, trade, market=None):
         timestamp = trade['date'] * 1000
-        price = float(trade['price'])
-        amount = float(trade['amount'])
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'amount')
         symbol = market['symbol']
         cost = float(self.cost_to_precision(symbol, price * amount))
         return {
@@ -194,8 +194,8 @@ class negociecoins (Exchange):
             if market:
                 symbol = market['symbol']
         timestamp = self.parse8601(order['created'])
-        price = float(order['price'])
-        amount = float(order['quantity'])
+        price = self.safe_float(order, 'price')
+        amount = self.safe_float(order, 'quantity')
         cost = self.safe_float(order, 'total')
         remaining = self.safe_float(order, 'pending_quantity')
         filled = self.safe_float(order, 'executed_quantity')
@@ -227,7 +227,7 @@ class negociecoins (Exchange):
             'trades': trades,
             'fee': {
                 'currency': market['quote'],
-                'cost': float(order['fee']),
+                'cost': self.safe_float(order, 'fee'),
             },
             'info': order,
         }

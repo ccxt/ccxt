@@ -59,7 +59,8 @@ class kucoin (Exchange):
                     'kitchen': 'https://kitchen.kucoin.com',
                     'kitchen-2': 'https://kitchen-2.kucoin.com',
                 },
-                'www': 'https://kucoin.com',
+                'www': 'https://www.kucoin.com',
+                'referral': 'https://www.kucoin.com/?r=E5wkqe',
                 'doc': 'https://kucoinapidocs.docs.apiary.io',
                 'fees': 'https://news.kucoin.com/en/fee',
             },
@@ -179,6 +180,7 @@ class kucoin (Exchange):
             },
             # exchange-specific options
             'options': {
+                'fetchOrderBookWarning': True,  # raises a warning on null response in fetchOrderBook
                 'timeDifference': 0,  # the difference between system clock and Kucoin clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
             },
@@ -302,8 +304,6 @@ class kucoin (Exchange):
     async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privateGetAccountBalance(self.extend({
-            'limit': 20,  # default 12, max 20
-            'page': 1,
         }, params))
         balances = response['data']
         result = {'info': balances}
@@ -326,11 +326,28 @@ class kucoin (Exchange):
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetOpenOrders(self.extend({
+        request = {
             'symbol': market['id'],
-        }, params))
-        orderbook = response['data']
-        return self.parse_order_book(orderbook, None, 'BUY', 'SELL')
+        }
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.publicGetOpenOrders(self.extend(request, params))
+        orderbook = None
+        timestamp = None
+        # sometimes kucoin returns self:
+        # {"success":true,"code":"OK","msg":"Operation succeeded.","timestamp":xxxxxxxxxxxxx,"data":null}
+        if not('data' in list(response.keys())) or not response['data']:
+            if self.options['fetchOrderBookWarning']:
+                raise ExchangeError(self.id + " fetchOrderBook returned an null reply. Set exchange.options['fetchOrderBookWarning'] = False to silence self warning")
+            orderbook = {
+                'BUY': [],
+                'SELL': [],
+            }
+        else:
+            orderbook = response['data']
+            timestamp = self.safe_integer(response, 'timestamp')
+            timestamp = self.safe_integer(response['data'], 'timestamp', timestamp)
+        return self.parse_order_book(orderbook, timestamp, 'BUY', 'SELL')
 
     def parse_order(self, order, market=None):
         side = self.safe_value(order, 'direction')
@@ -775,6 +792,7 @@ class kucoin (Exchange):
         market = self.market(symbol)
         response = await self.publicGetOpenDealOrders(self.extend({
             'symbol': market['id'],
+            'limit': limit,
         }, params))
         return self.parse_trades(response['data'], market, since, limit)
 
@@ -909,6 +927,8 @@ class kucoin (Exchange):
                 raise InvalidOrder(feedback)  # amount < limits.amount.min
             if message.find('Min price:') >= 0:
                 raise InvalidOrder(feedback)  # price < limits.price.min
+            if message.find('Max price:') >= 0:
+                raise InvalidOrder(feedback)  # price > limits.price.max
             if message.find('The precision of price') >= 0:
                 raise InvalidOrder(feedback)  # price violates precision.price
         elif code == 'NO_BALANCE':

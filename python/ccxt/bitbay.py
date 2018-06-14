@@ -26,7 +26,7 @@ class bitbay (Exchange):
         return self.deep_extend(super(bitbay, self).describe(), {
             'id': 'bitbay',
             'name': 'BitBay',
-            'countries': ['PL', 'EU'],  # Poland
+            'countries': ['MT', 'EU'],  # Malta
             'rateLimit': 1000,
             'has': {
                 'CORS': True,

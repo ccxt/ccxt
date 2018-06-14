@@ -17,6 +17,7 @@ module.exports = class bit2c extends Exchange {
             'has': {
                 'CORS': false,
                 'fetchOpenOrders': true,
+                'fetchMyTrades': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg',
@@ -106,19 +107,19 @@ module.exports = class bit2c extends Exchange {
             'pair': this.marketId (symbol),
         }, params));
         let timestamp = this.milliseconds ();
-        let averagePrice = parseFloat (ticker['av']);
-        let baseVolume = parseFloat (ticker['a']);
+        let averagePrice = this.safeFloat (ticker, 'av');
+        let baseVolume = this.safeFloat (ticker, 'a');
         let quoteVolume = baseVolume * averagePrice;
-        let last = parseFloat (ticker['ll']);
+        let last = this.safeFloat (ticker, 'll');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
             'low': undefined,
-            'bid': parseFloat (ticker['h']),
+            'bid': this.safeFloat (ticker, 'h'),
             'bidVolume': undefined,
-            'ask': parseFloat (ticker['l']),
+            'ask': this.safeFloat (ticker, 'l'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -131,25 +132,6 @@ module.exports = class bit2c extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        };
-    }
-
-    parseTrade (trade, market = undefined) {
-        let timestamp = parseInt (trade['date']) * 1000;
-        let symbol = undefined;
-        if (market)
-            symbol = market['symbol'];
-        return {
-            'id': trade['tid'].toString (),
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'order': undefined,
-            'type': undefined,
-            'side': undefined,
-            'price': trade['price'],
-            'amount': trade['amount'],
         };
     }
 
@@ -252,4 +234,86 @@ module.exports = class bit2c extends Exchange {
             'info': order,
         };
     }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        let method = 'privateGetOrderOrderhistory';
+        let request = {};
+        if (typeof limit !== 'undefined')
+            request['take'] = limit;
+        request['take'] = limit;
+        if (typeof since !== 'undefined') {
+            request['toTime'] = this.ymd (this.milliseconds (), '.');
+            request['fromTime'] = this.ymd (since, '.');
+        }
+        if (typeof symbol !== 'undefined') {
+            market = this.market (symbol);
+            request['pair'] = market['id'];
+        }
+        let response = await this[method] (this.extend (request, params));
+        return this.parseTrades (response, market, since, limit);
+    }
+
+    parseTrade (trade, market = undefined) {
+        let timestamp = undefined;
+        let id = undefined;
+        let price = undefined;
+        let amount = undefined;
+        let orderId = undefined;
+        let feeCost = undefined;
+        let side = undefined;
+        let reference = this.safeString (trade, 'reference');
+        if (typeof reference !== 'undefined') {
+            timestamp = this.safeInteger (trade, 'ticks') * 1000;
+            price = this.safeFloat (trade, 'price');
+            amount = this.safeFloat (trade, 'firstAmount');
+            let reference_parts = reference.split ('|'); // reference contains: 'pair|orderId|tradeId'
+            if (typeof market === 'undefined') {
+                let marketId = this.safeString (trade, 'pair');
+                if (marketId in this.markets_by_id[marketId]) {
+                    market = this.markets_by_id[marketId];
+                } else if (reference_parts[0] in this.markets_by_id) {
+                    market = this.markets_by_id[reference_parts[0]];
+                }
+            }
+            orderId = reference_parts[1];
+            id = reference_parts[2];
+            side = this.safeInteger (trade, 'action');
+            if (side === 0) {
+                side = 'buy';
+            } else if (side === 1) {
+                side = 'sell';
+            }
+            feeCost = this.safeFloat (trade, 'feeAmount');
+        } else {
+            timestamp = this.safeInteger (trade, 'date') * 1000;
+            id = this.safeInteger (trade, 'tid');
+            price = this.safeFloat (trade, 'price');
+            amount = this.safeFloat (trade, 'amount');
+        }
+        let symbol = undefined;
+        if (typeof market !== 'undefined')
+            symbol = market['symbol'];
+        return {
+            'info': trade,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'order': orderId,
+            'type': undefined,
+            'side': side,
+            'takerOrMaker': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': price * amount,
+            'fee': {
+                'cost': feeCost,
+                'currency': 'NIS',
+                'rate': undefined,
+            },
+        };
+    }
 };
+

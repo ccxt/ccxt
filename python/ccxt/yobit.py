@@ -92,8 +92,10 @@ class yobit (liqui):
                 'LUN': 'LunarCoin',
                 'MDT': 'Midnight',
                 'NAV': 'NavajoCoin',
+                'NBT': 'NiceBytes',
                 'OMG': 'OMGame',
                 'STK': 'StakeCoin',
+                'SUB': 'Subscriptio',
                 'PAY': 'EPAY',
                 'PLC': 'Platin Coin',
                 'REP': 'Republicoin',
@@ -138,7 +140,7 @@ class yobit (liqui):
                     else:
                         account = self.account()
                     account[key] = balances[side][lowercase]
-                    if account['total'] and account['free']:
+                    if (account['total'] is not None) and(account['free'] is not None):
                         account['used'] = account['total'] - account['free']
                     result[currency] = account
         return self.parse_balance(result)

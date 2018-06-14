@@ -47,6 +47,7 @@ class huobipro extends Exchange {
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
                 'api' => 'https://api.huobipro.com',
                 'www' => 'https://www.huobipro.com',
+                'referral' => 'https://www.huobi.br.com/en-us/topic/invited/?invite_code=rwrd3',
                 'doc' => 'https://github.com/huobiapi/API_Docs/wiki/REST_api_reference',
                 'fees' => 'https://www.huobipro.com/about/fee/',
             ),
@@ -111,31 +112,20 @@ class huobipro extends Exchange {
                 ),
             ),
             'exceptions' => array (
+                'account-frozen-balance-insufficient-error' => '\\ccxt\\InsufficientFunds', // array ("status":"error","err-code":"account-frozen-balance-insufficient-error","err-msg":"trade account balance is not enough, left => `0.0027`","data":null)
                 'order-limitorder-amount-min-error' => '\\ccxt\\InvalidOrder', // limit order amount error, min => `0.001`
                 'order-orderstate-error' => '\\ccxt\\OrderNotFound', // canceling an already canceled order
                 'order-queryorder-invalid' => '\\ccxt\\OrderNotFound', // querying a non-existent order
                 'order-update-error' => '\\ccxt\\ExchangeNotAvailable', // undocumented error
             ),
             'options' => array (
+                'createMarketBuyOrderRequiresPrice' => true,
                 'fetchMarketsMethod' => 'publicGetCommonSymbols',
+                'fetchBalanceMethod' => 'privateGetAccountAccountsIdBalance',
+                'createOrderMethod' => 'privatePostOrderOrdersPlace',
                 'language' => 'en-US',
             ),
         ));
-    }
-
-    public function load_trading_limits ($symbols = null, $reload = false, $params = array ()) {
-        if ($reload || !(is_array ($this->options) && array_key_exists ('limitsLoaded', $this->options))) {
-            $response = $this->fetch_trading_limits ($symbols);
-            $limits = $response['limits'];
-            $keys = is_array ($limits) ? array_keys ($limits) : array ();
-            for ($i = 0; $i < count ($keys); $i++) {
-                $symbol = $keys[$i];
-                $this->markets[$symbol] = array_merge ($this->markets[$symbol], array (
-                    'limits' => $limits[$symbol],
-                ));
-            }
-        }
-        return $this->markets;
     }
 
     public function fetch_trading_limits ($symbols = null, $params = array ()) {
@@ -480,7 +470,8 @@ class huobipro extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $this->load_accounts ();
-        $response = $this->privateGetAccountAccountsIdBalance (array_merge (array (
+        $method = $this->options['fetchBalanceMethod'];
+        $response = $this->$method (array_merge (array (
             'id' => $this->accounts[0]['id'],
         ), $params));
         $balances = $response['data']['list'];
@@ -512,7 +503,7 @@ class huobipro extends Exchange {
         $response = $this->privateGetOrderOrders (array_merge (array (
             'symbol' => $market['id'],
             'states' => $states,
-        )));
+        ), $params));
         return $this->parse_orders($response['data'], $market, $since, $limit);
     }
 
@@ -573,10 +564,10 @@ class huobipro extends Exchange {
         if ($market)
             $symbol = $market['symbol'];
         $timestamp = $order['created-at'];
-        $amount = floatval ($order['amount']);
+        $amount = $this->safe_float($order, 'amount');
         $filled = floatval ($order['field-amount']);
         $remaining = $amount - $filled;
-        $price = floatval ($order['price']);
+        $price = $this->safe_float($order, 'price');
         $cost = floatval ($order['field-cash-amount']);
         $average = 0;
         if ($filled)
@@ -612,9 +603,19 @@ class huobipro extends Exchange {
             'symbol' => $market['id'],
             'type' => $side . '-' . $type,
         );
+        if ($this->options['createMarketBuyOrderRequiresPrice']) {
+            if (($type === 'market') && ($side === 'buy')) {
+                if ($price === null) {
+                    throw new InvalidOrder ($this->id . " $market buy $order requires $price argument to calculate cost (total $amount of quote currency to spend for buying, $amount * $price). To switch off this warning exception and specify cost in the $amount argument, set .options['createMarketBuyOrderRequiresPrice'] = false. Make sure you know what you're doing.");
+                } else {
+                    $order['amount'] = $this->price_to_precision($symbol, floatval ($amount) * floatval ($price));
+                }
+            }
+        }
         if ($type === 'limit')
             $order['price'] = $this->price_to_precision($symbol, $price);
-        $response = $this->privatePostOrderOrdersPlace (array_merge ($order, $params));
+        $method = $this->options['createOrderMethod'];
+        $response = $this->$method (array_merge ($order, $params));
         $timestamp = $this->milliseconds ();
         return array (
             'info' => $response,
@@ -685,9 +686,9 @@ class huobipro extends Exchange {
         $request = array (
             'address' => $address, // only supports existing addresses in your withdraw $address list
             'amount' => $amount,
-            'currency' => $currency['id'],
+            'currency' => strtolower ($currency['id']),
         );
-        if ($tag)
+        if ($tag !== null)
             $request['addr-tag'] = $tag; // only for XRP?
         $response = $this->privatePostDwWithdrawApiCreate (array_merge ($request, $params));
         $id = null;
@@ -743,7 +744,7 @@ class huobipro extends Exchange {
     }
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body) {
-        if (gettype ($body) != 'string')
+        if (gettype ($body) !== 'string')
             return; // fallback to default error handler
         if (strlen ($body) < 2)
             return; // fallback to default error handler

@@ -13,7 +13,7 @@ class bitbay extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bitbay',
             'name' => 'BitBay',
-            'countries' => array ( 'PL', 'EU' ), // Poland
+            'countries' => array ( 'MT', 'EU' ), // Malta
             'rateLimit' => 1000,
             'has' => array (
                 'CORS' => true,
@@ -304,7 +304,7 @@ class bitbay extends Exchange {
     }
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body) {
-        if (gettype ($body) != 'string')
+        if (gettype ($body) !== 'string')
             return; // fallback to default error handler
         if (strlen ($body) < 2)
             return;

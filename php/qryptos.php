@@ -189,12 +189,23 @@ class qryptos extends Exchange {
             if ($ticker['last_traded_price']) {
                 $length = is_array ($ticker['last_traded_price']) ? count ($ticker['last_traded_price']) : 0;
                 if ($length > 0)
-                    $last = floatval ($ticker['last_traded_price']);
+                    $last = $this->safe_float($ticker, 'last_traded_price');
             }
         }
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
+        $change = null;
+        $percentage = null;
+        $average = null;
+        $open = $this->safe_float($ticker, 'last_price_24h');
+        if ($open !== null && $last !== null) {
+            $change = $last - $open;
+            $average = $this->sum ($last, $open) / 2;
+            if ($open > 0) {
+                $percentage = $change / $open * 100;
+            }
+        }
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -206,13 +217,13 @@ class qryptos extends Exchange {
             'ask' => $this->safe_float($ticker, 'market_ask'),
             'askVolume' => null,
             'vwap' => null,
-            'open' => null,
+            'open' => $open,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => null,
-            'percentage' => null,
-            'average' => null,
+            'change' => $change,
+            'percentage' => $percentage,
+            'average' => $average,
             'baseVolume' => $this->safe_float($ticker, 'volume_24h'),
             'quoteVolume' => null,
             'info' => $ticker,
@@ -269,8 +280,8 @@ class qryptos extends Exchange {
             'type' => null,
             'side' => $side,
             'takerOrMaker' => $takerOrMaker,
-            'price' => floatval ($trade['price']),
-            'amount' => floatval ($trade['quantity']),
+            'price' => $this->safe_float($trade, 'price'),
+            'amount' => $this->safe_float($trade, 'quantity'),
         );
     }
 
@@ -340,9 +351,9 @@ class qryptos extends Exchange {
                 $status = 'canceled';
             }
         }
-        $amount = floatval ($order['quantity']);
-        $filled = floatval ($order['filled_quantity']);
-        $price = floatval ($order['price']);
+        $amount = $this->safe_float($order, 'quantity');
+        $filled = $this->safe_float($order, 'filled_quantity');
+        $price = $this->safe_float($order, 'price');
         $symbol = null;
         if ($market) {
             $symbol = $market['symbol'];
@@ -363,7 +374,7 @@ class qryptos extends Exchange {
             'trades' => null,
             'fee' => array (
                 'currency' => null,
-                'cost' => floatval ($order['order_fee']),
+                'cost' => $this->safe_float($order, 'order_fee'),
             ),
             'info' => $order,
         );

@@ -6,6 +6,7 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 
 
 class itbit (Exchange):
@@ -45,6 +46,7 @@ class itbit (Exchange):
                         'wallets/{walletId}/balances/{currencyCode}',
                         'wallets/{walletId}/funding_history',
                         'wallets/{walletId}/trades',
+                        'wallets/{walletId}/orders',
                         'wallets/{walletId}/orders/{id}',
                     ],
                     'post': [
@@ -128,8 +130,8 @@ class itbit (Exchange):
             'order': id,
             'type': None,
             'side': None,
-            'price': float(trade['price']),
-            'amount': float(trade['amount']),
+            'price': self.safe_float(trade, 'price'),
+            'amount': self.safe_float(trade, 'amount'),
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -140,8 +142,8 @@ class itbit (Exchange):
         return self.parse_trades(response['recentTrades'], market, since, limit)
 
     def fetch_balance(self, params={}):
-        response = self.privateGetBalances()
-        balances = response['balances']
+        response = self.fetch_wallets()
+        balances = response[0]['balances']
         result = {'info': response}
         for b in range(0, len(balances)):
             balance = balances[b]
@@ -156,7 +158,69 @@ class itbit (Exchange):
         return self.parse_balance(result)
 
     def fetch_wallets(self):
-        return self.privateGetWallets()
+        if not self.userId:
+            raise AuthenticationError(self.id + ' fetchWallets requires userId in API settings')
+        params = {
+            'userId': self.userId,
+        }
+        return self.privateGetWallets(params)
+
+    def fetch_wallet(self, walletId, params={}):
+        wallet = {
+            'walletId': walletId,
+        }
+        return self.privateGetWalletsWalletId(self.extend(wallet, params))
+
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        return self.fetch_orders(symbol, since, limit, self.extend({
+            'status': 'open',
+        }, params))
+
+    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        return self.fetch_orders(symbol, since, limit, self.extend({
+            'status': 'filled',
+        }, params))
+
+    def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        walletIdInParams = ('walletId' in list(params.keys()))
+        if not walletIdInParams:
+            raise ExchangeError(self.id + ' fetchOrders requires a walletId parameter')
+        walletId = params['walletId']
+        response = self.privateGetWalletsWalletIdOrders(self.extend({
+            'walletId': walletId,
+        }, params))
+        orders = self.parse_orders(response, None, since, limit)
+        return orders
+
+    def parse_order(self, order, market=None):
+        side = order['side']
+        type = order['type']
+        symbol = self.markets_by_id[order['instrument']]['symbol']
+        timestamp = self.parse8601(order['createdTime'])
+        amount = self.safe_float(order, 'amount')
+        filled = self.safe_float(order, 'amountFilled')
+        remaining = amount - filled
+        fee = None
+        price = self.safe_float(order, 'price')
+        cost = price * self.safe_float(order, 'volumeWeightedAveragePrice')
+        return {
+            'id': order['id'],
+            'info': order,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
+            'status': order['status'],
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'cost': cost,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'fee': fee,
+            # 'trades': self.parse_trades(order['trades'], market),
+        }
 
     def nonce(self):
         return self.milliseconds()
@@ -173,17 +237,25 @@ class itbit (Exchange):
         order = {
             'side': side,
             'type': type,
-            'currency': market['base'],
+            'currency': market['id'].replace(market['quote'], ''),
             'amount': amount,
             'display': amount,
             'price': price,
             'instrument': market['id'],
         }
-        response = self.privatePostTradeAdd(self.extend(order, params))
+        response = self.privatePostWalletsWalletIdOrders(self.extend(order, params))
         return {
             'info': response,
             'id': response['id'],
         }
+
+    def fetch_order(self, id, symbol=None, params={}):
+        walletIdInParams = ('walletId' in list(params.keys()))
+        if not walletIdInParams:
+            raise ExchangeError(self.id + ' fetchOrder requires a walletId parameter')
+        return self.privateGetWalletsWalletIdOrdersId(self.extend({
+            'id': id,
+        }, params))
 
     def cancel_order(self, id, symbol=None, params={}):
         walletIdInParams = ('walletId' in list(params.keys()))
@@ -196,19 +268,18 @@ class itbit (Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        if api == 'public':
-            if query:
-                url += '?' + self.urlencode(query)
+        if method == 'GET' and query:
+            url += '?' + self.urlencode(query)
+        if method == 'POST' and query:
+            body = self.json(query)
         else:
+            body = ''
+        if api == 'private':
             self.check_required_credentials()
-            if query:
-                body = self.json(query)
-            else:
-                body = ''
             nonce = str(self.nonce())
             timestamp = nonce
             auth = [method, url, body, nonce, timestamp]
-            message = nonce + self.json(auth)
+            message = nonce + self.json(auth).replace('\\/', '/')
             hash = self.hash(self.encode(message), 'sha256', 'binary')
             binhash = self.binary_concat(url, hash)
             signature = self.hmac(binhash, self.encode(self.secret), hashlib.sha512, 'base64')

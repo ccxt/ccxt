@@ -84,6 +84,9 @@ module.exports = class bleutrade extends bittrex {
                     },
                 },
             },
+            'commonCurrencies': {
+                'EPC': 'Epacoin',
+            },
             'exceptions': {
                 'Insufficient funds!': InsufficientFunds,
                 'Invalid Order ID': InvalidOrder,
@@ -101,21 +104,28 @@ module.exports = class bleutrade extends bittrex {
         for (let p = 0; p < markets['result'].length; p++) {
             let market = markets['result'][p];
             let id = market['MarketName'];
-            let base = market['MarketCurrency'];
-            let quote = market['BaseCurrency'];
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
+            let baseId = market['MarketCurrency'];
+            let quoteId = market['BaseCurrency'];
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
             let precision = {
                 'amount': 8,
                 'price': 8,
             };
-            let active = market['IsActive'];
+            let active = this.safeString (market, 'IsActive');
+            if (active === 'true') {
+                active = true;
+            } else if (active === 'false') {
+                active = false;
+            }
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': active,
                 'info': market,
                 'lot': Math.pow (10, -precision['amount']),

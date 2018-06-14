@@ -188,16 +188,16 @@ module.exports = class bitz extends Exchange {
     parseTicker (ticker, market = undefined) {
         let timestamp = ticker['date'] * 1000;
         let symbol = market['symbol'];
-        let last = parseFloat (ticker['last']);
+        let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']),
-            'low': parseFloat (ticker['low']),
-            'bid': parseFloat (ticker['buy']),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'buy'),
             'bidVolume': undefined,
-            'ask': parseFloat (ticker['sell']),
+            'ask': this.safeFloat (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -207,7 +207,7 @@ module.exports = class bitz extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': parseFloat (ticker['vol']),
+            'baseVolume': this.safeFloat (ticker, 'vol'),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -253,8 +253,8 @@ module.exports = class bitz extends Exchange {
         utcDate = utcDate.split ('T');
         utcDate = utcDate[0] + ' ' + trade['t'] + '+08';
         let timestamp = this.parse8601 (utcDate);
-        let price = parseFloat (trade['p']);
-        let amount = parseFloat (trade['n']);
+        let price = this.safeFloat (trade, 'p');
+        let amount = this.safeFloat (trade, 'n');
         let symbol = market['symbol'];
         let cost = this.priceToPrecision (symbol, amount * price);
         return {
@@ -303,7 +303,15 @@ module.exports = class bitz extends Exchange {
             side = this.safeString (order, 'type');
             if (typeof side !== 'undefined')
                 side = (side === 'in') ? 'buy' : 'sell';
+            if (typeof side === 'undefined')
+                side = this.safeString (order, 'flag');
         }
+        let amount = this.safeFloat (order, 'number');
+        let remaining = this.safeFloat (order, 'numberover');
+        let filled = undefined;
+        if (typeof amount !== 'undefined')
+            if (typeof remaining !== 'undefined')
+                filled = amount - remaining;
         let timestamp = undefined;
         let iso8601 = undefined;
         if ('datetime' in order) {
@@ -322,8 +330,8 @@ module.exports = class bitz extends Exchange {
             'price': order['price'],
             'cost': undefined,
             'amount': order['number'],
-            'filled': undefined,
-            'remaining': undefined,
+            'filled': filled,
+            'remaining': remaining,
             'trades': undefined,
             'fee': undefined,
             'info': order,
@@ -378,7 +386,7 @@ module.exports = class bitz extends Exchange {
             this.options['lastNonceTimestamp'] = currentTimestamp;
             this.options['lastNonce'] = 100000;
         }
-        this.options['lastNonce'] += 1;
+        this.options['lastNonce'] = this.sum (this.options['lastNonce'], 1);
         return this.options['lastNonce'];
     }
 

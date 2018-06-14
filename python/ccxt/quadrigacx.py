@@ -26,6 +26,7 @@ class quadrigacx (Exchange):
             'version': 'v2',
             'has': {
                 'fetchDepositAddress': True,
+                'fetchTickers': True,
                 'CORS': True,
                 'withdraw': True,
             },
@@ -106,24 +107,58 @@ class quadrigacx (Exchange):
         timestamp = int(orderbook['timestamp']) * 1000
         return self.parse_order_book(orderbook, timestamp)
 
-    def fetch_ticker(self, symbol, params={}):
-        ticker = self.publicGetTicker(self.extend({
-            'book': self.market_id(symbol),
+    def fetch_tickers(self, symbols=None, params={}):
+        response = self.publicGetTicker(self.extend({
+            'book': 'all',
         }, params))
+        ids = list(response.keys())
+        result = {}
+        for i in range(0, len(ids)):
+            id = ids[i]
+            symbol = id
+            market = None
+            if id in self.markets_by_id:
+                market = self.markets_by_id[id]
+                symbol = market['symbol']
+            else:
+                baseId, quoteId = id.split('_')
+                base = baseId.upper()
+                quote = quoteId.upper()
+                base = self.common_currency_code(base)
+                quote = self.common_currency_code(base)
+                symbol = base + '/' + quote
+                market = {
+                    'symbol': symbol,
+                }
+            result[symbol] = self.parse_ticker(response[id], market)
+        return result
+
+    def fetch_ticker(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        response = self.publicGetTicker(self.extend({
+            'book': market['id'],
+        }, params))
+        return self.parse_ticker(response, market)
+
+    def parse_ticker(self, ticker, market=None):
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         timestamp = int(ticker['timestamp']) * 1000
-        vwap = float(ticker['vwap'])
-        baseVolume = float(ticker['volume'])
+        vwap = self.safe_float(ticker, 'vwap')
+        baseVolume = self.safe_float(ticker, 'volume')
         quoteVolume = baseVolume * vwap
-        last = float(ticker['last'])
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['bid']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'bid'),
             'bidVolume': None,
-            'ask': float(ticker['ask']),
+            'ask': self.safe_float(ticker, 'ask'),
             'askVolume': None,
             'vwap': vwap,
             'open': None,
@@ -149,8 +184,8 @@ class quadrigacx (Exchange):
             'order': None,
             'type': None,
             'side': trade['side'],
-            'price': float(trade['price']),
-            'amount': float(trade['amount']),
+            'price': self.safe_float(trade, 'price'),
+            'amount': self.safe_float(trade, 'amount'),
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):

@@ -5,7 +5,6 @@
 
 from ccxt.async.base.exchange import Exchange
 import base64
-from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
 
 
@@ -68,18 +67,33 @@ class coinfloor (Exchange):
             },
         })
 
-    def fetch_balance(self, params={}):
-        symbol = None
+    async def fetch_balance(self, params={}):
+        market = None
         if 'symbol' in params:
-            symbol = params['symbol']
+            market = self.find_market(params['symbol'])
         if 'id' in params:
-            symbol = params['id']
-        if not symbol:
-            raise ExchangeError(self.id + ' fetchBalance requires a symbol param')
-        # todo parse balance
-        return self.privatePostIdBalance({
-            'id': self.market_id(symbol),
+            market = self.find_market(params['id'])
+        if not market:
+            raise NotSupported(self.id + ' fetchBalance requires a symbol param')
+        response = await self.privatePostIdBalance({
+            'id': market['id'],
         })
+        result = {
+            'info': response,
+        }
+        # base/quote used for keys e.g. "xbt_reserved"
+        keys = market['id'].lower().split('/')
+        result[market['base']] = {
+            'free': float(response[keys[0] + '_available']),
+            'used': float(response[keys[0] + '_reserved']),
+            'total': float(response[keys[0] + '_balance']),
+        }
+        result[market['quote']] = {
+            'free': float(response[keys[1] + '_available']),
+            'used': float(response[keys[1] + '_reserved']),
+            'total': float(response[keys[1] + '_balance']),
+        }
+        return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         orderbook = await self.publicGetIdOrderBook(self.extend({
@@ -94,20 +108,20 @@ class coinfloor (Exchange):
         if market:
             symbol = market['symbol']
         vwap = self.safe_float(ticker, 'vwap')
-        baseVolume = float(ticker['volume'])
+        baseVolume = self.safe_float(ticker, 'volume')
         quoteVolume = None
         if vwap is not None:
             quoteVolume = baseVolume * vwap
-        last = float(ticker['last'])
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['bid']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'bid'),
             'bidVolume': None,
-            'ask': float(ticker['ask']),
+            'ask': self.safe_float(ticker, 'ask'),
             'askVolume': None,
             'vwap': vwap,
             'open': None,
@@ -140,8 +154,8 @@ class coinfloor (Exchange):
             'symbol': market['symbol'],
             'type': None,
             'side': None,
-            'price': float(trade['price']),
-            'amount': float(trade['amount']),
+            'price': self.safe_float(trade, 'price'),
+            'amount': self.safe_float(trade, 'amount'),
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):

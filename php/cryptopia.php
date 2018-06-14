@@ -22,6 +22,7 @@ class cryptopia extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchMyTrades' => true,
+                'fetchOHLCV' => true,
                 'fetchOrder' => 'emulated',
                 'fetchOrderBooks' => true,
                 'fetchOrders' => 'emulated',
@@ -32,15 +33,35 @@ class cryptopia extends Exchange {
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/29484394-7b4ea6e2-84c6-11e7-83e5-1fccf4b2dc81.jpg',
-                'api' => 'https://www.cryptopia.co.nz/api',
+                'api' => array (
+                    'public' => 'https://www.cryptopia.co.nz/api',
+                    'private' => 'https://www.cryptopia.co.nz/api',
+                    'web' => 'https://www.cryptopia.co.nz',
+                ),
                 'www' => 'https://www.cryptopia.co.nz',
+                'referral' => 'https://www.cryptopia.co.nz/Register?referrer=kroitor',
                 'doc' => array (
                     'https://www.cryptopia.co.nz/Forum/Category/45',
                     'https://www.cryptopia.co.nz/Forum/Thread/255',
                     'https://www.cryptopia.co.nz/Forum/Thread/256',
                 ),
             ),
+            'timeframes' => array (
+                '15m' => 15,
+                '30m' => 30,
+                '1h' => 60,
+                '2h' => 120,
+                '4h' => 240,
+                '12h' => 720,
+                '1d' => 1440,
+                '1w' => 10080,
+            ),
             'api' => array (
+                'web' => array (
+                    'get' => array (
+                        'Exchange/GetTradePairChart',
+                    ),
+                ),
                 'public' => array (
                     'get' => array (
                         'GetCurrencies',
@@ -81,14 +102,19 @@ class cryptopia extends Exchange {
                 'BTG' => 'Bitgem',
                 'CC' => 'CCX',
                 'CMT' => 'Comet',
+                'EPC' => 'ExperienceCoin',
                 'FCN' => 'Facilecoin',
                 'FUEL' => 'FC2', // FuelCoin != FUEL
                 'HAV' => 'Havecoin',
+                'LBTC' => 'LiteBitcoin',
                 'LDC' => 'LADACoin',
                 'MARKS' => 'Bitmark',
                 'NET' => 'NetCoin',
                 'QBT' => 'Cubits',
                 'WRC' => 'WarCoin',
+            ),
+            'options' => array (
+                'fetchTickersErrors' => true,
             ),
         ));
     }
@@ -123,7 +149,7 @@ class cryptopia extends Exchange {
                 'amount' => $amountLimits,
                 'price' => $priceLimits,
                 'cost' => array (
-                    'min' => $priceLimits['min'] * $amountLimits['min'],
+                    'min' => $market['MinimumBaseTrade'],
                     'max' => null,
                 ),
             );
@@ -131,6 +157,7 @@ class cryptopia extends Exchange {
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
+                'label' => $market['Label'],
                 'base' => $base,
                 'quote' => $quote,
                 'baseId' => $baseId,
@@ -144,6 +171,7 @@ class cryptopia extends Exchange {
                 'limits' => $limits,
             );
         }
+        $this->options['marketsByLabel'] = $this->index_by($result, 'label');
         return $result;
     }
 
@@ -156,6 +184,43 @@ class cryptopia extends Exchange {
         return $this->parse_order_book($orderbook, null, 'Buy', 'Sell', 'Price', 'Volume');
     }
 
+    public function fetch_ohlcv ($symbol, $timeframe = '15m', $since = null, $limit = null, $params = array ()) {
+        $dataRange = 0;
+        if ($since !== null) {
+            $dataRanges = array (
+                86400,
+                172800,
+                604800,
+                1209600,
+                2592000,
+                7776000,
+                15552000,
+            );
+            $numDataRanges = is_array ($dataRanges) ? count ($dataRanges) : 0;
+            $now = $this->seconds ();
+            $sinceSeconds = intval ($since / 1000);
+            for ($i = 1; $i < $numDataRanges; $i++) {
+                if (($now - $sinceSeconds) > $dataRanges[$i]) {
+                    $dataRange = $i;
+                }
+            }
+        }
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array (
+            'tradePairId' => $market['id'],
+            'dataRange' => $dataRange,
+            'dataGroup' => $this->timeframes[$timeframe],
+        );
+        $response = $this->webGetExchangeGetTradePairChart (array_merge ($request, $params));
+        $candles = $response['Candle'];
+        $volumes = $response['Volume'];
+        for ($i = 0; $i < count ($candles); $i++) {
+            $candles[$i][] = $volumes[$i]['basev'];
+        }
+        return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
+    }
+
     public function join_market_ids ($ids, $glue = '-') {
         $result = (string) $ids[0];
         for ($i = 1; $i < count ($ids); $i++) {
@@ -166,16 +231,14 @@ class cryptopia extends Exchange {
 
     public function fetch_order_books ($symbols = null, $params = array ()) {
         $this->load_markets();
-        $ids = null;
-        if (!$symbols) {
-            $numIds = is_array ($this->ids) ? count ($this->ids) : 0;
-            // max URL length is 2083 characters, including http schema, hostname, tld, etc...
-            if ($numIds > 2048)
-                throw new ExchangeError ($this->id . ' has ' . (string) $numIds . ' $symbols exceeding max URL length, you are required to specify a list of $symbols in the first argument to fetchOrderBooks');
-            $ids = $this->join_market_ids ($this->ids);
-        } else {
-            $ids = $this->join_market_ids ($this->market_ids($symbols));
+        if ($symbols === null) {
+            throw new ExchangeError ($this->id . ' fetchOrderBooks requires the $symbols argument as of May 2018 (up to 5 $symbols at max)');
         }
+        $numSymbols = is_array ($symbols) ? count ($symbols) : 0;
+        if ($numSymbols > 5) {
+            throw new ExchangeError ($this->id . ' fetchOrderBooks accepts 5 $symbols at max');
+        }
+        $ids = $this->join_market_ids ($this->market_ids($symbols));
         $response = $this->publicGetGetMarketOrderGroupsIds (array_merge (array (
             'ids' => $ids,
         ), $params));
@@ -214,11 +277,11 @@ class cryptopia extends Exchange {
             'info' => $ticker,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['High']),
-            'low' => floatval ($ticker['Low']),
-            'bid' => floatval ($ticker['BidPrice']),
+            'high' => $this->safe_float($ticker, 'High'),
+            'low' => $this->safe_float($ticker, 'Low'),
+            'bid' => $this->safe_float($ticker, 'BidPrice'),
             'bidVolume' => null,
-            'ask' => floatval ($ticker['AskPrice']),
+            'ask' => $this->safe_float($ticker, 'AskPrice'),
             'askVolume' => null,
             'vwap' => $vwap,
             'open' => $open,
@@ -226,7 +289,7 @@ class cryptopia extends Exchange {
             'last' => $last,
             'previousClose' => null,
             'change' => $change,
-            'percentage' => floatval ($ticker['Change']),
+            'percentage' => $this->safe_float($ticker, 'Change'),
             'average' => $this->sum ($last, $open) / 2,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
@@ -252,11 +315,14 @@ class cryptopia extends Exchange {
             $ticker = $tickers[$i];
             $id = $ticker['TradePairId'];
             $recognized = (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id));
-            if (!$recognized)
-                throw new ExchangeError ($this->id . ' fetchTickers() returned unrecognized pair $id ' . (string) $id);
-            $market = $this->markets_by_id[$id];
-            $symbol = $market['symbol'];
-            $result[$symbol] = $this->parse_ticker($ticker, $market);
+            if (!$recognized) {
+                if ($this->options['fetchTickersErrors'])
+                    throw new ExchangeError ($this->id . ' fetchTickers() returned unrecognized pair $id ' . (string) $id);
+            } else {
+                $market = $this->markets_by_id[$id];
+                $symbol = $market['symbol'];
+                $result[$symbol] = $this->parse_ticker($ticker, $market);
+            }
         }
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
@@ -388,7 +454,7 @@ class cryptopia extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostGetBalance ();
+        $response = $this->privatePostGetBalance ($params);
         $balances = $response['Data'];
         $result = array ( 'info' => $response );
         for ($i = 0; $i < count ($balances); $i++) {
@@ -426,17 +492,14 @@ class cryptopia extends Exchange {
             throw new ExchangeError ($this->id . ' createOrder returned unknown error => ' . $this->json ($response));
         $id = null;
         $filled = 0.0;
+        $status = 'open';
         if (is_array ($response) && array_key_exists ('Data', $response)) {
             if (is_array ($response['Data']) && array_key_exists ('OrderId', $response['Data'])) {
                 if ($response['Data']['OrderId']) {
                     $id = (string) $response['Data']['OrderId'];
-                }
-            }
-            if (is_array ($response['Data']) && array_key_exists ('FilledOrders', $response['Data'])) {
-                $filledOrders = $response['Data']['FilledOrders'];
-                $filledOrdersLength = is_array ($filledOrders) ? count ($filledOrders) : 0;
-                if ($filledOrdersLength) {
-                    $filled = null;
+                } else {
+                    $filled = $amount;
+                    $status = 'closed';
                 }
             }
         }
@@ -446,14 +509,14 @@ class cryptopia extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'lastTradeTimestamp' => null,
-            'status' => 'open',
+            'status' => $status,
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
             'price' => $price,
             'cost' => $price * $amount,
             'amount' => $amount,
-            'remaining' => $amount,
+            'remaining' => $amount - $filled,
             'filled' => $filled,
             'fee' => null,
             // 'trades' => $this->parse_trades($order['trades'], $market),
@@ -471,6 +534,8 @@ class cryptopia extends Exchange {
                 'Type' => 'Trade',
                 'OrderId' => $id,
             ), $params));
+            // We do not know if it is indeed canceled, but cryptopia lacks any
+            // reasonable method to get information on executed or canceled order.
             if (is_array ($this->orders) && array_key_exists ($id, $this->orders))
                 $this->orders[$id]['status'] = 'canceled';
         } catch (Exception $e) {
@@ -483,7 +548,7 @@ class cryptopia extends Exchange {
             }
             throw $e;
         }
-        return $response;
+        return $this->parse_order($response);
     }
 
     public function parse_order ($order, $market = null) {
@@ -495,22 +560,42 @@ class cryptopia extends Exchange {
             if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$id];
                 $symbol = $market['symbol'];
+            } else {
+                if (is_array ($this->options['marketsByLabel']) && array_key_exists ($id, $this->options['marketsByLabel'])) {
+                    $market = $this->options['marketsByLabel'][$id];
+                    $symbol = $market['symbol'];
+                }
             }
         }
-        $timestamp = $this->parse8601 ($order['TimeStamp']);
+        $timestamp = $this->safe_integer($order, 'TimeStamp');
+        $datetime = null;
+        if ($timestamp) {
+            $datetime = $this->iso8601 ($timestamp);
+        }
         $amount = $this->safe_float($order, 'Amount');
         $remaining = $this->safe_float($order, 'Remaining');
-        $filled = $amount - $remaining;
+        $filled = null;
+        if ($amount !== null && $remaining !== null) {
+            $filled = $amount - $remaining;
+        }
+        $id = $this->safe_value($order, 'OrderId');
+        if ($id !== null) {
+            $id = (string) $id;
+        }
+        $side = $this->safe_string($order, 'Type');
+        if ($side !== null) {
+            $side = strtolower ($side);
+        }
         return array (
-            'id' => (string) $order['OrderId'],
+            'id' => $id,
             'info' => $this->omit ($order, 'status'),
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $datetime,
             'lastTradeTimestamp' => null,
             'status' => $order['status'],
             'symbol' => $symbol,
             'type' => 'limit',
-            'side' => strtolower ($order['Type']),
+            'side' => $side,
             'price' => $this->safe_float($order, 'Rate'),
             'cost' => $this->safe_float($order, 'Total'),
             'amount' => $amount,
@@ -522,15 +607,18 @@ class cryptopia extends Exchange {
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if (!$symbol)
-            throw new ExchangeError ($this->id . ' fetchOrders requires a $symbol param');
         $this->load_markets();
-        $market = $this->market ($symbol);
-        $response = $this->privatePostGetOpenOrders (array (
+        $market = null;
+        $request = array (
             // 'Market' => $market['id'],
-            'TradePairId' => $market['id'], // Cryptopia identifier (not required if 'Market' supplied)
+            // 'TradePairId' => $market['id'], // Cryptopia identifier (not required if 'Market' supplied)
             // 'Count' => 100, // default = 100
-        ), $params);
+        );
+        if ($symbol !== null) {
+            $market = $this->market ($symbol);
+            $request['TradePairId'] = $market['id'];
+        }
+        $response = $this->privatePostGetOpenOrders (array_merge ($request, $params));
         $orders = array ();
         for ($i = 0; $i < count ($response['Data']); $i++) {
             $orders[] = array_merge ($response['Data'][$i], array ( 'status' => 'open' ));
@@ -549,16 +637,18 @@ class cryptopia extends Exchange {
             } else {
                 $order = $this->orders[$id];
                 if ($order['status'] === 'open') {
-                    $this->orders[$id] = array_merge ($order, array (
-                        'status' => 'closed',
-                        'cost' => $order['amount'] * $order['price'],
-                        'filled' => $order['amount'],
-                        'remaining' => 0.0,
-                    ));
+                    if (($symbol === null) || ($order['symbol'] === $symbol)) {
+                        $this->orders[$id] = array_merge ($order, array (
+                            'status' => 'closed',
+                            'cost' => $order['amount'] * $order['price'],
+                            'filled' => $order['amount'],
+                            'remaining' => 0.0,
+                        ));
+                    }
                 }
             }
             $order = $this->orders[$id];
-            if ($order['symbol'] === $symbol)
+            if (($symbol === null) || ($order['symbol'] === $symbol))
                 $result[] = $order;
         }
         return $this->filter_by_since_limit($result, $since, $limit);
@@ -595,6 +685,7 @@ class cryptopia extends Exchange {
     }
 
     public function fetch_deposit_address ($code, $params = array ()) {
+        $this->load_markets();
         $currency = $this->currency ($code);
         $response = $this->privatePostGetDepositAddress (array_merge (array (
             'Currency' => $currency['id'],
@@ -612,6 +703,7 @@ class cryptopia extends Exchange {
     }
 
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+        $this->load_markets();
         $currency = $this->currency ($code);
         $this->check_address($address);
         $request = array (
@@ -629,12 +721,9 @@ class cryptopia extends Exchange {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'] . '/' . $this->implode_params($path, $params);
+        $url = $this->urls['api'][$api] . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
-        if ($api === 'public') {
-            if ($query)
-                $url .= '?' . $this->urlencode ($query);
-        } else {
+        if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             $body = $this->json ($query, array ( 'convertArraysToObjects' => true ));
@@ -650,21 +739,60 @@ class cryptopia extends Exchange {
                 'Content-Type' => 'application/json',
                 'Authorization' => $auth,
             );
+        } else {
+            if ($query)
+                $url .= '?' . $this->urlencode ($query);
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if ($response) {
-            if (is_array ($response) && array_key_exists ('Success', $response))
-                if ($response['Success']) {
-                    return $response;
-                } else if (is_array ($response) && array_key_exists ('Error', $response)) {
-                    if ($response['Error'] === 'Insufficient Funds.')
-                        throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
+    public function nonce () {
+        return $this->milliseconds ();
+    }
+
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+        if (gettype ($body) !== 'string')
+            return; // fallback to default $error handler
+        if (strlen ($body) < 2)
+            return; // fallback to default $error handler
+        $fixedJSONString = $this->sanitize_broken_json_string ($body);
+        if ($fixedJSONString[0] === '{') {
+            $response = json_decode ($fixedJSONString, $as_associative_array = true);
+            if (is_array ($response) && array_key_exists ('Success', $response)) {
+                $success = $this->safe_string($response, 'Success');
+                if ($success === 'false') {
+                    $error = $this->safe_string($response, 'Error');
+                    $feedback = $this->id;
+                    if (gettype ($error) === 'string') {
+                        $feedback = $feedback . ' ' . $error;
+                        if (mb_strpos ($error, 'does not exist') !== false) {
+                            throw new OrderNotFound ($feedback);
+                        }
+                        if (mb_strpos ($error, 'Insufficient Funds') !== false) {
+                            throw new InsufficientFunds ($feedback);
+                        }
+                        if (mb_strpos ($error, 'Nonce has already been used') !== false) {
+                            throw new InvalidNonce ($feedback);
+                        }
+                    } else {
+                        $feedback = $feedback . ' ' . $fixedJSONString;
+                    }
+                    throw new ExchangeError ($feedback);
                 }
+            }
         }
-        throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+    }
+
+    public function sanitize_broken_json_string ($jsonString) {
+        // sometimes cryptopia will return a unicode symbol before actual JSON string.
+        $indexOfBracket = mb_strpos ($jsonString, '{');
+        if ($indexOfBracket >= 0) {
+            return mb_substr ($jsonString, $indexOfBracket);
+        }
+        return $jsonString;
+    }
+
+    public function parse_json ($response, $responseBody, $url, $method) {
+        return parent::parseJson ($response, $this->sanitize_broken_json_string ($responseBody), $url, $method);
     }
 }

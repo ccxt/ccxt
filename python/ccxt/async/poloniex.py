@@ -9,6 +9,7 @@ import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -17,6 +18,7 @@ from ccxt.base.errors import CancelPending
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import RequestTimeout
 
 
 class poloniex (Exchange):
@@ -40,6 +42,7 @@ class poloniex (Exchange):
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': 'emulated',
                 'fetchTickers': True,
+                'fetchTradingFees': True,
                 'fetchCurrencies': True,
                 'withdraw': True,
             },
@@ -139,6 +142,18 @@ class poloniex (Exchange):
                 'STR': 'XLM',
                 'BCC': 'BTCtalkcoin',
             },
+            'options': {
+                'limits': {
+                    'cost': {
+                        'min': {
+                            'BTC': 0.0001,
+                            'ETH': 0.0001,
+                            'XMR': 0.0001,
+                            'USDT': 1.0,
+                        },
+                    },
+                },
+            },
         })
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
@@ -193,6 +208,7 @@ class poloniex (Exchange):
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
+            minCost = self.safe_float(self.options['limits']['cost']['min'], quote, 0.0)
             result.append(self.extend(self.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
@@ -213,7 +229,7 @@ class poloniex (Exchange):
                         'max': 1000000000,
                     },
                     'cost': {
-                        'min': 0.00000000,
+                        'min': minCost,
                         'max': 1000000000,
                     },
                 },
@@ -241,13 +257,13 @@ class poloniex (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    async def fetch_fees(self, params={}):
+    async def fetch_trading_fees(self, params={}):
         await self.load_markets()
         fees = await self.privatePostReturnFeeInfo()
         return {
             'info': fees,
-            'maker': float(fees['makerFee']),
-            'taker': float(fees['takerFee']),
+            'maker': self.safe_float(fees, 'makerFee'),
+            'taker': self.safe_float(fees, 'takerFee'),
             'withdraw': {},
             'deposit': {},
         }
@@ -272,8 +288,8 @@ class poloniex (Exchange):
         open = None
         change = None
         average = None
-        last = float(ticker['last'])
-        relativeChange = float(ticker['percentChange'])
+        last = self.safe_float(ticker, 'last')
+        relativeChange = self.safe_float(ticker, 'percentChange')
         if relativeChange != -1:
             open = last / self.sum(1, relativeChange)
             change = last - open
@@ -282,11 +298,11 @@ class poloniex (Exchange):
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high24hr']),
-            'low': float(ticker['low24hr']),
-            'bid': float(ticker['highestBid']),
+            'high': self.safe_float(ticker, 'high24hr'),
+            'low': self.safe_float(ticker, 'low24hr'),
+            'bid': self.safe_float(ticker, 'highestBid'),
             'bidVolume': None,
-            'ask': float(ticker['lowestAsk']),
+            'ask': self.safe_float(ticker, 'lowestAsk'),
             'askVolume': None,
             'vwap': None,
             'open': open,
@@ -296,8 +312,8 @@ class poloniex (Exchange):
             'change': change,
             'percentage': relativeChange * 100,
             'average': average,
-            'baseVolume': float(ticker['quoteVolume']),
-            'quoteVolume': float(ticker['baseVolume']),
+            'baseVolume': self.safe_float(ticker, 'quoteVolume'),
+            'quoteVolume': self.safe_float(ticker, 'baseVolume'),
             'info': ticker,
         }
 
@@ -388,9 +404,9 @@ class poloniex (Exchange):
         side = trade['type']
         fee = None
         cost = self.safe_float(trade, 'total')
-        amount = float(trade['amount'])
+        amount = self.safe_float(trade, 'amount')
         if 'fee' in trade:
-            rate = float(trade['fee'])
+            rate = self.safe_float(trade, 'fee')
             feeCost = None
             currency = None
             if side == 'buy':
@@ -415,7 +431,7 @@ class poloniex (Exchange):
             'order': self.safe_string(trade, 'orderNumber'),
             'type': 'limit',
             'side': side,
-            'price': float(trade['rate']),
+            'price': self.safe_float(trade, 'rate'),
             'amount': amount,
             'cost': cost,
             'fee': fee,
@@ -444,8 +460,8 @@ class poloniex (Exchange):
             request['start'] = int(since / 1000)
             request['end'] = self.seconds()
         # limit is disabled(does not really work as expected)
-        # if limit:
-        #     request['limit'] = int(limit)
+        if limit:
+            request['limit'] = int(limit)
         response = await self.privatePostReturnTradeHistory(self.extend(request, params))
         result = []
         if market:
@@ -768,25 +784,29 @@ class poloniex (Exchange):
             # syntax error, resort to default error handler
             return
         if 'error' in response:
-            error = response['error']
+            message = response['error']
             feedback = self.id + ' ' + self.json(response)
-            if error == 'Invalid order number, or you are not the person who placed the order.':
+            if message == 'Invalid order number, or you are not the person who placed the order.':
                 raise OrderNotFound(feedback)
-            elif error == 'Internal error. Please try again.':
+            elif message == 'Connection timed out. Please try again.':
+                raise RequestTimeout(feedback)
+            elif message == 'Internal error. Please try again.':
                 raise ExchangeNotAvailable(feedback)
-            elif error == 'Order not found, or you are not the person who placed it.':
+            elif message == 'Order not found, or you are not the person who placed it.':
                 raise OrderNotFound(feedback)
-            elif error == 'Invalid API key/secret pair.':
+            elif message == 'Invalid API key/secret pair.':
                 raise AuthenticationError(feedback)
-            elif error == 'Please do not make more than 8 API calls per second.':
+            elif message == 'Please do not make more than 8 API calls per second.':
                 raise DDoSProtection(feedback)
-            elif error.find('Total must be at least') >= 0:
+            elif message.find('Total must be at least') >= 0:
                 raise InvalidOrder(feedback)
-            elif error.find('Not enough') >= 0:
+            elif message.find('This account is frozen.') >= 0:
+                raise AccountSuspended(feedback)
+            elif message.find('Not enough') >= 0:
                 raise InsufficientFunds(feedback)
-            elif error.find('Nonce must be greater') >= 0:
+            elif message.find('Nonce must be greater') >= 0:
                 raise InvalidNonce(feedback)
-            elif error.find('You have already called cancelOrder or moveOrder on self order.') >= 0:
+            elif message.find('You have already called cancelOrder or moveOrder on self order.') >= 0:
                 raise CancelPending(feedback)
             else:
-                raise ExchangeError(self.id + ': unknown error: ' + self.json(response))
+                raise ExchangeError(self.id + ' unknown error ' + self.json(response))

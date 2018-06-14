@@ -118,6 +118,7 @@ class bitbank extends Exchange {
                 '50009' => '\\ccxt\\OrderNotFound',
                 '50010' => '\\ccxt\\OrderNotFound',
                 '60001' => '\\ccxt\\InsufficientFunds',
+                '60005' => '\\ccxt\\InvalidOrder',
             ),
         ));
     }
@@ -125,16 +126,16 @@ class bitbank extends Exchange {
     public function parse_ticker ($ticker, $market = null) {
         $symbol = $market['symbol'];
         $timestamp = $ticker['timestamp'];
-        $last = floatval ($ticker['last']);
+        $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['high']),
-            'low' => floatval ($ticker['low']),
-            'bid' => floatval ($ticker['buy']),
+            'high' => $this->safe_float($ticker, 'high'),
+            'low' => $this->safe_float($ticker, 'low'),
+            'bid' => $this->safe_float($ticker, 'buy'),
             'bidVolume' => null,
-            'ask' => floatval ($ticker['sell']),
+            'ask' => $this->safe_float($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -144,7 +145,7 @@ class bitbank extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($ticker['vol']),
+            'baseVolume' => $this->safe_float($ticker, 'vol'),
             'quoteVolume' => null,
             'info' => $ticker,
         );
@@ -170,8 +171,8 @@ class bitbank extends Exchange {
 
     public function parse_trade ($trade, $market = null) {
         $timestamp = $trade['executed_at'];
-        $price = floatval ($trade['price']);
-        $amount = floatval ($trade['amount']);
+        $price = $this->safe_float($trade, 'price');
+        $amount = $this->safe_float($trade, 'amount');
         $symbol = $market['symbol'];
         $cost = $this->cost_to_precision($symbol, $price * $amount);
         $id = $this->safe_string($trade, 'transaction_id');
@@ -266,8 +267,8 @@ class bitbank extends Exchange {
         }
         if ($market)
             $symbol = $market['symbol'];
-        $timestamp = $this->safe_integer($order, 'ordered_at') * 1000;
-        $price = floatval ($order['price']);
+        $timestamp = $this->safe_integer($order, 'ordered_at');
+        $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'start_amount');
         $filled = $this->safe_float($order, 'executed_amount');
         $remaining = $this->safe_float($order, 'remaining_amount');
@@ -285,6 +286,12 @@ class bitbank extends Exchange {
         } else {
             $status = 'open';
         }
+        $type = $this->safe_string($order, 'type');
+        if ($type !== null)
+            $type = strtolower ($type);
+        $side = $this->safe_string($order, 'side');
+        if ($side !== null)
+            $side = strtolower ($side);
         return array (
             'id' => $this->safe_string($order, 'order_id'),
             'datetime' => $this->iso8601 ($timestamp),
@@ -292,8 +299,8 @@ class bitbank extends Exchange {
             'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
-            'type' => $order['type'],
-            'side' => $order['side'],
+            'type' => $type,
+            'side' => $side,
             'price' => $price,
             'cost' => $cost,
             'amount' => $amount,
@@ -381,7 +388,7 @@ class bitbank extends Exchange {
         $response = $this->privateGetUserWithdrawalAccount (array_merge (array (
             'asset' => $currency['id'],
         ), $params));
-        // Not sure about this if there could be more $accounts...
+        // Not sure about this if there could be more than one account...
         $accounts = $response['data']['accounts'];
         $address = $this->safe_string($accounts[0], 'address');
         $status = $address ? 'ok' : 'none';

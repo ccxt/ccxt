@@ -22,6 +22,7 @@ module.exports = class livecoin extends Exchange {
                 'fetchCurrencies': true,
                 'fetchTradingFees': true,
                 'fetchOrders': true,
+                'fetchOrder': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'withdraw': true,
@@ -88,6 +89,7 @@ module.exports = class livecoin extends Exchange {
                 'CRC': 'CryCash',
                 'ORE': 'Orectic',
                 'RUR': 'RUB',
+                'TPI': 'ThaneCoin',
                 'XBT': 'Bricktox',
             },
             'exceptions': {
@@ -232,8 +234,13 @@ module.exports = class livecoin extends Exchange {
         let currencies = [
             { 'id': 'USD', 'code': 'USD', 'name': 'US Dollar' },
             { 'id': 'EUR', 'code': 'EUR', 'name': 'Euro' },
-            { 'id': 'RUR', 'code': 'RUB', 'name': 'Russian ruble' },
+            // { 'id': 'RUR', 'code': 'RUB', 'name': 'Russian ruble' },
         ];
+        currencies.push ({
+            'id': 'RUR',
+            'code': this.commonCurrencyCode ('RUR'),
+            'name': 'Russian ruble',
+        });
         for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];
             let code = currency['code'];
@@ -294,21 +301,21 @@ module.exports = class livecoin extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
-        let vwap = parseFloat (ticker['vwap']);
-        let baseVolume = parseFloat (ticker['volume']);
+        let vwap = this.safeFloat (ticker, 'vwap');
+        let baseVolume = this.safeFloat (ticker, 'volume');
         let quoteVolume = baseVolume * vwap;
-        let last = parseFloat (ticker['last']);
+        let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']),
-            'low': parseFloat (ticker['low']),
-            'bid': parseFloat (ticker['best_bid']),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'best_bid'),
             'bidVolume': undefined,
-            'ask': parseFloat (ticker['best_ask']),
+            'ask': this.safeFloat (ticker, 'best_ask'),
             'askVolume': undefined,
-            'vwap': parseFloat (ticker['vwap']),
+            'vwap': this.safeFloat (ticker, 'vwap'),
             'open': undefined,
             'close': last,
             'last': last,
@@ -372,63 +379,107 @@ module.exports = class livecoin extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let request = {
+            'orderId': id,
+        };
+        let response = await this.privateGetExchangeOrder (this.extend (request, params));
+        return this.parseOrder (response);
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            'OPEN': 'open',
+            'PARTIALLY_FILLED': 'open',
+            'EXECUTED': 'closed',
+            'PARTIALLY_FILLED_AND_CANCELLED': 'canceled',
+        };
+        if (status in statuses)
+            return statuses[status];
+        return status;
+    }
+
     parseOrder (order, market = undefined) {
-        let timestamp = this.safeInteger (order, 'lastModificationTime');
-        if (!timestamp)
-            timestamp = this.parse8601 (order['lastModificationTime']);
-        let trades = undefined;
-        if ('trades' in order)
-            // TODO currently not supported by livecoin
-            // trades = this.parseTrades (order['trades'], market, since, limit);
-            trades = undefined;
-        let status = undefined;
-        if (order['orderStatus'] === 'OPEN' || order['orderStatus'] === 'PARTIALLY_FILLED') {
-            status = 'open';
-        } else if (order['orderStatus'] === 'EXECUTED' || order['orderStatus'] === 'PARTIALLY_FILLED_AND_CANCELLED') {
-            status = 'closed';
-        } else {
-            status = 'canceled';
+        let timestamp = undefined;
+        let datetime = undefined;
+        if ('lastModificationTime' in order) {
+            timestamp = this.safeString (order, 'lastModificationTime');
+            if (typeof timestamp !== 'undefined') {
+                if (timestamp.indexOf ('T') >= 0) {
+                    timestamp = this.parse8601 (timestamp);
+                } else {
+                    timestamp = this.safeInteger (order, 'lastModificationTime');
+                }
+            }
         }
-        let symbol = order['currencyPair'];
-        let parts = symbol.split ('/');
-        let quote = parts[1];
-        // let [ base, quote ] = symbol.split ('/');
+        if (timestamp) {
+            datetime = this.iso8601 (timestamp);
+        }
+        // TODO currently not supported by livecoin
+        // let trades = this.parseTrades (order['trades'], market, since, limit);
+        let trades = undefined;
+        let status = this.safeString (order, 'status');
+        status = this.safeString (order, 'orderStatus', status);
+        status = this.parseOrderStatus (status);
+        let symbol = undefined;
+        if (typeof market === 'undefined') {
+            let marketId = this.safeString (order, 'currencyPair');
+            marketId = this.safeString (order, 'symbol', marketId);
+            if (marketId in this.markets_by_id)
+                market = this.markets_by_id[marketId];
+        }
         let type = undefined;
         let side = undefined;
-        if (order['type'].indexOf ('MARKET') >= 0) {
-            type = 'market';
-        } else {
-            type = 'limit';
+        if ('type' in order) {
+            let lowercaseType = order['type'].toLowerCase ();
+            let orderType = lowercaseType.split ('_');
+            type = orderType[0];
+            side = orderType[1];
         }
-        if (order['type'].indexOf ('SELL') >= 0) {
-            side = 'sell';
-        } else {
-            side = 'buy';
-        }
-        let price = this.safeFloat (order, 'price', 0.0);
-        let cost = this.safeFloat (order, 'commissionByTrade', 0.0);
-        let remaining = this.safeFloat (order, 'remainingQuantity', 0.0);
+        let price = this.safeFloat (order, 'price');
+        // of the next two lines the latter overrides the former, if present in the order structure
+        let remaining = this.safeFloat (order, 'remainingQuantity');
+        remaining = this.safeFloat (order, 'remaining_quantity', remaining);
         let amount = this.safeFloat (order, 'quantity', remaining);
-        let filled = amount - remaining;
+        let filled = undefined;
+        if (typeof remaining !== 'undefined') {
+            filled = amount - remaining;
+        }
+        let cost = undefined;
+        if (typeof filled !== 'undefined' && typeof price !== 'undefined') {
+            cost = filled * price;
+        }
+        const feeRate = this.safeFloat (order, 'commission_rate');
+        let feeCost = undefined;
+        if (typeof cost !== 'undefined') {
+            feeCost = cost * feeRate;
+        }
+        let feeCurrency = undefined;
+        if (typeof market !== 'undefined') {
+            symbol = market['symbol'];
+            feeCurrency = market['quote'];
+        }
         return {
             'info': order,
             'id': order['id'],
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': datetime,
             'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
             'type': type,
             'side': side,
             'price': price,
-            'cost': cost,
             'amount': amount,
+            'cost': cost,
             'filled': filled,
             'remaining': remaining,
             'trades': trades,
             'fee': {
-                'cost': cost,
-                'currency': quote,
+                'cost': feeCost,
+                'currency': feeCurrency,
+                'rate': feeRate,
             },
         };
     }
@@ -482,10 +533,15 @@ module.exports = class livecoin extends Exchange {
         if (type === 'limit')
             order['price'] = this.priceToPrecision (symbol, price);
         let response = await this[method] (this.extend (order, params));
-        return {
+        const result = {
             'info': response,
             'id': response['orderId'].toString (),
         };
+        const success = this.safeValue (response, 'success');
+        if (success) {
+            result['status'] = 'open';
+        }
+        return result;
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -504,7 +560,10 @@ module.exports = class livecoin extends Exchange {
                 throw new InvalidOrder (message);
             } else if ('cancelled' in response) {
                 if (response['cancelled']) {
-                    return response;
+                    return {
+                        'status': 'canceled',
+                        'info': response,
+                    };
                 } else {
                     throw new OrderNotFound (message);
                 }
@@ -597,6 +656,10 @@ module.exports = class livecoin extends Exchange {
             // returns status code 200 even if success === false
             let success = this.safeValue (response, 'success', true);
             if (!success) {
+                const message = this.safeString (response, 'message', '');
+                if (message.indexOf ('Cannot find order') >= 0) {
+                    throw new OrderNotFound (this.id + ' ' + body);
+                }
                 throw new ExchangeError (this.id + ' ' + body);
             }
         }

@@ -12,6 +12,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 
 
@@ -66,6 +67,7 @@ class binance (Exchange):
                     'v1': 'https://api.binance.com/api/v1',
                 },
                 'www': 'https://www.binance.com',
+                'referral': 'https://www.binance.com/?ref=10205187',
                 'doc': 'https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md',
                 'fees': [
                     'https://binance.zendesk.com/hc/en-us/articles/115000429332',
@@ -265,18 +267,23 @@ class binance (Exchange):
             },
             # exchange-specific options
             'options': {
+                'defaultTimeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
+                'defaultLimitOrderType': 'limit',  # or 'limit_maker'
+                'hasAlreadyAuthenticatedSuccessfully': False,
                 'warnOnFetchOpenOrdersWithoutSymbol': True,
                 'recvWindow': 5 * 1000,  # 5 sec, binance default
                 'timeDifference': 0,  # the difference between system clock and Binance clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
             },
             'exceptions': {
+                '-1000': ExchangeNotAvailable,  # {"code":-1000,"msg":"An unknown error occured while processing the request."}
                 '-1013': InvalidOrder,  # createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
                 '-1021': InvalidNonce,  # 'your time is ahead of server'
                 '-1100': InvalidOrder,  # createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
                 '-2010': InsufficientFunds,  # createOrder -> 'Account has insufficient balance for requested action.'
                 '-2011': OrderNotFound,  # cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
                 '-2013': OrderNotFound,  # fetchOrder(1, 'BTC/USDT') -> 'Order does not exist'
+                '-2014': AuthenticationError,  # {"code":-2014, "msg": "API-key format invalid."}
                 '-2015': AuthenticationError,  # "Invalid API-key, IP, or permissions for action."
             },
         })
@@ -347,16 +354,16 @@ class binance (Exchange):
                 filter = filters['PRICE_FILTER']
                 entry['precision']['price'] = self.precision_from_string(filter['tickSize'])
                 entry['limits']['price'] = {
-                    'min': float(filter['minPrice']),
-                    'max': float(filter['maxPrice']),
+                    'min': self.safe_float(filter, 'minPrice'),
+                    'max': self.safe_float(filter, 'maxPrice'),
                 }
             if 'LOT_SIZE' in filters:
                 filter = filters['LOT_SIZE']
                 entry['precision']['amount'] = self.precision_from_string(filter['stepSize'])
-                entry['lot'] = float(filter['stepSize'])  # lot size is deprecated as of 2018.02.06
+                entry['lot'] = self.safe_float(filter, 'stepSize')  # lot size is deprecated as of 2018.02.06
                 entry['limits']['amount'] = {
-                    'min': float(filter['minQty']),
-                    'max': float(filter['maxQty']),
+                    'min': self.safe_float(filter, 'minQty'),
+                    'max': self.safe_float(filter, 'maxQty'),
                 }
             if 'MIN_NOTIONAL' in filters:
                 entry['limits']['cost']['min'] = float(filters['MIN_NOTIONAL']['minNotional'])
@@ -453,7 +460,7 @@ class binance (Exchange):
             tickers.append(self.parse_ticker(rawTickers[i]))
         return self.filter_by_array(tickers, 'symbol', symbols)
 
-    def fetch_bid_asks(self, symbols=None, params={}):
+    def fetch_bids_asks(self, symbols=None, params={}):
         self.load_markets()
         rawTickers = self.publicGetTickerBookTicker(params)
         return self.parse_tickers(rawTickers, symbols)
@@ -507,7 +514,7 @@ class binance (Exchange):
         fee = None
         if 'commission' in trade:
             fee = {
-                'cost': float(trade['commission']),
+                'cost': self.safe_float(trade, 'commission'),
                 'currency': self.common_currency_code(trade['commissionAsset']),
             }
         takerOrMaker = None
@@ -571,7 +578,7 @@ class binance (Exchange):
             iso8601 = self.iso8601(timestamp)
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'origQty')
-        filled = self.safe_float(order, 'executedQty', 0.0)
+        filled = self.safe_float(order, 'executedQty')
         remaining = None
         cost = None
         if filled is not None:
@@ -614,17 +621,39 @@ class binance (Exchange):
         if test:
             method += 'Test'
             params = self.omit(params, 'test')
+        uppercaseType = type.upper()
         order = {
             'symbol': market['id'],
             'quantity': self.amount_to_string(symbol, amount),
-            'type': type.upper(),
+            'type': uppercaseType,
             'side': side.upper(),
         }
-        if type == 'limit':
-            order = self.extend(order, {
-                'price': self.price_to_precision(symbol, price),
-                'timeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
-            })
+        timeInForceIsRequired = False
+        priceIsRequired = False
+        stopPriceIsRequired = False
+        if uppercaseType == 'LIMIT':
+            priceIsRequired = True
+            timeInForceIsRequired = True
+        elif (uppercaseType == 'STOP_LOSS') or (uppercaseType == 'TAKE_PROFIT'):
+            stopPriceIsRequired = True
+        elif (uppercaseType == 'STOP_LOSS_LIMIT') or (uppercaseType == 'TAKE_PROFIT_LIMIT'):
+            stopPriceIsRequired = True
+            priceIsRequired = True
+            timeInForceIsRequired = True
+        elif uppercaseType == 'LIMIT_MAKER':
+            priceIsRequired = True
+        if priceIsRequired:
+            if price is None:
+                raise InvalidOrder(self.id + ' createOrder method requires a price argument for a ' + type + ' order')
+            order['price'] = self.price_to_precision(symbol, price)
+        if timeInForceIsRequired:
+            order['timeInForce'] = self.options['defaultTimeInForce']  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
+        if stopPriceIsRequired:
+            stopPrice = self.safe_float(params, 'stopPrice')
+            if stopPrice is None:
+                raise InvalidOrder(self.id + ' createOrder method requires a stopPrice extra param for a ' + type + ' order')
+            else:
+                order['stopPrice'] = self.price_to_precision(symbol, stopPrice)
         response = getattr(self, method)(self.extend(order, params))
         return self.parse_order(response)
 
@@ -686,7 +715,7 @@ class binance (Exchange):
             'orderId': int(id),
             # 'origClientOrderId': id,
         }, params))
-        return response
+        return self.parse_order(response)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if not symbol:
@@ -823,8 +852,23 @@ class binance (Exchange):
                 if error is not None:
                     exceptions = self.exceptions
                     if error in exceptions:
+                        # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
+                        # despite that their message is very confusing, it is raised by Binance
+                        # on a temporary ban(the API key is valid, but disabled for a while)
+                        if (error == '-2015') and self.options['hasAlreadyAuthenticatedSuccessfully']:
+                            raise DDoSProtection(self.id + ' temporary banned: ' + body)
+                        message = self.safe_string(response, 'msg')
+                        if message == 'Order would trigger immediately.':
+                            raise InvalidOrder(self.id + ' ' + body)
                         raise exceptions[error](self.id + ' ' + body)
                     else:
                         raise ExchangeError(self.id + ': unknown error code: ' + body + ' ' + error)
                 if not success:
                     raise ExchangeError(self.id + ': success value False: ' + body)
+
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = self.fetch2(path, api, method, params, headers, body)
+        # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
+        if (api == 'private') or (api == 'wapi'):
+            self.options['hasAlreadyAuthenticatedSuccessfully'] = True
+        return response

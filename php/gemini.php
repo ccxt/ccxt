@@ -118,16 +118,16 @@ class gemini extends Exchange {
         $timestamp = $ticker['volume']['timestamp'];
         $baseVolume = $market['base'];
         $quoteVolume = $market['quote'];
-        $last = floatval ($ticker['last']);
+        $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => null,
             'low' => null,
-            'bid' => floatval ($ticker['bid']),
+            'bid' => $this->safe_float($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => floatval ($ticker['ask']),
+            'ask' => $this->safe_float($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -157,12 +157,12 @@ class gemini extends Exchange {
                 $currency = $this->common_currency_code($currency);
             }
             $fee = array (
-                'cost' => floatval ($trade['fee_amount']),
+                'cost' => $this->safe_float($trade, 'fee_amount'),
                 'currency' => $currency,
             );
         }
-        $price = floatval ($trade['price']);
-        $amount = floatval ($trade['amount']);
+        $price = $this->safe_float($trade, 'price');
+        $amount = $this->safe_float($trade, 'amount');
         return array (
             'id' => (string) $trade['tid'],
             'order' => $order,

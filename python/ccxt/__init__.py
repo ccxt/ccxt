@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.13.68'
+__version__ = '1.14.194'
 
 # ----------------------------------------------------------------------------
 
@@ -42,6 +42,7 @@ from ccxt.base.errors import ExchangeError                  # noqa: F401
 from ccxt.base.errors import NotSupported                   # noqa: F401
 from ccxt.base.errors import AuthenticationError            # noqa: F401
 from ccxt.base.errors import PermissionDenied               # noqa: F401
+from ccxt.base.errors import AccountSuspended               # noqa: F401
 from ccxt.base.errors import InvalidNonce                   # noqa: F401
 from ccxt.base.errors import InsufficientFunds              # noqa: F401
 from ccxt.base.errors import InvalidOrder                   # noqa: F401
@@ -53,12 +54,16 @@ from ccxt.base.errors import DDoSProtection                 # noqa: F401
 from ccxt.base.errors import RequestTimeout                 # noqa: F401
 from ccxt.base.errors import ExchangeNotAvailable           # noqa: F401
 from ccxt.base.errors import InvalidAddress                 # noqa: F401
+from ccxt.base.errors import BadResponse                    # noqa: F401
+from ccxt.base.errors import NullResponse                   # noqa: F401
+
 
 from ccxt._1broker import _1broker                          # noqa: F401
 from ccxt._1btcxe import _1btcxe                            # noqa: F401
 from ccxt.acx import acx                                    # noqa: F401
 from ccxt.allcoin import allcoin                            # noqa: F401
 from ccxt.anxpro import anxpro                              # noqa: F401
+from ccxt.anybits import anybits                            # noqa: F401
 from ccxt.bibox import bibox                                # noqa: F401
 from ccxt.binance import binance                            # noqa: F401
 from ccxt.bit2c import bit2c                                # noqa: F401
@@ -72,6 +77,7 @@ from ccxt.bitkk import bitkk                                # noqa: F401
 from ccxt.bitlish import bitlish                            # noqa: F401
 from ccxt.bitmarket import bitmarket                        # noqa: F401
 from ccxt.bitmex import bitmex                              # noqa: F401
+from ccxt.bitsane import bitsane                            # noqa: F401
 from ccxt.bitso import bitso                                # noqa: F401
 from ccxt.bitstamp import bitstamp                          # noqa: F401
 from ccxt.bitstamp1 import bitstamp1                        # noqa: F401
@@ -94,6 +100,7 @@ from ccxt.cex import cex                                    # noqa: F401
 from ccxt.chbtc import chbtc                                # noqa: F401
 from ccxt.chilebit import chilebit                          # noqa: F401
 from ccxt.cobinhood import cobinhood                        # noqa: F401
+from ccxt.coinbase import coinbase                          # noqa: F401
 from ccxt.coincheck import coincheck                        # noqa: F401
 from ccxt.coinegg import coinegg                            # noqa: F401
 from ccxt.coinex import coinex                              # noqa: F401
@@ -106,7 +113,9 @@ from ccxt.coinnest import coinnest                          # noqa: F401
 from ccxt.coinone import coinone                            # noqa: F401
 from ccxt.coinsecure import coinsecure                      # noqa: F401
 from ccxt.coinspot import coinspot                          # noqa: F401
+from ccxt.cointiger import cointiger                        # noqa: F401
 from ccxt.coolcoin import coolcoin                          # noqa: F401
+from ccxt.crypton import crypton                            # noqa: F401
 from ccxt.cryptopia import cryptopia                        # noqa: F401
 from ccxt.dsx import dsx                                    # noqa: F401
 from ccxt.ethfinex import ethfinex                          # noqa: F401
@@ -175,6 +184,7 @@ exchanges = [
     'acx',
     'allcoin',
     'anxpro',
+    'anybits',
     'bibox',
     'binance',
     'bit2c',
@@ -188,6 +198,7 @@ exchanges = [
     'bitlish',
     'bitmarket',
     'bitmex',
+    'bitsane',
     'bitso',
     'bitstamp',
     'bitstamp1',
@@ -210,6 +221,7 @@ exchanges = [
     'chbtc',
     'chilebit',
     'cobinhood',
+    'coinbase',
     'coincheck',
     'coinegg',
     'coinex',
@@ -222,7 +234,9 @@ exchanges = [
     'coinone',
     'coinsecure',
     'coinspot',
+    'cointiger',
     'coolcoin',
+    'crypton',
     'cryptopia',
     'dsx',
     'ethfinex',
