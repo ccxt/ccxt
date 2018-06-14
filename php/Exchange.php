@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.14.191';
+$version = '1.14.192';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -65,6 +65,7 @@ class Exchange {
         'bitlish',
         'bitmarket',
         'bitmex',
+        'bitsane',
         'bitso',
         'bitstamp',
         'bitstamp1',

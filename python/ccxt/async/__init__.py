@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.14.191'
+__version__ = '1.14.192'
 
 # -----------------------------------------------------------------------------
 
@@ -55,6 +55,7 @@ from ccxt.async.bitkk import bitkk                              # noqa: F401
 from ccxt.async.bitlish import bitlish                          # noqa: F401
 from ccxt.async.bitmarket import bitmarket                      # noqa: F401
 from ccxt.async.bitmex import bitmex                            # noqa: F401
+from ccxt.async.bitsane import bitsane                          # noqa: F401
 from ccxt.async.bitso import bitso                              # noqa: F401
 from ccxt.async.bitstamp import bitstamp                        # noqa: F401
 from ccxt.async.bitstamp1 import bitstamp1                      # noqa: F401
@@ -174,6 +175,7 @@ exchanges = [
     'bitlish',
     'bitmarket',
     'bitmex',
+    'bitsane',
     'bitso',
     'bitstamp',
     'bitstamp1',

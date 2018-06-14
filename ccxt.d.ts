@@ -309,6 +309,7 @@ declare module 'ccxt' {
     export class bitlish extends Exchange {}
     export class bitmarket extends Exchange {}
     export class bitmex extends Exchange {}
+    export class bitsane extends Exchange {}
     export class bitso extends Exchange {}
     export class bitstamp extends Exchange {}
     export class bitstamp1 extends Exchange {}
