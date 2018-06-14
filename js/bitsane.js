@@ -72,6 +72,9 @@ module.exports = class bitsane extends Exchange {
                 '10': AuthenticationError,
                 '11': AuthenticationError,
             },
+            'options': {
+                'defaultCurrencyPrecision': 2,
+            },
         });
     }
 
@@ -82,28 +85,28 @@ module.exports = class bitsane extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
             let currency = currencies[id];
-            let precision = currency['precision'];
+            let precision = this.safeInteger (currency, 'precision', this.options['defaultCurrencyPrecision']);
             let code = this.commonCurrencyCode (id);
-            let canWithdraw = currency['withdrawal'];
-            let canDeposit = currency['deposit'];
+            let canWithdraw = this.safeValue (currency, 'withdrawal', true);
+            let canDeposit = this.safeValue (currency, 'deposit', true);
             let active = true;
             if (!canWithdraw || !canDeposit)
                 active = false;
             result[code] = {
                 'id': id,
                 'code': code,
-                'name': currency['full_name'],
+                'name': this.safeString (currency, 'full_name', code),
                 'active': active,
                 'status': 'ok',
                 'precision': precision,
                 'funding': {
                     'withdraw': {
                         'active': canWithdraw,
-                        'fee': currency['withdrawal_fee'],
+                        'fee': this.safeValue (currency, 'withdrawal_fee'),
                     },
                     'deposit': {
                         'active': canDeposit,
-                        'fee': currency['deposit_fee'],
+                        'fee': this.safeValue (currency, 'deposit_fee'),
                     },
                 },
                 'limits': {
