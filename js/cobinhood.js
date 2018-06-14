@@ -439,13 +439,13 @@ module.exports = class cobinhood extends Exchange {
             side = 'sell';
         }
         return {
-            'id': order['id'],
+            'id': this.safeString (order, 'id'),
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
-            'type': order['type'], // market, limit, stop, stop_limit, trailing_stop, fill_or_kill
+            'type': this.safeString (order, 'type'), // market, limit, stop, stop_limit, trailing_stop, fill_or_kill
             'side': side,
             'price': price,
             'cost': cost,
@@ -481,7 +481,9 @@ module.exports = class cobinhood extends Exchange {
         let response = await this.privateDeleteTradingOrdersOrderId (this.extend ({
             'order_id': id,
         }, params));
-        return this.parseOrder (response);
+        return this.parseOrder (this.extend (response, {
+            'id': id,
+        }));
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
