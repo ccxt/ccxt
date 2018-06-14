@@ -414,11 +414,11 @@ class cobinhood extends Exchange {
         if ($market === null) {
             $marketId = $this->safe_string($order, 'trading_pair');
             $marketId = $this->safe_string($order, 'trading_pair_id', $marketId);
-            $market = $this->markets_by_id[$marketId];
+            $market = $this->safe_value($this->markets_by_id, $marketId);
         }
         if ($market !== null)
             $symbol = $market['symbol'];
-        $timestamp = $order['timestamp'];
+        $timestamp = $this->safe_integer($order, 'timestamp');
         $price = $this->safe_float($order, 'eq_price');
         $amount = $this->safe_float($order, 'size');
         $filled = $this->safe_float($order, 'filled');

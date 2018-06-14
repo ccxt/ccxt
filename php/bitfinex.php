@@ -272,6 +272,7 @@ class bitfinex extends Exchange {
                     'Key amount should be a decimal number, e.g. "123.456"' => '\\ccxt\\InvalidOrder', // on isNaN (amount)
                     'ERR_RATE_LIMIT' => '\\ccxt\\DDoSProtection',
                     'Nonce is too small.' => '\\ccxt\\InvalidNonce',
+                    'No summary found.' => '\\ccxt\\ExchangeError', // fetchTradingFees (summary) endpoint can give this vague error message
                 ),
                 'broad' => array (
                     'Invalid order => not enough exchange balance for ' => '\\ccxt\\InsufficientFunds', // when buying cost is greater than the available quote currency

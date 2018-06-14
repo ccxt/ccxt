@@ -401,10 +401,10 @@ class cobinhood (Exchange):
         if market is None:
             marketId = self.safe_string(order, 'trading_pair')
             marketId = self.safe_string(order, 'trading_pair_id', marketId)
-            market = self.markets_by_id[marketId]
+            market = self.safe_value(self.markets_by_id, marketId)
         if market is not None:
             symbol = market['symbol']
-        timestamp = order['timestamp']
+        timestamp = self.safe_integer(order, 'timestamp')
         price = self.safe_float(order, 'eq_price')
         amount = self.safe_float(order, 'size')
         filled = self.safe_float(order, 'filled')
