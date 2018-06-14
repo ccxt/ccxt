@@ -274,6 +274,7 @@ class binance (Exchange):
                 'recvWindow': 5 * 1000,  # 5 sec, binance default
                 'timeDifference': 0,  # the difference between system clock and Binance clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
+                'parseOrderToPrecision': False,  # force amounts and costs in parseOrder to precision
             },
             'exceptions': {
                 '-1000': ExchangeNotAvailable,  # {"code":-1000,"msg":"An unknown error occured while processing the request."}
@@ -583,9 +584,14 @@ class binance (Exchange):
         cost = None
         if filled is not None:
             if amount is not None:
-                remaining = max(amount - filled, 0.0)
+                remaining = amount - filled
+                if self.options['parseOrderToPrecision']:
+                    remaining = float(self.amount_to_precision(symbol, remaining))
+                remaining = max(remaining, 0.0)
             if price is not None:
                 cost = price * filled
+                if self.options['parseOrderToPrecision']:
+                    cost = float(self.cost_to_precision(symbol, cost))
         id = self.safe_string(order, 'orderId')
         type = self.safe_string(order, 'type')
         if type is not None:

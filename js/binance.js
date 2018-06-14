@@ -264,6 +264,7 @@ module.exports = class binance extends Exchange {
                 'recvWindow': 5 * 1000, // 5 sec, binance default
                 'timeDifference': 0, // the difference between system clock and Binance clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
+                'parseOrderToPrecision': false, // force amounts and costs in parseOrder to precision
             },
             'exceptions': {
                 '-1000': ExchangeNotAvailable, // {"code":-1000,"msg":"An unknown error occured while processing the request."}
@@ -599,10 +600,19 @@ module.exports = class binance extends Exchange {
         let remaining = undefined;
         let cost = undefined;
         if (typeof filled !== 'undefined') {
-            if (typeof amount !== 'undefined')
-                remaining = Math.max (amount - filled, 0.0);
-            if (typeof price !== 'undefined')
+            if (typeof amount !== 'undefined') {
+                remaining = amount - filled;
+                if (this.options['parseOrderToPrecision']) {
+                    remaining = parseFloat (this.amountToPrecision (symbol, remaining));
+                }
+                remaining = Math.max (remaining, 0.0);
+            }
+            if (typeof price !== 'undefined') {
                 cost = price * filled;
+                if (this.options['parseOrderToPrecision']) {
+                    cost = parseFloat (this.costToPrecision (symbol, cost));
+                }
+            }
         }
         let id = this.safeString (order, 'orderId');
         let type = this.safeString (order, 'type');

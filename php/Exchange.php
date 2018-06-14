@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.14.193';
+$version = '1.14.196';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -52,6 +52,7 @@ class Exchange {
         'acx',
         'allcoin',
         'anxpro',
+        'anybits',
         'bibox',
         'binance',
         'bit2c',
