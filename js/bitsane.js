@@ -21,9 +21,9 @@ module.exports = class bitsane extends Exchange {
                 'withdraw': true,
             },
             'urls': {
-                'logo': 'https://bitsane.com/img/bitsane-logo.png',
+                'logo': 'https://user-images.githubusercontent.com/1294454/41387105-d86bf4c6-6f8d-11e8-95ea-2fa943872955.jpg',
                 'api': 'https://bitsane.com/api',
-                'www': 'https://bitsane.com/',
+                'www': 'https://bitsane.com',
                 'doc': 'https://bitsane.com/info-api',
                 'fees': 'https://bitsane.com/fees',
             },
@@ -60,6 +60,17 @@ module.exports = class bitsane extends Exchange {
                     'maker': 0.15 / 100,
                     'taker': 0.25 / 100,
                 },
+            },
+            'exceptions': {
+                '3': AuthenticationError,
+                '4': AuthenticationError,
+                '5': AuthenticationError,
+                '6': InvalidNonce,
+                '7': AuthenticationError,
+                '8': InvalidNonce,
+                '9': AuthenticationError,
+                '10': AuthenticationError,
+                '11': AuthenticationError,
             },
         });
     }
@@ -170,6 +181,7 @@ module.exports = class bitsane extends Exchange {
     parseTicker (ticker, market = undefined) {
         let symbol = market['symbol'];
         let timestamp = this.milliseconds ();
+        let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -177,12 +189,14 @@ module.exports = class bitsane extends Exchange {
             'high': this.safeFloat (ticker, 'high24hr'),
             'low': this.safeFloat (ticker, 'low24hr'),
             'bid': this.safeFloat (ticker, 'highestBid'),
+            'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'lowestAsk'),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': this.safeFloat (ticker, 'last'),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': this.safeFloat (ticker, 'percentChange'),
             'percentage': undefined,
             'average': undefined,
@@ -414,25 +428,26 @@ module.exports = class bitsane extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        let statusCode = this.safeString (response, 'statusCode');
-        if (statusCode && statusCode !== '0') {
-            let errorCodes = {
-                '3': AuthenticationError,
-                '4': AuthenticationError,
-                '5': AuthenticationError,
-                '6': InvalidNonce,
-                '7': AuthenticationError,
-                '8': InvalidNonce,
-                '9': AuthenticationError,
-                '10': AuthenticationError,
-                '11': AuthenticationError,
-            };
-            let ErrorClass = this.safeValue (errorCodes, statusCode, ExchangeError);
-            let message = this.safeString (response['result'], 'message', 'Error');
-            throw new ErrorClass (message);
+    handleErrors (httpCode, reason, url, method, headers, body) {
+        if (typeof body !== 'string')
+            return; // fallback to default error handler
+        if (body.length < 2)
+            return; // fallback to default error handler
+        if ((body[0] === '{') || (body[0] === '[')) {
+            let response = JSON.parse (body);
+            let statusCode = this.safeString (response, 'statusCode');
+            if (typeof statusCode !== 'undefined') {
+                if (statusCode !== '0') {
+                    const feedback = this.id + ' ' + this.json (response);
+                    const exceptions = this.exceptions;
+                    if (statusCode in exceptions) {
+                        throw new exceptions[statusCode] (feedback);
+                    } else {
+                        throw new ExchangeError (this.id + ' ' + this.json (response));
+                    }
+                }
+            }
+            return response;
         }
-        return response;
     }
 };
