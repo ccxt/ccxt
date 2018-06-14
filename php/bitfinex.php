@@ -822,8 +822,8 @@ class bitfinex extends Exchange {
         $errorMessage = $this->find_broadly_matched_key ($this->exceptions['broad'], $message);
         if ($id === 0) {
             if ($errorMessage !== null) {
-                $Exception = $this->exceptions['broad'][$errorMessage];
-                throw new $Exception ($this->id . ' ' . $message);
+                $ExceptionClass = $this->exceptions['broad'][$errorMessage];
+                throw new $ExceptionClass ($this->id . ' ' . $message);
             }
             throw new ExchangeError ($this->id . ' withdraw returned an $id of zero => ' . $this->json ($response));
         }
