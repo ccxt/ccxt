@@ -798,20 +798,23 @@ module.exports = class binance extends Exchange {
     async fetchPermissions (params = {}) {
         const readMethods = ['fetchBalance', 'fetchOrder', 'fetchOrders', 'fetchOpenOrders', 'fetchClosedOrders', 'fetchMyTrades'];
         for (let i = 0; i < readMethods.length; i++) {
-            this.allows[readMethods[i]] = true;
+            let method = readMethods[i];
+            this.allows[method] = true;
         }
         let tradingPermission = false;
         try {
             await this.privatePostOrder ();
         } catch (e) {
-            tradingPermission = !e['message'].includes ('"code":-2015');
+            let messageIncludesCode2015 = e['message'].indexOf ('"code":-2015') >= 0;
+            tradingPermission = !messageIncludesCode2015;
         }
         const tradingMethods = ['createOrder', 'cancelOrder'];
         for (let i = 0; i < tradingMethods.length; i++) {
-            this.allows[tradingMethods[i]] = tradingPermission;
+            let method = tradingMethods[i]
+            this.allows[method] = tradingPermission;
         }
-        const withdrawRes = await this.wapiPostWithdraw ();
-        this.allows['withdraw'] = withdrawRes.msg != 'You don\'t have permission.';
+        const withdrawResponse = await this.wapiPostWithdraw ();
+        this.allows['withdraw'] = (withdrawResponse['msg'] !== 'You don\'t have permission.');
     }
 
     async fetchFundingFees (codes = undefined, params = {}) {
