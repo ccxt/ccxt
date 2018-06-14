@@ -1,36 +1,36 @@
 "use strict";
 
-const fs        = require ('fs')
-const countries = require ('./countries')
-const asTable   = require ('as-table')
-const util      = require ('util')
-const execSync  = require ('child_process').execSync
-const log       = require ('ololog')
-const ansi      = require ('ansicolor').nice
+const fs        = require ('fs');
+const countries = require ('./countries');
+const asTable   = require ('as-table');
+const util      = require ('util');
+const execSync  = require ('child_process').execSync;
+const log       = require ('ololog');
+const ansi      = require ('ansicolor').nice;
 
 // ---------------------------------------------------------------------------
 
-let exchanges
-let verbose = false
+let exchanges;
+let verbose = false;
 
 // ---------------------------------------------------------------------------
 
-let wikiPath = 'wiki'
-let gitWikiPath = 'ccxt.wiki'
+let wikiPath = 'wiki';
+let gitWikiPath = 'ccxt.wiki';
 
 if (!fs.existsSync (gitWikiPath)) {
 
-    log.bright.cyan ('Checking out ccxt.wiki...')
+    log.bright.cyan ('Checking out ccxt.wiki...');
     execSync ('git clone https://github.com/ccxt/ccxt.wiki.git')
 }
 
 // ---------------------------------------------------------------------------
 
 function replaceInFile (filename, regex, replacement) {
-    let contents = fs.readFileSync (filename, 'utf8')
-    const parts = contents.split (regex)
-    const newContents = parts[0] + replacement + parts[1]
-    fs.truncateSync (filename)
+    let contents = fs.readFileSync (filename, 'utf8');
+    const parts = contents.split (regex);
+    const newContents = parts[0] + replacement + parts[1];
+    fs.truncateSync (filename);
     fs.writeFileSync (filename, newContents)
 }
 
@@ -45,7 +45,7 @@ try {
     log.bright.cyan ('Exporting exchanges...'.yellow)
 
     const ids = fs.readdirSync ('./js/')
-                  .filter (file => file.includes ('.js'))
+                  .filter (file => file.includes('.js'))
                   .map (file => file.slice (0, -3))
 
     const pad = function (string, n) {
@@ -58,43 +58,41 @@ try {
             regex:  /(?:const|var)\s+exchanges\s+\=\s+\{[^\}]+\}/,
             replacement: "const exchanges = {\n" + ids.map (id => pad ("    '" + id + "':", 30) + " require ('./js/" + id + ".js'),").join ("\n") + "    \n}",
         },
-        {
-            file: './python/ccxt/__init__.py',
-            regex: /exchanges \= \[[^\]]+\]/,
-            replacement: "exchanges = [\n" + "    '" + ids.join ("',\n    '") + "'," + "\n]",
-        },
-        {
-            file: './python/ccxt/__init__.py',
-            regex: /(?:from ccxt\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
-            replacement: ids.map (id => pad ('from ccxt.' + id + ' import ' + id, 60) + '# noqa: F401').join ("\n") + "\n\nexchanges",
-        },
-        {
-            file: './python/ccxt/async/__init__.py',
-            regex: /(?:from ccxt\.async\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
-            replacement: ids.map (id => pad ('from ccxt.async.' + id + ' import ' + id, 64) + '# noqa: F401').join ("\n") + "\n\nexchanges",
-        },
-        {
-            file: './python/ccxt/async/__init__.py',
-            regex: /exchanges \= \[[^\]]+\]/,
-            replacement: "exchanges = [\n" + "    '" + ids.join ("',\n    '") + "'," + "\n]",
-        },
-        {
-            file: './php/Exchange.php',
-            regex: /public static \$exchanges \= array \([^\)]+\)/,
-            replacement: "public static $exchanges = array (\n        '" + ids.join ("',\n        '") + "',\n    )",
-        },
+        // {
+        //     file: './python/ccxt/__init__.py',
+        //     regex: /exchanges \= \[[^\]]+\]/,
+        //     replacement: "exchanges = [\n" + "    '" + ids.join ("',\n    '") + "'," + "\n]",
+        // },
+        // {
+        //     file: './python/ccxt/__init__.py',
+        //     regex: /(?:from ccxt\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
+        //     replacement: ids.map (id => pad ('from ccxt.' + id + ' import ' + id, 60) + '# noqa: F401').join ("\n") + "\n\nexchanges",
+        // },
+        // {
+        //     file: './python/ccxt/async/__init__.py',
+        //     regex: /(?:from ccxt\.async\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
+        //     replacement: ids.map (id => pad ('from ccxt.async.' + id + ' import ' + id, 64) + '# noqa: F401').join ("\n") + "\n\nexchanges",
+        // },
+        // {
+        //     file: './python/ccxt/async/__init__.py',
+        //     regex: /exchanges \= \[[^\]]+\]/,
+        //     replacement: "exchanges = [\n" + "    '" + ids.join ("',\n    '") + "'," + "\n]",
+        // },
+        // {
+        //     file: './php/Exchange.php',
+        //     regex: /public static \$exchanges \= array \([^\)]+\)/,
+        //     replacement: "public static $exchanges = array (\n        '" + ids.join ("',\n        '") + "',\n    )",
+        // },
 
     ].forEach (({ file, regex, replacement }) => {
-
-        log.bright.cyan ('Exporting exchanges →', file.yellow)
+        log.bright.cyan ('Exporting exchanges →', file.yellow);
         replaceInFile (file, regex, replacement)
+    });
 
-    })
-
-    exchanges = {}
+    exchanges = {};
     ids.forEach (id => {
         exchanges[id] = { 'verbose': verbose, 'apiKey': '', 'secret': '' }
-    })
+    });
 
     log.bright.green ('Base sources updated successfully.')
 }
@@ -102,34 +100,34 @@ try {
 // ----------------------------------------------------------------------------
 // strategically placed exactly here
 
-const ccxt = require ('./ccxt.js')
+const ccxt = require ('./ccxt.js');
 
 // ----------------------------------------------------------------------------
 
 for (let id in exchanges) {
-    exchanges[id] = new (ccxt)[id] (exchanges[id])
-    exchanges[id].verbose = verbose
+    exchanges[id] = new (ccxt)[id] (exchanges[id]);
+    exchanges[id].verbose = verbose;
 }
 
 // console.log (Object.values (ccxt).length)
 
 var countryName = function (code) {
     return ((typeof countries[code] !== 'undefined') ? countries[code] : code)
-}
+};
 
 let sleep = async ms => await new Promise (resolve => setTimeout (resolve, ms))
 
 // ---------------------------------------------------------------------------
 // list all supported exchanges
 
-let values = Object.values (exchanges).map (exchange => {
-    let logo = exchange.urls['logo']
-    let website = Array.isArray (exchange.urls.www) ? exchange.urls.www[0] : exchange.urls.www
-    let url = exchange.urls.referral || website
-    let countries = Array.isArray (exchange.countries) ? exchange.countries.map (countryName).join (', ') : countryName (exchange.countries)
-    let doc = Array.isArray (exchange.urls.doc) ? exchange.urls.doc[0] : exchange.urls.doc
-    let version = exchange.version ? exchange.version : '\*'
-    let matches = version.match (/[^0-9]*([0-9].*)/)
+let values = Object.values(exchanges).map(exchange => {
+    const logo = exchange.urls['logo'];
+    const website = Array.isArray (exchange.urls.www) ? exchange.urls.www[0] : exchange.urls.www;
+    const url = exchange.urls.referral || website;
+    const countries = Array.isArray(exchange.countries) ? exchange.countries.map(countryName).join (', ') : countryName(exchange.countries);
+    let doc = Array.isArray (exchange.urls.doc) ? exchange.urls.doc[0] : exchange.urls.doc;
+    let version = exchange.version ? exchange.version : '\*';
+    let matches = version.match (/[^0-9]*([0-9].*)/);
     if (matches)
         version = matches[1];
     return {
@@ -140,9 +138,9 @@ let values = Object.values (exchanges).map (exchange => {
         'doc': '[API](' + doc + ')',
         'countries': countries,
     }
-})
+});
 
-let numExchanges = Object.keys (exchanges).length
+let numExchanges = Object.keys(exchanges).length;
 let table = asTable.configure ({ delimiter: ' | ' }) (values)
 
 let lines = table.split ("\n")
@@ -195,7 +193,7 @@ Object.keys (countries).forEach (code => {
             if (exchange.countries.indexOf (code) > -1)
                 shouldInclude = true
         } else {
-            if (code == exchange.countries)
+            if (code === exchange.countries)
                 shouldInclude = true
         }
         if (shouldInclude) {
