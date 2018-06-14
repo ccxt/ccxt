@@ -67,6 +67,23 @@ module.exports = class gateio extends Exchange {
                     ],
                 },
             },
+            'asyncconf': {
+                'conx-tpls': {
+                    'default' : {
+                        'type': 'ws',
+                        'baseurl': 'wss://ws.gateio.io/v3/',
+                    },
+                },
+                'events': {
+                    'ob': {
+                        'conx-tpl': 'default',
+                        'generators': {
+                            'url': '{baseurl}',
+                            'id': '{id}',
+                        },
+                    },
+                },
+            },
             'fees': {
                 'trading': {
                     'tierBased': true,
@@ -344,5 +361,49 @@ module.exports = class gateio extends Exchange {
             }
         }
         return response;
+    }
+
+    // async methods
+
+    _asyncOnMsg (data, conxid='default') {
+        let msg = this.asyncParseJson (data);
+        let oid = this.safeInteger (msg, 'id');
+        let method = this.safeString (msg, 'method');
+        if (method === undefined) {
+            // subscription response
+            let status = this.safeString (msg['result'], 'status');
+            this.emit (oid, true);
+        } else {
+            if (method === 'depth.update') {
+                this._asyncHandleOb(msg, conxid);
+            }
+        }
+
+    }
+
+    _asyncHandleOb (msg, conxid = 'default') {
+        let params = this.safeValue (msg, 'params');
+        let clean = params[0];
+        let ob = params[1];
+        let symbol = this.findSymbol (params[2].toLowerCase());
+        if (clean) {
+            ob = this.parseOrderBook (ob, null);
+            this.asyncContext['ob'][symbol].data['ob'] = ob;
+            this.emit ('ob', symbol, ob);
+        } else {
+            let curob = this.asyncContext['ob'][symbol].data['ob'];
+            curob = this.mergeOrderBookDelta (curob, ob, null);
+            this.asyncContext['ob'][symbol].data['ob'] = curob;
+            this.emit ('ob', symbol, ob);
+        }
+    }
+
+    _asyncSubscribeOrderBook (symbol, nonce) {
+        let payload = {
+            'id': nonce,
+            'method': 'depth.subscribe',
+            'params': [this.market_id(symbol).toUpperCase() , 30, "0.00001"],
+        };
+        this.asyncSendJson (payload);
     }
 };

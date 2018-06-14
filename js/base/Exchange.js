@@ -1411,8 +1411,8 @@ module.exports = class Exchange extends EventEmitter{
         let promise = new Promise (async (resolve, reject) => {
             try {
                 await this.asyncEnsureConxActive ('ob', symbol, true);
-                const oid = this.nonce() + '-' + symbol + '-ob-subscribe';
-                this.once (oid, (success) => {
+                const oid = this.nonce();// + '-' + symbol + '-ob-subscribe';
+                this.once (oid.toString(), (success) => {
                     if (success) {
                         this.asyncContext['ob'][symbol].subscribed = true;
                         this.asyncContext['ob'][symbol].subscribing = false;

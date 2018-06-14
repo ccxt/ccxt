@@ -32,7 +32,7 @@ module.exports = class coincheck extends Exchange {
                         'ticker',
                         'trades',
                     ],
-                },
+                },                
                 'private': {
                     'get': [
                         'accounts',
@@ -64,6 +64,23 @@ module.exports = class coincheck extends Exchange {
                         'exchange/orders/{id}',
                         'withdraws/{id}',
                     ],
+                },
+            },
+            'asyncconf': {
+                'conx-tpls': {
+                    'default' : {
+                        'type': 'ws',
+                        'baseurl': 'wss://ws-api.coincheck.com/',
+                    },
+                },
+                'events': {
+                    'ob': {
+                        'conx-tpl': 'default',
+                        'generators': {
+                            'url': '{baseurl}',
+                            'id': '{id}',
+                        },
+                    },
                 },
             },
             'markets': {
@@ -243,5 +260,42 @@ module.exports = class coincheck extends Exchange {
             if (response['success'])
                 return response;
         throw new ExchangeError (this.id + ' ' + this.json (response));
+    }
+
+    //  async methods
+
+    _asyncOnMsg (data, conxid='default') {
+        let msg = this.asyncParseJson (data);
+        let id = this.safeInteger (msg, 0);
+        if (id === undefined) {
+            // orderbook
+            this._asyncHandleOb (msg, conxid);
+        }
+    }
+
+    _asyncHandleOb (msg, conxid = 'default') {
+        let symbol = this.findSymbol (this.safeString (msg, 0));
+        let ob = this.safeValue (msg, 1);
+
+        // just testing
+        if (this.asyncContext['ob'][symbol].data['ob'] == null){
+            ob = this.parseOrderBook (ob, null);
+            this.asyncContext['ob'][symbol].data['ob'] = ob;
+            this.emit ('ob', symbol, ob);
+        } else {
+            let curob = this.asyncContext['ob'][symbol].data['ob'];
+            curob = this.mergeOrderBookDelta (curob, ob, null);
+            this.asyncContext['ob'][symbol].data['ob'] = curob;
+            this.emit ('ob', symbol, ob);
+        }
+    }
+
+    _asyncSubscribeOrderBook (symbol, nonce) {
+        let payload = {
+            "type": "subscribe",
+            "channel": this.marketId (symbol) + "-orderbook",
+        };
+        this.asyncSendJson (payload);
+        this.emit (nonce, true)
     }
 };
