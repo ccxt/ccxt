@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.13.1'
+__version__ = '1.14.191'
 
 # -----------------------------------------------------------------------------
 
@@ -18,6 +18,7 @@ from ccxt.base.errors import InvalidAddress
 
 # -----------------------------------------------------------------------------
 
+from ccxt.base.decimal_to_precision import decimal_to_precision
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 
 # -----------------------------------------------------------------------------
@@ -105,7 +106,6 @@ class Exchange(object):
         },
     }
     ids = None
-    currencies = None
     tickers = None
     api = None
     parseJsonResponse = True
@@ -137,6 +137,7 @@ class Exchange(object):
         'uid': False,
         'login': False,
         'password': False,
+        'twofa': False,  # 2-factor authentication (one-time password key)
     }
 
     # API method metainfo
@@ -170,12 +171,12 @@ class Exchange(object):
         'fetchTickers': False,
         'fetchTrades': True,
         'fetchTradingFees': False,
+        'fetchTradingLimits': False,
         'withdraw': False,
     }
 
     precisionMode = DECIMAL_PLACES
-
-    minFundingAddressLength = 10  # used in check_address
+    minFundingAddressLength = 1  # used in check_address
     substituteCommonCurrencyCodes = True
     lastRestRequestTimestamp = 0
     lastRestPollTimestamp = 0
@@ -206,6 +207,8 @@ class Exchange(object):
         self.trades = {} if self.trades is None else self.trades
         self.currencies = {} if self.currencies is None else self.currencies
         self.options = {} if self.options is None else self.options  # Python does not allow to define properties in run-time with setattr
+
+        self.decimalToPrecision = self.decimal_to_precision = decimal_to_precision
 
         # version = '.'.join(map(str, sys.version_info[:3]))
         # self.userAgent = {
@@ -550,11 +553,19 @@ class Exchange(object):
 
     @staticmethod
     def sort_by(array, key, descending=False):
-        return sorted(array, key=lambda k: k[key], reverse=descending)
+        return sorted(array, key=lambda k: k[key] if k[key] is not None else "", reverse=descending)
 
     @staticmethod
     def array_concat(a, b):
         return a + b
+
+    @staticmethod
+    def in_array(needle, haystack):
+        return needle in haystack
+
+    @staticmethod
+    def is_empty(object):
+        return not object
 
     @staticmethod
     def extract_params(string):
@@ -658,16 +669,29 @@ class Exchange(object):
         return int(time.time() * 1000000)
 
     @staticmethod
-    def iso8601(timestamp):
+    def iso8601(timestamp=None):
         if timestamp is None:
             return timestamp
-        utc = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
-        return utc.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-6] + "{:<03d}".format(int(timestamp) % 1000) + 'Z'
+        if not isinstance(timestamp, int):
+            return None
+        if int(timestamp) < 0:
+            return None
+
+        try:
+            utc = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
+            return utc.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-6] + "{:<03d}".format(int(timestamp) % 1000) + 'Z'
+        except (TypeError, OverflowError, OSError):
+            return None
 
     @staticmethod
-    def ymd(timestamp):
+    def dmy(timestamp, infix='-'):
         utc_datetime = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
-        return utc_datetime.strftime('%Y-%m-%d')
+        return utc_datetime.strftime('%m' + infix + '%d' + infix + '%Y')
+
+    @staticmethod
+    def ymd(timestamp, infix='-'):
+        utc_datetime = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
+        return utc_datetime.strftime('%Y' + infix + '%m' + infix + '%d')
 
     @staticmethod
     def ymdhms(timestamp, infix=' '):
@@ -675,18 +699,25 @@ class Exchange(object):
         return utc_datetime.strftime('%Y-%m-%d' + infix + '%H:%M:%S')
 
     @staticmethod
-    def parse_date(timestamp):
+    def parse_date(timestamp=None):
         if timestamp is None:
             return timestamp
+        if not isinstance(timestamp, str):
+            return None
         if 'GMT' in timestamp:
-            string = ''.join([str(value) for value in parsedate(timestamp)[:6]]) + '.000Z'
-            dt = datetime.datetime.strptime(string, "%Y%m%d%H%M%S.%fZ")
-            return calendar.timegm(dt.utctimetuple()) * 1000
+            try:
+                string = ''.join([str(value) for value in parsedate(timestamp)[:6]]) + '.000Z'
+                dt = datetime.datetime.strptime(string, "%Y%m%d%H%M%S.%fZ")
+                return calendar.timegm(dt.utctimetuple()) * 1000
+            except (TypeError, OverflowError, OSError):
+                return None
         else:
             return Exchange.parse8601(timestamp)
 
     @staticmethod
-    def parse8601(timestamp):
+    def parse8601(timestamp=None):
+        if timestamp is None:
+            return timestamp
         yyyy = '([0-9]{4})-?'
         mm = '([0-9]{2})-?'
         dd = '([0-9]{2})(?:T|[\\s])?'
@@ -696,19 +727,24 @@ class Exchange(object):
         ms = '(\\.[0-9]{1,3})?'
         tz = '(?:(\\+|\\-)([0-9]{2})\\:?([0-9]{2})|Z)?'
         regex = r'' + yyyy + mm + dd + h + m + s + ms + tz
-        match = re.search(regex, timestamp, re.IGNORECASE)
-        yyyy, mm, dd, h, m, s, ms, sign, hours, minutes = match.groups()
-        ms = ms or '.000'
-        msint = int(ms[1:])
-        sign = sign or ''
-        sign = int(sign + '1')
-        hours = int(hours or 0) * sign
-        minutes = int(minutes or 0) * sign
-        offset = datetime.timedelta(hours=hours, minutes=minutes)
-        string = yyyy + mm + dd + h + m + s + ms + 'Z'
-        dt = datetime.datetime.strptime(string, "%Y%m%d%H%M%S.%fZ")
-        dt = dt + offset
-        return calendar.timegm(dt.utctimetuple()) * 1000 + msint
+        try:
+            match = re.search(regex, timestamp, re.IGNORECASE)
+            if match is None:
+                return None
+            yyyy, mm, dd, h, m, s, ms, sign, hours, minutes = match.groups()
+            ms = ms or '.000'
+            msint = int(ms[1:])
+            sign = sign or ''
+            sign = int(sign + '1')
+            hours = int(hours or 0) * sign
+            minutes = int(minutes or 0) * sign
+            offset = datetime.timedelta(hours=hours, minutes=minutes)
+            string = yyyy + mm + dd + h + m + s + ms + 'Z'
+            dt = datetime.datetime.strptime(string, "%Y%m%d%H%M%S.%fZ")
+            dt = dt + offset
+            return calendar.timegm(dt.utctimetuple()) * 1000 + msint
+        except (TypeError, OverflowError, OSError, ValueError):
+            return None
 
     @staticmethod
     def hash(request, algorithm='md5', digest='hex'):
@@ -850,11 +886,23 @@ class Exchange(object):
         else:
             base_currencies = [{
                 'id': market['baseId'] if 'baseId' in market else market['base'],
+                'numericId': market['baseNumericId'] if 'baseNumericId' in market else None,
                 'code': market['base'],
+                'precision': (
+                    market['precision']['base'] if 'base' in market['precision'] else (
+                        market['precision']['amount'] if 'amount' in market['precision'] else None
+                    )
+                ) if 'precision' in market else 8,
             } for market in values if 'base' in market]
             quote_currencies = [{
                 'id': market['quoteId'] if 'quoteId' in market else market['quote'],
+                'numericId': market['quoteNumericId'] if 'quoteNumericId' in market else None,
                 'code': market['quote'],
+                'precision': (
+                    market['precision']['quote'] if 'quote' in market['precision'] else (
+                        market['precision']['price'] if 'price' in market['precision'] else None
+                    )
+                ) if 'precision' in market else 8,
             } for market in values if 'quote' in market]
             currencies = self.sort_by(base_currencies + quote_currencies, 'code')
             self.currencies = self.deep_extend(self.index_by(currencies, 'code'), self.currencies)
@@ -1037,12 +1085,57 @@ class Exchange(object):
     def fetch_total_balance(self, params={}):
         return self.fetch_partial_balance('total', params)
 
+    def load_trading_limits(self, symbols=None, reload=False, params={}):
+        if self.has['fetchTradingLimits']:
+            if reload or not('limitsLoaded' in list(self.options.keys())):
+                response = self.fetch_trading_limits(symbols)
+                limits = response['limits']
+                keys = list(limits.keys())
+                for i in range(0, len(keys)):
+                    symbol = keys[i]
+                    self.markets[symbol] = self.deep_extend(self.markets[symbol], {
+                        'limits': limits[symbol],
+                    })
+                self.options['limitsLoaded'] = self.milliseconds()
+        return self.markets
+
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         if not self.has['fetchTrades']:
             self.raise_error(NotSupported, details='fetch_ohlcv() not implemented yet')
         self.load_markets()
         trades = self.fetch_trades(symbol, since, limit, params)
         return self.build_ohlcv(trades, timeframe, since, limit)
+
+    def convert_trading_view_to_ohlcv(self, ohlcvs):
+        result = []
+        for i in range(0, len(ohlcvs['t'])):
+            result.append([
+                ohlcvs['t'][i] * 1000,
+                ohlcvs['o'][i],
+                ohlcvs['h'][i],
+                ohlcvs['l'][i],
+                ohlcvs['c'][i],
+                ohlcvs['v'][i],
+            ])
+        return result
+
+    def convert_ohlcv_to_trading_view(self, ohlcvs):
+        result = {
+            't': [],
+            'o': [],
+            'h': [],
+            'l': [],
+            'c': [],
+            'v': [],
+        }
+        for i in range(0, len(ohlcvs)):
+            result['t'].append(int(ohlcvs[i][0] / 1000))
+            result['o'].append(ohlcvs[i][1])
+            result['h'].append(ohlcvs[i][2])
+            result['l'].append(ohlcvs[i][3])
+            result['c'].append(ohlcvs[i][4])
+            result['v'].append(ohlcvs[i][5])
+        return result
 
     def build_ohlcv(self, trades, timeframe='1m', since=None, limit=None):
         ms = self.parse_timeframe(timeframe) * 1000

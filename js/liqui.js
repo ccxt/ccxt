@@ -1,7 +1,7 @@
 'use strict';
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection, InvalidOrder, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, DDoSProtection, InvalidOrder, AuthenticationError } = require ('./base/errors');
 
 module.exports = class liqui extends Exchange {
     describe () {
@@ -29,10 +29,6 @@ module.exports = class liqui extends Exchange {
                 'api': {
                     'public': 'https://api.liqui.io/api',
                     'private': 'https://api.liqui.io/tapi',
-                    'web': 'https://liqui.io',
-                    'cacheapi': 'https://cacheapi.liqui.io/Market',
-                    'webapi': 'https://webapi.liqui.io/Market',
-                    'charts': 'https://charts.liqui.io/chart',
                 },
                 'www': 'https://liqui.io',
                 'doc': 'https://liqui.io/api',
@@ -59,37 +55,6 @@ module.exports = class liqui extends Exchange {
                         'WithdrawCoin',
                         'CreateCoupon',
                         'RedeemCoupon',
-                    ],
-                },
-                'web': {
-                    'get': [
-                        'User/Balances',
-                    ],
-                    'post': [
-                        'User/Login/',
-                        'User/Session/Activate/',
-                    ],
-                },
-                'cacheapi': {
-                    'get': [
-                        'Pairs',
-                        'Currencies',
-                        'depth', // ?id=228
-                        'Tickers',
-                    ],
-                },
-                'webapi': {
-                    'get': [
-                        'Last', // ?id=228
-                        'Info',
-                    ],
-                },
-                'charts': {
-                    'get': [
-                        'config',
-                        'history', // ?symbol=228&resolution=15&from=1524002997&to=1524011997'
-                        'symbols', // ?symbol=228
-                        'time',
                     ],
                 },
             },
@@ -186,7 +151,6 @@ module.exports = class liqui extends Exchange {
                 'quote': quote,
                 'active': active,
                 'taker': market['fee'] / 100,
-                'lot': amountLimits['min'],
                 'precision': precision,
                 'limits': limits,
                 'info': market,
@@ -404,22 +368,28 @@ module.exports = class liqui extends Exchange {
             'amount': this.amountToPrecision (symbol, amount),
             'rate': this.priceToPrecision (symbol, price),
         };
-        let response = await this.privatePostTrade (this.extend (request, params));
-        let id = this.safeString (response['return'], this.getOrderIdKey ());
-        let timestamp = this.milliseconds ();
         price = parseFloat (price);
         amount = parseFloat (amount);
+        let response = await this.privatePostTrade (this.extend (request, params));
+        let id = undefined;
         let status = 'open';
-        if (id === '0') {
-            id = this.safeString (response['return'], 'init_order_id');
-            status = 'closed';
+        let filled = 0.0;
+        let remaining = amount;
+        if ('return' in response) {
+            id = this.safeString (response['return'], this.getOrderIdKey ());
+            if (id === '0') {
+                id = this.safeString (response['return'], 'init_order_id');
+                status = 'closed';
+            }
+            filled = this.safeFloat (response['return'], 'received', 0.0);
+            remaining = this.safeFloat (response['return'], 'remains', amount);
         }
-        let filled = this.safeFloat (response['return'], 'received', 0.0);
-        let remaining = this.safeFloat (response['return'], 'remains', amount);
+        let timestamp = this.milliseconds ();
         let order = {
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
             'type': type,
@@ -501,6 +471,7 @@ module.exports = class liqui extends Exchange {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
             'type': 'limit',
             'side': order['type'],
             'price': price,
@@ -540,43 +511,42 @@ module.exports = class liqui extends Exchange {
 
     updateCachedOrders (openOrders, symbol) {
         // update local cache with open orders
+        // this will add unseen orders and overwrite existing ones
         for (let j = 0; j < openOrders.length; j++) {
             const id = openOrders[j]['id'];
             this.orders[id] = openOrders[j];
         }
         let openOrdersIndexedById = this.indexBy (openOrders, 'id');
         let cachedOrderIds = Object.keys (this.orders);
-        let result = [];
         for (let k = 0; k < cachedOrderIds.length; k++) {
             // match each cached order to an order in the open orders array
             // possible reasons why a cached order may be missing in the open orders array:
             // - order was closed or canceled -> update cache
             // - symbol mismatch (e.g. cached BTC/USDT, fetched ETH/USDT) -> skip
-            let id = cachedOrderIds[k];
-            let order = this.orders[id];
-            result.push (order);
-            if (!(id in openOrdersIndexedById)) {
+            let cachedOrderId = cachedOrderIds[k];
+            let cachedOrder = this.orders[cachedOrderId];
+            if (!(cachedOrderId in openOrdersIndexedById)) {
                 // cached order is not in open orders array
                 // if we fetched orders by symbol and it doesn't match the cached order -> won't update the cached order
-                if (typeof symbol !== 'undefined' && symbol !== order['symbol'])
+                if (typeof symbol !== 'undefined' && symbol !== cachedOrder['symbol'])
                     continue;
-                // order is cached but not present in the list of open orders -> mark the cached order as closed
-                if (order['status'] === 'open') {
-                    order = this.extend (order, {
+                // cached order is absent from the list of open orders -> mark the cached order as closed
+                if (cachedOrder['status'] === 'open') {
+                    cachedOrder = this.extend (cachedOrder, {
                         'status': 'closed', // likewise it might have been canceled externally (unnoticed by "us")
                         'cost': undefined,
-                        'filled': order['amount'],
+                        'filled': cachedOrder['amount'],
                         'remaining': 0.0,
                     });
-                    if (typeof order['cost'] === 'undefined') {
-                        if (typeof order['filled'] !== 'undefined')
-                            order['cost'] = order['filled'] * order['price'];
+                    if (typeof cachedOrder['cost'] === 'undefined') {
+                        if (typeof cachedOrder['filled'] !== 'undefined')
+                            cachedOrder['cost'] = cachedOrder['filled'] * cachedOrder['price'];
                     }
-                    this.orders[id] = order;
+                    this.orders[cachedOrderId] = cachedOrder;
                 }
             }
         }
-        return result;
+        return this.toArray (this.orders);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -753,6 +723,8 @@ module.exports = class liqui extends Exchange {
                     // in fact, we can use the same .exceptions with string-keys to save some loc here
                     if (message === 'invalid api key') {
                         throw new AuthenticationError (feedback);
+                    } else if (message === 'invalid sign') {
+                        throw new AuthenticationError (feedback);
                     } else if (message === 'api key dont have trade permission') {
                         throw new AuthenticationError (feedback);
                     } else if (message.indexOf ('invalid parameter') >= 0) { // errorCode 0, returned on buy(symbol, 0, 0)
@@ -762,11 +734,11 @@ module.exports = class liqui extends Exchange {
                     } else if (message === 'Requests too often') {
                         throw new DDoSProtection (feedback);
                     } else if (message === 'not available') {
-                        throw new DDoSProtection (feedback);
+                        throw new ExchangeNotAvailable (feedback);
                     } else if (message === 'data unavailable') {
-                        throw new DDoSProtection (feedback);
+                        throw new ExchangeNotAvailable (feedback);
                     } else if (message === 'external service unavailable') {
-                        throw new DDoSProtection (feedback);
+                        throw new ExchangeNotAvailable (feedback);
                     } else {
                         throw new ExchangeError (this.id + ' unknown "error" value: ' + this.json (response));
                     }

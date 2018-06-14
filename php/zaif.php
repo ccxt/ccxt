@@ -123,11 +123,11 @@ class zaif extends Exchange {
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => floatval ($market['item_unit_min']),
+                        'min' => $this->safe_float($market, 'item_unit_min'),
                         'max' => null,
                     ),
                     'price' => array (
-                        'min' => floatval ($market['aux_unit_min']),
+                        'min' => $this->safe_float($market, 'aux_unit_min'),
                         'max' => null,
                     ),
                     'cost' => array (
@@ -271,6 +271,7 @@ class zaif extends Exchange {
             'id' => (string) $order['id'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => null,
             'status' => 'open',
             'symbol' => $market['symbol'],
             'type' => 'limit',

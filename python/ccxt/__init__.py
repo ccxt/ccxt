@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.13.1'
+__version__ = '1.14.191'
 
 # ----------------------------------------------------------------------------
 
@@ -42,6 +42,7 @@ from ccxt.base.errors import ExchangeError                  # noqa: F401
 from ccxt.base.errors import NotSupported                   # noqa: F401
 from ccxt.base.errors import AuthenticationError            # noqa: F401
 from ccxt.base.errors import PermissionDenied               # noqa: F401
+from ccxt.base.errors import AccountSuspended               # noqa: F401
 from ccxt.base.errors import InvalidNonce                   # noqa: F401
 from ccxt.base.errors import InsufficientFunds              # noqa: F401
 from ccxt.base.errors import InvalidOrder                   # noqa: F401
@@ -53,6 +54,9 @@ from ccxt.base.errors import DDoSProtection                 # noqa: F401
 from ccxt.base.errors import RequestTimeout                 # noqa: F401
 from ccxt.base.errors import ExchangeNotAvailable           # noqa: F401
 from ccxt.base.errors import InvalidAddress                 # noqa: F401
+from ccxt.base.errors import BadResponse                    # noqa: F401
+from ccxt.base.errors import NullResponse                   # noqa: F401
+
 
 from ccxt._1broker import _1broker                          # noqa: F401
 from ccxt._1btcxe import _1btcxe                            # noqa: F401
@@ -94,6 +98,7 @@ from ccxt.cex import cex                                    # noqa: F401
 from ccxt.chbtc import chbtc                                # noqa: F401
 from ccxt.chilebit import chilebit                          # noqa: F401
 from ccxt.cobinhood import cobinhood                        # noqa: F401
+from ccxt.coinbase import coinbase                          # noqa: F401
 from ccxt.coincheck import coincheck                        # noqa: F401
 from ccxt.coinegg import coinegg                            # noqa: F401
 from ccxt.coinex import coinex                              # noqa: F401
@@ -106,7 +111,9 @@ from ccxt.coinnest import coinnest                          # noqa: F401
 from ccxt.coinone import coinone                            # noqa: F401
 from ccxt.coinsecure import coinsecure                      # noqa: F401
 from ccxt.coinspot import coinspot                          # noqa: F401
+from ccxt.cointiger import cointiger                        # noqa: F401
 from ccxt.coolcoin import coolcoin                          # noqa: F401
+from ccxt.crypton import crypton                            # noqa: F401
 from ccxt.cryptopia import cryptopia                        # noqa: F401
 from ccxt.dsx import dsx                                    # noqa: F401
 from ccxt.ethfinex import ethfinex                          # noqa: F401
@@ -156,6 +163,7 @@ from ccxt.quoinex import quoinex                            # noqa: F401
 from ccxt.southxchange import southxchange                  # noqa: F401
 from ccxt.surbitcoin import surbitcoin                      # noqa: F401
 from ccxt.therock import therock                            # noqa: F401
+from ccxt.tidebit import tidebit                            # noqa: F401
 from ccxt.tidex import tidex                                # noqa: F401
 from ccxt.urdubit import urdubit                            # noqa: F401
 from ccxt.vaultoro import vaultoro                          # noqa: F401
@@ -209,6 +217,7 @@ exchanges = [
     'chbtc',
     'chilebit',
     'cobinhood',
+    'coinbase',
     'coincheck',
     'coinegg',
     'coinex',
@@ -221,7 +230,9 @@ exchanges = [
     'coinone',
     'coinsecure',
     'coinspot',
+    'cointiger',
     'coolcoin',
+    'crypton',
     'cryptopia',
     'dsx',
     'ethfinex',
@@ -271,6 +282,7 @@ exchanges = [
     'southxchange',
     'surbitcoin',
     'therock',
+    'tidebit',
     'tidex',
     'urdubit',
     'vaultoro',

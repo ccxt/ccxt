@@ -81,6 +81,9 @@ class coinmarketcap (Exchange):
                 'MXN',
                 'RUB',
                 'USD',
+                'BTC',
+                'ETH',
+                'LTC',
             ],
         })
 
@@ -96,12 +99,28 @@ class coinmarketcap (Exchange):
             'BlazeCoin': 'BlazeCoin',
             'BlockCAT': 'BlockCAT',
             'Catcoin': 'Catcoin',
-            'Hi Mutual Society': 'Hi Mutual Society',
+            'CanYaCoin': 'CanYaCoin',  # conflict with CAN(Content and AD Network)
+            'Comet': 'Comet',  # conflict with CMT(CyberMiles)
+            'CPChain': 'CPChain',
+            'Cubits': 'Cubits',  # conflict with QBT(Qbao)
+            'DAO.Casino': 'DAO.Casino',  # conflict with BET(BetaCoin)
+            'ENTCash': 'ENTCash',  # conflict with ENT(Eternity)
+            'FairGame': 'FairGame',
+            'GET Protocol': 'GET Protocol',
+            'Global Tour Coin': 'Global Tour Coin',  # conflict with GTC(Game.com)
+            'GuccioneCoin': 'GuccioneCoin',  # conflict with GCC(Global Cryptocurrency)
+            'HarmonyCoin': 'HarmonyCoin',  # conflict with HMC(Hi Mutual Society)
+            'Huncoin': 'Huncoin',  # conflict with HNC(Helleniccoin)
             'iCoin': 'iCoin',
+            'Infinity Economics': 'Infinity Economics',  # conflict with XIN(Mixin)
+            'KingN Coin': 'KingN Coin',  # conflict with KNC(Kyber Network)
+            'LiteBitcoin': 'LiteBitcoin',  # conflict with LBTC(LightningBitcoin)
             'Maggie': 'Maggie',
             'MIOTA': 'IOTA',  # a special case, most exchanges list it as IOTA, therefore we change just the Coinmarketcap instead of changing them all
             'NetCoin': 'NetCoin',
             'Polcoin': 'Polcoin',
+            'PutinCoin': 'PutinCoin',  # conflict with PUT(Profile Utility Token)
+            'Rcoin': 'Rcoin',  # conflict with RCN(Ripio Credit Network)
         }
         if name in currencies:
             return currencies[name]
@@ -196,7 +215,7 @@ class coinmarketcap (Exchange):
         tickers = {}
         for t in range(0, len(response)):
             ticker = response[t]
-            currencyId = self.currencies[currency]['id'] if (currency in list(self.currencies.keys())) else currency.lower()
+            currencyId = currency.lower()
             id = ticker['id'] + '/' + currencyId
             symbol = id
             market = None

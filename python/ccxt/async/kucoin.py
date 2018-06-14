@@ -59,7 +59,8 @@ class kucoin (Exchange):
                     'kitchen': 'https://kitchen.kucoin.com',
                     'kitchen-2': 'https://kitchen-2.kucoin.com',
                 },
-                'www': 'https://kucoin.com',
+                'www': 'https://www.kucoin.com',
+                'referral': 'https://www.kucoin.com/?r=E5wkqe',
                 'doc': 'https://kucoinapidocs.docs.apiary.io',
                 'fees': 'https://news.kucoin.com/en/fee',
             },
@@ -179,6 +180,7 @@ class kucoin (Exchange):
             },
             # exchange-specific options
             'options': {
+                'fetchOrderBookWarning': True,  # raises a warning on null response in fetchOrderBook
                 'timeDifference': 0,  # the difference between system clock and Kucoin clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
             },
@@ -302,8 +304,6 @@ class kucoin (Exchange):
     async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privateGetAccountBalance(self.extend({
-            'limit': 20,  # default 12, max 20
-            'page': 1,
         }, params))
         balances = response['data']
         result = {'info': balances}
@@ -326,11 +326,28 @@ class kucoin (Exchange):
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetOpenOrders(self.extend({
+        request = {
             'symbol': market['id'],
-        }, params))
-        orderbook = response['data']
-        return self.parse_order_book(orderbook, None, 'BUY', 'SELL')
+        }
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.publicGetOpenOrders(self.extend(request, params))
+        orderbook = None
+        timestamp = None
+        # sometimes kucoin returns self:
+        # {"success":true,"code":"OK","msg":"Operation succeeded.","timestamp":xxxxxxxxxxxxx,"data":null}
+        if not('data' in list(response.keys())) or not response['data']:
+            if self.options['fetchOrderBookWarning']:
+                raise ExchangeError(self.id + " fetchOrderBook returned an null reply. Set exchange.options['fetchOrderBookWarning'] = False to silence self warning")
+            orderbook = {
+                'BUY': [],
+                'SELL': [],
+            }
+        else:
+            orderbook = response['data']
+            timestamp = self.safe_integer(response, 'timestamp')
+            timestamp = self.safe_integer(response['data'], 'timestamp', timestamp)
+        return self.parse_order_book(orderbook, timestamp, 'BUY', 'SELL')
 
     def parse_order(self, order, market=None):
         side = self.safe_value(order, 'direction')
@@ -428,6 +445,7 @@ class kucoin (Exchange):
             'id': orderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': 'limit',
             'side': side,
@@ -469,7 +487,7 @@ class kucoin (Exchange):
         #
         return self.parse_order(response['data'], market)
 
-    async def parse_orders_by_status(self, orders, market, since, limit, status):
+    def parse_orders_by_status(self, orders, market, since, limit, status):
         result = []
         for i in range(0, len(orders)):
             order = self.parse_order(self.extend(orders[i], {
@@ -571,6 +589,7 @@ class kucoin (Exchange):
             'id': orderId,
             'timestamp': timestamp,
             'datetime': iso8601,
+            'lastTradeTimestamp': None,
             'symbol': market['symbol'],
             'type': type,
             'side': side,
@@ -658,10 +677,13 @@ class kucoin (Exchange):
         else:
             symbol = ticker['coinType'] + '/' + ticker['coinTypePair']
         # TNC coin doesn't have changerate for some reason
-        change = self.safe_float(ticker, 'changeRate')
-        if change is not None:
-            change *= 100
+        change = self.safe_float(ticker, 'change')
         last = self.safe_float(ticker, 'lastDealPrice')
+        open = None
+        if last is not None:
+            if change is not None:
+                open = last - change
+        changePercentage = self.safe_float(ticker, 'changeRate')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -673,12 +695,12 @@ class kucoin (Exchange):
             'ask': self.safe_float(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
-            'open': None,
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': None,
             'change': change,
-            'percentage': None,
+            'percentage': changePercentage,
             'average': None,
             'baseVolume': self.safe_float(ticker, 'vol'),
             'quoteVolume': self.safe_float(ticker, 'volValue'),
@@ -770,6 +792,7 @@ class kucoin (Exchange):
         market = self.market(symbol)
         response = await self.publicGetOpenDealOrders(self.extend({
             'symbol': market['id'],
+            'limit': limit,
         }, params))
         return self.parse_trades(response['data'], market, since, limit)
 
@@ -790,17 +813,8 @@ class kucoin (Exchange):
         response = await self.privateGetDealOrders(self.extend(request, params))
         return self.parse_trades(response['data']['datas'], market, since, limit)
 
-    def parse_trading_view_ohlc_vs(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
-        result = []
-        for i in range(0, len(ohlcvs['t'])):
-            result.append([
-                ohlcvs['t'][i] * 1000,
-                ohlcvs['o'][i],
-                ohlcvs['h'][i],
-                ohlcvs['l'][i],
-                ohlcvs['c'][i],
-                ohlcvs['v'][i],
-            ])
+    def parse_trading_view_ohlcv(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
+        result = self.convert_trading_view_to_ohlcv(ohlcvs)
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -836,7 +850,7 @@ class kucoin (Exchange):
             'to': end,
         }
         response = await self.publicGetOpenChartHistory(self.extend(request, params))
-        return self.parse_trading_view_ohlc_vs(response, market, timeframe, since, limit)
+        return self.parse_trading_view_ohlcv(response, market, timeframe, since, limit)
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
@@ -913,6 +927,8 @@ class kucoin (Exchange):
                 raise InvalidOrder(feedback)  # amount < limits.amount.min
             if message.find('Min price:') >= 0:
                 raise InvalidOrder(feedback)  # price < limits.price.min
+            if message.find('Max price:') >= 0:
+                raise InvalidOrder(feedback)  # price > limits.price.max
             if message.find('The precision of price') >= 0:
                 raise InvalidOrder(feedback)  # price violates precision.price
         elif code == 'NO_BALANCE':

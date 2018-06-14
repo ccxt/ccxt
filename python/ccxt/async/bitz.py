@@ -132,6 +132,9 @@ class bitz (Exchange):
             'options': {
                 'lastNonceTimestamp': 0,
             },
+            'commonCurrencies': {
+                'PXC': 'Pixiecoin',
+            },
         })
 
     async def fetch_markets(self):
@@ -185,16 +188,16 @@ class bitz (Exchange):
     def parse_ticker(self, ticker, market=None):
         timestamp = ticker['date'] * 1000
         symbol = market['symbol']
-        last = float(ticker['last'])
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['buy']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'buy'),
             'bidVolume': None,
-            'ask': float(ticker['sell']),
+            'ask': self.safe_float(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -204,7 +207,7 @@ class bitz (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['vol']),
+            'baseVolume': self.safe_float(ticker, 'vol'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -245,8 +248,8 @@ class bitz (Exchange):
         utcDate = utcDate.split('T')
         utcDate = utcDate[0] + ' ' + trade['t'] + '+08'
         timestamp = self.parse8601(utcDate)
-        price = float(trade['p'])
-        amount = float(trade['n'])
+        price = self.safe_float(trade, 'p')
+        amount = self.safe_float(trade, 'n')
         symbol = market['symbol']
         cost = self.price_to_precision(symbol, amount * price)
         return {
@@ -292,6 +295,14 @@ class bitz (Exchange):
             side = self.safe_string(order, 'type')
             if side is not None:
                 side = 'buy' if (side == 'in') else 'sell'
+            if side is None:
+                side = self.safe_string(order, 'flag')
+        amount = self.safe_float(order, 'number')
+        remaining = self.safe_float(order, 'numberover')
+        filled = None
+        if amount is not None:
+            if remaining is not None:
+                filled = amount - remaining
         timestamp = None
         iso8601 = None
         if 'datetime' in order:
@@ -301,6 +312,7 @@ class bitz (Exchange):
             'id': order['id'],
             'datetime': iso8601,
             'timestamp': timestamp,
+            'lastTradeTimestamp': None,
             'status': 'open',
             'symbol': symbol,
             'type': 'limit',
@@ -308,8 +320,8 @@ class bitz (Exchange):
             'price': order['price'],
             'cost': None,
             'amount': order['number'],
-            'filled': None,
-            'remaining': None,
+            'filled': filled,
+            'remaining': remaining,
             'trades': None,
             'fee': None,
             'info': order,
@@ -319,6 +331,8 @@ class bitz (Exchange):
         await self.load_markets()
         market = self.market(symbol)
         orderType = 'in' if (side == 'buy') else 'out'
+        if not self.password:
+            raise ExchangeError(self.id + ' createOrder() requires you to set exchange.password = "YOUR_TRADING_PASSWORD"(a trade password is NOT THE SAME as your login password)')
         request = {
             'coin': market['id'],
             'type': orderType,
@@ -357,7 +371,7 @@ class bitz (Exchange):
         if currentTimestamp > self.options['lastNonceTimestamp']:
             self.options['lastNonceTimestamp'] = currentTimestamp
             self.options['lastNonce'] = 100000
-        self.options['lastNonce'] += 1
+        self.options['lastNonce'] = self.sum(self.options['lastNonce'], 1)
         return self.options['lastNonce']
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

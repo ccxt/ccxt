@@ -132,7 +132,7 @@ class bxinth extends Exchange {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
-        $last = floatval ($ticker['last_price']);
+        $last = $this->safe_float($ticker, 'last_price');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -148,10 +148,10 @@ class bxinth extends Exchange {
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => floatval ($ticker['change']),
+            'change' => $this->safe_float($ticker, 'change'),
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($ticker['volume_24hours']),
+            'baseVolume' => $this->safe_float($ticker, 'volume_24hours'),
             'quoteVolume' => null,
             'info' => $ticker,
         );
@@ -194,8 +194,8 @@ class bxinth extends Exchange {
             'symbol' => $market['symbol'],
             'type' => null,
             'side' => $trade['trade_type'],
-            'price' => floatval ($trade['rate']),
-            'amount' => floatval ($trade['amount']),
+            'price' => $this->safe_float($trade, 'rate'),
+            'amount' => $this->safe_float($trade, 'amount'),
         );
     }
 

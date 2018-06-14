@@ -30,6 +30,7 @@ class huobipro extends Exchange {
                 'fetchOrders' => false,
                 'fetchTradingLimits' => true,
                 'withdraw' => true,
+                'fetchCurrencies' => true,
             ),
             'timeframes' => array (
                 '1m' => '1min',
@@ -46,6 +47,7 @@ class huobipro extends Exchange {
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
                 'api' => 'https://api.huobipro.com',
                 'www' => 'https://www.huobipro.com',
+                'referral' => 'https://www.huobi.br.com/en-us/topic/invited/?invite_code=rwrd3',
                 'doc' => 'https://github.com/huobiapi/API_Docs/wiki/REST_api_reference',
                 'fees' => 'https://www.huobipro.com/about/fee/',
             ),
@@ -66,6 +68,7 @@ class huobipro extends Exchange {
                         'common/currencys', // 查询系统支持的所有币种
                         'common/timestamp', // 查询系统当前时间
                         'common/exchange', // order limits
+                        'settings/currencys', // ?language=en-US
                     ),
                 ),
                 'private' => array (
@@ -79,6 +82,8 @@ class huobipro extends Exchange {
                         'dw/withdraw-virtual/addresses', // 查询虚拟币提现地址
                         'dw/deposit-virtual/addresses',
                         'query/deposit-withdraw',
+                        'margin/loan-orders', // 借贷订单
+                        'margin/accounts/balance', // 借贷账户详情
                     ),
                     'post' => array (
                         'order/orders/place', // 创建并执行一个新订单 (一步下单， 推荐使用)
@@ -91,6 +96,10 @@ class huobipro extends Exchange {
                         'dw/withdraw-virtual/create', // 申请提现虚拟币
                         'dw/withdraw-virtual/{id}/place', // 确认申请虚拟币提现
                         'dw/withdraw-virtual/{id}/cancel', // 申请取消提现虚拟币
+                        'dw/transfer-in/margin', // 现货账户划入至借贷账户
+                        'dw/transfer-out/margin', // 借贷账户划出至现货账户
+                        'margin/orders', // 申请借贷
+                        'margin/orders/{id}/repay', // 归还借贷
                     ),
                 ),
             ),
@@ -103,29 +112,20 @@ class huobipro extends Exchange {
                 ),
             ),
             'exceptions' => array (
+                'account-frozen-balance-insufficient-error' => '\\ccxt\\InsufficientFunds', // array ("status":"error","err-code":"account-frozen-balance-insufficient-error","err-msg":"trade account balance is not enough, left => `0.0027`","data":null)
                 'order-limitorder-amount-min-error' => '\\ccxt\\InvalidOrder', // limit order amount error, min => `0.001`
                 'order-orderstate-error' => '\\ccxt\\OrderNotFound', // canceling an already canceled order
                 'order-queryorder-invalid' => '\\ccxt\\OrderNotFound', // querying a non-existent order
+                'order-update-error' => '\\ccxt\\ExchangeNotAvailable', // undocumented error
             ),
             'options' => array (
+                'createMarketBuyOrderRequiresPrice' => true,
                 'fetchMarketsMethod' => 'publicGetCommonSymbols',
+                'fetchBalanceMethod' => 'privateGetAccountAccountsIdBalance',
+                'createOrderMethod' => 'privatePostOrderOrdersPlace',
+                'language' => 'en-US',
             ),
         ));
-    }
-
-    public function load_trading_limits ($symbols = null, $reload = false, $params = array ()) {
-        if ($reload || !(is_array ($this->options) && array_key_exists ('limitsLoaded', $this->options))) {
-            $response = $this->fetch_trading_limits ($symbols);
-            $limits = $response['limits'];
-            $keys = is_array ($limits) ? array_keys ($limits) : array ();
-            for ($i = 0; $i < count ($keys); $i++) {
-                $symbol = $keys[$i];
-                $this->markets[$symbol] = array_merge ($this->markets[$symbol], array (
-                    'limits' => $limits[$symbol],
-                ));
-            }
-        }
-        return $this->markets;
     }
 
     public function fetch_trading_limits ($symbols = null, $params = array ()) {
@@ -196,6 +196,7 @@ class huobipro extends Exchange {
                 'base' => $base,
                 'quote' => $quote,
                 'lot' => $lot,
+                'active' => true,
                 'precision' => $precision,
                 'taker' => $taker,
                 'maker' => $maker,
@@ -326,7 +327,7 @@ class huobipro extends Exchange {
         );
     }
 
-    public function fetch_trades ($symbol, $since = null, $limit = 2000, $params = array ()) {
+    public function fetch_trades ($symbol, $since = null, $limit = 1000, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
@@ -359,7 +360,7 @@ class huobipro extends Exchange {
         ];
     }
 
-    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = 2000, $params = array ()) {
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = 1000, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
@@ -393,10 +394,84 @@ class huobipro extends Exchange {
         return $response['data'];
     }
 
+    public function fetch_currencies ($params = array ()) {
+        $response = $this->publicGetSettingsCurrencys (array_merge (array (
+            'language' => $this->options['language'],
+        ), $params));
+        $currencies = $response['data'];
+        $result = array ();
+        for ($i = 0; $i < count ($currencies); $i++) {
+            $currency = $currencies[$i];
+            //
+            //  {                     name => "ctxc",
+            //              'display-name' => "CTXC",
+            //        'withdraw-precision' =>  8,
+            //             'currency-type' => "eth",
+            //        'currency-partition' => "pro",
+            //             'support-sites' =>  null,
+            //                'otc-enable' =>  0,
+            //        'deposit-min-amount' => "2",
+            //       'withdraw-min-amount' => "4",
+            //            'show-precision' => "8",
+            //                      weight => "2988",
+            //                     visible =>  true,
+            //              'deposit-desc' => "Please don’t deposit any other digital assets except CTXC t…",
+            //             'withdraw-desc' => "Minimum withdrawal amount => 4 CTXC. !>_<!For security reason…",
+            //           'deposit-enabled' =>  true,
+            //          'withdraw-enabled' =>  true,
+            //    'currency-addr-with-tag' =>  false,
+            //             'fast-confirms' =>  15,
+            //             'safe-confirms' =>  30                                                             }
+            //
+            $id = $this->safe_value($currency, 'name');
+            $precision = $this->safe_integer($currency, 'withdraw-precision');
+            $code = $this->common_currency_code(strtoupper ($id));
+            $active = $currency['visible'] && $currency['deposit-enabled'] && $currency['withdraw-enabled'];
+            $result[$code] = array (
+                'id' => $id,
+                'code' => $code,
+                'type' => 'crypto',
+                // 'payin' => $currency['deposit-enabled'],
+                // 'payout' => $currency['withdraw-enabled'],
+                // 'transfer' => null,
+                'name' => $currency['display-name'],
+                'active' => $active,
+                'status' => $active ? 'ok' : 'disabled',
+                'fee' => null, // todo need to fetch from fee endpoint
+                'precision' => $precision,
+                'limits' => array (
+                    'amount' => array (
+                        'min' => pow (10, -$precision),
+                        'max' => pow (10, $precision),
+                    ),
+                    'price' => array (
+                        'min' => pow (10, -$precision),
+                        'max' => pow (10, $precision),
+                    ),
+                    'cost' => array (
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'deposit' => array (
+                        'min' => $this->safe_float($currency, 'deposit-min-amount'),
+                        'max' => pow (10, $precision),
+                    ),
+                    'withdraw' => array (
+                        'min' => $this->safe_float($currency, 'withdraw-min-amount'),
+                        'max' => pow (10, $precision),
+                    ),
+                ),
+                'info' => $currency,
+            );
+        }
+        return $result;
+    }
+
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $this->load_accounts ();
-        $response = $this->privateGetAccountAccountsIdBalance (array_merge (array (
+        $method = $this->options['fetchBalanceMethod'];
+        $response = $this->$method (array_merge (array (
             'id' => $this->accounts[0]['id'],
         ), $params));
         $balances = $response['data']['list'];
@@ -428,7 +503,7 @@ class huobipro extends Exchange {
         $response = $this->privateGetOrderOrders (array_merge (array (
             'symbol' => $market['id'],
             'states' => $states,
-        )));
+        ), $params));
         return $this->parse_orders($response['data'], $market, $since, $limit);
     }
 
@@ -489,10 +564,10 @@ class huobipro extends Exchange {
         if ($market)
             $symbol = $market['symbol'];
         $timestamp = $order['created-at'];
-        $amount = floatval ($order['amount']);
+        $amount = $this->safe_float($order, 'amount');
         $filled = floatval ($order['field-amount']);
         $remaining = $amount - $filled;
-        $price = floatval ($order['price']);
+        $price = $this->safe_float($order, 'price');
         $cost = floatval ($order['field-cash-amount']);
         $average = 0;
         if ($filled)
@@ -502,6 +577,7 @@ class huobipro extends Exchange {
             'id' => (string) $order['id'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
@@ -527,12 +603,37 @@ class huobipro extends Exchange {
             'symbol' => $market['id'],
             'type' => $side . '-' . $type,
         );
+        if ($this->options['createMarketBuyOrderRequiresPrice']) {
+            if (($type === 'market') && ($side === 'buy')) {
+                if ($price === null) {
+                    throw new InvalidOrder ($this->id . " $market buy $order requires $price argument to calculate cost (total $amount of quote currency to spend for buying, $amount * $price). To switch off this warning exception and specify cost in the $amount argument, set .options['createMarketBuyOrderRequiresPrice'] = false. Make sure you know what you're doing.");
+                } else {
+                    $order['amount'] = $this->price_to_precision($symbol, floatval ($amount) * floatval ($price));
+                }
+            }
+        }
         if ($type === 'limit')
             $order['price'] = $this->price_to_precision($symbol, $price);
-        $response = $this->privatePostOrderOrdersPlace (array_merge ($order, $params));
+        $method = $this->options['createOrderMethod'];
+        $response = $this->$method (array_merge ($order, $params));
+        $timestamp = $this->milliseconds ();
         return array (
             'info' => $response,
             'id' => $response['data'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => null,
+            'status' => null,
+            'symbol' => $symbol,
+            'type' => $type,
+            'side' => $side,
+            'price' => $price,
+            'amount' => $amount,
+            'filled' => null,
+            'remaining' => null,
+            'cost' => null,
+            'trades' => null,
+            'fee' => null,
         );
     }
 
@@ -578,14 +679,16 @@ class huobipro extends Exchange {
         );
     }
 
-    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+        $this->load_markets();
         $this->check_address($address);
+        $currency = $this->currency ($code);
         $request = array (
             'address' => $address, // only supports existing addresses in your withdraw $address list
             'amount' => $amount,
-            'currency' => strtolower ($currency),
+            'currency' => strtolower ($currency['id']),
         );
-        if ($tag)
+        if ($tag !== null)
             $request['addr-tag'] = $tag; // only for XRP?
         $response = $this->privatePostDwWithdrawApiCreate (array_merge ($request, $params));
         $id = null;
@@ -641,7 +744,7 @@ class huobipro extends Exchange {
     }
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body) {
-        if (gettype ($body) != 'string')
+        if (gettype ($body) !== 'string')
             return; // fallback to default error handler
         if (strlen ($body) < 2)
             return; // fallback to default error handler

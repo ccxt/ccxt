@@ -16,8 +16,12 @@ const hash = (request, hash = 'md5', digest = 'hex') => {
 /*  .............................................   */
 
 const hmac = (request, secret, hash = 'sha256', digest = 'hex') => {
-    const encoding = (digest === 'binary') ? 'Latin1' : capitalize (digest)
-    return CryptoJS['Hmac' + hash.toUpperCase ()] (request, secret).toString (CryptoJS.enc[capitalize (encoding)])
+    const result = CryptoJS['Hmac' + hash.toUpperCase ()] (request, secret)
+    if (digest) {
+        const encoding = (digest === 'binary') ? 'Latin1' : capitalize (digest)
+        return result.toString (CryptoJS.enc[capitalize (encoding)])
+    }
+    return result
 }
 
 /*  .............................................   */

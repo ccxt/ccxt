@@ -32,6 +32,24 @@ module.exports =
     , ordered: x => x // a stub to keep assoc keys in order (in JS it does nothing, it's mostly for Python)
     , unique:  x => Array.from (index (x))
 
+    /*  .............................................   */
+
+    , inArray (needle, haystack) {
+
+        return haystack.includes (needle)
+    }
+
+    , toArray (object) {
+
+        return Object.values (object)
+    }
+
+    , isEmpty (object) {
+        if (!object)
+            return true;
+        return (Array.isArray (object) ? object : Object.keys (object)).length < 1;
+    }
+
 /*  .............................................   */
 
     , keysort (x, out = {}) {

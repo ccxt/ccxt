@@ -164,13 +164,13 @@ class btctradeua extends Exchange {
             $start = max ($tickerLength - 48, 0);
             for ($t = $start; $t < count ($ticker); $t++) {
                 $candle = $ticker[$t];
-                if ($result['open'] == null)
+                if ($result['open'] === null)
                     $result['open'] = $candle[1];
-                if (($result['high'] == null) || ($result['high'] < $candle[2]))
+                if (($result['high'] === null) || ($result['high'] < $candle[2]))
                     $result['high'] = $candle[2];
-                if (($result['low'] == null) || ($result['low'] > $candle[3]))
+                if (($result['low'] === null) || ($result['low'] > $candle[3]))
                     $result['low'] = $candle[3];
-                if ($result['baseVolume'] == null)
+                if ($result['baseVolume'] === null)
                     $result['baseVolume'] = -$candle[5];
                 else
                     $result['baseVolume'] -= $candle[5];
@@ -243,8 +243,8 @@ class btctradeua extends Exchange {
             'symbol' => $market['symbol'],
             'type' => 'limit',
             'side' => $trade['type'],
-            'price' => floatval ($trade['price']),
-            'amount' => floatval ($trade['amnt_trade']),
+            'price' => $this->safe_float($trade, 'price'),
+            'amount' => $this->safe_float($trade, 'amnt_trade'),
         );
     }
 
@@ -288,6 +288,7 @@ class btctradeua extends Exchange {
             'id' => $trade['id'],
             'timestamp' => $timestamp, // until they fix their $timestamp
             'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => null,
             'status' => 'open',
             'symbol' => $market['symbol'],
             'type' => null,
@@ -302,8 +303,8 @@ class btctradeua extends Exchange {
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if (!$symbol)
-            throw new ExchangeError ($this->id . ' fetchOpenOrders requires a $symbol param');
+        if ($symbol === null)
+            throw new ExchangeError ($this->id . ' fetchOpenOrders requires a $symbol argument');
         $market = $this->market ($symbol);
         $response = $this->privatePostMyOrdersSymbol (array_merge (array (
             'symbol' => $market['id'],

@@ -55,6 +55,11 @@ php -f path/to/example.php # substitute for actual filename here
 
 [How to make your own trading bot](https://codeburst.io/how-to-make-your-own-trading-bot-83b5c6e35036) – A tutorial on algortrading in Python.
 
+[Writing crypto trading bot in Python with Telegram and ccxt](https://medium.com/@maxAvdyushkin/writing-crypto-trading-bot-in-python-with-telegram-and-ccxt-80632a00c637) – A tutorial on programming a Telegram bot in Python with CCXT
+
+[Data science is eating the world — Here’s how you can start exploring it
+](https://medium.com/covee-network/data-science-is-eating-the-world-heres-how-you-can-start-exploring-it-37501414af15) – An article on collecting and analyzing financial big data.
+
 [Chasing fake volume: a crypto-plague](https://medium.com/@sylvainartplayribes/chasing-fake-volume-a-crypto-plague-ea1a3c1e0b5e) – An article @ Medium on trading volumes analysis.
 
 [CCXTが便利な理由！CCXTライブラリをインストールしよう](https://ryota-trade.com/?p=476) – An article in Japanese on getting CCXT up and runining.
@@ -80,6 +85,8 @@ php -f path/to/example.php # substitute for actual filename here
 [ccxtを使って裁定取引botを作ってみたらなぜか虚しくなった件](https://qiita.com/reon777/items/21ed87f19cdd50f08bd9) – An article in Japanese explaining the basics of programming an arbitrage bot with CCXT.
 
 [Python 3 / BitMEX の BOT を作ろう CCXT + BOT サンプルコード 〈基礎編〉](https://note.mu/mman/n/n5a9083864335) – A sample of basic BitMEX bot with CCXT in Python 3.
+
+[ccxtがbtcfxbot界隈でちょっと話題になっていたので使ってみた](http://cryptojapan.ml/entry/2018/03/01/151752) – Trying CCXT for a basic bot.
 
 [python異步加協程獲取比特幣市場信息](https://hk.saowen.com/a/18a648f24d6e7f54981e9db4411b56730a35dd2b3b27519083543bcd6198cd27) – An article in Chinese on using CCXT with Python.
 
