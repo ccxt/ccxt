@@ -243,7 +243,14 @@ class bibox extends Exchange {
         }
         $fee = null;
         $feeCost = $this->safe_float($trade, 'fee');
-        $feeCurrency = null; // todo => deduce from $market if $market is defined
+        $feeCurrency = $this->safe_string($trade, 'fee_symbol');
+        if ($feeCurrency !== null) {
+            if (is_array ($this->currencies_by_id) && array_key_exists ($feeCurrency, $this->currencies_by_id)) {
+                $feeCurrency = $this->currencies_by_id[$feeCurrency]['code'];
+            } else {
+                $feeCurrency = $this->common_currency_code($feeCurrency);
+            }
+        }
         $feeRate = null; // todo => deduce from $market if $market is defined
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');

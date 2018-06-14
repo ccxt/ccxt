@@ -247,7 +247,12 @@ class bibox (Exchange):
             symbol = market['symbol']
         fee = None
         feeCost = self.safe_float(trade, 'fee')
-        feeCurrency = None  # todo: deduce from market if market is defined
+        feeCurrency = self.safe_string(trade, 'fee_symbol')
+        if feeCurrency is not None:
+            if feeCurrency in self.currencies_by_id:
+                feeCurrency = self.currencies_by_id[feeCurrency]['code']
+            else:
+                feeCurrency = self.common_currency_code(feeCurrency)
         feeRate = None  # todo: deduce from market if market is defined
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
