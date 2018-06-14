@@ -242,7 +242,7 @@ module.exports = class bibox extends Exchange {
         }
         let fee = undefined;
         let feeCost = this.safeFloat (trade, 'fee');
-        let feeCurrency = undefined; // todo: deduce from market if market is defined
+        let feeCurrency = this.safeString (trade, 'fee_symbol');
         let feeRate = undefined; // todo: deduce from market if market is defined
         let price = this.safeFloat (trade, 'price');
         let amount = this.safeFloat (trade, 'amount');
