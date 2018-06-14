@@ -1071,7 +1071,7 @@ module.exports = class hitbtc2 extends hitbtc {
         this.checkAddress (address);
         let tag = this.safeString (response, 'paymentId');
         return {
-            'currency': currency.code,
+            'currency': currency['code'],
             'address': address,
             'tag': tag,
             'status': 'ok',
