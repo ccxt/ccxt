@@ -9,7 +9,7 @@ module.exports = class anybits extends bitsane {
         return this.deepExtend (super.describe (), {
             'id': 'anybits',
             'name': 'Anybits',
-            'countries': '',
+            'countries': 'IE', // Ireland
             'has': {
                 'fetchCurrencies': true,
                 'fetchTickers': true,
@@ -18,9 +18,9 @@ module.exports = class anybits extends bitsane {
                 'withdraw': true,
             },
             'urls': {
-                'logo': 'https://anybits.com/img/anybits-img/logo2x.png',
+                'logo': 'https://user-images.githubusercontent.com/1294454/41388454-ae227544-6f94-11e8-82a4-127d51d34903.jpg',
                 'api': 'https://anybits.com/api',
-                'www': 'https://anybits.com/',
+                'www': 'https://anybits.com',
                 'doc': 'https://anybits.com/help/api',
                 'fees': 'https://anybits.com/help/fees',
             },
