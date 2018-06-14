@@ -148,6 +148,8 @@ The ccxt library currently supports the following cryptocurrency exchange market
 +----------------------------+------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | Indonesia                  | |indodax|              | indodax              | `INDODAX <https://www.indodax.com>`__                                             | 1.8   | `API <https://indodax.com/downloads/BITCOINCOID-API-DOCUMENTATION.pdf>`__                         |
 +----------------------------+------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
+| Ireland                    | |bitsane|              | bitsane              | `Bitsane <https://bitsane.com>`__                                                 | \*    | `API <https://bitsane.com/info-api>`__                                                            |
++----------------------------+------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | Israel                     | |bit2c|                | bit2c                | `Bit2C <https://www.bit2c.co.il>`__                                               | \*    | `API <https://www.bit2c.co.il/home/api>`__                                                        |
 +----------------------------+------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | Japan                      | |anxpro|               | anxpro               | `ANXPro <https://anxpro.com>`__                                                   | 2     | `API <http://docs.anxv2.apiary.io>`__                                                             |
@@ -389,6 +391,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
 .. |coinsecure| image:: https://user-images.githubusercontent.com/1294454/27766472-9cbd200a-5ed9-11e7-9551-2267ad7bac08.jpg
 .. |coincheck| image:: https://user-images.githubusercontent.com/1294454/27766464-3b5c3c74-5ed9-11e7-840e-31b32968e1da.jpg
 .. |indodax| image:: https://user-images.githubusercontent.com/1294454/37443283-2fddd0e4-281c-11e8-9741-b4f1419001b5.jpg
+.. |bitsane| image:: https://user-images.githubusercontent.com/1294454/41387105-d86bf4c6-6f8d-11e8-95ea-2fa943872955.jpg
 .. |bit2c| image:: https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg
 .. |binance| image:: https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg
 .. |bitbank| image:: https://user-images.githubusercontent.com/1294454/37808081-b87f2d9c-2e59-11e8-894d-c1900b7584fe.jpg
