@@ -822,8 +822,8 @@ module.exports = class bitfinex extends Exchange {
         let errorMessage = this.findBroadlyMatchedKey (this.exceptions['broad'], message);
         if (id === 0) {
             if (typeof errorMessage !== 'undefined') {
-                let Exception = this.exceptions['broad'][errorMessage];
-                throw new Exception (this.id + ' ' + message);
+                let ExceptionClass = this.exceptions['broad'][errorMessage];
+                throw new ExceptionClass (this.id + ' ' + message);
             }
             throw new ExchangeError (this.id + ' withdraw returned an id of zero: ' + this.json (response));
         }
