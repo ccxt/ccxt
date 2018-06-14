@@ -21,6 +21,16 @@
                 ]
 
                 document.getElementById ('content').innerHTML = text.join (' ')
+
+            }).catch (e => {
+
+                const text = [
+                    e.constructor.name,
+                    e.message,
+                ]
+
+                document.getElementById ('content').innerHTML = text.join (' ')
+
             })
 
         })

@@ -19,11 +19,12 @@ class ccex (Exchange):
             'has': {
                 'CORS': False,
                 'fetchTickers': True,
+                'fetchOrderBooks': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766433-16881f90-5ed8-11e7-92f8-3d92cc747a6c.jpg',
                 'api': {
-                    'tickers': 'https://c-cex.com/t',
+                    'web': 'https://c-cex.com/t',
                     'public': 'https://c-cex.com/t/api_pub.html',
                     'private': 'https://c-cex.com/t/api.html',
                 },
@@ -31,7 +32,7 @@ class ccex (Exchange):
                 'doc': 'https://c-cex.com/?id=api',
             },
             'api': {
-                'tickers': {
+                'web': {
                     'get': [
                         'coinnames',
                         '{market}',
@@ -47,6 +48,7 @@ class ccex (Exchange):
                         'markets',
                         'marketsummaries',
                         'orderbook',
+                        'fullorderbook',
                     ],
                 },
                 'private': {
@@ -69,40 +71,60 @@ class ccex (Exchange):
                     'maker': 0.2 / 100,
                 },
             },
+            'commonCurrencies': {
+                'BLC': 'Cryptobullcoin',
+                'CRC': 'CoreCoin',
+                'IOT': 'IoTcoin',
+                'LUX': 'Luxmi',
+                'VIT': 'VitalCoin',
+                'XID': 'InternationalDiamond',
+            },
         })
 
-    def common_currency_code(self, currency):
-        if currency == 'IOT':
-            return 'IoTcoin'
-        if currency == 'BLC':
-            return 'Cryptobullcoin'
-        if currency == 'XID':
-            return 'InternationalDiamond'
-        return currency
-
     def fetch_markets(self):
-        markets = self.publicGetMarkets()
-        result = []
-        for p in range(0, len(markets['result'])):
-            market = markets['result'][p]
-            id = market['MarketName']
-            base = market['MarketCurrency']
-            quote = market['BaseCurrency']
+        result = {}
+        response = self.webGetPairs()
+        markets = response['pairs']
+        for i in range(0, len(markets)):
+            id = markets[i]
+            baseId, quoteId = id.split('-')
+            base = baseId.upper()
+            quote = quoteId.upper()
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
-            result.append(self.extend(self.fees['trading'], {
+            result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'info': market,
-            }))
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'info': id,
+            }
+        # an alternative documented parser
+        #     markets = self.publicGetMarkets()
+        #     for p in range(0, len(markets['result'])):
+        #         market = markets['result'][p]
+        #         id = market['MarketName']
+        #         base = market['MarketCurrency']
+        #         quote = market['BaseCurrency']
+        #         base = self.common_currency_code(base)
+        #         quote = self.common_currency_code(quote)
+        #         symbol = base + '/' + quote
+        #         result.append({
+        #             'id': id,
+        #             'symbol': symbol,
+        #             'base': base,
+        #             'quote': quote,
+        #             'info': market,
+        #         })
+        #     }
         return result
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        response = self.privateGetBalances()
+        response = self.privateGetGetbalances()
         balances = response['result']
         result = {'info': balances}
         for b in range(0, len(balances)):
@@ -117,37 +139,75 @@ class ccex (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
-        response = self.publicGetOrderbook(self.extend({
+        request = {
             'market': self.market_id(symbol),
             'type': 'both',
-            'depth': 100,
-        }, params))
+        }
+        if limit is not None:
+            request['depth'] = limit  # 100
+        response = self.publicGetOrderbook(self.extend(request, params))
         orderbook = response['result']
         return self.parse_order_book(orderbook, None, 'buy', 'sell', 'Rate', 'Quantity')
+
+    def fetch_order_books(self, symbols=None, params={}):
+        self.load_markets()
+        orderbooks = {}
+        response = self.publicGetFullorderbook()
+        types = list(response['result'].keys())
+        for i in range(0, len(types)):
+            type = types[i]
+            bidasks = response['result'][type]
+            bidasksByMarketId = self.group_by(bidasks, 'Market')
+            marketIds = list(bidasksByMarketId.keys())
+            for j in range(0, len(marketIds)):
+                marketId = marketIds[j]
+                symbol = marketId.upper()
+                side = type
+                if symbol in self.markets_by_id:
+                    market = self.markets_by_id[symbol]
+                    symbol = market['symbol']
+                else:
+                    base, quote = symbol.split('-')
+                    invertedId = quote + '-' + base
+                    if invertedId in self.markets_by_id:
+                        market = self.markets_by_id[invertedId]
+                        symbol = market['symbol']
+                if not(symbol in list(orderbooks.keys())):
+                    orderbooks[symbol] = {}
+                orderbooks[symbol][side] = bidasksByMarketId[marketId]
+        result = {}
+        keys = list(orderbooks.keys())
+        for k in range(0, len(keys)):
+            key = keys[k]
+            result[key] = self.parse_order_book(orderbooks[key], None, 'buy', 'sell', 'Rate', 'Quantity')
+        return result
 
     def parse_ticker(self, ticker, market=None):
         timestamp = ticker['updated'] * 1000
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
+        last = self.safe_float(ticker, 'lastprice')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['buy']),
-            'ask': float(ticker['sell']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'buy'),
+            'bidVolume': None,
+            'ask': self.safe_float(ticker, 'sell'),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['lastprice']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
-            'average': float(ticker['avg']),
+            'average': self.safe_float(ticker, 'avg'),
             'baseVolume': None,
             'quoteVolume': self.safe_float(ticker, 'buysupport'),
             'info': ticker,
@@ -155,19 +215,19 @@ class ccex (Exchange):
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        tickers = self.tickersGetPrices(params)
-        result = {'info': tickers}
+        tickers = self.webGetPrices(params)
+        result = {}
         ids = list(tickers.keys())
         for i in range(0, len(ids)):
             id = ids[i]
             ticker = tickers[id]
-            uppercase = id.upper()
             market = None
             symbol = None
-            if uppercase in self.markets_by_id:
-                market = self.markets_by_id[uppercase]
+            if id in self.markets_by_id:
+                market = self.markets_by_id[id]
                 symbol = market['symbol']
             else:
+                uppercase = id.upper()
                 base, quote = uppercase.split('-')
                 base = self.common_currency_code(base)
                 quote = self.common_currency_code(quote)
@@ -178,7 +238,7 @@ class ccex (Exchange):
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.tickersGetMarket(self.extend({
+        response = self.webGetMarket(self.extend({
             'market': market['id'].lower(),
         }, params))
         ticker = response['ticker']
@@ -187,7 +247,7 @@ class ccex (Exchange):
     def parse_trade(self, trade, market):
         timestamp = self.parse8601(trade['TimeStamp'])
         return {
-            'id': trade['Id'],
+            'id': str(trade['Id']),
             'info': trade,
             'order': None,
             'timestamp': timestamp,
@@ -248,7 +308,7 @@ class ccex (Exchange):
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)
-        if api == 'tickers':
+        if api == 'web':
             return response
         if 'success' in response:
             if response['success']:

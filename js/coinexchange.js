@@ -17,7 +17,13 @@ module.exports = class coinexchange extends Exchange {
             // new metainfo interface
             'has': {
                 'privateAPI': false,
+                'createOrder': false,
+                'createMarketOrder': false,
+                'createLimitOrder': false,
+                'cancelOrder': false,
+                'editOrder': false,
                 'fetchTrades': false,
+                'fetchOHLCV': false,
                 'fetchCurrencies': true,
                 'fetchTickers': true,
             },
@@ -247,7 +253,7 @@ module.exports = class coinexchange extends Exchange {
                         'HC': 0.01,
                         'HEALTHY': 0.01,
                         'HIGH': 0.01,
-                        'HMC': 0.01,
+                        'HarmonyCoin': 0.01,
                         'HNC': 0.01,
                         'HOC': 0.01,
                         'HODL': 0.01,
@@ -531,13 +537,20 @@ module.exports = class coinexchange extends Exchange {
                 'amount': 8,
                 'price': 8,
             },
+            'commonCurrencies': {
+                'BON': 'BonPeKaO',
+                'ETN': 'Ethernex',
+                'GET': 'GreenEnergyToken',
+                'GDC': 'GoldenCryptoCoin',
+                'GTC': 'GlobalTourCoin',
+                'HMC': 'HarmonyCoin',
+                'HNC': 'Huncoin',
+                'MARS': 'MarsBux',
+                'MER': 'TheMermaidCoin',
+                'RUB': 'RubbleCoin',
+                'UP': 'UpscaleToken',
+            },
         });
-    }
-
-    commonCurrencyCode (currency) {
-        if (currency === 'HNC')
-            return 'Huncoin';
-        return currency;
     }
 
     async fetchCurrencies (params = {}) {
@@ -614,13 +627,14 @@ module.exports = class coinexchange extends Exchange {
         if (!market) {
             let marketId = ticker['MarketID'];
             if (marketId in this.markets_by_id)
-                market = this.marketsById[marketId];
+                market = this.markets_by_id[marketId];
             else
                 symbol = marketId;
         }
         if (market)
             symbol = market['symbol'];
         let timestamp = this.milliseconds ();
+        let last = this.safeFloat (ticker, 'LastPrice');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -628,12 +642,14 @@ module.exports = class coinexchange extends Exchange {
             'high': this.safeFloat (ticker, 'HighPrice'),
             'low': this.safeFloat (ticker, 'LowPrice'),
             'bid': this.safeFloat (ticker, 'BidPrice'),
+            'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'AskPrice'),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': this.safeFloat (ticker, 'LastPrice'),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': this.safeFloat (ticker, 'Change'),
             'percentage': undefined,
             'average': undefined,
@@ -665,7 +681,7 @@ module.exports = class coinexchange extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetGetorderbook (this.extend ({
             'market_id': this.marketId (symbol),

@@ -21,9 +21,13 @@ class coinmarketcap (Exchange):
                 'CORS': True,
                 'privateAPI': False,
                 'createOrder': False,
+                'createMarketOrder': False,
+                'createLimitOrder': False,
                 'cancelOrder': False,
+                'editOrder': False,
                 'fetchBalance': False,
                 'fetchOrderBook': False,
+                'fetchOHLCV': False,
                 'fetchTrades': False,
                 'fetchTickers': True,
                 'fetchCurrencies': True,
@@ -77,18 +81,46 @@ class coinmarketcap (Exchange):
                 'MXN',
                 'RUB',
                 'USD',
+                'BTC',
+                'ETH',
+                'LTC',
             ],
         })
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         raise ExchangeError('Fetching order books is not supported by the API of ' + self.id)
 
     def currency_code(self, base, name):
         currencies = {
-            'Bitgem': 'Bitgem',
-            'NetCoin': 'NetCoin',
+            'ACChain': 'ACChain',
+            'AdCoin': 'AdCoin',
             'BatCoin': 'BatCoin',
+            'Bitgem': 'Bitgem',
+            'BlazeCoin': 'BlazeCoin',
+            'BlockCAT': 'BlockCAT',
+            'Catcoin': 'Catcoin',
+            'CanYaCoin': 'CanYaCoin',  # conflict with CAN(Content and AD Network)
+            'Comet': 'Comet',  # conflict with CMT(CyberMiles)
+            'CPChain': 'CPChain',
+            'Cubits': 'Cubits',  # conflict with QBT(Qbao)
+            'DAO.Casino': 'DAO.Casino',  # conflict with BET(BetaCoin)
+            'ENTCash': 'ENTCash',  # conflict with ENT(Eternity)
+            'FairGame': 'FairGame',
+            'GET Protocol': 'GET Protocol',
+            'Global Tour Coin': 'Global Tour Coin',  # conflict with GTC(Game.com)
+            'GuccioneCoin': 'GuccioneCoin',  # conflict with GCC(Global Cryptocurrency)
+            'HarmonyCoin': 'HarmonyCoin',  # conflict with HMC(Hi Mutual Society)
+            'Huncoin': 'Huncoin',  # conflict with HNC(Helleniccoin)
             'iCoin': 'iCoin',
+            'Infinity Economics': 'Infinity Economics',  # conflict with XIN(Mixin)
+            'KingN Coin': 'KingN Coin',  # conflict with KNC(Kyber Network)
+            'LiteBitcoin': 'LiteBitcoin',  # conflict with LBTC(LightningBitcoin)
+            'Maggie': 'Maggie',
+            'MIOTA': 'IOTA',  # a special case, most exchanges list it as IOTA, therefore we change just the Coinmarketcap instead of changing them all
+            'NetCoin': 'NetCoin',
+            'Polcoin': 'Polcoin',
+            'PutinCoin': 'PutinCoin',  # conflict with PUT(Profile Utility Token)
+            'Rcoin': 'Rcoin',  # conflict with RCN(Ripio Credit Network)
         }
         if name in currencies:
             return currencies[name]
@@ -108,7 +140,7 @@ class coinmarketcap (Exchange):
                 baseId = market['id']
                 base = self.currency_code(market['symbol'], market['name'])
                 symbol = base + '/' + quote
-                id = baseId + '/' + quote
+                id = baseId + '/' + quoteId
                 result.append({
                     'id': id,
                     'symbol': symbol,
@@ -156,12 +188,14 @@ class coinmarketcap (Exchange):
             'high': None,
             'low': None,
             'bid': None,
+            'bidVolume': None,
             'ask': None,
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
+            'close': last,
             'last': last,
+            'previousClose': None,
             'change': change,
             'percentage': None,
             'average': None,
@@ -181,7 +215,8 @@ class coinmarketcap (Exchange):
         tickers = {}
         for t in range(0, len(response)):
             ticker = response[t]
-            id = ticker['id'] + '/' + currency
+            currencyId = currency.lower()
+            id = ticker['id'] + '/' + currencyId
             symbol = id
             market = None
             if id in self.markets_by_id:

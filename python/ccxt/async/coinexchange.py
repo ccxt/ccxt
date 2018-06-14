@@ -19,7 +19,13 @@ class coinexchange (Exchange):
             # new metainfo interface
             'has': {
                 'privateAPI': False,
+                'createOrder': False,
+                'createMarketOrder': False,
+                'createLimitOrder': False,
+                'cancelOrder': False,
+                'editOrder': False,
                 'fetchTrades': False,
+                'fetchOHLCV': False,
                 'fetchCurrencies': True,
                 'fetchTickers': True,
             },
@@ -249,7 +255,7 @@ class coinexchange (Exchange):
                         'HC': 0.01,
                         'HEALTHY': 0.01,
                         'HIGH': 0.01,
-                        'HMC': 0.01,
+                        'HarmonyCoin': 0.01,
                         'HNC': 0.01,
                         'HOC': 0.01,
                         'HODL': 0.01,
@@ -533,12 +539,20 @@ class coinexchange (Exchange):
                 'amount': 8,
                 'price': 8,
             },
+            'commonCurrencies': {
+                'BON': 'BonPeKaO',
+                'ETN': 'Ethernex',
+                'GET': 'GreenEnergyToken',
+                'GDC': 'GoldenCryptoCoin',
+                'GTC': 'GlobalTourCoin',
+                'HMC': 'HarmonyCoin',
+                'HNC': 'Huncoin',
+                'MARS': 'MarsBux',
+                'MER': 'TheMermaidCoin',
+                'RUB': 'RubbleCoin',
+                'UP': 'UpscaleToken',
+            },
         })
-
-    def common_currency_code(self, currency):
-        if currency == 'HNC':
-            return 'Huncoin'
-        return currency
 
     async def fetch_currencies(self, params={}):
         response = await self.publicGetGetcurrencies(params)
@@ -610,12 +624,13 @@ class coinexchange (Exchange):
         if not market:
             marketId = ticker['MarketID']
             if marketId in self.markets_by_id:
-                market = self.marketsById[marketId]
+                market = self.markets_by_id[marketId]
             else:
                 symbol = marketId
         if market:
             symbol = market['symbol']
         timestamp = self.milliseconds()
+        last = self.safe_float(ticker, 'LastPrice')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -623,12 +638,14 @@ class coinexchange (Exchange):
             'high': self.safe_float(ticker, 'HighPrice'),
             'low': self.safe_float(ticker, 'LowPrice'),
             'bid': self.safe_float(ticker, 'BidPrice'),
+            'bidVolume': None,
             'ask': self.safe_float(ticker, 'AskPrice'),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': self.safe_float(ticker, 'LastPrice'),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': self.safe_float(ticker, 'Change'),
             'percentage': None,
             'average': None,
@@ -656,7 +673,7 @@ class coinexchange (Exchange):
             result[symbol] = ticker
         return result
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         orderbook = await self.publicGetGetorderbook(self.extend({
             'market_id': self.market_id(symbol),

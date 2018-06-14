@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -8,7 +8,6 @@ const { ExchangeError } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class coinmarketcap extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'coinmarketcap',
@@ -20,9 +19,13 @@ module.exports = class coinmarketcap extends Exchange {
                 'CORS': true,
                 'privateAPI': false,
                 'createOrder': false,
+                'createMarketOrder': false,
+                'createLimitOrder': false,
                 'cancelOrder': false,
+                'editOrder': false,
                 'fetchBalance': false,
                 'fetchOrderBook': false,
+                'fetchOHLCV': false,
                 'fetchTrades': false,
                 'fetchTickers': true,
                 'fetchCurrencies': true,
@@ -76,20 +79,48 @@ module.exports = class coinmarketcap extends Exchange {
                 'MXN',
                 'RUB',
                 'USD',
+                'BTC',
+                'ETH',
+                'LTC',
             ],
         });
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         throw new ExchangeError ('Fetching order books is not supported by the API of ' + this.id);
     }
 
     currencyCode (base, name) {
         const currencies = {
-            'Bitgem': 'Bitgem',
-            'NetCoin': 'NetCoin',
+            'ACChain': 'ACChain',
+            'AdCoin': 'AdCoin',
             'BatCoin': 'BatCoin',
+            'Bitgem': 'Bitgem',
+            'BlazeCoin': 'BlazeCoin',
+            'BlockCAT': 'BlockCAT',
+            'Catcoin': 'Catcoin',
+            'CanYaCoin': 'CanYaCoin', // conflict with CAN (Content and AD Network)
+            'Comet': 'Comet', // conflict with CMT (CyberMiles)
+            'CPChain': 'CPChain',
+            'Cubits': 'Cubits', // conflict with QBT (Qbao)
+            'DAO.Casino': 'DAO.Casino', // conflict with BET (BetaCoin)
+            'ENTCash': 'ENTCash', // conflict with ENT (Eternity)
+            'FairGame': 'FairGame',
+            'GET Protocol': 'GET Protocol',
+            'Global Tour Coin': 'Global Tour Coin', // conflict with GTC (Game.com)
+            'GuccioneCoin': 'GuccioneCoin', // conflict with GCC (Global Cryptocurrency)
+            'HarmonyCoin': 'HarmonyCoin', // conflict with HMC (Hi Mutual Society)
+            'Huncoin': 'Huncoin', // conflict with HNC (Helleniccoin)
             'iCoin': 'iCoin',
+            'Infinity Economics': 'Infinity Economics', // conflict with XIN (Mixin)
+            'KingN Coin': 'KingN Coin', // conflict with KNC (Kyber Network)
+            'LiteBitcoin': 'LiteBitcoin', // conflict with LBTC (LightningBitcoin)
+            'Maggie': 'Maggie',
+            'MIOTA': 'IOTA', // a special case, most exchanges list it as IOTA, therefore we change just the Coinmarketcap instead of changing them all
+            'NetCoin': 'NetCoin',
+            'Polcoin': 'Polcoin',
+            'PutinCoin': 'PutinCoin', // conflict with PUT (Profile Utility Token)
+            'Rcoin': 'Rcoin', // conflict with RCN (Ripio Credit Network)
         };
         if (name in currencies)
             return currencies[name];
@@ -110,7 +141,7 @@ module.exports = class coinmarketcap extends Exchange {
                 let baseId = market['id'];
                 let base = this.currencyCode (market['symbol'], market['name']);
                 let symbol = base + '/' + quote;
-                let id = baseId + '/' + quote;
+                let id = baseId + '/' + quoteId;
                 result.push ({
                     'id': id,
                     'symbol': symbol,
@@ -163,12 +194,14 @@ module.exports = class coinmarketcap extends Exchange {
             'high': undefined,
             'low': undefined,
             'bid': undefined,
+            'bidVolume': undefined,
             'ask': undefined,
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
+            'close': last,
             'last': last,
+            'previousClose': undefined,
             'change': change,
             'percentage': undefined,
             'average': undefined,
@@ -189,7 +222,8 @@ module.exports = class coinmarketcap extends Exchange {
         let tickers = {};
         for (let t = 0; t < response.length; t++) {
             let ticker = response[t];
-            let id = ticker['id'] + '/' + currency;
+            let currencyId = currency.toLowerCase ();
+            let id = ticker['id'] + '/' + currencyId;
             let symbol = id;
             let market = undefined;
             if (id in this.markets_by_id) {
@@ -276,4 +310,4 @@ module.exports = class coinmarketcap extends Exchange {
         }
         return response;
     }
-}
+};

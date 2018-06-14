@@ -88,36 +88,39 @@ class bl3p (Exchange):
 
     def parse_bid_ask(self, bidask, priceKey=0, amountKey=0):
         return [
-            bidask['price_int'] / 100000.0,
-            bidask['amount_int'] / 100000000.0,
+            bidask[priceKey] / 100000.0,
+            bidask[amountKey] / 100000000.0,
         ]
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         market = self.market(symbol)
         response = await self.publicGetMarketOrderbook(self.extend({
             'market': market['id'],
         }, params))
         orderbook = response['data']
-        return self.parse_order_book(orderbook)
+        return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price_int', 'amount_int')
 
     async def fetch_ticker(self, symbol, params={}):
         ticker = await self.publicGetMarketTicker(self.extend({
             'market': self.market_id(symbol),
         }, params))
         timestamp = ticker['timestamp'] * 1000
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['bid']),
-            'ask': float(ticker['ask']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'bid'),
+            'bidVolume': None,
+            'ask': self.safe_float(ticker, 'ask'),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
@@ -178,6 +181,7 @@ class bl3p (Exchange):
             nonce = self.nonce()
             body = self.urlencode(self.extend({'nonce': nonce}, query))
             secret = base64.b64decode(self.secret)
+            # eslint-disable-next-line quotes
             auth = request + "\0" + body
             signature = self.hmac(self.encode(auth), secret, hashlib.sha512, 'base64')
             headers = {

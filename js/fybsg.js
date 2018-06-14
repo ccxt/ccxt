@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 // ---------------------------------------------------------------------------
 
@@ -7,7 +7,6 @@ const fybse = require ('./fybse.js');
 // ---------------------------------------------------------------------------
 
 module.exports = class fybsg extends fybse {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'fybsg',
@@ -27,4 +26,4 @@ module.exports = class fybsg extends fybse {
             },
         });
     }
-}
+};

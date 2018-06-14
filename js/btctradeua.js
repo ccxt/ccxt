@@ -17,6 +17,7 @@ module.exports = class btctradeua extends Exchange {
             'has': {
                 'CORS': true,
                 'createMarketOrder': false,
+                'fetchOpenOrders': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27941483-79fc7350-62d9-11e7-9f61-ac47f28fcd96.jpg',
@@ -106,7 +107,7 @@ module.exports = class btctradeua extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let market = this.market (symbol);
         let bids = await this.publicGetTradesBuySymbol (this.extend ({
             'symbol': market['id'],
@@ -133,15 +134,6 @@ module.exports = class btctradeua extends Exchange {
         let response = await this.publicGetJapanStatHighSymbol (this.extend ({
             'symbol': this.marketId (symbol),
         }, params));
-        let orderbook = await this.fetchOrderBook (symbol);
-        let bid = undefined;
-        let numBids = orderbook['bids'].length;
-        if (numBids > 0)
-            bid = orderbook['bids'][0][0];
-        let ask = undefined;
-        let numAsks = orderbook['asks'].length;
-        if (numAsks > 0)
-            ask = orderbook['asks'][0][0];
         let ticker = response['trades'];
         let timestamp = this.milliseconds ();
         let result = {
@@ -150,13 +142,15 @@ module.exports = class btctradeua extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
             'low': undefined,
-            'bid': bid,
-            'ask': ask,
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
             'close': undefined,
-            'first': undefined,
             'last': undefined,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
@@ -181,7 +175,8 @@ module.exports = class btctradeua extends Exchange {
                     result['baseVolume'] -= candle[5];
             }
             let last = tickerLength - 1;
-            result['close'] = ticker[last][4];
+            result['last'] = ticker[last][4];
+            result['close'] = result['last'];
             result['baseVolume'] = -1 * result['baseVolume'];
         }
         return result;
@@ -247,8 +242,8 @@ module.exports = class btctradeua extends Exchange {
             'symbol': market['symbol'],
             'type': 'limit',
             'side': trade['type'],
-            'price': parseFloat (trade['price']),
-            'amount': parseFloat (trade['amnt_trade']),
+            'price': this.safeFloat (trade, 'price'),
+            'amount': this.safeFloat (trade, 'amnt_trade'),
         };
     }
 
@@ -292,6 +287,7 @@ module.exports = class btctradeua extends Exchange {
             'id': trade['id'],
             'timestamp': timestamp, // until they fix their timestamp
             'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
             'status': 'open',
             'symbol': market['symbol'],
             'type': undefined,
@@ -306,8 +302,8 @@ module.exports = class btctradeua extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (!symbol)
-            throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol param');
+        if (typeof symbol === 'undefined')
+            throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol argument');
         let market = this.market (symbol);
         let response = await this.privatePostMyOrdersSymbol (this.extend ({
             'symbol': market['id'],

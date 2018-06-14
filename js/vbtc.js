@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 // ---------------------------------------------------------------------------
 
@@ -7,7 +7,6 @@ const foxbit = require ('./foxbit.js');
 // ---------------------------------------------------------------------------
 
 module.exports = class vbtc extends foxbit {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'vbtc',
@@ -25,6 +24,9 @@ module.exports = class vbtc extends foxbit {
                 'www': 'https://vbtc.exchange',
                 'doc': 'https://blinktrade.com/docs',
             },
+            'options': {
+                'brokerId': '3', // https://blinktrade.com/docs/#brokers
+            },
         });
     }
-}
+};

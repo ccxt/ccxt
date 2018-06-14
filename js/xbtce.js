@@ -19,7 +19,6 @@ module.exports = class xbtce extends Exchange {
                 'publicAPI': false,
                 'CORS': false,
                 'fetchTickers': true,
-                'fetchOHLCV': false,
                 'createMarketOrder': false,
             },
             'urls': {
@@ -150,7 +149,7 @@ module.exports = class xbtce extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let orderbook = await this.privateGetLevel2Filter (this.extend ({
@@ -186,12 +185,14 @@ module.exports = class xbtce extends Exchange {
             'high': ticker['DailyBestBuyPrice'],
             'low': ticker['DailyBestSellPrice'],
             'bid': ticker['BestBid'],
+            'bidVolume': undefined,
             'ask': ticker['BestAsk'],
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
+            'close': last,
             'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
@@ -283,7 +284,7 @@ module.exports = class xbtce extends Exchange {
         await this.loadMarkets ();
         if (type === 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
-        let response = await this.tapiPostTrade (this.extend ({
+        let response = await this.privatePostTrade (this.extend ({
             'pair': this.marketId (symbol),
             'type': side,
             'amount': amount,

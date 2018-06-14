@@ -20,6 +20,10 @@ class lykke (Exchange):
                 'CORS': False,
                 'fetchOHLCV': False,
                 'fetchTrades': False,
+                'fetchOpenOrders': True,
+                'fetchClosedOrders': True,
+                'fetchOrder': True,
+                'fetchOrders': True,
             },
             'requiredCredentials': {
                 'apiKey': True,
@@ -28,11 +32,11 @@ class lykke (Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/34487620-3139a7b0-efe6-11e7-90f5-e520cef74451.jpg',
                 'api': {
-                    'mobile': 'https://api.lykkex.com/api',
+                    'mobile': 'https://public-api.lykke.com/api',
                     'public': 'https://hft-api.lykke.com/api',
                     'private': 'https://hft-api.lykke.com/api',
                     'test': {
-                        'mobile': 'https://api.lykkex.com/api',
+                        'mobile': 'https://public-api.lykke.com/api',
                         'public': 'https://hft-service-dev.lykkex.net/api',
                         'private': 'https://hft-service-dev.lykkex.net/api',
                     },
@@ -47,7 +51,7 @@ class lykke (Exchange):
             'api': {
                 'mobile': {
                     'get': [
-                        'AllAssetPairRates/{market}',
+                        'Market/{market}',
                     ],
                 },
                 'public': {
@@ -76,8 +80,8 @@ class lykke (Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0.0010,
-                    'taker': 0.0019,
+                    'maker': 0.0,  # as of 7 Feb 2018, see https://github.com/ccxt/ccxt/issues/1863
+                    'taker': 0.0,  # https://www.lykke.com/cp/wallet-fees-and-limits
                 },
                 'funding': {
                     'tierBased': False,
@@ -146,7 +150,7 @@ class lykke (Exchange):
                 'amount': market['Accuracy'],
                 'price': market['InvertedAccuracy'],
             }
-            result.append(self.extend(self.fees['trading'], {
+            result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -165,7 +169,7 @@ class lykke (Exchange):
                         'max': math.pow(10, precision['price']),
                     },
                 },
-            }))
+            })
         return result
 
     def parse_ticker(self, ticker, market=None):
@@ -173,24 +177,26 @@ class lykke (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
-        ticker = ticker['Result']
+        close = float(ticker['lastPrice'])
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': float(ticker['Rate']['Bid']),
-            'ask': float(ticker['Rate']['Ask']),
+            'bid': float(ticker['bid']),
+            'bidVolume': None,
+            'ask': float(ticker['ask']),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': None,
+            'close': close,
+            'last': close,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': None,
+            'baseVolume': float(ticker['volume24H']),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -198,7 +204,7 @@ class lykke (Exchange):
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        ticker = await self.mobileGetAllAssetPairRatesMarket(self.extend({
+        ticker = await self.mobileGetMarketMarket(self.extend({
             'market': market['id'],
         }, params))
         return self.parse_ticker(ticker, market)
@@ -234,11 +240,11 @@ class lykke (Exchange):
         if market:
             symbol = market['symbol']
         timestamp = None
-        if 'LastMatchTime' in order:
+        if ('LastMatchTime' in list(order.keys())) and(order['LastMatchTime']):
             timestamp = self.parse8601(order['LastMatchTime'])
-        elif 'Registered' in order:
+        elif ('Registered' in list(order.keys())) and(order['Registered']):
             timestamp = self.parse8601(order['Registered'])
-        elif 'CreatedAt' in order:
+        elif ('CreatedAt' in list(order.keys())) and(order['CreatedAt']):
             timestamp = self.parse8601(order['CreatedAt'])
         price = self.safe_float(order, 'Price')
         amount = self.safe_float(order, 'Volume')
@@ -250,6 +256,7 @@ class lykke (Exchange):
             'id': order['Id'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': None,
             'side': None,
@@ -265,28 +272,32 @@ class lykke (Exchange):
         return result
 
     async def fetch_order(self, id, symbol=None, params={}):
+        await self.load_markets()
         response = await self.privateGetOrdersId(self.extend({
             'id': id,
         }, params))
         return self.parse_order(response)
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
         response = await self.privateGetOrders()
         return self.parse_orders(response, None, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
         response = await self.privateGetOrders(self.extend({
             'status': 'InOrderBook',
         }, params))
         return self.parse_orders(response, None, since, limit)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
         response = await self.privateGetOrders(self.extend({
             'status': 'Matched',
         }, params))
         return self.parse_orders(response, None, since, limit)
 
-    async def fetch_order_book(self, symbol=None, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         response = await self.publicGetOrderBooksAssetPairId(self.extend({
             'AssetPairId': self.market_id(symbol),
@@ -303,14 +314,9 @@ class lykke (Exchange):
                 orderbook['bids'] = self.array_concat(orderbook['bids'], side['Prices'])
             else:
                 orderbook['asks'] = self.array_concat(orderbook['asks'], side['Prices'])
-            timestamp = self.parse8601(side['Timestamp'])
-            if not orderbook['timestamp']:
-                orderbook['timestamp'] = timestamp
-            else:
-                orderbook['timestamp'] = max(orderbook['timestamp'], timestamp)
-        if not timestamp:
-            timestamp = self.milliseconds()
-        return self.parse_order_book(orderbook, orderbook['timestamp'], 'bids', 'asks', 'Price', 'Volume')
+            sideTimestamp = self.parse8601(side['Timestamp'])
+            timestamp = sideTimestamp if (timestamp is None) else max(timestamp, sideTimestamp)
+        return self.parse_order_book(orderbook, timestamp, 'bids', 'asks', 'Price', 'Volume')
 
     def parse_bid_ask(self, bidask, priceKey=0, amountKey=1):
         price = float(bidask[priceKey])

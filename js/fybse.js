@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -8,7 +8,6 @@ const { ExchangeError } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class fybse extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'fybse',
@@ -73,7 +72,7 @@ module.exports = class fybse extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let orderbook = await this.publicGetOrderbook (params);
         return this.parseOrderBook (orderbook);
     }
@@ -84,22 +83,24 @@ module.exports = class fybse extends Exchange {
         let last = undefined;
         let volume = undefined;
         if ('last' in ticker)
-            last = parseFloat (ticker['last']);
+            last = this.safeFloat (ticker, 'last');
         if ('vol' in ticker)
-            volume = parseFloat (ticker['vol']);
+            volume = this.safeFloat (ticker, 'vol');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
             'low': undefined,
-            'bid': parseFloat (ticker['bid']),
-            'ask': parseFloat (ticker['ask']),
+            'bid': this.safeFloat (ticker, 'bid'),
+            'bidVolume': undefined,
+            'ask': this.safeFloat (ticker, 'ask'),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
+            'close': last,
             'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
@@ -120,8 +121,8 @@ module.exports = class fybse extends Exchange {
             'symbol': market['symbol'],
             'type': undefined,
             'side': undefined,
-            'price': parseFloat (trade['price']),
-            'amount': parseFloat (trade['amount']),
+            'price': this.safeFloat (trade, 'price'),
+            'amount': this.safeFloat (trade, 'amount'),
         };
     }
 
@@ -149,7 +150,7 @@ module.exports = class fybse extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + path;
-        if (api == 'public') {
+        if (api === 'public') {
             url += '.json';
         } else {
             this.checkRequiredCredentials ();
@@ -166,10 +167,10 @@ module.exports = class fybse extends Exchange {
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
-        if (api == 'private')
+        if (api === 'private')
             if ('error' in response)
                 if (response['error'])
                     throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
     }
-}
+};

@@ -67,11 +67,13 @@ class btcx (Exchange):
             result[uppercase] = account
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, symbol, params={}):
-        orderbook = await self.publicGetDepthIdLimit(self.extend({
+    async def fetch_order_book(self, symbol, limit=None, params={}):
+        request = {
             'id': self.market_id(symbol),
-            'limit': 1000,
-        }, params))
+        }
+        if limit is not None:
+            request['limit'] = limit  # 1000
+        orderbook = await self.publicGetDepthIdLimit(self.extend(request, params))
         return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'amount')
 
     async def fetch_ticker(self, symbol, params={}):
@@ -83,20 +85,20 @@ class btcx (Exchange):
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['sell']),
-            'ask': float(ticker['buy']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'sell'),
+            'ask': self.safe_float(ticker, 'buy'),
             'vwap': None,
             'open': None,
             'close': None,
             'first': None,
-            'last': float(ticker['last']),
+            'last': self.safe_float(ticker, 'last'),
             'change': None,
             'percentage': None,
             'average': None,
             'baseVolume': None,
-            'quoteVolume': float(ticker['volume']),
+            'quoteVolume': self.safe_float(ticker, 'volume'),
             'info': ticker,
         }
 

@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -8,7 +8,6 @@ const { ExchangeError } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class coinmate extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'coinmate',
@@ -91,7 +90,7 @@ module.exports = class coinmate extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let response = await this.publicGetOrderBook (this.extend ({
             'currencyPair': this.marketId (symbol),
             'groupByPriceLimit': 'False',
@@ -107,23 +106,26 @@ module.exports = class coinmate extends Exchange {
         }, params));
         let ticker = response['data'];
         let timestamp = ticker['timestamp'] * 1000;
+        let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']),
-            'low': parseFloat (ticker['low']),
-            'bid': parseFloat (ticker['bid']),
-            'ask': parseFloat (ticker['ask']),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'bid'),
+            'bidVolume': undefined,
+            'ask': this.safeFloat (ticker, 'ask'),
             'vwap': undefined,
+            'askVolume': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': parseFloat (ticker['amount']),
+            'baseVolume': this.safeFloat (ticker, 'amount'),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -159,8 +161,8 @@ module.exports = class coinmate extends Exchange {
         let order = {
             'currencyPair': this.marketId (symbol),
         };
-        if (type == 'market') {
-            if (side == 'buy')
+        if (type === 'market') {
+            if (side === 'buy')
                 order['total'] = amount; // amount in fiat
             else
                 order['amount'] = amount; // amount in fiat
@@ -183,7 +185,7 @@ module.exports = class coinmate extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + path;
-        if (api == 'public') {
+        if (api === 'public') {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
@@ -211,4 +213,4 @@ module.exports = class coinmate extends Exchange {
                 throw new ExchangeError (this.id + ' ' + this.json (response));
         return response;
     }
-}
+};

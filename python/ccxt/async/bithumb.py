@@ -4,8 +4,16 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import base64
 import hashlib
+import json
 from ccxt.base.errors import ExchangeError
 
 
@@ -38,8 +46,8 @@ class bithumb (Exchange):
                         'ticker/all',
                         'orderbook/{currency}',
                         'orderbook/all',
-                        'recent_transactions/{currency}',
-                        'recent_transactions/all',
+                        'transaction_history/{currency}',
+                        'transaction_history/all',
                     ],
                 },
                 'private': {
@@ -67,6 +75,9 @@ class bithumb (Exchange):
                     'taker': 0.15 / 100,
                 },
             },
+            'exceptions': {
+                '5100': ExchangeError,  # {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
+            },
         })
 
     async def fetch_markets(self):
@@ -80,7 +91,7 @@ class bithumb (Exchange):
                 base = id
                 quote = 'KRW'
                 symbol = id + '/' + quote
-                result.append(self.extend(self.fees['trading'], {
+                result.append({
                     'id': id,
                     'symbol': symbol,
                     'base': base,
@@ -106,7 +117,7 @@ class bithumb (Exchange):
                             'max': None,
                         },
                     },
-                }))
+                })
         return result
 
     async def fetch_balance(self, params={}):
@@ -127,13 +138,15 @@ class bithumb (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetOrderbookCurrency(self.extend({
-            'count': 50,  # max = 50
+        request = {
             'currency': market['base'],
-        }, params))
+        }
+        if limit is not None:
+            request['count'] = limit  # max = 50
+        response = await self.publicGetOrderbookCurrency(self.extend(request, params))
         orderbook = response['data']
         timestamp = int(orderbook['timestamp'])
         return self.parse_order_book(orderbook, timestamp, 'bids', 'asks', 'price', 'quantity')
@@ -143,6 +156,11 @@ class bithumb (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
+        open = self.safe_float(ticker, 'opening_price')
+        close = self.safe_float(ticker, 'closing_price')
+        change = close - open
+        vwap = self.safe_float(ticker, 'average_price')
+        baseVolume = self.safe_float(ticker, 'volume_1day')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -150,17 +168,19 @@ class bithumb (Exchange):
             'high': self.safe_float(ticker, 'max_price'),
             'low': self.safe_float(ticker, 'min_price'),
             'bid': self.safe_float(ticker, 'buy_price'),
+            'bidVolume': None,
             'ask': self.safe_float(ticker, 'sell_price'),
-            'vwap': None,
-            'open': self.safe_float(ticker, 'opening_price'),
-            'close': self.safe_float(ticker, 'closing_price'),
-            'first': None,
-            'last': self.safe_float(ticker, 'last_trade'),
-            'change': None,
-            'percentage': None,
-            'average': self.safe_float(ticker, 'average_price'),
-            'baseVolume': self.safe_float(ticker, 'volume_1day'),
-            'quoteVolume': None,
+            'askVolume': None,
+            'vwap': vwap,
+            'open': open,
+            'close': close,
+            'last': close,
+            'previousClose': None,
+            'change': change,
+            'percentage': change / open * 100,
+            'average': self.sum(open, close) / 2,
+            'baseVolume': baseVolume,
+            'quoteVolume': baseVolume * vwap,
             'info': ticker,
         }
 
@@ -208,14 +228,14 @@ class bithumb (Exchange):
             'order': None,
             'type': None,
             'side': side,
-            'price': float(trade['price']),
-            'amount': float(trade['units_traded']),
+            'price': self.safe_float(trade, 'price'),
+            'amount': self.safe_float(trade, 'units_traded'),
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetRecentTransactionsCurrency(self.extend({
+        response = await self.publicGetTransactionHistoryCurrency(self.extend({
             'currency': market['base'],
             'count': 100,  # max = 100
         }, params))
@@ -252,20 +272,21 @@ class bithumb (Exchange):
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
-        side = ('side' in list(params.keys()))
-        if not side:
+        side_in_params = ('side' in list(params.keys()))
+        if not side_in_params:
             raise ExchangeError(self.id + ' cancelOrder requires a side parameter(sell or buy) and a currency parameter')
-        side = 'purchase' if (side == 'buy') else 'sales'
         currency = ('currency' in list(params.keys()))
         if not currency:
             raise ExchangeError(self.id + ' cancelOrder requires a currency parameter')
+        side = 'bid' if (params['side'] == 'buy') else 'ask'
         return await self.privatePostTradeCancel({
             'order_id': id,
-            'type': params['side'],
+            'type': side,
             'currency': params['currency'],
         })
 
     async def withdraw(self, currency, amount, address, tag=None, params={}):
+        self.check_address(address)
         request = {
             'units': amount,
             'address': address,
@@ -308,6 +329,28 @@ class bithumb (Exchange):
                 'Api-Nonce': nonce,
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def handle_errors(self, httpCode, reason, url, method, headers, body):
+        if not isinstance(body, basestring):
+            return  # fallback to default error handler
+        if len(body) < 2:
+            return  # fallback to default error handler
+        if (body[0] == '{') or (body[0] == '['):
+            response = json.loads(body)
+            if 'status' in response:
+                #
+                #     {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
+                #
+                status = self.safe_string(response, 'status')
+                if status is not None:
+                    if status == '0000':
+                        return  # no error
+                    feedback = self.id + ' ' + self.json(response)
+                    exceptions = self.exceptions
+                    if status in exceptions:
+                        raise exceptions[status](feedback)
+                    else:
+                        raise ExchangeError(feedback)
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = await self.fetch2(path, api, method, params, headers, body)

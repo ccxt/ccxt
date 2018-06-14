@@ -6,8 +6,8 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import NotSupported
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import NotSupported
 
 
 class xbtce (Exchange):
@@ -23,7 +23,6 @@ class xbtce (Exchange):
                 'publicAPI': False,
                 'CORS': False,
                 'fetchTickers': True,
-                'fetchOHLCV': False,
                 'createMarketOrder': False,
             },
             'urls': {
@@ -149,7 +148,7 @@ class xbtce (Exchange):
             result[uppercase] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         orderbook = self.privateGetLevel2Filter(self.extend({
@@ -182,12 +181,14 @@ class xbtce (Exchange):
             'high': ticker['DailyBestBuyPrice'],
             'low': ticker['DailyBestSellPrice'],
             'bid': ticker['BestBid'],
+            'bidVolume': None,
             'ask': ticker['BestAsk'],
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
+            'close': last,
             'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
@@ -271,7 +272,7 @@ class xbtce (Exchange):
         self.load_markets()
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
-        response = self.tapiPostTrade(self.extend({
+        response = self.privatePostTrade(self.extend({
             'pair': self.market_id(symbol),
             'type': side,
             'amount': amount,

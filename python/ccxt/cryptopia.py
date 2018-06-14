@@ -4,13 +4,22 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import base64
 import hashlib
 import math
+import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import OrderNotCached
+from ccxt.base.errors import InvalidNonce
 
 
 class cryptopia (Exchange):
@@ -28,7 +37,9 @@ class cryptopia (Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchMyTrades': True,
+                'fetchOHLCV': True,
                 'fetchOrder': 'emulated',
+                'fetchOrderBooks': True,
                 'fetchOrders': 'emulated',
                 'fetchOpenOrders': True,
                 'fetchTickers': True,
@@ -37,15 +48,35 @@ class cryptopia (Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/29484394-7b4ea6e2-84c6-11e7-83e5-1fccf4b2dc81.jpg',
-                'api': 'https://www.cryptopia.co.nz/api',
+                'api': {
+                    'public': 'https://www.cryptopia.co.nz/api',
+                    'private': 'https://www.cryptopia.co.nz/api',
+                    'web': 'https://www.cryptopia.co.nz',
+                },
                 'www': 'https://www.cryptopia.co.nz',
+                'referral': 'https://www.cryptopia.co.nz/Register?referrer=kroitor',
                 'doc': [
                     'https://www.cryptopia.co.nz/Forum/Category/45',
                     'https://www.cryptopia.co.nz/Forum/Thread/255',
                     'https://www.cryptopia.co.nz/Forum/Thread/256',
                 ],
             },
+            'timeframes': {
+                '15m': 15,
+                '30m': 30,
+                '1h': 60,
+                '2h': 120,
+                '4h': 240,
+                '12h': 720,
+                '1d': 1440,
+                '1w': 10080,
+            },
             'api': {
+                'web': {
+                    'get': [
+                        'Exchange/GetTradePairChart',
+                    ],
+                },
                 'public': {
                     'get': [
                         'GetCurrencies',
@@ -60,6 +91,7 @@ class cryptopia (Exchange):
                         'GetMarketHistory/{id}/{hours}',
                         'GetMarketOrders/{id}',
                         'GetMarketOrders/{id}/{count}',
+                        'GetMarketOrderGroups/{ids}',
                         'GetMarketOrderGroups/{ids}/{count}',
                     ],
                 },
@@ -78,38 +110,28 @@ class cryptopia (Exchange):
                     ],
                 },
             },
+            'commonCurrencies': {
+                'ACC': 'AdCoin',
+                'BAT': 'BatCoin',
+                'BLZ': 'BlazeCoin',
+                'BTG': 'Bitgem',
+                'CC': 'CCX',
+                'CMT': 'Comet',
+                'EPC': 'ExperienceCoin',
+                'FCN': 'Facilecoin',
+                'FUEL': 'FC2',  # FuelCoin != FUEL
+                'HAV': 'Havecoin',
+                'LBTC': 'LiteBitcoin',
+                'LDC': 'LADACoin',
+                'MARKS': 'Bitmark',
+                'NET': 'NetCoin',
+                'QBT': 'Cubits',
+                'WRC': 'WarCoin',
+            },
+            'options': {
+                'fetchTickersErrors': True,
+            },
         })
-
-    def common_currency_code(self, currency):
-        currencies = {
-            'ACC': 'AdCoin',
-            'CC': 'CCX',
-            'CMT': 'Comet',
-            'FCN': 'Facilecoin',
-            'NET': 'NetCoin',
-            'BTG': 'Bitgem',
-            'FUEL': 'FC2',  # FuelCoin != FUEL
-            'QBT': 'Cubits',
-            'WRC': 'WarCoin',
-        }
-        if currency in currencies:
-            return currencies[currency]
-        return currency
-
-    def currency_id(self, currency):
-        currencies = {
-            'AdCoin': 'ACC',
-            'CCX': 'CC',
-            'Comet': 'CMT',
-            'Cubits': 'QBT',
-            'Facilecoin': 'FCN',
-            'NetCoin': 'NET',
-            'Bitgem': 'BTG',
-            'FC2': 'FUEL',
-        }
-        if currency in currencies:
-            return currencies[currency]
-        return currency
 
     def fetch_markets(self):
         response = self.publicGetGetTradePairs()
@@ -119,10 +141,10 @@ class cryptopia (Exchange):
             market = markets[i]
             id = market['Id']
             symbol = market['Label']
-            base = market['Symbol']
-            quote = market['BaseSymbol']
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            baseId = market['Symbol']
+            quoteId = market['BaseSymbol']
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': 8,
@@ -141,7 +163,7 @@ class cryptopia (Exchange):
                 'amount': amountLimits,
                 'price': priceLimits,
                 'cost': {
-                    'min': priceLimits['min'] * amountLimits['min'],
+                    'min': market['MinimumBaseTrade'],
                     'max': None,
                 },
             }
@@ -149,8 +171,11 @@ class cryptopia (Exchange):
             result.append({
                 'id': id,
                 'symbol': symbol,
+                'label': market['Label'],
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'info': market,
                 'maker': market['TradeFee'] / 100,
                 'taker': market['TradeFee'] / 100,
@@ -159,9 +184,10 @@ class cryptopia (Exchange):
                 'precision': precision,
                 'limits': limits,
             })
+        self.options['marketsByLabel'] = self.index_by(result, 'label')
         return result
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         response = self.publicGetGetMarketOrdersId(self.extend({
             'id': self.market_id(symbol),
@@ -169,30 +195,103 @@ class cryptopia (Exchange):
         orderbook = response['Data']
         return self.parse_order_book(orderbook, None, 'Buy', 'Sell', 'Price', 'Volume')
 
+    def fetch_ohlcv(self, symbol, timeframe='15m', since=None, limit=None, params={}):
+        dataRange = 0
+        if since is not None:
+            dataRanges = [
+                86400,
+                172800,
+                604800,
+                1209600,
+                2592000,
+                7776000,
+                15552000,
+            ]
+            numDataRanges = len(dataRanges)
+            now = self.seconds()
+            sinceSeconds = int(since / 1000)
+            for i in range(1, numDataRanges):
+                if (now - sinceSeconds) > dataRanges[i]:
+                    dataRange = i
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'tradePairId': market['id'],
+            'dataRange': dataRange,
+            'dataGroup': self.timeframes[timeframe],
+        }
+        response = self.webGetExchangeGetTradePairChart(self.extend(request, params))
+        candles = response['Candle']
+        volumes = response['Volume']
+        for i in range(0, len(candles)):
+            candles[i].append(volumes[i]['basev'])
+        return self.parse_ohlcvs(candles, market, timeframe, since, limit)
+
+    def join_market_ids(self, ids, glue='-'):
+        result = str(ids[0])
+        for i in range(1, len(ids)):
+            result += glue + str(ids[i])
+        return result
+
+    def fetch_order_books(self, symbols=None, params={}):
+        self.load_markets()
+        if symbols is None:
+            raise ExchangeError(self.id + ' fetchOrderBooks requires the symbols argument as of May 2018(up to 5 symbols at max)')
+        numSymbols = len(symbols)
+        if numSymbols > 5:
+            raise ExchangeError(self.id + ' fetchOrderBooks accepts 5 symbols at max')
+        ids = self.join_market_ids(self.market_ids(symbols))
+        response = self.publicGetGetMarketOrderGroupsIds(self.extend({
+            'ids': ids,
+        }, params))
+        orderbooks = response['Data']
+        result = {}
+        for i in range(0, len(orderbooks)):
+            orderbook = orderbooks[i]
+            id = self.safe_integer(orderbook, 'TradePairId')
+            symbol = id
+            if id in self.markets_by_id:
+                market = self.markets_by_id[id]
+                symbol = market['symbol']
+            result[symbol] = self.parse_order_book(orderbook, None, 'Buy', 'Sell', 'Price', 'Volume')
+        return result
+
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
         symbol = None
         if market:
             symbol = market['symbol']
+        open = self.safe_float(ticker, 'Open')
+        last = self.safe_float(ticker, 'LastPrice')
+        change = last - open
+        baseVolume = self.safe_float(ticker, 'Volume')
+        quoteVolume = self.safe_float(ticker, 'BaseVolume')
+        vwap = None
+        if quoteVolume is not None:
+            if baseVolume is not None:
+                if baseVolume > 0:
+                    vwap = quoteVolume / baseVolume
         return {
             'symbol': symbol,
             'info': ticker,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['High']),
-            'low': float(ticker['Low']),
-            'bid': float(ticker['BidPrice']),
-            'ask': float(ticker['AskPrice']),
-            'vwap': None,
-            'open': float(ticker['Open']),
-            'close': float(ticker['Close']),
-            'first': None,
-            'last': float(ticker['LastPrice']),
-            'change': float(ticker['Change']),
-            'percentage': None,
-            'average': None,
-            'baseVolume': float(ticker['Volume']),
-            'quoteVolume': float(ticker['BaseVolume']),
+            'high': self.safe_float(ticker, 'High'),
+            'low': self.safe_float(ticker, 'Low'),
+            'bid': self.safe_float(ticker, 'BidPrice'),
+            'bidVolume': None,
+            'ask': self.safe_float(ticker, 'AskPrice'),
+            'askVolume': None,
+            'vwap': vwap,
+            'open': open,
+            'close': last,
+            'last': last,
+            'previousClose': None,
+            'change': change,
+            'percentage': self.safe_float(ticker, 'Change'),
+            'average': self.sum(last, open) / 2,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
         }
 
     def fetch_ticker(self, symbol, params={}):
@@ -214,11 +313,13 @@ class cryptopia (Exchange):
             id = ticker['TradePairId']
             recognized = (id in list(self.markets_by_id.keys()))
             if not recognized:
-                raise ExchangeError(self.id + ' fetchTickers() returned unrecognized pair id ' + id)
-            market = self.markets_by_id[id]
-            symbol = market['symbol']
-            result[symbol] = self.parse_ticker(ticker, market)
-        return result
+                if self.options['fetchTickersErrors']:
+                    raise ExchangeError(self.id + ' fetchTickers() returned unrecognized pair id ' + str(id))
+            else:
+                market = self.markets_by_id[id]
+                symbol = market['symbol']
+                result[symbol] = self.parse_ticker(ticker, market)
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def parse_trade(self, trade, market=None):
         timestamp = None
@@ -266,7 +367,7 @@ class cryptopia (Exchange):
         if since is not None:
             elapsed = self.milliseconds() - since
             hour = 1000 * 60 * 60
-            hours = int(elapsed / hour)
+            hours = int(int(math.ceil(elapsed / hour)))
         request = {
             'id': market['id'],
             'hours': hours,
@@ -282,6 +383,8 @@ class cryptopia (Exchange):
         if symbol:
             market = self.market(symbol)
             request['TradePairId'] = market['id']
+        if limit is not None:
+            request['Count'] = limit  # default 100
         response = self.privatePostGetTradeHistory(self.extend(request, params))
         return self.parse_trades(response['Data'], market, since, limit)
 
@@ -333,7 +436,7 @@ class cryptopia (Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        response = self.privatePostGetBalance()
+        response = self.privatePostGetBalance(params)
         balances = response['Data']
         result = {'info': response}
         for i in range(0, len(balances)):
@@ -369,28 +472,28 @@ class cryptopia (Exchange):
             raise ExchangeError(self.id + ' createOrder returned unknown error: ' + self.json(response))
         id = None
         filled = 0.0
+        status = 'open'
         if 'Data' in response:
             if 'OrderId' in response['Data']:
                 if response['Data']['OrderId']:
                     id = str(response['Data']['OrderId'])
-            if 'FilledOrders' in response['Data']:
-                filledOrders = response['Data']['FilledOrders']
-                filledOrdersLength = len(filledOrders)
-                if filledOrdersLength:
-                    filled = None
+                else:
+                    filled = amount
+                    status = 'closed'
         timestamp = self.milliseconds()
         order = {
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'status': 'open',
+            'lastTradeTimestamp': None,
+            'status': status,
             'symbol': symbol,
             'type': type,
             'side': side,
             'price': price,
             'cost': price * amount,
             'amount': amount,
-            'remaining': amount,
+            'remaining': amount - filled,
             'filled': filled,
             'fee': None,
             # 'trades': self.parse_trades(order['trades'], market),
@@ -407,6 +510,8 @@ class cryptopia (Exchange):
                 'Type': 'Trade',
                 'OrderId': id,
             }, params))
+            # We do not know if it is indeed canceled, but cryptopia lacks any
+            # reasonable method to get information on executed or canceled order.
             if id in self.orders:
                 self.orders[id]['status'] = 'canceled'
         except Exception as e:
@@ -416,7 +521,7 @@ class cryptopia (Exchange):
                     if message.find('does not exist') >= 0:
                         raise OrderNotFound(self.id + ' cancelOrder() error: ' + self.last_http_response)
             raise e
-        return response
+        return self.parse_order(response)
 
     def parse_order(self, order, market=None):
         symbol = None
@@ -427,19 +532,35 @@ class cryptopia (Exchange):
             if id in self.markets_by_id:
                 market = self.markets_by_id[id]
                 symbol = market['symbol']
-        timestamp = self.parse8601(order['TimeStamp'])
+            else:
+                if id in self.options['marketsByLabel']:
+                    market = self.options['marketsByLabel'][id]
+                    symbol = market['symbol']
+        timestamp = self.safe_integer(order, 'TimeStamp')
+        datetime = None
+        if timestamp:
+            datetime = self.iso8601(timestamp)
         amount = self.safe_float(order, 'Amount')
         remaining = self.safe_float(order, 'Remaining')
-        filled = amount - remaining
+        filled = None
+        if amount is not None and remaining is not None:
+            filled = amount - remaining
+        id = self.safe_value(order, 'OrderId')
+        if id is not None:
+            id = str(id)
+        side = self.safe_string(order, 'Type')
+        if side is not None:
+            side = side.lower()
         return {
-            'id': str(order['OrderId']),
+            'id': id,
             'info': self.omit(order, 'status'),
             'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'datetime': datetime,
+            'lastTradeTimestamp': None,
             'status': order['status'],
             'symbol': symbol,
             'type': 'limit',
-            'side': order['Type'].lower(),
+            'side': side,
             'price': self.safe_float(order, 'Rate'),
             'cost': self.safe_float(order, 'Total'),
             'amount': amount,
@@ -450,15 +571,17 @@ class cryptopia (Exchange):
         }
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
-        if not symbol:
-            raise ExchangeError(self.id + ' fetchOrders requires a symbol param')
         self.load_markets()
-        market = self.market(symbol)
-        response = self.privatePostGetOpenOrders({
+        market = None
+        request = {
             # 'Market': market['id'],
-            'TradePairId': market['id'],  # Cryptopia identifier(not required if 'Market' supplied)
+            # 'TradePairId': market['id'],  # Cryptopia identifier(not required if 'Market' supplied)
             # 'Count': 100,  # default = 100
-        }, params)
+        }
+        if symbol is not None:
+            market = self.market(symbol)
+            request['TradePairId'] = market['id']
+        response = self.privatePostGetOpenOrders(self.extend(request, params))
         orders = []
         for i in range(0, len(response['Data'])):
             orders.append(self.extend(response['Data'][i], {'status': 'open'}))
@@ -475,14 +598,15 @@ class cryptopia (Exchange):
             else:
                 order = self.orders[id]
                 if order['status'] == 'open':
-                    self.orders[id] = self.extend(order, {
-                        'status': 'closed',
-                        'cost': order['amount'] * order['price'],
-                        'filled': order['amount'],
-                        'remaining': 0.0,
-                    })
+                    if (symbol is None) or (order['symbol'] == symbol):
+                        self.orders[id] = self.extend(order, {
+                            'status': 'closed',
+                            'cost': order['amount'] * order['price'],
+                            'filled': order['amount'],
+                            'remaining': 0.0,
+                        })
             order = self.orders[id]
-            if order['symbol'] == symbol:
+            if (symbol is None) or (order['symbol'] == symbol):
                 result.append(order)
         return self.filter_by_since_limit(result, since, limit)
 
@@ -510,25 +634,29 @@ class cryptopia (Exchange):
                 result.append(orders[i])
         return result
 
-    def fetch_deposit_address(self, currency, params={}):
-        currencyId = self.currency_id(currency)
+    def fetch_deposit_address(self, code, params={}):
+        self.load_markets()
+        currency = self.currency(code)
         response = self.privatePostGetDepositAddress(self.extend({
-            'Currency': currencyId,
+            'Currency': currency['id'],
         }, params))
         address = self.safe_string(response['Data'], 'BaseAddress')
         if not address:
             address = self.safe_string(response['Data'], 'Address')
+        self.check_address(address)
         return {
-            'currency': currency,
+            'currency': code,
             'address': address,
             'status': 'ok',
             'info': response,
         }
 
-    def withdraw(self, currency, amount, address, tag=None, params={}):
-        currencyId = self.currency_id(currency)
+    def withdraw(self, code, amount, address, tag=None, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        self.check_address(address)
         request = {
-            'Currency': currencyId,
+            'Currency': currency['id'],
             'Amount': amount,
             'Address': address,  # Address must exist in you AddressBook in security settings
         }
@@ -541,12 +669,9 @@ class cryptopia (Exchange):
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + self.implode_params(path, params)
+        url = self.urls['api'][api] + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        if api == 'public':
-            if query:
-                url += '?' + self.urlencode(query)
-        else:
+        if api == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())
             body = self.json(query, {'convertArraysToObjects': True})
@@ -562,15 +687,45 @@ class cryptopia (Exchange):
                 'Content-Type': 'application/json',
                 'Authorization': auth,
             }
+        else:
+            if query:
+                url += '?' + self.urlencode(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
-        if response:
+    def nonce(self):
+        return self.milliseconds()
+
+    def handle_errors(self, code, reason, url, method, headers, body):
+        if not isinstance(body, basestring):
+            return  # fallback to default error handler
+        if len(body) < 2:
+            return  # fallback to default error handler
+        fixedJSONString = self.sanitize_broken_json_string(body)
+        if fixedJSONString[0] == '{':
+            response = json.loads(fixedJSONString)
             if 'Success' in response:
-                if response['Success']:
-                    return response
-                elif 'Error' in response:
-                    if response['Error'] == 'Insufficient Funds.':
-                        raise InsufficientFunds(self.id + ' ' + self.json(response))
-        raise ExchangeError(self.id + ' ' + self.json(response))
+                success = self.safe_string(response, 'Success')
+                if success == 'false':
+                    error = self.safe_string(response, 'Error')
+                    feedback = self.id
+                    if isinstance(error, basestring):
+                        feedback = feedback + ' ' + error
+                        if error.find('does not exist') >= 0:
+                            raise OrderNotFound(feedback)
+                        if error.find('Insufficient Funds') >= 0:
+                            raise InsufficientFunds(feedback)
+                        if error.find('Nonce has already been used') >= 0:
+                            raise InvalidNonce(feedback)
+                    else:
+                        feedback = feedback + ' ' + fixedJSONString
+                    raise ExchangeError(feedback)
+
+    def sanitize_broken_json_string(self, jsonString):
+        # sometimes cryptopia will return a unicode symbol before actual JSON string.
+        indexOfBracket = jsonString.find('{')
+        if indexOfBracket >= 0:
+            return jsonString[indexOfBracket:]
+        return jsonString
+
+    def parse_json(self, response, responseBody, url, method):
+        return super(cryptopia, self).parseJson(response, self.sanitize_broken_json_string(responseBody), url, method)

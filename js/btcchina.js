@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -7,7 +7,6 @@ const Exchange = require ('./base/Exchange');
 //  ---------------------------------------------------------------------------
 
 module.exports = class btcchina extends Exchange {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'btcchina',
@@ -26,7 +25,7 @@ module.exports = class btcchina extends Exchange {
                     'private': 'https://api.btcchina.com/api_trade_v1.php',
                 },
                 'www': 'https://www.btcchina.com',
-                'doc': 'https://www.btcchina.com/apidocs'
+                'doc': 'https://www.btcchina.com/apidocs',
             },
             'api': {
                 'plus': {
@@ -140,36 +139,35 @@ module.exports = class btcchina extends Exchange {
         return request;
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let method = market['api'] + 'GetOrderbook';
         let request = this.createMarketRequest (market);
         let orderbook = await this[method] (this.extend (request, params));
         let timestamp = orderbook['date'] * 1000;
-        let result = this.parseOrderBook (orderbook, timestamp);
-        result['asks'] = this.sortBy (result['asks'], 0);
-        return result;
+        return this.parseOrderBook (orderbook, timestamp);
     }
 
     parseTicker (ticker, market) {
         let timestamp = ticker['date'] * 1000;
+        let last = this.safeFloat (ticker, 'last');
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']),
-            'low': parseFloat (ticker['low']),
-            'bid': parseFloat (ticker['buy']),
-            'ask': parseFloat (ticker['sell']),
-            'vwap': parseFloat (ticker['vwap']),
-            'open': parseFloat (ticker['open']),
-            'close': parseFloat (ticker['prev_close']),
-            'first': undefined,
-            'last': parseFloat (ticker['last']),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'buy'),
+            'ask': this.safeFloat (ticker, 'sell'),
+            'vwap': this.safeFloat (ticker, 'vwap'),
+            'open': this.safeFloat (ticker, 'open'),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': parseFloat (ticker['vol']),
+            'baseVolume': this.safeFloat (ticker, 'vol'),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -184,19 +182,17 @@ module.exports = class btcchina extends Exchange {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['High']),
-            'low': parseFloat (ticker['Low']),
-            'bid': parseFloat (ticker['BidPrice']),
-            'ask': parseFloat (ticker['AskPrice']),
+            'high': this.safeFloat (ticker, 'High'),
+            'low': this.safeFloat (ticker, 'Low'),
+            'bid': this.safeFloat (ticker, 'BidPrice'),
+            'ask': this.safeFloat (ticker, 'AskPrice'),
             'vwap': undefined,
-            'open': parseFloat (ticker['Open']),
-            'close': parseFloat (ticker['PrevCls']),
-            'first': undefined,
-            'last': parseFloat (ticker['Last']),
+            'open': this.safeFloat (ticker, 'Open'),
+            'last': this.safeFloat (ticker, 'Last'),
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': parseFloat (ticker['Volume24H']),
+            'baseVolume': this.safeFloat (ticker, 'Volume24H'),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -277,7 +273,7 @@ module.exports = class btcchina extends Exchange {
         let method = 'privatePost' + this.capitalize (side) + 'Order2';
         let order = {};
         let id = market['id'].toUpperCase ();
-        if (type == 'market') {
+        if (type === 'market') {
             order['params'] = [ undefined, amount, id ];
         } else {
             order['params'] = [ price, amount, id ];
@@ -303,7 +299,7 @@ module.exports = class btcchina extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + path;
-        if (api == 'private') {
+        if (api === 'private') {
             this.checkRequiredCredentials ();
             let p = [];
             if ('params' in params)
@@ -336,4 +332,4 @@ module.exports = class btcchina extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
-}
+};

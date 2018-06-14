@@ -28,7 +28,7 @@ class btcchina (Exchange):
                     'private': 'https://api.btcchina.com/api_trade_v1.php',
                 },
                 'www': 'https://www.btcchina.com',
-                'doc': 'https://www.btcchina.com/apidocs'
+                'doc': 'https://www.btcchina.com/apidocs',
             },
             'api': {
                 'plus': {
@@ -136,35 +136,34 @@ class btcchina (Exchange):
         request[field] = market['id']
         return request
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         method = market['api'] + 'GetOrderbook'
         request = self.create_market_request(market)
         orderbook = getattr(self, method)(self.extend(request, params))
         timestamp = orderbook['date'] * 1000
-        result = self.parse_order_book(orderbook, timestamp)
-        result['asks'] = self.sort_by(result['asks'], 0)
-        return result
+        return self.parse_order_book(orderbook, timestamp)
 
     def parse_ticker(self, ticker, market):
         timestamp = ticker['date'] * 1000
+        last = self.safe_float(ticker, 'last')
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['buy']),
-            'ask': float(ticker['sell']),
-            'vwap': float(ticker['vwap']),
-            'open': float(ticker['open']),
-            'close': float(ticker['prev_close']),
-            'first': None,
-            'last': float(ticker['last']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'buy'),
+            'ask': self.safe_float(ticker, 'sell'),
+            'vwap': self.safe_float(ticker, 'vwap'),
+            'open': self.safe_float(ticker, 'open'),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['vol']),
+            'baseVolume': self.safe_float(ticker, 'vol'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -178,19 +177,17 @@ class btcchina (Exchange):
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['High']),
-            'low': float(ticker['Low']),
-            'bid': float(ticker['BidPrice']),
-            'ask': float(ticker['AskPrice']),
+            'high': self.safe_float(ticker, 'High'),
+            'low': self.safe_float(ticker, 'Low'),
+            'bid': self.safe_float(ticker, 'BidPrice'),
+            'ask': self.safe_float(ticker, 'AskPrice'),
             'vwap': None,
-            'open': float(ticker['Open']),
-            'close': float(ticker['PrevCls']),
-            'first': None,
-            'last': float(ticker['Last']),
+            'open': self.safe_float(ticker, 'Open'),
+            'last': self.safe_float(ticker, 'Last'),
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['Volume24H']),
+            'baseVolume': self.safe_float(ticker, 'Volume24H'),
             'quoteVolume': None,
             'info': ticker,
         }
