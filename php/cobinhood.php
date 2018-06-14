@@ -440,13 +440,13 @@ class cobinhood extends Exchange {
             $side = 'sell';
         }
         return array (
-            'id' => $order['id'],
+            'id' => $this->safe_string($order, 'id'),
             'datetime' => $this->iso8601 ($timestamp),
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
-            'type' => $order['type'], // $market, limit, stop, stop_limit, trailing_stop, fill_or_kill
+            'type' => $this->safe_string($order, 'type'), // $market, limit, stop, stop_limit, trailing_stop, fill_or_kill
             'side' => $side,
             'price' => $price,
             'cost' => $cost,
@@ -482,7 +482,9 @@ class cobinhood extends Exchange {
         $response = $this->privateDeleteTradingOrdersOrderId (array_merge (array (
             'order_id' => $id,
         ), $params));
-        return $this->parse_order($response);
+        return $this->parse_order(array_merge ($response, array (
+            'id' => $id,
+        )));
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {

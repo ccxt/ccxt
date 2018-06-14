@@ -422,13 +422,13 @@ class cobinhood (Exchange):
         elif side == 'ask':
             side = 'sell'
         return {
-            'id': order['id'],
+            'id': self.safe_string(order, 'id'),
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
-            'type': order['type'],  # market, limit, stop, stop_limit, trailing_stop, fill_or_kill
+            'type': self.safe_string(order, 'type'),  # market, limit, stop, stop_limit, trailing_stop, fill_or_kill
             'side': side,
             'price': price,
             'cost': cost,
@@ -462,7 +462,9 @@ class cobinhood (Exchange):
         response = await self.privateDeleteTradingOrdersOrderId(self.extend({
             'order_id': id,
         }, params))
-        return self.parse_order(response)
+        return self.parse_order(self.extend(response, {
+            'id': id,
+        }))
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
