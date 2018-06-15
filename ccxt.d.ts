@@ -392,6 +392,7 @@ declare module 'ccxt' {
     export class qryptos extends Exchange {}
     export class quadrigacx extends Exchange {}
     export class quoinex extends qryptos {}
+    export class shapeshift extends Exchange {}
     export class southxchange extends Exchange {}
     export class surbitcoin extends foxbit {}
     export class therock extends Exchange {}

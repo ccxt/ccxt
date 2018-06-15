@@ -145,6 +145,7 @@ const exchanges = {
     'qryptos':                 require ('./js/qryptos.js'),
     'quadrigacx':              require ('./js/quadrigacx.js'),
     'quoinex':                 require ('./js/quoinex.js'),
+    'shapeshift':              require ('./js/shapeshift.js'),
     'southxchange':            require ('./js/southxchange.js'),
     'surbitcoin':              require ('./js/surbitcoin.js'),
     'therock':                 require ('./js/therock.js'),
