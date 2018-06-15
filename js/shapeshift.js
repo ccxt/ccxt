@@ -8,7 +8,7 @@ module.exports = class shapeshift extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'shapeshift',
             'name': 'ShapeShift',
-            'countries': 'CHE', // Switzerland,
+            'countries': 'CHE',
             'version': undefined,
             'userAgent': undefined,
             'rateLimit': 2000,
