@@ -2,7 +2,7 @@
   "name": "ccxt",
   "version": "1.14.198",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 100+ exchanges",
-  "main": "./ccxt.js",
+  "main": "dist/ccxt.js",
   "unpkg": "build/ccxt.browser.js",
   "engines": {
     "node": ">=7.6.0"
@@ -13,6 +13,8 @@
   },
   "readme": "README.md",
   "scripts": {
+    "clean": "rimraf dist",
+    "build:dist": "npm run clean && webpack -p",
     "build": "npm run export-exchanges && npm run vss && npm run pandoc-python-readme && npm run pandoc-doc-readme && npm run pandoc-doc-faq && npm run pandoc-doc-manual && npm run pandoc-doc-install && npm run pandoc-doc-exchanges && npm run pandoc-doc-exchanges-by-country && npm run check-js-syntax && npm run transpile && npm run qa && npm run update-badges && npm run browserify",
     "test": "npm run build && node run-tests",
     "fast-test": "node run-tests --js",
@@ -52,9 +54,14 @@
     "ansicolor": "^1.1.71",
     "as-table": "^1.0.31",
     "asciichart": "^1.5.7",
+    "babel-core": "^6.26.3",
+    "babel-loader": "^7.1.4",
+    "babel-polyfill": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
     "browserify": "^14.5.0",
     "chai": "^4.1.2",
     "chai-as-promised": "^7.1.1",
+    "compression-webpack-plugin": "^1.1.11",
     "coveralls": "^2.13.1",
     "eslint": "^4.15.0",
     "eslint-config-airbnb-base": "^12.1.0",
@@ -62,7 +69,10 @@
     "istanbul": "^0.4.5",
     "mocha": "^3.5.3",
     "nyc": "^11.4.1",
-    "ololog": "^1.1.87"
+    "ololog": "^1.1.87",
+    "rimraf": "^2.6.2",
+    "uglifyjs-webpack-plugin": "^1.2.5",
+    "webpack": "^3.12.0"
   },
   "author": {
     "name": "Igor Kroitor",
