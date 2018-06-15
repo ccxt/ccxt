@@ -71,7 +71,7 @@
     "nyc": "^11.4.1",
     "ololog": "^1.1.87",
     "rimraf": "^2.6.2",
-    "uglifyjs-webpack-plugin": "^1.2.5",
+    "uglifyjs-webpack-plugin": "^0.4.6",
     "webpack": "^3.12.0"
   },
   "author": {
