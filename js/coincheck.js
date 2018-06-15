@@ -277,14 +277,14 @@ module.exports = class coincheck extends Exchange {
         let symbol = this.findSymbol (msg[0]);
         let ob = msg[1];
         // just testing
-        if (!('ob' in this.asyncContext['ob'][symbol].data)) {
+        if (!('ob' in this.asyncContext['ob'][symbol]['data'])) {
             ob = this.parseOrderBook (ob, undefined);
-            this.asyncContext['ob'][symbol].data['ob'] = ob;
+            this.asyncContext['ob'][symbol]['data']['ob'] = ob;
             this.emit ('ob', symbol, ob);
         } else {
-            let curob = this.asyncContext['ob'][symbol].data['ob'];
+            let curob = this.asyncContext['ob'][symbol]['data']['ob'];
             curob = this.mergeOrderBookDelta (curob, ob, undefined);
-            this.asyncContext['ob'][symbol].data['ob'] = curob;
+            this.asyncContext['ob'][symbol]['data']['ob'] = curob;
             this.emit ('ob', symbol, ob);
         }
     }

@@ -17,7 +17,6 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidAddress
 
 from ccxt.base.async.websocket_connection import WebsocketConnection
-from ccxt.base.async.async_symbol_context import AsyncSymbolContext
 
 # -----------------------------------------------------------------------------
 
@@ -240,7 +239,7 @@ class Exchange(EventEmitter):
             self.define_rest_api(self.api, 'request')
         
         self.async_reset_context()
-        # remove this...
+        # snake renaming methods 
         if 'methodmap' in self.asyncconf:
             def camel2snake(name):
                 return name[0].lower() + re.sub(r'(?!^)[A-Z]', lambda x: '_' + x.group(0).lower(), name[1:])
@@ -301,17 +300,6 @@ class Exchange(EventEmitter):
                     partial = functools.partial(getattr(self, method_name), url, api_type, uppercase_method)
                     setattr(self, camelcase, partial)
                     setattr(self, underscore, partial)
-
-
-    #def define_async_connection(self, async_config):
-    #    def camel2snake(name):
-    #        return name[0].lower() + re.sub(r'(?!^)[A-Z]', lambda x: '_' + x.group(0).lower(), name[1:])
-    #    if 'methodmap' in async_config:
-    #        for m in async_config['methodmap']:
-    #            async_config['methodmap'][m] = camel2snake(async_config['methodmap'][m])
-    #    if 'type' in async_config and async_config['type'] == 'ws':
-    #        self.async_connection = WebsocketConnection(async_config, self.timeout, Exchange.loop)
-    #        self.async_initialize()
 
     def raise_error(self, exception_type, url=None, method=None, error=None, details=None):
         if error:
@@ -1358,7 +1346,7 @@ class Exchange(EventEmitter):
         for key in self.asyncContext:
             for symbol in self.asyncContext[key]:
                 symbol_context = self.asyncContext[key][symbol]
-                if ((symbol_context.conxid == conxid) and ((symbol_context.subscribed) and(symbol_context.subscribing))):
+                if ((symbol_context.conxid == conxid) and ((symbol_context['subscribed']) and(symbol_context['subscribing']))):
                     ret.append ({
                         'event': key,
                         'symbol': symbol,
@@ -1378,7 +1366,9 @@ class Exchange(EventEmitter):
                 for symbol in self.asyncContext[key]:
                     symbol_context = self.asyncContext[key][symbol]
                     if (symbol_context.conxid == conxid):
-                        symbol_context.reset()
+                        symbol_context['subscribed'] = False
+                        symbol_context['subscribing'] = False
+                        symbol_context['data'] = {}
 
     
     def async_connection_get(self, conxid = 'default'):
@@ -1389,10 +1379,10 @@ class Exchange(EventEmitter):
     def _async_get_action_for_event(self, event, symbol, subscription=True):
         # if subscription and still subscribed no action returned
         sym = self.asyncContext[event][symbol] if (symbol in self.asyncContext[event]) else None
-        if (subscription and (sym is not None) and (sym.subscribed or sym.subscribing)):
+        if (subscription and (sym is not None) and (sym['subscribed'] or sym['subscribing'])):
             return None
         # if unsubscription and no subscribed and no subscribing no action returned
-        if ( not subscription and  ((sym is None) or (not sym.subscribed and not sym.subscribing))):
+        if ( not subscription and  ((sym is None) or (not sym['subscribed'] and not sym['subscribing']))):
             return None
         # get conexion type for event
         event_conf = self.safeValue(self.asyncconf['events'], event)
@@ -1470,8 +1460,13 @@ class Exchange(EventEmitter):
                     self.asyncConnectionPool[conx_config['id']] = self.async_initialize(conx_config, conx_config['id'])
             
             if (symbol not in self.asyncContext['ob']):
-                self.asyncContext['ob'][symbol] = AsyncSymbolContext(conx_config['id'])
-            await self.async_connect (conx_config['id'])
+                self.asyncContext['ob'][symbol] = {
+                    'subscribed' : False,
+                    'subscribing': False,
+                    'data': {},
+                    'conxid': conx_config['id'],
+                }
+            await self.async_connect ()
 
     async def async_connect (self, conxid = 'default'):
         async_conx_info = self.async_connection_get(conxid)
@@ -1536,7 +1531,7 @@ class Exchange(EventEmitter):
         @conx.on('open')
         def async_connection_open():
             async_connection_info['auth'] = False
-            self._async_event_on_open(conxid, async_connection_info)
+            self._async_event_on_open(conxid, async_connection_info['conx'].config)
 
         @conx.on('error')
         def async_connection_error(error):
@@ -1581,8 +1576,8 @@ class Exchange(EventEmitter):
 
     async def async_fetch_order_book(self, symbol, limit=None):
         await self.async_ensure_conx_active ('ob', symbol, True)
-        if (('ob' in self.asyncContext['ob'][symbol].data) and (self.asyncContext['ob'][symbol].data['ob'] is not None)):
-            return self._cloneOrderBook(self.asyncContext['ob'][symbol].data['ob'], limit)
+        if (('ob' in self.asyncContext['ob'][symbol]['data']) and (self.asyncContext['ob'][symbol]['data']['ob'] is not None)):
+            return self._cloneOrderBook(self.asyncContext['ob'][symbol]['data']['ob'], limit)
 
         future = asyncio.Future()
 
@@ -1604,12 +1599,12 @@ class Exchange(EventEmitter):
         @self.once(oidstr)
         def wait4obsubscribe(success):
             if success:
-                self.asyncContext['ob'][symbol].subscribed = True
-                self.asyncContext['ob'][symbol].subscribing = False
+                self.asyncContext['ob'][symbol]['subscribed'] = True
+                self.asyncContext['ob'][symbol]['subscribing'] = False
                 future.done() or future.set_result(True)
             else:
-                self.asyncContext['ob'][symbol].subscribed = False
-                self.asyncContext['ob'][symbol].subscribing = False
+                self.asyncContext['ob'][symbol]['subscribed'] = False
+                self.asyncContext['ob'][symbol]['subscribing'] = False
                 future.done() or future.set_exception(ExchangeError ('error subscribing to ' + symbol + ' in ' + self.id))
         self.timeout_future(future, 'async_subscribe_order_book')
         self._async_subscribe_order_book(symbol, oid)
@@ -1627,12 +1622,12 @@ class Exchange(EventEmitter):
                 # ret = await getattr(self, method)(*params)
                 ret = getattr(self, method)(*params)
                 try:
-                    getattr(self, callback)(context, None, ret)
+                    getattr(this_param, callback)(context, None, ret)
                 except Exception as ex:
                     eself.emit ('error', ExchangeError (eself.id + ': error invoking method ' + callback + ' in _asyncExecute: '+ str(ex)))
             except Exception as ex:
                 try:
-                    getattr(self, callback)(context, ex, None)
+                    getattr(this_param, callback)(context, ex, None)
                 except Exception as ex:
                     eself.emit ('error', ExchangeError (eself.id + ': error invoking method ' + callback + ' in _asyncExecute: '+ str(ex)))
             #future.set_result(True)

@@ -596,7 +596,7 @@ module.exports = class cex extends Exchange {
             let timestamp = resData['timestamp'] * 1000;
             let ob = this.parseOrderBook (resData, timestamp);
             ob['nonce'] = resData['id'];
-            this.asyncContext['ob'][symbol].data['ob'] = ob;
+            this.asyncContext['ob'][symbol]['data']['ob'] = ob;
             this.emit (oid, true);
             this.emit ('ob', symbol, ob);
         } else {
@@ -608,14 +608,14 @@ module.exports = class cex extends Exchange {
     _asyncHandleObUpdate (msg, oid, resData, conxid = 'default') {
         let symbol = resData['pair'].replace (':', '/');
         let timestamp = resData['time'];
-        let ob = this.asyncContext['ob'][symbol].data['ob'];
+        let ob = this.asyncContext['ob'][symbol]['data']['ob'];
         if (ob['nonce'] !== (resData['id'] - 1)) {
             this.asyncClose ();
             this.emit ('error', new ExchangeError ('invalid orderbook sequence in ' + this.id + ' ' + ob['nonce'] + ' !== ' + resData['id'] + ' -1'));
         } else {
             ob = this.mergeOrderBookDelta (ob, resData, timestamp);
             ob['nonce'] = resData['id'];
-            this.asyncContext['ob'][symbol].data['ob'] = ob;
+            this.asyncContext['ob'][symbol]['data']['ob'] = ob;
             this.emit ('ob', symbol, this._cloneOrderBook (ob));
         }
     }

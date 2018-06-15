@@ -72,6 +72,7 @@ class WebsocketConnection extends AsyncConnection {
                         });
                         $client->ws = $conn;
                         $that->client = $client;
+                        $that->emit ('open');
                         $resolve();
                 
                         // $conn->send('Hello World!');

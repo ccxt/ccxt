@@ -16,7 +16,7 @@ furnished to do so, subject to the following conditions:
 The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
@@ -725,8 +725,16 @@ abstract class Exchange extends CcxtEventEmitter {
         if ($this->api)
             $this->define_rest_api ($this->api, 'request');
 
-        if ($this->asyncconf)
-            $this->define_async_connection ($this->asyncconf);
+        $this->async_reset_context();
+        $this->asyncConnectionPool = array();
+        // renaming methods from camel to snake
+        if (isset($this->asyncconf['methodmap'])) {
+            foreach($this->asyncconf['methodmap'] as $m => $method) {
+                $this->asyncconf['methodmap'][$m] =  preg_replace_callback('/[A-Z]/', function ($matches) {
+                    return '_' . strtolower($matches[0]);
+                }, $method);
+            }
+        }
 
         if ($this->markets)
             $this->set_markets ($this->markets);
@@ -765,19 +773,19 @@ abstract class Exchange extends CcxtEventEmitter {
                 }
     }
 
-    public function define_async_connection (&$async_config) {
-        if (isset($async_config['methodmap'])) {
-            foreach($async_config['methodmap'] as $m => $method) {
-                $async_config['methodmap'][$m] =  preg_replace_callback('/[A-Z]/', function ($matches) {
-                    return '_' . strtolower($matches[0]);
-                }, $method);
-            }
-        }
-        if ($async_config['type'] === 'ws') {
-            $this->async_connection = new WebsocketConnection ($async_config, $this->timeout, self::$loop);
-            $this->async_initialize ();
-        }
-    }
+    // public function define_async_connection (&$async_config) {
+    //     if (isset($async_config['methodmap'])) {
+    //         foreach($async_config['methodmap'] as $m => $method) {
+    //             $async_config['methodmap'][$m] =  preg_replace_callback('/[A-Z]/', function ($matches) {
+    //                 return '_' . strtolower($matches[0]);
+    //             }, $method);
+    //         }
+    //     }
+    //     if ($async_config['type'] === 'ws') {
+    //         $this->async_connection = new WebsocketConnection ($async_config, $this->timeout, self::$loop);
+    //         $this->async_initialize ();
+    //     }
+    // }
 
     public function hash ($request, $type = 'md5', $digest = 'hex') {
         $base64 = ($digest === 'base64');
@@ -1948,28 +1956,170 @@ abstract class Exchange extends CcxtEventEmitter {
     }
 
     // async methods
-    protected function async_reset_context () {
-        $this->asyncContext = array (
-            'auth' => false,
-            'ob' => array (),
-            'ticker' => array (),
-            'ready' => false,
-        );
+    protected function async_context_get_subscribed_event_symbols ($conxid) {
+        $ret = array();
+        foreach ($this->asyncContext as $key => $event) {
+            foreach ($event as $symbol => $symbolContext) {
+                if (($symbolContext['conxid'] === $conxid) && (($symbolContext['subscribed']) && ($symbolContext['subscribing']))) {
+                    $ret[] = array (
+                        'event'=> $key,
+                        'symbol'=> $symbol
+                    );
+                }
+            }
+        }
+        return $ret;
+    }
+    
+    protected function async_reset_context($conxid = null){
+        if ($conxid === null) {
+            $this->asyncContext = array(
+                'ob'=> array(),
+                'ticker'=> array(),
+                'ohlvc'=> array(),
+                'trades'=> array()
+            );
+        } else {
+            foreach ($this->asyncContext as $key => $event) {
+                foreach ($event as $symbol => $symbolContext) {
+                    if ($symbolContext->conxid === $conxid) {
+                        $symbolContext['subscribed'] = false;
+                        $symbolContext['subscribing'] = false;
+                        $symbolContext['data'] = array();
+                    }
+                }
+            }
+        }
     }
 
-    protected function async_connect () {
-        $that = $this;
-        if (!isset ($this->async_connection)){
-            throw new NotSupported ("async service not supported by this exchange: " . $this->id);
+    protected function async_connection_get ($conxid = 'default') {
+        if (!array_key_exists ($conxid, $this->asyncConnectionPool)) {
+            throw new NotSupported ("async <" . $conxid . "> not found in this exchange: " . $this->id);
         }
+        return $this->asyncConnectionPool[$conxid];
+    }
+
+    protected function _async_get_action_for_event ($event, $symbol, $subscription=true) {
+        // if subscription and still subscribed no action returned
+        $sym = (array_key_exists ($symbol, $this->asyncContext[$event])) ? $this->asyncContext[$event][$symbol] : null;
+        if ($subscription && ($sym !== null) && ($sym['subscribed'] || $sym['subscribing'])) {
+            return null;
+        }
+        // if unsubscription and no subscribed and no subscribing no action returned
+        if ( !$subscription && (($sym === null) || (! $sym['subscribed'] && !$sym['subscribing']))) {
+            return null;
+        }
+        // get conexion type for event
+        $eventConf = $this->safe_value ($this->asyncconf['events'], $event);
+        if ($eventConf === null) {
+            throw new ExchangeError ("invalid async configuration for event: " . $event . " in exchange: " . $this->id);
+        }
+        $conxTplName = $this->safe_string ($eventConf, 'conx-tpl', 'default');
+        $conxTpl = $this->safe_value ($this->asyncconf['conx-tpls'], $conxTplName);
+        if ($conxTpl === null) {
+            throw new ExchangeError ("tpl async conexion: " . $conxTplName . " does not exist in exchange: " . $this->id);
+        }
+        $generators = $this->safe_value ($eventConf, 'generators', array (
+            'url'=> '{baseurl}',
+            'id'=> '{id}',
+            'stream'=> '{symbol}'
+        ));
+        $params = array_merge_recursive ($conxTpl, array (
+            'event'=> $event,
+            'symbol'=> $symbol,
+            'id'=> $conxTplName
+        ));
+        $config = array_merge_recursive ($conxTpl);
+        foreach ($generators as $key => $generator) {
+            $config[$key] = $this->implode_params ($generator, $params);
+        }
+        if (! (array_key_exists ('id', $config) && array_key_exists ('url', $config) && array_key_exists('type', $config))) {
+            throw new ExchangeError ("invalid async configuration in exchange: " . $this->id);
+        }
+        if ($config['type'] === 'ws') {
+            return array (
+                'action'=> 'connect',
+                'conx-config'=> $config,
+                'reset-context'=> 'onconnect'
+            );
+        } else if ($config['type'] === 'ws-s') {
+            $subscribed = $this->async_context_get_subscribed_event_symbols($config['id']);
+            $nextStreamList = array ();
+            $nextStreamList[] = $this->implode_params ($generators['stream'], array (
+                'event'=> $event,
+                'symbol'=> strtolower ($this->market_id ($symbol))
+            ));
+            foreach ($subscribed as $element) {
+                $e = $element['event'];
+                $s = $element['symbol'];
+                $nextStreamList[] = $this->implode_params($generators['stream'], array (
+                    'event'=> $e,
+                    'symbol'=> strtolower ($this->market_id ($s)),
+                ));
+            }
+            sort ($nextStreamList);
+            $config['stream'] = implode('', $nextStreamList);
+            $config['url'] = $config['url'] . $config['stream'];
+            return array(
+                'action'=> 'reconnect',
+                'conx-config'=> $config,
+                'reset-context'=> 'onreconnect',
+            );
+        } else {
+            throw new NotSupported ("invalid async connection: " . $config['type'] + " for exchange " . $this->id);
+        }
+    }
+
+    protected function  async_ensure_conx_active ($event, $symbol, $subscribe) {
         $this->load_markets();
-        if (!$this->asyncContext['ready']) {
-            if (isset ($this->asyncconf['wait4readyEvent'])) {
-                Clue\React\Block\await ($this->async_connection->connect (), self::$loop);
+        $action = $this->_async_get_action_for_event ($event, $symbol, $subscribe);
+        if ($action != null) {
+            $conxConfig = $this->safe_value ($action, 'conx-config', array());
+            if ($action['action'] === 'reconnect') {
+                if (array_key_exists ($conxConfig['id'], $this->asyncConnectionPool)) {
+                    $this->asyncConnectionPool[$conx_config['id']]['conx'].close();
+                }
+                if ($action['reset-context'] === 'onreconnect') {
+                    $this->async_reset_context($conxConfig['id']);
+                }
+                $this->asyncConnectionPool[$conxConfig['id']] = $this->async_initialize($conxConfig, $conxConfig['id']);
+            } else if ($action['action'] === 'connect') {
+                if (array_key_exists ($conxConfig['id'], $this->asyncConnectionPool)) {
+                    if (! $this->asyncConnectionPool[$conxConfig['id']]['conx'].isActive()) {
+                        $this->asyncConnectionPool[$conxConfig['id']]['conx'].close();
+                        $this->async_reset_context($conxConfig['id']);
+                        $this->asyncConnectionPool[$conxConfig['id']] = $this->async_initialize($conxConfig, $conxConfig['id']);
+                    }
+                } else {
+                    $this->async_reset_context($conxConfig['id']);
+                    $this->asyncConnectionPool[$conxConfig['id']] = $this->async_initialize($conxConfig, $conxConfig['id']);
+                }
+            }
+            
+            if (!array_key_exists ($symbol, $this->asyncContext['ob'])) {
+                $this->asyncContext['ob'][$symbol] = array(
+                    'conxid' => $conxConfig['id'],
+                    'subscribed' => false,
+                    'subscribing' => false,
+                    'data' => array()
+                );
+            }
+            $this->async_connect ($conxConfig['id']);
+        }
+    }
+
+    protected function async_connect ($conxid = 'default') {
+        $asyncConxInfo = $this->async_connection_get($conxid);
+        $asyncConnection = $asyncConxInfo['conx'];
+        $this->load_markets();
+        if (!$asyncConxInfo['ready']) {
+            $wait4readyEvent = $this->safe_string ($this->asyncconf['conx-tpls'][$conxid], 'wait4readyEvent');
+            if ($wait4readyEvent !== null) {
+                Clue\React\Block\await($asyncConnection->connect(), self::$loop);
                 $deferred = new \React\Promise\Deferred();
-                $this->once ($this->asyncconf['wait4readyEvent'], function ($success, $error = null) use ($deferred, $that){
+                $this->once ($wait4readyEvent, function ($success, $error = null) use ($deferred){
                     if ($success) {
-                        $that->asyncContext['ready'] = true;
+                        $asyncConxInfo['ready'] = true;
                         $deferred->resolve();
                     } else {
                         $deferred->reject($error);
@@ -1977,74 +2127,98 @@ abstract class Exchange extends CcxtEventEmitter {
                 });
                 Clue\React\Block\await ($deferred->promise(), self::$loop);
             } else {
-                Clue\React\Block\await ($this->async_connection->connect (), self::$loop);
+                Clue\React\Block\await ($asyncConnection->connect (), self::$loop);
             }
         }
     }
 
-    protected function asyncParseJson ($rawData) {
+    protected function asyncParseJson (&$rawData) {
         return json_decode ($rawData, true);
     }
 
-    public function asyncClose () {
-        $this->async_connection->close();
+    public function asyncClose ($conxid = 'default') {
+        $asyncConxInfo = $this->async_connection_get($conxid);
+        $asyncConxInfo['conx']->close();
     }
 
-    public function asyncSend ($data) {
+    public function asyncSend ($data, $conxid = 'default') {
+        $asyncConxInfo = $this->async_connection_get($conxid);
         if ($this->verbose) {
             echo ("Async send:");
             echo ($data);
             echo("\n");
         }
-        $this->async_connection->send($data);
+        $asyncConxInfo['conx']->send($data);
     }
 
-    public function asyncSendJson ($data) {
+    public function asyncSendJson ($data, $conxid = 'default') {
+        $asyncConxInfo = $this->async_connection_get($conxid);
         if ($this->verbose) {
             echo ("Async send:");
             echo (json_encode($data));
             echo("\n");
         }
-        $this->async_connection->sendJson($data);
+        $conx = $asyncConxInfo['conx'];
+        $conx->sendJson($data);
     }
 
-    protected function async_initialize () {
-        $this->async_reset_context ();
-        $this->async_connection->on ('error', function ($err) {
-            $this->asyncContext['auth'] = false;
-            $this->async_reset_context ();
-            $this->emit ('error', $err);
+    protected function async_initialize (&$asyncConfig, $conxid = 'default') {
+        $asyncConnectionInfo = array(
+            'auth'=> false,
+            'ready'=> false,
+            'conx'=> null
+        );
+        if ($asyncConfig['type'] === 'ws') {
+            $asyncConnectionInfo['conx'] = new WebsocketConnection ($asyncConfig, $this->timeout, self::$loop);
+        } else if ($asyncConfig['type'] === 'ws-s') {
+            $asyncConnectionInfo['conx'] = new WebsocketConnection ($asyncConfig, $this->timeout, self::$loop);
+        } else {
+            throw new NotSupported ("invalid async connection: " . $asyncConfig['type'] . " for exchange " . $this->id);
+        }
+        
+        $conx = $asyncConnectionInfo['conx'];
+
+        $conx->on ('open', function () use ($conxid, $conx){
+            $asyncConnectionInfo['auth'] = false;
+            $this->_async_event_on_open($conxid, $conx->options);
         });
-        $this->async_connection->on ('message', function ($data) {
+        $conx->on ('error', function ($err) use ($conxid) {
+            $this->asyncContext['auth'] = false;
+            $this->async_reset_context ($conxid);
+            $this->emit ('error', $err, $conxid);
+        });
+        $conx->on ('message', function ($data) use ($conxid) {
             if ($this->verbose) {
-                echo ("\nAsync recv:");
+                echo ("\n" . $conxid. " <-:");
                 echo ($data);
                 echo("\n");
             }
             try {
-                $this->_async_on_msg ($data);
+                $this->_async_on_msg ($data, $conxid);
             } catch (Exception $ex) {
-                $this->emit ('error', $ex);
+                $this->emit ('error', $ex, $conxid);
             }
         });
-        $this->async_connection->on ('close', function () {
+        $conx->on ('close', function () use ($conxid) {
             $this->asyncContext['auth'] = false;
-            $this->emit ('close');
+            $this->async_reset_context ($conxid);
+            $this->emit ('close', $conxid);
         });
+
+        return $asyncConnectionInfo;
     }
 
     protected function timeout_promise ($promise, $scope) {
-        return React\Promise\Timer\timeout($promise, $this->timeout, self::$loop)
-        ->otherwise(function($exception) {
+        return React\Promise\Timer\timeout($promise, $this->timeout/1000, self::$loop)
+        ->otherwise(function($exception) use($scope) {
             if ($exception instanceof React\Promise\Timer\TimeoutException) {
-                echo $exception;
                 throw new RequestTimeout ($this->id . ' ' . $scope . ' request timed out (' . $this->timeout . ' ms)');
             }
             throw $exception;
         });
     }
 
-    public function clone_order_book ($ob, $limit = null) {
+    public function _cloneOrderBook ($ob, $limit = null) {
         $ret =  array (
             'timestamp'=> $ob['timestamp'],
             'datetime' => $ob['datetime'],
@@ -2062,9 +2236,10 @@ abstract class Exchange extends CcxtEventEmitter {
     }
     
     public function async_fetch_order_book ($symbol, $limit = null) {
-        $this->async_connect();
-        if (isset ($this->asyncContext['ob'][$symbol])) {
-            return $this->clone_order_book ($this->asyncContext['ob'][$symbol], $limit);
+        $this->async_ensure_conx_active ('ob', $symbol, true);
+        if ((array_key_exists ('ob', $this->asyncContext['ob'][$symbol]['data'])) &&
+            (isset ($this->asyncContext['ob'][$symbol]['data']['ob']))) {
+            return $this->_cloneOrderBook($this->asyncContext['ob'][$symbol]['data']['ob'], $limit);
         } else {
             $deferred = new \React\Promise\Deferred();
             $that = $this;
@@ -2073,7 +2248,7 @@ abstract class Exchange extends CcxtEventEmitter {
             $f = function ($symbol_r, $ob) use ($symbol, $that, &$f, $deferred, $limit){
                 if ($symbol_r === $symbol) {
                     $that->removeListener ('ob', $f);
-                    $deferred->resolve($this->clone_order_book ($ob, $limit));
+                    $deferred->resolve($this->_cloneOrderBook ($ob, $limit));
                 }
             };
             $this->on ('ob', $f);
@@ -2083,23 +2258,63 @@ abstract class Exchange extends CcxtEventEmitter {
     }
 
     public function async_subscribe_order_book ($symbol) {
-        $this->async_connect();
-        $oid = $this->nonce() . '-' . $symbol . '-ob-subscribe';
+        $this->async_ensure_conx_active ('ob', $symbol, true);
+        $oid = $this->nonce();// . '-' . $symbol . '-ob-subscribe';
 
         $deferred = new \React\Promise\Deferred();
         $that = $this;
 
-        $this->once ($oid, function ($success, $data) use($symbol, $that, $deferred) {
+        $this->once ($oid, function ($success) use($symbol, $that, $deferred) {
             if ($success) {
-                $deferred->resolve ($data);
+                $that->asyncContext['ob'][$symbol]['subscribed'] = true;
+                $that->asyncContext['ob'][$symbol]['subscribing'] = false;
+                $deferred->resolve ();
             } else {
-                $deferred->reject ($data);
+                $that->asyncContext['ob'][$symbol]['subscribed'] = false;
+                $that->asyncContext['ob'][$symbol]['subscribing'] = false;
+                $deferred->reject ();
             }
         });
         $this->_async_subscribe_order_book ($symbol, $oid);
         Clue\React\Block\await ($this->timeout_promise (
             $deferred->promise(), 'asyncSubscribeOrderBook'), self::$loop);
     }
+
+    protected function _async_event_on_open ($conexid, $asyncConex) {
+        
+    }
+
+    protected function _asyncExecute ($method, $params, $callback, $context = array(), $thisParam = null) {
+        $thisParam = ($thisParam !== null) ? $thisParam : $this;
+        $that = $this;
+
+        // Clue\React\Block\await (function () use ($that, $method, $params, $callback, $context, $thisParam){
+            try {
+                $ret = call_user_func_array (array ($that, $method), $params);
+                try {
+                    call_user_func_array (array ($thisParam, $callback), array($context, null, $ret));
+                } catch (Exception $ex) {
+                    $that.emit ('error', new ExchangeError ($that->id + ': error invoking method ' + $callback + ' in _asyncExecute: '+ ex));
+                }
+            } catch (Exception $ex) {
+                try {
+                    call_user_func_array (array ($thisParam, $callback), array($context, $ex, null));
+                } catch (Exception $ex) {
+                    $that.emit ('error', new ExchangeError ($that->id + ': error invoking method ' + $callback + ' in _asyncExecute: '+ ex));
+                }
+
+            }
+        //});
+    }
+        
+    protected function _asyncMethodMap ($key) {
+        if (!array_key_exists ('methodmap', $this->asyncconf) || !array_key_exists ($key, $this->asyncconf['methodmap'])) {
+            throw new ExchangeError ($this->id . ': ' . $key . ' not found in async methodmap');
+        }
+        return $this->asyncconf['methodmap'][$key];
+    }
+        
+
 }
 
 Exchange::$loop = React\EventLoop\Factory::create();

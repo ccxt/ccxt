@@ -385,21 +385,22 @@ module.exports = class gateio extends Exchange {
         let symbol = this.findSymbol (params[2].toLowerCase ());
         if (clean) {
             ob = this.parseOrderBook (ob, undefined);
-            this.asyncContext['ob'][symbol].data['ob'] = ob;
+            this.asyncContext['ob'][symbol]['data']['ob'] = ob;
             this.emit ('ob', symbol, ob);
         } else {
-            let curob = this.asyncContext['ob'][symbol].data['ob'];
+            let curob = this.asyncContext['ob'][symbol]['data']['ob'];
             curob = this.mergeOrderBookDelta (curob, ob, undefined);
-            this.asyncContext['ob'][symbol].data['ob'] = curob;
+            this.asyncContext['ob'][symbol]['data']['ob'] = curob;
             this.emit ('ob', symbol, ob);
         }
     }
 
     _asyncSubscribeOrderBook (symbol, nonce) {
+        let symbol = this.market_id (symbol).toUpperCase ();
         let payload = {
             'id': nonce,
             'method': 'depth.subscribe',
-            'params': [this.market_id (symbol).toUpperCase (), 30, '0.00001'],
+            'params': [symbol, 30, '0.00001'],
         };
         this.asyncSendJson (payload);
     }

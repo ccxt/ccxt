@@ -46,7 +46,6 @@ const journal = undefined // isNode && require ('./journal') // stub until we ge
 
 const EventEmitter = require('events')
 const WebsocketConnection = require ('./async/websocket_connection')
-const AsyncSymbolContext = require ('./async/async_symbol_context')
 
 /*  ------------------------------------------------------------------------ */
 
@@ -1123,7 +1122,7 @@ module.exports = class Exchange extends EventEmitter{
         for (let key in this.asyncContext) {
             for (let symbol in this.asyncContext[key]) {
                 let symbolContext = this.asyncContext[key][symbol];
-                if ((symbolContext.conxid === conxid) && ((symbolContext.subscribed) ||(symbolContext.subscribing))){
+                if ((symbolContext['conxid'] === conxid) && ((symbolContext['subscribed']) ||(symbolContext['subscribing']))){
                     ret.push ({
                         'event': key,
                         'symbol': symbol,
@@ -1147,7 +1146,9 @@ module.exports = class Exchange extends EventEmitter{
                 for (let symbol in this.asyncContext[key]) {
                     let symbolContext = this.asyncContext[key][symbol];
                     if (symbolContext.conxid === conxid) {
-                        symbolContext.reset();
+                        symbolContext['subscribed'] = false;
+                        symbolContext['subscribing'] = false;
+                        symbolContext['data'] = {};
                     }
                 }
             }
@@ -1164,11 +1165,11 @@ module.exports = class Exchange extends EventEmitter{
     _asyncGetActionForEvent(event, symbol, subscription=true){
         // if subscription and still subscribed no action returned
         let sym = this.asyncContext[event][symbol];
-        if (subscription && (sym != undefined) && (sym.subscribed || sym.subscribing)) {
+        if (subscription && (sym != undefined) && (sym['subscribed'] || sym['subscribing'])) {
             return null;
         }
         // if unsubscription and no subscribed and no subscribing no action returned
-        if (!subscription && ((sym == undefined) || (!sym.subscribed && !sym.subscribing))) {
+        if (!subscription && ((sym == undefined) || (!sym['subscribed'] && !sym['subscribing']))) {
             return null;
         }
         // get conexion type for event
@@ -1209,7 +1210,7 @@ module.exports = class Exchange extends EventEmitter{
                 let subscribed = this.asyncContextGetSubscribedEventSymbols(config['id']);
                 let nextStreamList = [this.implodeParams (generators['stream'], {
                     'event': event,
-                    'symbol': this.marketId (symbol).toLowerCase (),
+                    'symbol': this.marketId (symbol).toLowerCase (), // TODO: hack to binance -> create method to get correct exchange symbol or ws
                 })];
                 for (let element of subscribed) {
                     let e = element['event'];
@@ -1219,7 +1220,7 @@ module.exports = class Exchange extends EventEmitter{
                         'symbol': this.marketId (s).toLowerCase (),
                     }));
                 }
-                config['stream'] = nextStreamList.sort ().join ('');
+                config['stream'] = nextStreamList.sort ().join ('');// TODO: hack to binance -> create method to get ws url with stream
                 config['url'] = config['url'] + config['stream'];
                 return {
                     'action': 'reconnect',
@@ -1259,7 +1260,12 @@ module.exports = class Exchange extends EventEmitter{
                     break;
             }
             if (this.asyncContext['ob'][symbol] == null){
-                this.asyncContext['ob'][symbol] = new AsyncSymbolContext(conxConfig['id']);
+                this.asyncContext['ob'][symbol] = {
+                    'subscribed': false,
+                    'subscribing': false,
+                    'data': {},
+                    'conxid': conxConfig['id'],
+                };
             }
             await this.asyncConnect (conxConfig['id']);
         }
@@ -1327,7 +1333,7 @@ module.exports = class Exchange extends EventEmitter{
         }
         asyncConnectionInfo['conx'].on ('open', () => {
             asyncConnectionInfo['auth'] = false;
-            this._asyncEventOnOpen(conxid, asyncConnectionInfo);
+            this._asyncEventOnOpen(conxid, asyncConnectionInfo['conx'].config);
         });
         asyncConnectionInfo['conx'].on ('error', (err) => {
             asyncConnectionInfo['auth'] = false;
@@ -1380,8 +1386,8 @@ module.exports = class Exchange extends EventEmitter{
         return this.timeoutPromise (new Promise (async (resolve, reject) => {
             try {
                 await this.asyncEnsureConxActive ('ob', symbol, true);
-                if (this.asyncContext['ob'][symbol].data['ob'] != null) {
-                    resolve (this._cloneOrderBook (this.asyncContext.ob[symbol].data['ob'], limit));
+                if (this.asyncContext['ob'][symbol]['data']['ob'] != null) {
+                    resolve (this._cloneOrderBook (this.asyncContext.ob[symbol]['data']['ob'], limit));
                     return;
                 }
                 let f = (symbolR, ob) => {
@@ -1404,16 +1410,16 @@ module.exports = class Exchange extends EventEmitter{
                 const oid = this.nonce();// + '-' + symbol + '-ob-subscribe';
                 this.once (oid.toString(), (success) => {
                     if (success) {
-                        this.asyncContext['ob'][symbol].subscribed = true;
-                        this.asyncContext['ob'][symbol].subscribing = false;
+                        this.asyncContext['ob'][symbol]['subscribed'] = true;
+                        this.asyncContext['ob'][symbol]['subscribing'] = false;
                         resolve ();
                     } else {
-                        this.asyncContext['ob'][symbol].subscribed = false;
-                        this.asyncContext['ob'][symbol].subscribing = false;            
+                        this.asyncContext['ob'][symbol]['subscribed'] = false;
+                        this.asyncContext['ob'][symbol]['subscribing'] = false;            
                         reject (new ExchangeError ('error subscribing to ' + symbol + ' in ' + self.id));
                     }
                 });
-                this.asyncContext['ob'][symbol].subscribing = true;
+                this.asyncContext['ob'][symbol]['subscribing'] = true;
                 this._asyncSubscribeOrderBook (symbol, oid);
             } catch (ex) {
                 reject (ex);

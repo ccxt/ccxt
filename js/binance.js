@@ -900,7 +900,8 @@ module.exports = class binance extends Exchange {
         let stream = this.safeString (msg, 'stream');
         let resData = this.safeValue (msg, 'data', {});
         let parts = stream.split ('@');
-        if (parts.length === 2) {
+        let l = parts.length;
+        if (l === 2) {
             if (parts[1] === 'depth') {
                 this._asyncHandleOb (resData, conxid);
             }
@@ -912,29 +913,29 @@ module.exports = class binance extends Exchange {
         let symbol = this.findSymbol (this.safeString (data, 's'));
         // if asyncContext has no previous orderbook you have to cache all deltas
         // and fetch orderbook from rest api
-        if (!('ob' in this.asyncContext['ob'][symbol].data)) {
-            if (!('deltas' in this.asyncContext['ob'][symbol].data)) {
-                this.asyncContext['ob'][symbol].data['deltas'] = [];
+        if (!('ob' in this.asyncContext['ob'][symbol]['data'])) {
+            if (!('deltas' in this.asyncContext['ob'][symbol]['data'])) {
+                this.asyncContext['ob'][symbol]['data']['deltas'] = [];
             }
-            let deltas = this.asyncContext['ob'][symbol].data['deltas'];
-            if (deltas.length > 50) {
+            let deltas = this.asyncContext['ob'][symbol]['data']['deltas'];
+            let l = deltas.length;
+            if (l > 50) {
                 this.emit ('error', new ExchangeError (this.id + ': max deltas reached for symbol ' + symbol));
                 this.asyncClose (conxid);
             } else {
-                this.asyncContext['ob'][symbol].data['deltas'].push (data);
-                if (!('snaplaunched' in this.asyncContext['ob'][symbol].data)) {
-                    this.asyncContext['ob'][symbol].data['snaplaunched'] = true;
-                    console.log(1)
-                    this._asyncExecute (this._asyncMethodMap('fetchOrderBook'), [symbol], this._asyncMethodMap('_asyncHandleObRestSnapshot'), {
+                this.asyncContext['ob'][symbol]['data']['deltas'].push (data);
+                if (!('snaplaunched' in this.asyncContext['ob'][symbol]['data'])) {
+                    this.asyncContext['ob'][symbol]['data']['snaplaunched'] = true;
+                    this._asyncExecute (this._asyncMethodMap ('fetchOrderBook'), [symbol], this._asyncMethodMap ('_asyncHandleObRestSnapshot'), {
                         'symbol': symbol,
                         'conxid': conxid,
                     });
                 }
             }
         } else {
-            let ob = this.asyncContext['ob'][symbol].data['ob'];
+            let ob = this.asyncContext['ob'][symbol]['data']['ob'];
             ob = this.mergeOrderBookDelta (ob, data, undefined, 'b', 'a');
-            this.asyncContext['ob'][symbol].data['ob'] = ob;
+            this.asyncContext['ob'][symbol]['data']['ob'] = ob;
             this.emit ('ob', symbol, this._cloneOrderBook (ob));
         }
     }
@@ -945,7 +946,7 @@ module.exports = class binance extends Exchange {
         // console.log ('order book snapshot returned for '+ symbol);
         if (!error) {
             let lastUpdateId = this.safeInteger (response, 'nonce');
-            let deltas = this.asyncContext['ob'][symbol].data['deltas'];
+            let deltas = this.asyncContext['ob'][symbol]['data']['deltas'];
             let index = 0;
             for (index = 0; index < deltas.length; index++) {
                 let delta = deltas[index];
@@ -966,8 +967,8 @@ module.exports = class binance extends Exchange {
                 let delta = deltas[i];
                 this.mergeOrderBookDelta (response, delta, undefined, 'b', 'a');
             }
-            this.asyncContext['ob'][symbol].data['ob'] = response;
-            this.asyncContext['ob'][symbol].data['deltas'] = [];
+            this.asyncContext['ob'][symbol]['data']['ob'] = response;
+            this.asyncContext['ob'][symbol]['data']['deltas'] = [];
             this.emit ('ob', symbol, this._cloneOrderBook (response));
         }
     }
@@ -977,15 +978,16 @@ module.exports = class binance extends Exchange {
         this.emit (nonceStr, true);
     }
 
-    _asyncEventOnOpen (conexid, asyncConex) {
-        let streams = asyncConex['conx'].config.url.split ('=', 2)[1].split ('/');
+    _asyncEventOnOpen (conexid, asyncConexConfig) {
+        let url = asyncConexConfig['url'];
+        let streams = url.split ('=', 2)[1].split ('/');
         for (let i = 0; i < streams.length; i++) {
             let stream = streams[i];
             let pair = stream.split ('@', 2);
             if (pair.length === 2) {
                 let symbol = this.findSymbol (pair[0].toUpperCase ());
-                this.asyncContext['ob'][symbol].subscribed = true;
-                this.asyncContext['ob'][symbol].subscribing = false;
+                this.asyncContext['ob'][symbol]['subscribed'] = true;
+                this.asyncContext['ob'][symbol]['subscribing'] = false;
             }
         }
     }
