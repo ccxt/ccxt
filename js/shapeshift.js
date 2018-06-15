@@ -60,7 +60,16 @@ module.exports = class shapeshift extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const request = '/' + this.implodeParams (path, params);
         const url = this.urls['api'] + request;
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        if (method === 'POST') {
+            headers = { 'Content-Type': 'application/json' };
+            body = JSON.stringify (params);
+        }
+        return {
+            'url': url,
+            'method': method,
+            'body': body,
+            'headers': headers,
+        };
     }
 
     async startInstantTransaction (symbol, side, withdrawalAddress, affiliateAPIKey, params = {}) {
