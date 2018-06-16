@@ -432,7 +432,7 @@ module.exports = class kucoin extends Exchange {
             let deposit = currency['enableDeposit'];
             let withdraw = currency['enableWithdraw'];
             let active = (deposit && withdraw);
-            let defaultMinAmount = Math.pow (10, -precision['amount']);
+            let defaultMinAmount = Math.pow (10, -precision);
             let minAmount = this.safeFloat (this.options['limits']['amount']['min'], code, defaultMinAmount);
             result[code] = {
                 'id': id,
