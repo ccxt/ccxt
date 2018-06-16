@@ -275,6 +275,7 @@ class binance (Exchange):
                 'timeDifference': 0,  # the difference between system clock and Binance clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'parseOrderToPrecision': False,  # force amounts and costs in parseOrder to precision
+                'newOrderRespType': 'RESULT',  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
             },
             'exceptions': {
                 '-1000': ExchangeNotAvailable,  # {"code":-1000,"msg":"An unknown error occured while processing the request."}
@@ -497,21 +498,22 @@ class binance (Exchange):
 
     def parse_trade(self, trade, market=None):
         timestampField = 'T' if ('T' in list(trade.keys())) else 'time'
-        timestamp = trade[timestampField]
+        timestamp = self.safe_integer(trade, timestampField)
         priceField = 'p' if ('p' in list(trade.keys())) else 'price'
-        price = float(trade[priceField])
+        price = self.safe_float(trade, priceField)
         amountField = 'q' if ('q' in list(trade.keys())) else 'qty'
-        amount = float(trade[amountField])
+        amount = self.safe_float(trade, amountField)
         idField = 'a' if ('a' in list(trade.keys())) else 'id'
-        id = str(trade[idField])
+        id = self.safe_string(trade, idField)
         side = None
         order = None
         if 'orderId' in trade:
-            order = str(trade['orderId'])
+            order = self.safe_string(trade, 'orderId')
         if 'm' in trade:
             side = 'sell' if trade['m'] else 'buy'  # self is reversed intentionally
         else:
-            side = 'buy' if (trade['isBuyer']) else 'sell'  # self is a True side
+            if 'isBuyer' in trade:
+                side = 'buy' if (trade['isBuyer']) else 'sell'  # self is a True side
         fee = None
         if 'commission' in trade:
             fee = {
@@ -599,6 +601,19 @@ class binance (Exchange):
         side = self.safe_string(order, 'side')
         if side is not None:
             side = side.lower()
+        fee = None
+        trades = None
+        fills = self.safe_value(order, 'fills')
+        if fills is not None:
+            trades = self.parse_trades(fills, market)
+            numTrades = len(trades)
+            if numTrades > 0:
+                fee = {
+                    'cost': trades[0]['fee']['cost'],
+                    'currency': trades[0]['fee']['currency'],
+                }
+                for i in range(1, len(trades)):
+                    fee['cost'] = self.sum(fee['cost'], trades[i]['fee']['cost'])
         result = {
             'info': order,
             'id': id,
@@ -614,7 +629,8 @@ class binance (Exchange):
             'filled': filled,
             'remaining': remaining,
             'status': status,
-            'fee': None,
+            'fee': fee,
+            'trades': trades,
         }
         return result
 
@@ -633,6 +649,7 @@ class binance (Exchange):
             'quantity': self.amount_to_string(symbol, amount),
             'type': uppercaseType,
             'side': side.upper(),
+            'newOrderRespType': self.options['newOrderRespType'],  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         }
         timeInForceIsRequired = False
         priceIsRequired = False
@@ -661,7 +678,7 @@ class binance (Exchange):
             else:
                 order['stopPrice'] = self.price_to_precision(symbol, stopPrice)
         response = getattr(self, method)(self.extend(order, params))
-        return self.parse_order(response)
+        return self.parse_order(response, market)
 
     def fetch_order(self, id, symbol=None, params={}):
         if not symbol:
