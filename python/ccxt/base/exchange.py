@@ -979,7 +979,7 @@ class Exchange(object):
         self.raise_error(NotSupported, details='cancel_order() not implemented yet')
 
     def fetch_bids_asks(self, symbols=None, params={}):
-        self.raise_error(NotSupported, details='API does not allow to fetch all prices at once with a single call to fetch_bid_asks() for now')
+        self.raise_error(NotSupported, details='API does not allow to fetch all prices at once with a single call to fetch_bids_asks() for now')
 
     def fetch_tickers(self, symbols=None, params={}):
         self.raise_error(NotSupported, details='API does not allow to fetch all tickers at once with a single call to fetch_tickers() for now')
