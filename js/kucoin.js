@@ -176,9 +176,9 @@ module.exports = class kucoin extends Exchange {
                 'limits': {
                     'amount': {
                         'min': {
-                            'BTC': 1e-05,
-                            'ETH': 1e-05,
-                            'BCH': 1e-05,
+                            'BTC': 0.00001,
+                            'ETH': 0.00001,
+                            'BCH': 0.00001,
                             'GAS': 0.1,
                             'NEO': 0.01,
                             'KCS': 1,
