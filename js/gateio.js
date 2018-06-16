@@ -391,7 +391,7 @@ module.exports = class gateio extends Exchange {
             let curob = this.asyncContext['ob'][symbol]['data']['ob'];
             curob = this.mergeOrderBookDelta (curob, ob, undefined);
             this.asyncContext['ob'][symbol]['data']['ob'] = curob;
-            this.emit ('ob', symbol, ob);
+            this.emit ('ob', symbol, this._cloneOrderBook (curob));
         }
     }
 

@@ -8,8 +8,9 @@ const {
 module.exports = class AsyncConnection extends EventEmitter {
     /*
     Events: 
+        on('open')
         on('close')
-        on('error', reason)
+        on('err', reason)
         on('message', data)
     */
     constructor () {

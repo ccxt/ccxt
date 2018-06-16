@@ -909,7 +909,6 @@ module.exports = class binance extends Exchange {
     }
 
     _asyncHandleOb (data, conxid) {
-        // console.log (data);
         let symbol = this.findSymbol (this.safeString (data, 's'));
         // if asyncContext has no previous orderbook you have to cache all deltas
         // and fetch orderbook from rest api
@@ -920,7 +919,7 @@ module.exports = class binance extends Exchange {
             let deltas = this.asyncContext['ob'][symbol]['data']['deltas'];
             let l = deltas.length;
             if (l > 50) {
-                this.emit ('error', new ExchangeError (this.id + ': max deltas reached for symbol ' + symbol));
+                this.emit ('err', new ExchangeError (this.id + ': max deltas reached for symbol ' + symbol));
                 this.asyncClose (conxid);
             } else {
                 this.asyncContext['ob'][symbol]['data']['deltas'].push (data);
@@ -958,7 +957,7 @@ module.exports = class binance extends Exchange {
                 if ((U <= lastUpdateId + 1) && (u >= lastUpdateId + 1)) {
                     break;
                 }
-                this.emit ('error', new ExchangeError (this.id + ': error in update ids in deltas for ' + symbol));
+                this.emit ('err', new ExchangeError (this.id + ': error in update ids in deltas for ' + symbol));
                 this.asyncClose (conxid);
                 return;
             }
@@ -980,14 +979,19 @@ module.exports = class binance extends Exchange {
 
     _asyncEventOnOpen (conexid, asyncConexConfig) {
         let url = asyncConexConfig['url'];
-        let streams = url.split ('=', 2)[1].split ('/');
-        for (let i = 0; i < streams.length; i++) {
-            let stream = streams[i];
-            let pair = stream.split ('@', 2);
-            if (pair.length === 2) {
-                let symbol = this.findSymbol (pair[0].toUpperCase ());
-                this.asyncContext['ob'][symbol]['subscribed'] = true;
-                this.asyncContext['ob'][symbol]['subscribing'] = false;
+        let parts = url.split ('=');
+        let l = parts.length;
+        if (l > 1) {
+            let streams = parts[1];
+            streams = streams.split ('/');
+            for (let i = 0; i < streams.length; i++) {
+                let stream = streams[i];
+                let pair = stream.split ('@', 2);
+                if (pair.length === 2) {
+                    let symbol = this.findSymbol (pair[0].toUpperCase ());
+                    this.asyncContext['ob'][symbol]['subscribed'] = true;
+                    this.asyncContext['ob'][symbol]['subscribing'] = false;
+                }
             }
         }
     }

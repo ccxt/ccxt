@@ -129,6 +129,27 @@ module.exports = class bitmex extends Exchange {
                     ],
                 },
             },
+            'asyncconf': {
+                'conx-tpls': {
+                    'default': {
+                        'type': 'ws',
+                        'baseurl': 'wss://www.bitmex.com/realtime',
+                    },
+                },
+                'methodmap': {
+                    '_asyncTimeoutSendPing': '_asyncTimeoutSendPing',
+                    '_asyncTimeoutRemoveNonce': '_asyncTimeoutRemoveNonce',
+                },
+                'events': {
+                    'ob': {
+                        'conx-tpl': 'default',
+                        'generators': {
+                            'url': '{baseurl}',
+                            'id': '{id}',
+                        },
+                    },
+                },
+            },
         });
     }
 
@@ -603,5 +624,178 @@ module.exports = class bitmex extends Exchange {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    _asyncOnMsg (data, conxid = 'default') {
+        // send ping after 5 seconds if not message received
+        let lastTimer = this.safeValue (this.asyncContext['_'], 'timer');
+        if (lastTimer !== undefined) {
+            this._asyncTimeoutCancel (lastTimer);
+        }
+        this.asyncContext['_']['timer'] = this._asyncTimeoutSet (1000, this._asyncMethodMap('_asyncTimeoutSendPing'), []);
+        if (data === 'pong') {
+            return;
+        }
+        let msg = this.asyncParseJson (data);
+        let table = this.safeString (msg, 'table');
+        let subscribe = this.safeString (msg, 'subscribe');
+        let status = this.safeInteger (msg, 'status');
+        if (subscribe !== undefined) {
+            this._asyncHandleSubscription (msg, conxid = 'default');
+        } else if (table !== undefined) {
+            if (table === 'orderBookL2') {
+                this._asyncHandleOb (msg, conxid);
+            }
+        } else if (status !== undefined) {
+            this._asyncHandleError (msg, conxid);
+        }
+    }
+
+    _asyncTimeoutSendPing (){
+        this.asyncSend ('ping');
+    }
+
+    _asyncHandleError (msg, conxid = 'default') {
+        let status = this.safeInteger (msg, 'status');
+        let error = this.safeString (msg, 'error');
+        this.emit ('err', new ExchangeError (this.id + ' status ' + status + ':' + error), conxid);
+    }
+
+    _asyncHandleSubscription (msg, conxid = 'default') {
+        let success = this.safeValue (msg, 'success');
+        let subscribe = this.safeString (msg, 'subscribe');
+        let parts = subscribe.split (':');
+        let l = parts.length;
+        if (l === 2) {
+            if (parts[0] === 'orderBookL2') {
+                let symbol = this.findSymbol (parts[1]);
+                if ('nonces' in this.asyncContext['ob'][symbol]['data']) {
+                    let nonces = this.asyncContext['ob'][symbol]['data']['nonces'];
+                    const keys = Object.keys (nonces);
+                    for (let i = 0; i < keys.length; i++) {
+                        let nonce = keys[i];
+                        this._asyncTimeoutCancel (nonces[nonce]);
+                        this.emit (nonce, success);
+                    }
+                    this.asyncContext['ob'][symbol]['data']['nonces'] = {};
+                }
+            }
+        }
+    }
+
+    _asyncHandleOb (msg, conxid = 'default') {
+        let action = this.safeString (msg, 'action');
+        let data = this.safeValue (msg, 'data');
+        let symbol = this.safeString (data[0], 'symbol');
+        symbol = this.findSymbol (symbol);
+        if (action === 'partial') {
+            let ob = {
+                'bids': [],
+                'asks': [],
+                'timestamp': undefined,
+                'datetime': undefined,
+                'nonce': undefined,
+            };
+            let obIds = {};
+            for (let o = 0; o < data.length; o++) {
+                let order = data[o];
+                let side = (order['side'] === 'Sell') ? 'asks' : 'bids';
+                let amount = order['size'];
+                let price = order['price'];
+                let priceId = order['id'];
+                ob[side].push ([ price, amount ]);
+                obIds[priceId] = price;
+            }
+            ob['bids'] = this.sortBy (ob['bids'], 0, true);
+            ob['asks'] = this.sortBy (ob['asks'], 0);
+            this.asyncContext['ob'][symbol]['data']['ob'] = ob;
+            this.asyncContext['_']['dbids'][symbol] = obIds;
+            this.emit ('ob', symbol, ob);
+        } else if (action === 'update') {
+            if (symbol in this.asyncContext['_']['dbids']) {
+                let obIds = this.asyncContext['_']['dbids'][symbol];
+                let curob = this.asyncContext['ob'][symbol]['data']['ob'];
+                for (let o = 0; o < data.length; o++) {
+                    let order = data[o];
+                    let amount = order['size'];
+                    let side = (order['side'] === 'Sell') ? 'asks' : 'bids';
+                    let priceId = order['id'];
+                    let price = obIds[priceId];
+                    this.updateBidAsk ([price, amount], curob[side], (order['side'] === 'Buy'));
+                }
+                this.asyncContext['ob'][symbol]['data']['ob'] = curob;
+                this.emit ('ob', symbol, this._cloneOrderBook(curob));
+            }
+        } else if (action === 'insert') {
+            if (symbol in this.asyncContext['_']['dbids']) {
+                let obIds = this.asyncContext['_']['dbids'][symbol];
+                let curob = this.asyncContext['ob'][symbol]['data']['ob'];
+                for (let o = 0; o < data.length; o++) {
+                    let order = data[o];
+                    let amount = order['size'];
+                    let side = (order['side'] === 'Sell') ? 'asks' : 'bids';
+                    let priceId = order['id'];
+                    let price = order['price'];
+                    this.updateBidAsk ([price, amount], curob[side], (order['side'] === 'Buy'));
+                    this.asyncContext['_']['dbids'][symbol][priceId] = price;
+                }
+                this.asyncContext['ob'][symbol]['data']['ob'] = curob;
+                this.emit ('ob', symbol, this._cloneOrderBook(curob));
+            }
+        } else if (action === 'delete') {
+            if (symbol in this.asyncContext['_']['dbids']) {
+                let obIds = this.asyncContext['_']['dbids'][symbol];
+                let curob = this.asyncContext['ob'][symbol]['data']['ob'];
+                for (let o = 0; o < data.length; o++) {
+                    let order = data[o];
+                    let side = (order['side'] === 'Sell') ? 'asks' : 'bids';
+                    let priceId = order['id'];
+                    let price = obIds[priceId];
+                    this.updateBidAsk ([price, 0], curob[side], (order['side'] === 'Buy'));
+                    this.omit (this.asyncContext['_']['dbids'][symbol], priceId);
+                }
+                this.asyncContext['ob'][symbol]['data']['ob'] = curob;
+                this.emit ('ob', symbol, this._cloneOrderBook(curob));
+            }
+        } else {
+            this.emit ('err', new ExchangeError (this.id + ' invalid orderbook message'));
+        }
+    }
+
+    _asyncSubscribeOrderBook (symbol, nonce) {
+        let id = this.market_id (symbol).toUpperCase ();
+        let payload = {
+            "op": "subscribe",
+            "args": ["orderBookL2:" + id]
+        };
+        if (!('nonces' in this.asyncContext['ob'][symbol]['data'])) {
+            this.asyncContext['ob'][symbol]['data']['nonces'] = {};
+        }
+        ;
+        let nonceStr = nonce.toString ();
+        let handle = this._asyncTimeoutSet (this.timeout, this._asyncMethodMap('_asyncTimeoutRemoveNonce'), [nonceStr, symbol]);
+        this.asyncContext['ob'][symbol]['data']['nonces'][nonceStr] = handle;
+        this.asyncSendJson (payload);
+    }
+
+    _asyncTimeoutRemoveNonce (timerNonce, symbol) {
+        if ('nonces' in this.asyncContext['ob'][symbol]['data']) {
+            let nonces = this.asyncContext['ob'][symbol]['data']['nonces'];
+            if (timerNonce in nonces) {
+                this.omit (this.asyncContext['ob'][symbol]['data']['nonces'], timerNonce);
+            }
+        }
+    }
+
+    _asyncEventOnOpen (conexid, asyncConexConfig) {
+        this.asyncContext['_']['dbids'] = {};
+        // send auth
+        // let nonce = this.nonce ();
+        // let signature = this.hmac (this.encode ('GET/realtime' + nonce.toString ()), this.encode (this.secret));
+        // let payload = {
+        //     'op': 'authKeyExpires',
+        //     'args': [this.apiKey, nonce, signature]
+        // };
+        // this.asyncSendJson (payload);
     }
 };

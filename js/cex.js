@@ -611,7 +611,7 @@ module.exports = class cex extends Exchange {
         let ob = this.asyncContext['ob'][symbol]['data']['ob'];
         if (ob['nonce'] !== (resData['id'] - 1)) {
             this.asyncClose ();
-            this.emit ('error', new ExchangeError ('invalid orderbook sequence in ' + this.id + ' ' + ob['nonce'] + ' !== ' + resData['id'] + ' -1'));
+            this.emit ('err', new ExchangeError ('invalid orderbook sequence in ' + this.id + ' ' + ob['nonce'] + ' !== ' + resData['id'] + ' -1'));
         } else {
             ob = this.mergeOrderBookDelta (ob, resData, timestamp);
             ob['nonce'] = resData['id'];

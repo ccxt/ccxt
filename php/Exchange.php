@@ -1241,8 +1241,8 @@ abstract class Exchange extends CcxtEventEmitter {
     public function searchIndexToInsertOrUpdate ($value, &$orderedArray, $key, $descending = false) {
         $direction = $descending ? -1 : 1;
         $compare = function ($a, $b) use($key, $direction) {
-            return (($a[$key] < $b[$key]) ? -$direction :
-                (($a[$key] > $b[$key]) ?  $direction : 0));
+            return (($a < $b) ? -$direction :
+                (($a > $b) ?  $direction : 0));
         };
         for ($i = 0; $i < count($orderedArray); $i++) {
             if ($compare ($orderedArray[$i][$key], $value)) {
@@ -1251,7 +1251,7 @@ abstract class Exchange extends CcxtEventEmitter {
         }
         return $i;
     }
-    public function updateBidAsk (&$bidAsk, &$currentBidsAsks, $bids = false) {
+    public function updateBidAsk ($bidAsk, &$currentBidsAsks, $bids = false) {
         // insert or replace ordered
         $index = $this->searchIndexToInsertOrUpdate ($bidAsk[0], $currentBidsAsks, 0, $bids);
         if (($index < count($currentBidsAsks)) && ($currentBidsAsks[$index][0] === $bidAsk[0])){
@@ -1977,7 +1977,8 @@ abstract class Exchange extends CcxtEventEmitter {
                 'ob'=> array(),
                 'ticker'=> array(),
                 'ohlvc'=> array(),
-                'trades'=> array()
+                'trades'=> array(),
+                '_' => array(),
             );
         } else {
             foreach ($this->asyncContext as $key => $event) {
@@ -2177,15 +2178,19 @@ abstract class Exchange extends CcxtEventEmitter {
         }
         
         $conx = $asyncConnectionInfo['conx'];
-
-        $conx->on ('open', function () use ($conxid, $conx){
-            $asyncConnectionInfo['auth'] = false;
-            $this->_async_event_on_open($conxid, $conx->options);
+        $that = $this;
+        $conx->on ('open', function () use ($conxid, $conx, $that){
+            try {
+                $asyncConnectionInfo['auth'] = false;
+                $that->_async_event_on_open($conxid, $conx->options);
+            } catch (Exception $ex) {
+                $this->emit ('err', $ex, $conxid);
+            }
         });
-        $conx->on ('error', function ($err) use ($conxid) {
+        $conx->on ('err', function ($err) use ($conxid) {
             $this->asyncContext['auth'] = false;
             $this->async_reset_context ($conxid);
-            $this->emit ('error', $err, $conxid);
+            $this->emit ('err', $err, $conxid);
         });
         $conx->on ('message', function ($data) use ($conxid) {
             if ($this->verbose) {
@@ -2196,7 +2201,7 @@ abstract class Exchange extends CcxtEventEmitter {
             try {
                 $this->_async_on_msg ($data, $conxid);
             } catch (Exception $ex) {
-                $this->emit ('error', $ex, $conxid);
+                $this->emit ('err', $ex, $conxid);
             }
         });
         $conx->on ('close', function () use ($conxid) {
@@ -2280,8 +2285,7 @@ abstract class Exchange extends CcxtEventEmitter {
             $deferred->promise(), 'asyncSubscribeOrderBook'), self::$loop);
     }
 
-    protected function _async_event_on_open ($conexid, $asyncConex) {
-        
+    public function _async_event_on_open ($conexid, $asyncConex) {
     }
 
     protected function _asyncExecute ($method, $params, $callback, $context = array(), $thisParam = null) {
@@ -2313,8 +2317,22 @@ abstract class Exchange extends CcxtEventEmitter {
         }
         return $this->asyncconf['methodmap'][$key];
     }
-        
 
+    protected function _asyncTimeoutSet ($mseconds, $method, $params, $thisParam = null) {
+        $thisParam = ($thisParam !== null) ? $thisParam : $this;
+        $that = $this;
+        return self::$loop->addTimer($mseconds / 1000, function() use ($thisParam, $params, $method, $that) {
+            try {
+                call_user_func_array (array ($thisParam, $method), $params);
+            } catch (Exception $ex) {
+                $that.emit ('error', new ExchangeError ($that->id + ': error invoking method ' + $method + ' in _asyncExecute: '+ ex));
+            }
+        });
+    }
+
+    protected function _asyncTimeoutCancel ($handle) {
+        self::$loop->cancelTimer($handle);
+    }        
 }
 
 Exchange::$loop = React\EventLoop\Factory::create();

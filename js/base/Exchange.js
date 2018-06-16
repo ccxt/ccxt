@@ -828,8 +828,8 @@ module.exports = class Exchange extends EventEmitter{
         let i;
         let direction = descending ? -1 : 1;
         let compare = (a, b) =>
-                ((a[key] < b[key]) ? -direction :
-                ((a[key] > b[key]) ?  direction : 0));
+                ((a < b) ? -direction :
+                ((a > b) ?  direction : 0));
         for (i = 0; i < orderedArray.length; i++) {
             if (compare (orderedArray[i][key], value)) {
                 return i;
@@ -1140,6 +1140,7 @@ module.exports = class Exchange extends EventEmitter{
                 'ticker': {},
                 'ohlvc': {},
                 'trades': {},
+                '_': {},
             };
         } else {
             for (let key in this.asyncContext) {
@@ -1335,10 +1336,10 @@ module.exports = class Exchange extends EventEmitter{
             asyncConnectionInfo['auth'] = false;
             this._asyncEventOnOpen(conxid, asyncConnectionInfo['conx'].config);
         });
-        asyncConnectionInfo['conx'].on ('error', (err) => {
+        asyncConnectionInfo['conx'].on ('err', (err) => {
             asyncConnectionInfo['auth'] = false;
             this.asyncResetContext (conxid);
-            this.emit ('error', err, conxid);
+            this.emit ('err', err, conxid);
         });
         asyncConnectionInfo['conx'].on ('message', (data) => {
             if (this.verbose)
@@ -1346,7 +1347,7 @@ module.exports = class Exchange extends EventEmitter{
             try {
                 this._asyncOnMsg (data, conxid);
             } catch (ex) {
-                this.emit ('error', ex, conxid);
+                this.emit ('err', ex, conxid);
             }
         });
         asyncConnectionInfo['conx'].on ('close', () => {
@@ -1433,7 +1434,6 @@ module.exports = class Exchange extends EventEmitter{
     }
 
     _asyncExecute (method, params, callback, context = {}, thisParam = null) {
-        console.log('async_execute')
         try {
             thisParam = thisParam != null ? thisParam: this;
             let promise = this[method].apply (thisParam, params);
@@ -1443,22 +1443,22 @@ module.exports = class Exchange extends EventEmitter{
                 args.unshift(null);
                 args.unshift(context);
                 try {
-                    that[callback].apply (thisParam, args);
+                    thisParam[callback].apply (thisParam, args);
                 } catch (ex) {
                     console.log (ex.stack);
-                    that.emit ('error', new ExchangeError (that.id + ': error invoking method ' + callback.name + ' in _asyncExecute: '+ ex));
+                    that.emit ('err', new ExchangeError (that.id + ': error invoking method ' + callback + ' in _asyncExecute: '+ ex));
                 }
             }).catch(function(error) {
                 try {
-                    this[callback].apply (thisParam, [context, error]);
+                    thisParam[callback].apply (thisParam, [context, error]);
                 } catch (ex) {
                     console.log (ex.stack);
-                    that.emit ('error', new ExchangeError (that.id + ': error invoking method ' + callback.name + ' in _asyncExecute: '+ ex));
+                    that.emit ('err', new ExchangeError (that.id + ': error invoking method ' + callback + ' in _asyncExecute: '+ ex));
                 }
             });
         } catch (ex) {
             console.log (ex.stack);
-            that.emit ('error', new ExchangeError (that.id + ': error invoking method ' + method.name + ' in _asyncExecute: '+ ex));
+            that.emit ('err', new ExchangeError (that.id + ': error invoking method ' + method + ' in _asyncExecute: '+ ex));
         }
     }
 
@@ -1467,6 +1467,22 @@ module.exports = class Exchange extends EventEmitter{
             throw new ExchangeError (this.id + ': ' + key + ' not found in async methodmap')
         }
         return this.asyncconf['methodmap'][key];
+    }
+
+    _asyncTimeoutSet (mseconds, method, params, thisParam = null) {
+        thisParam = thisParam != null ? thisParam: this;
+        let that = this;
+        return setTimeout (function () {
+            try {
+                thisParam[method].apply (thisParam, params);
+            } catch (ex) {
+                that.emit ('err', new ExchangeError (that.id + ': error invoking method ' + method + ' '+ ex));
+            }
+        }, mseconds);
+    }
+
+    _asyncTimeoutCancel (handle) {
+        clearTimeout (handle);
     }
 
 }

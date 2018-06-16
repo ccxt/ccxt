@@ -34,7 +34,7 @@ module.exports = class WebsocketConnection extends AsyncConnection {
 
             client.ws.on('error', (error) => {
                 if (!client.isClosing) {
-                    this.emit('error', error);
+                    this.emit('err', error);
                 }
                 reject(error);
             });
@@ -64,7 +64,7 @@ module.exports = class WebsocketConnection extends AsyncConnection {
         }
     }
 
-    send (data) { 
+    send (data) {
         if (!this.client.isClosing) {
             this.client.ws.send (data);
         }

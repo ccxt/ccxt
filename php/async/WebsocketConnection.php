@@ -20,7 +20,7 @@ class WsEnvelop {
 
 class WebsocketConnection extends AsyncConnection {
 
-    private $options;
+    public $options;
     private $timeout;
     private $loop;
     /**
@@ -67,7 +67,7 @@ class WebsocketConnection extends AsyncConnection {
                         });
                         $conn->on('error', function($err) use (&$that){
                             if (!$that->client->is_closing) {
-                                $that->emit ('error', $err);
+                                $that->emit ('err', $err);
                             }
                         });
                         $client->ws = $conn;

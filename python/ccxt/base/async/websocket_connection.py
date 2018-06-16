@@ -70,9 +70,10 @@ class WebsocketConnection(AsyncConnection):
                 await fut
                 # self.loop.run_until_complete(fut)
                 self.client = client
+                self.emit('open')
             except Exception as ex:
                 future.done() or future.set_exception(ex)
-                self.emit('error', ex)
+                self.emit('err', ex)
             # return future
             await future
 

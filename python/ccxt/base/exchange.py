@@ -1360,6 +1360,7 @@ class Exchange(EventEmitter):
                 'ticker': {},
                 'ohlvc': {},
                 'trades': {},
+                '_': {}
             }
         else:
             for key in self.asyncContext:
@@ -1531,13 +1532,13 @@ class Exchange(EventEmitter):
         @conx.on('open')
         def async_connection_open():
             async_connection_info['auth'] = False
-            self._async_event_on_open(conxid, async_connection_info['conx'].config)
+            self._async_event_on_open(conxid, async_connection_info['conx'].options)
 
-        @conx.on('error')
+        @conx.on('err')
         def async_connection_error(error):
             async_connection_info['auth'] = False
             self.async_reset_context(conxid)
-            self.emit('error', error, conxid)
+            self.emit('err', error, conxid)
 
         @conx.on('message')
         def async_connection_message(msg):
@@ -1547,7 +1548,7 @@ class Exchange(EventEmitter):
             try:
                 self._async_on_msg(msg, conxid)
             except Exception as ex:
-                self.emit('error', ex, conxid)
+                self.emit('err', ex, conxid)
 
         @conx.on('close')
         def async_connection_close():
@@ -1624,12 +1625,12 @@ class Exchange(EventEmitter):
                 try:
                     getattr(this_param, callback)(context, None, ret)
                 except Exception as ex:
-                    eself.emit ('error', ExchangeError (eself.id + ': error invoking method ' + callback + ' in _asyncExecute: '+ str(ex)))
+                    eself.emit ('err', ExchangeError (eself.id + ': error invoking method ' + callback + ' in _asyncExecute: '+ str(ex)))
             except Exception as ex:
                 try:
                     getattr(this_param, callback)(context, ex, None)
                 except Exception as ex:
-                    eself.emit ('error', ExchangeError (eself.id + ': error invoking method ' + callback + ' in _asyncExecute: '+ str(ex)))
+                    eself.emit ('err', ExchangeError (eself.id + ': error invoking method ' + callback + ' in _asyncExecute: '+ str(ex)))
             #future.set_result(True)
         
         # asyncio.ensure_future(t(future), loop = self.loop)
@@ -1642,4 +1643,15 @@ class Exchange(EventEmitter):
             raise ExchangeError (self.id + ': ' + key + ' not found in async methodmap')
         return self.asyncconf['methodmap'][key]
         
+    def _asyncTimeoutSet (self, mseconds, method, params, this_param = None):   
+        this_param = this_param if (this_param is not None) else self
+        def f():
+            try:
+                getattr(this_param, method)(*params)
+            except:
+                self.emit ('err', ExchangeError (self.id + ': error invoking method ' + method + ' '+ str(ex)))
+        return self.loop.call_later(mseconds / 1000, f)
+
+    def _asyncTimeoutCancel (self, handle):
+        handle.cancel()
 
