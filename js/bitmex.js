@@ -632,7 +632,7 @@ module.exports = class bitmex extends Exchange {
         if (lastTimer !== undefined) {
             this._asyncTimeoutCancel (lastTimer);
         }
-        this.asyncContext['_']['timer'] = this._asyncTimeoutSet (1000, this._asyncMethodMap('_asyncTimeoutSendPing'), []);
+        this.asyncContext['_']['timer'] = this._asyncTimeoutSet (5000, this._asyncMethodMap('_asyncTimeoutSendPing'), []);
         if (data === 'pong') {
             return;
         }
