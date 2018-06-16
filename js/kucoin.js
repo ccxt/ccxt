@@ -332,10 +332,10 @@ module.exports = class kucoin extends Exchange {
                             'PAY': 0.1,
                             'RDN': 1,
                             'REQ': 1,
-                            'QSP': 0.1
+                            'QSP': 0.1,
                         },
                     },
-                }
+                },
             },
         });
     }
