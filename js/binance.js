@@ -265,6 +265,7 @@ module.exports = class binance extends Exchange {
                 'timeDifference': 0, // the difference between system clock and Binance clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'parseOrderToPrecision': false, // force amounts and costs in parseOrder to precision
+                'newOrderRespType': 'RESULT', // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
             },
             'exceptions': {
                 '-1000': ExchangeNotAvailable, // {"code":-1000,"msg":"An unknown error occured while processing the request."}
@@ -621,6 +622,20 @@ module.exports = class binance extends Exchange {
         let side = this.safeString (order, 'side');
         if (typeof side !== 'undefined')
             side = side.toLowerCase ();
+        let fee = undefined;
+        const fills = this.safeValue (order, 'fills');
+        if (typeof fills !== 'undefined') {
+            fee = [];
+            for (let i = 0; i < fills.length; i++) {
+                const fill = fills[i];
+                const commission = this.safeFloat (fill, 'commission');
+                const commissionAsset = this.commonCurrencyCode (fill['commissionAsset']);
+                // Fee may be BNB and base asset (others?)
+                // https://support.binance.com/hc/en-us/articles/115000429332-Fee-Structure-on-Binance
+                // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#new-order--trade
+                fee.push ({ 'cost': commission, 'currency': commissionAsset });
+            }
+        }
         let result = {
             'info': order,
             'id': id,
@@ -636,7 +651,7 @@ module.exports = class binance extends Exchange {
             'filled': filled,
             'remaining': remaining,
             'status': status,
-            'fee': undefined,
+            'fee': fee,
         };
         return result;
     }
@@ -657,6 +672,7 @@ module.exports = class binance extends Exchange {
             'quantity': this.amountToString (symbol, amount),
             'type': uppercaseType,
             'side': side.toUpperCase (),
+            'newOrderRespType': this.options['newOrderRespType'], // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         };
         let timeInForceIsRequired = false;
         let priceIsRequired = false;
