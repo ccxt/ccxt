@@ -509,21 +509,22 @@ module.exports = class binance extends Exchange {
 
     parseTrade (trade, market = undefined) {
         let timestampField = ('T' in trade) ? 'T' : 'time';
-        let timestamp = trade[timestampField];
+        let timestamp = this.safeInteger (trade, timestampField);
         let priceField = ('p' in trade) ? 'p' : 'price';
-        let price = parseFloat (trade[priceField]);
+        let price = this.safeFloat (trade, priceField);
         let amountField = ('q' in trade) ? 'q' : 'qty';
-        let amount = parseFloat (trade[amountField]);
+        let amount = this.safeFloat (trade, amountField);
         let idField = ('a' in trade) ? 'a' : 'id';
-        let id = trade[idField].toString ();
+        let id = this.safeString (trade, idField);
         let side = undefined;
         let order = undefined;
         if ('orderId' in trade)
-            order = trade['orderId'].toString ();
+            order = this.safeString (trade, 'orderId');
         if ('m' in trade) {
             side = trade['m'] ? 'sell' : 'buy'; // this is reversed intentionally
         } else {
-            side = (trade['isBuyer']) ? 'buy' : 'sell'; // this is a true side
+            if ('isBuyer' in trade)
+                side = (trade['isBuyer']) ? 'buy' : 'sell'; // this is a true side
         }
         let fee = undefined;
         if ('commission' in trade) {
@@ -623,17 +624,19 @@ module.exports = class binance extends Exchange {
         if (typeof side !== 'undefined')
             side = side.toLowerCase ();
         let fee = undefined;
+        let trades = undefined;
         const fills = this.safeValue (order, 'fills');
         if (typeof fills !== 'undefined') {
-            fee = [];
-            for (let i = 0; i < fills.length; i++) {
-                const fill = fills[i];
-                const commission = this.safeFloat (fill, 'commission');
-                const commissionAsset = this.commonCurrencyCode (fill['commissionAsset']);
-                // Fee may be BNB and base asset (others?)
-                // https://support.binance.com/hc/en-us/articles/115000429332-Fee-Structure-on-Binance
-                // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#new-order--trade
-                fee.push ({ 'cost': commission, 'currency': commissionAsset });
+            trades = this.parseTrades (fills, market);
+            let numTrades = trades.length;
+            if (numTrades > 0) {
+                fee = {
+                    'cost': trades[0]['fee']['cost'],
+                    'currency': trades[0]['fee']['currency'],
+                };
+                for (let i = 1; i < trades.length; i++) {
+                    fee['cost'] = this.sum (fee['cost'], trades[i]['fee']['cost']);
+                }
             }
         }
         let result = {
@@ -652,6 +655,7 @@ module.exports = class binance extends Exchange {
             'remaining': remaining,
             'status': status,
             'fee': fee,
+            'trades': trades,
         };
         return result;
     }
@@ -706,7 +710,7 @@ module.exports = class binance extends Exchange {
             }
         }
         let response = await this[method] (this.extend (order, params));
-        return this.parseOrder (response);
+        return this.parseOrder (response, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
