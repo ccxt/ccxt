@@ -4,8 +4,7 @@
 
 module.exports = {
 
-    isNode: (typeof window === 'undefined') &&
-          !((typeof WorkerGlobalScope !== 'undefined') && (self instanceof WorkerGlobalScope))
+    isNode: typeof module !== 'undefined' && typeof module.exports !== 'undefined'
 
     , isWindows: (typeof process !== 'undefined') ? process.platform === "win32" : false
 }

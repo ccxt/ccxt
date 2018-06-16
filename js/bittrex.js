@@ -286,7 +286,7 @@ module.exports = class bittrex extends Exchange {
             'ask': this.safeFloat (ticker, 'Ask'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': undefined,
+            'open': previous,
             'close': last,
             'last': last,
             'previousClose': undefined,
