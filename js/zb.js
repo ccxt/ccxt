@@ -118,6 +118,26 @@ module.exports = class zb extends Exchange {
                     ],
                 },
             },
+            'asyncconf': {
+                'conx-tpls': {
+                    'default': {
+                        'type': 'ws',
+                        'baseurl': 'wss://api.zb.com:9999/websocket',
+                    },
+                },
+                'methodmap': {
+                    '_asyncTimeoutRemoveNonce': '_asyncTimeoutRemoveNonce',
+                },
+                'events': {
+                    'ob': {
+                        'conx-tpl': 'default',
+                        'generators': {
+                            'url': '{baseurl}',
+                            'id': '{id}',
+                        },
+                    },
+                },
+            },
             'fees': {
                 'funding': {
                     'withdraw': {
@@ -519,6 +539,100 @@ module.exports = class zb extends Exchange {
                 } else if (code !== '1000') {
                     throw new ExchangeError (message);
                 }
+            }
+        }
+    }
+
+    endsWith (s1, s2) {
+        let index = s1.indexOf (s2);
+        let l = s1.length - 0; // a transpiler workaround
+        return (index === (l - s2.length));
+    }
+
+    _asyncOnMsg (data, conxid = 'default') {
+        // {"message":"频道为空","no":"0","code":1007,"channel":"eth_btc_depth","success":false}
+        let msg = JSON.parse (data);
+        let success = this.safeValue (msg, 'success', true);
+        let channel = this.safeString (msg, 'channel');
+        let idWs = undefined;
+        let channelType = undefined;
+        if (this.endsWith (channel, '_depth')) {
+            channelType = 'ob';
+            idWs = channel.replace ('_depth', '');
+        } else {
+            // could not determine channel
+            return;
+        }
+        if (!('idws' in this.asyncContext['_'])) {
+            this.emit ('err', new ExchangeError (this.id + ' internal error: unitialized idws dict in context '));
+            return;
+        }
+        if (!(idWs in this.asyncContext['_']['idws'])) {
+            this.emit ('err', new ExchangeError (this.id + ' error receiving unexpected market id ' + idWs));
+            return;
+        }
+        let id = this.asyncContext['_']['idws'][idWs];
+        let symbol = this.findSymbol (id);
+        if (!success) {
+            let code = this.safeString (msg, 'code', '0');
+            let errMsg = this.safeString (msg, 'message', 'unknown error');
+            // error?
+            if (channelType === 'ob') {
+                let ex = new ExchangeError (this.id + ' subscribing error (code: ' + code + ' error: ' + errMsg + ")");
+                this._asyncEmitObSubscription (symbol, false, ex);
+            }
+            return;
+        }
+        if (channelType === 'ob') {
+            this._asyncEmitObSubscription (symbol, true, undefined);
+            this._asyncHandleOb (msg, symbol, conxid);
+        }
+    }
+
+    _asyncEmitObSubscription (symbol, success, exception) {
+        if ('nonces' in this.asyncContext['ob'][symbol]['data']) {
+            let nonces = this.asyncContext['ob'][symbol]['data']['nonces'];
+            const keys = Object.keys (nonces);
+            for (let i = 0; i < keys.length; i++) {
+                let nonce = keys[i];
+                this._asyncTimeoutCancel (nonces[nonce]);
+                this.emit (nonce, success, exception);
+            }
+            this.asyncContext['ob'][symbol]['data']['nonces'] = {};
+        }
+    }
+
+    _asyncHandleOb (msg, symbol, conxid = 'default') {
+        let ob = this.parseOrderBook (msg);
+        this.asyncContext['ob'][symbol]['data']['ob'] = ob;
+        this.emit ('ob', symbol, ob);
+    }
+
+    _asyncSubscribeOrderBook (symbol, nonce) {
+        let id = this.market_id (symbol);
+        let idWs = id.replace ('_', '');
+        let payload = {
+            'event': 'addChannel',
+            'channel': idWs + '_depth',
+        };
+        if (!('idws' in this.asyncContext['_'])) {
+            this.asyncContext['_']['idws'] = {};
+        }
+        this.asyncContext['_']['idws'][idWs] = id;
+        if (!('nonces' in this.asyncContext['ob'][symbol]['data'])) {
+            this.asyncContext['ob'][symbol]['data']['nonces'] = {};
+        }
+        let nonceStr = nonce.toString ();
+        let handle = this._asyncTimeoutSet (this.timeout, this._asyncMethodMap('_asyncTimeoutRemoveNonce'), [nonceStr, symbol]);
+        this.asyncContext['ob'][symbol]['data']['nonces'][nonceStr] = handle;
+        this.asyncSendJson (payload);
+    }
+
+    _asyncTimeoutRemoveNonce (timerNonce, symbol) {
+        if ('nonces' in this.asyncContext['ob'][symbol]['data']) {
+            let nonces = this.asyncContext['ob'][symbol]['data']['nonces'];
+            if (timerNonce in nonces) {
+                this.omit (this.asyncContext['ob'][symbol]['data']['nonces'], timerNonce);
             }
         }
     }

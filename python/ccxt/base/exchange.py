@@ -1364,12 +1364,15 @@ class Exchange(EventEmitter):
             }
         else:
             for key in self.asyncContext:
-                for symbol in self.asyncContext[key]:
-                    symbol_context = self.asyncContext[key][symbol]
-                    if (symbol_context.conxid == conxid):
-                        symbol_context['subscribed'] = False
-                        symbol_context['subscribing'] = False
-                        symbol_context['data'] = {}
+                print(key)
+                if key != '_':
+                    print(self.asyncContext[key])
+                    for symbol in self.asyncContext[key]:
+                        symbol_context = self.asyncContext[key][symbol]
+                        if (symbol_context['conxid'] == conxid):
+                            symbol_context['subscribed'] = False
+                            symbol_context['subscribing'] = False
+                            symbol_context['data'] = {}
 
     
     def async_connection_get(self, conxid = 'default'):
@@ -1543,7 +1546,7 @@ class Exchange(EventEmitter):
         @conx.on('message')
         def async_connection_message(msg):
             if self.verbose:
-                print(conxid + '<-' + msg)
+                print((conxid + '<-' + msg).encode('utf-8'))
                 sys.stdout.flush()
             try:
                 self._async_on_msg(msg, conxid)
@@ -1598,7 +1601,7 @@ class Exchange(EventEmitter):
         oidstr = str(oid)
 
         @self.once(oidstr)
-        def wait4obsubscribe(success):
+        def wait4obsubscribe(success, ex = None):
             if success:
                 self.asyncContext['ob'][symbol]['subscribed'] = True
                 self.asyncContext['ob'][symbol]['subscribing'] = False
@@ -1606,7 +1609,8 @@ class Exchange(EventEmitter):
             else:
                 self.asyncContext['ob'][symbol]['subscribed'] = False
                 self.asyncContext['ob'][symbol]['subscribing'] = False
-                future.done() or future.set_exception(ExchangeError ('error subscribing to ' + symbol + ' in ' + self.id))
+                ex = ex if ex is not None else ExchangeError ('error subscribing to ' + symbol + ' in ' + self.id)
+                future.done() or future.set_exception(ex)
         self.timeout_future(future, 'async_subscribe_order_book')
         self._async_subscribe_order_book(symbol, oid)
         await future

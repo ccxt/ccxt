@@ -1271,7 +1271,7 @@ abstract class Exchange extends CcxtEventEmitter {
         }
     }
 
-    public function mergeOrderBookDelta (&$currentOrderBook, &$orderbook, $timestamp = null, $bids_key = 'bids', $asks_key = 'asks', $price_key = 0, $amount_key = 1) {
+    public function &mergeOrderBookDelta (&$currentOrderBook, &$orderbook, $timestamp = null, $bids_key = 'bids', $asks_key = 'asks', $price_key = 0, $amount_key = 1) {
         $bids = is_array ($orderbook) && array_key_exists ($bids_key, $orderbook) ?
             $this->parse_bids_asks ($orderbook[$bids_key], $price_key, $amount_key) :
             array ();
@@ -1981,13 +1981,19 @@ abstract class Exchange extends CcxtEventEmitter {
                 '_' => array(),
             );
         } else {
-            foreach ($this->asyncContext as $key => $event) {
-                foreach ($event as $symbol => $symbolContext) {
-                    if ($symbolContext->conxid === $conxid) {
-                        $symbolContext['subscribed'] = false;
-                        $symbolContext['subscribing'] = false;
-                        $symbolContext['data'] = array();
+            foreach (array_keys ($this->asyncContext) as $key) {
+                echo ($key);
+                if ($key !== '_') {
+                    $event = &$this->asyncContext[$key];
+                    print_r($event);
+                    foreach ($event as $symbol => $symbolContext) {
+                        if ($symbolContext['conxid'] === $conxid) {
+                            $this->asyncContext[$key][$symbol]['subscribed'] = false;
+                            $this->asyncContext[$key][$symbol]['subscribing'] = false;
+                            $this->asyncContext[$key][$symbol]['data'] = array();
+                        }
                     }
+                    print_r($event);
                 }
             }
         }
@@ -2223,7 +2229,7 @@ abstract class Exchange extends CcxtEventEmitter {
         });
     }
 
-    public function _cloneOrderBook ($ob, $limit = null) {
+    public function &_cloneOrderBook ($ob, $limit = null) {
         $ret =  array (
             'timestamp'=> $ob['timestamp'],
             'datetime' => $ob['datetime'],
@@ -2269,15 +2275,16 @@ abstract class Exchange extends CcxtEventEmitter {
         $deferred = new \React\Promise\Deferred();
         $that = $this;
 
-        $this->once ($oid, function ($success) use($symbol, $that, $deferred) {
+        $this->once ($oid, function ($success, $ex = null) use($symbol, $that, $deferred) {
             if ($success) {
                 $that->asyncContext['ob'][$symbol]['subscribed'] = true;
                 $that->asyncContext['ob'][$symbol]['subscribing'] = false;
                 $deferred->resolve ();
             } else {
+                $ex = ($ex != null) ? $ex : new ExchangeError ('error subscribing to ' . symbol . ' in ' . $this->id);
                 $that->asyncContext['ob'][$symbol]['subscribed'] = false;
                 $that->asyncContext['ob'][$symbol]['subscribing'] = false;
-                $deferred->reject ();
+                $deferred->reject ($ex);
             }
         });
         $this->_async_subscribe_order_book ($symbol, $oid);

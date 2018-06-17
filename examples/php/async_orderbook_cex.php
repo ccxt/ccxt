@@ -27,7 +27,7 @@ $exchange = new ccxt\cex (array(
     'timeout' => 5 * 1000
 ));
 
-$exchange->on ('error', function ($err) use ($exchange){
+$exchange->on ('err', function ($err) use ($exchange){
     echo ($err);
     $exchange->asyncClose();
 });

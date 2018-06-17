@@ -25,7 +25,7 @@ try {
 }
 */
 
-$ws->on ('error', function ($error) {
+$ws->on ('err', function ($error) {
     echo ($error);
 });
 

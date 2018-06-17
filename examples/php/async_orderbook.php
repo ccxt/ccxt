@@ -30,7 +30,7 @@ $exchange = new  $cl (array(
     'timeout' => 5 * 1000
 ));
 
-$exchange->on ('error', function ($err, $conxid) use ($exchange){
+$exchange->on ('err', function ($err, $conxid) use ($exchange){
     echo ($err);
     $exchange->asyncClose();
 });
@@ -42,7 +42,7 @@ $exchange->on ('ob', function ($symbol, $ob) {
 });
 $exchange->async_subscribe_order_book ($symbol);
 $exchange->async_fetch_order_book($symbol, $limit);
-echo ("od received\n");
+echo ("ob received\n");
 // print_r ($ob);
 
 $loop->run();

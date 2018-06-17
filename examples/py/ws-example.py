@@ -15,7 +15,7 @@ async def main():
         'url': 'wss://echo.websocket.org'
     }, 5 * 1000, loop)
 
-    @ws.on('error')
+    @ws.on('err')
     def error_handler(error):  # pylint: disable=W0612
         print(error)
         loop.stop()

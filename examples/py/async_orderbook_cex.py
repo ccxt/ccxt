@@ -29,7 +29,7 @@ async def main():
         'timeout': 5 * 1000
     })
 
-    @exchange.on('error')
+    @exchange.on('err')
     def async_error(err):  # pylint: disable=W0612
         print(err)
         loop.stop()

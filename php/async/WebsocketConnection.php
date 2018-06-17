@@ -3,6 +3,7 @@
 namespace ccxt;
 use React;
 use Ratchet;
+use Clue;
 
 require __DIR__ . '/../../vendor/autoload.php';
 
@@ -72,6 +73,9 @@ class WebsocketConnection extends AsyncConnection {
                         });
                         $client->ws = $conn;
                         $that->client = $client;
+                        if (isset($that->config['wait-after-connect'])) {
+                            Clue\React\Block\sleep($this->options['wait-after-connect'] / 1000, $loop);
+                        }
                         $that->emit ('open');
                         $resolve();
                 

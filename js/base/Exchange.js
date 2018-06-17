@@ -1144,12 +1144,14 @@ module.exports = class Exchange extends EventEmitter{
             };
         } else {
             for (let key in this.asyncContext) {
-                for (let symbol in this.asyncContext[key]) {
-                    let symbolContext = this.asyncContext[key][symbol];
-                    if (symbolContext.conxid === conxid) {
-                        symbolContext['subscribed'] = false;
-                        symbolContext['subscribing'] = false;
-                        symbolContext['data'] = {};
+                if (key !== '_') {
+                    for (let symbol in this.asyncContext[key]) {
+                        let symbolContext = this.asyncContext[key][symbol];
+                        if (symbolContext['conxid'] === conxid) {
+                            symbolContext['subscribed'] = false;
+                            symbolContext['subscribing'] = false;
+                            symbolContext['data'] = {};
+                        }
                     }
                 }
             }
@@ -1334,7 +1336,7 @@ module.exports = class Exchange extends EventEmitter{
         }
         asyncConnectionInfo['conx'].on ('open', () => {
             asyncConnectionInfo['auth'] = false;
-            this._asyncEventOnOpen(conxid, asyncConnectionInfo['conx'].config);
+            this._asyncEventOnOpen(conxid, asyncConnectionInfo['conx'].options);
         });
         asyncConnectionInfo['conx'].on ('err', (err) => {
             asyncConnectionInfo['auth'] = false;
@@ -1409,15 +1411,19 @@ module.exports = class Exchange extends EventEmitter{
             try {
                 await this.asyncEnsureConxActive ('ob', symbol, true);
                 const oid = this.nonce();// + '-' + symbol + '-ob-subscribe';
-                this.once (oid.toString(), (success) => {
+                this.once (oid.toString(), (success, ex = null) => {
                     if (success) {
                         this.asyncContext['ob'][symbol]['subscribed'] = true;
                         this.asyncContext['ob'][symbol]['subscribing'] = false;
                         resolve ();
                     } else {
                         this.asyncContext['ob'][symbol]['subscribed'] = false;
-                        this.asyncContext['ob'][symbol]['subscribing'] = false;            
-                        reject (new ExchangeError ('error subscribing to ' + symbol + ' in ' + self.id));
+                        this.asyncContext['ob'][symbol]['subscribing'] = false;  
+                        if (ex != null) {
+                            reject (ex);
+                        } else {
+                            reject (new ExchangeError ('error subscribing to ' + symbol + ' in ' + this.id));
+                        }
                     }
                 });
                 this.asyncContext['ob'][symbol]['subscribing'] = true;

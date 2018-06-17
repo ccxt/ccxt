@@ -3,10 +3,12 @@
 const AsyncConnection = require ('./async_connection');
 const WebSocket = require('ws');
 
+const { sleep } = require ('../functions')
+
 module.exports = class WebsocketConnection extends AsyncConnection {
-    constructor (config, timeout) {
+    constructor (options, timeout) {
         super();
-        this.config = config;
+        this.options = options;
         this.timeout = timeout;
         this.client = {
             ws: null,
@@ -25,9 +27,12 @@ module.exports = class WebsocketConnection extends AsyncConnection {
                 isClosing: false,
             };
 
-            client.ws = new WebSocket(this.config.url);
+            client.ws = new WebSocket(this.options.url);
 
-            client.ws.on('open', () => {
+            client.ws.on('open', async () => {
+                if (this.options['wait-after-connect']) {
+                    await sleep(this.options['wait-after-connect']);
+                }
                 this.emit ('open');
                 resolve();
             });

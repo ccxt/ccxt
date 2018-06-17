@@ -18,17 +18,24 @@ async function fetchOrderBook (id, apiKey, secret, symbol, depth) {
         enableRateLimit: true,
         verbose: true,
     });
-    exchange.on ('error', (err) => {
-        console.log (err.red);
-        exchange.asyncClose();
+    exchange.on ('err', (err, conxid) => {
+        try {
+            console.log (err);
+            exchange.asyncClose(conxid);
+        } catch (ex){
+            console.log(ex);
+        }
     });
     exchange.on ('ob', (market, ob) => {
         console.log("ob received");
         // console.log (ob);
     });
     await exchange.loadMarkets ();
+    console.log('subscribe');
     await exchange.asyncSubscribeOrderBook (symbol);
+    console.log('subscribed');
     let ob = await exchange.asyncFetchOrderBook(symbol, depth);
+    console.log('ob fetched');
     // console.log (ob);
 }
 

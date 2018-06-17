@@ -18,7 +18,7 @@ async function fetchOrderBook (apiKey, secret, symbol, depth) {
         enableRateLimit: true,
         verbose: true,
     });
-    exchange.on ('error', (err) => {
+    exchange.on ('err', (err) => {
         console.log (err.red);
         exchange.asyncClose();
     });

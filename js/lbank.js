@@ -63,6 +63,27 @@ module.exports = class lbank extends Exchange {
                     ],
                 },
             },
+            'asyncconf': {
+                'conx-tpls': {
+                    'default': {
+                        'type': 'ws',
+                        'baseurl': 'wss://api.lbank.info/ws',
+                        'wait-after-connect': 1000,
+                    },
+                },
+                'methodmap': {
+                    '_asyncTimeoutRemoveNonce': '_asyncTimeoutRemoveNonce',
+                },
+                'events': {
+                    'ob': {
+                        'conx-tpl': 'default',
+                        'generators': {
+                            'url': '{baseurl}',
+                            'id': '{id}',
+                        },
+                    },
+                },
+            },
             'fees': {
                 'trading': {
                     'maker': 0.1 / 100,
@@ -457,5 +478,74 @@ module.exports = class lbank extends Exchange {
             throw new ErrorClass (message);
         }
         return response;
+    }
+
+    _asyncOnMsg (data, conxid = 'default') {
+        let msg = JSON.parse (data);
+        let success = this.safeString (msg, 'success');
+        let channel = this.safeString (msg, 'channel');
+        if (success !== undefined) {
+            // subscription
+            let parts = channel.split ('_');
+            let l = parts.length;
+            if (l > 5) {
+                if (parts[5] === 'depth') {
+                    // orderbook
+                    let symbol = this.findSymbol (parts[3] + '_' + parts[4]);
+                    if ('nonces' in this.asyncContext['ob'][symbol]['data']) {
+                        let nonces = this.asyncContext['ob'][symbol]['data']['nonces'];
+                        const keys = Object.keys (nonces);
+                        for (let i = 0; i < keys.length; i++) {
+                            let nonce = keys[i];
+                            this._asyncTimeoutCancel (nonces[nonce]);
+                            this.emit (nonce, success === 'true');
+                        }
+                        this.asyncContext['ob'][symbol]['data']['nonces'] = {};
+                    }
+                }
+            }
+        } else {
+            let parts = channel.split ('_');
+            let l = parts.length;
+            if (l > 5) {
+                if (parts[5] === 'depth') {
+                    let symbol = this.findSymbol (parts[3] + '_' + parts[4]);
+                    this._asyncHandleOb (msg, symbol, conxid);
+                }
+            } else {
+                this.emit ('err', new ExchangeError (this.id + ' invalid channel ' + channel));
+            }
+        }
+    }
+
+    _asyncHandleOb (msg, symbol, conxid = 'default') {
+        let ob = this.parseOrderBook (msg);
+        this.asyncContext['ob'][symbol]['data']['ob'] = ob;
+        this.emit ('ob', symbol, ob);
+    }
+
+    _asyncSubscribeOrderBook (symbol, nonce) {
+        let id = this.market_id (symbol);
+        let payload = {
+            'event': 'addChannel',
+            'channel': 'lh_sub_spot_' + id + '_depth_60',
+        };
+        if (!('nonces' in this.asyncContext['ob'][symbol]['data'])) {
+            this.asyncContext['ob'][symbol]['data']['nonces'] = {};
+        }
+        ;
+        let nonceStr = nonce.toString ();
+        let handle = this._asyncTimeoutSet (this.timeout, this._asyncMethodMap('_asyncTimeoutRemoveNonce'), [nonceStr, symbol]);
+        this.asyncContext['ob'][symbol]['data']['nonces'][nonceStr] = handle;
+        this.asyncSendJson (payload);
+    }
+
+    _asyncTimeoutRemoveNonce (timerNonce, symbol) {
+        if ('nonces' in this.asyncContext['ob'][symbol]['data']) {
+            let nonces = this.asyncContext['ob'][symbol]['data']['nonces'];
+            if (timerNonce in nonces) {
+                this.omit (this.asyncContext['ob'][symbol]['data']['nonces'], timerNonce);
+            }
+        }
     }
 };

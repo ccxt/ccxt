@@ -31,9 +31,10 @@ async def main():
         'timeout': 5 * 1000
     })
 
-    @exchange.on('error')
+    @exchange.on('err')
     def async_error(err, conxid):  # pylint: disable=W0612
-        print(err)
+        print( type(err).__name__ + ":" + str(err))
+        traceback.print_tb(err.__traceback__)
         traceback.print_stack()
         loop.stop()
 

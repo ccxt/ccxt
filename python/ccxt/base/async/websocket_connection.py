@@ -70,6 +70,8 @@ class WebsocketConnection(AsyncConnection):
                 await fut
                 # self.loop.run_until_complete(fut)
                 self.client = client
+                if ('wait-after-connect' in self.options):
+                    await asyncio.sleep(self.options['wait-after-connect'] / 1000)
                 self.emit('open')
             except Exception as ex:
                 future.done() or future.set_exception(ex)
