@@ -15,14 +15,17 @@ If you want to submit an issue and you want your issue to be resolved quickly, h
   - [Authentication](https://github.com/ccxt-dev/ccxt/wiki/Manual#authentication)
   - [API Keys Setup](https://github.com/ccxt-dev/ccxt/wiki/Manual#api-keys-setup)
 - Read the [Troubleshooting](https://github.com/ccxt-dev/ccxt/wiki/Manual#troubleshooting) section and follow troubleshooting steps.
+- Read the [FAQ](https://github.com/ccxt-dev/ccxt/wiki/Manual) for most frequently asked questions.
 - Read the [API docs](https://github.com/ccxt-dev/ccxt/wiki/Exchange-Markets) for your exchange.
 - Search for similar issues first to avoid duplicates.
 - If your issue is unique, along with a basic description of the failure, the following **IS REQUIRED**:
   - **set `exchange.verbose = true` property on the exchange instance before calling its functions or methods**
-  - **surround code and output with triple backticks: &#096;&#096;&#096;YOUR\_CODE&#096;&#096;&#096;**
+  - **surround code and output with triple backticks: &#096;&#096;&#096;GOOD&#096;&#096;&#096;**
+  - don't confuse the backtick symbol (&#096;) with the quote symbol (\'): '''BAD'''
+  - don't confuse a single backtick with triple backticks: &#096;BAD&#096;
   - paste a complete code snippet you're having difficulties with, avoid one-liners
   - paste the **full verbose output** of the failing method without your keys
-  - don't confuse the backtick symbol (&#096;) with the quote symbol (\'), &#096;&#096;&#096;GOOD&#096;&#096;&#096;, '''BAD'''
+  - the verbose output should include the request and response from the exchange (not just an error callstack)
   - write your language **and version**
   - write ccxt library version
   - which exchange it is

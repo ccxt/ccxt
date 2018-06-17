@@ -131,7 +131,7 @@ module.exports = class _1broker extends Exchange {
             let currency = currencies[c];
             result[currency] = this.account ();
         }
-        let total = parseFloat (response['balance']);
+        let total = this.safeFloat (response, 'balance');
         result['BTC']['free'] = total;
         result['BTC']['total'] = total;
         return this.parseBalance (result);
@@ -144,8 +144,8 @@ module.exports = class _1broker extends Exchange {
         }, params));
         let orderbook = response['response'][0];
         let timestamp = this.parse8601 (orderbook['updated']);
-        let bidPrice = parseFloat (orderbook['bid']);
-        let askPrice = parseFloat (orderbook['ask']);
+        let bidPrice = this.safeFloat (orderbook, 'bid');
+        let askPrice = this.safeFloat (orderbook, 'ask');
         let bid = [ bidPrice, undefined ];
         let ask = [ askPrice, undefined ];
         return {
@@ -170,15 +170,15 @@ module.exports = class _1broker extends Exchange {
         }, params));
         let ticker = result['response'][0];
         let timestamp = this.parse8601 (ticker['date']);
-        let open = parseFloat (ticker['o']);
-        let close = parseFloat (ticker['c']);
+        let open = this.safeFloat (ticker, 'o');
+        let close = this.safeFloat (ticker, 'c');
         let change = close - open;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['h']),
-            'low': parseFloat (ticker['l']),
+            'high': this.safeFloat (ticker, 'h'),
+            'low': this.safeFloat (ticker, 'l'),
             'bid': undefined,
             'bidVolume': undefined,
             'ask': undefined,

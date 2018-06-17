@@ -141,11 +141,14 @@ module.exports = class coinegg extends Exchange {
                 '404': 'IP restriction does not request the resource',
                 '405': 'Currency transactions are temporarily closed',
             },
+            'options': {
+                'quoteIds': [ 'btc', 'eth', 'usc' ],
+            },
         });
     }
 
     async fetchMarkets () {
-        let quoteIds = [ 'btc', 'usc' ];
+        let quoteIds = this.options['quoteIds'];
         let result = [];
         for (let b = 0; b < quoteIds.length; b++) {
             let quoteId = quoteIds[b];
@@ -206,26 +209,36 @@ module.exports = class coinegg extends Exchange {
     parseTicker (ticker, market = undefined) {
         let symbol = market['symbol'];
         let timestamp = this.milliseconds ();
-        let last = parseFloat (ticker['last']);
+        let last = this.safeFloat (ticker, 'last');
+        let percentage = this.safeFloat (ticker, 'change');
+        let open = undefined;
+        let change = undefined;
+        let average = undefined;
+        if (typeof percentage !== 'undefined') {
+            let relativeChange = percentage / 100;
+            open = last / this.sum (1, relativeChange);
+            change = last - open;
+            average = this.sum (last, open) / 2;
+        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']),
-            'low': parseFloat (ticker['low']),
-            'bid': parseFloat (ticker['buy']),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'buy'),
             'bidVolume': undefined,
-            'ask': parseFloat (ticker['sell']),
+            'ask': this.safeFloat (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': undefined,
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': this.safeFloat (ticker, 'change'),
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': parseFloat (ticker['vol']),
+            'change': change,
+            'percentage': percentage,
+            'average': average,
+            'baseVolume': this.safeFloat (ticker, 'vol'),
             'quoteVolume': this.safeFloat (ticker, 'quoteVol'),
             'info': ticker,
         };
@@ -243,7 +256,7 @@ module.exports = class coinegg extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let quoteIds = [ 'btc', 'usc' ];
+        let quoteIds = this.options['quoteIds'];
         let result = {};
         for (let b = 0; b < quoteIds.length; b++) {
             let quoteId = quoteIds[b];
@@ -289,8 +302,8 @@ module.exports = class coinegg extends Exchange {
 
     parseTrade (trade, market = undefined) {
         let timestamp = parseInt (trade['date']) * 1000;
-        let price = parseFloat (trade['price']);
-        let amount = parseFloat (trade['amount']);
+        let price = this.safeFloat (trade, 'price');
+        let amount = this.safeFloat (trade, 'amount');
         let symbol = market['symbol'];
         let cost = this.costToPrecision (symbol, price * amount);
         return {
@@ -353,9 +366,9 @@ module.exports = class coinegg extends Exchange {
     parseOrder (order, market = undefined) {
         let symbol = market['symbol'];
         let timestamp = this.parse8601 (order['datetime']);
-        let price = parseFloat (order['price']);
-        let amount = parseFloat (order['amount_original']);
-        let remaining = parseFloat (order['amount_outstanding']);
+        let price = this.safeFloat (order, 'price');
+        let amount = this.safeFloat (order, 'amount_original');
+        let remaining = this.safeFloat (order, 'amount_outstanding');
         let filled = amount - remaining;
         let status = this.safeString (order, 'status');
         if (status === 'cancelled') {

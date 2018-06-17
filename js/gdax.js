@@ -477,10 +477,7 @@ module.exports = class gdax extends Exchange {
         if (type === 'limit')
             order['price'] = price;
         let response = await this.privatePostOrders (this.extend (order, params));
-        return {
-            'info': response,
-            'id': response['id'],
-        };
+        return this.parseOrder (response);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -490,7 +487,7 @@ module.exports = class gdax extends Exchange {
 
     feeToPrecision (currency, fee) {
         let cost = parseFloat (fee);
-        return cost.toFixed (this.currencies[currency].precision);
+        return cost.toFixed (this.currencies[currency]['precision']);
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {

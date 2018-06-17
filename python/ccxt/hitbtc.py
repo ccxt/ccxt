@@ -16,7 +16,7 @@ class hitbtc (Exchange):
         return self.deep_extend(super(hitbtc, self).describe(), {
             'id': 'hitbtc',
             'name': 'HitBTC',
-            'countries': 'UK',
+            'countries': 'HK',
             'rateLimit': 1500,
             'version': '1',
             'has': {
@@ -32,6 +32,7 @@ class hitbtc (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
                 'api': 'http://api.hitbtc.com',
                 'www': 'https://hitbtc.com',
+                'referral': 'https://hitbtc.com/?ref_id=5a5d39a65d466',
                 'doc': 'https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv1.md',
                 'fees': [
                     'https://hitbtc.com/fees-and-limits',
@@ -119,7 +120,7 @@ class hitbtc (Exchange):
                         'AVT': 1.9,
                         'BAS': 113,
                         'BCN': 0.1,
-                        'BET': 124,
+                        'DAO.Casino': 124,  # id = 'BET'
                         'BKB': 46,
                         'BMC': 32,
                         'BMT': 100,
@@ -314,7 +315,7 @@ class hitbtc (Exchange):
                         'AVT': 0,
                         'BAS': 0,
                         'BCN': 0,
-                        'BET': 0,
+                        'DAO.Casino': 0,  # id = 'BET'
                         'BKB': 0,
                         'BMC': 0,
                         'BMT': 0,
@@ -487,11 +488,16 @@ class hitbtc (Exchange):
             },
             'commonCurrencies': {
                 'BCC': 'BCC',
-                'XBT': 'BTC',
-                'DRK': 'DASH',
+                'BET': 'DAO.Casino',
                 'CAT': 'BitClave',
-                'USD': 'USDT',
+                'DRK': 'DASH',
                 'EMGO': 'MGO',
+                'GET': 'Themis',
+                'USD': 'USDT',
+                'XBT': 'BTC',
+            },
+            'options': {
+                'defaultTimeInForce': 'FOK',
             },
         })
 
@@ -503,12 +509,13 @@ class hitbtc (Exchange):
             id = market['symbol']
             baseId = market['commodity']
             quoteId = market['currency']
-            lot = float(market['lot'])
-            step = float(market['step'])
+            lot = self.safe_float(market, 'lot')
+            step = self.safe_float(market, 'step')
             base = self.common_currency_code(baseId)
             quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
             result.append({
+                'info': market,
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -517,7 +524,7 @@ class hitbtc (Exchange):
                 'quoteId': quoteId,
                 'lot': lot,
                 'step': step,
-                'info': market,
+                'active': True,
                 'maker': self.safe_float(market, 'provideLiquidityRate'),
                 'taker': self.safe_float(market, 'takeLiquidityRate'),
                 'precision': {
@@ -648,13 +655,13 @@ class hitbtc (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
-        amount = float(trade['execQuantity'])
+        amount = self.safe_float(trade, 'execQuantity')
         if market:
             amount *= market['lot']
-        price = float(trade['execPrice'])
+        price = self.safe_float(trade, 'execPrice')
         cost = price * amount
         fee = {
-            'cost': float(trade['fee']),
+            'cost': self.safe_float(trade, 'fee'),
             'currency': None,
             'rate': None,
         }
@@ -716,7 +723,7 @@ class hitbtc (Exchange):
         if type == 'limit':
             order['price'] = self.price_to_precision(symbol, price)
         else:
-            order['timeInForce'] = 'FOK'
+            order['timeInForce'] = self.options['defaultTimeInForce']
         response = self.tradingPostNewOrder(self.extend(order, params))
         return self.parse_order(response['ExecutionReport'], market)
 
@@ -761,16 +768,30 @@ class hitbtc (Exchange):
         cost = None
         amountDefined = (amount is not None)
         remainingDefined = (remaining is not None)
-        if market:
+        if market is not None:
             symbol = market['symbol']
             if amountDefined:
                 amount *= market['lot']
             if remainingDefined:
                 remaining *= market['lot']
+        else:
+            marketId = self.safe_string(order, 'symbol')
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
         if amountDefined:
             if remainingDefined:
                 filled = amount - remaining
                 cost = averagePrice * filled
+        feeCost = self.safe_float(order, 'fee')
+        feeCurrency = None
+        if market is not None:
+            symbol = market['symbol']
+            feeCurrency = market['quote']
+        fee = {
+            'cost': feeCost,
+            'currency': feeCurrency,
+            'rate': None,
+        }
         return {
             'id': str(order['clientOrderId']),
             'info': order,
@@ -786,7 +807,7 @@ class hitbtc (Exchange):
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
-            'fee': None,
+            'fee': fee,
         }
 
     def fetch_order(self, id, symbol=None, params={}):

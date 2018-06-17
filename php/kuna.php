@@ -142,15 +142,25 @@ class kuna extends acx {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
+        $side = $this->safe_string($trade, 'side');
+        $sideMap = array (
+            'ask' => 'sell',
+            'bid' => 'buy',
+        );
+        $side = $sideMap[$side];
+        $cost = $this->safe_float($trade, 'funds');
+        $order = $this->safe_string($trade, 'order_id');
         return array (
             'id' => (string) $trade['id'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
             'type' => null,
-            'side' => null,
-            'price' => floatval ($trade['price']),
-            'amount' => floatval ($trade['volume']),
+            'side' => $side,
+            'price' => $this->safe_float($trade, 'price'),
+            'amount' => $this->safe_float($trade, 'volume'),
+            'cost' => $cost,
+            'order' => $order,
             'info' => $trade,
         );
     }
@@ -164,40 +174,12 @@ class kuna extends acx {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_my_trade ($trade, $market) {
-        $timestamp = $this->parse8601 ($trade['created_at']);
-        $symbol = null;
-        if ($market)
-            $symbol = $market['symbol'];
-        return array (
-            'id' => $trade['id'],
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-            'price' => $trade['price'],
-            'amount' => $trade['volume'],
-            'cost' => $trade['funds'],
-            'symbol' => $symbol,
-            'side' => $trade['side'],
-            'order' => $trade['order_id'],
-        );
-    }
-
-    public function parse_my_trades ($trades, $market = null) {
-        $parsedTrades = array ();
-        for ($i = 0; $i < count ($trades); $i++) {
-            $trade = $trades[$i];
-            $parsedTrade = $this->parse_my_trade ($trade, $market);
-            $parsedTrades[] = $parsedTrade;
-        }
-        return $parsedTrades;
-    }
-
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if (!$symbol)
             throw new ExchangeError ($this->id . ' fetchOpenOrders requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->privateGetTradesMy (array ( 'market' => $market['id'] ));
-        return $this->parse_my_trades ($response, $market);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 }

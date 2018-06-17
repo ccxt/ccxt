@@ -95,16 +95,16 @@ class coinspot extends Exchange {
         $id = strtolower ($id);
         $ticker = $response['prices'][$id];
         $timestamp = $this->milliseconds ();
-        $last = floatval ($ticker['last']);
+        $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => null,
             'low' => null,
-            'bid' => floatval ($ticker['bid']),
+            'bid' => $this->safe_float($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => floatval ($ticker['ask']),
+            'ask' => $this->safe_float($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,

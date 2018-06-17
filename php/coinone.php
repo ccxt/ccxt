@@ -69,6 +69,7 @@ class coinone extends Exchange {
                 'ETH/KRW' => array ( 'id' => 'eth', 'symbol' => 'ETH/KRW', 'base' => 'ETH', 'quote' => 'KRW', 'baseId' => 'eth', 'quoteId' => 'krw' ),
                 'IOTA/KRW' => array ( 'id' => 'iota', 'symbol' => 'IOTA/KRW', 'base' => 'IOTA', 'quote' => 'KRW', 'baseId' => 'iota', 'quoteId' => 'krw' ),
                 'LTC/KRW' => array ( 'id' => 'ltc', 'symbol' => 'LTC/KRW', 'base' => 'LTC', 'quote' => 'KRW', 'baseId' => 'ltc', 'quoteId' => 'krw' ),
+                'OMG/KRW' => array ( 'id' => 'omg', 'symbol' => 'OMG/KRW', 'base' => 'OMG', 'quote' => 'KRW', 'baseId' => 'omg', 'quoteId' => 'krw' ),
                 'QTUM/KRW' => array ( 'id' => 'qtum', 'symbol' => 'QTUM/KRW', 'base' => 'QTUM', 'quote' => 'KRW', 'baseId' => 'qtum', 'quoteId' => 'krw' ),
                 'XRP/KRW' => array ( 'id' => 'xrp', 'symbol' => 'XRP/KRW', 'base' => 'XRP', 'quote' => 'KRW', 'baseId' => 'xrp', 'quoteId' => 'krw' ),
             ),
@@ -113,10 +114,15 @@ class coinone extends Exchange {
     public function fetch_balance ($params = array ()) {
         $response = $this->privatePostAccountBalance ();
         $result = array ( 'info' => $response );
-        $ids = is_array ($response) ? array_keys ($response) : array ();
+        $balances = $this->omit ($response, array (
+            'errorCode',
+            'result',
+            'normalWallets',
+        ));
+        $ids = is_array ($balances) ? array_keys ($balances) : array ();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
-            $balance = $response[$id];
+            $balance = $balances[$id];
             $code = strtoupper ($id);
             if (is_array ($this->currencies_by_id) && array_key_exists ($id, $this->currencies_by_id))
                 $code = $this->currencies_by_id[$id]['code'];
@@ -238,24 +244,71 @@ class coinone extends Exchange {
         if ($type !== 'limit')
             throw new ExchangeError ($this->id . ' allows limit orders only');
         $this->load_markets();
-        $order = array (
+        $request = array (
             'price' => $price,
             'currency' => $this->market_id($symbol),
             'qty' => $amount,
         );
         $method = 'privatePostOrder' . $this->capitalize ($type) . $this->capitalize ($side);
-        $response = $this->$method (array_merge ($order, $params));
-        // todo => return the full $order structure
-        // return $this->parse_order($response, market);
-        $orderId = $this->safe_string($response, 'orderId');
-        return array (
+        $response = $this->$method (array_merge ($request, $params));
+        $id = $this->safe_string($response, 'orderId');
+        $timestamp = $this->milliseconds ();
+        $cost = $price * $amount;
+        $order = array (
             'info' => $response,
-            'id' => $orderId,
+            'id' => $id,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => null,
+            'symbol' => $symbol,
+            'type' => $type,
+            'side' => $side,
+            'price' => $price,
+            'cost' => $cost,
+            'average' => null,
+            'amount' => $amount,
+            'filled' => null,
+            'remaining' => null,
+            'status' => null,
+            'fee' => null,
         );
+        $this->orders[$id] = $order;
+        return $order;
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        return $this->privatePostOrderCancel (array ( 'orderID' => $id ));
+        $order = $this->safe_value($this->orders, $id);
+        $amount = null;
+        $price = null;
+        $side = null;
+        if ($order === null) {
+            $price = $this->safe_float($params, 'price');
+            if ($price === null) {
+                // eslint-disable-next-line quotes
+                throw new InvalidOrder ($this->id . " cancelOrder could not find the $order $id " . $id . " in orders cache. The $order was probably created with a different instance of this class earlier. The $price parameter is missing. To cancel the $order, pass array ('price' => 12345, 'qty' => 1.2345, 'is_ask' => 0) in the $params argument of cancelOrder.");
+            }
+            $amount = $this->safe_float($params, 'qty');
+            if ($amount === null) {
+                // eslint-disable-next-line quotes
+                throw new InvalidOrder ($this->id . " cancelOrder could not find the $order $id " . $id . " in orders cache. The $order was probably created with a different instance of this class earlier. The `qty` ($amount) parameter is missing. To cancel the $order, pass array ('price' => 12345, 'qty' => 1.2345, 'is_ask' => 0) in the $params argument of cancelOrder.");
+            }
+            $side = $this->safe_float($params, 'is_ask');
+            if ($side === null) {
+                // eslint-disable-next-line quotes
+                throw new InvalidOrder ($this->id . " cancelOrder could not find the $order $id " . $id . " in orders cache. The $order was probably created with a different instance of this class earlier. The `is_ask` ($side) parameter is missing. To cancel the $order, pass array ('price' => 12345, 'qty' => 1.2345, 'is_ask' => 0) in the $params argument of cancelOrder.");
+            }
+        } else {
+            $price = $order['price'];
+            $amount = $order['amount'];
+            $side = ($order['side'] === 'buy') ? 0 : 1;
+        }
+        $request = array (
+            'order_id' => $id,
+            'price' => $price,
+            'qty' => $amount,
+            'is_ask' => $side,
+        );
+        return $this->privatePostOrderCancel (array_merge ($request, $params));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -271,10 +324,10 @@ class coinone extends Exchange {
             $this->check_required_credentials();
             $url .= $this->version . '/' . $request;
             $nonce = (string) $this->nonce ();
-            $json = $this->json (array (
+            $json = $this->json (array_merge (array (
                 'access_token' => $this->apiKey,
                 'nonce' => $nonce,
-            ));
+            ), $params));
             $payload = base64_encode ($this->encode ($json));
             $body = $this->decode ($payload);
             $secret = strtoupper ($this->secret);

@@ -89,16 +89,16 @@ class mercado extends Exchange {
         ), $params));
         $ticker = $response['ticker'];
         $timestamp = intval ($ticker['date']) * 1000;
-        $last = floatval ($ticker['last']);
+        $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['high']),
-            'low' => floatval ($ticker['low']),
-            'bid' => floatval ($ticker['buy']),
+            'high' => $this->safe_float($ticker, 'high'),
+            'low' => $this->safe_float($ticker, 'low'),
+            'bid' => $this->safe_float($ticker, 'buy'),
             'bidVolume' => null,
-            'ask' => floatval ($ticker['sell']),
+            'ask' => $this->safe_float($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -108,7 +108,7 @@ class mercado extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($ticker['vol']),
+            'baseVolume' => $this->safe_float($ticker, 'vol'),
             'quoteVolume' => null,
             'info' => $ticker,
         );
@@ -212,7 +212,7 @@ class mercado extends Exchange {
         if (is_array ($order) && array_key_exists ('updated_timestamp', $order))
             $timestamp = intval ($order['updated_timestamp']) * 1000;
         $fee = array (
-            'cost' => floatval ($order['fee']),
+            'cost' => $this->safe_float($order, 'fee'),
             'currency' => $market['quote'],
         );
         $price = $this->safe_float($order, 'limit_price');

@@ -89,6 +89,9 @@ class bleutrade (bittrex):
                     },
                 },
             },
+            'commonCurrencies': {
+                'EPC': 'Epacoin',
+            },
             'exceptions': {
                 'Insufficient fundsnot ': InsufficientFunds,
                 'Invalid Order ID': InvalidOrder,
@@ -105,21 +108,27 @@ class bleutrade (bittrex):
         for p in range(0, len(markets['result'])):
             market = markets['result'][p]
             id = market['MarketName']
-            base = market['MarketCurrency']
-            quote = market['BaseCurrency']
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            baseId = market['MarketCurrency']
+            quoteId = market['BaseCurrency']
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': 8,
                 'price': 8,
             }
-            active = market['IsActive']
+            active = self.safe_string(market, 'IsActive')
+            if active == 'true':
+                active = True
+            elif active == 'false':
+                active = False
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': active,
                 'info': market,
                 'lot': math.pow(10, -precision['amount']),

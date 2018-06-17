@@ -190,7 +190,19 @@ class gatecoin extends Exchange {
                 ),
             ),
             'commonCurrencies' => array (
+                'BCP' => 'BCPT',
+                'FLI' => 'FLIXX',
                 'MAN' => 'MANA',
+                'SLT' => 'SALT',
+                'TRA' => 'TRAC',
+                'WGS' => 'WINGS',
+            ),
+            'exceptions' => array (
+                '1005' => '\\ccxt\\InsufficientFunds',
+                '1008' => '\\ccxt\\OrderNotFound',
+                '1057' => '\\ccxt\\InvalidOrder',
+                '1044' => '\\ccxt\\OrderNotFound', // already canceled,
+                '1054' => '\\ccxt\\OrderNotFound', // already executed
             ),
         ));
     }
@@ -280,7 +292,7 @@ class gatecoin extends Exchange {
         $response = $this->privateGetTradeOrdersOrderID (array_merge (array (
             'OrderID' => $id,
         ), $params));
-        return $this->parse_order($response.order);
+        return $this->parse_order($response->order);
     }
 
     public function parse_ticker ($ticker, $market = null) {
@@ -288,22 +300,22 @@ class gatecoin extends Exchange {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
-        $baseVolume = floatval ($ticker['volume']);
-        $vwap = floatval ($ticker['vwap']);
+        $baseVolume = $this->safe_float($ticker, 'volume');
+        $vwap = $this->safe_float($ticker, 'vwap');
         $quoteVolume = $baseVolume * $vwap;
-        $last = floatval ($ticker['last']);
+        $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['high']),
-            'low' => floatval ($ticker['low']),
-            'bid' => floatval ($ticker['bid']),
+            'high' => $this->safe_float($ticker, 'high'),
+            'low' => $this->safe_float($ticker, 'low'),
+            'bid' => $this->safe_float($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => floatval ($ticker['ask']),
+            'ask' => $this->safe_float($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => $vwap,
-            'open' => floatval ($ticker['open']),
+            'open' => $this->safe_float($ticker, 'open'),
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
@@ -440,19 +452,26 @@ class gatecoin extends Exchange {
                 throw new AuthenticationError ($this->id . ' two-factor authentication requires a missing ValidationCode parameter');
         }
         $response = $this->privatePostTradeOrders (array_merge ($order, $params));
+        // At this point $response['responseStatus']['message'] has been verified in handleErrors ()
+        // to be == 'OK', so we assume the $order has indeed been opened
         return array (
             'info' => $response,
-            'id' => $response['clOrderId'],
+            'status' => 'open',
+            'id' => $this->safe_string($response, 'clOrderId'), // $response['clOrderId'],
         );
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->privateDeleteTradeOrdersOrderID (array ( 'OrderID' => $id ));
+        $response = $this->privateDeleteTradeOrdersOrderID (array ( 'OrderID' => $id ));
+        return $response;
     }
 
     public function parse_order_status ($status) {
         $statuses = array (
+            '1' => 'open', // New
+            '2' => 'open', // Filling
+            '4' => 'canceled',
             '6' => 'closed',
         );
         if (is_array ($statuses) && array_key_exists ($status, $statuses))
@@ -500,13 +519,13 @@ class gatecoin extends Exchange {
                         $tradesFilled .= $trade['amount'];
                         $tradesCost .= $trade['amount'] * $trade['price'];
                         if (is_array ($trade) && array_key_exists ('fee', $trade)) {
-                            if ($trade['fee']['cost'] != null) {
+                            if ($trade['fee']['cost'] !== null) {
                                 if ($feeCost === null)
                                     $feeCost = 0.0;
                                 $feeCost .= $trade['fee']['cost'];
                             }
                             $feeCurrency = $trade['fee']['currency'];
-                            if ($trade['fee']['rate'] != null) {
+                            if ($trade['fee']['rate'] !== null) {
                                 if ($feeRate === null)
                                     $feeRate = 0.0;
                                 $feeRate .= $trade['fee']['rate'];
@@ -588,15 +607,6 @@ class gatecoin extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (is_array ($response) && array_key_exists ('responseStatus', $response))
-            if (is_array ($response['responseStatus']) && array_key_exists ('message', $response['responseStatus']))
-                if ($response['responseStatus']['message'] === 'OK')
-                    return $response;
-        throw new ExchangeError ($this->id . ' ' . $this->json ($response));
-    }
-
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
@@ -641,11 +651,7 @@ class gatecoin extends Exchange {
             'DigiCurrency' => $currency['id'],
         );
         $response = $this->privatePostElectronicWalletDepositWalletsDigiCurrency (array_merge ($request, $params));
-        $result = $response['addresses'];
-        $numResults = is_array ($result) ? count ($result) : 0;
-        if ($numResults < 1)
-            throw new InvalidAddress ($this->id . ' privatePostElectronicWalletDepositWalletsDigiCurrency() returned no addresses');
-        $address = $this->safe_string($result[0], 'address');
+        $address = $response['address'];
         $this->check_address($address);
         return array (
             'currency' => $code,
@@ -653,5 +659,49 @@ class gatecoin extends Exchange {
             'status' => 'ok',
             'info' => $response,
         );
+    }
+
+    public function create_user_wallet ($code, $address, $name, $password, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency ($code);
+        $request = array (
+            'DigiCurrency' => $currency['id'],
+            'AddressName' => $name,
+            'Address' => $address,
+            'Password' => $password,
+        );
+        $response = $this->privatePostElectronicWalletUserWalletsDigiCurrency (array_merge ($request, $params));
+        return array (
+            'status' => 'ok',
+            'info' => $response,
+        );
+    }
+
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+        if (gettype ($body) !== 'string')
+            return; // fallback to default error handler
+        if (strlen ($body) < 2)
+            return; // fallback to default error handler
+        if (mb_strpos ($body, 'You are not authorized') !== false) {
+            throw new PermissionDenied ($body);
+        }
+        if ($body[0] === '{') {
+            $response = json_decode ($body, $as_associative_array = true);
+            if (is_array ($response) && array_key_exists ('responseStatus', $response)) {
+                $errorCode = $this->safe_string($response['responseStatus'], 'errorCode');
+                $message = $this->safe_string($response['responseStatus'], 'message');
+                $feedback = $this->id . ' ' . $body;
+                if ($errorCode !== null) {
+                    $exceptions = $this->exceptions;
+                    if (is_array ($exceptions) && array_key_exists ($errorCode, $exceptions)) {
+                        throw new $exceptions[$errorCode] ($feedback);
+                    }
+                    throw new ExchangeError ($feedback);
+                // Sometimes there isn't 'errorCode' but 'message' is present and is not 'OK'
+                } else if ($message !== null && $message !== 'OK') {
+                    throw new ExchangeError ($feedback);
+                }
+            }
+        }
     }
 }

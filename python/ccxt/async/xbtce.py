@@ -6,8 +6,8 @@
 from ccxt.async.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import NotSupported
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import NotSupported
 
 
 class xbtce (Exchange):

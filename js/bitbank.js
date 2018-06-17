@@ -117,6 +117,7 @@ module.exports = class bitbank extends Exchange {
                 '50009': OrderNotFound,
                 '50010': OrderNotFound,
                 '60001': InsufficientFunds,
+                '60005': InvalidOrder,
             },
         });
     }
@@ -124,16 +125,16 @@ module.exports = class bitbank extends Exchange {
     parseTicker (ticker, market = undefined) {
         let symbol = market['symbol'];
         let timestamp = ticker['timestamp'];
-        let last = parseFloat (ticker['last']);
+        let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']),
-            'low': parseFloat (ticker['low']),
-            'bid': parseFloat (ticker['buy']),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'buy'),
             'bidVolume': undefined,
-            'ask': parseFloat (ticker['sell']),
+            'ask': this.safeFloat (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -143,7 +144,7 @@ module.exports = class bitbank extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': parseFloat (ticker['vol']),
+            'baseVolume': this.safeFloat (ticker, 'vol'),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -169,8 +170,8 @@ module.exports = class bitbank extends Exchange {
 
     parseTrade (trade, market = undefined) {
         let timestamp = trade['executed_at'];
-        let price = parseFloat (trade['price']);
-        let amount = parseFloat (trade['amount']);
+        let price = this.safeFloat (trade, 'price');
+        let amount = this.safeFloat (trade, 'amount');
         let symbol = market['symbol'];
         let cost = this.costToPrecision (symbol, price * amount);
         let id = this.safeString (trade, 'transaction_id');
@@ -265,8 +266,8 @@ module.exports = class bitbank extends Exchange {
         }
         if (market)
             symbol = market['symbol'];
-        let timestamp = this.safeInteger (order, 'ordered_at') * 1000;
-        let price = parseFloat (order['price']);
+        let timestamp = this.safeInteger (order, 'ordered_at');
+        let price = this.safeFloat (order, 'price');
         let amount = this.safeFloat (order, 'start_amount');
         let filled = this.safeFloat (order, 'executed_amount');
         let remaining = this.safeFloat (order, 'remaining_amount');
@@ -284,6 +285,12 @@ module.exports = class bitbank extends Exchange {
         } else {
             status = 'open';
         }
+        let type = this.safeString (order, 'type');
+        if (typeof type !== 'undefined')
+            type = type.toLowerCase ();
+        let side = this.safeString (order, 'side');
+        if (typeof side !== 'undefined')
+            side = side.toLowerCase ();
         return {
             'id': this.safeString (order, 'order_id'),
             'datetime': this.iso8601 (timestamp),
@@ -291,8 +298,8 @@ module.exports = class bitbank extends Exchange {
             'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
-            'type': order['type'],
-            'side': order['side'],
+            'type': type,
+            'side': side,
             'price': price,
             'cost': cost,
             'amount': amount,
@@ -380,7 +387,7 @@ module.exports = class bitbank extends Exchange {
         let response = await this.privateGetUserWithdrawalAccount (this.extend ({
             'asset': currency['id'],
         }, params));
-        // Not sure about this if there could be more accounts...
+        // Not sure about this if there could be more than one account...
         let accounts = response['data']['accounts'];
         let address = this.safeString (accounts[0], 'address');
         let status = address ? 'ok' : 'none';

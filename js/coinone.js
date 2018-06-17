@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, InvalidOrder } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -68,6 +68,7 @@ module.exports = class coinone extends Exchange {
                 'ETH/KRW': { 'id': 'eth', 'symbol': 'ETH/KRW', 'base': 'ETH', 'quote': 'KRW', 'baseId': 'eth', 'quoteId': 'krw' },
                 'IOTA/KRW': { 'id': 'iota', 'symbol': 'IOTA/KRW', 'base': 'IOTA', 'quote': 'KRW', 'baseId': 'iota', 'quoteId': 'krw' },
                 'LTC/KRW': { 'id': 'ltc', 'symbol': 'LTC/KRW', 'base': 'LTC', 'quote': 'KRW', 'baseId': 'ltc', 'quoteId': 'krw' },
+                'OMG/KRW': { 'id': 'omg', 'symbol': 'OMG/KRW', 'base': 'OMG', 'quote': 'KRW', 'baseId': 'omg', 'quoteId': 'krw' },
                 'QTUM/KRW': { 'id': 'qtum', 'symbol': 'QTUM/KRW', 'base': 'QTUM', 'quote': 'KRW', 'baseId': 'qtum', 'quoteId': 'krw' },
                 'XRP/KRW': { 'id': 'xrp', 'symbol': 'XRP/KRW', 'base': 'XRP', 'quote': 'KRW', 'baseId': 'xrp', 'quoteId': 'krw' },
             },
@@ -112,10 +113,15 @@ module.exports = class coinone extends Exchange {
     async fetchBalance (params = {}) {
         let response = await this.privatePostAccountBalance ();
         let result = { 'info': response };
-        let ids = Object.keys (response);
+        let balances = this.omit (response, [
+            'errorCode',
+            'result',
+            'normalWallets',
+        ]);
+        let ids = Object.keys (balances);
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
-            let balance = response[id];
+            let balance = balances[id];
             let code = id.toUpperCase ();
             if (id in this.currencies_by_id)
                 code = this.currencies_by_id[id]['code'];
@@ -237,24 +243,71 @@ module.exports = class coinone extends Exchange {
         if (type !== 'limit')
             throw new ExchangeError (this.id + ' allows limit orders only');
         await this.loadMarkets ();
-        let order = {
+        let request = {
             'price': price,
             'currency': this.marketId (symbol),
             'qty': amount,
         };
         let method = 'privatePostOrder' + this.capitalize (type) + this.capitalize (side);
-        let response = await this[method] (this.extend (order, params));
-        // todo: return the full order structure
-        // return this.parseOrder (response, market);
-        let orderId = this.safeString (response, 'orderId');
-        return {
+        let response = await this[method] (this.extend (request, params));
+        let id = this.safeString (response, 'orderId');
+        let timestamp = this.milliseconds ();
+        let cost = price * amount;
+        let order = {
             'info': response,
-            'id': orderId,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'cost': cost,
+            'average': undefined,
+            'amount': amount,
+            'filled': undefined,
+            'remaining': undefined,
+            'status': undefined,
+            'fee': undefined,
         };
+        this.orders[id] = order;
+        return order;
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        return await this.privatePostOrderCancel ({ 'orderID': id });
+        let order = this.safeValue (this.orders, id);
+        let amount = undefined;
+        let price = undefined;
+        let side = undefined;
+        if (typeof order === 'undefined') {
+            price = this.safeFloat (params, 'price');
+            if (typeof price === 'undefined') {
+                // eslint-disable-next-line quotes
+                throw new InvalidOrder (this.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of this class earlier. The price parameter is missing. To cancel the order, pass {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.");
+            }
+            amount = this.safeFloat (params, 'qty');
+            if (typeof amount === 'undefined') {
+                // eslint-disable-next-line quotes
+                throw new InvalidOrder (this.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of this class earlier. The `qty` (amount) parameter is missing. To cancel the order, pass {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.");
+            }
+            side = this.safeFloat (params, 'is_ask');
+            if (typeof side === 'undefined') {
+                // eslint-disable-next-line quotes
+                throw new InvalidOrder (this.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of this class earlier. The `is_ask` (side) parameter is missing. To cancel the order, pass {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.");
+            }
+        } else {
+            price = order['price'];
+            amount = order['amount'];
+            side = (order['side'] === 'buy') ? 0 : 1;
+        }
+        let request = {
+            'order_id': id,
+            'price': price,
+            'qty': amount,
+            'is_ask': side,
+        };
+        return await this.privatePostOrderCancel (this.extend (request, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -270,10 +323,10 @@ module.exports = class coinone extends Exchange {
             this.checkRequiredCredentials ();
             url += this.version + '/' + request;
             let nonce = this.nonce ().toString ();
-            let json = this.json ({
+            let json = this.json (this.extend ({
                 'access_token': this.apiKey,
                 'nonce': nonce,
-            });
+            }, params));
             let payload = this.stringToBase64 (this.encode (json));
             body = this.decode (payload);
             let secret = this.secret.toUpperCase ();

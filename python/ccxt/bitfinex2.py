@@ -7,8 +7,8 @@ from ccxt.bitfinex import bitfinex
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import NotSupported
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import NotSupported
 
 
 class bitfinex2 (bitfinex):
@@ -119,6 +119,7 @@ class bitfinex2 (bitfinex):
                         'auth/w/alert/set',
                         'auth/w/alert/{type}:{symbol}:{price}/del',
                         'auth/calc/order/avail',
+                        'auth/r/ledgers/{symbol}/hist',
                     ],
                 },
             },
@@ -169,9 +170,7 @@ class bitfinex2 (bitfinex):
         return(code in list(fiat.keys()))
 
     def get_currency_id(self, code):
-        isFiat = self.is_fiat(code)
-        prefix = 'f' if isFiat else 't'
-        return prefix + code
+        return 'f' + code
 
     def fetch_markets(self):
         markets = self.v1GetSymbolsDetails()
@@ -193,8 +192,8 @@ class bitfinex2 (bitfinex):
             }
             limits = {
                 'amount': {
-                    'min': float(market['minimum_order_size']),
-                    'max': float(market['maximum_order_size']),
+                    'min': self.safe_float(market, 'minimum_order_size'),
+                    'max': self.safe_float(market, 'maximum_order_size'),
                 },
                 'price': {
                     'min': math.pow(10, -precision['price']),
@@ -232,16 +231,25 @@ class bitfinex2 (bitfinex):
             total = balance[2]
             available = balance[4]
             if accountType == balanceType:
-                if currency[0] == 't':
+                code = currency
+                if currency in self.currencies_by_id:
+                    code = self.currencies_by_id[currency]['code']
+                elif currency[0] == 't':
                     currency = currency[1:]
-                uppercase = currency.upper()
-                uppercase = self.common_currency_code(uppercase)
+                    code = currency.upper()
+                    code = self.common_currency_code(code)
                 account = self.account()
-                account['free'] = available
                 account['total'] = total
-                if account['free']:
+                if not available:
+                    if available == 0:
+                        account['free'] = 0
+                        account['used'] = total
+                    else:
+                        account['free'] = None
+                else:
+                    account['free'] = available
                     account['used'] = account['total'] - account['free']
-                result[uppercase] = account
+                result[code] = account
         return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):

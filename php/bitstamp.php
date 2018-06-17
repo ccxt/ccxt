@@ -212,22 +212,22 @@ class bitstamp extends Exchange {
             'pair' => $this->market_id($symbol),
         ), $params));
         $timestamp = intval ($ticker['timestamp']) * 1000;
-        $vwap = floatval ($ticker['vwap']);
-        $baseVolume = floatval ($ticker['volume']);
+        $vwap = $this->safe_float($ticker, 'vwap');
+        $baseVolume = $this->safe_float($ticker, 'volume');
         $quoteVolume = $baseVolume * $vwap;
-        $last = floatval ($ticker['last']);
+        $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['high']),
-            'low' => floatval ($ticker['low']),
-            'bid' => floatval ($ticker['bid']),
+            'high' => $this->safe_float($ticker, 'high'),
+            'low' => $this->safe_float($ticker, 'low'),
+            'bid' => $this->safe_float($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => floatval ($ticker['ask']),
+            'ask' => $this->safe_float($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => $vwap,
-            'open' => floatval ($ticker['open']),
+            'open' => $this->safe_float($ticker, 'open'),
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
@@ -380,12 +380,12 @@ class bitstamp extends Exchange {
         $method = 'privatePost' . $this->capitalize ($side);
         $order = array (
             'pair' => $this->market_id($symbol),
-            'amount' => $amount,
+            'amount' => $this->amount_to_precision($symbol, $amount),
         );
         if ($type === 'market')
             $method .= 'Market';
         else
-            $order['price'] = $price;
+            $order['price'] = $this->price_to_precision($symbol, $price);
         $method .= 'Pair';
         $response = $this->$method (array_merge ($order, $params));
         return array (
@@ -432,6 +432,8 @@ class bitstamp extends Exchange {
             $request['pair'] = $market['id'];
             $method .= 'Pair';
         }
+        if ($limit !== null)
+            $request['limit'] = $limit;
         $response = $this->$method (array_merge ($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
@@ -532,8 +534,8 @@ class bitstamp extends Exchange {
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $market = null;
+        $this->load_markets();
         if ($symbol !== null) {
-            $this->load_markets();
             $market = $this->market ($symbol);
         }
         $orders = $this->privatePostOpenOrdersAll ();
@@ -632,7 +634,7 @@ class bitstamp extends Exchange {
     }
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body) {
-        if (gettype ($body) != 'string')
+        if (gettype ($body) !== 'string')
             return; // fallback to default error handler
         if (strlen ($body) < 2)
             return; // fallback to default error handler

@@ -14,8 +14,8 @@ except NameError:
 import math
 import json
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import NotSupported
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import NotSupported
 
 
 class bitstamp (Exchange):
@@ -219,22 +219,22 @@ class bitstamp (Exchange):
             'pair': self.market_id(symbol),
         }, params))
         timestamp = int(ticker['timestamp']) * 1000
-        vwap = float(ticker['vwap'])
-        baseVolume = float(ticker['volume'])
+        vwap = self.safe_float(ticker, 'vwap')
+        baseVolume = self.safe_float(ticker, 'volume')
         quoteVolume = baseVolume * vwap
-        last = float(ticker['last'])
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['bid']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'bid'),
             'bidVolume': None,
-            'ask': float(ticker['ask']),
+            'ask': self.safe_float(ticker, 'ask'),
             'askVolume': None,
             'vwap': vwap,
-            'open': float(ticker['open']),
+            'open': self.safe_float(ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': None,
@@ -373,12 +373,12 @@ class bitstamp (Exchange):
         method = 'privatePost' + self.capitalize(side)
         order = {
             'pair': self.market_id(symbol),
-            'amount': amount,
+            'amount': self.amount_to_precision(symbol, amount),
         }
         if type == 'market':
             method += 'Market'
         else:
-            order['price'] = price
+            order['price'] = self.price_to_precision(symbol, price)
         method += 'Pair'
         response = await getattr(self, method)(self.extend(order, params))
         return {
@@ -419,6 +419,8 @@ class bitstamp (Exchange):
             market = self.market(symbol)
             request['pair'] = market['id']
             method += 'Pair'
+        if limit is not None:
+            request['limit'] = limit
         response = await getattr(self, method)(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
@@ -508,8 +510,8 @@ class bitstamp (Exchange):
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         market = None
+        await self.load_markets()
         if symbol is not None:
-            await self.load_markets()
             market = self.market(symbol)
         orders = await self.privatePostOpenOrdersAll()
         return self.parse_orders(orders, market, since, limit)

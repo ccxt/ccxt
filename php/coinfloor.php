@@ -68,17 +68,32 @@ class coinfloor extends Exchange {
     }
 
     public function fetch_balance ($params = array ()) {
-        $symbol = null;
+        $market = null;
         if (is_array ($params) && array_key_exists ('symbol', $params))
-            $symbol = $params['symbol'];
+            $market = $this->find_market($params['symbol']);
         if (is_array ($params) && array_key_exists ('id', $params))
-            $symbol = $params['id'];
-        if (!$symbol)
-            throw new ExchangeError ($this->id . ' fetchBalance requires a $symbol param');
-        // todo parse balance
-        return $this->privatePostIdBalance (array (
-            'id' => $this->market_id($symbol),
+            $market = $this->find_market($params['id']);
+        if (!$market)
+            throw new NotSupported ($this->id . ' fetchBalance requires a symbol param');
+        $response = $this->privatePostIdBalance (array (
+            'id' => $market['id'],
         ));
+        $result = array (
+            'info' => $response,
+        );
+        // base/quote used for $keys e.g. "xbt_reserved"
+        $keys = strtolower (explode ('/', $market['id']));
+        $result[$market['base']] = array (
+            'free' => floatval ($response[$keys[0] . '_available']),
+            'used' => floatval ($response[$keys[0] . '_reserved']),
+            'total' => floatval ($response[$keys[0] . '_balance']),
+        );
+        $result[$market['quote']] = array (
+            'free' => floatval ($response[$keys[1] . '_available']),
+            'used' => floatval ($response[$keys[1] . '_reserved']),
+            'total' => floatval ($response[$keys[1] . '_balance']),
+        );
+        return $this->parse_balance($result);
     }
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
@@ -95,21 +110,21 @@ class coinfloor extends Exchange {
         if ($market)
             $symbol = $market['symbol'];
         $vwap = $this->safe_float($ticker, 'vwap');
-        $baseVolume = floatval ($ticker['volume']);
+        $baseVolume = $this->safe_float($ticker, 'volume');
         $quoteVolume = null;
         if ($vwap !== null) {
             $quoteVolume = $baseVolume * $vwap;
         }
-        $last = floatval ($ticker['last']);
+        $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['high']),
-            'low' => floatval ($ticker['low']),
-            'bid' => floatval ($ticker['bid']),
+            'high' => $this->safe_float($ticker, 'high'),
+            'low' => $this->safe_float($ticker, 'low'),
+            'bid' => $this->safe_float($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => floatval ($ticker['ask']),
+            'ask' => $this->safe_float($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => $vwap,
             'open' => null,
@@ -144,8 +159,8 @@ class coinfloor extends Exchange {
             'symbol' => $market['symbol'],
             'type' => null,
             'side' => null,
-            'price' => floatval ($trade['price']),
-            'amount' => floatval ($trade['amount']),
+            'price' => $this->safe_float($trade, 'price'),
+            'amount' => $this->safe_float($trade, 'amount'),
         );
     }
 

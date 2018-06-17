@@ -50,7 +50,8 @@ class kucoin extends Exchange {
                     'kitchen' => 'https://kitchen.kucoin.com',
                     'kitchen-2' => 'https://kitchen-2.kucoin.com',
                 ),
-                'www' => 'https://kucoin.com',
+                'www' => 'https://www.kucoin.com',
+                'referral' => 'https://www.kucoin.com/?r=E5wkqe',
                 'doc' => 'https://kucoinapidocs.docs.apiary.io',
                 'fees' => 'https://news.kucoin.com/en/fee',
             ),
@@ -170,8 +171,172 @@ class kucoin extends Exchange {
             ),
             // exchange-specific options
             'options' => array (
+                'fetchOrderBookWarning' => true, // raises a warning on null response in fetchOrderBook
                 'timeDifference' => 0, // the difference between system clock and Kucoin clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
+                'limits' => array (
+                    'amount' => array (
+                        'min' => array (
+                            'BTC' => 0.00001,
+                            'ETH' => 0.00001,
+                            'BCH' => 0.00001,
+                            'GAS' => 0.1,
+                            'NEO' => 0.01,
+                            'KCS' => 1,
+                            'TMT' => 1,
+                            'TFD' => 1,
+                            'LALA' => 1,
+                            'CS' => 1,
+                            'DOCK' => 1,
+                            'ETN' => 1,
+                            'IHT' => 1,
+                            'KICK' => 1,
+                            'WAN' => 1,
+                            'ACT' => 1,
+                            'APH' => 1,
+                            'BAX' => 1,
+                            'DATX' => 1,
+                            'DEB' => 1,
+                            'ELEC' => 1,
+                            'GO' => 1,
+                            'HSR' => 1,
+                            'IOTX' => 1,
+                            'LOOM' => 1,
+                            'LYM' => 1,
+                            'MOBI' => 1,
+                            'OMX' => 1,
+                            'ONT' => 1,
+                            'OPEN' => 1,
+                            'QKC' => 1,
+                            'SHL' => 1,
+                            'SOUL' => 1,
+                            'SPHTX' => 1,
+                            'SRN' => 1,
+                            'TKY' => 1,
+                            'TOMO' => 1,
+                            'TRAC' => 1,
+                            'COV' => 1,
+                            'DADI' => 1,
+                            'ELF' => 1,
+                            'LTC' => 1,
+                            'MAN' => 1,
+                            'PRL' => 1,
+                            'STK' => 1,
+                            'ZIL' => 1,
+                            'ZPT' => 1,
+                            'BPT' => 1,
+                            'CAPP' => 1,
+                            'POLY' => 1,
+                            'TNC' => 1,
+                            'XRB' => 0.1,
+                            'AXP' => 1,
+                            'COFI' => 1,
+                            'CXO' => 1,
+                            'DRGN' => 1,
+                            'DTA' => 1,
+                            'ING' => 1,
+                            'MTN' => 1,
+                            'OCN' => 10,
+                            'PARETO' => 1,
+                            'SNC' => 1,
+                            'TEL' => 10,
+                            'WAX' => 1,
+                            'ADB' => 1,
+                            'BOS' => 1,
+                            'HAT' => 1,
+                            'HKN' => 1,
+                            'HPB' => 1,
+                            'IOST' => 1,
+                            'ARY' => 1,
+                            'DBC' => 1,
+                            'KEY' => 1,
+                            'GAT' => 1,
+                            'RPX' => 1,
+                            'ACAT' => 1,
+                            'CV' => 10,
+                            'QLC' => 1,
+                            'R' => 1,
+                            'TIO' => 1,
+                            'ITC' => 1,
+                            'AGI' => 10,
+                            'EXY' => 1,
+                            'MWAT' => 1,
+                            'DENT' => 1,
+                            'J8T' => 1,
+                            'LOCI' => 1,
+                            'CAT' => 1,
+                            'ARN' => 1,
+                            'CAN' => 1,
+                            'EOS' => 0.1,
+                            'ETC' => 0.1,
+                            'JNT' => 1,
+                            'PLAY' => 1,
+                            'CHP' => 1,
+                            'DASH' => 0.01,
+                            'DNA' => 1,
+                            'EBTC' => 1,
+                            'FOTA' => 1,
+                            'PURA' => 0.1,
+                            'UTK' => 1,
+                            'CAG' => 1,
+                            'GLA' => 1,
+                            'HAV' => 1,
+                            'SPF' => 1,
+                            'TIME' => 1,
+                            'ABT' => 1,
+                            'BNTY' => 1,
+                            'ELIX' => 1,
+                            'ENJ' => 1,
+                            'AIX' => 1,
+                            'VEN' => 1,
+                            'AION' => 1,
+                            'DAT' => 1,
+                            'QTUM' => 0.1,
+                            'WTC' => 0.1,
+                            'DGB' => 1,
+                            'SNOV' => 1,
+                            'BRD' => 1,
+                            'AMB' => 1,
+                            'BTM' => 1,
+                            'MANA' => 1,
+                            'RHOC' => 1,
+                            'XLR' => 1,
+                            'XAS' => 0.1,
+                            'CHSB' => 1,
+                            'UKG' => 1,
+                            'POLL' => 1,
+                            'FLIXX' => 0.1,
+                            'INS' => 1,
+                            'OMG' => 0.1,
+                            'TFL' => 1,
+                            'WPR' => 1,
+                            'LEND' => 1,
+                            'KNC' => 0.001,
+                            'BCD' => 0.001,
+                            'LA' => 1,
+                            'ONION' => 1,
+                            'POWR' => 0.1,
+                            'SNM' => 1,
+                            'BTG' => 0.001,
+                            'PBL' => 1,
+                            'MOD' => 0.1,
+                            'PPT' => 0.1,
+                            'BCPT' => 1,
+                            'GVT' => 0.1,
+                            'HST' => 0.1,
+                            'SNT' => 0.1,
+                            'SUB' => 0.1,
+                            'NEBL' => 0.1,
+                            'CVC' => 0.1,
+                            'MTH' => 1,
+                            'NULS' => 0.1,
+                            'PAY' => 0.1,
+                            'RDN' => 1,
+                            'REQ' => 1,
+                            'QSP' => 0.1,
+                        ),
+                    ),
+                ),
             ),
         ));
     }
@@ -205,6 +370,8 @@ class kucoin extends Exchange {
                 'amount' => 8,
                 'price' => 8,
             );
+            $defaultMinAmount = pow (10, -$precision['amount']);
+            $minAmount = $this->safe_float($this->options['limits']['amount']['min'], $base, $defaultMinAmount);
             $active = $market['trading'];
             $result[] = array (
                 'id' => $id,
@@ -219,7 +386,7 @@ class kucoin extends Exchange {
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => pow (10, -$precision['amount']),
+                        'min' => $minAmount,
                         'max' => null,
                     ),
                     'price' => array (
@@ -266,6 +433,8 @@ class kucoin extends Exchange {
             $deposit = $currency['enableDeposit'];
             $withdraw = $currency['enableWithdraw'];
             $active = ($deposit && $withdraw);
+            $defaultMinAmount = pow (10, -$precision);
+            $minAmount = $this->safe_float($this->options['limits']['amount']['min'], $code, $defaultMinAmount);
             $result[$code] = array (
                 'id' => $id,
                 'code' => $code,
@@ -277,7 +446,7 @@ class kucoin extends Exchange {
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => pow (10, -$precision),
+                        'min' => $minAmount,
                         'max' => pow (10, $precision),
                     ),
                     'price' => array (
@@ -301,8 +470,6 @@ class kucoin extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $response = $this->privateGetAccountBalance (array_merge (array (
-            'limit' => 20, // default 12, max 20
-            'page' => 1,
         ), $params));
         $balances = $response['data'];
         $result = array ( 'info' => $balances );
@@ -327,11 +494,30 @@ class kucoin extends Exchange {
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetOpenOrders (array_merge (array (
+        $request = array (
             'symbol' => $market['id'],
-        ), $params));
-        $orderbook = $response['data'];
-        return $this->parse_order_book($orderbook, null, 'BUY', 'SELL');
+        );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->publicGetOpenOrders (array_merge ($request, $params));
+        $orderbook = null;
+        $timestamp = null;
+        // sometimes kucoin returns this:
+        // array ("success":true,"code":"OK","msg":"Operation succeeded.","$timestamp":xxxxxxxxxxxxx,"data":null)
+        if (!(is_array ($response) && array_key_exists ('data', $response)) || !$response['data']) {
+            if ($this->options['fetchOrderBookWarning'])
+                throw new ExchangeError ($this->id . " fetchOrderBook returned an null reply. Set exchange.options['fetchOrderBookWarning'] = false to silence this warning");
+            $orderbook = array (
+                'BUY' => array (),
+                'SELL' => array (),
+            );
+        } else {
+            $orderbook = $response['data'];
+            $timestamp = $this->safe_integer($response, 'timestamp');
+            $timestamp = $this->safe_integer($response['data'], 'timestamp', $timestamp);
+        }
+        return $this->parse_order_book($orderbook, $timestamp, 'BUY', 'SELL');
     }
 
     public function parse_order ($order, $market = null) {
@@ -814,6 +1000,7 @@ class kucoin extends Exchange {
         $market = $this->market ($symbol);
         $response = $this->publicGetOpenDealOrders (array_merge (array (
             'symbol' => $market['id'],
+            'limit' => $limit,
         ), $params));
         return $this->parse_trades($response['data'], $market, $since, $limit);
     }
@@ -959,6 +1146,8 @@ class kucoin extends Exchange {
                 throw new InvalidOrder ($feedback); // amount < limits.amount.min
             if (mb_strpos ($message, 'Min price:') !== false)
                 throw new InvalidOrder ($feedback); // price < limits.price.min
+            if (mb_strpos ($message, 'Max price:') !== false)
+                throw new InvalidOrder ($feedback); // price > limits.price.max
             if (mb_strpos ($message, 'The precision of price') !== false)
                 throw new InvalidOrder ($feedback); // price violates precision.price
         } else if ($code === 'NO_BALANCE') {

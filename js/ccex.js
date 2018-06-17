@@ -70,11 +70,12 @@ module.exports = class ccex extends Exchange {
                 },
             },
             'commonCurrencies': {
-                'IOT': 'IoTcoin',
                 'BLC': 'Cryptobullcoin',
-                'XID': 'InternationalDiamond',
-                'LUX': 'Luxmi',
                 'CRC': 'CoreCoin',
+                'IOT': 'IoTcoin',
+                'LUX': 'Luxmi',
+                'VIT': 'VitalCoin',
+                'XID': 'InternationalDiamond',
             },
         });
     }
@@ -198,16 +199,16 @@ module.exports = class ccex extends Exchange {
         let symbol = undefined;
         if (typeof market !== 'undefined')
             symbol = market['symbol'];
-        let last = parseFloat (ticker['lastprice']);
+        let last = this.safeFloat (ticker, 'lastprice');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']),
-            'low': parseFloat (ticker['low']),
-            'bid': parseFloat (ticker['buy']),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'buy'),
             'bidVolume': undefined,
-            'ask': parseFloat (ticker['sell']),
+            'ask': this.safeFloat (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -216,7 +217,7 @@ module.exports = class ccex extends Exchange {
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
-            'average': parseFloat (ticker['avg']),
+            'average': this.safeFloat (ticker, 'avg'),
             'baseVolume': undefined,
             'quoteVolume': this.safeFloat (ticker, 'buysupport'),
             'info': ticker,

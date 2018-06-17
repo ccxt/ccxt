@@ -130,8 +130,8 @@ class ice3x (Exchange):
         for i in range(0, len(markets)):
             market = markets[i]
             id = market['pair_id']
-            baseId = market['currency_id_from']
-            quoteId = market['currency_id_to']
+            baseId = str(market['currency_id_from'])
+            quoteId = str(market['currency_id_to'])
             baseCurrency = self.currencies_by_id[baseId]
             quoteCurrency = self.currencies_by_id[quoteId]
             base = self.common_currency_code(baseCurrency['code'])
@@ -153,7 +153,7 @@ class ice3x (Exchange):
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
         symbol = market['symbol']
-        last = float(ticker['last_price'])
+        last = self.safe_float(ticker, 'last_price')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -173,7 +173,7 @@ class ice3x (Exchange):
             'percentage': None,
             'average': self.safe_float(ticker, 'avg'),
             'baseVolume': None,
-            'quoteVolume': float(ticker['vol']),
+            'quoteVolume': self.safe_float(ticker, 'vol'),
             'info': ticker,
         }
 
@@ -207,8 +207,8 @@ class ice3x (Exchange):
 
     def parse_trade(self, trade, market=None):
         timestamp = int(trade['created']) * 1000
-        price = float(trade['price'])
-        amount = float(trade['volume'])
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'volume')
         symbol = market['symbol']
         cost = float(self.cost_to_precision(symbol, price * amount))
         fee = self.safe_float(trade, 'fee')
@@ -266,7 +266,7 @@ class ice3x (Exchange):
             market = self.marketsById[pairId]
             symbol = market['symbol']
         timestamp = self.safe_integer(order, 'created') * 1000
-        price = float(order['price'])
+        price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'volume')
         status = self.safe_integer(order, 'active')
         remaining = self.safe_float(order, 'remaining')

@@ -26,12 +26,12 @@ class indodax extends Exchange {
                 'fetchCurrencies' => false,
                 'withdraw' => true,
             ),
-            'version' => '1.7', // as of 6 November 2017
+            'version' => '1.8', // as of 9 April 2018
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/37443283-2fddd0e4-281c-11e8-9741-b4f1419001b5.jpg',
                 'api' => array (
-                    'public' => 'https://vip.bitcoin.co.id/api',
-                    'private' => 'https://vip.bitcoin.co.id/tapi',
+                    'public' => 'https://indodax.com/api',
+                    'private' => 'https://indodax.com/tapi',
                 ),
                 'www' => 'https://www.indodax.com',
                 'doc' => 'https://indodax.com/downloads/BITCOINCOID-API-DOCUMENTATION.pdf',
@@ -60,18 +60,23 @@ class indodax extends Exchange {
             ),
             'markets' => array (
                 'BTC/IDR' => array ( 'id' => 'btc_idr', 'symbol' => 'BTC/IDR', 'base' => 'BTC', 'quote' => 'IDR', 'baseId' => 'btc', 'quoteId' => 'idr', 'precision' => array ( 'amount' => 8, 'price' => 0 ), 'limits' => array ( 'amount' => array ( 'min' => 0.0001, 'max' => null ))),
+                'ACT/IDR' => array ( 'id' => 'act_idr', 'symbol' => 'ACT/IDR', 'base' => 'ACT', 'quote' => 'IDR', 'baseId' => 'act', 'quoteId' => 'idr', 'precision' => array ( 'amount' => 8, 'price' => 0 ), 'limits' => array ( 'amount' => array ( 'min' => null, 'max' => null ))),
+                'ADA/IDR' => array ( 'id' => 'ada_idr', 'symbol' => 'ADA/IDR', 'base' => 'ADA', 'quote' => 'IDR', 'baseId' => 'ada', 'quoteId' => 'idr', 'precision' => array ( 'amount' => 8, 'price' => 0 ), 'limits' => array ( 'amount' => array ( 'min' => null, 'max' => null ))),
+                'BCD/IDR' => array ( 'id' => 'bcd_idr', 'symbol' => 'BCD/IDR', 'base' => 'BCD', 'quote' => 'IDR', 'baseId' => 'bcd', 'quoteId' => 'idr', 'precision' => array ( 'amount' => 8, 'price' => 0 ), 'limits' => array ( 'amount' => array ( 'min' => null, 'max' => null ))),
                 'BCH/IDR' => array ( 'id' => 'bch_idr', 'symbol' => 'BCH/IDR', 'base' => 'BCH', 'quote' => 'IDR', 'baseId' => 'bch', 'quoteId' => 'idr', 'precision' => array ( 'amount' => 8, 'price' => 0 ), 'limits' => array ( 'amount' => array ( 'min' => 0.001, 'max' => null ))),
                 'BTG/IDR' => array ( 'id' => 'btg_idr', 'symbol' => 'BTG/IDR', 'base' => 'BTG', 'quote' => 'IDR', 'baseId' => 'btg', 'quoteId' => 'idr', 'precision' => array ( 'amount' => 8, 'price' => 0 ), 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ))),
                 'ETH/IDR' => array ( 'id' => 'eth_idr', 'symbol' => 'ETH/IDR', 'base' => 'ETH', 'quote' => 'IDR', 'baseId' => 'eth', 'quoteId' => 'idr', 'precision' => array ( 'amount' => 8, 'price' => 0 ), 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ))),
                 'ETC/IDR' => array ( 'id' => 'etc_idr', 'symbol' => 'ETC/IDR', 'base' => 'ETC', 'quote' => 'IDR', 'baseId' => 'etc', 'quoteId' => 'idr', 'precision' => array ( 'amount' => 8, 'price' => 0 ), 'limits' => array ( 'amount' => array ( 'min' => 0.1, 'max' => null ))),
                 'IGNIS/IDR' => array ( 'id' => 'ignis_idr', 'symbol' => 'IGNIS/IDR', 'base' => 'IGNIS', 'quote' => 'IDR', 'baseId' => 'ignis', 'quoteId' => 'idr', 'precision' => array ( 'amount' => 8, 'price' => 0 ), 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ))),
                 'LTC/IDR' => array ( 'id' => 'ltc_idr', 'symbol' => 'LTC/IDR', 'base' => 'LTC', 'quote' => 'IDR', 'baseId' => 'ltc', 'quoteId' => 'idr', 'precision' => array ( 'amount' => 8, 'price' => 0 ), 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ))),
+                'STQ/IDR' => array ( 'id' => 'stq_idr', 'symbol' => 'STQ/IDR', 'base' => 'STQ', 'quote' => 'IDR', 'baseId' => 'stq', 'quoteId' => 'idr', 'precision' => array ( 'amount' => 8, 'price' => 0 ), 'limits' => array ( 'amount' => array ( 'min' => null, 'max' => null ))),
                 'NXT/IDR' => array ( 'id' => 'nxt_idr', 'symbol' => 'NXT/IDR', 'base' => 'NXT', 'quote' => 'IDR', 'baseId' => 'nxt', 'quoteId' => 'idr', 'precision' => array ( 'amount' => 8, 'price' => 0 ), 'limits' => array ( 'amount' => array ( 'min' => 5, 'max' => null ))),
                 'TEN/IDR' => array ( 'id' => 'ten_idr', 'symbol' => 'TEN/IDR', 'base' => 'TEN', 'quote' => 'IDR', 'baseId' => 'ten', 'quoteId' => 'idr', 'precision' => array ( 'amount' => 8, 'price' => 0 ), 'limits' => array ( 'amount' => array ( 'min' => 5, 'max' => null ))),
+                'TRX/IDR' => array ( 'id' => 'trx_idr', 'symbol' => 'TRX/IDR', 'base' => 'TRX', 'quote' => 'IDR', 'baseId' => 'trx', 'quoteId' => 'idr', 'precision' => array ( 'amount' => 8, 'price' => 0 ), 'limits' => array ( 'amount' => array ( 'min' => null, 'max' => null ))),
                 'WAVES/IDR' => array ( 'id' => 'waves_idr', 'symbol' => 'WAVES/IDR', 'base' => 'WAVES', 'quote' => 'IDR', 'baseId' => 'waves', 'quoteId' => 'idr', 'precision' => array ( 'amount' => 8, 'price' => 0 ), 'limits' => array ( 'amount' => array ( 'min' => 0.1, 'max' => null ))),
+                'XLM/IDR' => array ( 'id' => 'str_idr', 'symbol' => 'XLM/IDR', 'base' => 'XLM', 'quote' => 'IDR', 'baseId' => 'str', 'quoteId' => 'idr', 'precision' => array ( 'amount' => 8, 'price' => 0 ), 'limits' => array ( 'amount' => array ( 'min' => 20, 'max' => null ))),
                 'XRP/IDR' => array ( 'id' => 'xrp_idr', 'symbol' => 'XRP/IDR', 'base' => 'XRP', 'quote' => 'IDR', 'baseId' => 'xrp', 'quoteId' => 'idr', 'precision' => array ( 'amount' => 8, 'price' => 0 ), 'limits' => array ( 'amount' => array ( 'min' => 10, 'max' => null ))),
                 'XZC/IDR' => array ( 'id' => 'xzc_idr', 'symbol' => 'XZC/IDR', 'base' => 'XZC', 'quote' => 'IDR', 'baseId' => 'xzc', 'quoteId' => 'idr', 'precision' => array ( 'amount' => 8, 'price' => 0 ), 'limits' => array ( 'amount' => array ( 'min' => 0.1, 'max' => null ))),
-                'XLM/IDR' => array ( 'id' => 'str_idr', 'symbol' => 'XLM/IDR', 'base' => 'XLM', 'quote' => 'IDR', 'baseId' => 'str', 'quoteId' => 'idr', 'precision' => array ( 'amount' => 8, 'price' => 0 ), 'limits' => array ( 'amount' => array ( 'min' => 20, 'max' => null ))),
                 'BTS/BTC' => array ( 'id' => 'bts_btc', 'symbol' => 'BTS/BTC', 'base' => 'BTS', 'quote' => 'BTC', 'baseId' => 'bts', 'quoteId' => 'btc', 'precision' => array ( 'amount' => 8, 'price' => 8 ), 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ))),
                 'DASH/BTC' => array ( 'id' => 'drk_btc', 'symbol' => 'DASH/BTC', 'base' => 'DASH', 'quote' => 'BTC', 'baseId' => 'drk', 'quoteId' => 'btc', 'precision' => array ( 'amount' => 8, 'price' => 6 ), 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ))),
                 'DOGE/BTC' => array ( 'id' => 'doge_btc', 'symbol' => 'DOGE/BTC', 'base' => 'DOGE', 'quote' => 'BTC', 'baseId' => 'doge', 'quoteId' => 'btc', 'precision' => array ( 'amount' => 8, 'price' => 8 ), 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ))),
@@ -79,8 +84,8 @@ class indodax extends Exchange {
                 'LTC/BTC' => array ( 'id' => 'ltc_btc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'baseId' => 'ltc', 'quoteId' => 'btc', 'precision' => array ( 'amount' => 8, 'price' => 6 ), 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ))),
                 'NXT/BTC' => array ( 'id' => 'nxt_btc', 'symbol' => 'NXT/BTC', 'base' => 'NXT', 'quote' => 'BTC', 'baseId' => 'nxt', 'quoteId' => 'btc', 'precision' => array ( 'amount' => 8, 'price' => 8 ), 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ))),
                 'TEN/BTC' => array ( 'id' => 'ten_btc', 'symbol' => 'TEN/BTC', 'base' => 'TEN', 'quote' => 'BTC', 'baseId' => 'ten', 'quoteId' => 'btc', 'precision' => array ( 'amount' => 8, 'price' => 8 ), 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ))),
-                'XLM/BTC' => array ( 'id' => 'str_btc', 'symbol' => 'XLM/BTC', 'base' => 'XLM', 'quote' => 'BTC', 'baseId' => 'str', 'quoteId' => 'btc', 'precision' => array ( 'amount' => 8, 'price' => 8 ), 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ))),
                 'XEM/BTC' => array ( 'id' => 'nem_btc', 'symbol' => 'XEM/BTC', 'base' => 'XEM', 'quote' => 'BTC', 'baseId' => 'nem', 'quoteId' => 'btc', 'precision' => array ( 'amount' => 8, 'price' => 8 ), 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ))),
+                'XLM/BTC' => array ( 'id' => 'str_btc', 'symbol' => 'XLM/BTC', 'base' => 'XLM', 'quote' => 'BTC', 'baseId' => 'str', 'quoteId' => 'btc', 'precision' => array ( 'amount' => 8, 'price' => 8 ), 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ))),
                 'XRP/BTC' => array ( 'id' => 'xrp_btc', 'symbol' => 'XRP/BTC', 'base' => 'XRP', 'quote' => 'BTC', 'baseId' => 'xrp', 'quoteId' => 'btc', 'precision' => array ( 'amount' => 8, 'price' => 8 ), 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ))),
             ),
             'fees' => array (
@@ -128,19 +133,19 @@ class indodax extends Exchange {
             'pair' => $market['id'],
         ), $params));
         $ticker = $response['ticker'];
-        $timestamp = floatval ($ticker['server_time']) * 1000;
+        $timestamp = $this->safe_float($ticker, 'server_time') * 1000;
         $baseVolume = 'vol_' . strtolower ($market['baseId']);
         $quoteVolume = 'vol_' . strtolower ($market['quoteId']);
-        $last = floatval ($ticker['last']);
+        $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['high']),
-            'low' => floatval ($ticker['low']),
-            'bid' => floatval ($ticker['buy']),
+            'high' => $this->safe_float($ticker, 'high'),
+            'low' => $this->safe_float($ticker, 'low'),
+            'bid' => $this->safe_float($ticker, 'buy'),
             'bidVolume' => null,
-            'ask' => floatval ($ticker['sell']),
+            'ask' => $this->safe_float($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -166,8 +171,8 @@ class indodax extends Exchange {
             'symbol' => $market['symbol'],
             'type' => null,
             'side' => $trade['type'],
-            'price' => floatval ($trade['price']),
-            'amount' => floatval ($trade['amount']),
+            'price' => $this->safe_float($trade, 'price'),
+            'amount' => $this->safe_float($trade, 'amount'),
         );
     }
 
@@ -349,12 +354,12 @@ class indodax extends Exchange {
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency ($code);
-        // Custom string you need to provide to identify each withdrawal $request.
+        // Custom string you need to provide to identify each withdrawal.
         // Will be passed to callback URL (assigned via website to the API key)
         // so your system can identify the $request and confirm it.
         // Alphanumeric, max length 255.
         $requestId = $this->milliseconds ();
-        // alternatively:
+        // Alternatively:
         // $requestId = $this->uuid ();
         $request = array (
             'currency' => $currency['id'],
@@ -409,6 +414,8 @@ class indodax extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
+        if (gettype ($body) !== 'string')
+            return;
         // array ( success => 0, error => "invalid order." )
         // or
         // [array ( data, ... ), array ( ... ), ... ]

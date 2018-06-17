@@ -189,16 +189,16 @@ class bitz extends Exchange {
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = $ticker['date'] * 1000;
         $symbol = $market['symbol'];
-        $last = floatval ($ticker['last']);
+        $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['high']),
-            'low' => floatval ($ticker['low']),
-            'bid' => floatval ($ticker['buy']),
+            'high' => $this->safe_float($ticker, 'high'),
+            'low' => $this->safe_float($ticker, 'low'),
+            'bid' => $this->safe_float($ticker, 'buy'),
             'bidVolume' => null,
-            'ask' => floatval ($ticker['sell']),
+            'ask' => $this->safe_float($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -208,7 +208,7 @@ class bitz extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($ticker['vol']),
+            'baseVolume' => $this->safe_float($ticker, 'vol'),
             'quoteVolume' => null,
             'info' => $ticker,
         );
@@ -254,8 +254,8 @@ class bitz extends Exchange {
         $utcDate = explode ('T', $utcDate);
         $utcDate = $utcDate[0] . ' ' . $trade['t'] . '+08';
         $timestamp = $this->parse8601 ($utcDate);
-        $price = floatval ($trade['p']);
-        $amount = floatval ($trade['n']);
+        $price = $this->safe_float($trade, 'p');
+        $amount = $this->safe_float($trade, 'n');
         $symbol = $market['symbol'];
         $cost = $this->price_to_precision($symbol, $amount * $price);
         return array (
@@ -304,7 +304,15 @@ class bitz extends Exchange {
             $side = $this->safe_string($order, 'type');
             if ($side !== null)
                 $side = ($side === 'in') ? 'buy' : 'sell';
+            if ($side === null)
+                $side = $this->safe_string($order, 'flag');
         }
+        $amount = $this->safe_float($order, 'number');
+        $remaining = $this->safe_float($order, 'numberover');
+        $filled = null;
+        if ($amount !== null)
+            if ($remaining !== null)
+                $filled = $amount - $remaining;
         $timestamp = null;
         $iso8601 = null;
         if (is_array ($order) && array_key_exists ('datetime', $order)) {
@@ -323,8 +331,8 @@ class bitz extends Exchange {
             'price' => $order['price'],
             'cost' => null,
             'amount' => $order['number'],
-            'filled' => null,
-            'remaining' => null,
+            'filled' => $filled,
+            'remaining' => $remaining,
             'trades' => null,
             'fee' => null,
             'info' => $order,
@@ -379,7 +387,7 @@ class bitz extends Exchange {
             $this->options['lastNonceTimestamp'] = $currentTimestamp;
             $this->options['lastNonce'] = 100000;
         }
-        $this->options['lastNonce'] .= 1;
+        $this->options['lastNonce'] = $this->sum ($this->options['lastNonce'], 1);
         return $this->options['lastNonce'];
     }
 

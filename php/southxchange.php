@@ -60,6 +60,7 @@ class southxchange extends Exchange {
             ),
             'commonCurrencies' => array (
                 'SMT' => 'SmartNode',
+                'MTC' => 'Marinecoin',
             ),
         ));
     }
@@ -211,7 +212,7 @@ class southxchange extends Exchange {
         $status = 'open';
         $symbol = $order['ListingCurrency'] . '/' . $order['ReferenceCurrency'];
         $timestamp = null;
-        $price = floatval ($order['LimitPrice']);
+        $price = $this->safe_float($order, 'LimitPrice');
         $amount = $this->safe_float($order, 'OriginalAmount');
         $remaining = $this->safe_float($order, 'Amount');
         $filled = null;

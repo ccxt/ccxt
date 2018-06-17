@@ -139,13 +139,13 @@ module.exports = class coinex extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': true,
-                'taker': parseFloat (market['taker_fee_rate']),
-                'maker': parseFloat (market['maker_fee_rate']),
+                'taker': this.safeFloat (market, 'taker_fee_rate'),
+                'maker': this.safeFloat (market, 'maker_fee_rate'),
                 'info': market,
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': parseFloat (market['least_amount']),
+                        'min': this.safeFloat (market, 'least_amount'),
                         'max': undefined,
                     },
                     'price': {
@@ -237,8 +237,8 @@ module.exports = class coinex extends Exchange {
             tradeId = undefined;
         }
         timestamp *= 1000;
-        let price = parseFloat (trade['price']);
-        let amount = parseFloat (trade['amount']);
+        let price = this.safeFloat (trade, 'price');
+        let amount = this.safeFloat (trade, 'amount');
         let symbol = market['symbol'];
         let cost = this.safeFloat (trade, 'deal_money');
         if (!cost)
@@ -314,7 +314,7 @@ module.exports = class coinex extends Exchange {
     parseOrder (order, market = undefined) {
         // TODO: check if it's actually milliseconds, since examples were in seconds
         let timestamp = this.safeInteger (order, 'create_time') * 1000;
-        let price = parseFloat (order['price']);
+        let price = this.safeFloat (order, 'price');
         let cost = this.safeFloat (order, 'deal_money');
         let amount = this.safeFloat (order, 'amount');
         let filled = this.safeFloat (order, 'deal_amount');
@@ -345,7 +345,7 @@ module.exports = class coinex extends Exchange {
             'trades': undefined,
             'fee': {
                 'currency': market['quote'],
-                'cost': parseFloat (order['deal_fee']),
+                'cost': this.safeFloat (order, 'deal_fee'),
             },
             'info': order,
         };

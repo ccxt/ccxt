@@ -153,27 +153,27 @@ class therock extends Exchange {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
-        $last = floatval ($ticker['last']);
+        $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['high']),
-            'low' => floatval ($ticker['low']),
-            'bid' => floatval ($ticker['bid']),
+            'high' => $this->safe_float($ticker, 'high'),
+            'low' => $this->safe_float($ticker, 'low'),
+            'bid' => $this->safe_float($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => floatval ($ticker['ask']),
+            'ask' => $this->safe_float($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
-            'open' => floatval ($ticker['open']),
+            'open' => $this->safe_float($ticker, 'open'),
             'close' => $last,
             'last' => $last,
-            'previousClose' => floatval ($ticker['close']), // previous day close, if any
+            'previousClose' => $this->safe_float($ticker, 'close'), // previous day close, if any
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($ticker['volume_traded']),
-            'quoteVolume' => floatval ($ticker['volume']),
+            'baseVolume' => $this->safe_float($ticker, 'volume_traded'),
+            'quoteVolume' => $this->safe_float($ticker, 'volume'),
             'info' => $ticker,
         );
     }

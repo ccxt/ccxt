@@ -143,13 +143,13 @@ class coinex (Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': True,
-                'taker': float(market['taker_fee_rate']),
-                'maker': float(market['maker_fee_rate']),
+                'taker': self.safe_float(market, 'taker_fee_rate'),
+                'maker': self.safe_float(market, 'maker_fee_rate'),
                 'info': market,
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': float(market['least_amount']),
+                        'min': self.safe_float(market, 'least_amount'),
                         'max': None,
                     },
                     'price': {
@@ -233,8 +233,8 @@ class coinex (Exchange):
         else:
             tradeId = None
         timestamp *= 1000
-        price = float(trade['price'])
-        amount = float(trade['amount'])
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'amount')
         symbol = market['symbol']
         cost = self.safe_float(trade, 'deal_money')
         if not cost:
@@ -304,7 +304,7 @@ class coinex (Exchange):
     def parse_order(self, order, market=None):
         # TODO: check if it's actually milliseconds, since examples were in seconds
         timestamp = self.safe_integer(order, 'create_time') * 1000
-        price = float(order['price'])
+        price = self.safe_float(order, 'price')
         cost = self.safe_float(order, 'deal_money')
         amount = self.safe_float(order, 'amount')
         filled = self.safe_float(order, 'deal_amount')
@@ -334,7 +334,7 @@ class coinex (Exchange):
             'trades': None,
             'fee': {
                 'currency': market['quote'],
-                'cost': float(order['deal_fee']),
+                'cost': self.safe_float(order, 'deal_fee'),
             },
             'info': order,
         }

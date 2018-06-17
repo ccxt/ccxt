@@ -133,7 +133,7 @@ const decimalToPrecision = (x, roundingMode
             afterDot = i--
 
         } else if ((c < ZERO) || (c > NINE)) {
-            throw new Error (`invalid number (contains an illegal character '${str[i - 1]}')`)
+            throw new Error (`${str}: invalid number (contains an illegal character '${str[i - 1]}')`)
 
         } else {
             chars[i] = c
