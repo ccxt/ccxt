@@ -287,6 +287,7 @@ class bitfinex (Exchange):
                     'Key amount should be a decimal number, e.g. "123.456"': InvalidOrder,  # on isNaN(amount)
                     'ERR_RATE_LIMIT': DDoSProtection,
                     'Nonce is too small.': InvalidNonce,
+                    'No summary found.': ExchangeError,  # fetchTradingFees(summary) endpoint can give self vague error message
                 },
                 'broad': {
                     'Invalid order: not enough exchange balance for ': InsufficientFunds,  # when buying cost is greater than the available quote currency
@@ -682,6 +683,7 @@ class bitfinex (Exchange):
             'BTG': 'bgold',
             'CFI': 'cfi',
             'DAI': 'dai',
+            'DADI': 'dad',
             'DASH': 'dash',
             'DATA': 'datacoin',
             'DTH': 'dth',
@@ -697,8 +699,10 @@ class bitfinex (Exchange):
             'IOTA': 'iota',
             'LRC': 'lrc',
             'LTC': 'litecoin',
+            'LYM': 'lym',
             'MANA': 'mna',
             'MIT': 'mit',
+            'MKR': 'mkr',
             'MTN': 'mtn',
             'NEO': 'neo',
             'ODE': 'ode',
@@ -719,7 +723,9 @@ class bitfinex (Exchange):
             'TNB': 'tnb',
             'TRX': 'trx',
             'USD': 'wire',
+            'UTK': 'utk',
             'USDT': 'tetheruso',  # undocumented
+            'VEE': 'vee',
             'WAX': 'wax',
             'XLM': 'xlm',
             'XMR': 'monero',
@@ -786,8 +792,8 @@ class bitfinex (Exchange):
         errorMessage = self.find_broadly_matched_key(self.exceptions['broad'], message)
         if id == 0:
             if errorMessage is not None:
-                Exception = self.exceptions['broad'][errorMessage]
-                raise Exception(self.id + ' ' + message)
+                ExceptionClass = self.exceptions['broad'][errorMessage]
+                raise ExceptionClass(self.id + ' ' + message)
             raise ExchangeError(self.id + ' withdraw returned an id of zero: ' + self.json(response))
         return {
             'info': response,

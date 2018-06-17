@@ -147,6 +147,7 @@ class bittrex extends Exchange {
                 'QUANTITY_NOT_PROVIDED' => '\\ccxt\\InvalidOrder',
                 'MIN_TRADE_REQUIREMENT_NOT_MET' => '\\ccxt\\InvalidOrder',
                 'ORDER_NOT_OPEN' => '\\ccxt\\InvalidOrder',
+                'INVALID_ORDER' => '\\ccxt\\InvalidOrder',
                 'UUID_INVALID' => '\\ccxt\\OrderNotFound',
                 'RATE_NOT_PROVIDED' => '\\ccxt\\InvalidOrder', // createLimitBuyOrder ('ETH/BTC', 1, 0)
                 'WHITELIST_VIOLATION_IP' => '\\ccxt\\PermissionDenied',
@@ -256,7 +257,7 @@ class bittrex extends Exchange {
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = $this->safe_string($ticker, 'TimeStamp');
         $iso8601 = null;
-        if (gettype ($timestamp) == 'string') {
+        if (gettype ($timestamp) === 'string') {
             if (strlen ($timestamp) > 0) {
                 $timestamp = $this->parse8601 ($timestamp);
                 $iso8601 = $this->iso8601 ($timestamp);
@@ -286,7 +287,7 @@ class bittrex extends Exchange {
             'ask' => $this->safe_float($ticker, 'Ask'),
             'askVolume' => null,
             'vwap' => null,
-            'open' => null,
+            'open' => $previous,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
@@ -408,7 +409,7 @@ class bittrex extends Exchange {
             'market' => $market['id'],
         ), $params));
         if (is_array ($response) && array_key_exists ('result', $response)) {
-            if ($response['result'] != null)
+            if ($response['result'] !== null)
                 return $this->parse_trades($response['result'], $market, $since, $limit);
         }
         throw new ExchangeError ($this->id . ' fetchTrades() returned null response');
@@ -490,7 +491,7 @@ class bittrex extends Exchange {
         $request = array ();
         $request[$orderIdField] = $id;
         $response = $this->marketGetCancel (array_merge ($request, $params));
-        return $response;
+        return $this->parse_order($response);
     }
 
     public function parse_symbol ($id) {
@@ -505,8 +506,18 @@ class bittrex extends Exchange {
         if ($side === null)
             $side = $this->safe_string($order, 'Type');
         $isBuyOrder = ($side === 'LIMIT_BUY') || ($side === 'BUY');
-        $side = $isBuyOrder ? 'buy' : 'sell';
-        $status = 'open';
+        $isSellOrder = ($side === 'LIMIT_SELL') || ($side === 'SELL');
+        if ($isBuyOrder) {
+            $side = 'buy';
+        }
+        if ($isSellOrder) {
+            $side = 'sell';
+        }
+        // We parse different fields in a very specific $order->
+        // Order might well be closed and then canceled.
+        $status = null;
+        if ((is_array ($order) && array_key_exists ('Opened', $order)) && $order['Opened'])
+            $status = 'open';
         if ((is_array ($order) && array_key_exists ('Closed', $order)) && $order['Closed'])
             $status = 'closed';
         if ((is_array ($order) && array_key_exists ('CancelInitiated', $order)) && $order['CancelInitiated'])
@@ -533,9 +544,9 @@ class bittrex extends Exchange {
         if (is_array ($order) && array_key_exists ('Created', $order))
             $timestamp = $this->parse8601 ($order['Created'] . '+00:00');
         $lastTradeTimestamp = null;
-        if ((is_array ($order) && array_key_exists ('TimeStamp', $order)) && ($order['TimeStamp'] != null))
+        if ((is_array ($order) && array_key_exists ('TimeStamp', $order)) && ($order['TimeStamp'] !== null))
             $lastTradeTimestamp = $this->parse8601 ($order['TimeStamp'] . '+00:00');
-        if ((is_array ($order) && array_key_exists ('Closed', $order)) && ($order['Closed'] != null))
+        if ((is_array ($order) && array_key_exists ('Closed', $order)) && ($order['Closed'] !== null))
             $lastTradeTimestamp = $this->parse8601 ($order['Closed'] . '+00:00');
         if ($timestamp === null)
             $timestamp = $lastTradeTimestamp;
@@ -565,8 +576,11 @@ class bittrex extends Exchange {
         $price = $this->safe_float($order, 'Limit');
         $cost = $this->safe_float($order, 'Price');
         $amount = $this->safe_float($order, 'Quantity');
-        $remaining = $this->safe_float($order, 'QuantityRemaining', 0.0);
-        $filled = $amount - $remaining;
+        $remaining = $this->safe_float($order, 'QuantityRemaining');
+        $filled = null;
+        if ($amount !== null && $remaining !== null) {
+            $filled = $amount - $remaining;
+        }
         if (!$cost) {
             if ($price && $amount)
                 $cost = $price * $amount;
@@ -615,6 +629,9 @@ class bittrex extends Exchange {
                     throw new OrderNotFound ($this->id . ' fetchOrder() error => ' . $this->last_http_response);
             }
             throw $e;
+        }
+        if (!$response['result']) {
+            throw new OrderNotFound ($this->id . ' order ' . $id . ' not found');
         }
         return $this->parse_order($response['result']);
     }
@@ -718,21 +735,13 @@ class bittrex extends Exchange {
             $success = $this->safe_value($response, 'success');
             if ($success === null)
                 throw new ExchangeError ($this->id . ' => malformed $response => ' . $this->json ($response));
-            if (gettype ($success) == 'string')
+            if (gettype ($success) === 'string')
                 // bleutrade uses string instead of boolean
                 $success = ($success === 'true') ? true : false;
             if (!$success) {
                 $message = $this->safe_string($response, 'message');
                 $feedback = $this->id . ' ' . $this->json ($response);
                 $exceptions = $this->exceptions;
-                if (is_array ($exceptions) && array_key_exists ($message, $exceptions))
-                    throw new $exceptions[$message] ($feedback);
-                if ($message !== null) {
-                    if (mb_strpos ($message, 'throttled. Try again') !== false)
-                        throw new DDoSProtection ($feedback);
-                    if (mb_strpos ($message, 'problem') !== false)
-                        throw new ExchangeNotAvailable ($feedback); // 'There was a problem processing your request.  If this problem persists, please contact...')
-                }
                 if ($message === 'APIKEY_INVALID') {
                     if ($this->options['hasAlreadyAuthenticatedSuccessfully']) {
                         throw new DDoSProtection ($feedback);
@@ -742,7 +751,39 @@ class bittrex extends Exchange {
                 }
                 if ($message === 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT')
                     throw new InvalidOrder ($this->id . ' order cost should be over 50k satoshi ' . $this->json ($response));
-                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+                if ($message === 'INVALID_ORDER') {
+                    // Bittrex will return an ambiguous INVALID_ORDER $message
+                    // upon canceling already-canceled and closed orders
+                    // therefore this special case for cancelOrder
+                    // $url = 'https://bittrex.com/api/v1.1/market/$cancel?apikey=API_KEY&uuid=ORDER_UUID'
+                    $cancel = 'cancel';
+                    $indexOfCancel = mb_strpos ($url, $cancel);
+                    if ($indexOfCancel >= 0) {
+                        $parts = explode ('&', $url);
+                        $orderId = null;
+                        for ($i = 0; $i < count ($parts); $i++) {
+                            $part = $parts[$i];
+                            $keyValue = explode ('=', $part);
+                            if ($keyValue[0] === 'uuid') {
+                                $orderId = $keyValue[1];
+                                break;
+                            }
+                        }
+                        if ($orderId !== null)
+                            throw new OrderNotFound ($this->id . ' cancelOrder ' . $orderId . ' ' . $this->json ($response));
+                        else
+                            throw new OrderNotFound ($this->id . ' cancelOrder ' . $this->json ($response));
+                    }
+                }
+                if (is_array ($exceptions) && array_key_exists ($message, $exceptions))
+                    throw new $exceptions[$message] ($feedback);
+                if ($message !== null) {
+                    if (mb_strpos ($message, 'throttled. Try again') !== false)
+                        throw new DDoSProtection ($feedback);
+                    if (mb_strpos ($message, 'problem') !== false)
+                        throw new ExchangeNotAvailable ($feedback); // 'There was a problem processing your request.  If this problem persists, please contact...')
+                }
+                throw new ExchangeError ($feedback);
             }
         }
     }

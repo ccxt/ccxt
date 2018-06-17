@@ -56,6 +56,9 @@ class braziliex (Exchange):
                     ],
                 },
             },
+            'commonCurrencies': {
+                'EPC': 'Epacoin',
+            },
             'fees': {
                 'trading': {
                     'maker': 0.005,

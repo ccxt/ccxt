@@ -267,6 +267,8 @@ module.exports = class binance extends Exchange {
                 'recvWindow': 5 * 1000, // 5 sec, binance default
                 'timeDifference': 0, // the difference between system clock and Binance clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
+                'parseOrderToPrecision': false, // force amounts and costs in parseOrder to precision
+                'newOrderRespType': 'RESULT', // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
             },
             'exceptions': {
                 '-1000': ExchangeNotAvailable, // {"code":-1000,"msg":"An unknown error occured while processing the request."}
@@ -276,6 +278,7 @@ module.exports = class binance extends Exchange {
                 '-2010': InsufficientFunds, // createOrder -> 'Account has insufficient balance for requested action.'
                 '-2011': OrderNotFound, // cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
                 '-2013': OrderNotFound, // fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'
+                '-2014': AuthenticationError, // { "code":-2014, "msg": "API-key format invalid." }
                 '-2015': AuthenticationError, // "Invalid API-key, IP, or permissions for action."
             },
         });
@@ -509,21 +512,22 @@ module.exports = class binance extends Exchange {
 
     parseTrade (trade, market = undefined) {
         let timestampField = ('T' in trade) ? 'T' : 'time';
-        let timestamp = trade[timestampField];
+        let timestamp = this.safeInteger (trade, timestampField);
         let priceField = ('p' in trade) ? 'p' : 'price';
-        let price = parseFloat (trade[priceField]);
+        let price = this.safeFloat (trade, priceField);
         let amountField = ('q' in trade) ? 'q' : 'qty';
-        let amount = parseFloat (trade[amountField]);
+        let amount = this.safeFloat (trade, amountField);
         let idField = ('a' in trade) ? 'a' : 'id';
-        let id = trade[idField].toString ();
+        let id = this.safeString (trade, idField);
         let side = undefined;
         let order = undefined;
         if ('orderId' in trade)
-            order = trade['orderId'].toString ();
+            order = this.safeString (trade, 'orderId');
         if ('m' in trade) {
             side = trade['m'] ? 'sell' : 'buy'; // this is reversed intentionally
         } else {
-            side = (trade['isBuyer']) ? 'buy' : 'sell'; // this is a true side
+            if ('isBuyer' in trade)
+                side = (trade['isBuyer']) ? 'buy' : 'sell'; // this is a true side
         }
         let fee = undefined;
         if ('commission' in trade) {
@@ -597,14 +601,23 @@ module.exports = class binance extends Exchange {
             iso8601 = this.iso8601 (timestamp);
         let price = this.safeFloat (order, 'price');
         let amount = this.safeFloat (order, 'origQty');
-        let filled = this.safeFloat (order, 'executedQty', 0.0);
+        let filled = this.safeFloat (order, 'executedQty');
         let remaining = undefined;
         let cost = undefined;
         if (typeof filled !== 'undefined') {
-            if (typeof amount !== 'undefined')
-                remaining = Math.max (amount - filled, 0.0);
-            if (typeof price !== 'undefined')
+            if (typeof amount !== 'undefined') {
+                remaining = amount - filled;
+                if (this.options['parseOrderToPrecision']) {
+                    remaining = parseFloat (this.amountToPrecision (symbol, remaining));
+                }
+                remaining = Math.max (remaining, 0.0);
+            }
+            if (typeof price !== 'undefined') {
                 cost = price * filled;
+                if (this.options['parseOrderToPrecision']) {
+                    cost = parseFloat (this.costToPrecision (symbol, cost));
+                }
+            }
         }
         let id = this.safeString (order, 'orderId');
         let type = this.safeString (order, 'type');
@@ -613,6 +626,22 @@ module.exports = class binance extends Exchange {
         let side = this.safeString (order, 'side');
         if (typeof side !== 'undefined')
             side = side.toLowerCase ();
+        let fee = undefined;
+        let trades = undefined;
+        const fills = this.safeValue (order, 'fills');
+        if (typeof fills !== 'undefined') {
+            trades = this.parseTrades (fills, market);
+            let numTrades = trades.length;
+            if (numTrades > 0) {
+                fee = {
+                    'cost': trades[0]['fee']['cost'],
+                    'currency': trades[0]['fee']['currency'],
+                };
+                for (let i = 1; i < trades.length; i++) {
+                    fee['cost'] = this.sum (fee['cost'], trades[i]['fee']['cost']);
+                }
+            }
+        }
         let result = {
             'info': order,
             'id': id,
@@ -628,7 +657,8 @@ module.exports = class binance extends Exchange {
             'filled': filled,
             'remaining': remaining,
             'status': status,
-            'fee': undefined,
+            'fee': fee,
+            'trades': trades,
         };
         return result;
     }
@@ -643,23 +673,47 @@ module.exports = class binance extends Exchange {
             method += 'Test';
             params = this.omit (params, 'test');
         }
+        let uppercaseType = type.toUpperCase ();
         let order = {
             'symbol': market['id'],
             'quantity': this.amountToString (symbol, amount),
-            'type': type.toUpperCase (),
+            'type': uppercaseType,
             'side': side.toUpperCase (),
+            'newOrderRespType': this.options['newOrderRespType'], // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         };
-        if (type === 'limit') {
-            order['type'] = this.options['defaultLimitOrderType'].toUpperCase ();
-            order = this.extend (order, {
-                'price': this.priceToPrecision (symbol, price),
-                'timeInForce': this.options['defaultTimeInForce'], // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
-            });
-        } else if (type === 'limit_maker') {
+        let timeInForceIsRequired = false;
+        let priceIsRequired = false;
+        let stopPriceIsRequired = false;
+        if (uppercaseType === 'LIMIT') {
+            priceIsRequired = true;
+            timeInForceIsRequired = true;
+        } else if ((uppercaseType === 'STOP_LOSS') || (uppercaseType === 'TAKE_PROFIT')) {
+            stopPriceIsRequired = true;
+        } else if ((uppercaseType === 'STOP_LOSS_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
+            stopPriceIsRequired = true;
+            priceIsRequired = true;
+            timeInForceIsRequired = true;
+        } else if (uppercaseType === 'LIMIT_MAKER') {
+            priceIsRequired = true;
+        }
+        if (priceIsRequired) {
+            if (typeof price === 'undefined')
+                throw new InvalidOrder (this.id + ' createOrder method requires a price argument for a ' + type + ' order');
             order['price'] = this.priceToPrecision (symbol, price);
         }
+        if (timeInForceIsRequired) {
+            order['timeInForce'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+        }
+        if (stopPriceIsRequired) {
+            let stopPrice = this.safeFloat (params, 'stopPrice');
+            if (typeof stopPrice === 'undefined') {
+                throw new InvalidOrder (this.id + ' createOrder method requires a stopPrice extra param for a ' + type + ' order');
+            } else {
+                order['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
+            }
+        }
         let response = await this[method] (this.extend (order, params));
-        return this.parseOrder (response);
+        return this.parseOrder (response, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -725,7 +779,7 @@ module.exports = class binance extends Exchange {
             'orderId': parseInt (id),
             // 'origClientOrderId': id,
         }, params));
-        return response;
+        return this.parseOrder (response);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -985,6 +1039,9 @@ module.exports = class binance extends Exchange {
                         if ((error === '-2015') && this.options['hasAlreadyAuthenticatedSuccessfully']) {
                             throw new DDoSProtection (this.id + ' temporary banned: ' + body);
                         }
+                        const message = this.safeString (response, 'msg');
+                        if (message === 'Order would trigger immediately.')
+                            throw new InvalidOrder (this.id + ' ' + body);
                         throw new exceptions[error] (this.id + ' ' + body);
                     } else {
                         throw new ExchangeError (this.id + ': unknown error code: ' + body + ' ' + error);

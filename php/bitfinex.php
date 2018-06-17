@@ -272,6 +272,7 @@ class bitfinex extends Exchange {
                     'Key amount should be a decimal number, e.g. "123.456"' => '\\ccxt\\InvalidOrder', // on isNaN (amount)
                     'ERR_RATE_LIMIT' => '\\ccxt\\DDoSProtection',
                     'Nonce is too small.' => '\\ccxt\\InvalidNonce',
+                    'No summary found.' => '\\ccxt\\ExchangeError', // fetchTradingFees (summary) endpoint can give this vague error message
                 ),
                 'broad' => array (
                     'Invalid order => not enough exchange balance for ' => '\\ccxt\\InsufficientFunds', // when buying cost is greater than the available quote currency
@@ -708,6 +709,7 @@ class bitfinex extends Exchange {
             'BTG' => 'bgold',
             'CFI' => 'cfi',
             'DAI' => 'dai',
+            'DADI' => 'dad',
             'DASH' => 'dash',
             'DATA' => 'datacoin',
             'DTH' => 'dth',
@@ -723,8 +725,10 @@ class bitfinex extends Exchange {
             'IOTA' => 'iota',
             'LRC' => 'lrc',
             'LTC' => 'litecoin',
+            'LYM' => 'lym',
             'MANA' => 'mna',
             'MIT' => 'mit',
+            'MKR' => 'mkr',
             'MTN' => 'mtn',
             'NEO' => 'neo',
             'ODE' => 'ode',
@@ -745,7 +749,9 @@ class bitfinex extends Exchange {
             'TNB' => 'tnb',
             'TRX' => 'trx',
             'USD' => 'wire',
+            'UTK' => 'utk',
             'USDT' => 'tetheruso', // undocumented
+            'VEE' => 'vee',
             'WAX' => 'wax',
             'XLM' => 'xlm',
             'XMR' => 'monero',
@@ -816,8 +822,8 @@ class bitfinex extends Exchange {
         $errorMessage = $this->find_broadly_matched_key ($this->exceptions['broad'], $message);
         if ($id === 0) {
             if ($errorMessage !== null) {
-                $Exception = $this->exceptions['broad'][$errorMessage];
-                throw new $Exception ($this->id . ' ' . $message);
+                $ExceptionClass = $this->exceptions['broad'][$errorMessage];
+                throw new $ExceptionClass ($this->id . ' ' . $message);
             }
             throw new ExchangeError ($this->id . ' withdraw returned an $id of zero => ' . $this->json ($response));
         }

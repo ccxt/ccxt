@@ -312,7 +312,7 @@ class coingi extends Exchange {
 
     public function request ($path, $api = 'current', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (gettype ($response) != 'string') {
+        if (gettype ($response) !== 'string') {
             if (is_array ($response) && array_key_exists ('errors', $response))
                 throw new ExchangeError ($this->id . ' ' . $this->json ($response));
         }

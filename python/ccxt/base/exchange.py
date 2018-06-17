@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.14.88'
+__version__ = '1.14.205'
 
 # -----------------------------------------------------------------------------
 
@@ -171,6 +171,7 @@ class Exchange(object):
         'fetchTickers': False,
         'fetchTrades': True,
         'fetchTradingFees': False,
+        'fetchTradingLimits': False,
         'withdraw': False,
     }
 
@@ -409,8 +410,9 @@ class Exchange(object):
     def handle_rest_response(self, response, url, method='GET', headers=None, body=None):
         try:
             if self.parseJsonResponse:
-                self.last_json_response = json.loads(response) if len(response) > 1 else None
-                return self.last_json_response
+                last_json_response = json.loads(response) if len(response) > 1 else None
+                self.last_json_response = last_json_response
+                return last_json_response
             else:
                 return response
         except ValueError as e:  # ValueError == JsonDecodeError
@@ -563,6 +565,10 @@ class Exchange(object):
         return needle in haystack
 
     @staticmethod
+    def is_empty(object):
+        return not object
+
+    @staticmethod
     def extract_params(string):
         return re.findall(r'{([\w-]+)}', string)
 
@@ -664,11 +670,24 @@ class Exchange(object):
         return int(time.time() * 1000000)
 
     @staticmethod
-    def iso8601(timestamp):
+    def iso8601(timestamp=None):
         if timestamp is None:
             return timestamp
-        utc = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
-        return utc.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-6] + "{:<03d}".format(int(timestamp) % 1000) + 'Z'
+        if not isinstance(timestamp, int):
+            return None
+        if int(timestamp) < 0:
+            return None
+
+        try:
+            utc = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
+            return utc.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-6] + "{:<03d}".format(int(timestamp) % 1000) + 'Z'
+        except (TypeError, OverflowError, OSError):
+            return None
+
+    @staticmethod
+    def dmy(timestamp, infix='-'):
+        utc_datetime = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
+        return utc_datetime.strftime('%m' + infix + '%d' + infix + '%Y')
 
     @staticmethod
     def ymd(timestamp, infix='-'):
@@ -681,18 +700,25 @@ class Exchange(object):
         return utc_datetime.strftime('%Y-%m-%d' + infix + '%H:%M:%S')
 
     @staticmethod
-    def parse_date(timestamp):
+    def parse_date(timestamp=None):
         if timestamp is None:
             return timestamp
+        if not isinstance(timestamp, str):
+            return None
         if 'GMT' in timestamp:
-            string = ''.join([str(value) for value in parsedate(timestamp)[:6]]) + '.000Z'
-            dt = datetime.datetime.strptime(string, "%Y%m%d%H%M%S.%fZ")
-            return calendar.timegm(dt.utctimetuple()) * 1000
+            try:
+                string = ''.join([str(value) for value in parsedate(timestamp)[:6]]) + '.000Z'
+                dt = datetime.datetime.strptime(string, "%Y%m%d%H%M%S.%fZ")
+                return calendar.timegm(dt.utctimetuple()) * 1000
+            except (TypeError, OverflowError, OSError):
+                return None
         else:
             return Exchange.parse8601(timestamp)
 
     @staticmethod
-    def parse8601(timestamp):
+    def parse8601(timestamp=None):
+        if timestamp is None:
+            return timestamp
         yyyy = '([0-9]{4})-?'
         mm = '([0-9]{2})-?'
         dd = '([0-9]{2})(?:T|[\\s])?'
@@ -702,19 +728,24 @@ class Exchange(object):
         ms = '(\\.[0-9]{1,3})?'
         tz = '(?:(\\+|\\-)([0-9]{2})\\:?([0-9]{2})|Z)?'
         regex = r'' + yyyy + mm + dd + h + m + s + ms + tz
-        match = re.search(regex, timestamp, re.IGNORECASE)
-        yyyy, mm, dd, h, m, s, ms, sign, hours, minutes = match.groups()
-        ms = ms or '.000'
-        msint = int(ms[1:])
-        sign = sign or ''
-        sign = int(sign + '1')
-        hours = int(hours or 0) * sign
-        minutes = int(minutes or 0) * sign
-        offset = datetime.timedelta(hours=hours, minutes=minutes)
-        string = yyyy + mm + dd + h + m + s + ms + 'Z'
-        dt = datetime.datetime.strptime(string, "%Y%m%d%H%M%S.%fZ")
-        dt = dt + offset
-        return calendar.timegm(dt.utctimetuple()) * 1000 + msint
+        try:
+            match = re.search(regex, timestamp, re.IGNORECASE)
+            if match is None:
+                return None
+            yyyy, mm, dd, h, m, s, ms, sign, hours, minutes = match.groups()
+            ms = ms or '.000'
+            msint = int(ms[1:])
+            sign = sign or ''
+            sign = int(sign + '1')
+            hours = int(hours or 0) * sign
+            minutes = int(minutes or 0) * sign
+            offset = datetime.timedelta(hours=hours, minutes=minutes)
+            string = yyyy + mm + dd + h + m + s + ms + 'Z'
+            dt = datetime.datetime.strptime(string, "%Y%m%d%H%M%S.%fZ")
+            dt = dt + offset
+            return calendar.timegm(dt.utctimetuple()) * 1000 + msint
+        except (TypeError, OverflowError, OSError, ValueError):
+            return None
 
     @staticmethod
     def hash(request, algorithm='md5', digest='hex'):
@@ -949,7 +980,7 @@ class Exchange(object):
         self.raise_error(NotSupported, details='cancel_order() not implemented yet')
 
     def fetch_bids_asks(self, symbols=None, params={}):
-        self.raise_error(NotSupported, details='API does not allow to fetch all prices at once with a single call to fetch_bid_asks() for now')
+        self.raise_error(NotSupported, details='API does not allow to fetch all prices at once with a single call to fetch_bids_asks() for now')
 
     def fetch_tickers(self, symbols=None, params={}):
         self.raise_error(NotSupported, details='API does not allow to fetch all tickers at once with a single call to fetch_tickers() for now')
@@ -1054,6 +1085,20 @@ class Exchange(object):
 
     def fetch_total_balance(self, params={}):
         return self.fetch_partial_balance('total', params)
+
+    def load_trading_limits(self, symbols=None, reload=False, params={}):
+        if self.has['fetchTradingLimits']:
+            if reload or not('limitsLoaded' in list(self.options.keys())):
+                response = self.fetch_trading_limits(symbols)
+                limits = response['limits']
+                keys = list(limits.keys())
+                for i in range(0, len(keys)):
+                    symbol = keys[i]
+                    self.markets[symbol] = self.deep_extend(self.markets[symbol], {
+                        'limits': limits[symbol],
+                    })
+                self.options['limitsLoaded'] = self.milliseconds()
+        return self.markets
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         if not self.has['fetchTrades']:

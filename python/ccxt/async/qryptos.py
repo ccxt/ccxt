@@ -191,6 +191,15 @@ class qryptos (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
+        change = None
+        percentage = None
+        average = None
+        open = self.safe_float(ticker, 'last_price_24h')
+        if open is not None and last is not None:
+            change = last - open
+            average = self.sum(last, open) / 2
+            if open > 0:
+                percentage = change / open * 100
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -202,13 +211,13 @@ class qryptos (Exchange):
             'ask': self.safe_float(ticker, 'market_ask'),
             'askVolume': None,
             'vwap': None,
-            'open': None,
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': None,
-            'percentage': None,
-            'average': None,
+            'change': change,
+            'percentage': percentage,
+            'average': average,
             'baseVolume': self.safe_float(ticker, 'volume_24h'),
             'quoteVolume': None,
             'info': ticker,

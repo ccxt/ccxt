@@ -17,6 +17,7 @@ module.exports = class quadrigacx extends Exchange {
             'version': 'v2',
             'has': {
                 'fetchDepositAddress': true,
+                'fetchTickers': true,
                 'CORS': true,
                 'withdraw': true,
             },
@@ -101,10 +102,48 @@ module.exports = class quadrigacx extends Exchange {
         return this.parseOrderBook (orderbook, timestamp);
     }
 
-    async fetchTicker (symbol, params = {}) {
-        let ticker = await this.publicGetTicker (this.extend ({
-            'book': this.marketId (symbol),
+    async fetchTickers (symbols = undefined, params = {}) {
+        let response = await this.publicGetTicker (this.extend ({
+            'book': 'all',
         }, params));
+        let ids = Object.keys (response);
+        let result = {};
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
+            let symbol = id;
+            let market = undefined;
+            if (id in this.markets_by_id) {
+                market = this.markets_by_id[id];
+                symbol = market['symbol'];
+            } else {
+                let [ baseId, quoteId ] = id.split ('_');
+                let base = baseId.toUpperCase ();
+                let quote = quoteId.toUpperCase ();
+                base = this.commonCurrencyCode (base);
+                quote = this.commonCurrencyCode (base);
+                symbol = base + '/' + quote;
+                market = {
+                    'symbol': symbol,
+                };
+            }
+            result[symbol] = this.parseTicker (response[id], market);
+        }
+        return result;
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let response = await this.publicGetTicker (this.extend ({
+            'book': market['id'],
+        }, params));
+        return this.parseTicker (response, market);
+    }
+
+    parseTicker (ticker, market = undefined) {
+        let symbol = undefined;
+        if (typeof market !== 'undefined')
+            symbol = market['symbol'];
         let timestamp = parseInt (ticker['timestamp']) * 1000;
         let vwap = this.safeFloat (ticker, 'vwap');
         let baseVolume = this.safeFloat (ticker, 'volume');

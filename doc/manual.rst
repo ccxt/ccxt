@@ -55,7 +55,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 Exchanges
 =========
 
-The ccxt library currently supports the following 115 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 119 cryptocurrency exchange markets and trading APIs:
 
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 |                        | id                   | name                                                                              | ver   | doc                                                                                               | countries                                  |
@@ -70,6 +70,8 @@ The ccxt library currently supports the following 115 cryptocurrency exchange ma
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |anxpro|               | anxpro               | `ANXPro <https://anxpro.com>`__                                                   | 2     | `API <http://docs.anxv2.apiary.io>`__                                                             | Japan, Singapore, Hong Kong, New Zealand   |
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
+| |anybits|              | anybits              | `Anybits <https://anybits.com>`__                                                 | \*    | `API <https://anybits.com/help/api>`__                                                            | Ireland                                    |
++------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |bibox|                | bibox                | `Bibox <https://www.bibox.com>`__                                                 | 1     | `API <https://github.com/Biboxcom/api_reference/wiki/home_en>`__                                  | China, US, South Korea                     |
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |binance|              | binance              | `Binance <https://www.binance.com/?ref=10205187>`__                               | \*    | `API <https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md>`__   | Japan                                      |
@@ -78,7 +80,7 @@ The ccxt library currently supports the following 115 cryptocurrency exchange ma
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |bitbank|              | bitbank              | `bitbank <https://bitbank.cc/>`__                                                 | 1     | `API <https://docs.bitbank.cc/>`__                                                                | Japan                                      |
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
-| |bitbay|               | bitbay               | `BitBay <https://bitbay.net>`__                                                   | \*    | `API <https://bitbay.net/public-api>`__                                                           | Poland, EU                                 |
+| |bitbay|               | bitbay               | `BitBay <https://bitbay.net>`__                                                   | \*    | `API <https://bitbay.net/public-api>`__                                                           | Malta, EU                                  |
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |bitfinex|             | bitfinex             | `Bitfinex <https://www.bitfinex.com>`__                                           | 1     | `API <https://bitfinex.readme.io/v1/docs>`__                                                      | British Virgin Islands                     |
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -95,6 +97,8 @@ The ccxt library currently supports the following 115 cryptocurrency exchange ma
 | |bitmarket|            | bitmarket            | `BitMarket <https://www.bitmarket.pl>`__                                          | \*    | `API <https://www.bitmarket.net/docs.php?file=api_public.html>`__                                 | Poland, EU                                 |
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |bitmex|               | bitmex               | `BitMEX <https://www.bitmex.com>`__                                               | 1     | `API <https://www.bitmex.com/app/apiOverview>`__                                                  | Seychelles                                 |
++------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
+| |bitsane|              | bitsane              | `Bitsane <https://bitsane.com>`__                                                 | \*    | `API <https://bitsane.com/info-api>`__                                                            | Ireland                                    |
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |bitso|                | bitso                | `Bitso <https://bitso.com>`__                                                     | 3     | `API <https://bitso.com/api_info>`__                                                              | Mexico                                     |
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -140,6 +144,8 @@ The ccxt library currently supports the following 115 cryptocurrency exchange ma
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |cobinhood|            | cobinhood            | `COBINHOOD <https://cobinhood.com>`__                                             | \*    | `API <https://cobinhood.github.io/api-public>`__                                                  | Taiwan                                     |
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
+| |coinbase|             | coinbase             | `coinbase <https://www.coinbase.com>`__                                           | 2     | `API <https://developers.coinbase.com/api/v2>`__                                                  | US                                         |
++------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |coincheck|            | coincheck            | `coincheck <https://coincheck.com>`__                                             | \*    | `API <https://coincheck.com/documents/exchange/api>`__                                            | Japan, Indonesia                           |
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |coinegg|              | coinegg              | `CoinEgg <https://www.coinegg.com>`__                                             | \*    | `API <https://www.coinegg.com/explain.api.html>`__                                                | China, UK                                  |
@@ -164,9 +170,11 @@ The ccxt library currently supports the following 115 cryptocurrency exchange ma
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |coinspot|             | coinspot             | `CoinSpot <https://www.coinspot.com.au>`__                                        | \*    | `API <https://www.coinspot.com.au/api>`__                                                         | Australia                                  |
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
-| |cointiger|            | cointiger            | `CoinTiger <https://www.cointiger.com/exchange/register.html?refCode=FfvDtt>`__   | 1     | `API <https://github.com/cointiger/api-docs-en/wiki>`__                                           | China                                      |
+| |cointiger|            | cointiger            | `CoinTiger <https://www.cointiger.pro/exchange/register.html?refCode=FfvDtt>`__   | 1     | `API <https://github.com/cointiger/api-docs-en/wiki>`__                                           | China                                      |
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |coolcoin|             | coolcoin             | `CoolCoin <https://www.coolcoin.com>`__                                           | \*    | `API <https://www.coolcoin.com/help.api.html>`__                                                  | Hong Kong                                  |
++------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
+| |crypton|              | crypton              | `Crypton <https://cryptonbtc.com>`__                                              | 1     | `API <https://cryptonbtc.docs.apiary.io/>`__                                                      | EU                                         |
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |cryptopia|            | cryptopia            | `Cryptopia <https://www.cryptopia.co.nz/Register?referrer=kroitor>`__             | \*    | `API <https://www.cryptopia.co.nz/Forum/Category/45>`__                                           | New Zealand                                |
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -526,7 +534,50 @@ Exchanges usually impose what is called a *rate limit*. Exchanges will remember 
 
 Most exchanges allow **up to 1 or 2 requests per second**. Exchanges may temporarily restrict your access to their API or ban you for some period of time if you are too aggressive with your requests.
 
-**The ``exchange.rateLimit`` property is set to a safe default which is sub-optimal. Some exchanges may have varying rate limits for different endpoints. It is up to the library user to tweak ``rateLimit`` according to application-specific purposes.**
+**The ``exchange.rateLimit`` property is set to a safe default which is sub-optimal. Some exchanges may have varying rate limits for different endpoints. It is up to the user to tweak ``rateLimit`` according to application-specific purposes.**
+
+The CCXT library has a built-in experimental rate-limiter that will do the necessary throttling in background transparently to the user. **WARNING: users are responsible for at least some type of rate-limiting: either by implementing a custom algorithm or by doing it with the built-in rate-limiter.**.
+
+Turn on the built-in rate-limiter with ``.enableRateLimit`` property, like so:
+
+.. code:: javascript
+
+    // JavaScript
+
+    // enable built-in rate limiting upon instantiation of the exchange
+    const exchange = new ccxt.bitfinex ({
+        'enableRateLimit': true,
+    })
+
+    // or switch the built-in rate-limiter on or off later after instantiation
+    exchange.enableRateLimit = true // enable
+    exchange.enableRateLimit = false // disable
+
+.. code:: python
+
+    # Python
+
+    # enable built-in rate limiting upon instantiation of the exchange
+    exchange = ccxt.bitfinex({
+        'enableRateLimit': True,
+    })
+
+    # or switch the built-in rate-limiter on or off later after instantiation
+    exchange.enableRateLimit = True  # enable
+    exchange.enableRateLimit = False  # disable
+
+.. code:: php
+
+    // PHP
+
+    // enable built-in rate limiting upon instantiation of the exchange
+    $exchange = new \ccxt\bitfinex (array (
+        'enableRateLimit' => true,
+    ));
+
+    // or switch the built-in rate-limiter on or off later after instantiation
+    $exchange->enableRateLimit = true; // enable
+    $exchange->enableRateLimit = false; // disable
 
 DDoS Protection By Cloudflare / Incapsula
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -538,6 +589,7 @@ If you encounter DDoS protection errors and cannot reach a particular exchange t
 -  try using a cloudscraper:
 -  https://github.com/ccxt/ccxt/blob/master/examples/js/bypass-cloudflare.js
 -  https://github.com/ccxt/ccxt/blob/master/examples/py/bypass-cloudflare.py
+-  https://github.com/ccxt/ccxt/blob/master/examples/py/bypass-cloudflare-with-cookies.py
 -  use a proxy (this is less responsive, though)
 -  ask the exchange support to add you to a whitelist
 -  run your software in close proximity to the exchange (same country, same city, same datacenter, same server rack, same server)
@@ -1982,6 +2034,10 @@ Most of methods returning orders within ccxt unified API will usually yield an o
 -  The ``lastTradeTimestamp`` timestamp may have no value and may be ``undefined/None/null`` where not supported by the exchange or in case of an open order (an order that has not been filled nor partially filled yet).
 -  The ``lastTradeTimestamp``, if any, designates the timestamp of the last trade, in case the order is filled fully or partially, otherwise ``lastTradeTimestamp`` is ``undefined/None/null``.
 -  Order ``status`` prevails or has precedence over the ``lastTradeTimestamp``.
+-  The ``cost`` of an order is:
+-  ``if (status === 'open' and filled === 0) { amount * price }``
+-  ``if (status === 'closed' || status === 'canceled') { filled * price }``
+-  The ``cost`` of an order means the total *quote* volume of the order (whereas the ``amount`` is the *base* volume). The value of ``cost`` should be as close to the actual most recent known order cost as possible. The ``cost`` field itself is there mostly for convenience and can be deduced from other fields.
 
 Placing Orders
 ~~~~~~~~~~~~~~
@@ -2044,9 +2100,18 @@ The exchange will close your market order for the best price available. You are 
         ...
     }
 
-It is also possible to emulate a ``market`` order with a ``limit`` order. **WARNING this method can be risky due to high volatility, use it at your own risk and only use it when you know really well what you're doing!**. Most of the time a ``market sell`` can be emulated with a ``limit sell`` at a very low price – the exchange will automatically make it a taker order for market price (the price that is currently in your best interest from the ones that are available in the order book). When the exchange detects that you're selling for a very low price it will automatically offer you the best buyer price available from the order book. That is effectively the same as placing a market sell order. Thus market orders can be emulated with limit orders (where missing). The opposite is also true – a ``market buy`` can be emulated with a ``limit buy`` for a very high price. Most exchanges will again close your order for best available price, that is, the market price.
+Emulating Market Orders With Limit Orders
+'''''''''''''''''''''''''''''''''''''''''
 
-However, you should never rely on that entirely, **ALWAYS test it with a small amount first!**. You can try that in their web interface first to verify the logic. You can sell the minimal amount at a specified limit price (an affordable amount to lose, just in case) and then check the actual filling price in trade history.
+It is also possible to emulate a ``market`` order with a ``limit`` order.
+
+**WARNING this method can be risky due to high volatility, use it at your own risk and only use it when you know really well what you're doing!**
+
+Most of the time a ``market sell`` can be emulated with a ``limit sell`` at a very low price – the exchange will automatically make it a taker order for market price (the price that is currently in your best interest from the ones that are available in the order book). When the exchange detects that you're selling for a very low price it will automatically offer you the best buyer price available from the order book. That is effectively the same as placing a market sell order. Thus market orders can be emulated with limit orders (where missing).
+
+The opposite is also true – a ``market buy`` can be emulated with a ``limit buy`` for a very high price. Most exchanges will again close your order for best available price, that is, the market price.
+
+However, you should never rely on that entirely, **ALWAYS test it with a small amount first!** You can try that in their web interface first to verify the logic. You can sell the minimal amount at a specified limit price (an affordable amount to lose, just in case) and then check the actual filling price in trade history.
 
 Limit Orders
 ^^^^^^^^^^^^
@@ -2229,9 +2294,9 @@ Trade structure
         },
     }
 
-**The work on ``'fee'`` info is still in progress, fee info may be missing partially or entirely, depending on the exchange capabilities.**
-
-**The ``fee`` currency may be different from both traded currencies (for example, an ETH/BTC order with fees in USD).**
+-  The work on ``'fee'`` info is still in progress, fee info may be missing partially or entirely, depending on the exchange capabilities.
+-  The ``fee`` currency may be different from both traded currencies (for example, an ETH/BTC order with fees in USD).
+-  The ``cost`` of the trade means ``amount * price``. It is the total *quote* volume of the trade (whereas ``amount`` is the *base* volume). The cost field itself is there mostly for convenience and can be deduced from other fields.
 
 Trades By Order Id
 ~~~~~~~~~~~~~~~~~~
@@ -2620,8 +2685,9 @@ In case you experience any difficulty connecting to a particular exchange, do th
 -  If it is a Cloudflare protection error, try these examples:
 -  https://github.com/ccxt/ccxt/blob/master/examples/js/bypass-cloudflare.js
 -  https://github.com/ccxt/ccxt/blob/master/examples/py/bypass-cloudflare.py
+-  https://github.com/ccxt/ccxt/blob/master/examples/py/bypass-cloudflare-with-cookies.py
 -  Check your nonce. If you used your API keys with other software, you most likely should `override your nonce function <#overriding-the-nonce>`__ to match your previous nonce value. A nonce usually can be easily reset by generating a new unused keypair. If you are getting nonce errors with an existing key, try with a new API key that hasn't been used yet.
--  Check your request rate if you are getting nonce errors. Your private requests should not follow one another quickly. You should not send them one after another in a split second or in short time. The exchange will most likely ban you if you don't make a delay before sending each new request. In other words, you should not hit their rate limit by sending unlimited private requests too frequently. Add a delay to your subsequent requests, like show in the long-poller `examples <https://github.com/ccxt/ccxt/tree/master/examples>`__, also `here <https://github.com/ccxt/ccxt/wiki/Manual#order-book--market-depth>`__.
+-  Check your request rate if you are getting nonce errors. Your private requests should not follow one another quickly. You should not send them one after another in a split second or in short time. The exchange will most likely ban you if you don't make a delay before sending each new request. In other words, you should not hit their rate limit by sending unlimited private requests too frequently. Add a delay to your subsequent requests or enable the built-in rate-limiter, like shown in the long-poller `examples <https://github.com/ccxt/ccxt/tree/master/examples>`__, also `here <https://github.com/ccxt/ccxt/wiki/Manual#order-book--market-depth>`__.
 -  Read the `docs for your exchange <https://github.com/ccxt/ccxt/wiki/Exchanges>`__ and compare your verbose output to the docs.
 -  Check your connectivity with the exchange by accessing it with your browser.
 -  Check your connection with the exchange through a proxy. Read the `Proxy <https://github.com/ccxt/ccxt/wiki/Install#proxy>`__ section for more details.
@@ -2645,6 +2711,7 @@ Notes
 .. |acx| image:: https://user-images.githubusercontent.com/1294454/30247614-1fe61c74-9621-11e7-9e8c-f1a627afa279.jpg
 .. |allcoin| image:: https://user-images.githubusercontent.com/1294454/31561809-c316b37c-b061-11e7-8d5a-b547b4d730eb.jpg
 .. |anxpro| image:: https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg
+.. |anybits| image:: https://user-images.githubusercontent.com/1294454/41388454-ae227544-6f94-11e8-82a4-127d51d34903.jpg
 .. |bibox| image:: https://user-images.githubusercontent.com/1294454/34902611-2be8bf1a-f830-11e7-91a2-11b2f292e750.jpg
 .. |binance| image:: https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg
 .. |bit2c| image:: https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg
@@ -2658,6 +2725,7 @@ Notes
 .. |bitlish| image:: https://user-images.githubusercontent.com/1294454/27766275-dcfc6c30-5ed3-11e7-839d-00a846385d0b.jpg
 .. |bitmarket| image:: https://user-images.githubusercontent.com/1294454/27767256-a8555200-5ef9-11e7-96fd-469a65e2b0bd.jpg
 .. |bitmex| image:: https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg
+.. |bitsane| image:: https://user-images.githubusercontent.com/1294454/41387105-d86bf4c6-6f8d-11e8-95ea-2fa943872955.jpg
 .. |bitso| image:: https://user-images.githubusercontent.com/1294454/27766335-715ce7aa-5ed5-11e7-88a8-173a27bb30fe.jpg
 .. |bitstamp| image:: https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg
 .. |bitstamp1| image:: https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg
@@ -2680,6 +2748,7 @@ Notes
 .. |chbtc| image:: https://user-images.githubusercontent.com/1294454/28555659-f0040dc2-7109-11e7-9d99-688a438bf9f4.jpg
 .. |chilebit| image:: https://user-images.githubusercontent.com/1294454/27991414-1298f0d8-647f-11e7-9c40-d56409266336.jpg
 .. |cobinhood| image:: https://user-images.githubusercontent.com/1294454/35755576-dee02e5c-0878-11e8-989f-1595d80ba47f.jpg
+.. |coinbase| image:: https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg
 .. |coincheck| image:: https://user-images.githubusercontent.com/1294454/27766464-3b5c3c74-5ed9-11e7-840e-31b32968e1da.jpg
 .. |coinegg| image:: https://user-images.githubusercontent.com/1294454/36770310-adfa764e-1c5a-11e8-8e09-449daac3d2fb.jpg
 .. |coinex| image:: https://user-images.githubusercontent.com/1294454/38046312-0b450aac-32c8-11e8-99ab-bc6b136b6cc7.jpg
@@ -2694,6 +2763,7 @@ Notes
 .. |coinspot| image:: https://user-images.githubusercontent.com/1294454/28208429-3cacdf9a-6896-11e7-854e-4c79a772a30f.jpg
 .. |cointiger| image:: https://user-images.githubusercontent.com/1294454/39797261-d58df196-5363-11e8-9880-2ec78ec5bd25.jpg
 .. |coolcoin| image:: https://user-images.githubusercontent.com/1294454/36770529-be7b1a04-1c5b-11e8-9600-d11f1996b539.jpg
+.. |crypton| image:: https://user-images.githubusercontent.com/1294454/41334251-905b5a78-6eed-11e8-91b9-f3aa435078a1.jpg
 .. |cryptopia| image:: https://user-images.githubusercontent.com/1294454/29484394-7b4ea6e2-84c6-11e7-83e5-1fccf4b2dc81.jpg
 .. |dsx| image:: https://user-images.githubusercontent.com/1294454/27990275-1413158a-645a-11e7-931c-94717f7510e3.jpg
 .. |ethfinex| image:: https://user-images.githubusercontent.com/1294454/37555526-7018a77c-29f9-11e8-8835-8e415c038a18.jpg

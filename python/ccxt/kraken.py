@@ -615,7 +615,11 @@ class kraken (Exchange):
             'ordertype': type,
             'volume': self.amount_to_precision(symbol, amount),
         }
-        if type == 'limit':
+        priceIsDefined = (price is not None)
+        marketOrder = (type == 'market')
+        limitOrder = (type == 'limit')
+        shouldIncludePrice = limitOrder or (not marketOrder and priceIsDefined)
+        if shouldIncludePrice:
             order['price'] = self.price_to_precision(symbol, price)
         response = self.privatePostAddOrder(self.extend(order, params))
         id = self.safe_value(response['result'], 'txid')

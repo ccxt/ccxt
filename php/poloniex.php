@@ -128,6 +128,18 @@ class poloniex extends Exchange {
                 'STR' => 'XLM',
                 'BCC' => 'BTCtalkcoin',
             ),
+            'options' => array (
+                'limits' => array (
+                    'cost' => array (
+                        'min' => array (
+                            'BTC' => 0.0001,
+                            'ETH' => 0.0001,
+                            'XMR' => 0.0001,
+                            'USDT' => 1.0,
+                        ),
+                    ),
+                ),
+            ),
         ));
     }
 
@@ -187,6 +199,7 @@ class poloniex extends Exchange {
             $base = $this->common_currency_code($base);
             $quote = $this->common_currency_code($quote);
             $symbol = $base . '/' . $quote;
+            $minCost = $this->safe_float($this->options['limits']['cost']['min'], $quote, 0.0);
             $result[] = array_merge ($this->fees['trading'], array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -207,7 +220,7 @@ class poloniex extends Exchange {
                         'max' => 1000000000,
                     ),
                     'cost' => array (
-                        'min' => 0.00000000,
+                        'min' => $minCost,
                         'max' => 1000000000,
                     ),
                 ),
@@ -593,8 +606,8 @@ class poloniex extends Exchange {
                         'filled' => $order['amount'],
                         'remaining' => 0.0,
                     ));
-                    if ($order['cost'] == null) {
-                        if ($order['filled'] != null)
+                    if ($order['cost'] === null) {
+                        if ($order['filled'] !== null)
                             $order['cost'] = $order['filled'] * $order['price'];
                     }
                     $this->orders[$id] = $order;
@@ -824,34 +837,36 @@ class poloniex extends Exchange {
         try {
             $response = json_decode ($body, $as_associative_array = true);
         } catch (Exception $e) {
-            // syntax $error, resort to default $error handler
+            // syntax error, resort to default error handler
             return;
         }
         if (is_array ($response) && array_key_exists ('error', $response)) {
-            $error = $response['error'];
+            $message = $response['error'];
             $feedback = $this->id . ' ' . $this->json ($response);
-            if ($error === 'Invalid order number, or you are not the person who placed the order.') {
+            if ($message === 'Invalid order number, or you are not the person who placed the order.') {
                 throw new OrderNotFound ($feedback);
-            } else if ($error === 'Connection timed out. Please try again.') {
+            } else if ($message === 'Connection timed out. Please try again.') {
                 throw new RequestTimeout ($feedback);
-            } else if ($error === 'Internal $error. Please try again.') {
+            } else if ($message === 'Internal error. Please try again.') {
                 throw new ExchangeNotAvailable ($feedback);
-            } else if ($error === 'Order not found, or you are not the person who placed it.') {
+            } else if ($message === 'Order not found, or you are not the person who placed it.') {
                 throw new OrderNotFound ($feedback);
-            } else if ($error === 'Invalid API key/secret pair.') {
+            } else if ($message === 'Invalid API key/secret pair.') {
                 throw new AuthenticationError ($feedback);
-            } else if ($error === 'Please do not make more than 8 API calls per second.') {
+            } else if ($message === 'Please do not make more than 8 API calls per second.') {
                 throw new DDoSProtection ($feedback);
-            } else if (mb_strpos ($error, 'Total must be at least') !== false) {
+            } else if (mb_strpos ($message, 'Total must be at least') !== false) {
                 throw new InvalidOrder ($feedback);
-            } else if (mb_strpos ($error, 'Not enough') !== false) {
+            } else if (mb_strpos ($message, 'This account is frozen.') !== false) {
+                throw new AccountSuspended ($feedback);
+            } else if (mb_strpos ($message, 'Not enough') !== false) {
                 throw new InsufficientFunds ($feedback);
-            } else if (mb_strpos ($error, 'Nonce must be greater') !== false) {
+            } else if (mb_strpos ($message, 'Nonce must be greater') !== false) {
                 throw new InvalidNonce ($feedback);
-            } else if (mb_strpos ($error, 'You have already called cancelOrder or moveOrder on this order.') !== false) {
+            } else if (mb_strpos ($message, 'You have already called cancelOrder or moveOrder on this order.') !== false) {
                 throw new CancelPending ($feedback);
             } else {
-                throw new ExchangeError ($this->id . ' => unknown $error => ' . $this->json ($response));
+                throw new ExchangeError ($this->id . ' unknown error ' . $this->json ($response));
             }
         }
     }

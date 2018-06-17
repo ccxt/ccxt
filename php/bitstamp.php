@@ -380,12 +380,12 @@ class bitstamp extends Exchange {
         $method = 'privatePost' . $this->capitalize ($side);
         $order = array (
             'pair' => $this->market_id($symbol),
-            'amount' => $amount,
+            'amount' => $this->amount_to_precision($symbol, $amount),
         );
         if ($type === 'market')
             $method .= 'Market';
         else
-            $order['price'] = $price;
+            $order['price'] = $this->price_to_precision($symbol, $price);
         $method .= 'Pair';
         $response = $this->$method (array_merge ($order, $params));
         return array (
@@ -634,7 +634,7 @@ class bitstamp extends Exchange {
     }
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body) {
-        if (gettype ($body) != 'string')
+        if (gettype ($body) !== 'string')
             return; // fallback to default error handler
         if (strlen ($body) < 2)
             return; // fallback to default error handler
