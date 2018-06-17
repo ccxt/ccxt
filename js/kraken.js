@@ -902,7 +902,7 @@ module.exports = class kraken extends Exchange {
         return this.milliseconds ();
     }
 
-    handleErrors (code, reason, url, method, headers, body) {
+    handleErrors (code, reason, url, method, headers, body, response) {
         if (body.indexOf ('Invalid order') >= 0)
             throw new InvalidOrder (this.id + ' ' + body);
         if (body.indexOf ('Invalid nonce') >= 0)
@@ -914,7 +914,6 @@ module.exports = class kraken extends Exchange {
         if (body.indexOf ('Invalid arguments:volume') >= 0)
             throw new InvalidOrder (this.id + ' ' + body);
         if (body[0] === '{') {
-            let response = JSON.parse (body);
             if (typeof response !== 'string') {
                 if ('error' in response) {
                     let numErrors = response['error'].length;

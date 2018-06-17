@@ -749,14 +749,13 @@ module.exports = class cryptopia extends Exchange {
         return this.milliseconds ();
     }
 
-    handleErrors (code, reason, url, method, headers, body) {
+    handleErrors (code, reason, url, method, headers, body, response) {
         if (typeof body !== 'string')
             return; // fallback to default error handler
         if (body.length < 2)
             return; // fallback to default error handler
         const fixedJSONString = this.sanitizeBrokenJSONString (body);
         if (fixedJSONString[0] === '{') {
-            let response = JSON.parse (fixedJSONString);
             if ('Success' in response) {
                 const success = this.safeString (response, 'Success');
                 if (success === 'false') {
