@@ -132,7 +132,7 @@ module.exports = class bibox extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': Math.pow (10, -precision['amount']),
+                        'min': Math.pow (10, -4),
                         'max': undefined,
                     },
                     'price': {
