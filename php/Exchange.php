@@ -730,7 +730,7 @@ abstract class Exchange extends CcxtEventEmitter {
         } else {
             $this->react_loop = React\EventLoop\Factory::create();
         }
-        $this->async_reset_context();
+        $this->_async_reset_context();
         $this->asyncConnectionPool = array();
         // renaming methods from camel to snake
         if (isset($this->asyncconf['methodmap'])) {
@@ -777,20 +777,6 @@ abstract class Exchange extends CcxtEventEmitter {
                     $this->$underscore = $partial;
                 }
     }
-
-    // public function define_async_connection (&$async_config) {
-    //     if (isset($async_config['methodmap'])) {
-    //         foreach($async_config['methodmap'] as $m => $method) {
-    //             $async_config['methodmap'][$m] =  preg_replace_callback('/[A-Z]/', function ($matches) {
-    //                 return '_' . strtolower($matches[0]);
-    //             }, $method);
-    //         }
-    //     }
-    //     if ($async_config['type'] === 'ws') {
-    //         $this->async_connection = new WebsocketConnection ($async_config, $this->timeout, $this->react_loop);
-    //         $this->async_initialize ();
-    //     }
-    // }
 
     public function hash ($request, $type = 'md5', $digest = 'hex') {
         $base64 = ($digest === 'base64');
@@ -1961,11 +1947,11 @@ abstract class Exchange extends CcxtEventEmitter {
     }
 
     // async methods
-    protected function async_context_get_subscribed_event_symbols ($conxid) {
+    protected function _async_context_get_subscribed_event_symbols ($conxid) {
         $ret = array();
         foreach ($this->asyncContext as $key => $event) {
             foreach ($event as $symbol => $symbolContext) {
-                if (($symbolContext['conxid'] === $conxid) && (($symbolContext['subscribed']) && ($symbolContext['subscribing']))) {
+                if (($symbolContext['conxid'] === $conxid) && (($symbolContext['subscribed']) || ($symbolContext['subscribing']))) {
                     $ret[] = array (
                         'event'=> $key,
                         'symbol'=> $symbol
@@ -1976,7 +1962,7 @@ abstract class Exchange extends CcxtEventEmitter {
         return $ret;
     }
     
-    protected function async_reset_context($conxid = null){
+    protected function _async_reset_context($conxid = null){
         if ($conxid === null) {
             $this->asyncContext = array(
                 'ob'=> array(),
@@ -2001,7 +1987,7 @@ abstract class Exchange extends CcxtEventEmitter {
         }
     }
 
-    protected function async_connection_get ($conxid = 'default') {
+    protected function _async_connection_get ($conxid = 'default') {
         if (!array_key_exists ($conxid, $this->asyncConnectionPool)) {
             throw new NotSupported ("async <" . $conxid . "> not found in this exchange: " . $this->id);
         }
@@ -2052,7 +2038,42 @@ abstract class Exchange extends CcxtEventEmitter {
                 'reset-context'=> 'onconnect'
             );
         } else if ($config['type'] === 'ws-s') {
-            $subscribed = $this->async_context_get_subscribed_event_symbols($config['id']);
+            $subscribed = $this->_async_context_get_subscribed_event_symbols ($config['id']);
+            if ($subscription) {
+                $subscribed[] = array (
+                    'event'=> $event,
+                    'symbol'=> $symbol,
+                );
+                $config ['url'] = $this->_async_generate_url_stream ($subscribed, $config);
+                return array (
+                    'action'=> 'reconnect',
+                    'conx-config'=> $config,
+                    'reset-context'=> 'onreconnect',
+                );
+            } else {
+                foreach ($subscribed as $index => $element) {
+                    if (($element['event'] === $event) && ($element['symbol'] === $symbol)) {
+                        array_splice ($subscribed, $index, 1);
+                        break;
+                    }
+                }
+                if (count ($subscribed) === 0) {
+                    return array (
+                        'action'=> 'disconnect',
+                        'conx-config'=> $config,
+                        'reset-context'=> 'always',
+                    );
+
+                } else {
+                    $config ['url'] = $this->_async_generate_url_stream ($subscribed, $config);
+                    return array(
+                        'action'=> 'reconnect',
+                        'conx-config'=> config,
+                        'reset-context'=> 'onreconnect',
+                    );
+                }
+            }
+            /*
             $nextStreamList = array ();
             $nextStreamList[] = $this->implode_params ($generators['stream'], array (
                 'event'=> $event,
@@ -2074,14 +2095,24 @@ abstract class Exchange extends CcxtEventEmitter {
                 'conx-config'=> $config,
                 'reset-context'=> 'onreconnect',
             );
+            */
         } else {
             throw new NotSupported ("invalid async connection: " . $config['type'] + " for exchange " . $this->id);
         }
     }
 
-    protected function  async_ensure_conx_active ($event, $symbol, $subscribe) {
+    public function _asyncMarketId ($symbol) {
+        throw new NotSupported ("You must to implement _asyncMarketId method for exchange " . $this->id);
+    }
+
+    public function _async_generate_url_stream ($events, $options) {
+        throw new NotSupported ("You must to implement _asyncGenerateStream method for exchange " . $this->id);
+    }
+
+    protected function _async_ensure_conx_active ($event, $symbol, $subscribe) {
         $this->load_markets();
         $action = $this->_async_get_action_for_event ($event, $symbol, $subscribe);
+        print_r($action);
         if ($action != null) {
             $conxConfig = $this->safe_value ($action, 'conx-config', array());
             if ($action['action'] === 'reconnect') {
@@ -2089,19 +2120,19 @@ abstract class Exchange extends CcxtEventEmitter {
                     $this->asyncConnectionPool[$conx_config['id']]['conx'].close();
                 }
                 if ($action['reset-context'] === 'onreconnect') {
-                    $this->async_reset_context($conxConfig['id']);
+                    $this->_async_reset_context($conxConfig['id']);
                 }
-                $this->asyncConnectionPool[$conxConfig['id']] = $this->async_initialize($conxConfig, $conxConfig['id']);
+                $this->asyncConnectionPool[$conxConfig['id']] = $this->_async_initialize($conxConfig, $conxConfig['id']);
             } else if ($action['action'] === 'connect') {
                 if (array_key_exists ($conxConfig['id'], $this->asyncConnectionPool)) {
                     if (! $this->asyncConnectionPool[$conxConfig['id']]['conx'].isActive()) {
                         $this->asyncConnectionPool[$conxConfig['id']]['conx'].close();
-                        $this->async_reset_context($conxConfig['id']);
-                        $this->asyncConnectionPool[$conxConfig['id']] = $this->async_initialize($conxConfig, $conxConfig['id']);
+                        $this->_async_reset_context($conxConfig['id']);
+                        $this->_asyncConnectionPool[$conxConfig['id']] = $this->_async_initialize($conxConfig, $conxConfig['id']);
                     }
                 } else {
-                    $this->async_reset_context($conxConfig['id']);
-                    $this->asyncConnectionPool[$conxConfig['id']] = $this->async_initialize($conxConfig, $conxConfig['id']);
+                    $this->_async_reset_context($conxConfig['id']);
+                    $this->_asyncConnectionPool[$conxConfig['id']] = $this->_async_initialize($conxConfig, $conxConfig['id']);
                 }
             }
             
@@ -2118,7 +2149,7 @@ abstract class Exchange extends CcxtEventEmitter {
     }
 
     protected function async_connect ($conxid = 'default') {
-        $asyncConxInfo = $this->async_connection_get($conxid);
+        $asyncConxInfo = $this->_async_connection_get($conxid);
         $asyncConnection = $asyncConxInfo['conx'];
         $this->load_markets();
         if (!$asyncConxInfo['ready']) {
@@ -2146,12 +2177,12 @@ abstract class Exchange extends CcxtEventEmitter {
     }
 
     public function asyncClose ($conxid = 'default') {
-        $asyncConxInfo = $this->async_connection_get($conxid);
+        $asyncConxInfo = $this->_async_connection_get($conxid);
         $asyncConxInfo['conx']->close();
     }
 
     public function asyncSend ($data, $conxid = 'default') {
-        $asyncConxInfo = $this->async_connection_get($conxid);
+        $asyncConxInfo = $this->_async_connection_get($conxid);
         if ($this->verbose) {
             echo ("Async send:");
             echo ($data);
@@ -2161,7 +2192,7 @@ abstract class Exchange extends CcxtEventEmitter {
     }
 
     public function asyncSendJson ($data, $conxid = 'default') {
-        $asyncConxInfo = $this->async_connection_get($conxid);
+        $asyncConxInfo = $this->_async_connection_get($conxid);
         if ($this->verbose) {
             echo ("Async send:");
             echo (json_encode($data));
@@ -2171,7 +2202,7 @@ abstract class Exchange extends CcxtEventEmitter {
         $conx->sendJson($data);
     }
 
-    protected function async_initialize (&$asyncConfig, $conxid = 'default') {
+    protected function _async_initialize (&$asyncConfig, $conxid = 'default') {
         $asyncConnectionInfo = array(
             'auth'=> false,
             'ready'=> false,
@@ -2197,7 +2228,7 @@ abstract class Exchange extends CcxtEventEmitter {
         });
         $conx->on ('err', function ($err) use ($conxid) {
             $this->asyncContext['auth'] = false;
-            $this->async_reset_context ($conxid);
+            $this->_async_reset_context ($conxid);
             $this->emit ('err', $err, $conxid);
         });
         $conx->on ('message', function ($data) use ($conxid) {
@@ -2214,7 +2245,7 @@ abstract class Exchange extends CcxtEventEmitter {
         });
         $conx->on ('close', function () use ($conxid) {
             $this->asyncContext['auth'] = false;
-            $this->async_reset_context ($conxid);
+            $this->_async_reset_context ($conxid);
             $this->emit ('close', $conxid);
         });
 
@@ -2248,52 +2279,6 @@ abstract class Exchange extends CcxtEventEmitter {
         return $ret;
     }
     
-    public function async_fetch_order_book ($symbol, $limit = null) {
-        $this->async_ensure_conx_active ('ob', $symbol, true);
-        if ((array_key_exists ('ob', $this->asyncContext['ob'][$symbol]['data'])) &&
-            (isset ($this->asyncContext['ob'][$symbol]['data']['ob']))) {
-            return $this->_cloneOrderBook($this->asyncContext['ob'][$symbol]['data']['ob'], $limit);
-        } else {
-            $deferred = new \React\Promise\Deferred();
-            $that = $this;
-
-            $f = null;
-            $f = function ($symbol_r, $ob) use ($symbol, $that, &$f, $deferred, $limit){
-                if ($symbol_r === $symbol) {
-                    $that->removeListener ('ob', $f);
-                    $deferred->resolve($this->_cloneOrderBook ($ob, $limit));
-                }
-            };
-            $this->on ('ob', $f);
-            Clue\React\Block\await ($this->timeout_promise (
-                $deferred->promise(), 'asyncFetchOrderBook'), $this->react_loop);
-        }
-    }
-
-    public function async_subscribe_order_book ($symbol) {
-        $this->async_ensure_conx_active ('ob', $symbol, true);
-        $oid = $this->nonce();// . '-' . $symbol . '-ob-subscribe';
-
-        $deferred = new \React\Promise\Deferred();
-        $that = $this;
-
-        $this->once ($oid, function ($success, $ex = null) use($symbol, $that, $deferred) {
-            if ($success) {
-                $that->asyncContext['ob'][$symbol]['subscribed'] = true;
-                $that->asyncContext['ob'][$symbol]['subscribing'] = false;
-                $deferred->resolve ();
-            } else {
-                $ex = ($ex != null) ? $ex : new ExchangeError ('error subscribing to ' . symbol . ' in ' . $this->id);
-                $that->asyncContext['ob'][$symbol]['subscribed'] = false;
-                $that->asyncContext['ob'][$symbol]['subscribing'] = false;
-                $deferred->reject ($ex);
-            }
-        });
-        $this->_async_subscribe_order_book ($symbol, $oid);
-        Clue\React\Block\await ($this->timeout_promise (
-            $deferred->promise(), 'asyncSubscribeOrderBook'), $this->react_loop);
-    }
-
     public function _async_event_on_open ($conexid, $asyncConex) {
     }
 
@@ -2341,7 +2326,55 @@ abstract class Exchange extends CcxtEventEmitter {
 
     protected function _asyncTimeoutCancel ($handle) {
         $this->react_loop->cancelTimer($handle);
-    }        
+    }
+
+    public function async_fetch_order_book ($symbol, $limit = null) {
+        $this->_async_ensure_conx_active ('ob', $symbol, true);
+        if ((array_key_exists ('ob', $this->asyncContext['ob'][$symbol]['data'])) &&
+            (isset ($this->asyncContext['ob'][$symbol]['data']['ob']))) {
+            return $this->_cloneOrderBook($this->asyncContext['ob'][$symbol]['data']['ob'], $limit);
+        } else {
+            $deferred = new \React\Promise\Deferred();
+            $that = $this;
+
+            $f = null;
+            $f = function ($symbol_r, $ob) use ($symbol, $that, &$f, $deferred, $limit){
+                if ($symbol_r === $symbol) {
+                    $that->removeListener ('ob', $f);
+                    $deferred->resolve($this->_cloneOrderBook ($ob, $limit));
+                }
+            };
+            $this->on ('ob', $f);
+            Clue\React\Block\await ($this->timeout_promise (
+                $deferred->promise(), 'asyncFetchOrderBook'), $this->react_loop);
+        }
+    }
+
+    public function async_subscribe_order_book ($symbol) {
+        $this->_async_ensure_conx_active ('ob', $symbol, true);
+        $oid = $this->nonce();// . '-' . $symbol . '-ob-subscribe';
+
+        $deferred = new \React\Promise\Deferred();
+        $that = $this;
+
+        $this->once ($oid, function ($success, $ex = null) use($symbol, $that, $deferred) {
+            if ($success) {
+                $that->asyncContext['ob'][$symbol]['subscribed'] = true;
+                $that->asyncContext['ob'][$symbol]['subscribing'] = false;
+                $deferred->resolve ();
+            } else {
+                $ex = ($ex != null) ? $ex : new ExchangeError ('error subscribing to ' . symbol . ' in ' . $this->id);
+                $that->asyncContext['ob'][$symbol]['subscribed'] = false;
+                $that->asyncContext['ob'][$symbol]['subscribing'] = false;
+                $deferred->reject ($ex);
+            }
+        });
+        $this->_async_subscribe_order_book ($symbol, $oid);
+        Clue\React\Block\await ($this->timeout_promise (
+            $deferred->promise(), 'asyncSubscribeOrderBook'), $this->react_loop);
+    }
+
+
 }
 
 

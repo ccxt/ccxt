@@ -255,7 +255,7 @@ module.exports = class Exchange extends EventEmitter{
             this.defineRestApi (this.api, 'request')
 
         this.asyncConnectionPool = {};
-        this.asyncResetContext();
+        this._asyncResetContext();
 
         this.initRestRateLimiter ()
 
@@ -1117,7 +1117,7 @@ module.exports = class Exchange extends EventEmitter{
     }
 
     // async methods
-    asyncContextGetSubscribedEventSymbols (conxid) {
+    _asyncContextGetSubscribedEventSymbols (conxid) {
         let ret = [];
         for (let key in this.asyncContext) {
             for (let symbol in this.asyncContext[key]) {
@@ -1133,7 +1133,7 @@ module.exports = class Exchange extends EventEmitter{
         return ret;
     }
 
-    asyncResetContext (conxid = null) {
+    _asyncResetContext (conxid = null) {
         if (conxid === null) {
             this.asyncContext = {
                 'ob': {},
@@ -1158,7 +1158,7 @@ module.exports = class Exchange extends EventEmitter{
         }
     }
 
-    asyncConnectionGet(conxid = 'default') {
+    _asyncConnectionGet(conxid = 'default') {
         if (this.asyncConnectionPool[conxid] === undefined){
             throw new NotSupported ("async <" + conxid + "> not found in this exchange: " + this.id);
         }
@@ -1210,32 +1210,57 @@ module.exports = class Exchange extends EventEmitter{
                     'reset-context': 'onconnect',
                 };
             case 'ws-s':
-                let subscribed = this.asyncContextGetSubscribedEventSymbols(config['id']);
-                let nextStreamList = [this.implodeParams (generators['stream'], {
-                    'event': event,
-                    'symbol': this.marketId (symbol).toLowerCase (), // TODO: hack to binance -> create method to get correct exchange symbol or ws
-                })];
-                for (let element of subscribed) {
-                    let e = element['event'];
-                    let s = element['symbol'];
-                    nextStreamList.push(this.implodeParams(generators['stream'], {
-                        'event': e,
-                        'symbol': this.marketId (s).toLowerCase (),
-                    }));
+                let subscribed = this._asyncContextGetSubscribedEventSymbols(config['id']);
+                if (subscription) {
+                    subscribed.push ({
+                        'event': event,
+                        'symbol': symbol,
+                    });
+                    config ['url'] = this._asyncGenerateUrlStream (subscribed, config);
+                    return {
+                        'action': 'reconnect',
+                        'conx-config': config,
+                        'reset-context': 'onreconnect',
+                    };
+                } else {
+                    for (let i = 0; i < subscribed.length; i++) {
+                        let element = subscribed[i];
+                        if ((element['event'] === event) && (element['symbol'] === symbol)) {
+                            subscribed.splice (i, 1);
+                            break;
+                        }
+                    }
+                    if (subscribed.length === 0) {
+                        return {
+                            'action': 'disconnect',
+                            'conx-config': config,
+                            'reset-context': 'always',
+                        };
+
+                    } else {
+                        config ['url'] = this._asyncGenerateUrlStream (subscribed, config);
+                        return {
+                            'action': 'reconnect',
+                            'conx-config': config,
+                            'reset-context': 'onreconnect',
+                        };
+                    }
                 }
-                config['stream'] = nextStreamList.sort ().join ('');// TODO: hack to binance -> create method to get ws url with stream
-                config['url'] = config['url'] + config['stream'];
-                return {
-                    'action': 'reconnect',
-                    'conx-config': config,
-                    'reset-context': 'onreconnect',
-                };
+             
             default:
                 throw new NotSupported ("invalid async connection: " + config['type'] + " for exchange " + this.id);
         }
     }
 
-    async asyncEnsureConxActive (event, symbol, subscribe) {
+    _asyncMarketId (symbol) {
+        throw new NotSupported ("You must to implement _asyncMarketId method for exchange " + this.id);
+    }
+
+    _asyncGenerateUrlStream (events, options) {
+        throw new NotSupported ("You must to implement _asyncGenerateStream method for exchange " + this.id);
+    }
+
+    async _asyncEnsureConxActive (event, symbol, subscribe) {
         let action = this._asyncGetActionForEvent (event, symbol, subscribe);
         if (action !== null) {
             let conxConfig = this.safeValue (action, 'conx-config', {});
@@ -1245,9 +1270,9 @@ module.exports = class Exchange extends EventEmitter{
                         this.asyncConnectionPool[conxConfig['id']]['conx'].close();
                     }
                     if (action['reset-context'] === 'onreconnect') {
-                        this.asyncResetContext(conxConfig['id']);
+                        this._asyncResetContext(conxConfig['id']);
                     }
-                    this.asyncConnectionPool[conxConfig['id']] = this.asyncInitialize(conxConfig, conxConfig['id']);
+                    this.asyncConnectionPool[conxConfig['id']] = this._asyncInitialize(conxConfig, conxConfig['id']);
                     break;
                 case 'connect':
                     if (conxConfig['id'] in this.asyncConnectionPool){
@@ -1255,11 +1280,11 @@ module.exports = class Exchange extends EventEmitter{
                             break;
                         }
                         this.asyncConnectionPool[conxConfig['id']]['conx'].close();
-                        this.asyncResetContext(conxConfig['id']);
+                        this._asyncResetContext(conxConfig['id']);
                     } else {
-                        this.asyncResetContext(conxConfig['id']);
+                        this._asyncResetContext(conxConfig['id']);
                     }
-                    this.asyncConnectionPool[conxConfig['id']] = this.asyncInitialize(conxConfig, conxConfig['id']);
+                    this.asyncConnectionPool[conxConfig['id']] = this._asyncInitialize(conxConfig, conxConfig['id']);
                     break;
             }
             if (this.asyncContext['ob'][symbol] == null){
@@ -1275,7 +1300,7 @@ module.exports = class Exchange extends EventEmitter{
     }
 
     async asyncConnect (conxid = 'default') {
-        let asyncConxInfo = this.asyncConnectionGet(conxid);
+        let asyncConxInfo = this._asyncConnectionGet(conxid);
         await this.loadMarkets();
         if (!asyncConxInfo['ready']) {
             let wait4readyEvent = this.safeString (this.asyncconf['conx-tpls'][conxid], 'wait4readyEvent');
@@ -1302,23 +1327,23 @@ module.exports = class Exchange extends EventEmitter{
     }
 
     asyncClose (conxid = 'default') {
-        let asyncConxInfo = this.asyncConnectionGet(conxid);
+        let asyncConxInfo = this._asyncConnectionGet(conxid);
         asyncConxInfo['conx'].close();
     }
 
     asyncSend (data, conxid = 'default') {
-        let asyncConxInfo = this.asyncConnectionGet(conxid);
+        let asyncConxInfo = this._asyncConnectionGet(conxid);
         asyncConxInfo['conx'].send(data);
     }
 
     asyncSendJson (data, conxid = 'default') {
-        let asyncConxInfo = this.asyncConnectionGet(conxid);
+        let asyncConxInfo = this._asyncConnectionGet(conxid);
         if (this.verbose)
             console.log (conxid + "->" + JSON.stringify(data));
         asyncConxInfo['conx'].sendJson(data);
     }
 
-    asyncInitialize (asyncConfig, conxid = 'default') {
+    _asyncInitialize (asyncConfig, conxid = 'default') {
         let asyncConnectionInfo = {
             'auth': false,
             'ready': false,
@@ -1340,7 +1365,7 @@ module.exports = class Exchange extends EventEmitter{
         });
         asyncConnectionInfo['conx'].on ('err', (err) => {
             asyncConnectionInfo['auth'] = false;
-            this.asyncResetContext (conxid);
+            this._asyncResetContext (conxid);
             this.emit ('err', err, conxid);
         });
         asyncConnectionInfo['conx'].on ('message', (data) => {
@@ -1354,7 +1379,7 @@ module.exports = class Exchange extends EventEmitter{
         });
         asyncConnectionInfo['conx'].on ('close', () => {
             asyncConnectionInfo['auth'] = false;
-            this.asyncResetContext (conxid);
+            this._asyncResetContext (conxid);
             this.emit ('close', conxid);
         });
 
@@ -1383,56 +1408,6 @@ module.exports = class Exchange extends EventEmitter{
             ret['asks'] = ob.asks.slice (0, limit);            
         }
         return ret;
-    }
-
-    asyncFetchOrderBook (symbol, limit = undefined) {
-        return this.timeoutPromise (new Promise (async (resolve, reject) => {
-            try {
-                await this.asyncEnsureConxActive ('ob', symbol, true);
-                if (this.asyncContext['ob'][symbol]['data']['ob'] != null) {
-                    resolve (this._cloneOrderBook (this.asyncContext.ob[symbol]['data']['ob'], limit));
-                    return;
-                }
-                let f = (symbolR, ob) => {
-                    if (symbolR === symbol) {
-                        this.removeListener ('ob', f);
-                        resolve (this._cloneOrderBook (ob, limit));
-                    }
-                }
-                this.on ('ob', f);
-            } catch (ex) {
-                reject (ex);
-            }
-        }), 'asyncFetchOrderBook');
-    }
-
-    asyncSubscribeOrderBook (symbol) {
-        let promise = new Promise (async (resolve, reject) => {
-            try {
-                await this.asyncEnsureConxActive ('ob', symbol, true);
-                const oid = this.nonce();// + '-' + symbol + '-ob-subscribe';
-                this.once (oid.toString(), (success, ex = null) => {
-                    if (success) {
-                        this.asyncContext['ob'][symbol]['subscribed'] = true;
-                        this.asyncContext['ob'][symbol]['subscribing'] = false;
-                        resolve ();
-                    } else {
-                        this.asyncContext['ob'][symbol]['subscribed'] = false;
-                        this.asyncContext['ob'][symbol]['subscribing'] = false;  
-                        if (ex != null) {
-                            reject (ex);
-                        } else {
-                            reject (new ExchangeError ('error subscribing to ' + symbol + ' in ' + this.id));
-                        }
-                    }
-                });
-                this.asyncContext['ob'][symbol]['subscribing'] = true;
-                this._asyncSubscribeOrderBook (symbol, oid);
-            } catch (ex) {
-                reject (ex);
-            }
-        });
-        return this.timeoutPromise (promise, 'asyncSubscribeOrderBook');
     }
 
     _asyncEventOnOpen (conexid, asyncConex) {
@@ -1490,5 +1465,57 @@ module.exports = class Exchange extends EventEmitter{
     _asyncTimeoutCancel (handle) {
         clearTimeout (handle);
     }
+
+    asyncFetchOrderBook (symbol, limit = undefined) {
+        return this.timeoutPromise (new Promise (async (resolve, reject) => {
+            try {
+                await this._asyncEnsureConxActive ('ob', symbol, true);
+                if (this.asyncContext['ob'][symbol]['data']['ob'] != null) {
+                    resolve (this._cloneOrderBook (this.asyncContext.ob[symbol]['data']['ob'], limit));
+                    return;
+                }
+                let f = (symbolR, ob) => {
+                    if (symbolR === symbol) {
+                        this.removeListener ('ob', f);
+                        resolve (this._cloneOrderBook (ob, limit));
+                    }
+                }
+                this.on ('ob', f);
+            } catch (ex) {
+                reject (ex);
+            }
+        }), 'asyncFetchOrderBook');
+    }
+
+    asyncSubscribeOrderBook (symbol) {
+        let promise = new Promise (async (resolve, reject) => {
+            try {
+                await this._asyncEnsureConxActive ('ob', symbol, true);
+                const oid = this.nonce();// + '-' + symbol + '-ob-subscribe';
+                this.once (oid.toString(), (success, ex = null) => {
+                    if (success) {
+                        this.asyncContext['ob'][symbol]['subscribed'] = true;
+                        this.asyncContext['ob'][symbol]['subscribing'] = false;
+                        resolve ();
+                    } else {
+                        this.asyncContext['ob'][symbol]['subscribed'] = false;
+                        this.asyncContext['ob'][symbol]['subscribing'] = false;  
+                        if (ex != null) {
+                            reject (ex);
+                        } else {
+                            reject (new ExchangeError ('error subscribing to ' + symbol + ' in ' + this.id));
+                        }
+                    }
+                });
+                this.asyncContext['ob'][symbol]['subscribing'] = true;
+                this._asyncSubscribeOrderBook (symbol, oid);
+            } catch (ex) {
+                reject (ex);
+            }
+        });
+        return this.timeoutPromise (promise, 'asyncSubscribeOrderBook');
+    }
+
+
 
 }

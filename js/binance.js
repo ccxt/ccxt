@@ -141,7 +141,7 @@ module.exports = class binance extends Exchange {
                         'generators': {
                             'url': '{baseurl}',
                             'id': '{id}',
-                            'stream': '{symbol}@depth/',
+                            'stream': '{symbol}@depth',
                         },
                     },
                 },
@@ -995,4 +995,24 @@ module.exports = class binance extends Exchange {
             }
         }
     }
+
+    _asyncGenerateUrlStream (events, options) {
+        let streamList = [];
+        for (let i = 0; i < events.length; i++) {
+            let element = events[i];
+            let params = {
+                'event': element['event'],
+                'symbol': this._asyncMarketId (element['symbol']),
+            };
+            let streamGenerator = this.asyncconf['events'][element['event']]['generators']['stream'];
+            streamList.push (this.implodeParams (streamGenerator, params));
+        }
+        let stream = streamList.join ('/');
+        return options['url'] + stream;
+    }
+
+    _asyncMarketId (symbol) {
+        return this.marketId (symbol).toLowerCase ();
+    }
+
 };

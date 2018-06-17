@@ -7,8 +7,6 @@ include $root . '/php/cex.php';
 
 require __DIR__ . '/../../vendor/autoload.php';
 
-use React;
-
 if ($argc > 4) {
     $apiKey = $argv[1];
     $secret = $argv[2];

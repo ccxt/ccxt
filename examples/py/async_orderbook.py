@@ -42,6 +42,7 @@ async def main():
     @exchange.on('ob')
     def async_ob(symbol, ob):  # pylint: disable=W0612
         print("ob received from: " + symbol)
+        sys.stdout.flush()
         # pp.pprint(ob)
 
     sys.stdout.flush()
@@ -49,6 +50,7 @@ async def main():
     await exchange.async_subscribe_order_book(symbol)
     ob = await exchange.async_fetch_order_book(symbol, limit)  # noqa: F841 pylint: disable=W0612
     print("od received\n")
+    # await exchange.async_subscribe_order_book('BTC/USDT')
     # pp.pprint(ob)
 
 
