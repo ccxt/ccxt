@@ -591,7 +591,7 @@ module.exports = class cryptopia extends Exchange {
             'timestamp': timestamp,
             'datetime': datetime,
             'lastTradeTimestamp': undefined,
-            'status': order['status'],
+            'status': this.safeString (order, 'status'),
             'symbol': symbol,
             'type': 'limit',
             'side': side,
