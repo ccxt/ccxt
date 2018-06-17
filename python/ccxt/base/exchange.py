@@ -410,8 +410,9 @@ class Exchange(object):
     def handle_rest_response(self, response, url, method='GET', headers=None, body=None):
         try:
             if self.parseJsonResponse:
-                self.last_json_response = json.loads(response) if len(response) > 1 else None
-                return self.last_json_response
+                last_json_response = json.loads(response) if len(response) > 1 else None
+                self.last_json_response = last_json_response
+                return last_json_response
             else:
                 return response
         except ValueError as e:  # ValueError == JsonDecodeError
