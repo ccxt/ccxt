@@ -725,6 +725,11 @@ abstract class Exchange extends CcxtEventEmitter {
         if ($this->api)
             $this->define_rest_api ($this->api, 'request');
 
+        if (array_key_exists ('react_loop', $options)) {
+            $this->react_loop = $options['react_loop'];
+        } else {
+            $this->react_loop = React\EventLoop\Factory::create();
+        }
         $this->async_reset_context();
         $this->asyncConnectionPool = array();
         // renaming methods from camel to snake
@@ -782,7 +787,7 @@ abstract class Exchange extends CcxtEventEmitter {
     //         }
     //     }
     //     if ($async_config['type'] === 'ws') {
-    //         $this->async_connection = new WebsocketConnection ($async_config, $this->timeout, self::$loop);
+    //         $this->async_connection = new WebsocketConnection ($async_config, $this->timeout, $this->react_loop);
     //         $this->async_initialize ();
     //     }
     // }
@@ -2119,7 +2124,7 @@ abstract class Exchange extends CcxtEventEmitter {
         if (!$asyncConxInfo['ready']) {
             $wait4readyEvent = $this->safe_string ($this->asyncconf['conx-tpls'][$conxid], 'wait4readyEvent');
             if ($wait4readyEvent !== null) {
-                Clue\React\Block\await($asyncConnection->connect(), self::$loop);
+                Clue\React\Block\await($asyncConnection->connect(), $this->react_loop);
                 $deferred = new \React\Promise\Deferred();
                 $this->once ($wait4readyEvent, function ($success, $error = null) use ($deferred){
                     if ($success) {
@@ -2129,9 +2134,9 @@ abstract class Exchange extends CcxtEventEmitter {
                         $deferred->reject($error);
                     }
                 });
-                Clue\React\Block\await ($deferred->promise(), self::$loop);
+                Clue\React\Block\await ($deferred->promise(), $this->react_loop);
             } else {
-                Clue\React\Block\await ($asyncConnection->connect (), self::$loop);
+                Clue\React\Block\await ($asyncConnection->connect (), $this->react_loop);
             }
         }
     }
@@ -2173,9 +2178,9 @@ abstract class Exchange extends CcxtEventEmitter {
             'conx'=> null
         );
         if ($asyncConfig['type'] === 'ws') {
-            $asyncConnectionInfo['conx'] = new WebsocketConnection ($asyncConfig, $this->timeout, self::$loop);
+            $asyncConnectionInfo['conx'] = new WebsocketConnection ($asyncConfig, $this->timeout, $this->react_loop);
         } else if ($asyncConfig['type'] === 'ws-s') {
-            $asyncConnectionInfo['conx'] = new WebsocketConnection ($asyncConfig, $this->timeout, self::$loop);
+            $asyncConnectionInfo['conx'] = new WebsocketConnection ($asyncConfig, $this->timeout, $this->react_loop);
         } else {
             throw new NotSupported ("invalid async connection: " . $asyncConfig['type'] . " for exchange " . $this->id);
         }
@@ -2217,7 +2222,7 @@ abstract class Exchange extends CcxtEventEmitter {
     }
 
     protected function timeout_promise ($promise, $scope) {
-        return React\Promise\Timer\timeout($promise, $this->timeout/1000, self::$loop)
+        return React\Promise\Timer\timeout($promise, $this->timeout/1000, $this->react_loop)
         ->otherwise(function($exception) use($scope) {
             if ($exception instanceof React\Promise\Timer\TimeoutException) {
                 throw new RequestTimeout ($this->id . ' ' . $scope . ' request timed out (' . $this->timeout . ' ms)');
@@ -2261,7 +2266,7 @@ abstract class Exchange extends CcxtEventEmitter {
             };
             $this->on ('ob', $f);
             Clue\React\Block\await ($this->timeout_promise (
-                $deferred->promise(), 'asyncFetchOrderBook'), self::$loop);
+                $deferred->promise(), 'asyncFetchOrderBook'), $this->react_loop);
         }
     }
 
@@ -2286,7 +2291,7 @@ abstract class Exchange extends CcxtEventEmitter {
         });
         $this->_async_subscribe_order_book ($symbol, $oid);
         Clue\React\Block\await ($this->timeout_promise (
-            $deferred->promise(), 'asyncSubscribeOrderBook'), self::$loop);
+            $deferred->promise(), 'asyncSubscribeOrderBook'), $this->react_loop);
     }
 
     public function _async_event_on_open ($conexid, $asyncConex) {
@@ -2325,7 +2330,7 @@ abstract class Exchange extends CcxtEventEmitter {
     protected function _asyncTimeoutSet ($mseconds, $method, $params, $thisParam = null) {
         $thisParam = ($thisParam !== null) ? $thisParam : $this;
         $that = $this;
-        return self::$loop->addTimer($mseconds / 1000, function() use ($thisParam, $params, $method, $that) {
+        return $this->react_loop->addTimer($mseconds / 1000, function() use ($thisParam, $params, $method, $that) {
             try {
                 call_user_func_array (array ($thisParam, $method), $params);
             } catch (Exception $ex) {
@@ -2335,10 +2340,9 @@ abstract class Exchange extends CcxtEventEmitter {
     }
 
     protected function _asyncTimeoutCancel ($handle) {
-        self::$loop->cancelTimer($handle);
+        $this->react_loop->cancelTimer($handle);
     }        
 }
 
-Exchange::$loop = React\EventLoop\Factory::create();
 
 

@@ -9,9 +9,9 @@ root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 sys.path.append(root + '/python')
 # import ccxt  # noqa: E402
 import ccxt.async as ccxt  # noqa: E402
+import asyncio
 
-loop = ccxt.Exchange.loop
-
+loop = asyncio.get_event_loop()
 
 async def main():
     if len(sys.argv) <= 5:

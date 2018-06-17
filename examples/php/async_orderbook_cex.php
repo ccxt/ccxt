@@ -7,6 +7,8 @@ include $root . '/php/cex.php';
 
 require __DIR__ . '/../../vendor/autoload.php';
 
+use React;
+
 if ($argc > 4) {
     $apiKey = $argv[1];
     $secret = $argv[2];
@@ -17,14 +19,15 @@ if ($argc > 4) {
     exit(-1);
 }
 
-$loop = ccxt\Exchange::$loop;
+$loop = React\EventLoop\Factory::create();
 
 $exchange = new ccxt\cex (array(
     'apiKey' => $apiKey,
     'secret' => $secret,
     'enableRateLimit' => true,
     'verbose' => true,
-    'timeout' => 5 * 1000
+    'timeout' => 5 * 1000,
+    'react_loop' => $loop
 ));
 
 $exchange->on ('err', function ($err) use ($exchange){

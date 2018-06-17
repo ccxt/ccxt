@@ -35,7 +35,7 @@ from ccxt.base.errors import NotSupported
 
 from ccxt.base.exchange import Exchange as BaseExchange
 
-from ccxt.base.async.websocket_connection import WebsocketConnection
+from ccxt.async.async.websocket_connection import WebsocketConnection
 from pyee import EventEmitter
 
 # -----------------------------------------------------------------------------
@@ -49,8 +49,6 @@ __all__ = [
 
 
 class Exchange(BaseExchange, EventEmitter):
-
-    loop = asyncio.get_event_loop()  # type: asyncio.BaseEventLoop
 
     def __init__(self, config={}):
         if 'asyncio_loop' in config:
@@ -372,7 +370,7 @@ class Exchange(BaseExchange, EventEmitter):
                         future.done() or future.set_exception(error)
 
                 self.timeout_future(future, 'async_connect')
-                # self.loop.run_until_complete(future)
+                # self.asyncio_loop.run_until_complete(future)
                 await future
             else:
                 await async_connection.connect()
@@ -405,9 +403,9 @@ class Exchange(BaseExchange, EventEmitter):
             'conx': None,
         }
         if (async_config['type'] == 'ws'):
-            async_connection_info['conx'] = WebsocketConnection(async_config, self.timeout, Exchange.loop)
+            async_connection_info['conx'] = WebsocketConnection(async_config, self.timeout, self.asyncio_loop)
         elif (async_config['type'] == 'ws-s'):
-            async_connection_info['conx'] = WebsocketConnection(async_config, self.timeout, Exchange.loop)
+            async_connection_info['conx'] = WebsocketConnection(async_config, self.timeout, self.asyncio_loop)
         else:
             raise NotSupported("invalid async connection: " + async_config['type'] + " for exchange " + self.id)
 
@@ -443,7 +441,7 @@ class Exchange(BaseExchange, EventEmitter):
         return async_connection_info
 
     def timeout_future(self, future, scope):
-        self.loop.call_later(self.timeout / 1000, lambda: future.done() or future.set_exception(TimeoutError("timeout in scope: " + scope)))
+        self.asyncio_loop.call_later(self.timeout / 1000, lambda: future.done() or future.set_exception(TimeoutError("timeout in scope: " + scope)))
 
     def _cloneOrderBook(self, ob, limit=None):
         ret = {
@@ -519,9 +517,9 @@ class Exchange(BaseExchange, EventEmitter):
                     eself.emit('err', ExchangeError(eself.id + ': error invoking method ' + callback + ' in _asyncExecute: ' + str(ex)))
             # future.set_result(True)
 
-        # asyncio.ensure_future(t(future), loop = self.loop)
-        # self.loop.call_soon(future)
-        self.loop.call_soon(t)
+        # asyncio.ensure_future(t(future), loop = self.asyncio_loop)
+        # self.asyncio_loop.call_soon(future)
+        self.asyncio_loop.call_soon(t)
 
     def _asyncMethodMap(self, key):
         if ('methodmap' not in self.asyncconf) or (key not in self.asyncconf['methodmap']):
@@ -536,7 +534,7 @@ class Exchange(BaseExchange, EventEmitter):
                 getattr(this_param, method)(*params)
             except Exception as ex:
                 self.emit('err', ExchangeError(self.id + ': error invoking method ' + method + ' ' + str(ex)))
-        return self.loop.call_later(mseconds / 1000, f)
+        return self.asyncio_loop.call_later(mseconds / 1000, f)
 
     def _asyncTimeoutCancel(self, handle):
         handle.cancel()

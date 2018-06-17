@@ -8,9 +8,9 @@ root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 sys.path.append(root + '/python')
 # import ccxt  # noqa: E402
 import ccxt.async as ccxt  # noqa: E402
+import asyncio
 
-loop = ccxt.Exchange.loop
-
+loop = asyncio.get_event_loop()
 
 async def main():
     if len(sys.argv) <= 4:
@@ -27,7 +27,8 @@ async def main():
         "secret": secret,
         "enableRateLimit": True,
         'verbose': True,
-        'timeout': 5 * 1000
+        'timeout': 5 * 1000,
+        'asyncio_loop': loop
     })
 
     @exchange.on('err')
