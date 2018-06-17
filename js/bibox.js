@@ -116,7 +116,7 @@ module.exports = class bibox extends Exchange {
             let symbol = base + '/' + quote;
             let id = base + '_' + quote;
             let precision = {
-                'amount': 8,
+                'amount': 4,
                 'price': 8,
             };
             result.push ({
