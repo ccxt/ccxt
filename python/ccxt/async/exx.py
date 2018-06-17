@@ -84,6 +84,9 @@ class exx (Exchange):
                     },
                 },
             },
+            'commonCurrencies': {
+                'CAN': 'Content and AD Network',
+            },
         })
 
     async def fetch_markets(self):
