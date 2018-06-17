@@ -592,7 +592,7 @@ class cryptopia extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $datetime,
             'lastTradeTimestamp' => null,
-            'status' => $order['status'],
+            'status' => $this->safe_string($order, 'status'),
             'symbol' => $symbol,
             'type' => 'limit',
             'side' => $side,

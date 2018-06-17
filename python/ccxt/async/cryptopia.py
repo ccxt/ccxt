@@ -557,7 +557,7 @@ class cryptopia (Exchange):
             'timestamp': timestamp,
             'datetime': datetime,
             'lastTradeTimestamp': None,
-            'status': order['status'],
+            'status': self.safe_string(order, 'status'),
             'symbol': symbol,
             'type': 'limit',
             'side': side,
