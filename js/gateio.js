@@ -367,7 +367,7 @@ module.exports = class gateio extends Exchange {
         let msg = this.asyncParseJson (data);
         let oid = this.safeString (msg, 'id');
         let method = this.safeString (msg, 'method');
-        if (method === undefined) {
+        if (typeof method === 'undefined') {
             // subscription response
             // let status = this.safeString (msg['result'], 'status');
             this.emit (oid, true);
@@ -396,11 +396,11 @@ module.exports = class gateio extends Exchange {
     }
 
     _asyncSubscribeOrderBook (symbol, nonce) {
-        let symbol = this.market_id (symbol).toUpperCase ();
+        let id = this.market_id (symbol).toUpperCase ();
         let payload = {
             'id': nonce,
             'method': 'depth.subscribe',
-            'params': [symbol, 30, '0.00001'],
+            'params': [id, 30, '0.00001'],
         };
         this.asyncSendJson (payload);
     }

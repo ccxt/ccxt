@@ -16,7 +16,7 @@ from ccxt.base.errors import RequestTimeout
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidAddress
 
-from ccxt.base.async.websocket_connection import WebsocketConnection
+# from ccxt.base.async.websocket_connection import WebsocketConnection
 
 # -----------------------------------------------------------------------------
 
@@ -51,14 +51,13 @@ from requests.utils import default_user_agent
 from requests.exceptions import HTTPError, Timeout, TooManyRedirects, RequestException
 # import socket
 from ssl import SSLError
-import sys
 import time
 import uuid
 import zlib
 from decimal import Decimal
 
-import asyncio
-from pyee import EventEmitter
+# import asyncio
+# from pyee import EventEmitter
 
 # -----------------------------------------------------------------------------
 
@@ -77,10 +76,11 @@ except NameError:
 # -----------------------------------------------------------------------------
 
 
-class Exchange(EventEmitter):
+# class Exchange(EventEmitter):
+class Exchange():
     """Base exchange class"""
     # static variable
-    loop = asyncio.get_event_loop()  # type: asyncio.BaseEventLoop
+    # loop = asyncio.get_event_loop()  # type: asyncio.BaseEventLoop
 
     id = None
     version = None
@@ -206,8 +206,8 @@ class Exchange(EventEmitter):
     def __init__(self, config={}):
         super(Exchange, self).__init__()
 
-        self.asyncconf = {}
-        self.asyncConnectionPool = {}
+        # self.asyncconf = {}
+        # self.asyncConnectionPool = {}
 
         self.precision = {} if self.precision is None else self.precision
         self.limits = {} if self.limits is None else self.limits
@@ -237,15 +237,15 @@ class Exchange(EventEmitter):
 
         if self.api:
             self.define_rest_api(self.api, 'request')
-        
-        self.async_reset_context()
-        # snake renaming methods 
-        if 'methodmap' in self.asyncconf:
-            def camel2snake(name):
-                return name[0].lower() + re.sub(r'(?!^)[A-Z]', lambda x: '_' + x.group(0).lower(), name[1:])
-            for m in self.asyncconf['methodmap']:
-                self.asyncconf['methodmap'][m] = camel2snake(self.asyncconf['methodmap'][m])
-        
+
+        # self.async_reset_context()
+        # # snake renaming methods
+        # if 'methodmap' in self.asyncconf:
+        #     def camel2snake(name):
+        #         return name[0].lower() + re.sub(r'(?!^)[A-Z]', lambda x: '_' + x.group(0).lower(), name[1:])
+        #     for m in self.asyncconf['methodmap']:
+        #         self.asyncconf['methodmap'][m] = camel2snake(self.asyncconf['methodmap'][m])
+
         if self.markets:
             self.set_markets(self.markets)
 
@@ -1041,59 +1041,6 @@ class Exchange(EventEmitter):
             'nonce': None,
         }
 
-    def parse_bids_asks2(self, bidasks, price_key=0, amount_key=1):
-        result = []
-        if len(bidasks):
-            if type(bidasks[0]) is list:
-                for bidask in bidasks:
-                    result.append(self.parse_bid_ask(bidask, price_key, amount_key))
-            elif type(bidasks[0]) is dict:
-                for bidask in bidasks:
-                    if (price_key in bidask) and (amount_key in bidask):
-                        result.append(self.parse_bid_ask(bidask, price_key, amount_key))
-            else:
-                self.raise_error(ExchangeError, details='unrecognized bidask format: ' + str(bidasks[0]))
-        return result
-
-    def searchIndexToInsertOrUpdate(self, value, orderedArray, key, descending=False):
-        direction = -1 if descending else 1
-
-        def compare(a, b):
-            return -direction if (a < b) else direction if (a > b) else 0
-
-        for i in range(len(orderedArray)):
-            if compare(orderedArray[i][key], value) >= 0:
-                return i
-        return i
-
-    def updateBidAsk(self, bidAsk, currentBidsAsks, bids=False):
-        # insert or replace ordered
-        index = self.searchIndexToInsertOrUpdate(bidAsk[0], currentBidsAsks, 0, bids)
-        if ((index < len(currentBidsAsks)) and (currentBidsAsks[index][0] == bidAsk[0])):
-            # found
-            if (bidAsk[1] == 0):
-                # remove
-                del currentBidsAsks[index]
-            else:
-                # update
-                currentBidsAsks[index] = bidAsk
-        else:
-            if (bidAsk[1] != 0):
-                # insert
-                currentBidsAsks.insert(index, bidAsk)
-
-    def mergeOrderBookDelta(self, currentOrderBook, orderbook, timestamp=None, bids_key='bids', asks_key='asks', price_key=0, amount_key=1):
-        bids = self.parse_bids_asks2(orderbook[bids_key], price_key, amount_key) if (bids_key in orderbook) and isinstance(orderbook[bids_key], list) else []
-        asks = self.parse_bids_asks2(orderbook[asks_key], price_key, amount_key) if (asks_key in orderbook) and isinstance(orderbook[asks_key], list) else []
-        for bid in bids:
-            self.updateBidAsk(bid, currentOrderBook['bids'], True)
-        for ask in asks:
-            self.updateBidAsk(ask, currentOrderBook['asks'], False)
-
-        currentOrderBook['timestamp'] = timestamp
-        currentOrderBook['datetime'] = self.iso8601(timestamp) if timestamp is not None else None
-        return currentOrderBook
-
     def parse_balance(self, balance):
         currencies = self.omit(balance, 'info').keys()
         for account in ['free', 'used', 'total']:
@@ -1340,8 +1287,7 @@ class Exchange(EventEmitter):
         raise NotSupported(self.id + ' sign() pure method must be redefined in derived classes')
 
     # async methods
-
-    def async_context_get_subscribed_event_symbols (self, conxid):
+    """    def async_context_get_subscribed_event_symbols (self, conxid):
         ret = []
         for key in self.asyncContext:
             for symbol in self.asyncContext[key]:
@@ -1352,7 +1298,7 @@ class Exchange(EventEmitter):
                         'symbol': symbol,
                     })
         return ret
-    
+
     def async_reset_context(self, conxid = None):
         if conxid is None:
             self.asyncContext = {
@@ -1364,9 +1310,7 @@ class Exchange(EventEmitter):
             }
         else:
             for key in self.asyncContext:
-                print(key)
                 if key != '_':
-                    print(self.asyncContext[key])
                     for symbol in self.asyncContext[key]:
                         symbol_context = self.asyncContext[key][symbol]
                         if (symbol_context['conxid'] == conxid):
@@ -1374,7 +1318,7 @@ class Exchange(EventEmitter):
                             symbol_context['subscribing'] = False
                             symbol_context['data'] = {}
 
-    
+
     def async_connection_get(self, conxid = 'default'):
         if (conxid not in self.asyncConnectionPool):
             raise NotSupported ("async <" + conxid + "> not found in this exchange: " + self.id)
@@ -1462,7 +1406,7 @@ class Exchange(EventEmitter):
                 else:
                     self.async_reset_context(conx_config['id'])
                     self.asyncConnectionPool[conx_config['id']] = self.async_initialize(conx_config, conx_config['id'])
-            
+
             if (symbol not in self.asyncContext['ob']):
                 self.asyncContext['ob'][symbol] = {
                     'subscribed' : False,
@@ -1530,7 +1474,7 @@ class Exchange(EventEmitter):
             async_connection_info['conx'] = WebsocketConnection (async_config, self.timeout, Exchange.loop)
         else:
             raise NotSupported ("invalid async connection: " + async_config['type'] + " for exchange " + self.id)
-        
+
         conx = async_connection_info['conx']
         @conx.on('open')
         def async_connection_open():
@@ -1636,18 +1580,17 @@ class Exchange(EventEmitter):
                 except Exception as ex:
                     eself.emit ('err', ExchangeError (eself.id + ': error invoking method ' + callback + ' in _asyncExecute: '+ str(ex)))
             #future.set_result(True)
-        
+
         # asyncio.ensure_future(t(future), loop = self.loop)
         # self.loop.call_soon(future)
         self.loop.call_soon(t)
 
-        
     def _asyncMethodMap (self, key):
         if ('methodmap' not in self.asyncconf) or (key not in self.asyncconf['methodmap']):
             raise ExchangeError (self.id + ': ' + key + ' not found in async methodmap')
         return self.asyncconf['methodmap'][key]
-        
-    def _asyncTimeoutSet (self, mseconds, method, params, this_param = None):   
+
+    def _asyncTimeoutSet (self, mseconds, method, params, this_param = None):
         this_param = this_param if (this_param is not None) else self
         def f():
             try:
@@ -1659,3 +1602,59 @@ class Exchange(EventEmitter):
     def _asyncTimeoutCancel (self, handle):
         handle.cancel()
 
+    #
+    def parse_bids_asks2(self, bidasks, price_key=0, amount_key=1):
+        result = []
+        if len(bidasks):
+            if type(bidasks[0]) is list:
+                for bidask in bidasks:
+                    result.append(self.parse_bid_ask(bidask, price_key, amount_key))
+            elif type(bidasks[0]) is dict:
+                for bidask in bidasks:
+                    if (price_key in bidask) and (amount_key in bidask):
+                        result.append(self.parse_bid_ask(bidask, price_key, amount_key))
+            else:
+                self.raise_error(ExchangeError, details='unrecognized bidask format: ' + str(bidasks[0]))
+        return result
+
+    def searchIndexToInsertOrUpdate(self, value, orderedArray, key, descending=False):
+        direction = -1 if descending else 1
+
+        def compare(a, b):
+            return -direction if (a < b) else direction if (a > b) else 0
+
+        for i in range(len(orderedArray)):
+            if compare(orderedArray[i][key], value) >= 0:
+                return i
+        return i
+
+    def updateBidAsk(self, bidAsk, currentBidsAsks, bids=False):
+        # insert or replace ordered
+        index = self.searchIndexToInsertOrUpdate(bidAsk[0], currentBidsAsks, 0, bids)
+        if ((index < len(currentBidsAsks)) and (currentBidsAsks[index][0] == bidAsk[0])):
+            # found
+            if (bidAsk[1] == 0):
+                # remove
+                del currentBidsAsks[index]
+            else:
+                # update
+                currentBidsAsks[index] = bidAsk
+        else:
+            if (bidAsk[1] != 0):
+                # insert
+                currentBidsAsks.insert(index, bidAsk)
+
+    def mergeOrderBookDelta(self, currentOrderBook, orderbook, timestamp=None, bids_key='bids', asks_key='asks', price_key=0, amount_key=1):
+        bids = self.parse_bids_asks2(orderbook[bids_key], price_key, amount_key) if (bids_key in orderbook) and isinstance(orderbook[bids_key], list) else []
+        asks = self.parse_bids_asks2(orderbook[asks_key], price_key, amount_key) if (asks_key in orderbook) and isinstance(orderbook[asks_key], list) else []
+        for bid in bids:
+            self.updateBidAsk(bid, currentOrderBook['bids'], True)
+        for ask in asks:
+            self.updateBidAsk(ask, currentOrderBook['asks'], False)
+
+        currentOrderBook['timestamp'] = timestamp
+        currentOrderBook['datetime'] = self.iso8601(timestamp) if timestamp is not None else None
+        return currentOrderBook
+
+
+ """

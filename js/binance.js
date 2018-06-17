@@ -900,8 +900,8 @@ module.exports = class binance extends Exchange {
         let stream = this.safeString (msg, 'stream');
         let resData = this.safeValue (msg, 'data', {});
         let parts = stream.split ('@');
-        let l = parts.length;
-        if (l === 2) {
+        let partsLen = parts.length;
+        if (partsLen === 2) {
             if (parts[1] === 'depth') {
                 this._asyncHandleOb (resData, conxid);
             }
@@ -917,8 +917,8 @@ module.exports = class binance extends Exchange {
                 this.asyncContext['ob'][symbol]['data']['deltas'] = [];
             }
             let deltas = this.asyncContext['ob'][symbol]['data']['deltas'];
-            let l = deltas.length;
-            if (l > 50) {
+            let partsLen = deltas.length;
+            if (partsLen > 50) {
                 this.emit ('err', new ExchangeError (this.id + ': max deltas reached for symbol ' + symbol));
                 this.asyncClose (conxid);
             } else {
@@ -980,8 +980,8 @@ module.exports = class binance extends Exchange {
     _asyncEventOnOpen (conexid, asyncConexConfig) {
         let url = asyncConexConfig['url'];
         let parts = url.split ('=');
-        let l = parts.length;
-        if (l > 1) {
+        let partsLen = parts.length;
+        if (partsLen > 1) {
             let streams = parts[1];
             streams = streams.split ('/');
             for (let i = 0; i < streams.length; i++) {

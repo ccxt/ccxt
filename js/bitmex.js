@@ -629,10 +629,10 @@ module.exports = class bitmex extends Exchange {
     _asyncOnMsg (data, conxid = 'default') {
         // send ping after 5 seconds if not message received
         let lastTimer = this.safeValue (this.asyncContext['_'], 'timer');
-        if (lastTimer !== undefined) {
+        if (typeof lastTimer !== 'undefined') {
             this._asyncTimeoutCancel (lastTimer);
         }
-        this.asyncContext['_']['timer'] = this._asyncTimeoutSet (5000, this._asyncMethodMap('_asyncTimeoutSendPing'), []);
+        this.asyncContext['_']['timer'] = this._asyncTimeoutSet (5000, this._asyncMethodMap ('_asyncTimeoutSendPing'), []);
         if (data === 'pong') {
             return;
         }
@@ -640,18 +640,18 @@ module.exports = class bitmex extends Exchange {
         let table = this.safeString (msg, 'table');
         let subscribe = this.safeString (msg, 'subscribe');
         let status = this.safeInteger (msg, 'status');
-        if (subscribe !== undefined) {
-            this._asyncHandleSubscription (msg, conxid = 'default');
-        } else if (table !== undefined) {
+        if (typeof subscribe !== 'undefined') {
+            this._asyncHandleSubscription (msg, conxid);
+        } else if (typeof table !== 'undefined') {
             if (table === 'orderBookL2') {
                 this._asyncHandleOb (msg, conxid);
             }
-        } else if (status !== undefined) {
+        } else if (typeof status !== 'undefined') {
             this._asyncHandleError (msg, conxid);
         }
     }
 
-    _asyncTimeoutSendPing (){
+    _asyncTimeoutSendPing () {
         this.asyncSend ('ping');
     }
 
@@ -665,8 +665,8 @@ module.exports = class bitmex extends Exchange {
         let success = this.safeValue (msg, 'success');
         let subscribe = this.safeString (msg, 'subscribe');
         let parts = subscribe.split (':');
-        let l = parts.length;
-        if (l === 2) {
+        let partsLen = parts.length;
+        if (partsLen === 2) {
             if (parts[0] === 'orderBookL2') {
                 let symbol = this.findSymbol (parts[1]);
                 if ('nonces' in this.asyncContext['ob'][symbol]['data']) {
@@ -721,14 +721,13 @@ module.exports = class bitmex extends Exchange {
                     let side = (order['side'] === 'Sell') ? 'asks' : 'bids';
                     let priceId = order['id'];
                     let price = obIds[priceId];
-                    this.updateBidAsk ([price, amount], curob[side], (order['side'] === 'Buy'));
+                    this.updateBidAsk ([price, amount], curob[side], order['side'] === 'Buy');
                 }
                 this.asyncContext['ob'][symbol]['data']['ob'] = curob;
-                this.emit ('ob', symbol, this._cloneOrderBook(curob));
+                this.emit ('ob', symbol, this._cloneOrderBook (curob));
             }
         } else if (action === 'insert') {
             if (symbol in this.asyncContext['_']['dbids']) {
-                let obIds = this.asyncContext['_']['dbids'][symbol];
                 let curob = this.asyncContext['ob'][symbol]['data']['ob'];
                 for (let o = 0; o < data.length; o++) {
                     let order = data[o];
@@ -736,11 +735,11 @@ module.exports = class bitmex extends Exchange {
                     let side = (order['side'] === 'Sell') ? 'asks' : 'bids';
                     let priceId = order['id'];
                     let price = order['price'];
-                    this.updateBidAsk ([price, amount], curob[side], (order['side'] === 'Buy'));
+                    this.updateBidAsk ([price, amount], curob[side], order['side'] === 'Buy');
                     this.asyncContext['_']['dbids'][symbol][priceId] = price;
                 }
                 this.asyncContext['ob'][symbol]['data']['ob'] = curob;
-                this.emit ('ob', symbol, this._cloneOrderBook(curob));
+                this.emit ('ob', symbol, this._cloneOrderBook (curob));
             }
         } else if (action === 'delete') {
             if (symbol in this.asyncContext['_']['dbids']) {
@@ -751,11 +750,11 @@ module.exports = class bitmex extends Exchange {
                     let side = (order['side'] === 'Sell') ? 'asks' : 'bids';
                     let priceId = order['id'];
                     let price = obIds[priceId];
-                    this.updateBidAsk ([price, 0], curob[side], (order['side'] === 'Buy'));
+                    this.updateBidAsk ([price, 0], curob[side], order['side'] === 'Buy');
                     this.omit (this.asyncContext['_']['dbids'][symbol], priceId);
                 }
                 this.asyncContext['ob'][symbol]['data']['ob'] = curob;
-                this.emit ('ob', symbol, this._cloneOrderBook(curob));
+                this.emit ('ob', symbol, this._cloneOrderBook (curob));
             }
         } else {
             this.emit ('err', new ExchangeError (this.id + ' invalid orderbook message'));
@@ -765,15 +764,14 @@ module.exports = class bitmex extends Exchange {
     _asyncSubscribeOrderBook (symbol, nonce) {
         let id = this.market_id (symbol).toUpperCase ();
         let payload = {
-            "op": "subscribe",
-            "args": ["orderBookL2:" + id]
+            'op': 'subscribe',
+            'args': ['orderBookL2:' + id],
         };
         if (!('nonces' in this.asyncContext['ob'][symbol]['data'])) {
             this.asyncContext['ob'][symbol]['data']['nonces'] = {};
         }
-        ;
         let nonceStr = nonce.toString ();
-        let handle = this._asyncTimeoutSet (this.timeout, this._asyncMethodMap('_asyncTimeoutRemoveNonce'), [nonceStr, symbol]);
+        let handle = this._asyncTimeoutSet (this.timeout, this._asyncMethodMap ('_asyncTimeoutRemoveNonce'), [nonceStr, symbol]);
         this.asyncContext['ob'][symbol]['data']['nonces'][nonceStr] = handle;
         this.asyncSendJson (payload);
     }
@@ -787,7 +785,7 @@ module.exports = class bitmex extends Exchange {
         }
     }
 
-    _asyncEventOnOpen (conexid, asyncConexConfig) {
+    _asyncEventOnOpen (conxid, asyncoptions) {
         this.asyncContext['_']['dbids'] = {};
         // send auth
         // let nonce = this.nonce ();
@@ -795,7 +793,7 @@ module.exports = class bitmex extends Exchange {
         // let payload = {
         //     'op': 'authKeyExpires',
         //     'args': [this.apiKey, nonce, signature]
-        // };
+        //  };
         // this.asyncSendJson (payload);
     }
 };

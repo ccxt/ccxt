@@ -484,11 +484,11 @@ module.exports = class lbank extends Exchange {
         let msg = JSON.parse (data);
         let success = this.safeString (msg, 'success');
         let channel = this.safeString (msg, 'channel');
-        if (success !== undefined) {
+        if (typeof success !== 'undefined') {
             // subscription
             let parts = channel.split ('_');
-            let l = parts.length;
-            if (l > 5) {
+            let partsLen = parts.length;
+            if (partsLen > 5) {
                 if (parts[5] === 'depth') {
                     // orderbook
                     let symbol = this.findSymbol (parts[3] + '_' + parts[4]);
@@ -506,8 +506,8 @@ module.exports = class lbank extends Exchange {
             }
         } else {
             let parts = channel.split ('_');
-            let l = parts.length;
-            if (l > 5) {
+            let partsLen = parts.length;
+            if (partsLen > 5) {
                 if (parts[5] === 'depth') {
                     let symbol = this.findSymbol (parts[3] + '_' + parts[4]);
                     this._asyncHandleOb (msg, symbol, conxid);
@@ -533,9 +533,8 @@ module.exports = class lbank extends Exchange {
         if (!('nonces' in this.asyncContext['ob'][symbol]['data'])) {
             this.asyncContext['ob'][symbol]['data']['nonces'] = {};
         }
-        ;
         let nonceStr = nonce.toString ();
-        let handle = this._asyncTimeoutSet (this.timeout, this._asyncMethodMap('_asyncTimeoutRemoveNonce'), [nonceStr, symbol]);
+        let handle = this._asyncTimeoutSet (this.timeout, this._asyncMethodMap ('_asyncTimeoutRemoveNonce'), [nonceStr, symbol]);
         this.asyncContext['ob'][symbol]['data']['nonces'][nonceStr] = handle;
         this.asyncSendJson (payload);
     }

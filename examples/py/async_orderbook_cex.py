@@ -6,7 +6,8 @@ pp = pprint.PrettyPrinter(depth=6)
 
 root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(root + '/python')
-import ccxt  # noqa: E402
+# import ccxt  # noqa: E402
+import ccxt.async as ccxt  # noqa: E402
 
 loop = ccxt.Exchange.loop
 

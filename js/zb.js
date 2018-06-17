@@ -545,8 +545,8 @@ module.exports = class zb extends Exchange {
 
     endsWith (s1, s2) {
         let index = s1.indexOf (s2);
-        let l = s1.length - 0; // a transpiler workaround
-        return (index === (l - s2.length));
+        let strLen = s1.length - 0; // a transpiler workaround
+        return (index === (strLen - s2.length));
     }
 
     _asyncOnMsg (data, conxid = 'default') {
@@ -578,7 +578,7 @@ module.exports = class zb extends Exchange {
             let errMsg = this.safeString (msg, 'message', 'unknown error');
             // error?
             if (channelType === 'ob') {
-                let ex = new ExchangeError (this.id + ' subscribing error (code: ' + code + ' error: ' + errMsg + ")");
+                let ex = new ExchangeError (this.id + ' subscribing error (code: ' + code + ' error: ' + errMsg + ')');
                 this._asyncEmitObSubscription (symbol, false, ex);
             }
             return;
@@ -623,7 +623,7 @@ module.exports = class zb extends Exchange {
             this.asyncContext['ob'][symbol]['data']['nonces'] = {};
         }
         let nonceStr = nonce.toString ();
-        let handle = this._asyncTimeoutSet (this.timeout, this._asyncMethodMap('_asyncTimeoutRemoveNonce'), [nonceStr, symbol]);
+        let handle = this._asyncTimeoutSet (this.timeout, this._asyncMethodMap ('_asyncTimeoutRemoveNonce'), [nonceStr, symbol]);
         this.asyncContext['ob'][symbol]['data']['nonces'][nonceStr] = handle;
         this.asyncSendJson (payload);
     }

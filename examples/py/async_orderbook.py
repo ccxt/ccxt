@@ -7,7 +7,8 @@ pp = pprint.PrettyPrinter(depth=6)
 
 root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(root + '/python')
-import ccxt  # noqa: E402
+# import ccxt  # noqa: E402
+import ccxt.async as ccxt  # noqa: E402
 
 loop = ccxt.Exchange.loop
 
@@ -33,7 +34,7 @@ async def main():
 
     @exchange.on('err')
     def async_error(err, conxid):  # pylint: disable=W0612
-        print( type(err).__name__ + ":" + str(err))
+        print(type(err).__name__ + ":" + str(err))
         traceback.print_tb(err.__traceback__)
         traceback.print_stack()
         loop.stop()

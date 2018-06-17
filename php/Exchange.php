@@ -1982,10 +1982,8 @@ abstract class Exchange extends CcxtEventEmitter {
             );
         } else {
             foreach (array_keys ($this->asyncContext) as $key) {
-                echo ($key);
                 if ($key !== '_') {
                     $event = &$this->asyncContext[$key];
-                    print_r($event);
                     foreach ($event as $symbol => $symbolContext) {
                         if ($symbolContext['conxid'] === $conxid) {
                             $this->asyncContext[$key][$symbol]['subscribed'] = false;
@@ -1993,7 +1991,6 @@ abstract class Exchange extends CcxtEventEmitter {
                             $this->asyncContext[$key][$symbol]['data'] = array();
                         }
                     }
-                    print_r($event);
                 }
             }
         }

@@ -266,8 +266,8 @@ module.exports = class coincheck extends Exchange {
         let msg = this.asyncParseJson (data);
         let id = this.safeInteger ({
             'a': msg[0],
-        },'a');
-        if (id === undefined) {
+        }, 'a');
+        if (typeof id === 'undefined') {
             // orderbook
             this._asyncHandleOb (msg, conxid);
         }
