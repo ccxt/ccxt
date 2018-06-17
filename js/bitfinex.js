@@ -329,7 +329,7 @@ module.exports = class bitfinex extends Exchange {
             let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
             let precision = {
-                'price': market['price_precision'],
+                'price': 8,
                 'amount': market['price_precision'],
             };
             let limits = {
