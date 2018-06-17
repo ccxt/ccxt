@@ -291,7 +291,7 @@ class bittrex (Exchange):
             'ask': self.safe_float(ticker, 'Ask'),
             'askVolume': None,
             'vwap': None,
-            'open': None,
+            'open': previous,
             'close': last,
             'last': last,
             'previousClose': None,
