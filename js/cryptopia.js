@@ -757,25 +757,27 @@ module.exports = class cryptopia extends Exchange {
         if (fixedJSONString[0] === '{') {
             let response = JSON.parse (fixedJSONString);
             if ('Success' in response) {
-                const success = this.safeString (response, 'Success');
-                if (success === 'false') {
-                    let error = this.safeString (response, 'Error');
-                    let feedback = this.id;
-                    if (typeof error === 'string') {
-                        feedback = feedback + ' ' + error;
-                        if (error.indexOf ('does not exist') >= 0) {
-                            throw new OrderNotFound (feedback);
+                const success = this.safeValue (response, 'Success');
+                if (typeof success !== 'undefined') {
+                    if (!success) {
+                        let error = this.safeString (response, 'Error');
+                        let feedback = this.id;
+                        if (typeof error === 'string') {
+                            feedback = feedback + ' ' + error;
+                            if (error.indexOf ('does not exist') >= 0) {
+                                throw new OrderNotFound (feedback);
+                            }
+                            if (error.indexOf ('Insufficient Funds') >= 0) {
+                                throw new InsufficientFunds (feedback);
+                            }
+                            if (error.indexOf ('Nonce has already been used') >= 0) {
+                                throw new InvalidNonce (feedback);
+                            }
+                        } else {
+                            feedback = feedback + ' ' + fixedJSONString;
                         }
-                        if (error.indexOf ('Insufficient Funds') >= 0) {
-                            throw new InsufficientFunds (feedback);
-                        }
-                        if (error.indexOf ('Nonce has already been used') >= 0) {
-                            throw new InvalidNonce (feedback);
-                        }
-                    } else {
-                        feedback = feedback + ' ' + fixedJSONString;
+                        throw new ExchangeError (feedback);
                     }
-                    throw new ExchangeError (feedback);
                 }
             }
         }
