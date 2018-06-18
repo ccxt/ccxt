@@ -50,8 +50,8 @@ class bitbank extends Exchange {
                         '{pair}/ticker',
                         '{pair}/depth',
                         '{pair}/transactions',
-                        '{pair}/transactions/{YYYYMMDD}',
-                        '{pair}/candlestick/array (candle-type)/{YYYYMMDD}',
+                        '{pair}/transactions/{yyyymmdd}',
+                        '{pair}/candlestick/array (candle-type)/{yyyymmdd}',
                     ),
                 ),
                 'private' => array (
@@ -228,10 +228,10 @@ class bitbank extends Exchange {
         $date = $this->milliseconds ();
         $date = $this->ymd ($date);
         $date = explode ('-', $date);
-        $response = $this->publicGetPairCandlestickCandleTypeYYYYMMDD (array_merge (array (
+        $response = $this->publicGetPairCandlestickCandleTypeYyyymmdd (array_merge (array (
             'pair' => $market['id'],
             'candle-type' => $this->timeframes[$timeframe],
-            'YYYYMMDD' => implode ('', $date),
+            'yyyymmdd' => implode ('', $date),
         ), $params));
         $ohlcv = $response['data']['candlestick'][0]['ohlcv'];
         return $this->parse_ohlcvs($ohlcv, $market, $timeframe, $since, $limit);

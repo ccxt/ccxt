@@ -56,8 +56,8 @@ class bitbank (Exchange):
                         '{pair}/ticker',
                         '{pair}/depth',
                         '{pair}/transactions',
-                        '{pair}/transactions/{YYYYMMDD}',
-                        '{pair}/candlestick/{candle-type}/{YYYYMMDD}',
+                        '{pair}/transactions/{yyyymmdd}',
+                        '{pair}/candlestick/{candle-type}/{yyyymmdd}',
                     ],
                 },
                 'private': {
@@ -225,10 +225,10 @@ class bitbank (Exchange):
         date = self.milliseconds()
         date = self.ymd(date)
         date = date.split('-')
-        response = await self.publicGetPairCandlestickCandleTypeYYYYMMDD(self.extend({
+        response = await self.publicGetPairCandlestickCandleTypeYyyymmdd(self.extend({
             'pair': market['id'],
             'candle-type': self.timeframes[timeframe],
-            'YYYYMMDD': ''.join(date),
+            'yyyymmdd': ''.join(date),
         }, params))
         ohlcv = response['data']['candlestick'][0]['ohlcv']
         return self.parse_ohlcvs(ohlcv, market, timeframe, since, limit)
