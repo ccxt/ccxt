@@ -227,7 +227,7 @@ module.exports = class bitbank extends Exchange {
         let date = this.milliseconds ();
         date = this.ymd (date);
         date = date.split ('-');
-        let response = await this.publicGetPairCandlestickCandleTypeYYYYMMDD (this.extend ({
+        let response = await this.publicGetPairCandlestickCandleTypeYyyymmdd (this.extend ({
             'pair': market['id'],
             'candle-type': this.timeframes[timeframe],
             'yyyymmdd': date.join (''),
