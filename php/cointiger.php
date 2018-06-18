@@ -456,6 +456,22 @@ class cointiger extends huobipro {
         return $result;
     }
 
+    public function cost_to_precision ($symbol, $cost) {
+        return $this->decimal_to_precision($cost, ROUND, $this->markets[$symbol]['precision']['price']);
+    }
+
+    public function price_to_precision ($symbol, $price) {
+        return $this->decimal_to_precision($price, ROUND, $this->markets[$symbol]['precision']['price']);
+    }
+
+    public function amount_to_precision ($symbol, $amount) {
+        return $this->decimal_to_precision($amount, TRUNCATE, $this->markets[$symbol]['precision']['amount']);
+    }
+
+    public function fee_to_precision ($currency, $fee) {
+        return $this->decimal_to_precision($fee, ROUND, $this->currencies[$currency]['precision']);
+    }
+
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         if (!$this->password)

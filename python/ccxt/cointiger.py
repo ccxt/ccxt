@@ -19,6 +19,8 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.decimal_to_precision import ROUND
+from ccxt.base.decimal_to_precision import TRUNCATE
 
 
 class cointiger (huobipro):
@@ -444,6 +446,18 @@ class cointiger (huobipro):
             'fee': None,
         }
         return result
+
+    def cost_to_precision(self, symbol, cost):
+        return self.decimal_to_precision(cost, ROUND, self.markets[symbol]['precision']['price'])
+
+    def price_to_precision(self, symbol, price):
+        return self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'])
+
+    def amount_to_precision(self, symbol, amount):
+        return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'])
+
+    def fee_to_precision(self, currency, fee):
+        return self.decimal_to_precision(fee, ROUND, self.currencies[currency]['precision'])
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
