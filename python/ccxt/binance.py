@@ -835,7 +835,7 @@ class binance (Exchange):
             headers = {
                 'X-MBX-APIKEY': self.apiKey,
             }
-            if (method == 'GET') or (api == 'wapi'):
+            if (method == 'GET') or (method == 'DELETE') or (api == 'wapi'):
                 url += '?' + query
             else:
                 body = query

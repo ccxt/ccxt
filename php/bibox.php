@@ -117,7 +117,7 @@ class bibox extends Exchange {
             $symbol = $base . '/' . $quote;
             $id = $base . '_' . $quote;
             $precision = array (
-                'amount' => 8,
+                'amount' => 4,
                 'price' => 8,
             );
             $result[] = array (
@@ -519,7 +519,7 @@ class bibox extends Exchange {
     public function parse_order_status ($status) {
         $statuses = array (
             // original comments from bibox:
-            '1' => 'pending', // pending
+            '1' => 'open', // pending
             '2' => 'open', // part completed
             '3' => 'closed', // completed
             '4' => 'canceled', // part canceled

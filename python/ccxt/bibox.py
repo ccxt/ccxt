@@ -133,7 +133,7 @@ class bibox (Exchange):
             symbol = base + '/' + quote
             id = base + '_' + quote
             precision = {
-                'amount': 8,
+                'amount': 4,
                 'price': 8,
             }
             result.append({
@@ -499,7 +499,7 @@ class bibox (Exchange):
     def parse_order_status(self, status):
         statuses = {
             # original comments from bibox:
-            '1': 'pending',  # pending
+            '1': 'open',  # pending
             '2': 'open',  # part completed
             '3': 'closed',  # completed
             '4': 'canceled',  # part canceled

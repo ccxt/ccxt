@@ -116,7 +116,7 @@ module.exports = class bibox extends Exchange {
             let symbol = base + '/' + quote;
             let id = base + '_' + quote;
             let precision = {
-                'amount': 8,
+                'amount': 4,
                 'price': 8,
             };
             result.push ({
@@ -518,7 +518,7 @@ module.exports = class bibox extends Exchange {
     parseOrderStatus (status) {
         let statuses = {
             // original comments from bibox:
-            '1': 'pending', // pending
+            '1': 'open', // pending
             '2': 'open', // part completed
             '3': 'closed', // completed
             '4': 'canceled', // part canceled
