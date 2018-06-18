@@ -502,11 +502,10 @@ module.exports = class cryptopia extends Exchange {
                 }
             }
         }
-        let timestamp = this.milliseconds ();
         let order = {
             'id': id,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
