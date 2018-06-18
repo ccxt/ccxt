@@ -462,9 +462,11 @@ class bibox (Exchange):
         type = 'market' if (order['order_type'] == 1) else 'limit'
         timestamp = order['createdAt']
         price = self.safe_float(order, 'price')
+        price = self.safe_float(order, 'deal_price', price)
         filled = self.safe_float(order, 'deal_amount')
         amount = self.safe_float(order, 'amount')
         cost = self.safe_float(order, 'money')
+        cost = self.safe_float(order, 'deal_money', cost)
         remaining = None
         if filled is not None:
             if amount is not None:

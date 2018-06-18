@@ -480,9 +480,11 @@ class bibox extends Exchange {
         $type = ($order['order_type'] === 1) ? 'market' : 'limit';
         $timestamp = $order['createdAt'];
         $price = $this->safe_float($order, 'price');
+        $price = $this->safe_float($order, 'deal_price', $price);
         $filled = $this->safe_float($order, 'deal_amount');
         $amount = $this->safe_float($order, 'amount');
         $cost = $this->safe_float($order, 'money');
+        $cost = $this->safe_float($order, 'deal_money', $cost);
         $remaining = null;
         if ($filled !== null) {
             if ($amount !== null)
