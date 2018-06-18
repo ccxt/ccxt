@@ -639,9 +639,12 @@ module.exports = class bitmex extends Exchange {
         let msg = this.asyncParseJson (data);
         let table = this.safeString (msg, 'table');
         let subscribe = this.safeString (msg, 'subscribe');
+        let unsubscribe = this.safeString (msg, 'unsubscribe');
         let status = this.safeInteger (msg, 'status');
         if (typeof subscribe !== 'undefined') {
-            this._asyncHandleSubscription (msg, conxid);
+            this._asyncHandleSubscription ('ob', msg, conxid);
+        } else if (typeof unsubscribe !== 'undefined') {
+            this._asyncHandleUnsubscription ('ob', msg, conxid);
         } else if (typeof table !== 'undefined') {
             if (table === 'orderBookL2') {
                 this._asyncHandleOb (msg, conxid);
@@ -661,7 +664,7 @@ module.exports = class bitmex extends Exchange {
         this.emit ('err', new ExchangeError (this.id + ' status ' + status + ':' + error), conxid);
     }
 
-    _asyncHandleSubscription (msg, conxid = 'default') {
+    _asyncHandleSubscription (event, msg, conxid = 'default') {
         let success = this.safeValue (msg, 'success');
         let subscribe = this.safeString (msg, 'subscribe');
         let parts = subscribe.split (':');
@@ -669,19 +672,47 @@ module.exports = class bitmex extends Exchange {
         if (partsLen === 2) {
             if (parts[0] === 'orderBookL2') {
                 let symbol = this.findSymbol (parts[1]);
-                if ('nonces' in this.asyncContext['ob'][symbol]['data']) {
-                    let nonces = this.asyncContext['ob'][symbol]['data']['nonces'];
+                if ('sub-nonces' in this.asyncContext[event][symbol]['data']) {
+                    let nonces = this.asyncContext[event][symbol]['data']['sub-nonces'];
                     const keys = Object.keys (nonces);
                     for (let i = 0; i < keys.length; i++) {
                         let nonce = keys[i];
                         this._asyncTimeoutCancel (nonces[nonce]);
                         this.emit (nonce, success);
                     }
-                    this.asyncContext['ob'][symbol]['data']['nonces'] = {};
+                    this.asyncContext[event][symbol]['data']['sub-nonces'] = {};
                 }
             }
         }
     }
+
+    _asyncHandleUnsubscription (event, msg, conxid = 'default') {
+        let success = this.safeValue (msg, 'success');
+        let unsubscribe = this.safeString (msg, 'unsubscribe');
+        let parts = unsubscribe.split (':');
+        let partsLen = parts.length;
+        if (partsLen === 2) {
+            if (parts[0] === 'orderBookL2') {
+                let symbol = this.findSymbol (parts[1]);
+                if (success) {
+                    if (symbol in this.asyncContext['_']['dbids']) {
+                        this.omit (this.asyncContext['_']['dbids'], symbol);
+                    }
+                }
+                if ('unsub-nonces' in this.asyncContext[event][symbol]['data']) {
+                    let nonces = this.asyncContext[event][symbol]['data']['unsub-nonces'];
+                    const keys = Object.keys (nonces);
+                    for (let i = 0; i < keys.length; i++) {
+                        let nonce = keys[i];
+                        this._asyncTimeoutCancel (nonces[nonce]);
+                        this.emit (nonce, success);
+                    }
+                    this.asyncContext[event][symbol]['data']['unsub-nonces'] = {};
+                }
+            }
+        }
+    }
+
 
     _asyncHandleOb (msg, conxid = 'default') {
         let action = this.safeString (msg, 'action');
@@ -761,26 +792,47 @@ module.exports = class bitmex extends Exchange {
         }
     }
 
-    _asyncSubscribeOrderBook (symbol, nonce) {
+    _asyncSubscribe (event, symbol, nonce) {
+        if (event !== 'ob') {
+            throw new NotSupported ('subscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
+        }
         let id = this.market_id (symbol).toUpperCase ();
         let payload = {
             'op': 'subscribe',
             'args': ['orderBookL2:' + id],
         };
-        if (!('nonces' in this.asyncContext['ob'][symbol]['data'])) {
-            this.asyncContext['ob'][symbol]['data']['nonces'] = {};
+        if (!('sub-nonces' in this.asyncContext[event][symbol]['data'])) {
+            this.asyncContext[event][symbol]['data']['sub-nonces'] = {};
         }
         let nonceStr = nonce.toString ();
-        let handle = this._asyncTimeoutSet (this.timeout, this._asyncMethodMap ('_asyncTimeoutRemoveNonce'), [nonceStr, symbol]);
-        this.asyncContext['ob'][symbol]['data']['nonces'][nonceStr] = handle;
+        let handle = this._asyncTimeoutSet (this.timeout, this._asyncMethodMap ('_asyncTimeoutRemoveNonce'), [nonceStr, event, symbol, 'sub-nonce']);
+        this.asyncContext[event][symbol]['data']['sub-nonces'][nonceStr] = handle;
         this.asyncSendJson (payload);
     }
 
-    _asyncTimeoutRemoveNonce (timerNonce, symbol) {
-        if ('nonces' in this.asyncContext['ob'][symbol]['data']) {
-            let nonces = this.asyncContext['ob'][symbol]['data']['nonces'];
+    _asyncUnsubscribe (event, symbol, nonce) {
+        if (event !== 'ob') {
+            throw new NotSupported ('unsubscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
+        }
+        let id = this.market_id (symbol).toUpperCase ();
+        let payload = {
+            'op': 'unsubscribe',
+            'args': ['orderBookL2:' + id],
+        };
+        if (!('unsub-nonces' in this.asyncContext[event][symbol]['data'])) {
+            this.asyncContext[event][symbol]['data']['unsub-nonces'] = {};
+        }
+        let nonceStr = nonce.toString ();
+        let handle = this._asyncTimeoutSet (this.timeout, this._asyncMethodMap ('_asyncTimeoutRemoveNonce'), [nonceStr, event, symbol, 'unsub-nonces']);
+        this.asyncContext[event][symbol]['data']['unsub-nonces'][nonceStr] = handle;
+        this.asyncSendJson (payload);
+    }
+
+    _asyncTimeoutRemoveNonce (timerNonce, event, symbol, key) {
+        if (key in this.asyncContext[event][symbol]['data']) {
+            let nonces = this.asyncContext[event][symbol]['data'][key];
             if (timerNonce in nonces) {
-                this.omit (this.asyncContext['ob'][symbol]['data']['nonces'], timerNonce);
+                this.omit (this.asyncContext[event][symbol]['data'][key], timerNonce);
             }
         }
     }

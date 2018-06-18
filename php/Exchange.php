@@ -1229,58 +1229,6 @@ abstract class Exchange extends CcxtEventEmitter {
         return $this->parse_order_book ($orderbook, $timestamp, $bids_key, $asks_key, $price_key, $amount_key);
     }
 
-    public function searchIndexToInsertOrUpdate ($value, &$orderedArray, $key, $descending = false) {
-        $direction = $descending ? -1 : 1;
-        $compare = function ($a, $b) use($key, $direction) {
-            return (($a < $b) ? -$direction :
-                (($a > $b) ?  $direction : 0));
-        };
-        for ($i = 0; $i < count($orderedArray); $i++) {
-            if ($compare ($orderedArray[$i][$key], $value)) {
-                return $i;
-            }
-        }
-        return $i;
-    }
-    public function updateBidAsk ($bidAsk, &$currentBidsAsks, $bids = false) {
-        // insert or replace ordered
-        $index = $this->searchIndexToInsertOrUpdate ($bidAsk[0], $currentBidsAsks, 0, $bids);
-        if (($index < count($currentBidsAsks)) && ($currentBidsAsks[$index][0] === $bidAsk[0])){
-            // found
-            if ($bidAsk[1] === 0) {
-                // remove
-                array_splice ($currentBidsAsks, $index, 1);
-            } else {
-                // update
-                $currentBidsAsks[$index] = $bidAsk;
-            }
-        } else {
-            if ($bidAsk[1] !== 0) {
-                // insert
-                array_splice ($currentBidsAsks, $index, 0, $bidAsk);
-            }
-        }
-    }
-
-    public function &mergeOrderBookDelta (&$currentOrderBook, &$orderbook, $timestamp = null, $bids_key = 'bids', $asks_key = 'asks', $price_key = 0, $amount_key = 1) {
-        $bids = is_array ($orderbook) && array_key_exists ($bids_key, $orderbook) ?
-            $this->parse_bids_asks ($orderbook[$bids_key], $price_key, $amount_key) :
-            array ();
-        foreach ($bids as $bid) {
-            $this->updateBidAsk ($bid, $currentOrderBook['bids'], true);
-        }
-        $asks = is_array ($orderbook) && array_key_exists ($asks_key, $orderbook) ?
-                $this->parse_bids_asks ($orderbook[$asks_key], $price_key, $amount_key) :
-                array ();
-        foreach ($asks as $ask) {
-            $this->updateBidAsk ($ask, $currentOrderBook['asks'], false);
-        }
-        
-        $currentOrderBook['timestamp'] = $timestamp;
-        $currentOrderBook['datetime'] = isset ($timestamp) ? $this->iso8601 ($timestamp) : null;
-        return $currentOrderBook;
-    }
-
     public function parse_balance ($balance) {
         $currencies = array_keys ($this->omit ($balance, 'info'));
         $accounts = array ('free', 'used', 'total');
@@ -1947,6 +1895,59 @@ abstract class Exchange extends CcxtEventEmitter {
     }
 
     // async methods
+
+    public function searchIndexToInsertOrUpdate ($value, &$orderedArray, $key, $descending = false) {
+        $direction = $descending ? -1 : 1;
+        $compare = function ($a, $b) use($key, $direction) {
+            return (($a < $b) ? -$direction :
+                (($a > $b) ?  $direction : 0));
+        };
+        for ($i = 0; $i < count($orderedArray); $i++) {
+            if ($compare ($orderedArray[$i][$key], $value)) {
+                return $i;
+            }
+        }
+        return $i;
+    }
+    public function updateBidAsk ($bidAsk, &$currentBidsAsks, $bids = false) {
+        // insert or replace ordered
+        $index = $this->searchIndexToInsertOrUpdate ($bidAsk[0], $currentBidsAsks, 0, $bids);
+        if (($index < count($currentBidsAsks)) && ($currentBidsAsks[$index][0] === $bidAsk[0])){
+            // found
+            if ($bidAsk[1] === 0) {
+                // remove
+                array_splice ($currentBidsAsks, $index, 1);
+            } else {
+                // update
+                $currentBidsAsks[$index] = $bidAsk;
+            }
+        } else {
+            if ($bidAsk[1] !== 0) {
+                // insert
+                array_splice ($currentBidsAsks, $index, 0, $bidAsk);
+            }
+        }
+    }
+
+    public function &mergeOrderBookDelta (&$currentOrderBook, &$orderbook, $timestamp = null, $bids_key = 'bids', $asks_key = 'asks', $price_key = 0, $amount_key = 1) {
+        $bids = is_array ($orderbook) && array_key_exists ($bids_key, $orderbook) ?
+            $this->parse_bids_asks ($orderbook[$bids_key], $price_key, $amount_key) :
+            array ();
+        foreach ($bids as $bid) {
+            $this->updateBidAsk ($bid, $currentOrderBook['bids'], true);
+        }
+        $asks = is_array ($orderbook) && array_key_exists ($asks_key, $orderbook) ?
+                $this->parse_bids_asks ($orderbook[$asks_key], $price_key, $amount_key) :
+                array ();
+        foreach ($asks as $ask) {
+            $this->updateBidAsk ($ask, $currentOrderBook['asks'], false);
+        }
+        
+        $currentOrderBook['timestamp'] = $timestamp;
+        $currentOrderBook['datetime'] = isset ($timestamp) ? $this->iso8601 ($timestamp) : null;
+        return $currentOrderBook;
+    }
+
     protected function _async_context_get_subscribed_event_symbols ($conxid) {
         $ret = array();
         foreach ($this->asyncContext as $key => $event) {
@@ -1961,9 +1962,22 @@ abstract class Exchange extends CcxtEventEmitter {
         }
         return $ret;
     }
+
+    protected function _asyncValidEvent ($event) {
+        return (isset($this->asyncconf['events'])) && (array_key_exists ($event, $this->asyncconf['events']));
+    }
     
     protected function _async_reset_context($conxid = null){
         if ($conxid === null) {
+            $this->asyncContext = array (
+                '_'=> array(),
+            );
+            if (array_key_exists('events', $this->asyncconf)) {
+                foreach (array_keys($this->asyncconf['events']) as $evkey) {
+                    $this->asyncContext[$evkey] = array();
+                }
+            }
+            /*
             $this->asyncContext = array(
                 'ob'=> array(),
                 'ticker'=> array(),
@@ -1971,6 +1985,7 @@ abstract class Exchange extends CcxtEventEmitter {
                 'trades'=> array(),
                 '_' => array(),
             );
+            */
         } else {
             foreach (array_keys ($this->asyncContext) as $key) {
                 if ($key !== '_') {
@@ -1987,7 +2002,7 @@ abstract class Exchange extends CcxtEventEmitter {
         }
     }
 
-    protected function _async_connection_get ($conxid = 'default') {
+    protected function &_async_connection_get ($conxid = 'default') {
         if (!array_key_exists ($conxid, $this->asyncConnectionPool)) {
             throw new NotSupported ("async <" . $conxid . "> not found in this exchange: " . $this->id);
         }
@@ -2068,7 +2083,7 @@ abstract class Exchange extends CcxtEventEmitter {
                     $config ['url'] = $this->_async_generate_url_stream ($subscribed, $config);
                     return array(
                         'action'=> 'reconnect',
-                        'conx-config'=> config,
+                        'conx-config'=> $config,
                         'reset-context'=> 'onreconnect',
                     );
                 }
@@ -2101,23 +2116,14 @@ abstract class Exchange extends CcxtEventEmitter {
         }
     }
 
-    public function _asyncMarketId ($symbol) {
-        throw new NotSupported ("You must to implement _asyncMarketId method for exchange " . $this->id);
-    }
-
-    public function _async_generate_url_stream ($events, $options) {
-        throw new NotSupported ("You must to implement _asyncGenerateStream method for exchange " . $this->id);
-    }
-
     protected function _async_ensure_conx_active ($event, $symbol, $subscribe) {
         $this->load_markets();
         $action = $this->_async_get_action_for_event ($event, $symbol, $subscribe);
-        print_r($action);
         if ($action != null) {
             $conxConfig = $this->safe_value ($action, 'conx-config', array());
             if ($action['action'] === 'reconnect') {
                 if (array_key_exists ($conxConfig['id'], $this->asyncConnectionPool)) {
-                    $this->asyncConnectionPool[$conx_config['id']]['conx'].close();
+                    $this->asyncConnectionPool[$conxConfig['id']]['conx']->close();
                 }
                 if ($action['reset-context'] === 'onreconnect') {
                     $this->_async_reset_context($conxConfig['id']);
@@ -2125,19 +2131,25 @@ abstract class Exchange extends CcxtEventEmitter {
                 $this->asyncConnectionPool[$conxConfig['id']] = $this->_async_initialize($conxConfig, $conxConfig['id']);
             } else if ($action['action'] === 'connect') {
                 if (array_key_exists ($conxConfig['id'], $this->asyncConnectionPool)) {
-                    if (! $this->asyncConnectionPool[$conxConfig['id']]['conx'].isActive()) {
-                        $this->asyncConnectionPool[$conxConfig['id']]['conx'].close();
+                    if (! $this->asyncConnectionPool[$conxConfig['id']]['conx']->isActive()) {
+                        $this->asyncConnectionPool[$conxConfig['id']]['conx']->close();
                         $this->_async_reset_context($conxConfig['id']);
-                        $this->_asyncConnectionPool[$conxConfig['id']] = $this->_async_initialize($conxConfig, $conxConfig['id']);
+                        $this->asyncConnectionPool[$conxConfig['id']] = $this->_async_initialize($conxConfig, $conxConfig['id']);
                     }
                 } else {
                     $this->_async_reset_context($conxConfig['id']);
-                    $this->_asyncConnectionPool[$conxConfig['id']] = $this->_async_initialize($conxConfig, $conxConfig['id']);
+                    $this->asyncConnectionPool[$conxConfig['id']] = $this->_async_initialize($conxConfig, $conxConfig['id']);
                 }
+            } else if ($action['action'] === 'disconnect') {
+                if (array_key_exists ($conxConfig['id'], $this->asyncConnectionPool)) {
+                    $this->asyncConnectionPool[$conxConfig['id']]['conx']->close();
+                    $this->_async_reset_context($conxConfig['id']);
+                }
+                return;
             }
             
-            if (!array_key_exists ($symbol, $this->asyncContext['ob'])) {
-                $this->asyncContext['ob'][$symbol] = array(
+            if (!array_key_exists ($symbol, $this->asyncContext[$event])) {
+                $this->asyncContext[$event][$symbol] = array(
                     'conxid' => $conxConfig['id'],
                     'subscribed' => false,
                     'subscribing' => false,
@@ -2149,15 +2161,14 @@ abstract class Exchange extends CcxtEventEmitter {
     }
 
     protected function async_connect ($conxid = 'default') {
-        $asyncConxInfo = $this->_async_connection_get($conxid);
-        $asyncConnection = $asyncConxInfo['conx'];
+        $asyncConxInfo = &$this->_async_connection_get($conxid);
+        $asyncConnection = &$asyncConxInfo['conx'];
         $this->load_markets();
         if (!$asyncConxInfo['ready']) {
             $wait4readyEvent = $this->safe_string ($this->asyncconf['conx-tpls'][$conxid], 'wait4readyEvent');
             if ($wait4readyEvent !== null) {
-                Clue\React\Block\await($asyncConnection->connect(), $this->react_loop);
                 $deferred = new \React\Promise\Deferred();
-                $this->once ($wait4readyEvent, function ($success, $error = null) use ($deferred){
+                $this->once ($wait4readyEvent, function ($success, $error = null) use ($deferred, &$asyncConxInfo){
                     if ($success) {
                         $asyncConxInfo['ready'] = true;
                         $deferred->resolve();
@@ -2165,6 +2176,7 @@ abstract class Exchange extends CcxtEventEmitter {
                         $deferred->reject($error);
                     }
                 });
+                Clue\React\Block\await($asyncConnection->connect(), $this->react_loop);
                 Clue\React\Block\await ($deferred->promise(), $this->react_loop);
             } else {
                 Clue\React\Block\await ($asyncConnection->connect (), $this->react_loop);
@@ -2279,9 +2291,6 @@ abstract class Exchange extends CcxtEventEmitter {
         return $ret;
     }
     
-    public function _async_event_on_open ($conexid, $asyncConex) {
-    }
-
     protected function _asyncExecute ($method, $params, $callback, $context = array(), $thisParam = null) {
         $thisParam = ($thisParam !== null) ? $thisParam : $this;
         $that = $this;
@@ -2328,7 +2337,29 @@ abstract class Exchange extends CcxtEventEmitter {
         $this->react_loop->cancelTimer($handle);
     }
 
+    public function _asyncMarketId ($symbol) {
+        throw new NotSupported ("You must to implement _asyncMarketId method for exchange " . $this->id);
+    }
+
+    public function _async_generate_url_stream ($events, $options) {
+        throw new NotSupported ("You must to implement _asyncGenerateStream method for exchange " . $this->id);
+    }
+
+    public function _async_subscribe ($event, $symbol, $oid) {
+        throw new NotSupported ('subscribe ' . $event . '(' . $symbol . ') not supported for exchange ' . $this->id);
+    }
+
+    public function _async_unsubscribe ($event, $symbol, $oid) {
+        throw new NotSupported ('unsubscribe ' . $event . '(' . $symbol . ') not supported for exchange ' . $this->id);
+    }
+
+    public function _async_event_on_open ($conexid, $asyncConex) {
+    }
+
     public function async_fetch_order_book ($symbol, $limit = null) {
+        if (!$this->_asyncValidEvent('ob')) {
+            throw new ExchangeError ('Not valid event ob for exchange ' . $this->id);
+        }
         $this->_async_ensure_conx_active ('ob', $symbol, true);
         if ((array_key_exists ('ob', $this->asyncContext['ob'][$symbol]['data'])) &&
             (isset ($this->asyncContext['ob'][$symbol]['data']['ob']))) {
@@ -2350,30 +2381,55 @@ abstract class Exchange extends CcxtEventEmitter {
         }
     }
 
-    public function async_subscribe_order_book ($symbol) {
-        $this->_async_ensure_conx_active ('ob', $symbol, true);
+    public function async_subscribe ($event, $symbol) {
+        if (!$this->_asyncValidEvent($event)) {
+            throw new ExchangeError ('Not valid event ' . $event . ' for exchange ' . $this->id);
+        }
+        $this->_async_ensure_conx_active ($event, $symbol, true);
+        $oid = $this->nonce();// . '-' . $symbol . '-ob-subscribe';
+        $deferred = new \React\Promise\Deferred();
+        $that = $this;
+        $this->once (strval($oid), function ($success, $ex = null) use($symbol, $that, $deferred, $event) {
+            if ($success) {
+                $that->asyncContext[$event][$symbol]['subscribed'] = true;
+                $that->asyncContext[$event][$symbol]['subscribing'] = false;
+                $deferred->resolve ();
+            } else {
+                $ex = ($ex != null) ? $ex : new ExchangeError ('error subscribing to ' . event . '(' . symbol . ')  in ' . $this->id);
+                $that->asyncContext[$event][$symbol]['subscribed'] = false;
+                $that->asyncContext[$event][$symbol]['subscribing'] = false;
+                $deferred->reject ($ex);
+            }
+        });
+        $this->_async_subscribe ($event, $symbol, $oid);
+        Clue\React\Block\await ($this->timeout_promise (
+            $deferred->promise(), 'async_subscribe'), $this->react_loop);
+    }
+
+    public function async_unsubscribe ($event, $symbol) {
+        if (!$this->_asyncValidEvent($event)) {
+            throw new ExchangeError ('Not valid event ' . $event . ' for exchange ' . $this->id);
+        }
+        $this->_async_ensure_conx_active ($event, $symbol, false);
         $oid = $this->nonce();// . '-' . $symbol . '-ob-subscribe';
 
         $deferred = new \React\Promise\Deferred();
         $that = $this;
 
-        $this->once ($oid, function ($success, $ex = null) use($symbol, $that, $deferred) {
+        $this->once (strval($oid), function ($success, $ex = null) use($symbol, $that, $deferred) {
             if ($success) {
-                $that->asyncContext['ob'][$symbol]['subscribed'] = true;
-                $that->asyncContext['ob'][$symbol]['subscribing'] = false;
+                $this->asyncContext[$event][$symbol]['subscribed'] = false;
+                $this->asyncContext[·event][$symbol]['subscribing'] = false;
                 $deferred->resolve ();
             } else {
-                $ex = ($ex != null) ? $ex : new ExchangeError ('error subscribing to ' . symbol . ' in ' . $this->id);
-                $that->asyncContext['ob'][$symbol]['subscribed'] = false;
-                $that->asyncContext['ob'][$symbol]['subscribing'] = false;
+                $ex = ($ex != null) ? $ex : new ExchangeError ('error unsubscribing to ' . event . '(' . symbol . ')  in ' . $this->id);
                 $deferred->reject ($ex);
             }
         });
-        $this->_async_subscribe_order_book ($symbol, $oid);
+        $this->_async_unsubscribe ($event, $symbol, $oid);
         Clue\React\Block\await ($this->timeout_promise (
-            $deferred->promise(), 'asyncSubscribeOrderBook'), $this->react_loop);
+            $deferred->promise(), 'async_unsubscribe'), $this->react_loop);
     }
-
 
 }
 

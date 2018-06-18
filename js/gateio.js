@@ -395,12 +395,28 @@ module.exports = class gateio extends Exchange {
         }
     }
 
-    _asyncSubscribeOrderBook (symbol, nonce) {
+    _asyncSubscribe (event, symbol, nonce) {
+        if (event !== 'ob') {
+            throw new NotSupported ('subscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
+        }
         let id = this.market_id (symbol).toUpperCase ();
         let payload = {
             'id': nonce,
             'method': 'depth.subscribe',
             'params': [id, 30, '0.00001'],
+        };
+        this.asyncSendJson (payload);
+    }
+
+    _asyncUnsubscribe (event, symbol, nonce) {
+        if (event !== 'ob') {
+            throw new NotSupported ('unsubscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
+        }
+        let id = this.market_id (symbol).toUpperCase ();
+        let payload = {
+            'id': nonce,
+            'method': 'depth.unsubscribe',
+            'params': [id],
         };
         this.asyncSendJson (payload);
     }

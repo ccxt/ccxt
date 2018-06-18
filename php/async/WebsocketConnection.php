@@ -12,10 +12,14 @@ include 'AsyncConnection.php';
 class WsEnvelop {
     public $ws;
     public $is_closing;
+    public $connecting;
+    public $connected;
 
     public function __construct () {
         $this->ws = null;
         $this->is_closing = false;
+        $this->connecting = false;
+        $this->connected = false;
     }
 }
 
@@ -48,6 +52,7 @@ class WebsocketConnection extends AsyncConnection {
                         return;
                     }
                     $client = new WsEnvelop();
+                    $client->connecting = true;
                     $reactConnector = new React\Socket\Connector($that->loop, [
                         'timeout' => $that->timeout
                     ]);
@@ -61,18 +66,24 @@ class WebsocketConnection extends AsyncConnection {
                             // conn->close();
                         });
                 
-                        $conn->on('close', function($code = null, $reason = null) use (&$that){
-                            if (!$that->client->is_closing) {
+                        $conn->on('close', function($code = null, $reason = null) use (&$that, $client){
+                            $client->connecting = false;
+                            $client->connected = false;
+                            if (!$client->is_closing) {
                                 $that->emit ('close');
                             }
                         });
-                        $conn->on('error', function($err) use (&$that){
-                            if (!$that->client->is_closing) {
+                        $conn->on('error', function($err) use (&$that, $client){
+                            $client->connecting = false;
+                            $client->connected = false;
+                            if (!$client->is_closing) {
                                 $that->emit ('err', $err);
                             }
                         });
                         $client->ws = $conn;
-                        $that->client = $client;
+                        $that->client = &$client;
+                        $that->client->connected = true;
+                        $that->client->connected = false;
                         if (isset($that->config['wait-after-connect'])) {
                             Clue\React\Block\sleep($this->options['wait-after-connect'] / 1000, $loop);
                         }
@@ -80,13 +91,16 @@ class WebsocketConnection extends AsyncConnection {
                         $resolve();
                 
                         // $conn->send('Hello World!');
-                    }, function(\Exception $e) use (&$that, &$reject) {
+                    }, function(\Exception $e) use (&$that, &$reject, $client) {
                         echo "Could not connect: {$e->getMessage()}\n";
+                        $client->connected = false;
+                        $client->connected = false;
                         $reject($e);
                         // $loop->stop();
                     });
                 } catch (\Exception $e) {
-                    echo ($e);
+                    $client->connected = false;
+                    $client->connected = false;
                     $reject($e);
                 }
         
@@ -108,11 +122,17 @@ class WebsocketConnection extends AsyncConnection {
         if ($this->client->ws !== null) {
             $this->client->is_closing = true;
             $this->client->ws->close();
+            $this->client->connected = false;
+            $this->client->connected = false;
             $this->client->ws = null;
         }
     }
 
     public function send ($data) {
         $this->client->ws->send ($data);
+    }
+
+    public function isActive() {
+        return ($this->client->connected) || ($this->client->connecting);
     }
 }

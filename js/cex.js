@@ -92,6 +92,7 @@ module.exports = class cex extends Exchange {
                     'auth': '_asyncHandleAuth',
                     'ping': '_asyncHandlePing',
                     'order-book-subscribe': '_asyncHandleObSubscribe',
+                    'order-book-unsubscribe': '_asyncHandleObUnsubscribe',
                     'md_update': '_asyncHandleObUpdate',
                 },
                 'events': {
@@ -605,6 +606,22 @@ module.exports = class cex extends Exchange {
         }
     }
 
+    _asyncHandleObUnsubscribe (msg, oid, resData, conxid = 'default') {
+        if (msg['ok'] === 'ok') {
+            let data = this.safeValue (msg, 'data');
+            if (typeof data !== 'undefined') {
+                let pair = this.safeValue (data, 'pair');
+                if (typeof pair !== 'undefined') {
+                    // let symbol = resData['pair'].replace (':', '/');
+                    this.emit (oid, true);
+                }
+            }
+        } else {
+            let error = new ExchangeError (this.safeString (resData, 'error', 'orderbook error'));
+            this.emit (oid, false, error);
+        }
+    }
+
     _asyncHandleObUpdate (msg, oid, resData, conxid = 'default') {
         let symbol = resData['pair'].replace (':', '/');
         let timestamp = resData['time'];
@@ -633,7 +650,10 @@ module.exports = class cex extends Exchange {
         };
     }
 
-    _asyncSubscribeOrderBook (symbol, nonce) {
+    _asyncSubscribe (event, symbol, nonce) {
+        if (event !== 'ob') {
+            throw new NotSupported ('subscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
+        }
         let [currencyBase, currencyQuote] = symbol.split ('/');
         this.asyncSendJson ({
             'e': 'order-book-subscribe',
@@ -641,6 +661,20 @@ module.exports = class cex extends Exchange {
                 'pair': [currencyBase, currencyQuote],
                 'subscribe': true,
                 'depth': 0,
+            },
+            'oid': nonce,
+        });
+    }
+
+    _asyncUnsubscribe (event, symbol, nonce) {
+        if (event !== 'ob') {
+            throw new NotSupported ('unsubscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
+        }
+        let [currencyBase, currencyQuote] = symbol.split ('/');
+        this.asyncSendJson ({
+            'e': 'order-book-unsubscribe',
+            'data': {
+                'pair': [currencyBase, currencyQuote],
             },
             'oid': nonce,
         });

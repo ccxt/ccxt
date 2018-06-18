@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, InsufficientFunds, OrderNotFound, ExchangeNotAvailable, DDoSProtection, InvalidOrder } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, InsufficientFunds, OrderNotFound, ExchangeNotAvailable, DDoSProtection, InvalidOrder, NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -590,15 +590,15 @@ module.exports = class zb extends Exchange {
     }
 
     _asyncEmitObSubscription (symbol, success, exception) {
-        if ('nonces' in this.asyncContext['ob'][symbol]['data']) {
-            let nonces = this.asyncContext['ob'][symbol]['data']['nonces'];
+        if ('sub-nonces' in this.asyncContext['ob'][symbol]['data']) {
+            let nonces = this.asyncContext['ob'][symbol]['data']['sub-nonces'];
             const keys = Object.keys (nonces);
             for (let i = 0; i < keys.length; i++) {
                 let nonce = keys[i];
                 this._asyncTimeoutCancel (nonces[nonce]);
                 this.emit (nonce, success, exception);
             }
-            this.asyncContext['ob'][symbol]['data']['nonces'] = {};
+            this.asyncContext['ob'][symbol]['data']['sub-nonces'] = {};
         }
     }
 
@@ -608,7 +608,10 @@ module.exports = class zb extends Exchange {
         this.emit ('ob', symbol, ob);
     }
 
-    _asyncSubscribeOrderBook (symbol, nonce) {
+    _asyncSubscribe (event, symbol, nonce) {
+        if (event !== 'ob') {
+            throw new NotSupported ('subscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
+        }
         let id = this.market_id (symbol);
         let idWs = id.replace ('_', '');
         let payload = {
@@ -619,20 +622,24 @@ module.exports = class zb extends Exchange {
             this.asyncContext['_']['idws'] = {};
         }
         this.asyncContext['_']['idws'][idWs] = id;
-        if (!('nonces' in this.asyncContext['ob'][symbol]['data'])) {
-            this.asyncContext['ob'][symbol]['data']['nonces'] = {};
+        if (!('sub-nonces' in this.asyncContext['ob'][symbol]['data'])) {
+            this.asyncContext[event][symbol]['data']['sub-nonces'] = {};
         }
         let nonceStr = nonce.toString ();
-        let handle = this._asyncTimeoutSet (this.timeout, this._asyncMethodMap ('_asyncTimeoutRemoveNonce'), [nonceStr, symbol]);
-        this.asyncContext['ob'][symbol]['data']['nonces'][nonceStr] = handle;
+        let handle = this._asyncTimeoutSet (this.timeout, this._asyncMethodMap ('_asyncTimeoutRemoveNonce'), [nonceStr, event, symbol, 'sub-nonces']);
+        this.asyncContext[event][symbol]['data']['sub-nonces'][nonceStr] = handle;
         this.asyncSendJson (payload);
     }
 
-    _asyncTimeoutRemoveNonce (timerNonce, symbol) {
-        if ('nonces' in this.asyncContext['ob'][symbol]['data']) {
-            let nonces = this.asyncContext['ob'][symbol]['data']['nonces'];
+    _asyncUnsubscribe (event, symbol, nonce) {
+        throw new NotSupported ('unsubscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
+    }
+
+    _asyncTimeoutRemoveNonce (timerNonce, event, symbol, key) {
+        if (key in this.asyncContext[event][symbol]['data']) {
+            let nonces = this.asyncContext[event][symbol]['data'][key];
             if (timerNonce in nonces) {
-                this.omit (this.asyncContext['ob'][symbol]['data']['nonces'], timerNonce);
+                this.omit (this.asyncContext[event][symbol]['data'][key], timerNonce);
             }
         }
     }

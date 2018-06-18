@@ -289,7 +289,10 @@ module.exports = class coincheck extends Exchange {
         }
     }
 
-    _asyncSubscribeOrderBook (symbol, nonce) {
+    _asyncSubscribe (event, symbol, nonce) {
+        if (event !== 'ob') {
+            throw new NotSupported ('subscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
+        }
         let payload = {
             'type': 'subscribe',
             'channel': this.marketId (symbol) + '-orderbook',
@@ -297,5 +300,9 @@ module.exports = class coincheck extends Exchange {
         this.asyncSendJson (payload);
         let nonceStr = nonce.toString ();
         this.emit (nonceStr, true);
+    }
+
+    _asyncUnsubscribe (event, symbol, nonce) {
+        throw new NotSupported ('unsubscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
     }
 };

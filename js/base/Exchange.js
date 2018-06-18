@@ -824,64 +824,6 @@ module.exports = class Exchange extends EventEmitter{
         }
     }
 
-    searchIndexToInsertOrUpdate (value, orderedArray, key, descending = false) {
-        let i;
-        let direction = descending ? -1 : 1;
-        let compare = (a, b) =>
-                ((a < b) ? -direction :
-                ((a > b) ?  direction : 0));
-        for (i = 0; i < orderedArray.length; i++) {
-            if (compare (orderedArray[i][key], value)) {
-                return i;
-            }
-        }
-        return i;
-    }
-    updateBidAsk (bidAsk, currentBidsAsks, bids = false) {
-        // insert or replace ordered
-        let index = this.searchIndexToInsertOrUpdate (bidAsk[0], currentBidsAsks, 0, bids);
-        if ((index < currentBidsAsks.length) && (currentBidsAsks[index][0] === bidAsk[0])){
-            // found
-            if (bidAsk[1] === 0) {
-                // remove
-                currentBidsAsks.splice (index, 1);
-            } else {
-                // update
-                currentBidsAsks[index] = bidAsk;
-            }
-        } else {
-            if (bidAsk[1] !== 0) {
-                // insert
-                currentBidsAsks.splice (index, 0, bidAsk);
-            }
-        }
-    }
-
-    mergeOrderBookDelta (currentOrderBook, orderbook, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1) {
-        let bids = (bidsKey in orderbook) ? this.parseBidsAsks (orderbook[bidsKey], priceKey, amountKey) : [];
-        bids.forEach ((bid) => this.updateBidAsk (bid, currentOrderBook.bids, true));
-        let asks = (asksKey in orderbook) ? this.parseBidsAsks (orderbook[asksKey], priceKey, amountKey) : [];
-        asks.forEach ((ask) => this.updateBidAsk (ask, currentOrderBook.asks, false));
-        currentOrderBook.timestamp = timestamp;
-        currentOrderBook.datetime = (typeof timestamp !== 'undefined') ? this.iso8601 (timestamp) : undefined;
-        return currentOrderBook;
-    }
-
-    getCurrencyUsedOnOpenOrders (currency) {
-        return Object.values (this.orders).filter (order => (order['status'] === 'open')).reduce ((total, order) => {
-            let symbol = order['symbol'];
-            let market = this.markets[symbol];
-            let remaining = order['remaining']
-            if (currency === market['base'] && order['side'] === 'sell') {
-                return total + remaining
-            } else if (currency === market['quote'] && order['side'] === 'buy') {
-                return total + (order['price'] * remaining)
-            } else {
-                return total
-            }
-        }, 0)
-    }
-
     parseBalance (balance) {
 
         const currencies = Object.keys (this.omit (balance, 'info'));
@@ -1117,6 +1059,64 @@ module.exports = class Exchange extends EventEmitter{
     }
 
     // async methods
+    searchIndexToInsertOrUpdate (value, orderedArray, key, descending = false) {
+        let i;
+        let direction = descending ? -1 : 1;
+        let compare = (a, b) =>
+                ((a < b) ? -direction :
+                ((a > b) ?  direction : 0));
+        for (i = 0; i < orderedArray.length; i++) {
+            if (compare (orderedArray[i][key], value)) {
+                return i;
+            }
+        }
+        return i;
+    }
+    updateBidAsk (bidAsk, currentBidsAsks, bids = false) {
+        // insert or replace ordered
+        let index = this.searchIndexToInsertOrUpdate (bidAsk[0], currentBidsAsks, 0, bids);
+        if ((index < currentBidsAsks.length) && (currentBidsAsks[index][0] === bidAsk[0])){
+            // found
+            if (bidAsk[1] === 0) {
+                // remove
+                currentBidsAsks.splice (index, 1);
+            } else {
+                // update
+                currentBidsAsks[index] = bidAsk;
+            }
+        } else {
+            if (bidAsk[1] !== 0) {
+                // insert
+                currentBidsAsks.splice (index, 0, bidAsk);
+            }
+        }
+    }
+
+    mergeOrderBookDelta (currentOrderBook, orderbook, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1) {
+        let bids = (bidsKey in orderbook) ? this.parseBidsAsks (orderbook[bidsKey], priceKey, amountKey) : [];
+        bids.forEach ((bid) => this.updateBidAsk (bid, currentOrderBook.bids, true));
+        let asks = (asksKey in orderbook) ? this.parseBidsAsks (orderbook[asksKey], priceKey, amountKey) : [];
+        asks.forEach ((ask) => this.updateBidAsk (ask, currentOrderBook.asks, false));
+        currentOrderBook.timestamp = timestamp;
+        currentOrderBook.datetime = (typeof timestamp !== 'undefined') ? this.iso8601 (timestamp) : undefined;
+        return currentOrderBook;
+    }
+
+    getCurrencyUsedOnOpenOrders (currency) {
+        return Object.values (this.orders).filter (order => (order['status'] === 'open')).reduce ((total, order) => {
+            let symbol = order['symbol'];
+            let market = this.markets[symbol];
+            let remaining = order['remaining']
+            if (currency === market['base'] && order['side'] === 'sell') {
+                return total + remaining
+            } else if (currency === market['quote'] && order['side'] === 'buy') {
+                return total + (order['price'] * remaining)
+            } else {
+                return total
+            }
+        }, 0)
+    }
+
     _asyncContextGetSubscribedEventSymbols (conxid) {
         let ret = [];
         for (let key in this.asyncContext) {
@@ -1133,8 +1133,21 @@ module.exports = class Exchange extends EventEmitter{
         return ret;
     }
 
+    _asyncValidEvent (event) {
+        return (typeof this.asyncconf['events'] !== undefined) && (event in this.asyncconf['events']);
+    }
+
     _asyncResetContext (conxid = null) {
         if (conxid === null) {
+            this.asyncContext = {
+                '_': {},
+            };
+            if (this.asyncconf && (typeof this.asyncconf['events'] !== undefined)) {
+                for (const evkey of Object.keys (this.asyncconf['events'])) {
+                    this.asyncContext[evkey] = {};
+                }
+            }
+            /*
             this.asyncContext = {
                 'ob': {},
                 'ticker': {},
@@ -1142,6 +1155,7 @@ module.exports = class Exchange extends EventEmitter{
                 'trades': {},
                 '_': {},
             };
+            */
         } else {
             for (let key in this.asyncContext) {
                 if (key !== '_') {
@@ -1252,14 +1266,6 @@ module.exports = class Exchange extends EventEmitter{
         }
     }
 
-    _asyncMarketId (symbol) {
-        throw new NotSupported ("You must to implement _asyncMarketId method for exchange " + this.id);
-    }
-
-    _asyncGenerateUrlStream (events, options) {
-        throw new NotSupported ("You must to implement _asyncGenerateStream method for exchange " + this.id);
-    }
-
     async _asyncEnsureConxActive (event, symbol, subscribe) {
         let action = this._asyncGetActionForEvent (event, symbol, subscribe);
         if (action !== null) {
@@ -1286,9 +1292,15 @@ module.exports = class Exchange extends EventEmitter{
                     }
                     this.asyncConnectionPool[conxConfig['id']] = this._asyncInitialize(conxConfig, conxConfig['id']);
                     break;
+                case 'disconnect':
+                    if (conxConfig['id'] in this.asyncConnectionPool) {
+                        this.asyncConnectionPool[conxConfig['id']]['conx'].close();
+                        this._asyncResetContext(conxConfig['id']);
+                    }
+                    return;
             }
-            if (this.asyncContext['ob'][symbol] == null){
-                this.asyncContext['ob'][symbol] = {
+            if (this.asyncContext[event][symbol] == null){
+                this.asyncContext[event][symbol] = {
                     'subscribed': false,
                     'subscribing': false,
                     'data': {},
@@ -1410,10 +1422,6 @@ module.exports = class Exchange extends EventEmitter{
         return ret;
     }
 
-    _asyncEventOnOpen (conexid, asyncConex) {
-
-    }
-
     _asyncExecute (method, params, callback, context = {}, thisParam = null) {
         try {
             thisParam = thisParam != null ? thisParam: this;
@@ -1466,9 +1474,32 @@ module.exports = class Exchange extends EventEmitter{
         clearTimeout (handle);
     }
 
+    _asyncMarketId (symbol) {
+        throw new NotSupported ('You must implement _asyncMarketId method for exchange ' + this.id);
+    }
+
+    _asyncGenerateUrlStream (events, options) {
+        throw new NotSupported ('You must implement _asyncGenerateUrlStream method for exchange ' + this.id);
+    }
+
+    _asyncSubscribe (event, symbol, oid) {
+        throw new NotSupported ('subscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
+    }
+
+    _asyncUnsubscribe (event, symbol, oid) {
+        throw new NotSupported ('unsubscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
+    }
+
+    _asyncEventOnOpen (conexid, asyncConex) {
+
+    }
+
     asyncFetchOrderBook (symbol, limit = undefined) {
         return this.timeoutPromise (new Promise (async (resolve, reject) => {
             try {
+                if (!this._asyncValidEvent('ob')) {
+                    reject(new ExchangeError ('Not valid event ob for exchange ' + this.id));
+                }
                 await this._asyncEnsureConxActive ('ob', symbol, true);
                 if (this.asyncContext['ob'][symbol]['data']['ob'] != null) {
                     resolve (this._cloneOrderBook (this.asyncContext.ob[symbol]['data']['ob'], limit));
@@ -1487,35 +1518,66 @@ module.exports = class Exchange extends EventEmitter{
         }), 'asyncFetchOrderBook');
     }
 
-    asyncSubscribeOrderBook (symbol) {
+    asyncSubscribe (event, symbol) {
         let promise = new Promise (async (resolve, reject) => {
             try {
-                await this._asyncEnsureConxActive ('ob', symbol, true);
+                if (!this._asyncValidEvent(event)) {
+                    reject(new ExchangeError ('Not valid event ' + event + ' for exchange ' + this.id));
+                }
+                await this._asyncEnsureConxActive (event, symbol, true);
                 const oid = this.nonce();// + '-' + symbol + '-ob-subscribe';
                 this.once (oid.toString(), (success, ex = null) => {
                     if (success) {
-                        this.asyncContext['ob'][symbol]['subscribed'] = true;
-                        this.asyncContext['ob'][symbol]['subscribing'] = false;
+                        this.asyncContext[event][symbol]['subscribed'] = true;
+                        this.asyncContext[event][symbol]['subscribing'] = false;
                         resolve ();
                     } else {
-                        this.asyncContext['ob'][symbol]['subscribed'] = false;
-                        this.asyncContext['ob'][symbol]['subscribing'] = false;  
+                        this.asyncContext[event][symbol]['subscribed'] = false;
+                        this.asyncContext[event][symbol]['subscribing'] = false;  
                         if (ex != null) {
                             reject (ex);
                         } else {
-                            reject (new ExchangeError ('error subscribing to ' + symbol + ' in ' + this.id));
+                            reject (new ExchangeError ('error subscribing to ' + event + '(' + symbol + ') ' + this.id));
                         }
                     }
                 });
-                this.asyncContext['ob'][symbol]['subscribing'] = true;
-                this._asyncSubscribeOrderBook (symbol, oid);
+                this.asyncContext[event][symbol]['subscribing'] = true;
+                this._asyncSubscribe (event, symbol, oid);
             } catch (ex) {
                 reject (ex);
             }
         });
-        return this.timeoutPromise (promise, 'asyncSubscribeOrderBook');
+        return this.timeoutPromise (promise, 'asyncSubscribe');
     }
 
+    asyncUnsubscribe (event, symbol) {
+        let promise = new Promise (async (resolve, reject) => {
+            try {
+                if (!this._asyncValidEvent(event)) {
+                    reject(new ExchangeError ('Not valid event ' + event + ' for exchange ' + this.id));
+                }
+                await this._asyncEnsureConxActive (event, symbol, false);
+                const oid = this.nonce();// + '-' + symbol + '-ob-subscribe';
+                this.once (oid.toString(), (success, ex = null) => {
+                    if (success) {
+                        this.asyncContext['ob'][symbol]['subscribed'] = false;
+                        this.asyncContext['ob'][symbol]['subscribing'] = false;    
+                        resolve ();
+                    } else {
+                        if (ex != null) {
+                            reject (ex);
+                        } else {
+                            reject (new ExchangeError ('error unsubscribing to ' + event + '(' + symbol + ') ' + this.id));
+                        }
+                    }
+                });
+                this._asyncUnsubscribe (event, symbol, oid);
+            } catch (ex) {
+                reject (ex);
+            }
+        });
+        return this.timeoutPromise (promise, 'asyncUnsubscribe');
+    }
 
 
 }

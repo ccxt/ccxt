@@ -972,7 +972,18 @@ module.exports = class binance extends Exchange {
         }
     }
 
-    _asyncSubscribeOrderBook (symbol, nonce) {
+    _asyncSubscribe (event, symbol, nonce) {
+        if (event !== 'ob') {
+            throw new NotSupported ('subscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
+        }
+        let nonceStr = nonce.toString ();
+        this.emit (nonceStr, true);
+    }
+
+    _asyncUnsubscribe (event, symbol, nonce) {
+        if (event !== 'ob') {
+            throw new NotSupported ('unsubscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
+        }
         let nonceStr = nonce.toString ();
         this.emit (nonceStr, true);
     }
@@ -986,8 +997,9 @@ module.exports = class binance extends Exchange {
             streams = streams.split ('/');
             for (let i = 0; i < streams.length; i++) {
                 let stream = streams[i];
-                let pair = stream.split ('@', 2);
-                if (pair.length === 2) {
+                let pair = stream.split ('@');
+                partsLen = pair.length;
+                if (partsLen === 2) {
                     let symbol = this.findSymbol (pair[0].toUpperCase ());
                     this.asyncContext['ob'][symbol]['subscribed'] = true;
                     this.asyncContext['ob'][symbol]['subscribing'] = false;

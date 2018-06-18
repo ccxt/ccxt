@@ -61,13 +61,14 @@ class Exchange(BaseExchange, EventEmitter):
             # Pass this SSL context to aiohttp and create a TCPConnector
             connector = aiohttp.TCPConnector(ssl_context=context, loop=self.asyncio_loop)
             self.session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=connector)
+
         # async connection initialization
         self.asyncconf = {}
         self.asyncConnectionPool = {}
-        self._async_reset_context()
-        # snake renaming methods
         super(Exchange, self).__init__(config)
 
+        self._async_reset_context()
+        # snake renaming methods
         if 'methodmap' in self.asyncconf:
             def camel2snake(name):
                 return name[0].lower() + re.sub(r'(?!^)[A-Z]', lambda x: '_' + x.group(0).lower(), name[1:])
@@ -222,6 +223,58 @@ class Exchange(BaseExchange, EventEmitter):
         return await self.create_order(symbol, *args)
 
     # async methods
+    def parse_bids_asks2(self, bidasks, price_key=0, amount_key=1):
+        result = []
+        if len(bidasks):
+            if type(bidasks[0]) is list:
+                for bidask in bidasks:
+                    result.append(self.parse_bid_ask(bidask, price_key, amount_key))
+            elif type(bidasks[0]) is dict:
+                for bidask in bidasks:
+                    if (price_key in bidask) and (amount_key in bidask):
+                        result.append(self.parse_bid_ask(bidask, price_key, amount_key))
+            else:
+                self.raise_error(ExchangeError, details='unrecognized bidask format: ' + str(bidasks[0]))
+        return result
+
+    def searchIndexToInsertOrUpdate(self, value, orderedArray, key, descending=False):
+        direction = -1 if descending else 1
+
+        def compare(a, b):
+            return -direction if (a < b) else direction if (a > b) else 0
+
+        for i in range(len(orderedArray)):
+            if compare(orderedArray[i][key], value) >= 0:
+                return i
+        return i
+
+    def updateBidAsk(self, bidAsk, currentBidsAsks, bids=False):
+        # insert or replace ordered
+        index = self.searchIndexToInsertOrUpdate(bidAsk[0], currentBidsAsks, 0, bids)
+        if ((index < len(currentBidsAsks)) and (currentBidsAsks[index][0] == bidAsk[0])):
+            # found
+            if (bidAsk[1] == 0):
+                # remove
+                del currentBidsAsks[index]
+            else:
+                # update
+                currentBidsAsks[index] = bidAsk
+        else:
+            if (bidAsk[1] != 0):
+                # insert
+                currentBidsAsks.insert(index, bidAsk)
+
+    def mergeOrderBookDelta(self, currentOrderBook, orderbook, timestamp=None, bids_key='bids', asks_key='asks', price_key=0, amount_key=1):
+        bids = self.parse_bids_asks2(orderbook[bids_key], price_key, amount_key) if (bids_key in orderbook) and isinstance(orderbook[bids_key], list) else []
+        asks = self.parse_bids_asks2(orderbook[asks_key], price_key, amount_key) if (asks_key in orderbook) and isinstance(orderbook[asks_key], list) else []
+        for bid in bids:
+            self.updateBidAsk(bid, currentOrderBook['bids'], True)
+        for ask in asks:
+            self.updateBidAsk(ask, currentOrderBook['asks'], False)
+
+        currentOrderBook['timestamp'] = timestamp
+        currentOrderBook['datetime'] = self.iso8601(timestamp) if timestamp is not None else None
+        return currentOrderBook
 
     def _async_context_get_subscribed_event_symbols(self, conxid):
         ret = []
@@ -235,15 +288,24 @@ class Exchange(BaseExchange, EventEmitter):
                     })
         return ret
 
+    def _asyncValidEvent(self, event):
+        return ('events' in self.asyncconf) and (event in self.asyncconf['events'])
+
     def _async_reset_context(self, conxid=None):
         if conxid is None:
             self.asyncContext = {
-                'ob': {},
-                'ticker': {},
-                'ohlvc': {},
-                'trades': {},
-                '_': {}
+                '_': {},
             }
+            if ('events' in self.asyncconf):
+                for evkey in self.asyncconf['events']:
+                    self.asyncContext[evkey] = {}
+            # self.asyncContext = {
+            #     'ob': {},
+            #     'ticker': {},
+            #     'ohlvc': {},
+            #     'trades': {},
+            #     '_': {}
+            # }
         else:
             for key in self.asyncContext:
                 if key != '_':
@@ -299,11 +361,11 @@ class Exchange(BaseExchange, EventEmitter):
         elif (config['type'] == 'ws-s'):
             subscribed = self._async_context_get_subscribed_event_symbols(config['id'])
             if subscription:
-                subscribed.append ({
+                subscribed.append({
                     'event': event,
                     'symbol': symbol,
                 })
-                config ['url'] = self._async_generate_url_stream (subscribed, config)
+                config['url'] = self._async_generate_url_stream(subscribed, config)
                 return {
                     'action': 'reconnect',
                     'conx-config': config,
@@ -322,13 +384,12 @@ class Exchange(BaseExchange, EventEmitter):
                         'reset-context': 'always',
                     }
                 else:
-                    config ['url'] = self._async_generate_url_stream (subscribed, config)
+                    config['url'] = self._async_generate_url_stream(subscribed, config)
                     return {
                         'action': 'reconnect',
                         'conx-config': config,
                         'reset-context': 'onreconnect',
                     }
-
 
             # next_stream_list = [self.implode_params(generators['stream'], {
             #     'event': event,
@@ -352,12 +413,6 @@ class Exchange(BaseExchange, EventEmitter):
         else:
             raise NotSupported("invalid async connection: " + config['type'] + " for exchange " + self.id)
 
-    def _asyncMarketId (self, symbol):
-        raise NotSupported ("You must to implement _asyncMarketId method for exchange " + self.id)
-
-    def _async_generate_url_stream (self, events, options):
-        raise NotSupported ("You must to implement _asyncGenerateStream method for exchange " + self.id)
-
     async def _async_ensure_conx_active(self, event, symbol, subscribe):
         await self.load_markets()
         # self.load_markets()
@@ -379,6 +434,11 @@ class Exchange(BaseExchange, EventEmitter):
                 else:
                     self._async_reset_context(conx_config['id'])
                     self.asyncConnectionPool[conx_config['id']] = self._async_initialize(conx_config, conx_config['id'])
+            elif (action['action'] == 'disconnect'):
+                if (conx_config['id'] in self.asyncConnectionPool):
+                    self.asyncConnectionPool[conx_config['id']]['conx'].close()
+                    self._async_reset_context(conx_config['id'])
+                return
 
             if (symbol not in self.asyncContext['ob']):
                 self.asyncContext['ob'][symbol] = {
@@ -496,9 +556,6 @@ class Exchange(BaseExchange, EventEmitter):
             ret['asks'] = ob['asks'][:limit]
         return ret
 
-    def _async_event_on_open(self, conexid, asyncConex):
-        pass
-
     def _asyncExecute(self, method, params, callback, context={}, this_param=None):
         this_param = this_param if (this_param is not None) else self
         eself = self
@@ -519,7 +576,7 @@ class Exchange(BaseExchange, EventEmitter):
                     eself.emit('err', ExchangeError(eself.id + ': error invoking method ' + callback + ' in _asyncExecute: ' + str(ex)))
             # future.set_result(True)
 
-        asyncio.ensure_future(t(), loop = self.asyncio_loop)
+        asyncio.ensure_future(t(), loop=self.asyncio_loop)
         # self.asyncio_loop.call_soon(future)
         # self.asyncio_loop.call_soon(t)
 
@@ -541,61 +598,24 @@ class Exchange(BaseExchange, EventEmitter):
     def _asyncTimeoutCancel(self, handle):
         handle.cancel()
 
-    #
-    def parse_bids_asks2(self, bidasks, price_key=0, amount_key=1):
-        result = []
-        if len(bidasks):
-            if type(bidasks[0]) is list:
-                for bidask in bidasks:
-                    result.append(self.parse_bid_ask(bidask, price_key, amount_key))
-            elif type(bidasks[0]) is dict:
-                for bidask in bidasks:
-                    if (price_key in bidask) and (amount_key in bidask):
-                        result.append(self.parse_bid_ask(bidask, price_key, amount_key))
-            else:
-                self.raise_error(ExchangeError, details='unrecognized bidask format: ' + str(bidasks[0]))
-        return result
+    def _asyncMarketId(self, symbol):
+        raise NotSupported("You must to implement _asyncMarketId method for exchange " + self.id)
 
-    def searchIndexToInsertOrUpdate(self, value, orderedArray, key, descending=False):
-        direction = -1 if descending else 1
+    def _async_generate_url_stream(self, events, options):
+        raise NotSupported("You must to implement _asyncGenerateStream method for exchange " + self.id)
 
-        def compare(a, b):
-            return -direction if (a < b) else direction if (a > b) else 0
+    def _asyncSubscribe(self, event, symbol, oid):
+        raise NotSupported('subscribe ' + event + '(' + symbol + ') not supported for exchange ' + self.id)
 
-        for i in range(len(orderedArray)):
-            if compare(orderedArray[i][key], value) >= 0:
-                return i
-        return i
+    def _asyncUnsubscribe(self, event, symbol, oid):
+        raise NotSupported('unsubscribe ' + event + '(' + symbol + ') not supported for exchange ' + self.id)
 
-    def updateBidAsk(self, bidAsk, currentBidsAsks, bids=False):
-        # insert or replace ordered
-        index = self.searchIndexToInsertOrUpdate(bidAsk[0], currentBidsAsks, 0, bids)
-        if ((index < len(currentBidsAsks)) and (currentBidsAsks[index][0] == bidAsk[0])):
-            # found
-            if (bidAsk[1] == 0):
-                # remove
-                del currentBidsAsks[index]
-            else:
-                # update
-                currentBidsAsks[index] = bidAsk
-        else:
-            if (bidAsk[1] != 0):
-                # insert
-                currentBidsAsks.insert(index, bidAsk)
-
-    def mergeOrderBookDelta(self, currentOrderBook, orderbook, timestamp=None, bids_key='bids', asks_key='asks', price_key=0, amount_key=1):
-        bids = self.parse_bids_asks2(orderbook[bids_key], price_key, amount_key) if (bids_key in orderbook) and isinstance(orderbook[bids_key], list) else []
-        asks = self.parse_bids_asks2(orderbook[asks_key], price_key, amount_key) if (asks_key in orderbook) and isinstance(orderbook[asks_key], list) else []
-        for bid in bids:
-            self.updateBidAsk(bid, currentOrderBook['bids'], True)
-        for ask in asks:
-            self.updateBidAsk(ask, currentOrderBook['asks'], False)
-
-        currentOrderBook['timestamp'] = timestamp
-        currentOrderBook['datetime'] = self.iso8601(timestamp) if timestamp is not None else None
-        return currentOrderBook
+    def _async_event_on_open(self, conexid, asyncConex):
+        pass
 
     async def async_fetch_order_book(self, symbol, limit=None):
+        if not self._asyncValidEvent('ob'):
+            raise ExchangeError('Not valid event ob for exchange ' + self.id)
         await self._async_ensure_conx_active('ob', symbol, True)
         if (('ob' in self.asyncContext['ob'][symbol]['data']) and (self.asyncContext['ob'][symbol]['data']['ob'] is not None)):
             return self._cloneOrderBook(self.asyncContext['ob'][symbol]['data']['ob'], limit)
@@ -611,8 +631,10 @@ class Exchange(BaseExchange, EventEmitter):
         self.timeout_future(future, 'async_fetch_order_book')
         return await future
 
-    async def async_subscribe_order_book(self, symbol):
-        await self._async_ensure_conx_active('ob', symbol, True)
+    async def async_subscribe(self, event, symbol):
+        if not self._asyncValidEvent(event):
+            raise ExchangeError('Not valid event ' + event + ' for exchange ' + self.id)
+        await self._async_ensure_conx_active(event, symbol, True)
         oid = self.nonce()  # str(self.nonce()) + '-' + symbol + '-ob-subscribe'
         future = asyncio.Future()
         oidstr = str(oid)
@@ -620,15 +642,35 @@ class Exchange(BaseExchange, EventEmitter):
         @self.once(oidstr)
         def wait4obsubscribe(success, ex=None):
             if success:
-                self.asyncContext['ob'][symbol]['subscribed'] = True
-                self.asyncContext['ob'][symbol]['subscribing'] = False
+                self.asyncContext[event][symbol]['subscribed'] = True
+                self.asyncContext[event][symbol]['subscribing'] = False
                 future.done() or future.set_result(True)
             else:
-                self.asyncContext['ob'][symbol]['subscribed'] = False
-                self.asyncContext['ob'][symbol]['subscribing'] = False
-                ex = ex if ex is not None else ExchangeError('error subscribing to ' + symbol + ' in ' + self.id)
+                self.asyncContext[event][symbol]['subscribed'] = False
+                self.asyncContext[event][symbol]['subscribing'] = False
+                ex = ex if ex is not None else ExchangeError('error subscribing to ' + event + '(' + symbol + ') in ' + self.id)
                 future.done() or future.set_exception(ex)
-        self.timeout_future(future, 'async_subscribe_order_book')
-        self._async_subscribe_order_book(symbol, oid)
+        self.timeout_future(future, 'async_subscribe')
+        self._async_subscribe(event, symbol, oid)
         await future
 
+    async def async_unsubscribe(self, event, symbol):
+        if not self._asyncValidEvent(event):
+            raise ExchangeError('Not valid event ' + event + ' for exchange ' + self.id)
+        await self._async_ensure_conx_active(event, symbol, False)
+        oid = self.nonce()  # str(self.nonce()) + '-' + symbol + '-ob-subscribe'
+        future = asyncio.Future()
+        oidstr = str(oid)
+
+        @self.once(oidstr)
+        def wait4obunsubscribe(success, ex=None):
+            if success:
+                self.asyncContext[event][symbol]['subscribed'] = False
+                self.asyncContext[event][symbol]['subscribing'] = False
+                future.done() or future.set_result(True)
+            else:
+                ex = ex if ex is not None else ExchangeError('error unsubscribing to ' + event + '(' + symbol + ') in ' + self.id)
+                future.done() or future.set_exception(ex)
+        self.timeout_future(future, 'async_unsubscribe')
+        self._async_unsubscribe(event, symbol, oid)
+        await future

@@ -88,3 +88,6 @@ class WebsocketConnection(AsyncConnection):
     def send(self, data):
         if self.client is not None:
             self.client.sendMessage(data.encode('utf8'))
+
+    def isActive(self):
+        return (self.client is not None) and ((self.client.state == WebSocketClientProtocol.STATE_OPEN) or (self.client.state == WebSocketClientProtocol.STATE_CONNECTING))

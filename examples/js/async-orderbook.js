@@ -8,10 +8,12 @@ const asTable   = require ('as-table')
 
 
 function printUsage () {
-    log ('Usage: node', process.argv[1], 'exchange'.red, 'apiKey'.green, 'secret'.yellow, 'symbol'.blue, 'depth'.blue, '...')
+    log ('Usage: node', process.argv[1], 'exchange', 'apiKey', 'secret', 'depth', 'symbol', '...')
 }
+let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms))
+
 let exchange;
-async function fetchOrderBook (id, apiKey, secret, symbol, depth) {
+async function fetchOrderBook (id, apiKey, secret, depth, symbols) {
     exchange = new ccxt[id] ({
         apiKey: apiKey,
         secret: secret,
@@ -27,16 +29,32 @@ async function fetchOrderBook (id, apiKey, secret, symbol, depth) {
         }
     });
     exchange.on ('ob', (market, ob) => {
-        console.log("ob received");
+        console.log("ob received: " + market);
         // console.log (ob);
     });
     await exchange.loadMarkets ();
-    console.log('subscribe');
-    await exchange.asyncSubscribeOrderBook (symbol);
-    console.log('subscribed');
-    let ob = await exchange.asyncFetchOrderBook(symbol, depth);
-    console.log('ob fetched');
-    // console.log (ob);
+
+    for (let j = 0; j < 2 ; j++) {
+
+        for (let i = 0; i < symbols.length ; i++) {
+            let symbol = symbols[i];
+            console.log('subscribe: ' + symbol);
+            await exchange.asyncSubscribe ('ob', symbol);
+            console.log('subscribed: ' + symbol);
+            let ob = await exchange.asyncFetchOrderBook(symbol, depth);
+            console.log('ob fetched: ' + symbol);
+            // console.log (ob);
+            await sleep(5*1000);    
+        }
+
+        for (let i = 0; i < symbols.length ; i++) {
+            let symbol = symbols[i];
+            console.log('unsubscribe: ' + symbol);
+            await exchange.asyncUnsubscribe ('ob', symbol);
+            console.log('unsubscribed: ' + symbol);
+            await sleep(5*1000);    
+        }
+    }
 }
 
 ;(async function main () {
@@ -46,9 +64,12 @@ async function fetchOrderBook (id, apiKey, secret, symbol, depth) {
             const id = process.argv[2]
             const apiKey = process.argv[3]
             const secret = process.argv[4]
-            const symbol = process.argv[5].toUpperCase ()
-            const depth = parseInt (process.argv[6])
-            const ob = await fetchOrderBook (id, apiKey, secret, symbol, depth);
+            const depth = parseInt (process.argv[5])
+            const symbols = [];
+            for (let i = 6 ; i < process.argv.length; i++) {
+                symbols.push (process.argv[i].toUpperCase ())
+            }
+            const ob = await fetchOrderBook (id, apiKey, secret, depth, symbols);
 
         } else {
 
