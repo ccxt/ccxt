@@ -133,7 +133,7 @@ class bibox (Exchange):
             symbol = base + '/' + quote
             id = base + '_' + quote
             precision = {
-                'amount': 8,
+                'amount': 4,
                 'price': 8,
             }
             result.append({

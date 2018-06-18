@@ -117,7 +117,7 @@ class bibox extends Exchange {
             $symbol = $base . '/' . $quote;
             $id = $base . '_' . $quote;
             $precision = array (
-                'amount' => 8,
+                'amount' => 4,
                 'price' => 8,
             );
             $result[] = array (
