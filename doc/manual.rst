@@ -579,6 +579,18 @@ Turn on the built-in rate-limiter with ``.enableRateLimit`` property, like so:
     $exchange->enableRateLimit = true; // enable
     $exchange->enableRateLimit = false; // disable
 
+In case your calls hit a rate limit or get nonce errors, the ccxt library will throw an exception of one of the following types:
+
+-  DDoSProtectionError
+-  ExchangeNotAvailable
+-  ExchangeError
+
+A later retry is usually enough to handle that. More on that here:
+
+-  `Authentication <https://github.com/ccxt/ccxt/wiki/Manual#authentication>`__
+-  `Troubleshooting <https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting>`__
+-  `Overriding The Nonce <https://github.com/ccxt/ccxt/wiki/Manual#overriding-the-nonce>`__
+
 DDoS Protection By Cloudflare / Incapsula
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -596,18 +608,6 @@ If you encounter DDoS protection errors and cannot reach a particular exchange t
 -  try an alternative IP within a different geographic region
 -  run your software in a distributed network of servers
 -  ...
-
-In case your calls hit a rate limit or get nonce errors, the ccxt library will throw an exception of one of the following types:
-
--  DDoSProtectionError
--  ExchangeNotAvailable
--  ExchangeError
-
-A later retry is usually enough to handle that. More on that here:
-
--  `Authentication <https://github.com/ccxt/ccxt/wiki/Manual#authentication>`__
--  `Troubleshooting <https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting>`__
--  `Overriding The Nonce <https://github.com/ccxt/ccxt/wiki/Manual#overriding-the-nonce>`__
 
 Markets
 =======
@@ -2625,7 +2625,12 @@ All errors related to networking are usually recoverable, meaning that networkin
 DDoSProtection
 ~~~~~~~~~~~~~~
 
-This exception is thrown whenever Cloudflare or Incapsula rate limiter restrictions are enforced per user or region/location. The ccxt library does a case-insensitive search in the response received from the exchange for one of the following keywords:
+This exception is thrown in either of two cases:
+
+-  when Cloudflare or Incapsula rate limiter restrictions are enforced per user or region/location
+-  when the exchange restricts user access for requesting the endpoints in question too frequently
+
+In addition to default error handling, the ccxt library does a case-insensitive search in the response received from the exchange for one of the following keywords:
 
 -  ``cloudflare``
 -  ``incapsula``
