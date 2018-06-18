@@ -703,21 +703,22 @@ class cryptopia (Exchange):
         if fixedJSONString[0] == '{':
             response = json.loads(fixedJSONString)
             if 'Success' in response:
-                success = self.safe_string(response, 'Success')
-                if success == 'false':
-                    error = self.safe_string(response, 'Error')
-                    feedback = self.id
-                    if isinstance(error, basestring):
-                        feedback = feedback + ' ' + error
-                        if error.find('does not exist') >= 0:
-                            raise OrderNotFound(feedback)
-                        if error.find('Insufficient Funds') >= 0:
-                            raise InsufficientFunds(feedback)
-                        if error.find('Nonce has already been used') >= 0:
-                            raise InvalidNonce(feedback)
-                    else:
-                        feedback = feedback + ' ' + fixedJSONString
-                    raise ExchangeError(feedback)
+                success = self.safe_value(response, 'Success')
+                if success is not None:
+                    if not success:
+                        error = self.safe_string(response, 'Error')
+                        feedback = self.id
+                        if isinstance(error, basestring):
+                            feedback = feedback + ' ' + error
+                            if error.find('does not exist') >= 0:
+                                raise OrderNotFound(feedback)
+                            if error.find('Insufficient Funds') >= 0:
+                                raise InsufficientFunds(feedback)
+                            if error.find('Nonce has already been used') >= 0:
+                                raise InvalidNonce(feedback)
+                        else:
+                            feedback = feedback + ' ' + fixedJSONString
+                        raise ExchangeError(feedback)
 
     def sanitize_broken_json_string(self, jsonString):
         # sometimes cryptopia will return a unicode symbol before actual JSON string.
