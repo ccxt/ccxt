@@ -479,9 +479,11 @@ module.exports = class bibox extends Exchange {
         let type = (order['order_type'] === 1) ? 'market' : 'limit';
         let timestamp = order['createdAt'];
         let price = this.safeFloat (order, 'price');
+        price = this.safeFloat (order, 'deal_price', price);
         let filled = this.safeFloat (order, 'deal_amount');
         let amount = this.safeFloat (order, 'amount');
         let cost = this.safeFloat (order, 'money');
+        cost = this.safeFloat (order, 'deal_money', cost);
         let remaining = undefined;
         if (typeof filled !== 'undefined') {
             if (typeof amount !== 'undefined')
