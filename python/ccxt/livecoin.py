@@ -392,6 +392,7 @@ class livecoin (Exchange):
             'OPEN': 'open',
             'PARTIALLY_FILLED': 'open',
             'EXECUTED': 'closed',
+            'CANCELLED': 'canceled',
             'PARTIALLY_FILLED_AND_CANCELLED': 'canceled',
         }
         if status in statuses:
