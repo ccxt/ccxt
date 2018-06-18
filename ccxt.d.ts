@@ -211,7 +211,7 @@ declare module 'ccxt' {
         aggregate: any;
         truncate: any;
         name: string;
-        nodeVersion: string;
+        // nodeVersion: string;
         fees: object;
         enableRateLimit: boolean;
         countries: string;

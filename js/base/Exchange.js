@@ -157,10 +157,8 @@ module.exports = class Exchange {
 
         Object.assign (this, functions, { encode: string => string, decode: string => string })
 
-        if (isNode)
-            this.nodeVersion = process.version.match (/\d+\.\d+.\d+/)[0]
-
         // if (isNode) {
+        //     this.nodeVersion = process.version.match (/\d+\.\d+\.\d+/)[0]
         //     this.userAgent = {
         //         'User-Agent': 'ccxt/' + Exchange.ccxtVersion +
         //             ' (+https://github.com/ccxt/ccxt)' +
