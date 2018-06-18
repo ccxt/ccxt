@@ -480,11 +480,10 @@ class cryptopia (Exchange):
                 else:
                     filled = amount
                     status = 'closed'
-        timestamp = self.milliseconds()
         order = {
             'id': id,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,

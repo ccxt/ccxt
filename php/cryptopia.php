@@ -503,11 +503,10 @@ class cryptopia extends Exchange {
                 }
             }
         }
-        $timestamp = $this->milliseconds ();
         $order = array (
             'id' => $id,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
