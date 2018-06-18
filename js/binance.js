@@ -881,7 +881,7 @@ module.exports = class binance extends Exchange {
             headers = {
                 'X-MBX-APIKEY': this.apiKey,
             };
-            if ((method === 'GET') || (api === 'wapi')) {
+            if ((method === 'GET') || (method === 'DELETE') || (api === 'wapi')) {
                 url += '?' + query;
             } else {
                 body = query;
