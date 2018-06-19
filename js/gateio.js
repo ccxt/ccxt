@@ -317,18 +317,36 @@ module.exports = class gateio extends Exchange {
     }
 
     parseTrade (trade, market) {
-        // exchange reports local time (UTC+8)
-        let timestamp = this.parse8601 (trade['date']) - 8 * 60 * 60 * 1000;
+        // public fetchTrades
+        let timestamp = this.safeInteger (trade, 'timestamp');
+        // private fetchMyTrades
+        timestamp = this.safeInteger (trade, 'time_unix', timestamp);
+        if (typeof timestamp !== 'undefined')
+            timestamp *= 1000;
+        let id = this.safeString (trade, 'tradeID');
+        id = this.safeString (trade, 'id', id);
+        let orderId = this.safeString (trade, 'orderid');
+        let price = this.safeFloat (trade, 'rate');
+        let amount = this.safeFloat (trade, 'amount');
+        let cost = undefined;
+        if (typeof price !== 'undefined') {
+            if (typeof amount !== 'undefined') {
+                cost = price * amount;
+            }
+        }
         return {
-            'id': trade['tradeID'],
+            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
+            'order': orderId,
             'type': undefined,
             'side': trade['type'],
-            'price': this.safeFloat (trade, 'rate'),
-            'amount': this.safeFloat (trade, 'amount'),
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
         };
     }
 
