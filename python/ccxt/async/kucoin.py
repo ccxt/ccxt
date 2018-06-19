@@ -665,12 +665,16 @@ class kucoin (Exchange):
         return self.filter_by_symbol_since_limit(result, symbol, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        if not symbol:
-            raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol')
         await self.load_markets()
-        market = self.market(symbol)
+        marketId = None
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            marketId = market['id']
+        else:
+            marketId = ''
         request = {
-            'symbol': market['id'],
+            'symbol': marketId,
         }
         response = await self.privateGetOrderActiveMap(self.extend(request, params))
         sell = self.safe_value(response['data'], 'SELL')
