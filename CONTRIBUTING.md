@@ -70,7 +70,7 @@ If your proposal, suggestion or improvement does not relate to the above list of
 4. portable (available in all supported languages)
 5. robust
 6. explicit in what it's doing
-7. doesn't break anything
+7. doesn't break anything (if you change a method, make sure that all other methods calling the edited method are not broken)
 
 The following is a set of rules for contributing to the ccxt library codebase.
 
