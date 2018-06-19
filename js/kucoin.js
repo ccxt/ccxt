@@ -27,7 +27,6 @@ module.exports = class kucoin extends Exchange {
                 'fetchOrders': false,
                 'fetchClosedOrders': true,
                 'fetchOpenOrders': true,
-                'fetchAllOpenOrders': true,
                 'fetchMyTrades': 'emulated', // this method is to be deleted, see implementation and comments below
                 'fetchCurrencies': true,
                 'withdraw': true,
@@ -687,12 +686,17 @@ module.exports = class kucoin extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (!symbol)
-            throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol');
         await this.loadMarkets ();
-        let market = this.market (symbol);
+        let marketId = undefined;
+        let market = undefined;
+        if (typeof symbol !== 'undefined') {
+            market = this.market (symbol);
+            marketId = market['id'];
+        } else {
+            marketId = '';
+        }
         let request = {
-            'symbol': market['id'],
+            'symbol': marketId,
         };
         let response = await this.privateGetOrderActiveMap (this.extend (request, params));
         let sell = this.safeValue (response['data'], 'SELL');
@@ -721,22 +725,6 @@ module.exports = class kucoin extends Exchange {
         return this.parseOrdersByStatus (orders, market, since, limit, 'open');
     }
     
-    async fetchAllOpenOrders (since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let request = {
-            'symbol': '',
-        };
-        let response = await this.privateGetOrderActiveMap (this.extend (request, params));
-        let sell = this.safeValue (response['data'], 'SELL');
-        if (typeof sell === 'undefined')
-            sell = [];
-        let buy = this.safeValue (response['data'], 'BUY');
-        if (typeof buy === 'undefined')
-            buy = [];
-        let orders = this.arrayConcat (sell, buy);
-        return this.parseOrdersByStatus (orders, market, since, limit, 'open');
-    }
-
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = 20, params = {}) {
         let request = {};
         await this.loadMarkets ();
