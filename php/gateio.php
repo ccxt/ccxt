@@ -318,18 +318,36 @@ class gateio extends Exchange {
     }
 
     public function parse_trade ($trade, $market) {
-        // exchange reports local time (UTC+8)
-        $timestamp = $this->parse8601 ($trade['date']) - 8 * 60 * 60 * 1000;
+        // public fetchTrades
+        $timestamp = $this->safe_integer($trade, 'timestamp');
+        // private fetchMyTrades
+        $timestamp = $this->safe_integer($trade, 'time_unix', $timestamp);
+        if ($timestamp !== null)
+            $timestamp *= 1000;
+        $id = $this->safe_string($trade, 'tradeID');
+        $id = $this->safe_string($trade, 'id', $id);
+        $orderId = $this->safe_string($trade, 'orderid');
+        $price = $this->safe_float($trade, 'rate');
+        $amount = $this->safe_float($trade, 'amount');
+        $cost = null;
+        if ($price !== null) {
+            if ($amount !== null) {
+                $cost = $price * $amount;
+            }
+        }
         return array (
-            'id' => $trade['tradeID'],
+            'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $market['symbol'],
+            'order' => $orderId,
             'type' => null,
             'side' => $trade['type'],
-            'price' => $this->safe_float($trade, 'rate'),
-            'amount' => $this->safe_float($trade, 'amount'),
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
+            'fee' => null,
         );
     }
 
