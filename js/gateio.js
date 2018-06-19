@@ -326,6 +326,14 @@ module.exports = class gateio extends Exchange {
         let id = this.safeString (trade, 'tradeID');
         id = this.safeString (trade, 'id', id);
         let orderId = this.safeString (trade, 'orderid');
+        let price = this.safeFloat (trade, 'rate');
+        let amount = this.safeFloat (trade, 'amount');
+        let cost = undefined;
+        if (typeof price !== 'undefined') {
+            if (typeof amount !== 'undefined') {
+                cost = price * amount;
+            }
+        }
         return {
             'id': id,
             'info': trade,
@@ -335,8 +343,10 @@ module.exports = class gateio extends Exchange {
             'order': orderId,
             'type': undefined,
             'side': trade['type'],
-            'price': this.safeFloat (trade, 'rate'),
-            'amount': this.safeFloat (trade, 'amount'),
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
         };
     }
 
