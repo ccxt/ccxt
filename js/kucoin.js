@@ -724,7 +724,7 @@ module.exports = class kucoin extends Exchange {
         //
         return this.parseOrdersByStatus (orders, market, since, limit, 'open');
     }
-    
+
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = 20, params = {}) {
         let request = {};
         await this.loadMarkets ();
