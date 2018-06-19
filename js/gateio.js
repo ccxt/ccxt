@@ -317,8 +317,7 @@ module.exports = class gateio extends Exchange {
     }
 
     parseTrade (trade, market) {
-        // exchange reports local time (UTC+8)
-        let timestamp = this.parse8601 (trade['date']) - 8 * 60 * 60 * 1000;
+        let timestamp = trade['timestamp'] * 1000;
         return {
             'id': trade['tradeID'],
             'info': trade,
