@@ -317,7 +317,12 @@ module.exports = class gateio extends Exchange {
     }
 
     parseTrade (trade, market) {
-        let timestamp = trade['timestamp'] * 1000;
+        // public fetchTrades
+        let timestamp = this.safeInteger (trade, 'timestamp');
+        // private fetchMyTrades
+        timestamp = this.safeInteger (trade, 'time_unix', timestamp);
+        if (typeof timestamp !== 'undefined')
+            timestamp *= 1000;
         return {
             'id': trade['tradeID'],
             'info': trade,
