@@ -55,7 +55,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 Exchanges
 =========
 
-The ccxt library currently supports the following 116 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 119 cryptocurrency exchange markets and trading APIs:
 
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 |                        | id                   | name                                                                              | ver   | doc                                                                                               | countries                                  |
@@ -69,6 +69,8 @@ The ccxt library currently supports the following 116 cryptocurrency exchange ma
 | |allcoin|              | allcoin              | `Allcoin <https://www.allcoin.com>`__                                             | 1     | `API <https://www.allcoin.com/About/APIReference>`__                                              | Canada                                     |
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |anxpro|               | anxpro               | `ANXPro <https://anxpro.com>`__                                                   | 2     | `API <http://docs.anxv2.apiary.io>`__                                                             | Japan, Singapore, Hong Kong, New Zealand   |
++------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
+| |anybits|              | anybits              | `Anybits <https://anybits.com>`__                                                 | \*    | `API <https://anybits.com/help/api>`__                                                            | Ireland                                    |
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |bibox|                | bibox                | `Bibox <https://www.bibox.com>`__                                                 | 1     | `API <https://github.com/Biboxcom/api_reference/wiki/home_en>`__                                  | China, US, South Korea                     |
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -95,6 +97,8 @@ The ccxt library currently supports the following 116 cryptocurrency exchange ma
 | |bitmarket|            | bitmarket            | `BitMarket <https://www.bitmarket.pl>`__                                          | \*    | `API <https://www.bitmarket.net/docs.php?file=api_public.html>`__                                 | Poland, EU                                 |
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |bitmex|               | bitmex               | `BitMEX <https://www.bitmex.com>`__                                               | 1     | `API <https://www.bitmex.com/app/apiOverview>`__                                                  | Seychelles                                 |
++------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
+| |bitsane|              | bitsane              | `Bitsane <https://bitsane.com>`__                                                 | \*    | `API <https://bitsane.com/info-api>`__                                                            | Ireland                                    |
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |bitso|                | bitso                | `Bitso <https://bitso.com>`__                                                     | 3     | `API <https://bitso.com/api_info>`__                                                              | Mexico                                     |
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -169,6 +173,8 @@ The ccxt library currently supports the following 116 cryptocurrency exchange ma
 | |cointiger|            | cointiger            | `CoinTiger <https://www.cointiger.pro/exchange/register.html?refCode=FfvDtt>`__   | 1     | `API <https://github.com/cointiger/api-docs-en/wiki>`__                                           | China                                      |
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |coolcoin|             | coolcoin             | `CoolCoin <https://www.coolcoin.com>`__                                           | \*    | `API <https://www.coolcoin.com/help.api.html>`__                                                  | Hong Kong                                  |
++------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
+| |crypton|              | crypton              | `Crypton <https://cryptonbtc.com>`__                                              | 1     | `API <https://cryptonbtc.docs.apiary.io/>`__                                                      | EU                                         |
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
 | |cryptopia|            | cryptopia            | `Cryptopia <https://www.cryptopia.co.nz/Register?referrer=kroitor>`__             | \*    | `API <https://www.cryptopia.co.nz/Forum/Category/45>`__                                           | New Zealand                                |
 +------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+--------------------------------------------+
@@ -573,6 +579,18 @@ Turn on the built-in rate-limiter with ``.enableRateLimit`` property, like so:
     $exchange->enableRateLimit = true; // enable
     $exchange->enableRateLimit = false; // disable
 
+In case your calls hit a rate limit or get nonce errors, the ccxt library will throw an exception of one of the following types:
+
+-  DDoSProtectionError
+-  ExchangeNotAvailable
+-  ExchangeError
+
+A later retry is usually enough to handle that. More on that here:
+
+-  `Authentication <https://github.com/ccxt/ccxt/wiki/Manual#authentication>`__
+-  `Troubleshooting <https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting>`__
+-  `Overriding The Nonce <https://github.com/ccxt/ccxt/wiki/Manual#overriding-the-nonce>`__
+
 DDoS Protection By Cloudflare / Incapsula
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -590,18 +608,6 @@ If you encounter DDoS protection errors and cannot reach a particular exchange t
 -  try an alternative IP within a different geographic region
 -  run your software in a distributed network of servers
 -  ...
-
-In case your calls hit a rate limit or get nonce errors, the ccxt library will throw an exception of one of the following types:
-
--  DDoSProtectionError
--  ExchangeNotAvailable
--  ExchangeError
-
-A later retry is usually enough to handle that. More on that here:
-
--  `Authentication <https://github.com/ccxt/ccxt/wiki/Manual#authentication>`__
--  `Troubleshooting <https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting>`__
--  `Overriding The Nonce <https://github.com/ccxt/ccxt/wiki/Manual#overriding-the-nonce>`__
 
 Markets
 =======
@@ -748,7 +754,9 @@ Market ids are used during the REST request-response process to reference tradin
 
 The ccxt library abstracts uncommon market ids to symbols, standardized to a common format. Symbols aren't the same as market ids. Every market is referenced by a corresponding symbol. Symbols are common across exchanges which makes them suitable for arbitrage and many other things.
 
-A symbol is an uppercase string literal name for a pair of traded currencies with a slash in between. A currency is a code of three or four uppercase letters, like ``BTC``, ``ETH``, ``USD``, ``GBP``, ``CNY``, ``LTC``, ``JPY``, ``DOGE``, ``RUB``, ``ZEC``, ``XRP``, ``XMR``, etc. Some exchanges have exotic currencies with longer names. The first currency before the slash is usually called *base currency*, and the one after the slash is called *quote currency*. Examples of a symbol are: ``BTC/USD``, ``DOGE/LTC``, ``ETH/EUR``, ``DASH/XRP``, ``BTC/CNY``, ``ZEC/XMR``, ``ETH/JPY``.
+A symbol is usually an uppercase string literal name for a pair of traded currencies with a slash in between. A currency is a code of three or four uppercase letters, like ``BTC``, ``ETH``, ``USD``, ``GBP``, ``CNY``, ``LTC``, ``JPY``, ``DOGE``, ``RUB``, ``ZEC``, ``XRP``, ``XMR``, etc. Some exchanges have exotic currencies with longer names. The first currency before the slash is usually called *base currency*, and the one after the slash is called *quote currency*. Examples of a symbol are: ``BTC/USD``, ``DOGE/LTC``, ``ETH/EUR``, ``DASH/XRP``, ``BTC/CNY``, ``ZEC/XMR``, ``ETH/JPY``.
+
+Sometimes the user might notice a symbol like ``'XBTM18'`` or ``'.XRPUSDM20180101'`` or some other *"exotic/rare symbols"*. The symbol is **not required** to have a slash or to be a pair of currencies. The string in the symbol really depends on the type of the market (whether it is a spot market or a futures market, a darkpool market or an expired market, etc). Attempting to parse the symbol string is highly discouraged, one should not rely on the symbol format, it is recommended to use market properties instead.
 
 Market structures are indexed by symbols and ids. The base exchange class also has builtin methods for accessing markets by symbols. Most API methods require a symbol to be passed in their first argument. You are often required to specify a symbol when querying current prices, making orders, etc.
 
@@ -2619,7 +2627,12 @@ All errors related to networking are usually recoverable, meaning that networkin
 DDoSProtection
 ~~~~~~~~~~~~~~
 
-This exception is thrown whenever Cloudflare or Incapsula rate limiter restrictions are enforced per user or region/location. The ccxt library does a case-insensitive search in the response received from the exchange for one of the following keywords:
+This exception is thrown in either of two cases:
+
+-  when Cloudflare or Incapsula rate limiter restrictions are enforced per user or region/location
+-  when the exchange restricts user access for requesting the endpoints in question too frequently
+
+In addition to default error handling, the ccxt library does a case-insensitive search in the response received from the exchange for one of the following keywords:
 
 -  ``cloudflare``
 -  ``incapsula``
@@ -2705,6 +2718,7 @@ Notes
 .. |acx| image:: https://user-images.githubusercontent.com/1294454/30247614-1fe61c74-9621-11e7-9e8c-f1a627afa279.jpg
 .. |allcoin| image:: https://user-images.githubusercontent.com/1294454/31561809-c316b37c-b061-11e7-8d5a-b547b4d730eb.jpg
 .. |anxpro| image:: https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg
+.. |anybits| image:: https://user-images.githubusercontent.com/1294454/41388454-ae227544-6f94-11e8-82a4-127d51d34903.jpg
 .. |bibox| image:: https://user-images.githubusercontent.com/1294454/34902611-2be8bf1a-f830-11e7-91a2-11b2f292e750.jpg
 .. |binance| image:: https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg
 .. |bit2c| image:: https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg
@@ -2718,6 +2732,7 @@ Notes
 .. |bitlish| image:: https://user-images.githubusercontent.com/1294454/27766275-dcfc6c30-5ed3-11e7-839d-00a846385d0b.jpg
 .. |bitmarket| image:: https://user-images.githubusercontent.com/1294454/27767256-a8555200-5ef9-11e7-96fd-469a65e2b0bd.jpg
 .. |bitmex| image:: https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg
+.. |bitsane| image:: https://user-images.githubusercontent.com/1294454/41387105-d86bf4c6-6f8d-11e8-95ea-2fa943872955.jpg
 .. |bitso| image:: https://user-images.githubusercontent.com/1294454/27766335-715ce7aa-5ed5-11e7-88a8-173a27bb30fe.jpg
 .. |bitstamp| image:: https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg
 .. |bitstamp1| image:: https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg
@@ -2755,6 +2770,7 @@ Notes
 .. |coinspot| image:: https://user-images.githubusercontent.com/1294454/28208429-3cacdf9a-6896-11e7-854e-4c79a772a30f.jpg
 .. |cointiger| image:: https://user-images.githubusercontent.com/1294454/39797261-d58df196-5363-11e8-9880-2ec78ec5bd25.jpg
 .. |coolcoin| image:: https://user-images.githubusercontent.com/1294454/36770529-be7b1a04-1c5b-11e8-9600-d11f1996b539.jpg
+.. |crypton| image:: https://user-images.githubusercontent.com/1294454/41334251-905b5a78-6eed-11e8-91b9-f3aa435078a1.jpg
 .. |cryptopia| image:: https://user-images.githubusercontent.com/1294454/29484394-7b4ea6e2-84c6-11e7-83e5-1fccf4b2dc81.jpg
 .. |dsx| image:: https://user-images.githubusercontent.com/1294454/27990275-1413158a-645a-11e7-931c-94717f7510e3.jpg
 .. |ethfinex| image:: https://user-images.githubusercontent.com/1294454/37555526-7018a77c-29f9-11e8-8835-8e415c038a18.jpg

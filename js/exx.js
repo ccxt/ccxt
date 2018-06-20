@@ -80,6 +80,9 @@ module.exports = class exx extends Exchange {
                     },
                 },
             },
+            'commonCurrencies': {
+                'CAN': 'Content and AD Network',
+            },
         });
     }
 

@@ -292,7 +292,7 @@ class gatecoin extends Exchange {
         $response = $this->privateGetTradeOrdersOrderID (array_merge (array (
             'OrderID' => $id,
         ), $params));
-        return $this->parse_order($response.order);
+        return $this->parse_order($response->order);
     }
 
     public function parse_ticker ($ticker, $market = null) {
@@ -452,9 +452,8 @@ class gatecoin extends Exchange {
                 throw new AuthenticationError ($this->id . ' two-factor authentication requires a missing ValidationCode parameter');
         }
         $response = $this->privatePostTradeOrders (array_merge ($order, $params));
-        // At this point $response.responseStatus.message has been verified
-        // in handleErrors() to be == 'OK', so we assume the $order has
-        // indeed been opened.
+        // At this point $response['responseStatus']['message'] has been verified in handleErrors ()
+        // to be == 'OK', so we assume the $order has indeed been opened
         return array (
             'info' => $response,
             'status' => 'open',
@@ -520,13 +519,13 @@ class gatecoin extends Exchange {
                         $tradesFilled .= $trade['amount'];
                         $tradesCost .= $trade['amount'] * $trade['price'];
                         if (is_array ($trade) && array_key_exists ('fee', $trade)) {
-                            if ($trade['fee']['cost'] != null) {
+                            if ($trade['fee']['cost'] !== null) {
                                 if ($feeCost === null)
                                     $feeCost = 0.0;
                                 $feeCost .= $trade['fee']['cost'];
                             }
                             $feeCurrency = $trade['fee']['currency'];
-                            if ($trade['fee']['rate'] != null) {
+                            if ($trade['fee']['rate'] !== null) {
                                 if ($feeRate === null)
                                     $feeRate = 0.0;
                                 $feeRate .= $trade['fee']['rate'];
@@ -679,7 +678,7 @@ class gatecoin extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
-        if (gettype ($body) != 'string')
+        if (gettype ($body) !== 'string')
             return; // fallback to default error handler
         if (strlen ($body) < 2)
             return; // fallback to default error handler

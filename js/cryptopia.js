@@ -99,6 +99,7 @@ module.exports = class cryptopia extends Exchange {
                 'BAT': 'BatCoin',
                 'BLZ': 'BlazeCoin',
                 'BTG': 'Bitgem',
+                'CAT': 'Catcoin',
                 'CC': 'CCX',
                 'CMT': 'Comet',
                 'EPC': 'ExperienceCoin',
@@ -502,11 +503,10 @@ module.exports = class cryptopia extends Exchange {
                 }
             }
         }
-        let timestamp = this.milliseconds ();
         let order = {
             'id': id,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
@@ -533,9 +533,8 @@ module.exports = class cryptopia extends Exchange {
                 'Type': 'Trade',
                 'OrderId': id,
             }, params));
-            // We do not know if it is indeed canceled, but cryptopia
-            // lacks any reasonable method to get information on executed
-            // or canceled order id.
+            // We do not know if it is indeed canceled, but cryptopia lacks any
+            // reasonable method to get information on executed or canceled order.
             if (id in this.orders)
                 this.orders[id]['status'] = 'canceled';
         } catch (e) {
@@ -592,7 +591,7 @@ module.exports = class cryptopia extends Exchange {
             'timestamp': timestamp,
             'datetime': datetime,
             'lastTradeTimestamp': undefined,
-            'status': order['status'],
+            'status': this.safeString (order, 'status'),
             'symbol': symbol,
             'type': 'limit',
             'side': side,
@@ -759,25 +758,27 @@ module.exports = class cryptopia extends Exchange {
         if (fixedJSONString[0] === '{') {
             let response = JSON.parse (fixedJSONString);
             if ('Success' in response) {
-                const success = this.safeString (response, 'Success');
-                if (success === 'false') {
-                    let error = this.safeString (response, 'Error');
-                    let feedback = this.id;
-                    if (typeof error === 'string') {
-                        feedback = feedback + ' ' + error;
-                        if (error.indexOf ('does not exist') >= 0) {
-                            throw new OrderNotFound (feedback);
+                const success = this.safeValue (response, 'Success');
+                if (typeof success !== 'undefined') {
+                    if (!success) {
+                        let error = this.safeString (response, 'Error');
+                        let feedback = this.id;
+                        if (typeof error === 'string') {
+                            feedback = feedback + ' ' + error;
+                            if (error.indexOf ('does not exist') >= 0) {
+                                throw new OrderNotFound (feedback);
+                            }
+                            if (error.indexOf ('Insufficient Funds') >= 0) {
+                                throw new InsufficientFunds (feedback);
+                            }
+                            if (error.indexOf ('Nonce has already been used') >= 0) {
+                                throw new InvalidNonce (feedback);
+                            }
+                        } else {
+                            feedback = feedback + ' ' + fixedJSONString;
                         }
-                        if (error.indexOf ('Insufficient Funds') >= 0) {
-                            throw new InsufficientFunds (feedback);
-                        }
-                        if (error.indexOf ('Nonce has already been used') >= 0) {
-                            throw new InvalidNonce (feedback);
-                        }
-                    } else {
-                        feedback = feedback + ' ' + fixedJSONString;
+                        throw new ExchangeError (feedback);
                     }
-                    throw new ExchangeError (feedback);
                 }
             }
         }

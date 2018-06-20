@@ -250,18 +250,30 @@ module.exports = class lbank extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        return [
+            ohlcv[0] * 1000,
+            ohlcv[1],
+            ohlcv[2],
+            ohlcv[3],
+            ohlcv[4],
+            ohlcv[5],
+        ];
+    }
+
+    async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = 1000, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
+        if (typeof since === 'undefined')
+            throw new ExchangeError (this.id + ' fetchOHLCV requires a since argument');
+        if (typeof limit === 'undefined')
+            throw new ExchangeError (this.id + ' fetchOHLCV requires a limit argument');
         let request = {
             'symbol': market['id'],
             'type': this.timeframes[timeframe],
-            'size': 1000,
+            'size': limit,
+            'time': parseInt (since / 1000),
         };
-        if (since)
-            request['time'] = parseInt (since / 1000);
-        if (limit)
-            request['size'] = limit;
         let response = await this.publicGetKline (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }

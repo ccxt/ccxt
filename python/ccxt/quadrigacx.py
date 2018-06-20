@@ -26,6 +26,7 @@ class quadrigacx (Exchange):
             'version': 'v2',
             'has': {
                 'fetchDepositAddress': True,
+                'fetchTickers': True,
                 'CORS': True,
                 'withdraw': True,
             },
@@ -106,10 +107,44 @@ class quadrigacx (Exchange):
         timestamp = int(orderbook['timestamp']) * 1000
         return self.parse_order_book(orderbook, timestamp)
 
-    def fetch_ticker(self, symbol, params={}):
-        ticker = self.publicGetTicker(self.extend({
-            'book': self.market_id(symbol),
+    def fetch_tickers(self, symbols=None, params={}):
+        response = self.publicGetTicker(self.extend({
+            'book': 'all',
         }, params))
+        ids = list(response.keys())
+        result = {}
+        for i in range(0, len(ids)):
+            id = ids[i]
+            symbol = id
+            market = None
+            if id in self.markets_by_id:
+                market = self.markets_by_id[id]
+                symbol = market['symbol']
+            else:
+                baseId, quoteId = id.split('_')
+                base = baseId.upper()
+                quote = quoteId.upper()
+                base = self.common_currency_code(base)
+                quote = self.common_currency_code(base)
+                symbol = base + '/' + quote
+                market = {
+                    'symbol': symbol,
+                }
+            result[symbol] = self.parse_ticker(response[id], market)
+        return result
+
+    def fetch_ticker(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        response = self.publicGetTicker(self.extend({
+            'book': market['id'],
+        }, params))
+        return self.parse_ticker(response, market)
+
+    def parse_ticker(self, ticker, market=None):
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         timestamp = int(ticker['timestamp']) * 1000
         vwap = self.safe_float(ticker, 'vwap')
         baseVolume = self.safe_float(ticker, 'volume')

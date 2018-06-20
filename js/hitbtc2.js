@@ -1027,9 +1027,9 @@ module.exports = class hitbtc2 extends hitbtc {
     }
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        // The id needed here is the exchange's id, and not the clientOrderID, which is
-        // the id that is stored in the unified api order id. In order the get the exchange's id,
-        // you need to grab it from order['info']['id']
+        // The id needed here is the exchange's id, and not the clientOrderID,
+        // which is the id that is stored in the unified order id
+        // To get the exchange's id you need to grab it from order['info']['id']
         await this.loadMarkets ();
         let market = undefined;
         if (typeof symbol !== 'undefined')
@@ -1071,7 +1071,7 @@ module.exports = class hitbtc2 extends hitbtc {
         this.checkAddress (address);
         let tag = this.safeString (response, 'paymentId');
         return {
-            'currency': currency.code,
+            'currency': currency['code'],
             'address': address,
             'tag': tag,
             'status': 'ok',

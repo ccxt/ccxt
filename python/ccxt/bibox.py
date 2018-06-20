@@ -133,7 +133,7 @@ class bibox (Exchange):
             symbol = base + '/' + quote
             id = base + '_' + quote
             precision = {
-                'amount': 8,
+                'amount': 4,
                 'price': 8,
             }
             result.append({
@@ -247,7 +247,12 @@ class bibox (Exchange):
             symbol = market['symbol']
         fee = None
         feeCost = self.safe_float(trade, 'fee')
-        feeCurrency = None  # todo: deduce from market if market is defined
+        feeCurrency = self.safe_string(trade, 'fee_symbol')
+        if feeCurrency is not None:
+            if feeCurrency in self.currencies_by_id:
+                feeCurrency = self.currencies_by_id[feeCurrency]['code']
+            else:
+                feeCurrency = self.common_currency_code(feeCurrency)
         feeRate = None  # todo: deduce from market if market is defined
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
@@ -437,20 +442,31 @@ class bibox (Exchange):
                 'id': id,
             }, params),
         })
-        return self.parse_order(response['result'])
+        order = self.safe_value(response, 'result')
+        if self.is_empty(order):
+            raise OrderNotFound(self.id + ' order ' + id + ' not found')
+        return self.parse_order(order)
 
     def parse_order(self, order, market=None):
         symbol = None
-        if market:
+        if market is None:
+            marketId = None
+            baseId = self.safe_string(order, 'coin_symbol')
+            quoteId = self.safe_string(order, 'currency_symbol')
+            if (baseId is not None) and(quoteId is not None):
+                marketId = baseId + '_' + quoteId
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+        if market is not None:
             symbol = market['symbol']
-        else:
-            symbol = order['coin_symbol'] + '/' + order['currency_symbol']
         type = 'market' if (order['order_type'] == 1) else 'limit'
         timestamp = order['createdAt']
         price = self.safe_float(order, 'price')
+        price = self.safe_float(order, 'deal_price', price)
         filled = self.safe_float(order, 'deal_amount')
         amount = self.safe_float(order, 'amount')
         cost = self.safe_float(order, 'money')
+        cost = self.safe_float(order, 'deal_money', cost)
         remaining = None
         if filled is not None:
             if amount is not None:
@@ -483,7 +499,7 @@ class bibox (Exchange):
     def parse_order_status(self, status):
         statuses = {
             # original comments from bibox:
-            '1': 'pending',  # pending
+            '1': 'open',  # pending
             '2': 'open',  # part completed
             '3': 'closed',  # completed
             '4': 'canceled',  # part canceled

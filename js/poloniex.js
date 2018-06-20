@@ -840,32 +840,32 @@ module.exports = class poloniex extends Exchange {
             return;
         }
         if ('error' in response) {
-            const error = response['error'];
+            const message = response['error'];
             const feedback = this.id + ' ' + this.json (response);
-            if (error === 'Invalid order number, or you are not the person who placed the order.') {
+            if (message === 'Invalid order number, or you are not the person who placed the order.') {
                 throw new OrderNotFound (feedback);
-            } else if (error === 'Connection timed out. Please try again.') {
+            } else if (message === 'Connection timed out. Please try again.') {
                 throw new RequestTimeout (feedback);
-            } else if (error === 'Internal error. Please try again.') {
+            } else if (message === 'Internal error. Please try again.') {
                 throw new ExchangeNotAvailable (feedback);
-            } else if (error === 'Order not found, or you are not the person who placed it.') {
+            } else if (message === 'Order not found, or you are not the person who placed it.') {
                 throw new OrderNotFound (feedback);
-            } else if (error === 'Invalid API key/secret pair.') {
+            } else if (message === 'Invalid API key/secret pair.') {
                 throw new AuthenticationError (feedback);
-            } else if (error === 'Please do not make more than 8 API calls per second.') {
+            } else if (message === 'Please do not make more than 8 API calls per second.') {
                 throw new DDoSProtection (feedback);
-            } else if (error.indexOf ('Total must be at least') >= 0) {
+            } else if (message.indexOf ('Total must be at least') >= 0) {
                 throw new InvalidOrder (feedback);
-            } else if (error.indexOf ('This account is frozen.') >= 0) {
+            } else if (message.indexOf ('This account is frozen.') >= 0) {
                 throw new AccountSuspended (feedback);
-            } else if (error.indexOf ('Not enough') >= 0) {
+            } else if (message.indexOf ('Not enough') >= 0) {
                 throw new InsufficientFunds (feedback);
-            } else if (error.indexOf ('Nonce must be greater') >= 0) {
+            } else if (message.indexOf ('Nonce must be greater') >= 0) {
                 throw new InvalidNonce (feedback);
-            } else if (error.indexOf ('You have already called cancelOrder or moveOrder on this order.') >= 0) {
+            } else if (message.indexOf ('You have already called cancelOrder or moveOrder on this order.') >= 0) {
                 throw new CancelPending (feedback);
             } else {
-                throw new ExchangeError (this.id + ': unknown error: ' + this.json (response));
+                throw new ExchangeError (this.id + ' unknown error ' + this.json (response));
             }
         }
     }

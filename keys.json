@@ -40,6 +40,7 @@
     "coinsecure":    { "apiKey": "QUw1StRQpIpcN2PdWEdEHTS8zVDjF98kcQ5LoGIj" },
     "coinspot":      { "apiKey": "f212d2519be1814dce6eb9cfe7f60f7b", "secret": "R5H5DBEL482WC14EAJTDBVLJDDUFL28HV43D5PNM4QEAYR69WW56QKQ1ECG7XYLEB85FBKAFQ68UYWQXJ", "skip": true },
     "coolcoin":      { "skip": true },
+    "crypton"  :     { "skip": true },
     "cryptopia":     { "skip": true },
     "dsx":           { "skip": true, "apiKey": "13bbd413-2d97-4373-8757-72f35b8803cc", "secret": "9X6QHG9Q2U5876D1RNSFJJ02E8P2KGTORSPSC2AMN7YJ" },
     "exx":           { "skip": true },

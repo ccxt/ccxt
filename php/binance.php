@@ -265,6 +265,8 @@ class binance extends Exchange {
                 'recvWindow' => 5 * 1000, // 5 sec, binance default
                 'timeDifference' => 0, // the difference between system clock and Binance clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
+                'parseOrderToPrecision' => false, // force amounts and costs in parseOrder to precision
+                'newOrderRespType' => 'RESULT', // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
             ),
             'exceptions' => array (
                 '-1000' => '\\ccxt\\ExchangeNotAvailable', // array ("code":-1000,"msg":"An unknown error occured while processing the request.")
@@ -508,21 +510,22 @@ class binance extends Exchange {
 
     public function parse_trade ($trade, $market = null) {
         $timestampField = (is_array ($trade) && array_key_exists ('T', $trade)) ? 'T' : 'time';
-        $timestamp = $trade[$timestampField];
+        $timestamp = $this->safe_integer($trade, $timestampField);
         $priceField = (is_array ($trade) && array_key_exists ('p', $trade)) ? 'p' : 'price';
-        $price = floatval ($trade[$priceField]);
+        $price = $this->safe_float($trade, $priceField);
         $amountField = (is_array ($trade) && array_key_exists ('q', $trade)) ? 'q' : 'qty';
-        $amount = floatval ($trade[$amountField]);
+        $amount = $this->safe_float($trade, $amountField);
         $idField = (is_array ($trade) && array_key_exists ('a', $trade)) ? 'a' : 'id';
-        $id = (string) $trade[$idField];
+        $id = $this->safe_string($trade, $idField);
         $side = null;
         $order = null;
         if (is_array ($trade) && array_key_exists ('orderId', $trade))
-            $order = (string) $trade['orderId'];
+            $order = $this->safe_string($trade, 'orderId');
         if (is_array ($trade) && array_key_exists ('m', $trade)) {
             $side = $trade['m'] ? 'sell' : 'buy'; // this is reversed intentionally
         } else {
-            $side = ($trade['isBuyer']) ? 'buy' : 'sell'; // this is a true $side
+            if (is_array ($trade) && array_key_exists ('isBuyer', $trade))
+                $side = ($trade['isBuyer']) ? 'buy' : 'sell'; // this is a true $side
         }
         $fee = null;
         if (is_array ($trade) && array_key_exists ('commission', $trade)) {
@@ -600,10 +603,19 @@ class binance extends Exchange {
         $remaining = null;
         $cost = null;
         if ($filled !== null) {
-            if ($amount !== null)
-                $remaining = max ($amount - $filled, 0.0);
-            if ($price !== null)
+            if ($amount !== null) {
+                $remaining = $amount - $filled;
+                if ($this->options['parseOrderToPrecision']) {
+                    $remaining = floatval ($this->amount_to_precision($symbol, $remaining));
+                }
+                $remaining = max ($remaining, 0.0);
+            }
+            if ($price !== null) {
                 $cost = $price * $filled;
+                if ($this->options['parseOrderToPrecision']) {
+                    $cost = floatval ($this->cost_to_precision($symbol, $cost));
+                }
+            }
         }
         $id = $this->safe_string($order, 'orderId');
         $type = $this->safe_string($order, 'type');
@@ -612,6 +624,22 @@ class binance extends Exchange {
         $side = $this->safe_string($order, 'side');
         if ($side !== null)
             $side = strtolower ($side);
+        $fee = null;
+        $trades = null;
+        $fills = $this->safe_value($order, 'fills');
+        if ($fills !== null) {
+            $trades = $this->parse_trades($fills, $market);
+            $numTrades = is_array ($trades) ? count ($trades) : 0;
+            if ($numTrades > 0) {
+                $fee = array (
+                    'cost' => $trades[0]['fee']['cost'],
+                    'currency' => $trades[0]['fee']['currency'],
+                );
+                for ($i = 1; $i < count ($trades); $i++) {
+                    $fee['cost'] = $this->sum ($fee['cost'], $trades[$i]['fee']['cost']);
+                }
+            }
+        }
         $result = array (
             'info' => $order,
             'id' => $id,
@@ -627,7 +655,8 @@ class binance extends Exchange {
             'filled' => $filled,
             'remaining' => $remaining,
             'status' => $status,
-            'fee' => null,
+            'fee' => $fee,
+            'trades' => $trades,
         );
         return $result;
     }
@@ -648,6 +677,7 @@ class binance extends Exchange {
             'quantity' => $this->amount_to_string($symbol, $amount),
             'type' => $uppercaseType,
             'side' => strtoupper ($side),
+            'newOrderRespType' => $this->options['newOrderRespType'], // 'ACK' for $order id, 'RESULT' for full $order or 'FULL' for $order with fills
         );
         $timeInForceIsRequired = false;
         $priceIsRequired = false;
@@ -681,7 +711,7 @@ class binance extends Exchange {
             }
         }
         $response = $this->$method (array_merge ($order, $params));
-        return $this->parse_order($response);
+        return $this->parse_order($response, $market);
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
@@ -852,7 +882,7 @@ class binance extends Exchange {
             $headers = array (
                 'X-MBX-APIKEY' => $this->apiKey,
             );
-            if (($method === 'GET') || ($api === 'wapi')) {
+            if (($method === 'GET') || ($method === 'DELETE') || ($api === 'wapi')) {
                 $url .= '?' . $query;
             } else {
                 $body = $query;

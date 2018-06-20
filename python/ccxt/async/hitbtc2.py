@@ -1003,9 +1003,9 @@ class hitbtc2 (hitbtc):
         return self.parse_trades(response, market, since, limit)
 
     async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
-        # The id needed here is the exchange's id, and not the clientOrderID, which is
-        # the id that is stored in the unified api order id. In order the get the exchange's id,
-        # you need to grab it from order['info']['id']
+        # The id needed here is the exchange's id, and not the clientOrderID,
+        # which is the id that is stored in the unified order id
+        # To get the exchange's id you need to grab it from order['info']['id']
         await self.load_markets()
         market = None
         if symbol is not None:
@@ -1045,7 +1045,7 @@ class hitbtc2 (hitbtc):
         self.check_address(address)
         tag = self.safe_string(response, 'paymentId')
         return {
-            'currency': currency.code,
+            'currency': currency['code'],
             'address': address,
             'tag': tag,
             'status': 'ok',

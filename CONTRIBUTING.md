@@ -15,6 +15,7 @@ If you want to submit an issue and you want your issue to be resolved quickly, h
   - [Authentication](https://github.com/ccxt-dev/ccxt/wiki/Manual#authentication)
   - [API Keys Setup](https://github.com/ccxt-dev/ccxt/wiki/Manual#api-keys-setup)
 - Read the [Troubleshooting](https://github.com/ccxt-dev/ccxt/wiki/Manual#troubleshooting) section and follow troubleshooting steps.
+- Read the [FAQ](https://github.com/ccxt-dev/ccxt/wiki/Manual) for most frequently asked questions.
 - Read the [API docs](https://github.com/ccxt-dev/ccxt/wiki/Exchange-Markets) for your exchange.
 - Search for similar issues first to avoid duplicates.
 - If your issue is unique, along with a basic description of the failure, the following **IS REQUIRED**:
@@ -69,7 +70,7 @@ If your proposal, suggestion or improvement does not relate to the above list of
 4. portable (available in all supported languages)
 5. robust
 6. explicit in what it's doing
-7. doesn't break anything
+7. doesn't break anything (if you change a method, make sure that all other methods calling the edited method are not broken)
 
 The following is a set of rules for contributing to the ccxt library codebase.
 

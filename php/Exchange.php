@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.14.175';
+$version = '1.14.231';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -44,7 +44,7 @@ const SIGNIFICANT_DIGITS = 1;
 const NO_PADDING = 0;
 const PAD_WITH_ZERO = 1;
 
-abstract class Exchange {
+class Exchange {
 
     public static $exchanges = array (
         '_1broker',
@@ -52,6 +52,7 @@ abstract class Exchange {
         'acx',
         'allcoin',
         'anxpro',
+        'anybits',
         'bibox',
         'binance',
         'bit2c',
@@ -65,6 +66,7 @@ abstract class Exchange {
         'bitlish',
         'bitmarket',
         'bitmex',
+        'bitsane',
         'bitso',
         'bitstamp',
         'bitstamp1',
@@ -102,6 +104,7 @@ abstract class Exchange {
         'coinspot',
         'cointiger',
         'coolcoin',
+        'crypton',
         'cryptopia',
         'dsx',
         'ethfinex',
@@ -377,6 +380,10 @@ abstract class Exchange {
         return array_values ($object);
     }
 
+    public static function is_empty ($object) {
+        return empty ($object);
+    }
+
     public static function keysort ($array) {
         $result = $array;
         ksort ($result);
@@ -485,7 +492,9 @@ abstract class Exchange {
         return $sec . str_pad (substr ($msec, 2, 6), 6, '0');
     }
 
-    public static function iso8601 ($timestamp) {
+    public static function iso8601 ($timestamp = null) {
+        if (!isset ($timestamp))
+            return null;
         if (!is_numeric ($timestamp) || intval ($timestamp) != $timestamp)
             return null;
         $timestamp = (int) $timestamp;
@@ -493,14 +502,17 @@ abstract class Exchange {
             return null;
         $result = date ('c', (int) round ($timestamp / 1000));
         $msec = (int) $timestamp % 1000;
-        return str_replace ('+', sprintf (".%03d+", $msec), $result);
+        $result = str_replace ('+00:00', sprintf (".%03dZ", $msec), $result);
+        return $result;
     }
 
     public static function parse_date ($timestamp) {
         return static::parse8601 ($timestamp);
     }
 
-    public static function parse8601 ($timestamp) {
+    public static function parse8601 ($timestamp = null) {
+        if (!isset ($timestamp))
+            return null;
         if (!$timestamp || !is_string ($timestamp))
             return null;
         $timedata = date_parse ($timestamp);
@@ -1212,12 +1224,14 @@ abstract class Exchange {
 
     public function parse_order_book ($orderbook, $timestamp = null, $bids_key = 'bids', $asks_key = 'asks', $price_key = 0, $amount_key = 1) {
         return array (
-            'bids' => is_array ($orderbook) && array_key_exists ($bids_key, $orderbook) ?
-                $this->parse_bids_asks ($orderbook[$bids_key], $price_key, $amount_key) :
-                array (),
-            'asks' => is_array ($orderbook) && array_key_exists ($asks_key, $orderbook) ?
-                $this->parse_bids_asks ($orderbook[$asks_key], $price_key, $amount_key) :
-                array (),
+            'bids' => $this->sort_by (
+                is_array ($orderbook) && array_key_exists ($bids_key, $orderbook) ?
+                    $this->parse_bids_asks ($orderbook[$bids_key], $price_key, $amount_key) : array (),
+                0, true),
+            'asks' => $this->sort_by (
+                is_array ($orderbook) && array_key_exists ($asks_key, $orderbook) ?
+                    $this->parse_bids_asks ($orderbook[$asks_key], $price_key, $amount_key) : array (),
+                0),
             'timestamp' => $timestamp,
             'datetime' => isset ($timestamp) ? $this->iso8601 ($timestamp) : null,
             'nonce' => null,

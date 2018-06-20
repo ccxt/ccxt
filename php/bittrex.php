@@ -257,7 +257,7 @@ class bittrex extends Exchange {
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = $this->safe_string($ticker, 'TimeStamp');
         $iso8601 = null;
-        if (gettype ($timestamp) == 'string') {
+        if (gettype ($timestamp) === 'string') {
             if (strlen ($timestamp) > 0) {
                 $timestamp = $this->parse8601 ($timestamp);
                 $iso8601 = $this->iso8601 ($timestamp);
@@ -287,7 +287,7 @@ class bittrex extends Exchange {
             'ask' => $this->safe_float($ticker, 'Ask'),
             'askVolume' => null,
             'vwap' => null,
-            'open' => null,
+            'open' => $previous,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
@@ -409,7 +409,7 @@ class bittrex extends Exchange {
             'market' => $market['id'],
         ), $params));
         if (is_array ($response) && array_key_exists ('result', $response)) {
-            if ($response['result'] != null)
+            if ($response['result'] !== null)
                 return $this->parse_trades($response['result'], $market, $since, $limit);
         }
         throw new ExchangeError ($this->id . ' fetchTrades() returned null response');
@@ -513,7 +513,7 @@ class bittrex extends Exchange {
         if ($isSellOrder) {
             $side = 'sell';
         }
-        // We parse different fields in a very specific $order.
+        // We parse different fields in a very specific $order->
         // Order might well be closed and then canceled.
         $status = null;
         if ((is_array ($order) && array_key_exists ('Opened', $order)) && $order['Opened'])
@@ -544,9 +544,9 @@ class bittrex extends Exchange {
         if (is_array ($order) && array_key_exists ('Created', $order))
             $timestamp = $this->parse8601 ($order['Created'] . '+00:00');
         $lastTradeTimestamp = null;
-        if ((is_array ($order) && array_key_exists ('TimeStamp', $order)) && ($order['TimeStamp'] != null))
+        if ((is_array ($order) && array_key_exists ('TimeStamp', $order)) && ($order['TimeStamp'] !== null))
             $lastTradeTimestamp = $this->parse8601 ($order['TimeStamp'] . '+00:00');
-        if ((is_array ($order) && array_key_exists ('Closed', $order)) && ($order['Closed'] != null))
+        if ((is_array ($order) && array_key_exists ('Closed', $order)) && ($order['Closed'] !== null))
             $lastTradeTimestamp = $this->parse8601 ($order['Closed'] . '+00:00');
         if ($timestamp === null)
             $timestamp = $lastTradeTimestamp;
@@ -735,7 +735,7 @@ class bittrex extends Exchange {
             $success = $this->safe_value($response, 'success');
             if ($success === null)
                 throw new ExchangeError ($this->id . ' => malformed $response => ' . $this->json ($response));
-            if (gettype ($success) == 'string')
+            if (gettype ($success) === 'string')
                 // bleutrade uses string instead of boolean
                 $success = ($success === 'true') ? true : false;
             if (!$success) {

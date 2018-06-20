@@ -392,6 +392,7 @@ class livecoin (Exchange):
             'OPEN': 'open',
             'PARTIALLY_FILLED': 'open',
             'EXECUTED': 'closed',
+            'CANCELLED': 'canceled',
             'PARTIALLY_FILLED_AND_CANCELLED': 'canceled',
         }
         if status in statuses:
@@ -442,7 +443,7 @@ class livecoin (Exchange):
             cost = filled * price
         feeRate = self.safe_float(order, 'commission_rate')
         feeCost = None
-        if cost is not None:
+        if cost is not None and feeRate is not None:
             feeCost = cost * feeRate
         feeCurrency = None
         if market is not None:

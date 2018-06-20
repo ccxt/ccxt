@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.14.175'
+__version__ = '1.14.231'
 
 # -----------------------------------------------------------------------------
 
@@ -42,6 +42,7 @@ from ccxt.async._1btcxe import _1btcxe                          # noqa: F401
 from ccxt.async.acx import acx                                  # noqa: F401
 from ccxt.async.allcoin import allcoin                          # noqa: F401
 from ccxt.async.anxpro import anxpro                            # noqa: F401
+from ccxt.async.anybits import anybits                          # noqa: F401
 from ccxt.async.bibox import bibox                              # noqa: F401
 from ccxt.async.binance import binance                          # noqa: F401
 from ccxt.async.bit2c import bit2c                              # noqa: F401
@@ -55,6 +56,7 @@ from ccxt.async.bitkk import bitkk                              # noqa: F401
 from ccxt.async.bitlish import bitlish                          # noqa: F401
 from ccxt.async.bitmarket import bitmarket                      # noqa: F401
 from ccxt.async.bitmex import bitmex                            # noqa: F401
+from ccxt.async.bitsane import bitsane                          # noqa: F401
 from ccxt.async.bitso import bitso                              # noqa: F401
 from ccxt.async.bitstamp import bitstamp                        # noqa: F401
 from ccxt.async.bitstamp1 import bitstamp1                      # noqa: F401
@@ -92,6 +94,7 @@ from ccxt.async.coinsecure import coinsecure                    # noqa: F401
 from ccxt.async.coinspot import coinspot                        # noqa: F401
 from ccxt.async.cointiger import cointiger                      # noqa: F401
 from ccxt.async.coolcoin import coolcoin                        # noqa: F401
+from ccxt.async.crypton import crypton                          # noqa: F401
 from ccxt.async.cryptopia import cryptopia                      # noqa: F401
 from ccxt.async.dsx import dsx                                  # noqa: F401
 from ccxt.async.ethfinex import ethfinex                        # noqa: F401
@@ -160,6 +163,7 @@ exchanges = [
     'acx',
     'allcoin',
     'anxpro',
+    'anybits',
     'bibox',
     'binance',
     'bit2c',
@@ -173,6 +177,7 @@ exchanges = [
     'bitlish',
     'bitmarket',
     'bitmex',
+    'bitsane',
     'bitso',
     'bitstamp',
     'bitstamp1',
@@ -210,6 +215,7 @@ exchanges = [
     'coinspot',
     'cointiger',
     'coolcoin',
+    'crypton',
     'cryptopia',
     'dsx',
     'ethfinex',

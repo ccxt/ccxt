@@ -196,8 +196,8 @@ class lykke (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['volume24H']),
-            'quoteVolume': None,
+            'baseVolume': None,
+            'quoteVolume': float(ticker['volume24H']),
             'info': ticker,
         }
 

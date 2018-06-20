@@ -4,6 +4,7 @@
 
 const huobipro = require ('./huobipro.js');
 const { ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound } = require ('./base/errors');
+const { ROUND, TRUNCATE } = require ('./base/functions/number');
 
 // ---------------------------------------------------------------------------
 
@@ -139,6 +140,9 @@ module.exports = class cointiger extends huobipro {
             { 'precision': { 'amount': 0, 'price': 8 }, 'tierBased': false, 'percentage': true, 'taker': 0.001, 'maker': 0.001, 'id': 'yeebtc', 'uppercaseId': 'YEEBTC', 'symbol': 'YEE/BTC', 'base': 'YEE', 'quote': 'BTC', 'baseId': 'yee', 'quoteId': 'btc', 'active': true, 'info': undefined, 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 1e-8, 'max': undefined }, 'cost': { 'min': 0, 'max': undefined }}},
             { 'precision': { 'amount': 0, 'price': 8 }, 'tierBased': false, 'percentage': true, 'taker': 0.001, 'maker': 0.001, 'id': 'yeeeth', 'uppercaseId': 'YEEETH', 'symbol': 'YEE/ETH', 'base': 'YEE', 'quote': 'ETH', 'baseId': 'yee', 'quoteId': 'eth', 'active': true, 'info': undefined, 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 1e-8, 'max': undefined }, 'cost': { 'min': 0, 'max': undefined }}},
             { 'precision': { 'amount': 4, 'price': 8 }, 'tierBased': false, 'percentage': true, 'taker': 0.001, 'maker': 0.001, 'id': 'zrxbtc', 'uppercaseId': 'ZRXBTC', 'symbol': 'ZRX/BTC', 'base': 'ZRX', 'quote': 'BTC', 'baseId': 'zrx', 'quoteId': 'btc', 'active': true, 'info': undefined, 'limits': { 'amount': { 'min': 0.0001, 'max': undefined }, 'price': { 'min': 1e-8, 'max': undefined }, 'cost': { 'min': 0, 'max': undefined }}},
+            { 'precision': { 'amount': 4, 'price': 2 }, 'tierBased': false, 'percentage': true, 'taker': 0.001, 'maker': 0.001, 'id': 'btcusdt', 'uppercaseId': 'BTCUSDT', 'symbol': 'BTC/USDT', 'base': 'BTC', 'quote': 'USDT', 'baseId': 'btc', 'quoteId': 'usdt', 'active': true, 'info': undefined, 'limits': { 'amount': { 'min': 0.0001, 'max': undefined }, 'price': { 'min': 1e-8, 'max': undefined }, 'cost': { 'min': 0, 'max': undefined }}},
+            { 'precision': { 'amount': 3, 'price': 2 }, 'tierBased': false, 'percentage': true, 'taker': 0.001, 'maker': 0.001, 'id': 'ethusdt', 'uppercaseId': 'ETHUSDT', 'symbol': 'ETH/USDT', 'base': 'ETH', 'quote': 'USDT', 'baseId': 'eth', 'quoteId': 'usdt', 'active': true, 'info': undefined, 'limits': { 'amount': { 'min': 0.001, 'max': undefined }, 'price': { 'min': 1e-8, 'max': undefined }, 'cost': { 'min': 0, 'max': undefined }}},
+            { 'precision': { 'amount': 2, 'price': 2 }, 'tierBased': false, 'percentage': true, 'taker': 0.001, 'maker': 0.001, 'id': 'ltcusdt', 'uppercaseId': 'LTCUSDT', 'symbol': 'LTC/USDT', 'base': 'LTC', 'quote': 'USDT', 'baseId': 'ltc', 'quoteId': 'usdt', 'active': true, 'info': undefined, 'limits': { 'amount': { 'min': 0.01, 'max': undefined }, 'price': { 'min': 1e-8, 'max': undefined }, 'cost': { 'min': 0, 'max': undefined }}},
         ];
         this.options['marketsByUppercaseId'] = this.indexBy (result, 'uppercaseId');
         return result;
@@ -450,6 +454,22 @@ module.exports = class cointiger extends huobipro {
             'fee': undefined,
         };
         return result;
+    }
+
+    costToPrecision (symbol, cost) {
+        return this.decimalToPrecision (cost, ROUND, this.markets[symbol]['precision']['price']);
+    }
+
+    priceToPrecision (symbol, price) {
+        return this.decimalToPrecision (price, ROUND, this.markets[symbol]['precision']['price']);
+    }
+
+    amountToPrecision (symbol, amount) {
+        return this.decimalToPrecision (amount, TRUNCATE, this.markets[symbol]['precision']['amount']);
+    }
+
+    feeToPrecision (currency, fee) {
+        return this.decimalToPrecision (fee, ROUND, this.currencies[currency]['precision']);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

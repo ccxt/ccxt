@@ -140,6 +140,9 @@ class cointiger extends huobipro {
             array ( 'precision' => array ( 'amount' => 0, 'price' => 8 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'yeebtc', 'uppercaseId' => 'YEEBTC', 'symbol' => 'YEE/BTC', 'base' => 'YEE', 'quote' => 'BTC', 'baseId' => 'yee', 'quoteId' => 'btc', 'active' => true, 'info' => null, 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 1e-8, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null ))),
             array ( 'precision' => array ( 'amount' => 0, 'price' => 8 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'yeeeth', 'uppercaseId' => 'YEEETH', 'symbol' => 'YEE/ETH', 'base' => 'YEE', 'quote' => 'ETH', 'baseId' => 'yee', 'quoteId' => 'eth', 'active' => true, 'info' => null, 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 1e-8, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null ))),
             array ( 'precision' => array ( 'amount' => 4, 'price' => 8 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'zrxbtc', 'uppercaseId' => 'ZRXBTC', 'symbol' => 'ZRX/BTC', 'base' => 'ZRX', 'quote' => 'BTC', 'baseId' => 'zrx', 'quoteId' => 'btc', 'active' => true, 'info' => null, 'limits' => array ( 'amount' => array ( 'min' => 0.0001, 'max' => null ), 'price' => array ( 'min' => 1e-8, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null ))),
+            array ( 'precision' => array ( 'amount' => 4, 'price' => 2 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'btcusdt', 'uppercaseId' => 'BTCUSDT', 'symbol' => 'BTC/USDT', 'base' => 'BTC', 'quote' => 'USDT', 'baseId' => 'btc', 'quoteId' => 'usdt', 'active' => true, 'info' => null, 'limits' => array ( 'amount' => array ( 'min' => 0.0001, 'max' => null ), 'price' => array ( 'min' => 1e-8, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null ))),
+            array ( 'precision' => array ( 'amount' => 3, 'price' => 2 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'ethusdt', 'uppercaseId' => 'ETHUSDT', 'symbol' => 'ETH/USDT', 'base' => 'ETH', 'quote' => 'USDT', 'baseId' => 'eth', 'quoteId' => 'usdt', 'active' => true, 'info' => null, 'limits' => array ( 'amount' => array ( 'min' => 0.001, 'max' => null ), 'price' => array ( 'min' => 1e-8, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null ))),
+            array ( 'precision' => array ( 'amount' => 2, 'price' => 2 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'ltcusdt', 'uppercaseId' => 'LTCUSDT', 'symbol' => 'LTC/USDT', 'base' => 'LTC', 'quote' => 'USDT', 'baseId' => 'ltc', 'quoteId' => 'usdt', 'active' => true, 'info' => null, 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 1e-8, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null ))),
         );
         $this->options['marketsByUppercaseId'] = $this->index_by($result, 'uppercaseId');
         return $result;
@@ -453,6 +456,22 @@ class cointiger extends huobipro {
         return $result;
     }
 
+    public function cost_to_precision ($symbol, $cost) {
+        return $this->decimal_to_precision($cost, ROUND, $this->markets[$symbol]['precision']['price']);
+    }
+
+    public function price_to_precision ($symbol, $price) {
+        return $this->decimal_to_precision($price, ROUND, $this->markets[$symbol]['precision']['price']);
+    }
+
+    public function amount_to_precision ($symbol, $amount) {
+        return $this->decimal_to_precision($amount, TRUNCATE, $this->markets[$symbol]['precision']['amount']);
+    }
+
+    public function fee_to_precision ($currency, $fee) {
+        return $this->decimal_to_precision($fee, ROUND, $this->currencies[$currency]['precision']);
+    }
+
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         if (!$this->password)
@@ -563,7 +582,7 @@ class cointiger extends huobipro {
     }
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body) {
-        if (gettype ($body) != 'string')
+        if (gettype ($body) !== 'string')
             return; // fallback to default error handler
         if (strlen ($body) < 2)
             return; // fallback to default error handler

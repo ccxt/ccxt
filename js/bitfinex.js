@@ -272,6 +272,7 @@ module.exports = class bitfinex extends Exchange {
                     'Key amount should be a decimal number, e.g. "123.456"': InvalidOrder, // on isNaN (amount)
                     'ERR_RATE_LIMIT': DDoSProtection,
                     'Nonce is too small.': InvalidNonce,
+                    'No summary found.': ExchangeError, // fetchTradingFees (summary) endpoint can give this vague error message
                 },
                 'broad': {
                     'Invalid order: not enough exchange balance for ': InsufficientFunds, // when buying cost is greater than the available quote currency
@@ -821,8 +822,8 @@ module.exports = class bitfinex extends Exchange {
         let errorMessage = this.findBroadlyMatchedKey (this.exceptions['broad'], message);
         if (id === 0) {
             if (typeof errorMessage !== 'undefined') {
-                let Exception = this.exceptions['broad'][errorMessage];
-                throw new Exception (this.id + ' ' + message);
+                let ExceptionClass = this.exceptions['broad'][errorMessage];
+                throw new ExceptionClass (this.id + ' ' + message);
             }
             throw new ExchangeError (this.id + ' withdraw returned an id of zero: ' + this.json (response));
         }

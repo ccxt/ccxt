@@ -108,6 +108,8 @@ The ccxt library currently supports the following cryptocurrency exchange market
 +----------------------------+------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | EU                         | |coinmate|             | coinmate             | `CoinMate <https://coinmate.io>`__                                                | \*    | `API <http://docs.coinmate.apiary.io>`__                                                          |
 +----------------------------+------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
+| EU                         | |crypton|              | crypton              | `Crypton <https://cryptonbtc.com>`__                                              | 1     | `API <https://cryptonbtc.docs.apiary.io/>`__                                                      |
++----------------------------+------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | EU                         | |paymium|              | paymium              | `Paymium <https://www.paymium.com>`__                                             | 1     | `API <https://github.com/Paymium/api-documentation>`__                                            |
 +----------------------------+------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | EU                         | |virwox|               | virwox               | `VirWoX <https://www.virwox.com>`__                                               | \*    | `API <https://www.virwox.com/developers.php>`__                                                   |
@@ -145,6 +147,10 @@ The ccxt library currently supports the following cryptocurrency exchange market
 | Indonesia                  | |coincheck|            | coincheck            | `coincheck <https://coincheck.com>`__                                             | \*    | `API <https://coincheck.com/documents/exchange/api>`__                                            |
 +----------------------------+------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | Indonesia                  | |indodax|              | indodax              | `INDODAX <https://www.indodax.com>`__                                             | 1.8   | `API <https://indodax.com/downloads/BITCOINCOID-API-DOCUMENTATION.pdf>`__                         |
++----------------------------+------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
+| Ireland                    | |anybits|              | anybits              | `Anybits <https://anybits.com>`__                                                 | \*    | `API <https://anybits.com/help/api>`__                                                            |
++----------------------------+------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
+| Ireland                    | |bitsane|              | bitsane              | `Bitsane <https://bitsane.com>`__                                                 | \*    | `API <https://bitsane.com/info-api>`__                                                            |
 +----------------------------+------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
 | Israel                     | |bit2c|                | bit2c                | `Bit2C <https://www.bit2c.co.il>`__                                               | \*    | `API <https://www.bit2c.co.il/home/api>`__                                                        |
 +----------------------------+------------------------+----------------------+-----------------------------------------------------------------------------------+-------+---------------------------------------------------------------------------------------------------+
@@ -371,6 +377,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
 .. |bl3p| image:: https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg
 .. |btcx| image:: https://user-images.githubusercontent.com/1294454/27766385-9fdcc98c-5ed6-11e7-8f14-66d5e5cd47e6.jpg
 .. |ccex| image:: https://user-images.githubusercontent.com/1294454/27766433-16881f90-5ed8-11e7-92f8-3d92cc747a6c.jpg
+.. |crypton| image:: https://user-images.githubusercontent.com/1294454/41334251-905b5a78-6eed-11e8-91b9-f3aa435078a1.jpg
 .. |paymium| image:: https://user-images.githubusercontent.com/1294454/27790564-a945a9d4-5ff9-11e7-9d2d-b635763f2f24.jpg
 .. |anxpro| image:: https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg
 .. |bitz| image:: https://user-images.githubusercontent.com/1294454/35862606-4f554f14-0b5d-11e8-957d-35058c504b6f.jpg
@@ -386,6 +393,8 @@ The ccxt library currently supports the following cryptocurrency exchange market
 .. |coinsecure| image:: https://user-images.githubusercontent.com/1294454/27766472-9cbd200a-5ed9-11e7-9551-2267ad7bac08.jpg
 .. |coincheck| image:: https://user-images.githubusercontent.com/1294454/27766464-3b5c3c74-5ed9-11e7-840e-31b32968e1da.jpg
 .. |indodax| image:: https://user-images.githubusercontent.com/1294454/37443283-2fddd0e4-281c-11e8-9741-b4f1419001b5.jpg
+.. |anybits| image:: https://user-images.githubusercontent.com/1294454/41388454-ae227544-6f94-11e8-82a4-127d51d34903.jpg
+.. |bitsane| image:: https://user-images.githubusercontent.com/1294454/41387105-d86bf4c6-6f8d-11e8-95ea-2fa943872955.jpg
 .. |bit2c| image:: https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg
 .. |binance| image:: https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg
 .. |bitbank| image:: https://user-images.githubusercontent.com/1294454/37808081-b87f2d9c-2e59-11e8-894d-c1900b7584fe.jpg

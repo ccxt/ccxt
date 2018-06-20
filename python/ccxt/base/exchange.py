@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.14.175'
+__version__ = '1.14.231'
 
 # -----------------------------------------------------------------------------
 
@@ -410,8 +410,9 @@ class Exchange(object):
     def handle_rest_response(self, response, url, method='GET', headers=None, body=None):
         try:
             if self.parseJsonResponse:
-                self.last_json_response = json.loads(response) if len(response) > 1 else None
-                return self.last_json_response
+                last_json_response = json.loads(response) if len(response) > 1 else None
+                self.last_json_response = last_json_response
+                return last_json_response
             else:
                 return response
         except ValueError as e:  # ValueError == JsonDecodeError
@@ -562,6 +563,10 @@ class Exchange(object):
     @staticmethod
     def in_array(needle, haystack):
         return needle in haystack
+
+    @staticmethod
+    def is_empty(object):
+        return not object
 
     @staticmethod
     def extract_params(string):
@@ -975,7 +980,7 @@ class Exchange(object):
         self.raise_error(NotSupported, details='cancel_order() not implemented yet')
 
     def fetch_bids_asks(self, symbols=None, params={}):
-        self.raise_error(NotSupported, details='API does not allow to fetch all prices at once with a single call to fetch_bid_asks() for now')
+        self.raise_error(NotSupported, details='API does not allow to fetch all prices at once with a single call to fetch_bids_asks() for now')
 
     def fetch_tickers(self, symbols=None, params={}):
         self.raise_error(NotSupported, details='API does not allow to fetch all tickers at once with a single call to fetch_tickers() for now')

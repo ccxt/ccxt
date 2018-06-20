@@ -548,6 +548,7 @@ class coinexchange extends Exchange {
                 'HNC' => 'Huncoin',
                 'MARS' => 'MarsBux',
                 'MER' => 'TheMermaidCoin',
+                'PUT' => 'PutinCoin',
                 'RUB' => 'RubbleCoin',
                 'UP' => 'UpscaleToken',
             ),

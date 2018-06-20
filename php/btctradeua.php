@@ -164,13 +164,13 @@ class btctradeua extends Exchange {
             $start = max ($tickerLength - 48, 0);
             for ($t = $start; $t < count ($ticker); $t++) {
                 $candle = $ticker[$t];
-                if ($result['open'] == null)
+                if ($result['open'] === null)
                     $result['open'] = $candle[1];
-                if (($result['high'] == null) || ($result['high'] < $candle[2]))
+                if (($result['high'] === null) || ($result['high'] < $candle[2]))
                     $result['high'] = $candle[2];
-                if (($result['low'] == null) || ($result['low'] > $candle[3]))
+                if (($result['low'] === null) || ($result['low'] > $candle[3]))
                     $result['low'] = $candle[3];
-                if ($result['baseVolume'] == null)
+                if ($result['baseVolume'] === null)
                     $result['baseVolume'] = -$candle[5];
                 else
                     $result['baseVolume'] -= $candle[5];

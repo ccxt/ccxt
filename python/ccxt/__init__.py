@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.14.175'
+__version__ = '1.14.231'
 
 # ----------------------------------------------------------------------------
 
@@ -63,6 +63,7 @@ from ccxt._1btcxe import _1btcxe                            # noqa: F401
 from ccxt.acx import acx                                    # noqa: F401
 from ccxt.allcoin import allcoin                            # noqa: F401
 from ccxt.anxpro import anxpro                              # noqa: F401
+from ccxt.anybits import anybits                            # noqa: F401
 from ccxt.bibox import bibox                                # noqa: F401
 from ccxt.binance import binance                            # noqa: F401
 from ccxt.bit2c import bit2c                                # noqa: F401
@@ -76,6 +77,7 @@ from ccxt.bitkk import bitkk                                # noqa: F401
 from ccxt.bitlish import bitlish                            # noqa: F401
 from ccxt.bitmarket import bitmarket                        # noqa: F401
 from ccxt.bitmex import bitmex                              # noqa: F401
+from ccxt.bitsane import bitsane                            # noqa: F401
 from ccxt.bitso import bitso                                # noqa: F401
 from ccxt.bitstamp import bitstamp                          # noqa: F401
 from ccxt.bitstamp1 import bitstamp1                        # noqa: F401
@@ -113,6 +115,7 @@ from ccxt.coinsecure import coinsecure                      # noqa: F401
 from ccxt.coinspot import coinspot                          # noqa: F401
 from ccxt.cointiger import cointiger                        # noqa: F401
 from ccxt.coolcoin import coolcoin                          # noqa: F401
+from ccxt.crypton import crypton                            # noqa: F401
 from ccxt.cryptopia import cryptopia                        # noqa: F401
 from ccxt.dsx import dsx                                    # noqa: F401
 from ccxt.ethfinex import ethfinex                          # noqa: F401
@@ -181,6 +184,7 @@ exchanges = [
     'acx',
     'allcoin',
     'anxpro',
+    'anybits',
     'bibox',
     'binance',
     'bit2c',
@@ -194,6 +198,7 @@ exchanges = [
     'bitlish',
     'bitmarket',
     'bitmex',
+    'bitsane',
     'bitso',
     'bitstamp',
     'bitstamp1',
@@ -231,6 +236,7 @@ exchanges = [
     'coinspot',
     'cointiger',
     'coolcoin',
+    'crypton',
     'cryptopia',
     'dsx',
     'ethfinex',

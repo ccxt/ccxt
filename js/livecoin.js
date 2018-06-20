@@ -393,6 +393,7 @@ module.exports = class livecoin extends Exchange {
             'OPEN': 'open',
             'PARTIALLY_FILLED': 'open',
             'EXECUTED': 'closed',
+            'CANCELLED': 'canceled',
             'PARTIALLY_FILLED_AND_CANCELLED': 'canceled',
         };
         if (status in statuses)
@@ -452,7 +453,7 @@ module.exports = class livecoin extends Exchange {
         }
         const feeRate = this.safeFloat (order, 'commission_rate');
         let feeCost = undefined;
-        if (typeof cost !== 'undefined') {
+        if (typeof cost !== 'undefined' && typeof feeRate !== 'undefined') {
             feeCost = cost * feeRate;
         }
         let feeCurrency = undefined;

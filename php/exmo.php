@@ -403,8 +403,8 @@ class exmo extends Exchange {
                         'filled' => $order['amount'],
                         'remaining' => 0.0,
                     ));
-                    if ($order['cost'] == null) {
-                        if ($order['filled'] != null)
+                    if ($order['cost'] === null) {
+                        if ($order['filled'] !== null)
                             $order['cost'] = $order['filled'] * $order['price'];
                     }
                     $this->orders[$id] = $order;
@@ -635,7 +635,7 @@ class exmo extends Exchange {
     }
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body) {
-        if (gettype ($body) != 'string')
+        if (gettype ($body) !== 'string')
             return; // fallback to default error handler
         if (strlen ($body) < 2)
             return; // fallback to default error handler
@@ -646,7 +646,7 @@ class exmo extends Exchange {
                 //     array ("result":false,"error":"Error 50052 => Insufficient funds")
                 //
                 $success = $this->safe_value($response, 'result', false);
-                if (gettype ($success) == 'string') {
+                if (gettype ($success) === 'string') {
                     if (($success === 'true') || ($success === '1'))
                         $success = true;
                     else

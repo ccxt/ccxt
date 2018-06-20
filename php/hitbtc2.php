@@ -1028,9 +1028,9 @@ class hitbtc2 extends hitbtc {
     }
 
     public function fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
-        // The $id needed here is the exchange's $id, and not the clientOrderID, which is
-        // the $id that is stored in the unified api order $id. In order the get the exchange's $id,
-        // you need to grab it from order['info']['id']
+        // The $id needed here is the exchange's $id, and not the clientOrderID,
+        // which is the $id that is stored in the unified order $id
+        // To get the exchange's $id you need to grab it from order['info']['id']
         $this->load_markets();
         $market = null;
         if ($symbol !== null)
@@ -1072,7 +1072,7 @@ class hitbtc2 extends hitbtc {
         $this->check_address($address);
         $tag = $this->safe_string($response, 'paymentId');
         return array (
-            'currency' => $currency.code,
+            'currency' => $currency['code'],
             'address' => $address,
             'tag' => $tag,
             'status' => 'ok',
@@ -1126,7 +1126,7 @@ class hitbtc2 extends hitbtc {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
-        if (gettype ($body) != 'string')
+        if (gettype ($body) !== 'string')
             return;
         if ($code >= 400) {
             $feedback = $this->id . ' ' . $body;

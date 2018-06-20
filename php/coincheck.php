@@ -176,7 +176,7 @@ class coincheck extends Exchange {
         ), $params));
         if (is_array ($response) && array_key_exists ('success', $response))
             if ($response['success'])
-                if ($response['data'] != null)
+                if ($response['data'] !== null)
                     return $this->parse_trades($response['data'], $market, $since, $limit);
         throw new ExchangeError ($this->id . ' ' . $this->json ($response));
     }

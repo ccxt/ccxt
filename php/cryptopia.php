@@ -100,6 +100,7 @@ class cryptopia extends Exchange {
                 'BAT' => 'BatCoin',
                 'BLZ' => 'BlazeCoin',
                 'BTG' => 'Bitgem',
+                'CAT' => 'Catcoin',
                 'CC' => 'CCX',
                 'CMT' => 'Comet',
                 'EPC' => 'ExperienceCoin',
@@ -503,11 +504,10 @@ class cryptopia extends Exchange {
                 }
             }
         }
-        $timestamp = $this->milliseconds ();
         $order = array (
             'id' => $id,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
@@ -534,9 +534,8 @@ class cryptopia extends Exchange {
                 'Type' => 'Trade',
                 'OrderId' => $id,
             ), $params));
-            // We do not know if it is indeed canceled, but cryptopia
-            // lacks any reasonable method to get information on executed
-            // or canceled order $id.
+            // We do not know if it is indeed canceled, but cryptopia lacks any
+            // reasonable method to get information on executed or canceled order.
             if (is_array ($this->orders) && array_key_exists ($id, $this->orders))
                 $this->orders[$id]['status'] = 'canceled';
         } catch (Exception $e) {
@@ -593,7 +592,7 @@ class cryptopia extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $datetime,
             'lastTradeTimestamp' => null,
-            'status' => $order['status'],
+            'status' => $this->safe_string($order, 'status'),
             'symbol' => $symbol,
             'type' => 'limit',
             'side' => $side,
@@ -752,7 +751,7 @@ class cryptopia extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
-        if (gettype ($body) != 'string')
+        if (gettype ($body) !== 'string')
             return; // fallback to default $error handler
         if (strlen ($body) < 2)
             return; // fallback to default $error handler
@@ -760,25 +759,27 @@ class cryptopia extends Exchange {
         if ($fixedJSONString[0] === '{') {
             $response = json_decode ($fixedJSONString, $as_associative_array = true);
             if (is_array ($response) && array_key_exists ('Success', $response)) {
-                $success = $this->safe_string($response, 'Success');
-                if ($success === 'false') {
-                    $error = $this->safe_string($response, 'Error');
-                    $feedback = $this->id;
-                    if (gettype ($error) == 'string') {
-                        $feedback = $feedback . ' ' . $error;
-                        if (mb_strpos ($error, 'does not exist') !== false) {
-                            throw new OrderNotFound ($feedback);
+                $success = $this->safe_value($response, 'Success');
+                if ($success !== null) {
+                    if (!$success) {
+                        $error = $this->safe_string($response, 'Error');
+                        $feedback = $this->id;
+                        if (gettype ($error) === 'string') {
+                            $feedback = $feedback . ' ' . $error;
+                            if (mb_strpos ($error, 'does not exist') !== false) {
+                                throw new OrderNotFound ($feedback);
+                            }
+                            if (mb_strpos ($error, 'Insufficient Funds') !== false) {
+                                throw new InsufficientFunds ($feedback);
+                            }
+                            if (mb_strpos ($error, 'Nonce has already been used') !== false) {
+                                throw new InvalidNonce ($feedback);
+                            }
+                        } else {
+                            $feedback = $feedback . ' ' . $fixedJSONString;
                         }
-                        if (mb_strpos ($error, 'Insufficient Funds') !== false) {
-                            throw new InsufficientFunds ($feedback);
-                        }
-                        if (mb_strpos ($error, 'Nonce has already been used') !== false) {
-                            throw new InvalidNonce ($feedback);
-                        }
-                    } else {
-                        $feedback = $feedback . ' ' . $fixedJSONString;
+                        throw new ExchangeError ($feedback);
                     }
-                    throw new ExchangeError ($feedback);
                 }
             }
         }

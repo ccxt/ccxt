@@ -6,6 +6,7 @@
 from ccxt.async.base.exchange import Exchange
 import base64
 import hashlib
+import math
 from ccxt.base.errors import ExchangeError
 
 
@@ -52,13 +53,58 @@ class btcturk (Exchange):
                     ],
                 },
             },
-            'markets': {
-                'BTC/TRY': {'id': 'BTCTRY', 'symbol': 'BTC/TRY', 'base': 'BTC', 'quote': 'TRY', 'baseId': 'btc', 'quoteId': 'try', 'maker': 0.002 * 1.18, 'taker': 0.0035 * 1.18},
-                'ETH/TRY': {'id': 'ETHTRY', 'symbol': 'ETH/TRY', 'base': 'ETH', 'quote': 'TRY', 'baseId': 'eth', 'quoteId': 'try', 'maker': 0.002 * 1.18, 'taker': 0.0035 * 1.18},
-                'XRP/TRY': {'id': 'XRPTRY', 'symbol': 'XRP/TRY', 'base': 'XRP', 'quote': 'TRY', 'baseId': 'xrp', 'quoteId': 'try', 'maker': 0.002 * 1.18, 'taker': 0.0035 * 1.18},
-                'ETH/BTC': {'id': 'ETHBTC', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'baseId': 'eth', 'quoteId': 'btc', 'maker': 0.002 * 1.18, 'taker': 0.0035 * 1.18},
+            'fees': {
+                'trading': {
+                    'maker': 0.002 * 1.18,
+                    'taker': 0.0035 * 1.18,
+                },
             },
         })
+
+    async def fetch_markets(self):
+        response = await self.publicGetTicker()
+        result = []
+        for i in range(0, len(response)):
+            market = response[i]
+            id = market['pair']
+            baseId = id[0:3]
+            quoteId = id[3:6]
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
+            baseId = baseId.lower()
+            quoteId = quoteId.lower()
+            symbol = base + '/' + quote
+            precision = {
+                'amount': 8,
+                'price': 8,
+            }
+            active = True
+            result.append({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': active,
+                'info': market,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': math.pow(10, -precision['amount']),
+                        'max': None,
+                    },
+                    'price': {
+                        'min': math.pow(10, -precision['price']),
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+            })
+        return result
 
     async def fetch_balance(self, params={}):
         response = await self.privateGetBalance()

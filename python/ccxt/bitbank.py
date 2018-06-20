@@ -56,8 +56,8 @@ class bitbank (Exchange):
                         '{pair}/ticker',
                         '{pair}/depth',
                         '{pair}/transactions',
-                        '{pair}/transactions/{YYYYMMDD}',
-                        '{pair}/candlestick/{candle-type}/{YYYYMMDD}',
+                        '{pair}/transactions/{yyyymmdd}',
+                        '{pair}/candlestick/{candle-type}/{yyyymmdd}',
                     ],
                 },
                 'private': {
@@ -225,10 +225,10 @@ class bitbank (Exchange):
         date = self.milliseconds()
         date = self.ymd(date)
         date = date.split('-')
-        response = self.publicGetPairCandlestickCandleTypeYYYYMMDD(self.extend({
+        response = self.publicGetPairCandlestickCandleTypeYyyymmdd(self.extend({
             'pair': market['id'],
             'candle-type': self.timeframes[timeframe],
-            'YYYYMMDD': ''.join(date),
+            'yyyymmdd': ''.join(date),
         }, params))
         ohlcv = response['data']['candlestick'][0]['ohlcv']
         return self.parse_ohlcvs(ohlcv, market, timeframe, since, limit)
@@ -372,7 +372,7 @@ class bitbank (Exchange):
         response = self.privateGetUserWithdrawalAccount(self.extend({
             'asset': currency['id'],
         }, params))
-        # Not sure about self if there could be more accounts...
+        # Not sure about self if there could be more than one account...
         accounts = response['data']['accounts']
         address = self.safe_string(accounts[0], 'address')
         status = 'ok' if address else 'none'

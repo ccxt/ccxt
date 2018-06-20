@@ -401,10 +401,10 @@ class cobinhood (Exchange):
         if market is None:
             marketId = self.safe_string(order, 'trading_pair')
             marketId = self.safe_string(order, 'trading_pair_id', marketId)
-            market = self.markets_by_id[marketId]
+            market = self.safe_value(self.markets_by_id, marketId)
         if market is not None:
             symbol = market['symbol']
-        timestamp = order['timestamp']
+        timestamp = self.safe_integer(order, 'timestamp')
         price = self.safe_float(order, 'eq_price')
         amount = self.safe_float(order, 'size')
         filled = self.safe_float(order, 'filled')
@@ -422,13 +422,13 @@ class cobinhood (Exchange):
         elif side == 'ask':
             side = 'sell'
         return {
-            'id': order['id'],
+            'id': self.safe_string(order, 'id'),
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
-            'type': order['type'],  # market, limit, stop, stop_limit, trailing_stop, fill_or_kill
+            'type': self.safe_string(order, 'type'),  # market, limit, stop, stop_limit, trailing_stop, fill_or_kill
             'side': side,
             'price': price,
             'cost': cost,
@@ -462,7 +462,9 @@ class cobinhood (Exchange):
         response = self.privateDeleteTradingOrdersOrderId(self.extend({
             'order_id': id,
         }, params))
-        return self.parse_order(response)
+        return self.parse_order(self.extend(response, {
+            'id': id,
+        }))
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()

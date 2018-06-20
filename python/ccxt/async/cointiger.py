@@ -19,6 +19,8 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.decimal_to_precision import ROUND
+from ccxt.base.decimal_to_precision import TRUNCATE
 
 
 class cointiger (huobipro):
@@ -153,6 +155,9 @@ class cointiger (huobipro):
             {'precision': {'amount': 0, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'yeebtc', 'uppercaseId': 'YEEBTC', 'symbol': 'YEE/BTC', 'base': 'YEE', 'quote': 'BTC', 'baseId': 'yee', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
             {'precision': {'amount': 0, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'yeeeth', 'uppercaseId': 'YEEETH', 'symbol': 'YEE/ETH', 'base': 'YEE', 'quote': 'ETH', 'baseId': 'yee', 'quoteId': 'eth', 'active': True, 'info': None, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
             {'precision': {'amount': 4, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'zrxbtc', 'uppercaseId': 'ZRXBTC', 'symbol': 'ZRX/BTC', 'base': 'ZRX', 'quote': 'BTC', 'baseId': 'zrx', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.0001, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
+            {'precision': {'amount': 4, 'price': 2}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'btcusdt', 'uppercaseId': 'BTCUSDT', 'symbol': 'BTC/USDT', 'base': 'BTC', 'quote': 'USDT', 'baseId': 'btc', 'quoteId': 'usdt', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.0001, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
+            {'precision': {'amount': 3, 'price': 2}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'ethusdt', 'uppercaseId': 'ETHUSDT', 'symbol': 'ETH/USDT', 'base': 'ETH', 'quote': 'USDT', 'baseId': 'eth', 'quoteId': 'usdt', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.001, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
+            {'precision': {'amount': 2, 'price': 2}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'ltcusdt', 'uppercaseId': 'LTCUSDT', 'symbol': 'LTC/USDT', 'base': 'LTC', 'quote': 'USDT', 'baseId': 'ltc', 'quoteId': 'usdt', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
         ]
         self.options['marketsByUppercaseId'] = self.index_by(result, 'uppercaseId')
         return result
@@ -441,6 +446,18 @@ class cointiger (huobipro):
             'fee': None,
         }
         return result
+
+    def cost_to_precision(self, symbol, cost):
+        return self.decimal_to_precision(cost, ROUND, self.markets[symbol]['precision']['price'])
+
+    def price_to_precision(self, symbol, price):
+        return self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'])
+
+    def amount_to_precision(self, symbol, amount):
+        return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'])
+
+    def fee_to_precision(self, currency, fee):
+        return self.decimal_to_precision(fee, ROUND, self.currencies[currency]['precision'])
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()

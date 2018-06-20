@@ -117,7 +117,7 @@ class bibox extends Exchange {
             $symbol = $base . '/' . $quote;
             $id = $base . '_' . $quote;
             $precision = array (
-                'amount' => 8,
+                'amount' => 4,
                 'price' => 8,
             );
             $result[] = array (
@@ -243,7 +243,14 @@ class bibox extends Exchange {
         }
         $fee = null;
         $feeCost = $this->safe_float($trade, 'fee');
-        $feeCurrency = null; // todo => deduce from $market if $market is defined
+        $feeCurrency = $this->safe_string($trade, 'fee_symbol');
+        if ($feeCurrency !== null) {
+            if (is_array ($this->currencies_by_id) && array_key_exists ($feeCurrency, $this->currencies_by_id)) {
+                $feeCurrency = $this->currencies_by_id[$feeCurrency]['code'];
+            } else {
+                $feeCurrency = $this->common_currency_code($feeCurrency);
+            }
+        }
         $feeRate = null; // todo => deduce from $market if $market is defined
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
@@ -394,7 +401,7 @@ class bibox extends Exchange {
             }
             $account = $this->account ();
             $balance = $indexed[$id];
-            if (gettype ($balance) == 'string') {
+            if (gettype ($balance) === 'string') {
                 $balance = floatval ($balance);
                 $account['free'] = $balance;
                 $account['used'] = 0.0;
@@ -449,22 +456,35 @@ class bibox extends Exchange {
                 'id' => $id,
             ), $params),
         ));
-        return $this->parse_order($response['result']);
+        $order = $this->safe_value($response, 'result');
+        if ($this->is_empty($order)) {
+            throw new OrderNotFound ($this->id . ' $order ' . $id . ' not found');
+        }
+        return $this->parse_order($order);
     }
 
     public function parse_order ($order, $market = null) {
         $symbol = null;
-        if ($market) {
+        if ($market === null) {
+            $marketId = null;
+            $baseId = $this->safe_string($order, 'coin_symbol');
+            $quoteId = $this->safe_string($order, 'currency_symbol');
+            if (($baseId !== null) && ($quoteId !== null))
+                $marketId = $baseId . '_' . $quoteId;
+            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
+                $market = $this->markets_by_id[$marketId];
+        }
+        if ($market !== null) {
             $symbol = $market['symbol'];
-        } else {
-            $symbol = $order['coin_symbol'] . '/' . $order['currency_symbol'];
         }
         $type = ($order['order_type'] === 1) ? 'market' : 'limit';
         $timestamp = $order['createdAt'];
         $price = $this->safe_float($order, 'price');
+        $price = $this->safe_float($order, 'deal_price', $price);
         $filled = $this->safe_float($order, 'deal_amount');
         $amount = $this->safe_float($order, 'amount');
         $cost = $this->safe_float($order, 'money');
+        $cost = $this->safe_float($order, 'deal_money', $cost);
         $remaining = null;
         if ($filled !== null) {
             if ($amount !== null)
@@ -499,7 +519,7 @@ class bibox extends Exchange {
     public function parse_order_status ($status) {
         $statuses = array (
             // original comments from bibox:
-            '1' => 'pending', // pending
+            '1' => 'open', // pending
             '2' => 'open', // part completed
             '3' => 'closed', // completed
             '4' => 'canceled', // part canceled

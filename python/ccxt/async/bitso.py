@@ -396,7 +396,7 @@ class bitso (Exchange):
         address = self.safe_string(response['payload'], 'account_identifier')
         tag = None
         if code == 'XRP':
-            parts = address.split('?dt=', 2)
+            parts = address.split('?dt=')
             address = parts[0]
             tag = parts[1]
         self.check_address(address)

@@ -45,6 +45,7 @@ const commonRegexes = [
     [ /\.safeValue\s/g, '.safe_value'],
     [ /\.inArray\s/g, '.in_array'],
     [ /\.toArray\s/g, '.to_array'],
+    [ /\.isEmpty\s/g, '.is_empty'],
     [ /\.arrayConcat\s/g, '.array_concat'],
     [ /\.binaryConcat\s/g, '.binary_concat'],
     [ /\.binaryToString\s/g, '.binary_to_string' ],
@@ -133,6 +134,8 @@ const pythonRegexes = [
     [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'undefined\'/g, '$1[$2] is not None' ],
     [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'undefined\'/g, '$1 is None' ],
     [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'undefined\'/g, '$1 is not None' ],
+    [ /typeof\s+(.+?)\s+\=\=\=?\s+\'undefined\'/g, '$1 is None' ],
+    [ /typeof\s+(.+?)\s+\!\=\=?\s+\'undefined\'/g, '$1 is not None' ],
     [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'string\'/g, 'isinstance($1[$2], basestring)' ],
     [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'string\'/g, 'not isinstance($1[$2], basestring)' ],
     [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'string\'/g, 'isinstance($1, basestring)' ],
@@ -209,8 +212,9 @@ const pythonRegexes = [
     [ /([^\s]+)\.toString \(\)/g, 'str($1)' ],
     [ /([^\s]+)\.join\s*\(\s*([^\)\[\]]+?)\s*\)/g, '$2.join($1)' ],
     [ /Math\.(max|min)\s/g, '$1' ],
-    [ /console\.log\s/g, 'print'],
-    [ /process\.exit\s+/g, 'sys.exit'],
+    [ / = new /g, ' = ' ], // python does not have a 'new' keyword
+    [ /console\.log\s/g, 'print' ],
+    [ /process\.exit\s+/g, 'sys.exit' ],
     [ /([^:+=\/\*\s-]+) \(/g, '$1(' ], // PEP8 E225 remove whitespaces before left ( round bracket
     [ /\[ /g, '[' ],              // PEP8 E201 remove whitespaces after left [ square bracket
     [ /\{ /g, '{' ],              // PEP8 E201 remove whitespaces after left { bracket
@@ -231,14 +235,16 @@ const python2Regexes = [
 const phpRegexes = [
     [ /\{([a-zA-Z0-9_]+?)\}/g, '<$1>' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
     [ /Array\.isArray\s*\(([^\)]+)\)/g, "gettype ($1) === 'array' && count (array_filter (array_keys ($1), 'is_string')) == 0" ],
-    [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2] == null' ],
-    [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'undefined\'/g, '$1[$2] != null' ],
+    [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2] === null' ],
+    [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'undefined\'/g, '$1[$2] !== null' ],
     [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'undefined\'/g, '$1 === null' ],
     [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'undefined\'/g, '$1 !== null' ],
-    [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'string\'/g, "gettype ($1[$2]) == 'string'" ],
-    [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'string\'/g, "gettype ($1[$2]) != 'string'" ],
-    [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'string\'/g, "gettype ($1) == 'string'" ],
-    [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'string\'/g, "gettype ($1) != 'string'" ],
+    [ /typeof\s+(.+?)\s+\=\=\=?\s+\'undefined\'/g, '$1 === null' ],
+    [ /typeof\s+(.+?)\s+\!\=\=?\s+\'undefined\'/g, '$1 !== null' ],
+    [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'string\'/g, "gettype ($1[$2]) === 'string'" ],
+    [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'string\'/g, "gettype ($1[$2]) !== 'string'" ],
+    [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'string\'/g, "gettype ($1) === 'string'" ],
+    [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'string\'/g, "gettype ($1) !== 'string'" ],
     [ /undefined/g, 'null' ],
     [ /this\.extend/g, 'array_merge' ],
     [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
@@ -312,6 +318,7 @@ const phpRegexes = [
     [ /([^\s]+)\.indexOf\s*\(([^\)]+)\)/g, 'mb_strpos ($1, $2)' ],
     [ /\(([^\s\(]+)\sin\s([^\)]+)\)/g, '(is_array ($2) && array_key_exists ($1, $2))' ],
     [ /([^\s]+)\.join\s*\(\s*([^\)]+?)\s*\)/g, 'implode ($2, $1)' ],
+    [ 'new ccxt\\.', 'new \\ccxt\\' ], // a special case for test_exchange_datetime_functions.php (and for other files, maybe)
     [ /Math\.(max|min)/g, '$1' ],
     [ /console\.log/g, 'var_dump'],
     [ /process\.exit/g, 'exit'],
@@ -374,7 +381,6 @@ function createPythonClass (className, baseClass, body, methods, async = false) 
     for (let constant in precisionConstants) {
         // const regex = new RegExp ("[^\\']" + error + "[^\\']")
         if (bodyAsString.indexOf (constant) >= 0) {
-            console.log (constant)
             precisionImports.push ('from ccxt.base.decimal_to_precision import ' + constant)
         }
     }
@@ -482,12 +488,18 @@ function transpileJavaScriptToPHP ({ js, variables }) {
     // process the variables created in destructuring assignments as well
     let localVariablesMatches
     while (localVariablesMatches = localVariablesRegex.exec (js)) {
-        let match = localVariablesMatches[1] ? localVariablesMatches[1] : localVariablesMatches[2]
-        match = match.trim ().split (', ')                 // split the destructuring assignment by comma
-        match.forEach (x => allVariables.push (x.trim ())) // trim each variable name
-        allVariables.push (localVariablesMatches[1])       // add them to the list of local variables
+        if (localVariablesMatches[1]) {
+            // this is a destructuring assignment like
+            // let [ a, b, c ] = 'a-b-c'.split ('-')
+            let matches = localVariablesMatches[1].trim ().split (', ') // split the destructuring assignment by comma
+            matches.forEach (x => allVariables.push (x.trim ())) // trim each variable name
+        } else {
+            // this is a single variable assignment
+            allVariables.push (localVariablesMatches[2].trim ()) // add it to the list of local variables
+        }
     }
 
+    // match all variables instantiated in the catch()-block of a try-catch clause
     let catchClauseRegex = /catch \(([^)]+)\)/g
     let catchClauseMatches
     while (catchClauseMatches = catchClauseRegex.exec (js)) {
@@ -497,8 +509,12 @@ function transpileJavaScriptToPHP ({ js, variables }) {
     // append $ to all variables in the method (PHP syntax demands $ at the beginning of a variable name)
     let phpVariablesRegexes = allVariables.map (x => [ "([^$$a-zA-Z0-9\\.\\>'_])" + x + "([^a-zA-Z0-9'_])", '$1$$' + x + '$2' ])
 
+    // support for php syntax for object-pointer dereference
+    // convert all $variable.property to $variable->property
+    let variablePropertiesRegexes = allVariables.map (x => [ "([^a-zA-Z0-9\\.\\>'_])" + x + '\\.', '$1' + x + '->' ])
+
     // transpile JS → PHP
-    let phpBody = regexAll (js, phpRegexes.concat (phpVariablesRegexes))
+    let phpBody = regexAll (js, phpRegexes.concat (phpVariablesRegexes).concat (variablePropertiesRegexes))
 
     return phpBody
 }
@@ -776,10 +792,69 @@ function exportTypeScriptDeclarations (classes) {
 
 //-----------------------------------------------------------------------------
 
-const transpileWarning = '# PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n' +
-    '# https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n'
+const pyPreamble = "\
+import os\n\
+import sys\n\
+\n\
+root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))\n\
+sys.path.append(root)\n\
+\n\
+# ----------------------------------------------------------------------------\n\
+\n\
+# PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n\
+# https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n\
+\n\
+# ----------------------------------------------------------------------------\n"
+
+const phpPreamble = "\
+<?php\n\
+namespace ccxt;\n\
+include_once (__DIR__.'/../Exchange.php');\n\
+\n\
+// ----------------------------------------------------------------------------\n\
+\n\
+// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n\
+// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n\
+\n\
+// -----------------------------------------------------------------------------\n"
 
 //-----------------------------------------------------------------------------
+
+function transpileDateTimeTests () {
+    const jsFile = './js/test/base/functions/test.datetime.js'
+    const pyFile = './python/test/test_exchange_datetime_functions.py'
+    const phpFile = './php/test/test_exchange_datetime_functions.php'
+
+    log.magenta ('Transpiling from', jsFile.yellow)
+
+    let js = fs.readFileSync (jsFile).toString ()
+
+    js = regexAll (js, [
+        [ /\'use strict\';?\s+/g, '' ],
+        [ /[^\n]+require[^\n]+\n/g, '' ],
+        [/^\/\*.*\s+/mg, ''],
+    ])
+
+    let { python3Body, python2Body, phpBody } = transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
+
+    // phpBody = phpBody.replace (/exchange\./g, 'Exchange::')
+
+    const pythonHeader =
+"\n\
+import ccxt  # noqa: F402\n\
+\n\
+# ----------------------------------------------------------------------------\n\
+\n"
+
+    const python = pyPreamble + pythonHeader + python2Body
+    const php = phpPreamble + phpBody
+
+    log.magenta ('→', pyFile.yellow)
+    log.magenta ('→', phpFile.yellow)
+
+    overwriteFile (pyFile, python)
+    overwriteFile (phpFile, php)
+}
 
 function transpilePrecisionTests () {
 
@@ -801,14 +876,7 @@ function transpilePrecisionTests () {
     let { python3Body, python2Body, phpBody } = transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
 
     const pythonHeader =
-"import os\n\
-import sys\n\
-\n\
-root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))\n\
-sys.path.append(root)\n\
-\n\
-# -----------------------------------------------------------------------------\n\
-\n\
+"\n\
 from ccxt.base.decimal_to_precision import decimal_to_precision  # noqa F401\n\
 from ccxt.base.decimal_to_precision import TRUNCATE              # noqa F401\n\
 from ccxt.base.decimal_to_precision import ROUND                 # noqa F401\n\
@@ -817,20 +885,12 @@ from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS    # noqa F401\n\
 from ccxt.base.decimal_to_precision import PAD_WITH_ZERO         # noqa F401\n\
 from ccxt.base.decimal_to_precision import NO_PADDING            # noqa F401\n\
 \n\
-# -----------------------------------------------------------------------------\n\
+# ----------------------------------------------------------------------------\n\
 \n\
-# PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n\
-# https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n\
 "
 
     const phpHeader =
-"<?php\n\
-\n\
-namespace ccxt;\n\
-\n\
-include_once ('./php/Exchange.php');\n\
-\n\
-// ----------------------------------------------------------------------------\n\
+"\
 // testDecimalToPrecisionErrorHandling\n\
 //\n\
 // $this->expectException ('ccxt\\\\BaseError');\n\
@@ -843,21 +903,13 @@ include_once ('./php/Exchange.php');\n\
 \n\
 // ----------------------------------------------------------------------------\n\
 \n\
-// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n\
-// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n\
-\n\
-// ----------------------------------------------------------------------------\n\
-\n\
 function decimal_to_precision ($x, $roundingMode = ROUND, $numPrecisionDigits = null, $countingMode = DECIMAL_PLACES, $paddingMode = NO_PADDING) {\n\
     return Exchange::decimal_to_precision ($x, $roundingMode, $numPrecisionDigits, $countingMode, $paddingMode);\n\
 }\n\
 "
 
-    const python = pythonHeader + python2Body
-    const php = phpHeader + phpBody
-
-    // log.yellow (python)
-    // log.cyan (php)
+    const python = pyPreamble + pythonHeader + python2Body
+    const php = phpPreamble + phpHeader + phpBody
 
     log.magenta ('→', pyFile.yellow)
     log.magenta ('→', phpFile.yellow)
@@ -880,9 +932,10 @@ if (classes === null) {
 }
 
 // HINT: if we're going to support specific class definitions this process won't work anymore as it will override the definitions.
-exportTypeScriptDeclarations (classes)
+exportTypeScriptDeclarations (classes)  // we use typescript?
 
 transpilePrecisionTests ()
+transpileDateTimeTests ()
 transpilePythonAsyncToSync ('./python/test/test_async.py', './python/test/test.py')
 // transpilePrecisionTests ('./js/test/base/functions/test.number.js', './python/test/test_decimal_to_precision.py', './php/test/decimal_to_precision.php')
 

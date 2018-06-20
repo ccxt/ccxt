@@ -215,7 +215,7 @@ class cex (Exchange):
             since = self.milliseconds() - 86400000  # yesterday
         else:
             if self.options['fetchOHLCVWarning']:
-                raise ExchangeError(self.id + " fetchOHLCV warning: CEX can return historical candles for a certain date only, self might produce an empty or null response. Set exchange.options['fetchOHLCVWarning'] = False or add({'options': {'fetchOHLCVWarning': False}}) to constructor params to suppress self warning message.")
+                raise ExchangeError(self.id + " fetchOHLCV warning: CEX can return historical candles for a certain date only, self might produce an empty or null reply. Set exchange.options['fetchOHLCVWarning'] = False or add({'options': {'fetchOHLCVWarning': False}}) to constructor params to suppress self warning message.")
         ymd = self.ymd(since)
         ymd = ymd.split('-')
         ymd = ''.join(ymd)

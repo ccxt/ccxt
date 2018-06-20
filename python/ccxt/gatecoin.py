@@ -448,9 +448,8 @@ class gatecoin (Exchange):
             else:
                 raise AuthenticationError(self.id + ' two-factor authentication requires a missing ValidationCode parameter')
         response = self.privatePostTradeOrders(self.extend(order, params))
-        # At self point response.responseStatus.message has been verified
-        # in handleErrors() to be == 'OK', so we assume the order has
-        # indeed been opened.
+        # At self point response['responseStatus']['message'] has been verified in handleErrors()
+        # to be == 'OK', so we assume the order has indeed been opened
         return {
             'info': response,
             'status': 'open',
