@@ -37,6 +37,7 @@ try {
     // This is an example of how NOT TO DO error handling
     // One should not rely on the message string contained in the exception
     // If you want to access it, that might indicate a design error in your code.
+    // See: https://github.com/ccxt/ccxt/issues/3053
 
     $message = $e->getMessage ();
 
