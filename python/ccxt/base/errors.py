@@ -37,7 +37,7 @@ __all__ = [
     'ExchangeNotAvailable',
     'InvalidNonce',
     'InvalidAddress',
-    'AddressNotReady',
+    'AddressPending',
     'BadResponse',
     'NullResponse',
 ]
