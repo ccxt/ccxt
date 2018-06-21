@@ -127,7 +127,6 @@ module.exports = class wex extends liqui {
             'currency': code,
             'address': response['return']['address'],
             'tag': undefined,
-            'status': 'ok',
             'info': response,
         };
     }

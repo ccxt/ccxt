@@ -650,7 +650,6 @@ module.exports = class huobipro extends Exchange {
         this.checkAddress (address);
         return {
             'currency': code,
-            'status': 'ok',
             'address': address,
             'info': response,
         };

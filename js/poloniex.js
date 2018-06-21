@@ -767,7 +767,7 @@ module.exports = class poloniex extends Exchange {
         return {
             'currency': code,
             'address': address,
-            'status': 'ok',
+            'tag': undefined,
             'info': response,
         };
     }
@@ -778,11 +778,10 @@ module.exports = class poloniex extends Exchange {
         let currencyId = currency['id'];
         let address = this.safeString (response, currencyId);
         this.checkAddress (address);
-        let status = address ? 'ok' : 'none';
         return {
             'currency': code,
             'address': address,
-            'status': status,
+            'tag': undefined,
             'info': response,
         };
     }

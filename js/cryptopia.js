@@ -696,7 +696,6 @@ module.exports = class cryptopia extends Exchange {
         return {
             'currency': code,
             'address': address,
-            'status': 'ok',
             'info': response,
         };
     }

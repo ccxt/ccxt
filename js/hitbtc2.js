@@ -1054,7 +1054,6 @@ module.exports = class hitbtc2 extends hitbtc {
             'currency': currency,
             'address': address,
             'tag': tag,
-            'status': 'ok',
             'info': response,
         };
     }
@@ -1072,7 +1071,6 @@ module.exports = class hitbtc2 extends hitbtc {
             'currency': currency['code'],
             'address': address,
             'tag': tag,
-            'status': 'ok',
             'info': response,
         };
     }

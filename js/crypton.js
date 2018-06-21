@@ -366,7 +366,6 @@ module.exports = class crypton extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
-            'status': 'ok',
             'info': response,
         };
     }

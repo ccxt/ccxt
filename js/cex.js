@@ -544,7 +544,6 @@ module.exports = class cex extends Exchange {
             'currency': code,
             'address': address,
             'tag': undefined,
-            'status': 'ok',
             'info': response,
         };
     }

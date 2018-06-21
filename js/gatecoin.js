@@ -638,7 +638,6 @@ module.exports = class gatecoin extends Exchange {
         return {
             'currency': code,
             'address': address,
-            'status': 'ok',
             'info': response,
         };
     }
@@ -655,7 +654,6 @@ module.exports = class gatecoin extends Exchange {
         return {
             'currency': code,
             'address': address,
-            'status': 'ok',
             'info': response,
         };
     }
@@ -669,11 +667,8 @@ module.exports = class gatecoin extends Exchange {
             'Address': address,
             'Password': password,
         };
-        let response = await this.privatePostElectronicWalletUserWalletsDigiCurrency (this.extend (request, params));
-        return {
-            'status': 'ok',
-            'info': response,
-        };
+        // not unified yet
+        return await this.privatePostElectronicWalletUserWalletsDigiCurrency (this.extend (request, params));
     }
 
     handleErrors (code, reason, url, method, headers, body) {

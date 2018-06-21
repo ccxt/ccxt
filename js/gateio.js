@@ -487,7 +487,6 @@ module.exports = class gateio extends Exchange {
             'currency': currency,
             'address': address,
             'tag': tag,
-            'status': (typeof address !== 'undefined') ? 'ok' : 'none',
             'info': response,
         };
     }

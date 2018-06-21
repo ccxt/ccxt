@@ -522,7 +522,6 @@ module.exports = class cobinhood extends Exchange {
         return {
             'currency': code,
             'address': address,
-            'status': 'ok',
             'info': response,
         };
     }
@@ -542,7 +541,6 @@ module.exports = class cobinhood extends Exchange {
         return {
             'currency': code,
             'address': address,
-            'status': 'ok',
             'info': response,
         };
     }
