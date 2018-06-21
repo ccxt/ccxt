@@ -1446,6 +1446,7 @@ module.exports = class Exchange extends EventEmitter{
             'ready': false,
             'conx': null,
         };
+        asyncConfig['proxy'] = this.wsproxy;
         switch (asyncConfig['type']){
             case 'ws':
                 asyncConnectionInfo['conx'] = new WebsocketConnection (asyncConfig, this.timeout);
