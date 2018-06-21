@@ -12,6 +12,8 @@ import ccxt.async as ccxt  # noqa: E402
 import asyncio  # noqa: E402
 
 loop = asyncio.get_event_loop()
+# import txaio
+# txaio.start_logging(level='debug')
 
 
 async def main():
@@ -31,8 +33,9 @@ async def main():
         "apiKey": apiKey,
         "secret": secret,
         "enableRateLimit": True,
-        'verbose': True,
-        'timeout': 5 * 1000
+        'verbose': False,
+        'timeout': 5 * 1000,
+        # 'wsproxy': 'http://185.93.3.123:8080/',        
     })
 
     @exchange.on('err')

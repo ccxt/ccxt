@@ -38,6 +38,8 @@ class MyClientProtocol(WebSocketClientProtocol):
             self.event_emitter.emit('close')
 
 
+
+
 class WebsocketConnection(AsyncConnection):
     def __init__(self, options, timeout, loop):
         super(WebsocketConnection, self).__init__()
@@ -62,7 +64,12 @@ class WebsocketConnection(AsyncConnection):
                 port = url_parsed.port if url_parsed.port is not None else 443 if ssl else 80
 
                 client = MyClientProtocol(self, future)
-                factory = WebSocketClientFactory(self.options['url'])
+                if 'proxy' in list(self.options.keys()):
+                    proxy_url_parsed = urlparse(self.options['proxy'])
+                    proxy = {'host': proxy_url_parsed.hostname, 'port': proxy_url_parsed.port}
+                    factory = WebSocketClientFactory(self.options['url'], proxy=proxy)
+                else:
+                    factory = WebSocketClientFactory(self.options['url'])
                 factory.protocol = lambda: client
 
                 fut = self.loop.create_connection(factory, url_parsed.hostname, port, ssl=ssl)

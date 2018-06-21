@@ -65,6 +65,7 @@ class Exchange(BaseExchange, EventEmitter):
         # async connection initialization
         self.asyncconf = {}
         self.asyncConnectionPool = {}
+        self.wsproxy = None
         super(Exchange, self).__init__(config)
 
         self._async_reset_context()
@@ -530,6 +531,8 @@ class Exchange(BaseExchange, EventEmitter):
             'ready': False,
             'conx': None,
         }
+        if self.wsproxy is not None:
+            async_config['proxy'] = self.wsproxy
         if (async_config['type'] == 'ws'):
             async_connection_info['conx'] = WebsocketConnection(async_config, self.timeout, self.asyncio_loop)
         elif (async_config['type'] == 'ws-s'):
